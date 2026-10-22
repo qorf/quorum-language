@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.system.MemoryUtil;
+import quorum.Libraries.Compute.Matrix3_;
 import quorum.Libraries.Compute.Matrix4_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
 
@@ -45,7 +46,35 @@ public class VulkanPushConstantBuffer
     {
         buffer.putInt(value);
     }
-    
+
+    public void AddVector3(double x, double y, double z)
+    {
+        buffer.putFloat((float)x);
+        buffer.putFloat((float)y);
+        buffer.putFloat((float)z);
+    }
+
+    public void AddVector4(double x, double y, double z, double w)
+    {
+        buffer.putFloat((float)x);
+        buffer.putFloat((float)y);
+        buffer.putFloat((float)z);
+        buffer.putFloat((float)w);
+    }
+
+    public void AddMatrix3(Matrix3_ matrix)
+    {
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row0column0_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row1column0_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row2column0_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row0column1_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row1column1_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row2column1_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row0column2_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row1column2_());
+        buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix3__row2column2_());
+    }
+
     public void AddMatrix4(Matrix4_ matrix)
     {
         buffer.putFloat((float)matrix.Get_Libraries_Compute_Matrix4__row0column0_());

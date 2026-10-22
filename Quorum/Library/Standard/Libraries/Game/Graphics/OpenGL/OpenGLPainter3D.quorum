@@ -192,19 +192,6 @@ private action GetGraphics returns OpenGLManager
         OpenGLManager graphics = GetGraphics()
         OpenGLConstants constants
         GameStateManager gameState
-        if gameState:GetApplication() is WebApplication
-            if webSkyboxShader = undefined
-                SkyboxShader shader
-                webSkyboxShader = shader
-            end
-            graphics:EnableProperty(constants:GL_DEPTH_TEST)
-            graphics:EnableProperty(constants:GL_BLEND)
-            webSkyboxShader:Render(skybox, camera)
-            return now
-        end
-        if not (camera is PerspectiveCamera)
-            return now
-        end
 
         ShaderManager shaders = gameState:GetShaderManager()
         ShaderProgram program = shaders:GetSkyboxShaderProgram()

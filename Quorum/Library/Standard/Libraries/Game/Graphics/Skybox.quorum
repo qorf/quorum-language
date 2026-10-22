@@ -25,9 +25,6 @@ class Skybox
 
     Texture cubeMap = undefined
     Matrix4 transform
-    
-    // Used to invert the skybox. A value of -1 inverts the box, while a value of 1 leaves it as it is.
-    number inverter = 1
 
     // Under Vulkan, each side's pixels, kept until all six are loaded and
     // the cube can be made: right, left, up, down, front, back.
@@ -152,8 +149,8 @@ class Skybox
         LoadCubeSide(left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
         LoadCubeSide(up, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
         LoadCubeSide(down, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
-        LoadCubeSide(forward, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
-        LoadCubeSide(back, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(forward, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(back, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
     /*
@@ -603,7 +600,7 @@ class Skybox
     action LoadFront(File image)
         PrepareCubeMap()
 
-        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     end
 
     /*
@@ -693,7 +690,7 @@ class Skybox
     action LoadBack(File image)
         PrepareCubeMap()
 
-        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
     /*
@@ -762,16 +759,8 @@ class Skybox
                     sideIndex = sideIndex + 1
                 end
             end
-        elseif manager:GetApplication() is WebApplication
-            LoadSide(file, cubeMap, side)
         else
-            integer face = side
-            if side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-                face = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-            elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
-                face = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
-            end
-            LoadSide(file, cubeMap, face)
+            LoadSide(file, cubeMap, side)
             RecordSource(file, side)
         end
     end
@@ -792,7 +781,7 @@ class Skybox
             return 2
         elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
             return 3
-        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
             return 4
         end
         return 5
@@ -830,7 +819,7 @@ class Skybox
             upSource = file
         elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
             downSource = file
-        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
             frontSource = file
         else
             backSource = file
@@ -879,16 +868,6 @@ class Skybox
     end
 
     /*
-    This action returns 1 if the sky is shown as it is, or -1 if it is
-    mirrored left to right (see InvertSkybox).
-
-    Attribute: Returns 1 or -1.
-    */
-    action GetInverter returns number
-        return inverter
-    end
-
-    /*
     This action works out, from a camera, the three vectors the painters'
     sky shaders need to find the direction through each pixel: the camera's
     forward direction, and its right and up directions, each as long as the
@@ -923,14 +902,15 @@ class Skybox
     end
     */
     action UpdateView(Camera camera) returns boolean
-        if not (camera is PerspectiveCamera)
-            return false
-        end
         PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
-        number zoom = perspective:GetZoom()
-        if zoom <= 0
+        number zoom = 1
+        if camera is PerspectiveCamera
+            zoom = perspective:GetZoom()
+            if zoom <= 0
             zoom = 1
         end
+        end
+        
         // The same field of view the camera's projection uses (vertical).
         number halfHeight = math:Tangent(math:DegreesToRadians(perspective:GetFieldOfView() / zoom) / 2)
         number aspect = 1
@@ -1158,74 +1138,6 @@ class Skybox
     */
     action SetToRotation(Vector3 axis, number degrees)
         SetToRotation(axis:GetX(), axis:GetY(), axis:GetZ(), degrees)
-    end
-
-    /*
-    This action returns whether or not the images of the Skybox are currently
-    inverted. This will cause them to appear to be drawn backwards. By default,
-    Skyboxes are inverted, so this will return true. This can be disabled or
-    enabled using the InvertSkybox action.
-
-    Attribute: Returns Whether or not the Skybox is inverted. This is true by default.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Skybox
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Skybox skybox
-            // Assuming we have a folder named "Skybox" containing our six images.
-            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
-            SetSkybox(skybox)
-            
-            boolean inverted = skybox:IsInverted()
-            output "Is the Skybox inverted? " + inverted
-        end
-    end
-    */
-    action IsInverted returns boolean
-        return inverter = 1
-    end
-
-    /*
-    The InvertSkybox action sets whether the Skybox's images are shown as
-    they are (true, the default) or mirrored left to right (false).
-
-    Attribute: Parameter invert Whether or not the Skybox should be inverted.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Skybox
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Skybox skybox
-            // Assuming we have a folder named "Skybox" containing our six images.
-            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
-            skybox:InvertSkybox(false)
-            SetSkybox(skybox)
-        end
-    end
-    */
-    action InvertSkybox(boolean invert)
-        if invert
-            inverter = 1
-        else
-            inverter = -1
-        end
     end
 
     /*

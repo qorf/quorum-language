@@ -2296,18 +2296,28 @@ BindDescriptorSetCommand resultDescriptorBind
         Vector3 up = skybox:GetViewUp()
         Vector3 forward = skybox:GetViewForward()
         skyboxPushConstants:ResetWritePosition()
-        skyboxPushConstants:AddNumber32Bit(right:GetX())
-        skyboxPushConstants:AddNumber32Bit(right:GetY())
-        skyboxPushConstants:AddNumber32Bit(right:GetZ())
-        skyboxPushConstants:AddNumber32Bit(skybox:GetInverter())
-        skyboxPushConstants:AddNumber32Bit(up:GetX())
-        skyboxPushConstants:AddNumber32Bit(up:GetY())
-        skyboxPushConstants:AddNumber32Bit(up:GetZ())
+        skyboxPushConstants:AddVector3(right)
+        // Push an additional value to make the Vector3 a Vector4 internally.
+        // This is needed not because we'll use the 4th value, but because internal memory padding rules
+        // cause Vector3s to require the same amount of space as a Vector4, causing values to be misaligned if we don't compensate.
         skyboxPushConstants:AddNumber32Bit(0)
-        skyboxPushConstants:AddNumber32Bit(forward:GetX())
-        skyboxPushConstants:AddNumber32Bit(forward:GetY())
-        skyboxPushConstants:AddNumber32Bit(forward:GetZ())
+        //skyboxPushConstants:AddNumber32Bit(right:GetX())
+        //skyboxPushConstants:AddNumber32Bit(right:GetY())
+        //skyboxPushConstants:AddNumber32Bit(right:GetZ())
+        // This was the inverter value, but that value is gone now.
+        //skyboxPushConstants:AddNumber32Bit(1)
+        skyboxPushConstants:AddVector3(up)
         skyboxPushConstants:AddNumber32Bit(0)
+        //skyboxPushConstants:AddNumber32Bit(up:GetX())
+        //skyboxPushConstants:AddNumber32Bit(up:GetY())
+        //skyboxPushConstants:AddNumber32Bit(up:GetZ())
+        //skyboxPushConstants:AddNumber32Bit(0)
+        skyboxPushConstants:AddVector3(forward)
+        skyboxPushConstants:AddNumber32Bit(0)
+        //skyboxPushConstants:AddNumber32Bit(forward:GetX())
+        //skyboxPushConstants:AddNumber32Bit(forward:GetY())
+        //skyboxPushConstants:AddNumber32Bit(forward:GetZ())
+        //skyboxPushConstants:AddNumber32Bit(0)
         skyboxPushConstants:AddMatrix4(skybox:GetRotation())
 
         SetPushConstantsCommand setPushConstants

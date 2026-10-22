@@ -28,9 +28,9 @@ layout (location = 0) out vec4 outputColor;
 
 layout (set = 0, binding = 0) uniform samplerCube u_skybox;
 
-// 112 bytes. The right vector's w is the inverter: 1, or -1 to mirror.
 layout (push_constant) uniform SkyboxConstants
 {
+	// While we only need XYZ for each of these, the buffer alignment gets weird when using vec3s, so use vec4 to pad the data.
     vec4 right;
     vec4 up;
     vec4 forward;
@@ -41,8 +41,7 @@ void main()
 {
     vec3 direction = sky.forward.xyz + v_screen.x * sky.right.xyz + v_screen.y * sky.up.xyz;
     direction = direction * mat3(sky.rotation);
-    direction.x = direction.x * sky.right.w;
-    outputColor = vec4(texture(u_skybox, direction).rgb, 1.0);
+    outputColor = texture(u_skybox, direction);
 }
 ")
     end

@@ -82,9 +82,6 @@ class VulkanTextureManager
         VulkanDescriptorSetLayout globalTextureLayout
         globalTextureLayout:CreateUpdateAfterBind(device, bindings)
         globalTextureDescriptorSetLayout = globalTextureLayout
-
-        // Initialize the first of our texture descriptor sets. We may create more on-demand later.
-        //CreateNewTextureDescriptorSet()
         
         VulkanSampler immutableSampler
         VulkanSamplerInfo defaultInfo
