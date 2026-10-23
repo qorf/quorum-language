@@ -140,9 +140,8 @@ public class WindowsSpeak extends AbstractTextToSpeech{
     @Override
     public Iterator<TextToSpeechEngine> getAvailableEngines() {
         ArrayList<TextToSpeechEngine> engines = new ArrayList<TextToSpeechEngine>();
+        // Windows speech always uses SAPI (JAWS and NVDA were removed in 2026).
         engines.add(TextToSpeechEngine.MICROSOFT_SAPI);
-        engines.add(TextToSpeechEngine.JAWS);
-        engines.add(TextToSpeechEngine.NVDA);
         return engines.iterator();
     }
 
@@ -256,10 +255,9 @@ public class WindowsSpeak extends AbstractTextToSpeech{
     }
 
     /**
-     * This function attempts to change the speech engine to another type,
-     * if it is available. For example, you can request to load JAWS. If a
-     * a problem occurs (e.g., JAWS is not available), this method
-     * returns null and the request is ignored.
+     * This function attempts to change the speech engine. Only Microsoft
+     * SAPI is supported on Windows; any other engine returns false and the
+     * request is ignored.
      * 
      * @param engine
      * @return
@@ -310,12 +308,6 @@ public class WindowsSpeak extends AbstractTextToSpeech{
 
         if(name.compareTo(TextToSpeechEngine.MICROSOFT_SAPI.getEngineName()) == 0) {
             return TextToSpeechEngine.MICROSOFT_SAPI;
-        }
-        else if(name.compareTo(TextToSpeechEngine.JAWS.getEngineName()) == 0) {
-            return TextToSpeechEngine.JAWS;
-        }
-        else if(name.compareTo(TextToSpeechEngine.NVDA.getEngineName()) == 0) {
-            return TextToSpeechEngine.NVDA;
         }
 
         return TextToSpeechEngine.NULL;

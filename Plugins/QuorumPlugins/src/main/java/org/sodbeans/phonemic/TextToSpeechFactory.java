@@ -98,8 +98,8 @@ public class TextToSpeechFactory {
         else if(isWindows()) {
 
             try {
-                //SAPI and JAWS speech are part of Windows.dll. It loads NVDA's
-                //client DLL itself, only when NVDA is used.
+                //SAPI speech is part of Windows.dll. Windows speech always
+                //uses SAPI (JAWS and NVDA were removed in 2026).
                 File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
                 System.load(jar.getParentFile().getAbsolutePath() + "\\jni\\Windows.dll");
                 windowsSpeak = new WindowsSpeak();
@@ -257,8 +257,9 @@ public class TextToSpeechFactory {
 
     /**
      * Allows the user to request a particular text to speech engine. Since
-     * some engines are only available on some systems (e.g., JAWS on Windows,
-     * Carbon on Mac OS X), this request may fail and return null.
+     * some engines are only available on some systems (e.g., Microsoft SAPI
+     * on Windows, speech-dispatcher on Linux), this request may fail and
+     * return null.
      *
      * @param engine
      * @return
@@ -268,18 +269,6 @@ public class TextToSpeechFactory {
             return instance;
         }
         else if (isWindows() && TextToSpeechEngine.MICROSOFT_SAPI == engine){
-            if(windowsSAPILoaded) {
-                windowsSpeak.setTextToSpeechEngine(engine);
-                return windowsSpeak;
-            } //return null otherwise
-        }
-        else if (isWindows() && TextToSpeechEngine.JAWS == engine){
-            if(windowsSAPILoaded) {
-                windowsSpeak.setTextToSpeechEngine(engine);
-                return windowsSpeak;
-            } //return null otherwise
-        }
-        else if (isWindows() && TextToSpeechEngine.NVDA == engine){
             if(windowsSAPILoaded) {
                 windowsSpeak.setTextToSpeechEngine(engine);
                 return windowsSpeak;
@@ -402,62 +391,5 @@ public class TextToSpeechFactory {
             System.load(JNIPath + "/" + libFullName);
         }
     }
-    
-    /**
-     * Returns whether or not the given file exists.
-     * @param path
-     * @return 
-     */
-    private static boolean fileExists(String path) {
-        File f = new File(path);
-        
-        return f.exists();
-    }
-    /**
-     * Determines if the given JAWS script is installed. This function checks
-     * for the following path names, where %APPDATA% is the AppData environment
-     * variable.
-     * 
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jcf
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jss
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsb
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsd
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsh
-     * 
-     * @param name the script name to search for
-     * @return 
-     */
-    public static boolean jawsScriptExists(String name) {
-        if (!isWindows())
-            return false;
-        
-        String appData = System.getenv("AppData");
-        
-        return fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jcf")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsb")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsd")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsh")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jss");
-    }
-    
-    /**
-     * Determine if the given NVDA script is installed. THis function checks
-     * for the following path names, where %APPDATA% is the AppData environment
-     * variable.
-     * 
-     * %APPDATA%\nvda\appModules\$name.py
-     * %APPDATA%\nvda\appModules\$name.pyo
-     * 
-     * @param name the script name to search for.
-     * @return 
-     */
-    public static boolean nvdaScriptExists(String name) {
-        if (!isWindows())
-            return false;
-        
-        String appData = System.getenv("AppData");
 
-        return fileExists(appData + "\\nvda\\appModules\\" + name + ".py")
-                || fileExists(appData + "\\nvda\\appModules\\" + name + ".pyo");
-    }
 }
