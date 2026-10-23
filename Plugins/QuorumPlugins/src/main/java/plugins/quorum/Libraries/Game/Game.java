@@ -75,10 +75,8 @@ public class Game
                 String lwjgl = runLocation + "/jni";
                 System.setProperty("org.lwjgl.librarypath", lwjgl);
                 
-                if (System.getProperty("os.arch").contains("x86"))
-                    nativeFile = runLocation + "\\jni\\libGameEngineCPlugins32.dll";
-                else
-                    nativeFile = runLocation + "\\jni\\libGameEngineCPlugins64.dll";
+                //One library for the game, accessibility and speech.
+                nativeFile = runLocation + "\\jni\\Windows.dll";
             }
             else
             {

@@ -98,14 +98,10 @@ public class TextToSpeechFactory {
         else if(isWindows()) {
 
             try {
-                if(OperatingSystem.getNumberBits() == 64) {
-                    loadLibrary("nvdaControllerClient64");
-                    loadLibrary("SappyJNI64");
-                }
-                else {
-                    loadLibrary("nvdaControllerClient32");
-                    loadLibrary("SappyJNI");
-                }
+                //SAPI and JAWS speech are part of Windows.dll. It loads NVDA's
+                //client DLL itself, only when NVDA is used.
+                File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                System.load(jar.getParentFile().getAbsolutePath() + "\\jni\\Windows.dll");
                 windowsSpeak = new WindowsSpeak();
                 speech.setSpeech(windowsSpeak);
                 instance = speech;

@@ -163,15 +163,10 @@ public class AccessibilityManager
         {
             java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
             String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile;
-            
-            if (System.getProperty("os.arch").contains("x86")) {
-                nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows32.dll";
-            }
-            else {
-                nativeFile = runLocation + "\\jni\\AccessibilityManagerWindows64.dll";
-            }
-            System.load(nativeFile);
+
+            //Accessibility is part of Windows.dll, which Game.java has usually
+            //loaded already. Loading it again is harmless.
+            System.load(runLocation + "\\jni\\Windows.dll");
             String windowTitle = GameStateManager.game.GetDesktopConfiguration().Get_Libraries_Game_DesktopConfiguration__title_();
             InitializeAccessibilityNative(org.lwjgl.glfw.GLFWNativeWin32.glfwGetWin32Window(DesktopDisplay.window), windowTitle);
 //            DesktopDisplay.ForceWindowVisible();
