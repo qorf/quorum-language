@@ -90,10 +90,24 @@ public class TextToSpeechFactory {
                     getStackTraceString(stackTrace));
             }
 
-            linuxSpeak = new LinuxSpeak();
-            instance = linuxSpeak;
-            speech.setSpeech(linuxSpeak);
-            isLoaded = true;
+            // The Linux library isn't shipped any more (Linux isn't supported),
+            // so speech is only set up if it loaded. Otherwise isLoaded stays
+            // false and getDefaultTextToSpeech returns NullSpeak, so say is
+            // silent instead of failing. Android also reports "Linux" and
+            // ends up here.
+            if (linuxLibraryLoaded) {
+                try {
+                    linuxSpeak = new LinuxSpeak();
+                    instance = linuxSpeak;
+                    speech.setSpeech(linuxSpeak);
+                    isLoaded = true;
+                }
+                catch (Exception | Error e) {
+                    logger.log(Level.SEVERE, "Could not start speech-dispatcher speech. " +
+                        getStackTraceString(e.getStackTrace()));
+                    linuxSpeak = null;
+                }
+            }
         }
         else if(isWindows()) {
 
