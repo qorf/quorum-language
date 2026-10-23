@@ -1,0 +1,360 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Game.Graphics.Worlds.TerrainGenerator
+
+/*
+    The TerrainStampPropertiesDialog is a selected terrain's Stamp section
+    (step 17): the Stamp tool's shape (a hill, mountain, mesa, crater or
+    ridge), how it meets the ground, its height and its turn. It shows only
+    while the terrain's Stamp tool is chosen, right after the Brush section.
+    Each click with the Stamp tool presses the shape into the ground at the
+    brush, as big as the brush.
+
+    "Usual" is each shape's own way: a crater is added (its dip is cut into
+    the ground), and the other shapes raise the ground to the shape.
+
+    The settings are kept on the EditorTerrain (SetStampShape and the
+    others), so choosing another tool and coming back keeps them.
+*/
+class TerrainStampPropertiesDialog is PropertiesDialog
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up, as in the other terrain sections.
+    constant number FIELD_LABEL_WIDTH = 110
+
+    // True while the settings are being shown, so showing them isn't taken
+    // as the user choosing.
+    boolean updating = false
+
+    ButtonGroup stampGroup = undefined
+    ButtonGroup modeGroup = undefined
+    TextField stampHeightField = undefined
+    TextField turnField = undefined
+
+    TerrainGenerator names
+
+    // The selected terrain, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Stamp")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Stamp")
+        headingLabel:SetLeftMargin(20)
+        headingLabel:SetTopMargin(6)
+        panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
+
+        AddCaption(panel, "Shape:")
+        ButtonGroup stamps
+        stampGroup = MakeGroup(stamps, "Stamp shape")
+        integer stamp = 0
+        repeat while stamp < names:GetStampCount()
+            AddRadio(stampGroup, Capitalize(names:GetStampName(stamp)), "")
+            stamp = stamp + 1
+        end
+        stampGroup:GetButtonAt(0):SetToggleState(true)
+        stampGroup:AddSelectionListener(me)
+        AddGroup(panel, stampGroup, focusArray)
+
+        AddCaption(panel, "Mode:")
+        ButtonGroup modes
+        modeGroup = MakeGroup(modes, "Stamp mode")
+        AddRadio(modeGroup, "Usual", "The usual way for the shape: craters add, the others raise to the shape")
+        AddRadio(modeGroup, "Add", "Add the shape to the ground")
+        AddRadio(modeGroup, "Subtract", "Subtract the shape from the ground")
+        AddRadio(modeGroup, "Raise to", "Raise the ground to the shape, leaving higher ground as it is")
+        modeGroup:GetButtonAt(0):SetToggleState(true)
+        modeGroup:AddSelectionListener(me)
+        AddGroup(panel, modeGroup, focusArray)
+
+        Control heightLine = MakeLine()
+        stampHeightField = AddField(heightLine, "Height:", "Stamp height in world units", "15", focusArray)
+        panel:Add(heightLine)
+        Control turnLine = MakeLine()
+        turnField = AddField(turnLine, "Turn:", "Stamp turn in degrees", "0", focusArray)
+        panel:Add(turnLine)
+        stampHeightField:AddTextChangeListener(me)
+        turnField:AddTextChangeListener(me)
+    end
+
+    /*
+        Adds a caption on its own line.
+    */
+    private action AddCaption(Control panel, text value)
+        Control line = MakeLine()
+        Label caption
+        caption:SetText(value)
+        line:Add(caption)
+        panel:Add(line)
+    end
+
+    /*
+        Makes a container for one line of controls, the width of the
+        section.
+    */
+    private action MakeLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(20)
+        line:SetRightMargin(30)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        Sets up a group of radio buttons.
+    */
+    private action MakeGroup(ButtonGroup group, text name) returns ButtonGroup
+        Control layoutValues
+        group:SetName(name)
+        group:SetHorizontalLayoutMode(layoutValues:FILL)
+        group:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
+        FlowLayout layout
+        group:SetLayout(layout)
+        return group
+    end
+
+    /*
+        Adds a radio button to a group. A radio button is one line tall, so
+        its name is kept short: a longer one wraps over the next button. The
+        description, if not empty, says it in full.
+    */
+    private action AddRadio(ButtonGroup group, text name, text description)
+        Control layoutValues
+        RadioButton button
+        button:SetName(name)
+        if description not= ""
+            button:SetDescription(description)
+        end
+        button:SetHorizontalLayoutMode(layoutValues:FILL)
+        group:AddToGrouping(button)
+        group:Add(button)
+    end
+
+    /*
+        Puts a group of radio buttons in the section.
+    */
+    private action AddGroup(Control panel, ButtonGroup group, Array<Control> focusArray)
+        Control line = MakeLine()
+        line:Add(group)
+        panel:Add(line)
+        focusArray:Add(group)
+    end
+
+    /*
+        Adds a labelled field to a line.
+    */
+    private action AddField(Control line, text label, text name, text value, Array<Control> focusArray) returns TextField
+        // The label sits in a box of one width, so the fields line up.
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
+        TextField field
+        field:SetName(name)
+        field:SetText(value)
+        field:SetFocusable(true)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(line:FILL)
+        line:Add(field)
+        focusArray:Add(field)
+        return field
+    end
+
+    /*
+        Returns a name with its first letter in capitals.
+    */
+    private action Capitalize(text name) returns text
+        if name:GetSize() = 0
+            return name
+        end
+        return name:GetSubtext(0, 1):ToUpperCase() + name:GetSubtext(1)
+    end
+
+    /*
+        This action follows the selection: with a terrain selected, the
+        section shows while its Stamp tool is chosen. It also takes the
+        shape and mode as they are chosen.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is ButtonGroupSelection
+            if not updating and terrain not= undefined
+                TakeStampSettings()
+            end
+            return now
+        end
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            ToolChanged(highlight:GetEditorTerrain())
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        Shows the section if a terrain's Stamp tool is chosen, and hides it
+        otherwise. The scene editor calls it when a terrain's tool changes.
+
+        Attribute: Parameter terrain The terrain, or undefined
+    */
+    action ToolChanged(EditorTerrain terrain)
+        me:terrain = terrain
+        boolean stamping = false
+        if terrain not= undefined
+            stamping = terrain:GetToolNumber() = terrain:STAMP_TOOL
+        end
+        if stamping
+            ShowStampSettings()
+            if not IsShowing()
+                Show()
+            end
+        elseif IsShowing()
+            Hide()
+        end
+    end
+
+    /*
+        This action sets the terrain from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            terrain = highlight:GetEditorTerrain()
+            ShowStampSettings()
+        end
+    end
+
+    /*
+        The height and turn are taken as they are typed.
+    */
+    action TextChanged(TextChangeEvent event)
+        if not updating and terrain not= undefined
+            TakeStampSettings()
+        end
+    end
+
+    /*
+        Gives the terrain's Stamp tool the shape, mode, height and turn
+        chosen here. A field that doesn't hold a number yet leaves its value
+        as it was.
+    */
+    private action TakeStampSettings
+        terrain:SetStampShape(GetChoice(stampGroup))
+        integer modeChoice = GetChoice(modeGroup)
+        if modeChoice = 0
+            terrain:SetStampMode(-1)
+        elseif modeChoice = 1
+            terrain:SetStampMode(names:STAMP_ADD)
+        elseif modeChoice = 2
+            terrain:SetStampMode(names:STAMP_SUBTRACT)
+        else
+            terrain:SetStampMode(names:STAMP_RAISE)
+        end
+        terrain:SetStampHeight(ReadNumber(stampHeightField, terrain:GetStampHeight()))
+        terrain:SetStampTurn(ReadNumber(turnField, terrain:GetStampTurn()))
+    end
+
+    /*
+        Shows the terrain's Stamp tool settings.
+    */
+    private action ShowStampSettings
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        integer shape = terrain:GetStampShape()
+        if shape >= 0 and shape < stampGroup:GetSize()
+            stampGroup:GetButtonAt(shape):SetToggleState(true)
+        end
+        integer mode = terrain:GetStampMode()
+        integer modeChoice = 0
+        if mode = names:STAMP_ADD
+            modeChoice = 1
+        elseif mode = names:STAMP_SUBTRACT
+            modeChoice = 2
+        elseif mode = names:STAMP_RAISE
+            modeChoice = 3
+        end
+        modeGroup:GetButtonAt(modeChoice):SetToggleState(true)
+        stampHeightField:SetText("" + terrain:GetStampHeight())
+        turnField:SetText("" + terrain:GetStampTurn())
+        updating = false
+    end
+
+    /*
+        Returns which radio button in a group is chosen, from 0.
+    */
+    private action GetChoice(ButtonGroup group) returns integer
+        integer index = group:GetSelection():GetIndex()
+        if index < 0
+            return 0
+        end
+        return index
+    end
+
+    /*
+        Returns the number in a field, or a default if it doesn't hold one.
+    */
+    private action ReadNumber(TextField field, number defaultValue) returns number
+        number value = defaultValue
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = defaultValue
+        end
+        return value
+    end
+
+    /*
+        Moves the focus to the shape choice.
+    */
+    action FocusField
+        stampGroup:Focus()
+    end
+end

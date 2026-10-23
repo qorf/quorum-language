@@ -13,6 +13,11 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.PropertiesPanel
+use Libraries.Interface.Controls.Scenes.PropertiesSectionItem
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Item2D
 
 /*
     The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
@@ -36,6 +41,23 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     // link one section's fields to the next (step 5).
     Control firstFocus = undefined
     Control lastFocus = undefined
+
+    // The section's controls, under its header (step 15). Closing the
+    // section takes the body out, leaving the header.
+    Control body = undefined
+    boolean bodyShown = true
+
+    // The header, shown when the panel shows two or more sections: a tree
+    // of one item, so it works and reads like the scene tree.
+    Control headerRow = undefined
+    Tree headerTree = undefined
+    PropertiesSectionItem headerItem = undefined
+    boolean collapsible = false
+    boolean sectionOpen = true
+
+    // The heading the dialog adds itself, if it tells us with SetHeading.
+    // It is hidden while the header shows, so the name isn't there twice.
+    Label heading = undefined
 
     on create
         SetInputGroup("PropertiesDialog")
@@ -76,9 +98,22 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         panel:SetBorderThickness(1)
         panel:SetView2D(view)
 
+        // The dialog's controls go in a body under the header (step 15).
+        // Hidden controls in it take no room, such as the heading while the
+        // header shows.
+        Control sectionBody
+        body = sectionBody
+        FlowLayout bodyLayout
+        bodyLayout:SetIgnoreHidden(true)
+        body:SetLayout(bodyLayout)
+        body:SetPercentageWidth(1.0)
+        body:SetVerticalLayoutMode(body:FIT_CONTENTS)
+        panel:Add(body)
+
         // Generate the contents of the panel and the tab-path.
         // Implemented on a per-dialog basis.
-        CreateInterface(panel, focusArray)
+        CreateInterface(body, focusArray)
+        MakeHeader()
 
         // A docked dialog's fields go into its panel when it shows.
         content = panel
@@ -100,6 +135,201 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
         firstFocus = focusArray:Get(0)
         lastFocus = focusArray:Get(focusArray:GetSize() - 1)
+    end
+
+    /*
+        Makes the section's header: its title, in a tree of one item, with
+        the tree's arrow. The panel puts it in when it shows two or more
+        sections.
+    */
+    private action MakeHeader
+        Control row
+        headerRow = row
+        FlowLayout rowLayout
+        headerRow:SetLayout(rowLayout)
+        headerRow:SetPercentageWidth(1.0)
+        headerRow:SetVerticalLayoutMode(headerRow:FIT_CONTENTS)
+        headerRow:SetLeftMargin(10)
+        headerRow:SetTopMargin(4)
+        headerRow:SetBottomMargin(4)
+
+        Tree tree
+        headerTree = tree
+        headerTree:SetName(GetSectionTitle())
+        PropertiesSectionItem item
+        headerItem = item
+        headerItem:SetName(GetSectionTitle())
+        headerItem:SetFontSize(18)
+        headerItem:SetDialog(me)
+        // Added as a TreeItem, so the tree's own Add for tree items is the
+        // one used, not Item2D's.
+        TreeItem treeItem = headerItem
+        headerTree:Add(treeItem)
+        headerRow:Add(headerTree)
+    end
+
+    /*
+        Tells the section which label is its heading, such as "Materials".
+        Its text is the section's title, and it is hidden while the section
+        has a header, so the title isn't shown twice. Call it from
+        CreateInterface.
+
+        Attribute: Parameter label The heading
+    */
+    action SetHeading(Label label)
+        heading = label
+    end
+
+    /*
+        Returns the section's title: its heading's text, or its name if it
+        has no heading. The panel remembers closed sections by title.
+
+        Attribute: Returns The title
+    */
+    action GetSectionTitle returns text
+        if heading not= undefined
+            return heading:GetText()
+        end
+        return GetName()
+    end
+
+    /*
+        Gives the section a header that opens and closes it, or takes it
+        away. The panel gives one to each section when it shows two or
+        more. Without a header, the section is always open.
+
+        Attribute: Parameter value True for a header
+    */
+    action SetCollapsible(boolean value)
+        if content = undefined or value = collapsible
+            return now
+        end
+        collapsible = value
+        if collapsible
+            content:Add(0, headerRow)
+            if heading not= undefined
+                heading:Hide()
+            end
+            headerItem:ShowOpen(sectionOpen)
+            ShowBody(sectionOpen)
+        else
+            content:Remove(headerRow)
+            if heading not= undefined
+                heading:Show()
+            end
+            ShowBody(true)
+        end
+        LinkHeaderFocus()
+    end
+
+    /*
+        Returns true if the section has a header that opens and closes it.
+
+        Attribute: Returns True with a header
+    */
+    action IsCollapsible returns boolean
+        return collapsible
+    end
+
+    /*
+        Opens or closes the section, as its header does, and tells the panel,
+        which remembers it.
+
+        Attribute: Parameter open True to open
+    */
+    action SetOpen(boolean open)
+        ApplyOpen(open)
+        if headerItem not= undefined
+            headerItem:ShowOpen(open)
+        end
+        if dock not= undefined
+            dock:SectionOpenChanged(me)
+        end
+    end
+
+    /*
+        Opens or closes the section without telling the panel, such as when
+        the panel shows a section the way it was saved.
+
+        Attribute: Parameter open True to open
+    */
+    action ApplyOpen(boolean open)
+        sectionOpen = open
+        if headerItem not= undefined
+            headerItem:ShowOpen(open)
+        end
+        if collapsible
+            ShowBody(open)
+        end
+        LinkHeaderFocus()
+    end
+
+    /*
+        Opens the section.
+    */
+    action Open
+        SetOpen(true)
+    end
+
+    /*
+        Closes the section.
+    */
+    action Close
+        SetOpen(false)
+    end
+
+    /*
+        Returns true if the section is open. A section without a header is
+        always shown open.
+
+        Attribute: Returns True if open
+    */
+    action IsOpen returns boolean
+        return sectionOpen
+    end
+
+    /*
+        Moves the focus to the section's header, if it has one.
+    */
+    action FocusHeader
+        if collapsible
+            headerTree:Focus()
+        end
+    end
+
+    /*
+        Returns true if an item is the section's header, or inside it.
+
+        Attribute: Parameter item The item
+        Attribute: Returns True for the header
+    */
+    action IsHeader(Item2D item) returns boolean
+        return item not= undefined and headerTree not= undefined and (item:Equals(headerTree) or item:Equals(headerItem))
+    end
+
+    /*
+        Puts the body in, or takes it out.
+    */
+    private action ShowBody(boolean show)
+        if show and not bodyShown
+            content:Add(body)
+            bodyShown = true
+        elseif not show and bodyShown
+            content:Remove(body)
+            bodyShown = false
+        end
+    end
+
+    /*
+        Links the header to the section's first control while the section
+        is open with a header. The panel links the header to the sections
+        around it.
+    */
+    private action LinkHeaderFocus
+        if collapsible and sectionOpen and firstFocus not= undefined
+            headerTree:SetNextFocus(firstFocus)
+            firstFocus:SetPreviousFocus(headerTree)
+        end
     end
 
     /*
@@ -198,6 +428,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
             Remove(content)
         end
         dock = panel
+        panel:AddDockedDialog(me)
     end
 
     /*
@@ -219,20 +450,42 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     end
 
     /*
-        Returns the first field in the dialog's Tab order.
+        Sets the last field in the section's Tab order, for a section that
+        shows and hides its own controls (step 16), and has the panel link
+        it to the next section.
+
+        Attribute: Parameter control The last field
+    */
+    action SetLastFocus(Control control)
+        lastFocus = control
+        if dock not= undefined
+            dock:SectionLayoutChanged()
+        end
+    end
+
+    /*
+        Returns the first field in the dialog's Tab order: its header, when
+        it has one (step 15).
 
         Attribute: Returns The first field, or undefined before Initialize
     */
     action GetFirstFocus returns Control
+        if collapsible
+            return headerTree
+        end
         return firstFocus
     end
 
     /*
-        Returns the last field in the dialog's Tab order.
+        Returns the last field in the dialog's Tab order: its header, when
+        it is closed (step 15).
 
         Attribute: Returns The last field, or undefined before Initialize
     */
     action GetLastFocus returns Control
+        if collapsible and not sectionOpen
+            return headerTree
+        end
         return lastFocus
     end
 

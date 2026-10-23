@@ -50,6 +50,9 @@ class SpotLightPropertiesDialog is PropertiesDialog
         headingLabel:SetText("Spotlight")
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
 
         nameField = AddField(panel, focusArray, "Name:", "Name")
         redField = AddField(panel, focusArray, "Red:", "Red, from 0 to 1")

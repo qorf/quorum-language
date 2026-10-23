@@ -6,6 +6,9 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.Label
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Game.GameStateManager
 
 /*
     The PropertiesPanel class shows the selected scene item's properties
@@ -17,6 +20,12 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 
     Pressing Escape or Enter in one of its fields returns the focus to the
     editor, as in the dialogs.
+
+    When it shows two or more sections, each has a header, like an item in
+    a tree, that opens and closes it (step 15). Which sections are closed
+    is kept by title, so a section closed once stays closed for every item
+    that shows it. SetClosedSections lets a program share and save that
+    list.
 
     Attribute: Example
     use Libraries.Interface.Controls.Scenes.SceneEditor
@@ -34,6 +43,15 @@ class PropertiesPanel is Control
 
     // The dialogs whose fields are in the panel now, in the order shown.
     Array<PropertiesDialog> showing
+
+    // Every dialog docked here, in the order docked, which is the order the
+    // sections show in.
+    Array<PropertiesDialog> docked
+
+    // The titles of the closed sections (step 15).
+    Array<text> closedSections
+
+    GameStateManager manager
 
     on create
         SetName("Properties")
@@ -98,11 +116,156 @@ class PropertiesPanel is Control
         // Properties" or "Terrain" (step 12).
         content:SetName(dialog:GetName())
         content:SetAccessibilityCode(parent:Item:GROUP)
-        contents:Add(content)
+        // A section goes in its place among those showing, in the order
+        // they were docked, so one shown later isn't put at the bottom.
+        integer place = 0
+        integer order = docked:GetFirstLocation(dialog)
+        repeat while place < showing:GetSize() and docked:GetFirstLocation(showing:Get(place)) < order
+            place = place + 1
+        end
+        contents:Add(place, content)
         content:Show()
-        showing:Add(dialog)
+        showing:Add(place, dialog)
+        UpdateSections()
+    end
+
+    /*
+        Notes a dialog docked in the panel, so its section shows in the
+        order docked. PropertiesDialog:DockIn calls it.
+
+        Attribute: Parameter dialog The dialog
+    */
+    action AddDockedDialog(PropertiesDialog dialog)
+        if not docked:Has(dialog)
+            docked:Add(dialog)
+        end
+    end
+
+    /*
+        Gives each showing section a header when two or more show, opened
+        or closed as last left, then links the Tab order (step 15).
+    */
+    private action UpdateSections
+        boolean several = showing:GetSize() >= 2
+        integer i = 0
+        repeat while i < showing:GetSize()
+            PropertiesDialog dialog = showing:Get(i)
+            dialog:SetCollapsible(several)
+            if several
+                dialog:ApplyOpen(not closedSections:Has(dialog:GetSectionTitle()))
+            end
+            i = i + 1
+        end
         LinkFocus()
         contents:RequestLayout()
+    end
+
+    /*
+        Notes that a section was opened or closed, so it stays that way.
+        PropertiesDialog:SetOpen calls it.
+
+        Attribute: Parameter dialog The section
+    */
+    action SectionOpenChanged(PropertiesDialog dialog)
+        text title = dialog:GetSectionTitle()
+        if dialog:IsOpen()
+            repeat while closedSections:Has(title)
+                closedSections:Remove(title)
+            end
+        elseif not closedSections:Has(title)
+            closedSections:Add(title)
+        end
+        LinkFocus()
+        contents:RequestLayout()
+    end
+
+    /*
+        Links the Tab order again, and lays the panel out, after a section
+        showed or hid some of its own controls (step 16).
+    */
+    action SectionLayoutChanged
+        LinkFocus()
+        contents:RequestLayout()
+    end
+
+    /*
+        Sets the list of closed sections' titles. The panel changes this
+        same list as sections open and close, so a program can share it
+        between panels and save it, as Quorum Studio does.
+
+        Attribute: Parameter closed The titles of the closed sections
+    */
+    action SetClosedSections(Array<text> closed)
+        if closed = undefined
+            return now
+        end
+        closedSections = closed
+        UpdateSections()
+    end
+
+    /*
+        Returns the titles of the closed sections.
+
+        Attribute: Returns The titles
+    */
+    action GetClosedSections returns Array<text>
+        return closedSections
+    end
+
+    /*
+        Closes the section the focus is in, and moves the focus to its
+        header (step 15). It does nothing with one section, or with the
+        focus outside the panel.
+    */
+    action CloseFocusedSection
+        PropertiesDialog dialog = GetFocusedSection()
+        if dialog = undefined or not dialog:IsCollapsible()
+            return now
+        end
+        if dialog:IsOpen()
+            dialog:Close()
+        end
+        dialog:FocusHeader()
+    end
+
+    /*
+        Opens the section the focus is in, from its header or inside it, and
+        moves the focus to its first control (step 15).
+    */
+    action OpenFocusedSection
+        PropertiesDialog dialog = GetFocusedSection()
+        if dialog = undefined or not dialog:IsCollapsible()
+            return now
+        end
+        if not dialog:IsOpen()
+            dialog:Open()
+        end
+        Item first = dialog:GetFirstFocus():GetNextFocus()
+        if first not= undefined
+            first:Focus()
+        end
+    end
+
+    /*
+        Returns the showing section holding the focus, or undefined.
+    */
+    private action GetFocusedSection returns PropertiesDialog
+        Item focus = manager:GetFocus()
+        if not (focus is Item2D)
+            return undefined
+        end
+        Item2D item = cast(Item2D, focus)
+        repeat while item not= undefined
+            integer i = 0
+            repeat while i < showing:GetSize()
+                if item:Equals(showing:Get(i):GetContent())
+                    return showing:Get(i)
+                end
+                i = i + 1
+            end
+            item = item:GetParent()
+        end
+        return undefined
     end
 
     /*
@@ -120,8 +283,7 @@ class PropertiesPanel is Control
         if showing:IsEmpty()
             contents:Add(emptyLabel)
         end
-        LinkFocus()
-        contents:RequestLayout()
+        UpdateSections()
     end
 
     /*

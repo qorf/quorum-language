@@ -48,6 +48,9 @@ class TerrainPropertiesDialog is PropertiesDialog
         headingLabel:SetText("Terrain")
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
 
         FlowLayout nameLayout
         Control nameContainer

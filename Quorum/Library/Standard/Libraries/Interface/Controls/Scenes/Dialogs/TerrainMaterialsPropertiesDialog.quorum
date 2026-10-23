@@ -136,6 +136,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         headingLabel:SetText("Materials")
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
 
         Label status
         statusLabel = status

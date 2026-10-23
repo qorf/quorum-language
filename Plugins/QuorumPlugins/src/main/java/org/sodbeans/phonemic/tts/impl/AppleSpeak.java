@@ -8,7 +8,7 @@ import org.sodbeans.phonemic.tts.*;
 /**
  * Text to speech on the Mac and iOS, through AVSpeechSynthesizer. The native
  * side is quorum-natives' src/apple/AppleSpeech.m, which is part of
- * libGameEngineCPlugins on the Mac and of the native archive on iOS.
+ * Mac.so on the Mac and of the native archive on iOS.
  *
  * This replaces CocoaSpeechServer, a helper app Quorum used to talk to over
  * a socket. It is used inside a SpeechBridge, which handles priorities and

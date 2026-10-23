@@ -284,6 +284,22 @@ class SceneEditorKeys
         return Plain(keys:ENTER)
     end
 
+    /*
+        Closes the Properties panel section the focus is in, and moves the
+        focus to its header (step 15). Default: Alt+Shift+Up.
+    */
+    action GetPropertiesSectionCloseKey returns InputSet
+        return WithModifiers(keys:UP, false, false, true, true)
+    end
+
+    /*
+        Opens the Properties panel section the focus is in, and moves the
+        focus to its first control (step 15). Default: Alt+Shift+Down.
+    */
+    action GetPropertiesSectionOpenKey returns InputSet
+        return WithModifiers(keys:DOWN, false, false, true, true)
+    end
+
     /* Opens the scene's find box. Default: Cmd+F on Mac, Ctrl+F elsewhere. */
     action GetOpenFindDialogKey returns InputSet
         return WithCommand(keys:F)

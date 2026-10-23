@@ -14,6 +14,7 @@ use Libraries.Interface.Behaviors.Scenes.Selection.TerrainStrengthBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainNextLayerBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainRampPointBehavior
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainTakeHeightBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesSectionKeyBehavior
 use Libraries.Interface.Behaviors.Scenes.Camera.all
 use Libraries.Interface.Behaviors.Scenes.Controls.all
 use Libraries.Interface.Behaviors.Scenes.Grid.all
@@ -2098,6 +2099,14 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         
         propertiesDialogTable:Add(unfocusPropertiesSet1, unfocusPropertiesBehavior)
         propertiesDialogTable:Add(unfocusPropertiesSet2, unfocusPropertiesBehavior)
+
+        // Closing and opening the section the focus is in (step 15).
+        PropertiesSectionKeyBehavior closeSectionBehavior
+        closeSectionBehavior:SetOpening(false)
+        propertiesDialogTable:Add(sceneKeys:GetPropertiesSectionCloseKey(), closeSectionBehavior)
+        PropertiesSectionKeyBehavior openSectionBehavior
+        openSectionBehavior:SetOpening(true)
+        propertiesDialogTable:Add(sceneKeys:GetPropertiesSectionOpenKey(), openSectionBehavior)
 
         propertiesDialogTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 

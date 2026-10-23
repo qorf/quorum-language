@@ -87,6 +87,7 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainStampPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
 use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
 use Libraries.Game.Graphics.Worlds.TerrainRampPreview
@@ -220,6 +221,8 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
     TerrainMaterialsPropertiesDialog terrainMaterialsPropertiesDialog
     TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
+    // The Stamp tool's settings, shown only while it is chosen (step 17).
+    TerrainStampPropertiesDialog terrainStampPropertiesDialog
 
     // Makes and changes terrain in bulk: presets, stamps, erosion and auto
     // paint (step 10).
@@ -515,12 +518,14 @@ class SceneEditor is Control, DefaultSceneManager
         end
 
         // A terrain's sections, after the built-in dialogs (step 5): its
-        // facts, its materials (step 9), its brush (step 7), its generate
-        // tools (step 10) and its physics.
+        // facts, its materials (step 9), its brush (step 7), the Stamp
+        // tool's settings (step 17), its generate tools (step 10) and its
+        // physics. The panel shows them in this order.
         if firstPanel
             AddPropertiesDialog(terrainPropertiesDialog)
             AddPropertiesDialog(terrainMaterialsPropertiesDialog)
             AddPropertiesDialog(terrainBrushPropertiesDialog)
+            AddPropertiesDialog(terrainStampPropertiesDialog)
             AddPropertiesDialog(terrainGeneratePropertiesDialog)
             AddPropertiesDialog(terrainPhysicsPropertiesDialog)
         end
@@ -3276,6 +3281,8 @@ action Update(number seconds)
     action TerrainBrushChanged(EditorTerrain terrain)
         if terrainBrushPropertiesDialog:IsShowing()
             terrainBrushPropertiesDialog:SetTerrain(terrain)
+            // The Stamp section shows only with the Stamp tool (step 17).
+            terrainStampPropertiesDialog:ToolChanged(terrain)
         end
     end
 

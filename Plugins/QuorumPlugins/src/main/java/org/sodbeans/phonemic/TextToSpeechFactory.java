@@ -138,17 +138,15 @@ public class TextToSpeechFactory {
 
     /**
      * Speech on a Mac without VoiceOver, through AVSpeechSynthesizer
-     * (AppleSpeak). Its native code is in libGameEngineCPlugins, in the
-     * program's jni folder, which the game engine loads too. Loading the same
-     * file again is harmless.
+     * (AppleSpeak). Its native code is in Mac.so, the universal Mac library in
+     * the program's jni folder, which the game engine loads too. Loading the
+     * same file again is harmless.
      */
     public static void OnLoadNonVoiceOverMac()
     {
         try {
             File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String name = System.getProperty("os.arch").contains("aarch64") ?
-                    "libGameEngineCPluginsArm.so" : "libGameEngineCPlugins.so";
-            System.load(jar.getParentFile().getAbsolutePath() + "/jni/" + name);
+            System.load(jar.getParentFile().getAbsolutePath() + "/jni/Mac.so");
             OnLoadAppleSpeech();
         }
         catch (Exception | Error e) {

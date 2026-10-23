@@ -6,7 +6,6 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Button
-use Libraries.Interface.Behaviors.Scenes.Properties.TerrainDescribeAreaBehavior
 use Libraries.Interface.Behaviors.Scenes.Properties.TerrainBrushButtonBehavior
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.FlowLayout
@@ -22,13 +21,12 @@ use Libraries.Game.Graphics.Worlds.TerrainBrush
 
 /*
     The TerrainBrushPropertiesDialog is a selected terrain's Brush section
-    (step 7): which tool is chosen, and the brush's size, strength and
-    falloff. Choosing a tool here does the same as Alt+1 to Alt+9: a ring
-    shows the brush on the ground, and the arrow keys and pointer move it.
-    "No tool" leaves the tool. Raise and lower make strokes, with Space held
-    or a left drag (step 8), and so does Paint, on the paint layer chosen
-    here, once the terrain has two or more materials (step 9); the other
-    tools come in later steps.
+    (step 7): which tool is chosen, then only what that tool uses (step 16):
+    the paint layer for Paint; what Flatten evens the ground to, and its
+    height when it is a set height; and the Brush Settings (size, strength
+    and falloff) for the tools that use them. Choosing a tool here does the
+    same as its key: a ring shows the brush on the ground, and the arrow
+    keys and pointer move it. "No tool" leaves the tool.
 
     It shows in the scene editor's Properties panel, between the terrain's
     facts (TerrainPropertiesDialog) and its physics.
@@ -43,6 +41,23 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     // height (step 8).
     ButtonGroup flattenGroup = undefined
     TextField flattenHeightField = undefined
+    Button takeButton = undefined
+
+    // The section's parts, each shown only for the tools that use it
+    // (step 16), and the parts shown now, in order, after the heading.
+    Control sectionBody = undefined
+    Control toolPart = undefined
+    Control paintLabelPart = undefined
+    Control paintPart = undefined
+    Control flattenLabelPart = undefined
+    Control flattenPart = undefined
+    Control flattenHeightPart = undefined
+    Control takeHeightPart = undefined
+    Control settingsLabelPart = undefined
+    Control sizePart = undefined
+    Control strengthPart = undefined
+    Control falloffPart = undefined
+    Array<Control> partsShown
 
     // What the section's button does.
     public constant integer TAKE_HEIGHT = 0
@@ -66,12 +81,16 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Terrain Brush")
+        sectionBody = panel
 
         Label headingLabel
         headingLabel:SetSize(18)
         headingLabel:SetText("Brush")
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
 
         Control toolPanel
         toolPanel:SetPercentageWidth(1.0)
@@ -113,6 +132,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
 
         toolPanel:Add(toolGroup)
         panel:Add(toolPanel)
+        toolPart = toolPanel
         focusArray:Add(toolGroup)
 
         Control layerPanel
@@ -136,6 +156,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         layerLabel:SetText("Paint Layer")
         layerLabelLine:Add(layerLabel)
         panel:Add(layerLabelLine)
+        paintLabelPart = layerLabelLine
 
         ButtonGroup layers
         layerGroup = layers
@@ -154,10 +175,11 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         layerGroup:AddSelectionListener(me)
         layerPanel:Add(layerGroup)
         panel:Add(layerPanel)
+        paintPart = layerPanel
         focusArray:Add(layerGroup)
 
         // Flatten: what it evens the ground to (step 8).
-        AddCaption(panel, "Flatten to:")
+        flattenLabelPart = AddCaption(panel, "Flatten to:")
         Control flattenPanel = MakeLine()
         ButtonGroup flattenChoices
         flattenGroup = flattenChoices
@@ -171,48 +193,133 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         flattenGroup:AddSelectionListener(me)
         flattenPanel:Add(flattenGroup)
         panel:Add(flattenPanel)
+        flattenPart = flattenPanel
         focusArray:Add(flattenGroup)
         flattenHeightField = AddNumberField(panel, focusArray, "Height:", "Flatten height")
+        flattenHeightPart = cast(Control, flattenHeightField:GetParent())
         Control takeLine = MakeLine()
-        Button takeButton = AddBrushButton(takeLine, "Use Height Under Brush", "Flatten to the ground's height where the brush is now", TAKE_HEIGHT)
+        takeButton = AddBrushButton(takeLine, "Use Height Under Brush", "Flatten to the ground's height where the brush is now", TAKE_HEIGHT)
         panel:Add(takeLine)
+        takeHeightPart = takeLine
         focusArray:Add(takeButton)
 
         // The ramp has no controls here: its ends are set with the Ramp
         // tool, by clicking or with the ramp point key (step 8).
 
+        // Size, strength and falloff, under their own heading (step 16).
+        Control settingsLine = MakeLine()
+        settingsLine:SetTopMargin(10)
+        Label settingsLabel
+        settingsLabel:SetSize(16)
+        settingsLabel:SetText("Brush Settings")
+        settingsLine:Add(settingsLabel)
+        panel:Add(settingsLine)
+        settingsLabelPart = settingsLine
         sizeField = AddNumberField(panel, focusArray, "Size:", "Size")
+        sizePart = cast(Control, sizeField:GetParent())
         strengthField = AddNumberField(panel, focusArray, "Strength:", "Strength")
+        strengthPart = cast(Control, strengthField:GetParent())
         falloffField = AddNumberField(panel, focusArray, "Falloff:", "Falloff")
+        falloffPart = cast(Control, falloffField:GetParent())
 
-        // Says what the ground under the whole brush is like (step 12).
-        FlowLayout describeLayout
-        Control describeLine
-        describeLine:SetLayout(describeLayout)
-        describeLine:SetPercentageWidth(1.0)
-        describeLine:SetVerticalLayoutMode(describeLine:FIT_CONTENTS)
-        describeLine:SetLeftMargin(20)
-        describeLine:SetTopMargin(6)
-        describeLine:SetBottomMargin(10)
-        Button describeButton
-        describeButton:SetName("Describe the area")
-        describeButton:SetDescription("Say the heights, steepest slope and layers under the whole brush")
-        TerrainDescribeAreaBehavior describeBehavior
-        describeBehavior:SetDialog(me)
-        describeButton:SetBehavior(describeBehavior)
-        describeLine:Add(describeButton)
-        panel:Add(describeLine)
-        focusArray:Add(describeButton)
+        // Every part is in the panel now; the ones the tool doesn't use are
+        // taken out when a terrain is shown.
+        partsShown:Add(toolPart)
+        partsShown:Add(paintLabelPart)
+        partsShown:Add(paintPart)
+        partsShown:Add(flattenLabelPart)
+        partsShown:Add(flattenPart)
+        partsShown:Add(flattenHeightPart)
+        partsShown:Add(takeHeightPart)
+        partsShown:Add(settingsLabelPart)
+        partsShown:Add(sizePart)
+        partsShown:Add(strengthPart)
+        partsShown:Add(falloffPart)
     end
 
     /*
-        Says what the ground under the whole brush is like. The section's
-        "Describe the area" button calls it.
+        Shows only the parts the chosen tool uses (step 16), and links the
+        Tab order through them:
+        - Paint: the paint layer;
+        - Flatten: what it flattens to, and the height when it is a set
+          height;
+        - the Brush Settings: the size for every tool but the region tools,
+          and the strength and falloff for raise, lower, smooth, flatten,
+          paint and blend paint.
+        No tool shows only the tool list.
     */
-    action DescribeArea
-        if terrain not= undefined and GetSceneEditor() not= undefined
-            GetSceneEditor():DescribeTerrainArea(terrain)
+    private action ShowToolParts
+        integer tool = 0
+        boolean flattensToStart = true
+        if terrain not= undefined
+            tool = terrain:GetToolNumber()
+            flattensToStart = terrain:GetBrush():FlattensToStart()
         end
+        boolean usesSize = tool > 0 and tool not= 8 and tool not= 9
+        boolean usesStrength = tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 6 or tool = 7
+
+        Array<Control> wanted
+        Array<Control> chain
+        wanted:Add(toolPart)
+        chain:Add(toolGroup)
+        if tool = 6
+            wanted:Add(paintLabelPart)
+            wanted:Add(paintPart)
+            chain:Add(layerGroup)
+        end
+        if tool = 4
+            wanted:Add(flattenLabelPart)
+            wanted:Add(flattenPart)
+            chain:Add(flattenGroup)
+            if not flattensToStart
+                wanted:Add(flattenHeightPart)
+                wanted:Add(takeHeightPart)
+                chain:Add(flattenHeightField)
+                chain:Add(takeButton)
+            end
+        end
+        if usesSize
+            wanted:Add(settingsLabelPart)
+            wanted:Add(sizePart)
+            chain:Add(sizeField)
+        end
+        if usesStrength
+            wanted:Add(strengthPart)
+            wanted:Add(falloffPart)
+            chain:Add(strengthField)
+            chain:Add(falloffField)
+        end
+
+        boolean same = wanted:GetSize() = partsShown:GetSize()
+        integer i = 0
+        repeat while same and i < wanted:GetSize()
+            if not wanted:Get(i):Equals(partsShown:Get(i))
+                same = false
+            end
+            i = i + 1
+        end
+        if not same
+            i = 0
+            repeat while i < partsShown:GetSize()
+                sectionBody:Remove(partsShown:Get(i))
+                i = i + 1
+            end
+            partsShown:Empty()
+            i = 0
+            repeat while i < wanted:GetSize()
+                sectionBody:Add(wanted:Get(i))
+                partsShown:Add(wanted:Get(i))
+                i = i + 1
+            end
+        end
+
+        i = 0
+        repeat while i < chain:GetSize() - 1
+            chain:Get(i):SetNextFocus(chain:Get(i + 1))
+            chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
+            i = i + 1
+        end
+        SetLastFocus(chain:Get(chain:GetSize() - 1))
     end
 
     /*
@@ -230,14 +337,15 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Adds a caption on its own line.
+        Adds a caption on its own line, and returns the line.
     */
-    private action AddCaption(Control panel, text value)
+    private action AddCaption(Control panel, text value) returns Control
         Control line = MakeLine()
         Label caption
         caption:SetText(value)
         line:Add(caption)
         panel:Add(line)
+        return line
     end
 
     /*
@@ -367,6 +475,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             if choice:GetButtonGroup() = flattenGroup
                 if choice:GetIndex() >= 0
                     GetSceneEditor():SetTerrainFlattenToStart(terrain, choice:GetIndex() = 0)
+                    // The height shows only for a set height (step 16).
+                    ShowToolParts()
                 end
                 return now
             end
@@ -450,6 +560,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         SetFieldText(strengthField, brush:GetStrength())
         SetFieldText(falloffField, brush:GetGamma())
         updating = false
+        ShowToolParts()
     end
 
     /*

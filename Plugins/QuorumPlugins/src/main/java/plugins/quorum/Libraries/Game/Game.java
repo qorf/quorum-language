@@ -51,7 +51,10 @@ public class Game
                     String lwjgl = runLocation + "/jni";
                     System.setProperty("org.lwjgl.librarypath", lwjgl);
 
-                    if (System.getProperty("os.arch").contains("aarch64")) {
+                    if (os.contains("Mac OS X")) {
+                        //One universal file: macOS loads the arm64 or x86_64 half to match the running Java.
+                        nativeFile = runLocation + "/jni/Mac.so";
+                    } else if (System.getProperty("os.arch").contains("aarch64")) {
                         nativeFile = runLocation + "/jni/libGameEngineCPluginsArm.so";
                     } else {
                         nativeFile = runLocation + "/jni/libGameEngineCPlugins.so";

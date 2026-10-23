@@ -13,7 +13,6 @@ use Libraries.Interface.Item
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Selections.SceneEditorSelection
-use Libraries.Interface.Selections.ButtonGroupSelection
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
@@ -26,11 +25,9 @@ use Libraries.Game.Graphics.Worlds.TerrainGenerator
     section (step 10). For the whole terrain, it remakes the ground with a
     preset (rolling hills, mountains, plateaus, canyons or flat), a seed and
     a height, and can auto paint it; it also erodes or auto paints the
-    whole terrain. It also holds the Stamp tool's settings: the shape (a
-    hill, mountain, mesa, crater or ridge), how it meets the ground, its
-    height and its turn. The Stamp, Erode and Auto paint tools themselves
-    are in the Brush section, and act where the brush is clicked. Each can
-    be undone.
+    whole terrain. Each can be undone. The Stamp, Erode and Auto paint
+    tools, which act where the brush is clicked, are in the Brush section,
+    and the Stamp tool's settings in the Stamp section (step 17).
 
     Auto paint needs two or more materials (step 9): layer 1 goes on flat
     ground, layer 2 on slopes, layer 3 in hollows and layer 4 low down.
@@ -48,18 +45,10 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
     // scale, so the fields line up, as in the other terrain sections.
     constant number FIELD_LABEL_WIDTH = 110
 
-    // True while the stamp settings are being shown, so showing them isn't
-    // taken as the user choosing.
-    boolean updating = false
-
     ButtonGroup presetGroup = undefined
     TextField seedField = undefined
     TextField heightField = undefined
     Checkbox autoPaintCheckbox = undefined
-    ButtonGroup stampGroup = undefined
-    ButtonGroup modeGroup = undefined
-    TextField stampHeightField = undefined
-    TextField turnField = undefined
 
     TerrainGenerator names
 
@@ -72,7 +61,9 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
     private action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Terrain Generate")
 
-        AddHeading(panel, "Generate", 18)
+        // Its title, under a header that opens and closes it when the panel
+        // shows several sections (step 15).
+        SetHeading(AddHeading(panel, "Generate", 18))
 
         Control presetLine = MakeLine()
         Label presetLabel
@@ -112,59 +103,19 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         Button erodeAll = AddButton(wholeLine2, "Erode All", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
         Button paintAll = AddButton(wholeLine2, "Auto paint All", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
         panel:Add(wholeLine2)
-
-        Control stampLine = MakeLine()
-        Label stampLabel
-        stampLabel:SetText("Stamp:")
-        stampLine:Add(stampLabel)
-        panel:Add(stampLine)
-        ButtonGroup stamps
-        stampGroup = MakeGroup(stamps, "Stamp")
-        integer stamp = 0
-        repeat while stamp < names:GetStampCount()
-            AddRadio(stampGroup, Capitalize(names:GetStampName(stamp)), "")
-            stamp = stamp + 1
-        end
-        stampGroup:GetButtonAt(0):SetToggleState(true)
-        stampGroup:AddSelectionListener(me)
-        AddGroup(panel, stampGroup, focusArray)
-
-        Control modeLine = MakeLine()
-        Label modeLabel
-        modeLabel:SetText("Stamp mode:")
-        modeLine:Add(modeLabel)
-        panel:Add(modeLine)
-        ButtonGroup modes
-        modeGroup = MakeGroup(modes, "Stamp mode")
-        AddRadio(modeGroup, "Usual", "The usual way for the shape: craters add, the others raise to the shape")
-        AddRadio(modeGroup, "Add", "Add the shape to the ground")
-        AddRadio(modeGroup, "Subtract", "Subtract the shape from the ground")
-        AddRadio(modeGroup, "Raise to", "Raise the ground to the shape, leaving higher ground as it is")
-        modeGroup:GetButtonAt(0):SetToggleState(true)
-        modeGroup:AddSelectionListener(me)
-        AddGroup(panel, modeGroup, focusArray)
-
-        Control stampHeightLine = MakeLine()
-        stampHeightField = AddField(stampHeightLine, "Stamp height:", "Stamp height in world units", "15", focusArray)
-        panel:Add(stampHeightLine)
-        Control turnLine = MakeLine()
-        turnField = AddField(turnLine, "Turn:", "Stamp turn in degrees", "0", focusArray)
-        panel:Add(turnLine)
-        // The Stamp tool reads these as they change (Brush section).
-        stampHeightField:AddTextChangeListener(me)
-        turnField:AddTextChangeListener(me)
     end
 
     /*
-        Adds a heading.
+        Adds a heading, and returns it.
     */
-    private action AddHeading(Control panel, text value, integer size)
-        Label heading
-        heading:SetSize(size)
-        heading:SetText(value)
-        heading:SetLeftMargin(20)
-        heading:SetTopMargin(6)
-        panel:Add(heading)
+    private action AddHeading(Control panel, text value, integer size) returns Label
+        Label title
+        title:SetSize(size)
+        title:SetText(value)
+        title:SetLeftMargin(20)
+        title:SetTopMargin(6)
+        panel:Add(title)
+        return title
     end
 
     /*
@@ -282,12 +233,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         otherwise.
     */
     action SelectionChanged(SelectionEvent event)
-        if event:GetSelection() is ButtonGroupSelection
-            if not updating and terrain not= undefined
-                TakeStampSettings()
-            end
-            return now
-        end
         if not (event:GetSelection() is SceneEditorSelection)
             return now
         end
@@ -301,7 +246,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         if selectedItem is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
             terrain = highlight:GetEditorTerrain()
-            ShowStampSettings()
             if not IsShowing()
                 Show()
             end
@@ -320,66 +264,13 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         if item is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
             terrain = highlight:GetEditorTerrain()
-            ShowStampSettings()
         end
     end
 
     /*
-        The Stamp tool's height and turn are taken as they are typed. The
-        Generate fields are read when Generate is pressed.
+        The fields are read when a button is pressed, so typing does nothing.
     */
     action TextChanged(TextChangeEvent event)
-        if not updating and terrain not= undefined
-            TakeStampSettings()
-        end
-    end
-
-    /*
-        Gives the terrain's Stamp tool the shape, mode, height and turn
-        chosen here. A field that doesn't hold a number yet leaves its value
-        as it was.
-    */
-    private action TakeStampSettings
-        terrain:SetStampShape(GetChoice(stampGroup))
-        integer modeChoice = GetChoice(modeGroup)
-        if modeChoice = 0
-            terrain:SetStampMode(-1)
-        elseif modeChoice = 1
-            terrain:SetStampMode(names:STAMP_ADD)
-        elseif modeChoice = 2
-            terrain:SetStampMode(names:STAMP_SUBTRACT)
-        else
-            terrain:SetStampMode(names:STAMP_RAISE)
-        end
-        terrain:SetStampHeight(ReadNumber(stampHeightField, terrain:GetStampHeight()))
-        terrain:SetStampTurn(ReadNumber(turnField, terrain:GetStampTurn()))
-    end
-
-    /*
-        Shows the terrain's Stamp tool settings.
-    */
-    private action ShowStampSettings
-        if terrain = undefined
-            return now
-        end
-        updating = true
-        integer shape = terrain:GetStampShape()
-        if shape >= 0 and shape < stampGroup:GetSize()
-            stampGroup:GetButtonAt(shape):SetToggleState(true)
-        end
-        integer mode = terrain:GetStampMode()
-        integer modeChoice = 0
-        if mode = names:STAMP_ADD
-            modeChoice = 1
-        elseif mode = names:STAMP_SUBTRACT
-            modeChoice = 2
-        elseif mode = names:STAMP_RAISE
-            modeChoice = 3
-        end
-        modeGroup:GetButtonAt(modeChoice):SetToggleState(true)
-        stampHeightField:SetText("" + terrain:GetStampHeight())
-        turnField:SetText("" + terrain:GetStampTurn())
-        updating = false
     end
 
     /*

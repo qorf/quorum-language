@@ -58,6 +58,9 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         headingLabel:SetText("Physics")
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
 
         FlowLayout collisionLayout
         Control collisionContainer
