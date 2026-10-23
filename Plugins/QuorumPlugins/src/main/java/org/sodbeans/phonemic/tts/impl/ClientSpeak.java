@@ -23,8 +23,6 @@ import org.sodbeans.phonemic.SpeechProcessor;
 import org.sodbeans.phonemic.SpeechVoice;
 import org.sodbeans.phonemic.tts.TextToSpeech;
 import org.sodbeans.phonemic.tts.TextToSpeechEngine;
-import java.io.PrintWriter;
-import org.sodbeans.phonemic.OperatingSystem;
 
 /**
  * Represents a Phonemic client.
@@ -32,10 +30,6 @@ import org.sodbeans.phonemic.OperatingSystem;
  * @author jeff
  */
 public class ClientSpeak implements TextToSpeech {
-    /**
-     * The server OS
-     */
-    private static final OperatingSystem os = OperatingSystem.getOS();
     /**
      * The port of the server we wish to connect to.
      */
@@ -112,11 +106,9 @@ public class ClientSpeak implements TextToSpeech {
         this.input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
         this.output = this.socket.getOutputStream();
         
-        // Write two bytes requesting protocol version 1. (Not used with mac server)
-        if (os != OperatingSystem.MAC_OSX) {
-            this.output.write(0x0000);
-            this.output.write(0x00001);
-        }
+        // Write two bytes requesting protocol version 1.
+        this.output.write(0x0000);
+        this.output.write(0x00001);
         
         // Wait for acceptance message.
         
@@ -146,19 +138,11 @@ public class ClientSpeak implements TextToSpeech {
             msg = msg.substring(0, 0xFFFE);
         }
         try {
-            //the mac server expects \r\n to flag the end of a message
-            if (os == OperatingSystem.MAC_OSX) {
-                PrintWriter out = new PrintWriter(this.output, true);
-                out.print(msg + "\r\n");
-                out.flush();
-            }
-            else {
-                // Write length header (2 bytes).
-                this.output.write(ByteBuffer.allocate(4).putInt(length).array(), 2, 2);
+            // Write length header (2 bytes).
+            this.output.write(ByteBuffer.allocate(4).putInt(length).array(), 2, 2);
 
-                // Write message itself.
-                this.output.write(msg.getBytes());
-            }
+            // Write message itself.
+            this.output.write(msg.getBytes());
         } catch (IOException ex) {
             Logger.getLogger(ClientSpeak.class.getName()).log(Level.SEVERE, null, ex);
         }        

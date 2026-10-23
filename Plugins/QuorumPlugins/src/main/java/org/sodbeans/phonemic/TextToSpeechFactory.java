@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.net.ServerSocket;
 import java.util.Iterator;
 import org.sodbeans.phonemic.daemon.PhonemicDaemon;
 import org.sodbeans.phonemic.mac.VoiceOver;
@@ -65,6 +64,9 @@ public class TextToSpeechFactory {
             {
                 OnLoadNonVoiceOverMac();
             }
+        }
+        else if (isIOS()) {
+            OnLoadIOS();
         }
         else if (os == OperatingSystem.LINUX) {
             // Our only option is speech-dispatcher.
@@ -134,59 +136,54 @@ public class TextToSpeechFactory {
         isLoaded = true;
     }
 
+    /**
+     * Speech on a Mac without VoiceOver, through AVSpeechSynthesizer
+     * (AppleSpeak). Its native code is in libGameEngineCPlugins, in the
+     * program's jni folder, which the game engine loads too. Loading the same
+     * file again is harmless.
+     */
     public static void OnLoadNonVoiceOverMac()
     {
-        //check if the server is already running
-            boolean isRunning = false;
-            try {
-                ServerSocket ss = new ServerSocket(56103); //test if the server port is in use or not
-                ss.close(); //port not in use, close it so the server can use it
-            }
-            catch (IOException ex) {
-                isRunning = true;
-            }
-            
-            if (!isRunning) {
-                Runtime runtime = Runtime.getRuntime();
+        try {
+            File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            String name = System.getProperty("os.arch").contains("aarch64") ?
+                    "libGameEngineCPluginsArm.so" : "libGameEngineCPlugins.so";
+            System.load(jar.getParentFile().getAbsolutePath() + "/jni/" + name);
+            OnLoadAppleSpeech();
+        }
+        catch (Exception | Error e) {
+            logger.log(Level.SEVERE, "Could not load the Mac speech library. " +
+                getStackTraceString(e.getStackTrace()), e);
+            isLoaded = false;
+        }
+    }
 
-                String JNIRoot = new File(
-                TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+    /**
+     * Speech on iOS, through AVSpeechSynthesizer (AppleSpeak). The natives
+     * are linked into the app, so there is nothing to load.
+     */
+    public static void OnLoadIOS()
+    {
+        try {
+            OnLoadAppleSpeech();
+        }
+        catch (Exception | Error e) {
+            logger.log(Level.SEVERE, "Could not start speech on iOS. " +
+                getStackTraceString(e.getStackTrace()), e);
+            isLoaded = false;
+        }
+    }
 
-                String filePath = "";
-                if(!JNIRoot.contains("file:")) {
-                    filePath = "/jni/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
-                } else {
-                    filePath = "/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
-                }
-                File file = new File(JNIRoot + filePath);
-                String absolutePath = file.getAbsolutePath().replaceAll("%20", " ");
-                if(absolutePath.contains("/file:")) {
-                    String[] split = absolutePath.split("/file:");
-                    absolutePath = split[1];
-                }
+    private static void OnLoadAppleSpeech()
+    {
+        speech.setSpeech(new AppleSpeak());
+        instance = speech;
+        isLoaded = true;
+    }
 
-                String[] s= {absolutePath};
-
-                try {
-                    Process p = runtime.exec(s);
-                    speech.setSpeech(TextToSpeechFactory.getPhonemicClient("localhost"));
-                    instance = speech;
-                    isLoaded = true;
-                } catch (IOException ex) {
-                    Logger.getLogger(TextToSpeechFactory.class.getName()).log(Level.SEVERE, null, ex);
-                    isLoaded = false;
-                }
-            } else {
-                try {
-                    speech.setSpeech(TextToSpeechFactory.getPhonemicClient("localhost"));
-                    instance = speech;
-                    isLoaded = true;
-                } catch (IOException ex) {
-                    Logger.getLogger(TextToSpeechFactory.class.getName()).log(Level.SEVERE, null, ex);
-                    isLoaded = false;
-                }
-                isLoaded = true;
-            }
+    private static boolean isIOS() {
+        String name = System.getProperty("os.name");
+        return name != null && name.contains("iOS");
     }
     
     private static String getStackTraceString(StackTraceElement[] elements) {
