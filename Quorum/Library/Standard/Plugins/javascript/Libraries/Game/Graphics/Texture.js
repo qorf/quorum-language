@@ -19,8 +19,13 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
     {
         // Not yet implemented.
     };
+
+    this.Bind = function()
+    {
+        graphics.glBindTexture(glTarget, glHandle);
+    };
     
-    this.Bind = function(unit) 
+    this.Bind$quorum_integer = function(unit)
     {
         if (unit !== undefined && unit !== null)
             graphics.glActiveTexture(graphics.gl.TEXTURE0 + unit);
