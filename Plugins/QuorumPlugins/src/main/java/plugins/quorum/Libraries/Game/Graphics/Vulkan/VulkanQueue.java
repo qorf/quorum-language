@@ -1,121 +1,43 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDevice;
 import org.lwjgl.vulkan.VkQueue;
-import org.lwjgl.vulkan.VkSubmitInfo;
-import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanSubmitInfo_;
-import quorum.Libraries.Language.Types.Integer_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanQueue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanQueue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanQueueStrategy;
 
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanQueue. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanQueue), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanQueue, with quorum-natives' src/vulkan).
+*/
 public class VulkanQueue
 {
     public Object me_;
 
-    VkQueue vulkanQueue;
+    private final VulkanQueueStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanQueue(this) : new DesktopVulkanQueue(this);
 
     public void CreateNative(VulkanDevice_ quorumDevice, VulkanQueueFamily_ queueFamily, int queueIndex)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            PointerBuffer queuePointer = stack.mallocPointer(1);
-            VulkanDevice devicePlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-            VkDevice vulkanDevice = devicePlugin.GetDevice();
-
-            int familyIndex = queueFamily.GetQueueFamilyIndex();
-
-            vkGetDeviceQueue(vulkanDevice, familyIndex, queueIndex, queuePointer);
-            vulkanQueue = new VkQueue(queuePointer.get(0), vulkanDevice);
-        }
+        strategy.CreateNative(quorumDevice, queueFamily, queueIndex);
     }
 
     public boolean SubmitCommands(VulkanSubmitInfo_ quorumInfo)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkSubmitInfo submitInfo = VkSubmitInfo.calloc(stack);
-            submitInfo.sType$Default();
-
-            Array_ quorumBuffers = quorumInfo.GetCommandBuffers();
-            PointerBuffer commandBuffers = stack.mallocPointer(quorumBuffers.GetSize());
-            for (int i = 0; i < quorumBuffers.GetSize(); i++)
-            {
-                quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer quorumBuffer = (quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer) quorumBuffers.Get(i);
-                commandBuffers.put(quorumBuffer.plugin_.GetCommandBuffer());
-            }
-            commandBuffers.flip();
-
-            Array_ quorumSignalSemaphores = quorumInfo.GetSignalSemaphores();
-            LongBuffer signalSemaphores = null;
-            if (quorumSignalSemaphores != null)
-            {
-                signalSemaphores = stack.mallocLong(quorumSignalSemaphores.GetSize());
-                for (int i = 0; i < quorumSignalSemaphores.GetSize(); i++)
-                {
-                    quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumSignalSemaphores.Get(i);
-                    signalSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
-                }
-                signalSemaphores.flip();
-            }
-
-            Array_ quorumWaitSemaphores = quorumInfo.GetWaitSemaphores();
-            LongBuffer waitSemaphores = null;
-            if (quorumWaitSemaphores != null)
-            {
-                waitSemaphores = stack.mallocLong(quorumWaitSemaphores.GetSize());
-                for (int i = 0; i < quorumWaitSemaphores.GetSize(); i++)
-                {
-                    quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore quorumSemaphore = (quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore) quorumWaitSemaphores.Get(i);
-                    waitSemaphores.put(quorumSemaphore.plugin_.GetSemaphoreHandle());
-                }
-                waitSemaphores.flip();
-            }
-
-            Array_ quorumWaitMasks = quorumInfo.GetWaitDestinationStageMasks();
-            IntBuffer waitMasks = null;
-            if (quorumWaitMasks != null)
-            {
-                waitMasks = stack.mallocInt(quorumWaitMasks.GetSize());
-                for (int i = 0; i < quorumWaitMasks.GetSize(); i++)
-                {
-                    Integer_ mask = (Integer_) quorumWaitMasks.Get(i);
-                    waitMasks.put(mask.GetValue());
-                }
-                waitMasks.flip();
-            }
-
-            submitInfo.pCommandBuffers(commandBuffers);
-            submitInfo.pSignalSemaphores(signalSemaphores);
-            submitInfo.waitSemaphoreCount(quorumWaitSemaphores == null ? 0 : quorumWaitSemaphores.GetSize());
-            submitInfo.pWaitSemaphores(waitSemaphores);
-            submitInfo.pWaitDstStageMask(waitMasks);
-
-            long fenceHandle = 0L;
-            if (quorumInfo.GetFence() != null)
-            {
-                VulkanFence pluginFence = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)quorumInfo.GetFence()).plugin_;
-                fenceHandle = pluginFence.GetFenceHandle();
-            }
-
-            int vulkanResult = vkQueueSubmit(vulkanQueue, submitInfo, fenceHandle);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-        }
-
-        return true;
+        return strategy.SubmitCommands(quorumInfo);
     }
+
+    // LWJGL's objects, for the other desktop strategies only.
 
     public VkQueue GetVulkanQueue()
     {
-        return vulkanQueue;
+        return ((DesktopVulkanQueue)strategy).GetVulkanQueue();
+    }
+
+    public VulkanQueueStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

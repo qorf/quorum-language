@@ -1,1570 +1,1546 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.vulkan.*;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice;
+import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanPhysicalDeviceFeatures;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanPhysicalDeviceFeatures;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanPhysicalDeviceFeaturesStrategy;
 
-import static org.lwjgl.vulkan.VK10.vkGetPhysicalDeviceFeatures;
-import static org.lwjgl.vulkan.VK11.vkGetPhysicalDeviceFeatures2;
-
+/*
+The Java side of Quorum's VulkanPhysicalDeviceFeatures. Each feature is read
+and written by its number, through a strategy: LWJGL's structures on the
+desktop, or an array filled by Quorum's own Vulkan layer on iOS and Android.
+*/
 public class VulkanPhysicalDeviceFeatures
 {
     public Object me_;
 
-    // Fields for the base features objects, as well as the structs for features introduced in later Vulkan releases.
-    VkPhysicalDeviceFeatures vulkanFeatures = null;
-    VkPhysicalDeviceFeatures2 vulkanFeatures2 = null;
-    VkPhysicalDeviceVulkan11Features features11 = null;
-    VkPhysicalDeviceVulkan12Features features12 = null;
-    VkPhysicalDeviceVulkan13Features features13 = null;
-    VkPhysicalDeviceVulkan14Features features14 = null;
+    private final VulkanPhysicalDeviceFeaturesStrategy strategy = VulkanPlatform.UsesNativeVulkan()
+            ? new NativeVulkanPhysicalDeviceFeatures(this) : new DesktopVulkanPhysicalDeviceFeatures(this);
 
     public void CreateNative()
     {
-        vulkanFeatures = VkPhysicalDeviceFeatures.calloc();
-        vulkanFeatures2 = VkPhysicalDeviceFeatures2.calloc();
-
-        features11 = VkPhysicalDeviceVulkan11Features.calloc();
-        features12 = VkPhysicalDeviceVulkan12Features.calloc();
-        features13 = VkPhysicalDeviceVulkan13Features.calloc();
-        features14 = VkPhysicalDeviceVulkan14Features.calloc();
-
-        features11.sType$Default();
-        features12.sType$Default();
-        features13.sType$Default();
-        features14.sType$Default();
-
-        vulkanFeatures2.features(vulkanFeatures);
-        vulkanFeatures2.pNext(features11);
-        features11.pNext(features12.address());
-        features12.pNext(features13.address());
-        features13.pNext(features14.address());
+        strategy.CreateNative();
     }
 
     public void GetSupportedDeviceFeatures(VulkanPhysicalDevice_ quorumDevice)
     {
-        VkPhysicalDevice device = ((VulkanPhysicalDevice)quorumDevice).plugin_.GetDevice();
-        vkGetPhysicalDeviceFeatures(device, vulkanFeatures);
-        vkGetPhysicalDeviceFeatures2(device, vulkanFeatures2);
+        strategy.GetSupportedDeviceFeatures(quorumDevice);
     }
 
     public void DisposeNative()
     {
-        if (vulkanFeatures != null)
-        {
-            vulkanFeatures.free();
-            vulkanFeatures2.free();
-            features11.free();
-            features12.free();
-            features13.free();
-            features14.free();
-
-            vulkanFeatures = null;
-            vulkanFeatures2 = null;
-            features11 = null;
-            features12 = null;
-            features13 = null;
-            features14 = null;
-        }
+        strategy.DisposeNative();
     }
 
     public boolean NativeHasRobustBufferAccess()
     {
-        return vulkanFeatures.robustBufferAccess();
+        return strategy.Has(0);
     }
 
     public void NativeSetRobustBufferAccess(boolean value)
     {
-        vulkanFeatures.robustBufferAccess(value);
+        strategy.Set(0, value);
     }
 
     public boolean NativeHasFullDrawIndexUint32()
     {
-        return vulkanFeatures.fullDrawIndexUint32();
+        return strategy.Has(1);
     }
 
     public void NativeSetFullDrawIndexUint32(boolean value)
     {
-        vulkanFeatures.fullDrawIndexUint32(value);
+        strategy.Set(1, value);
     }
 
     public boolean NativeHasImageCubeArray()
     {
-        return vulkanFeatures.imageCubeArray();
+        return strategy.Has(2);
     }
 
     public void NativeSetImageCubeArray(boolean value)
     {
-        vulkanFeatures.imageCubeArray(value);
+        strategy.Set(2, value);
     }
 
     public boolean NativeHasIndependentBlend()
     {
-        return vulkanFeatures.independentBlend();
+        return strategy.Has(3);
     }
 
     public void NativeSetIndependentBlend(boolean value)
     {
-        vulkanFeatures.independentBlend(value);
+        strategy.Set(3, value);
     }
 
     public boolean NativeHasGeometryShader()
     {
-        return vulkanFeatures.geometryShader();
+        return strategy.Has(4);
     }
 
     public void NativeSetGeometryShader(boolean value)
     {
-        vulkanFeatures.geometryShader(value);
+        strategy.Set(4, value);
     }
 
     public boolean NativeHasTessellationShader()
     {
-        return vulkanFeatures.tessellationShader();
+        return strategy.Has(5);
     }
 
     public void NativeSetTessellationShader(boolean value)
     {
-        vulkanFeatures.tessellationShader(value);
+        strategy.Set(5, value);
     }
 
     public boolean NativeHasSampleRateShading()
     {
-        return vulkanFeatures.sampleRateShading();
+        return strategy.Has(6);
     }
 
     public void NativeSetSampleRateShading(boolean value)
     {
-        vulkanFeatures.sampleRateShading(value);
+        strategy.Set(6, value);
     }
 
     public boolean NativeHasDualSrcBlend()
     {
-        return vulkanFeatures.dualSrcBlend();
+        return strategy.Has(7);
     }
 
     public void NativeSetDualSrcBlend(boolean value)
     {
-        vulkanFeatures.dualSrcBlend(value);
+        strategy.Set(7, value);
     }
 
     public boolean NativeHasLogicOp()
     {
-        return vulkanFeatures.logicOp();
+        return strategy.Has(8);
     }
 
     public void NativeSetLogicOp(boolean value)
     {
-        vulkanFeatures.logicOp(value);
+        strategy.Set(8, value);
     }
 
     public boolean NativeHasMultiDrawIndirect()
     {
-        return vulkanFeatures.multiDrawIndirect();
+        return strategy.Has(9);
     }
 
     public void NativeSetMultiDrawIndirect(boolean value)
     {
-        vulkanFeatures.multiDrawIndirect(value);
+        strategy.Set(9, value);
     }
 
     public boolean NativeHasDrawIndirectFirstInstance()
     {
-        return vulkanFeatures.drawIndirectFirstInstance();
+        return strategy.Has(10);
     }
 
     public void NativeSetDrawIndirectFirstInstance(boolean value)
     {
-        vulkanFeatures.drawIndirectFirstInstance(value);
+        strategy.Set(10, value);
     }
 
     public boolean NativeHasDepthClamp()
     {
-        return vulkanFeatures.depthClamp();
+        return strategy.Has(11);
     }
 
     public void NativeSetDepthClamp(boolean value)
     {
-        vulkanFeatures.depthClamp(value);
+        strategy.Set(11, value);
     }
 
     public boolean NativeHasDepthBiasClamp()
     {
-        return vulkanFeatures.depthBiasClamp();
+        return strategy.Has(12);
     }
 
     public void NativeSetDepthBiasClamp(boolean value)
     {
-        vulkanFeatures.depthBiasClamp(value);
+        strategy.Set(12, value);
     }
 
     public boolean NativeHasFillModeNonSolid()
     {
-        return vulkanFeatures.fillModeNonSolid();
+        return strategy.Has(13);
     }
 
     public void NativeSetFillModeNonSolid(boolean value)
     {
-        vulkanFeatures.fillModeNonSolid(value);
+        strategy.Set(13, value);
     }
 
     public boolean NativeHasDepthBounds()
     {
-        return vulkanFeatures.depthBounds();
+        return strategy.Has(14);
     }
 
     public void NativeSetDepthBounds(boolean value)
     {
-        vulkanFeatures.depthBounds(value);
+        strategy.Set(14, value);
     }
 
     public boolean NativeHasWideLines()
     {
-        return vulkanFeatures.wideLines();
+        return strategy.Has(15);
     }
 
     public void NativeSetWideLines(boolean value)
     {
-        vulkanFeatures.wideLines(value);
+        strategy.Set(15, value);
     }
 
     public boolean NativeHasLargePoints()
     {
-        return vulkanFeatures.largePoints();
+        return strategy.Has(16);
     }
 
     public void NativeSetLargePoints(boolean value)
     {
-        vulkanFeatures.largePoints(value);
+        strategy.Set(16, value);
     }
 
     public boolean NativeHasAlphaToOne()
     {
-        return vulkanFeatures.alphaToOne();
+        return strategy.Has(17);
     }
 
     public void NativeSetAlphaToOne(boolean value)
     {
-        vulkanFeatures.alphaToOne(value);
+        strategy.Set(17, value);
     }
 
     public boolean NativeHasMultiViewport()
     {
-        return vulkanFeatures.multiViewport();
+        return strategy.Has(18);
     }
 
     public void NativeSetMultiViewport(boolean value)
     {
-        vulkanFeatures.multiViewport(value);
+        strategy.Set(18, value);
     }
 
     public boolean NativeHasSamplerAnisotropy()
     {
-        return vulkanFeatures.samplerAnisotropy();
+        return strategy.Has(19);
     }
 
     public void NativeSetSamplerAnisotropy(boolean value)
     {
-        vulkanFeatures.samplerAnisotropy(value);
+        strategy.Set(19, value);
     }
 
     public boolean NativeHasTextureCompressionETC2()
     {
-        return vulkanFeatures.textureCompressionETC2();
+        return strategy.Has(20);
     }
 
     public void NativeSetTextureCompressionETC2(boolean value)
     {
-        vulkanFeatures.textureCompressionETC2(value);
+        strategy.Set(20, value);
     }
 
     public boolean NativeHasTextureCompressionASTC_LDR()
     {
-        return vulkanFeatures.textureCompressionASTC_LDR();
+        return strategy.Has(21);
     }
 
     public void NativeSetTextureCompressionASTC_LDR(boolean value)
     {
-        vulkanFeatures.textureCompressionASTC_LDR(value);
+        strategy.Set(21, value);
     }
 
     public boolean NativeHasTextureCompressionBC()
     {
-        return vulkanFeatures.textureCompressionBC();
+        return strategy.Has(22);
     }
 
     public void NativeSetTextureCompressionBC(boolean value)
     {
-        vulkanFeatures.textureCompressionBC(value);
+        strategy.Set(22, value);
     }
 
     public boolean NativeHasOcclusionQueryPrecise()
     {
-        return vulkanFeatures.occlusionQueryPrecise();
+        return strategy.Has(23);
     }
 
     public void NativeSetOcclusionQueryPrecise(boolean value)
     {
-        vulkanFeatures.occlusionQueryPrecise(value);
+        strategy.Set(23, value);
     }
 
     public boolean NativeHasPipelineStatisticsQuery()
     {
-        return vulkanFeatures.pipelineStatisticsQuery();
+        return strategy.Has(24);
     }
 
     public void NativeSetPipelineStatisticsQuery(boolean value)
     {
-        vulkanFeatures.pipelineStatisticsQuery(value);
+        strategy.Set(24, value);
     }
 
     public boolean NativeHasVertexPipelineStoresAndAtomics()
     {
-        return vulkanFeatures.vertexPipelineStoresAndAtomics();
+        return strategy.Has(25);
     }
 
     public void NativeSetVertexPipelineStoresAndAtomics(boolean value)
     {
-        vulkanFeatures.vertexPipelineStoresAndAtomics(value);
+        strategy.Set(25, value);
     }
 
     public boolean NativeHasFragmentStoresAndAtomics()
     {
-        return vulkanFeatures.fragmentStoresAndAtomics();
+        return strategy.Has(26);
     }
 
     public void NativeSetFragmentStoresAndAtomics(boolean value)
     {
-        vulkanFeatures.fragmentStoresAndAtomics(value);
+        strategy.Set(26, value);
     }
 
     public boolean NativeHasShaderTessellationAndGeometryPointSize()
     {
-        return vulkanFeatures.shaderTessellationAndGeometryPointSize();
+        return strategy.Has(27);
     }
 
     public void NativeSetShaderTessellationAndGeometryPointSize(boolean value)
     {
-        vulkanFeatures.shaderTessellationAndGeometryPointSize(value);
+        strategy.Set(27, value);
     }
 
     public boolean NativeHasShaderImageGatherExtended()
     {
-        return vulkanFeatures.shaderImageGatherExtended();
+        return strategy.Has(28);
     }
 
     public void NativeSetShaderImageGatherExtended(boolean value)
     {
-        vulkanFeatures.shaderImageGatherExtended(value);
+        strategy.Set(28, value);
     }
 
     public boolean NativeHasShaderStorageImageExtendedFormats()
     {
-        return vulkanFeatures.shaderStorageImageExtendedFormats();
+        return strategy.Has(29);
     }
 
     public void NativeSetShaderStorageImageExtendedFormats(boolean value)
     {
-        vulkanFeatures.shaderStorageImageExtendedFormats(value);
+        strategy.Set(29, value);
     }
 
     public boolean NativeHasShaderStorageImageMultisample()
     {
-        return vulkanFeatures.shaderStorageImageMultisample();
+        return strategy.Has(30);
     }
 
     public void NativeSetShaderStorageImageMultisample(boolean value)
     {
-        vulkanFeatures.shaderStorageImageMultisample(value);
+        strategy.Set(30, value);
     }
 
     public boolean NativeHasShaderStorageImageReadWithoutFormat()
     {
-        return vulkanFeatures.shaderStorageImageReadWithoutFormat();
+        return strategy.Has(31);
     }
 
     public void NativeSetShaderStorageImageReadWithoutFormat(boolean value)
     {
-        vulkanFeatures.shaderStorageImageReadWithoutFormat(value);
+        strategy.Set(31, value);
     }
 
     public boolean NativeHasShaderStorageImageWriteWithoutFormat()
     {
-        return vulkanFeatures.shaderStorageImageWriteWithoutFormat();
+        return strategy.Has(32);
     }
 
     public void NativeSetShaderStorageImageWriteWithoutFormat(boolean value)
     {
-        vulkanFeatures.shaderStorageImageWriteWithoutFormat(value);
+        strategy.Set(32, value);
     }
 
     public boolean NativeHasShaderUniformBufferArrayDynamicIndexing()
     {
-        return vulkanFeatures.shaderUniformBufferArrayDynamicIndexing();
+        return strategy.Has(33);
     }
 
     public void NativeSetShaderUniformBufferArrayDynamicIndexing(boolean value)
     {
-        vulkanFeatures.shaderUniformBufferArrayDynamicIndexing(value);
+        strategy.Set(33, value);
     }
 
     public boolean NativeHasShaderSampledImageArrayDynamicIndexing()
     {
-        return vulkanFeatures.shaderSampledImageArrayDynamicIndexing();
+        return strategy.Has(34);
     }
 
     public void NativeSetShaderSampledImageArrayDynamicIndexing(boolean value)
     {
-        vulkanFeatures.shaderSampledImageArrayDynamicIndexing(value);
+        strategy.Set(34, value);
     }
 
     public boolean NativeHasShaderStorageBufferArrayDynamicIndexing()
     {
-        return vulkanFeatures.shaderStorageBufferArrayDynamicIndexing();
+        return strategy.Has(35);
     }
 
     public void NativeSetShaderStorageBufferArrayDynamicIndexing(boolean value)
     {
-        vulkanFeatures.shaderStorageBufferArrayDynamicIndexing(value);
+        strategy.Set(35, value);
     }
 
     public boolean NativeHasShaderStorageImageArrayDynamicIndexing()
     {
-        return vulkanFeatures.shaderStorageImageArrayDynamicIndexing();
+        return strategy.Has(36);
     }
 
     public void NativeSetShaderStorageImageArrayDynamicIndexing(boolean value)
     {
-        vulkanFeatures.shaderStorageImageArrayDynamicIndexing(value);
+        strategy.Set(36, value);
     }
 
     public boolean NativeHasShaderClipDistance()
     {
-        return vulkanFeatures.shaderClipDistance();
+        return strategy.Has(37);
     }
 
     public void NativeSetShaderClipDistance(boolean value)
     {
-        vulkanFeatures.shaderClipDistance(value);
+        strategy.Set(37, value);
     }
 
     public boolean NativeHasShaderCullDistance()
     {
-        return vulkanFeatures.shaderCullDistance();
+        return strategy.Has(38);
     }
 
     public void NativeSetShaderCullDistance(boolean value)
     {
-        vulkanFeatures.shaderCullDistance(value);
+        strategy.Set(38, value);
     }
 
     public boolean NativeHasShaderFloat64()
     {
-        return vulkanFeatures.shaderFloat64();
+        return strategy.Has(39);
     }
 
     public void NativeSetShaderFloat64(boolean value)
     {
-        vulkanFeatures.shaderFloat64(value);
+        strategy.Set(39, value);
     }
 
     public boolean NativeHasShaderInt64()
     {
-        return vulkanFeatures.shaderInt64();
+        return strategy.Has(40);
     }
 
     public void NativeSetShaderInt64(boolean value)
     {
-        vulkanFeatures.shaderInt64(value);
+        strategy.Set(40, value);
     }
 
     public boolean NativeHasShaderInt16()
     {
-        return vulkanFeatures.shaderInt16();
+        return strategy.Has(41);
     }
 
     public void NativeSetShaderInt16(boolean value)
     {
-        vulkanFeatures.shaderInt16(value);
+        strategy.Set(41, value);
     }
 
     public boolean NativeHasShaderResourceResidency()
     {
-        return vulkanFeatures.shaderResourceResidency();
+        return strategy.Has(42);
     }
 
     public void NativeSetShaderResourceResidency(boolean value)
     {
-        vulkanFeatures.shaderResourceResidency(value);
+        strategy.Set(42, value);
     }
 
     public boolean NativeHasShaderResourceMinLod()
     {
-        return vulkanFeatures.shaderResourceMinLod();
+        return strategy.Has(43);
     }
 
     public void NativeSetShaderResourceMinLod(boolean value)
     {
-        vulkanFeatures.shaderResourceMinLod(value);
+        strategy.Set(43, value);
     }
 
     public boolean NativeHasSparseBinding()
     {
-        return vulkanFeatures.sparseBinding();
+        return strategy.Has(44);
     }
 
     public void NativeSetSparseBinding(boolean value)
     {
-        vulkanFeatures.sparseBinding(value);
+        strategy.Set(44, value);
     }
 
     public boolean NativeHasSparseResidencyBuffer()
     {
-        return vulkanFeatures.sparseResidencyBuffer();
+        return strategy.Has(45);
     }
 
     public void NativeSetSparseResidencyBuffer(boolean value)
     {
-        vulkanFeatures.sparseResidencyBuffer(value);
+        strategy.Set(45, value);
     }
 
     public boolean NativeHasSparseResidencyImage2D()
     {
-        return vulkanFeatures.sparseResidencyImage2D();
+        return strategy.Has(46);
     }
 
     public void NativeSetSparseResidencyImage2D(boolean value)
     {
-        vulkanFeatures.sparseResidencyImage2D(value);
+        strategy.Set(46, value);
     }
 
     public boolean NativeHasSparseResidencyImage3D()
     {
-        return vulkanFeatures.sparseResidencyImage3D();
+        return strategy.Has(47);
     }
 
     public void NativeSetSparseResidencyImage3D(boolean value)
     {
-        vulkanFeatures.sparseResidencyImage3D(value);
+        strategy.Set(47, value);
     }
 
     public boolean NativeHasSparseResidency2Samples()
     {
-        return vulkanFeatures.sparseResidency2Samples();
+        return strategy.Has(48);
     }
 
     public void NativeSetSparseResidency2Samples(boolean value)
     {
-        vulkanFeatures.sparseResidency2Samples(value);
+        strategy.Set(48, value);
     }
 
     public boolean NativeHasSparseResidency4Samples()
     {
-        return vulkanFeatures.sparseResidency4Samples();
+        return strategy.Has(49);
     }
 
     public void NativeSetSparseResidency4Samples(boolean value)
     {
-        vulkanFeatures.sparseResidency4Samples(value);
+        strategy.Set(49, value);
     }
 
     public boolean NativeHasSparseResidency8Samples()
     {
-        return vulkanFeatures.sparseResidency8Samples();
+        return strategy.Has(50);
     }
 
     public void NativeSetSparseResidency8Samples(boolean value)
     {
-        vulkanFeatures.sparseResidency8Samples(value);
+        strategy.Set(50, value);
     }
 
     public boolean NativeHasSparseResidency16Samples()
     {
-        return vulkanFeatures.sparseResidency16Samples();
+        return strategy.Has(51);
     }
 
     public void NativeSetSparseResidency16Samples(boolean value)
     {
-        vulkanFeatures.sparseResidency16Samples(value);
+        strategy.Set(51, value);
     }
 
     public boolean NativeHasSparseResidencyAliased()
     {
-        return vulkanFeatures.sparseResidencyAliased();
+        return strategy.Has(52);
     }
 
     public void NativeSetSparseResidencyAliased(boolean value)
     {
-        vulkanFeatures.sparseResidencyAliased(value);
+        strategy.Set(52, value);
     }
 
     public boolean NativeHasVariableMultisampleRate()
     {
-        return vulkanFeatures.variableMultisampleRate();
+        return strategy.Has(53);
     }
 
     public void NativeSetVariableMultisampleRate(boolean value)
     {
-        vulkanFeatures.variableMultisampleRate(value);
+        strategy.Set(53, value);
     }
 
     public boolean NativeHasInheritedQueries()
     {
-        return vulkanFeatures.inheritedQueries();
+        return strategy.Has(54);
     }
 
     public void NativeSetInheritedQueries(boolean value)
     {
-        vulkanFeatures.inheritedQueries(value);
+        strategy.Set(54, value);
     }
 
     public boolean NativeHasStorageBuffer16BitAccess()
     {
-        return features11.storageBuffer16BitAccess();
+        return strategy.Has(55);
     }
 
     public void NativeSetStorageBuffer16BitAccess(boolean value)
     {
-        features11.storageBuffer16BitAccess(value);
+        strategy.Set(55, value);
     }
 
     public boolean NativeHasUniformAndStorageBuffer16BitAccess()
     {
-        return features11.uniformAndStorageBuffer16BitAccess();
+        return strategy.Has(56);
     }
 
     public void NativeSetUniformAndStorageBuffer16BitAccess(boolean value)
     {
-        features11.uniformAndStorageBuffer16BitAccess(value);
+        strategy.Set(56, value);
     }
 
     public boolean NativeHasStoragePushConstant16()
     {
-        return features11.storagePushConstant16();
+        return strategy.Has(57);
     }
 
     public void NativeSetStoragePushConstant16(boolean value)
     {
-        features11.storagePushConstant16(value);
+        strategy.Set(57, value);
     }
 
     public boolean NativeHasStorageInputOutput16()
     {
-        return features11.storageInputOutput16();
+        return strategy.Has(58);
     }
 
     public void NativeSetStorageInputOutput16(boolean value)
     {
-        features11.storageInputOutput16(value);
+        strategy.Set(58, value);
     }
 
     public boolean NativeHasMultiview()
     {
-        return features11.multiview();
+        return strategy.Has(59);
     }
 
     public void NativeSetMultiview(boolean value)
     {
-        features11.multiview(value);
+        strategy.Set(59, value);
     }
 
     public boolean NativeHasMultiviewGeometryShader()
     {
-        return features11.multiviewGeometryShader();
+        return strategy.Has(60);
     }
 
     public void NativeSetMultiviewGeometryShader(boolean value)
     {
-        features11.multiviewGeometryShader(value);
+        strategy.Set(60, value);
     }
 
     public boolean NativeHasMultiviewTessellationShader()
     {
-        return features11.multiviewTessellationShader();
+        return strategy.Has(61);
     }
 
     public void NativeSetMultiviewTessellationShader(boolean value)
     {
-        features11.multiviewTessellationShader(value);
+        strategy.Set(61, value);
     }
 
     public boolean NativeHasVariablePointersStorageBuffer()
     {
-        return features11.variablePointersStorageBuffer();
+        return strategy.Has(62);
     }
 
     public void NativeSetVariablePointersStorageBuffer(boolean value)
     {
-        features11.variablePointersStorageBuffer(value);
+        strategy.Set(62, value);
     }
 
     public boolean NativeHasVariablePointers()
     {
-        return features11.variablePointers();
+        return strategy.Has(63);
     }
 
     public void NativeSetVariablePointers(boolean value)
     {
-        features11.variablePointers(value);
+        strategy.Set(63, value);
     }
 
     public boolean NativeHasProtectedMemory()
     {
-        return features11.protectedMemory();
+        return strategy.Has(64);
     }
 
     public void NativeSetProtectedMemory(boolean value)
     {
-        features11.protectedMemory(value);
+        strategy.Set(64, value);
     }
 
     public boolean NativeHasSamplerYcbcrConversion()
     {
-        return features11.samplerYcbcrConversion();
+        return strategy.Has(65);
     }
 
     public void NativeSetSamplerYcbcrConversion(boolean value)
     {
-        features11.samplerYcbcrConversion(value);
+        strategy.Set(65, value);
     }
 
     public boolean NativeHasShaderDrawParameters()
     {
-        return features11.shaderDrawParameters();
+        return strategy.Has(66);
     }
 
     public void NativeSetShaderDrawParameters(boolean value)
     {
-        features11.shaderDrawParameters(value);
+        strategy.Set(66, value);
     }
 
     public boolean NativeHasSamplerMirrorClampToEdge()
     {
-        return features12.samplerMirrorClampToEdge();
+        return strategy.Has(67);
     }
 
     public void NativeSetSamplerMirrorClampToEdge(boolean value)
     {
-        features12.samplerMirrorClampToEdge(value);
+        strategy.Set(67, value);
     }
 
     public boolean NativeHasDrawIndirectCount()
     {
-        return features12.drawIndirectCount();
+        return strategy.Has(68);
     }
 
     public void NativeSetDrawIndirectCount(boolean value)
     {
-        features12.drawIndirectCount(value);
+        strategy.Set(68, value);
     }
 
     public boolean NativeHasStorageBuffer8BitAccess()
     {
-        return features12.storageBuffer8BitAccess();
+        return strategy.Has(69);
     }
 
     public void NativeSetStorageBuffer8BitAccess(boolean value)
     {
-        features12.storageBuffer8BitAccess(value);
+        strategy.Set(69, value);
     }
 
     public boolean NativeHasUniformAndStorageBuffer8BitAccess()
     {
-        return features12.uniformAndStorageBuffer8BitAccess();
+        return strategy.Has(70);
     }
 
     public void NativeSetUniformAndStorageBuffer8BitAccess(boolean value)
     {
-        features12.uniformAndStorageBuffer8BitAccess(value);
+        strategy.Set(70, value);
     }
 
     public boolean NativeHasStoragePushConstant8()
     {
-        return features12.storagePushConstant8();
+        return strategy.Has(71);
     }
 
     public void NativeSetStoragePushConstant8(boolean value)
     {
-        features12.storagePushConstant8(value);
+        strategy.Set(71, value);
     }
 
     public boolean NativeHasShaderBufferInt64Atomics()
     {
-        return features12.shaderBufferInt64Atomics();
+        return strategy.Has(72);
     }
 
     public void NativeSetShaderBufferInt64Atomics(boolean value)
     {
-        features12.shaderBufferInt64Atomics(value);
+        strategy.Set(72, value);
     }
 
     public boolean NativeHasShaderSharedInt64Atomics()
     {
-        return features12.shaderSharedInt64Atomics();
+        return strategy.Has(73);
     }
 
     public void NativeSetShaderSharedInt64Atomics(boolean value)
     {
-        features12.shaderSharedInt64Atomics(value);
+        strategy.Set(73, value);
     }
 
     public boolean NativeHasShaderFloat16()
     {
-        return features12.shaderFloat16();
+        return strategy.Has(74);
     }
 
     public void NativeSetShaderFloat16(boolean value)
     {
-        features12.shaderFloat16(value);
+        strategy.Set(74, value);
     }
 
     public boolean NativeHasShaderInt8()
     {
-        return features12.shaderInt8();
+        return strategy.Has(75);
     }
 
     public void NativeSetShaderInt8(boolean value)
     {
-        features12.shaderInt8(value);
+        strategy.Set(75, value);
     }
 
     public boolean NativeHasDescriptorIndexing()
     {
-        return features12.descriptorIndexing();
+        return strategy.Has(76);
     }
 
     public void NativeSetDescriptorIndexing(boolean value)
     {
-        features12.descriptorIndexing(value);
+        strategy.Set(76, value);
     }
 
     public boolean NativeHasShaderInputAttachmentArrayDynamicIndexing()
     {
-        return features12.shaderInputAttachmentArrayDynamicIndexing();
+        return strategy.Has(77);
     }
 
     public void NativeSetShaderInputAttachmentArrayDynamicIndexing(boolean value)
     {
-        features12.shaderInputAttachmentArrayDynamicIndexing(value);
+        strategy.Set(77, value);
     }
 
     public boolean NativeHasShaderUniformTexelBufferArrayDynamicIndexing()
     {
-        return features12.shaderUniformTexelBufferArrayDynamicIndexing();
+        return strategy.Has(78);
     }
 
     public void NativeSetShaderUniformTexelBufferArrayDynamicIndexing(boolean value)
     {
-        features12.shaderUniformTexelBufferArrayDynamicIndexing(value);
+        strategy.Set(78, value);
     }
 
     public boolean NativeHasShaderStorageTexelBufferArrayDynamicIndexing()
     {
-        return features12.shaderStorageTexelBufferArrayDynamicIndexing();
+        return strategy.Has(79);
     }
 
     public void NativeSetShaderStorageTexelBufferArrayDynamicIndexing(boolean value)
     {
-        features12.shaderStorageTexelBufferArrayDynamicIndexing(value);
+        strategy.Set(79, value);
     }
 
     public boolean NativeHasShaderUniformBufferArrayNonUniformIndexing()
     {
-        return features12.shaderUniformBufferArrayNonUniformIndexing();
+        return strategy.Has(80);
     }
 
     public void NativeSetShaderUniformBufferArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderUniformBufferArrayNonUniformIndexing(value);
+        strategy.Set(80, value);
     }
 
     public boolean NativeHasShaderSampledImageArrayNonUniformIndexing()
     {
-        return features12.shaderSampledImageArrayNonUniformIndexing();
+        return strategy.Has(81);
     }
 
     public void NativeSetShaderSampledImageArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderSampledImageArrayNonUniformIndexing(value);
+        strategy.Set(81, value);
     }
 
     public boolean NativeHasShaderStorageBufferArrayNonUniformIndexing()
     {
-        return features12.shaderStorageBufferArrayNonUniformIndexing();
+        return strategy.Has(82);
     }
 
     public void NativeSetShaderStorageBufferArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderStorageBufferArrayNonUniformIndexing(value);
+        strategy.Set(82, value);
     }
 
     public boolean NativeHasShaderStorageImageArrayNonUniformIndexing()
     {
-        return features12.shaderStorageImageArrayNonUniformIndexing();
+        return strategy.Has(83);
     }
 
     public void NativeSetShaderStorageImageArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderStorageImageArrayNonUniformIndexing(value);
+        strategy.Set(83, value);
     }
 
     public boolean NativeHasShaderInputAttachmentArrayNonUniformIndexing()
     {
-        return features12.shaderInputAttachmentArrayNonUniformIndexing();
+        return strategy.Has(84);
     }
 
     public void NativeSetShaderInputAttachmentArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderInputAttachmentArrayNonUniformIndexing(value);
+        strategy.Set(84, value);
     }
 
     public boolean NativeHasShaderUniformTexelBufferArrayNonUniformIndexing()
     {
-        return features12.shaderUniformTexelBufferArrayNonUniformIndexing();
+        return strategy.Has(85);
     }
 
     public void NativeSetShaderUniformTexelBufferArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderUniformTexelBufferArrayNonUniformIndexing(value);
+        strategy.Set(85, value);
     }
 
     public boolean NativeHasShaderStorageTexelBufferArrayNonUniformIndexing()
     {
-        return features12.shaderStorageTexelBufferArrayNonUniformIndexing();
+        return strategy.Has(86);
     }
 
     public void NativeSetShaderStorageTexelBufferArrayNonUniformIndexing(boolean value)
     {
-        features12.shaderStorageTexelBufferArrayNonUniformIndexing(value);
+        strategy.Set(86, value);
     }
 
     public boolean NativeHasDescriptorBindingUniformBufferUpdateAfterBind()
     {
-        return features12.descriptorBindingUniformBufferUpdateAfterBind();
+        return strategy.Has(87);
     }
 
     public void NativeSetDescriptorBindingUniformBufferUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingUniformBufferUpdateAfterBind(value);
+        strategy.Set(87, value);
     }
 
     public boolean NativeHasDescriptorBindingSampledImageUpdateAfterBind()
     {
-        return features12.descriptorBindingSampledImageUpdateAfterBind();
+        return strategy.Has(88);
     }
 
     public void NativeSetDescriptorBindingSampledImageUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingSampledImageUpdateAfterBind(value);
+        strategy.Set(88, value);
     }
 
     public boolean NativeHasDescriptorBindingStorageImageUpdateAfterBind()
     {
-        return features12.descriptorBindingStorageImageUpdateAfterBind();
+        return strategy.Has(89);
     }
 
     public void NativeSetDescriptorBindingStorageImageUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingStorageImageUpdateAfterBind(value);
+        strategy.Set(89, value);
     }
 
     public boolean NativeHasDescriptorBindingStorageBufferUpdateAfterBind()
     {
-        return features12.descriptorBindingStorageBufferUpdateAfterBind();
+        return strategy.Has(90);
     }
 
     public void NativeSetDescriptorBindingStorageBufferUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingStorageBufferUpdateAfterBind(value);
+        strategy.Set(90, value);
     }
 
     public boolean NativeHasDescriptorBindingUniformTexelBufferUpdateAfterBind()
     {
-        return features12.descriptorBindingUniformTexelBufferUpdateAfterBind();
+        return strategy.Has(91);
     }
 
     public void NativeSetDescriptorBindingUniformTexelBufferUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingUniformTexelBufferUpdateAfterBind(value);
+        strategy.Set(91, value);
     }
 
     public boolean NativeHasDescriptorBindingStorageTexelBufferUpdateAfterBind()
     {
-        return features12.descriptorBindingStorageTexelBufferUpdateAfterBind();
+        return strategy.Has(92);
     }
 
     public void NativeSetDescriptorBindingStorageTexelBufferUpdateAfterBind(boolean value)
     {
-        features12.descriptorBindingStorageTexelBufferUpdateAfterBind(value);
+        strategy.Set(92, value);
     }
 
     public boolean NativeHasDescriptorBindingUpdateUnusedWhilePending()
     {
-        return features12.descriptorBindingUpdateUnusedWhilePending();
+        return strategy.Has(93);
     }
 
     public void NativeSetDescriptorBindingUpdateUnusedWhilePending(boolean value)
     {
-        features12.descriptorBindingUpdateUnusedWhilePending(value);
+        strategy.Set(93, value);
     }
 
     public boolean NativeHasDescriptorBindingPartiallyBound()
     {
-        return features12.descriptorBindingPartiallyBound();
+        return strategy.Has(94);
     }
 
     public void NativeSetDescriptorBindingPartiallyBound(boolean value)
     {
-        features12.descriptorBindingPartiallyBound(value);
+        strategy.Set(94, value);
     }
 
     public boolean NativeHasDescriptorBindingVariableDescriptorCount()
     {
-        return features12.descriptorBindingVariableDescriptorCount();
+        return strategy.Has(95);
     }
 
     public void NativeSetDescriptorBindingVariableDescriptorCount(boolean value)
     {
-        features12.descriptorBindingVariableDescriptorCount(value);
+        strategy.Set(95, value);
     }
 
     public boolean NativeHasRuntimeDescriptorArray()
     {
-        return features12.runtimeDescriptorArray();
+        return strategy.Has(96);
     }
 
     public void NativeSetRuntimeDescriptorArray(boolean value)
     {
-        features12.runtimeDescriptorArray(value);
+        strategy.Set(96, value);
     }
 
     public boolean NativeHasSamplerFilterMinmax()
     {
-        return features12.samplerFilterMinmax();
+        return strategy.Has(97);
     }
 
     public void NativeSetSamplerFilterMinmax(boolean value)
     {
-        features12.samplerFilterMinmax(value);
+        strategy.Set(97, value);
     }
 
     public boolean NativeHasScalarBlockLayout()
     {
-        return features12.scalarBlockLayout();
+        return strategy.Has(98);
     }
 
     public void NativeSetScalarBlockLayout(boolean value)
     {
-        features12.scalarBlockLayout(value);
+        strategy.Set(98, value);
     }
 
     public boolean NativeHasImagelessFramebuffer()
     {
-        return features12.imagelessFramebuffer();
+        return strategy.Has(99);
     }
 
     public void NativeSetImagelessFramebuffer(boolean value)
     {
-        features12.imagelessFramebuffer(value);
+        strategy.Set(99, value);
     }
 
     public boolean NativeHasUniformBufferStandardLayout()
     {
-        return features12.uniformBufferStandardLayout();
+        return strategy.Has(100);
     }
 
     public void NativeSetUniformBufferStandardLayout(boolean value)
     {
-        features12.uniformBufferStandardLayout(value);
+        strategy.Set(100, value);
     }
 
     public boolean NativeHasShaderSubgroupExtendedTypes()
     {
-        return features12.shaderSubgroupExtendedTypes();
+        return strategy.Has(101);
     }
 
     public void NativeSetShaderSubgroupExtendedTypes(boolean value)
     {
-        features12.shaderSubgroupExtendedTypes(value);
+        strategy.Set(101, value);
     }
 
     public boolean NativeHasSeparateDepthStencilLayouts()
     {
-        return features12.separateDepthStencilLayouts();
+        return strategy.Has(102);
     }
 
     public void NativeSetSeparateDepthStencilLayouts(boolean value)
     {
-        features12.separateDepthStencilLayouts(value);
+        strategy.Set(102, value);
     }
 
     public boolean NativeHasHostQueryReset()
     {
-        return features12.hostQueryReset();
+        return strategy.Has(103);
     }
 
     public void NativeSetHostQueryReset(boolean value)
     {
-        features12.hostQueryReset(value);
+        strategy.Set(103, value);
     }
 
     public boolean NativeHasTimelineSemaphore()
     {
-        return features12.timelineSemaphore();
+        return strategy.Has(104);
     }
 
     public void NativeSetTimelineSemaphore(boolean value)
     {
-        features12.timelineSemaphore(value);
+        strategy.Set(104, value);
     }
 
     public boolean NativeHasBufferDeviceAddress()
     {
-        return features12.bufferDeviceAddress();
+        return strategy.Has(105);
     }
 
     public void NativeSetBufferDeviceAddress(boolean value)
     {
-        features12.bufferDeviceAddress(value);
+        strategy.Set(105, value);
     }
 
     public boolean NativeHasBufferDeviceAddressCaptureReplay()
     {
-        return features12.bufferDeviceAddressCaptureReplay();
+        return strategy.Has(106);
     }
 
     public void NativeSetBufferDeviceAddressCaptureReplay(boolean value)
     {
-        features12.bufferDeviceAddressCaptureReplay(value);
+        strategy.Set(106, value);
     }
 
     public boolean NativeHasBufferDeviceAddressMultiDevice()
     {
-        return features12.bufferDeviceAddressMultiDevice();
+        return strategy.Has(107);
     }
 
     public void NativeSetBufferDeviceAddressMultiDevice(boolean value)
     {
-        features12.bufferDeviceAddressMultiDevice(value);
+        strategy.Set(107, value);
     }
 
     public boolean NativeHasVulkanMemoryModel()
     {
-        return features12.vulkanMemoryModel();
+        return strategy.Has(108);
     }
 
     public void NativeSetVulkanMemoryModel(boolean value)
     {
-        features12.vulkanMemoryModel(value);
+        strategy.Set(108, value);
     }
 
     public boolean NativeHasVulkanMemoryModelDeviceScope()
     {
-        return features12.vulkanMemoryModelDeviceScope();
+        return strategy.Has(109);
     }
 
     public void NativeSetVulkanMemoryModelDeviceScope(boolean value)
     {
-        features12.vulkanMemoryModelDeviceScope(value);
+        strategy.Set(109, value);
     }
 
     public boolean NativeHasVulkanMemoryModelAvailabilityVisibilityChains()
     {
-        return features12.vulkanMemoryModelAvailabilityVisibilityChains();
+        return strategy.Has(110);
     }
 
     public void NativeSetVulkanMemoryModelAvailabilityVisibilityChains(boolean value)
     {
-        features12.vulkanMemoryModelAvailabilityVisibilityChains(value);
+        strategy.Set(110, value);
     }
 
     public boolean NativeHasShaderOutputViewportIndex()
     {
-        return features12.shaderOutputViewportIndex();
+        return strategy.Has(111);
     }
 
     public void NativeSetShaderOutputViewportIndex(boolean value)
     {
-        features12.shaderOutputViewportIndex(value);
+        strategy.Set(111, value);
     }
 
     public boolean NativeHasShaderOutputLayer()
     {
-        return features12.shaderOutputLayer();
+        return strategy.Has(112);
     }
 
     public void NativeSetShaderOutputLayer(boolean value)
     {
-        features12.shaderOutputLayer(value);
+        strategy.Set(112, value);
     }
 
     public boolean NativeHasSubgroupBroadcastDynamicId()
     {
-        return features12.subgroupBroadcastDynamicId();
+        return strategy.Has(113);
     }
 
     public void NativeSetSubgroupBroadcastDynamicId(boolean value)
     {
-        features12.subgroupBroadcastDynamicId(value);
+        strategy.Set(113, value);
     }
 
     public boolean NativeHasRobustImageAccess()
     {
-        return features13.robustImageAccess();
+        return strategy.Has(114);
     }
 
     public void NativeSetRobustImageAccess(boolean value)
     {
-        features13.robustImageAccess(value);
+        strategy.Set(114, value);
     }
 
     public boolean NativeHasInlineUniformBlock()
     {
-        return features13.inlineUniformBlock();
+        return strategy.Has(115);
     }
 
     public void NativeSetInlineUniformBlock(boolean value)
     {
-        features13.inlineUniformBlock(value);
+        strategy.Set(115, value);
     }
 
     public boolean NativeHasDescriptorBindingInlineUniformBlockUpdateAfterBind()
     {
-        return features13.descriptorBindingInlineUniformBlockUpdateAfterBind();
+        return strategy.Has(116);
     }
 
     public void NativeSetDescriptorBindingInlineUniformBlockUpdateAfterBind(boolean value)
     {
-        features13.descriptorBindingInlineUniformBlockUpdateAfterBind(value);
+        strategy.Set(116, value);
     }
 
     public boolean NativeHasPipelineCreationCacheControl()
     {
-        return features13.pipelineCreationCacheControl();
+        return strategy.Has(117);
     }
 
     public void NativeSetPipelineCreationCacheControl(boolean value)
     {
-        features13.pipelineCreationCacheControl(value);
+        strategy.Set(117, value);
     }
 
     public boolean NativeHasPrivateData()
     {
-        return features13.privateData();
+        return strategy.Has(118);
     }
 
     public void NativeSetPrivateData(boolean value)
     {
-        features13.privateData(value);
+        strategy.Set(118, value);
     }
 
     public boolean NativeHasShaderDemoteToHelperInvocation()
     {
-        return features13.shaderDemoteToHelperInvocation();
+        return strategy.Has(119);
     }
 
     public void NativeSetShaderDemoteToHelperInvocation(boolean value)
     {
-        features13.shaderDemoteToHelperInvocation(value);
+        strategy.Set(119, value);
     }
 
     public boolean NativeHasShaderTerminateInvocation()
     {
-        return features13.shaderTerminateInvocation();
+        return strategy.Has(120);
     }
 
     public void NativeSetShaderTerminateInvocation(boolean value)
     {
-        features13.shaderTerminateInvocation(value);
+        strategy.Set(120, value);
     }
 
     public boolean NativeHasSubgroupSizeControl()
     {
-        return features13.subgroupSizeControl();
+        return strategy.Has(121);
     }
 
     public void NativeSetSubgroupSizeControl(boolean value)
     {
-        features13.subgroupSizeControl(value);
+        strategy.Set(121, value);
     }
 
     public boolean NativeHasComputeFullSubgroups()
     {
-        return features13.computeFullSubgroups();
+        return strategy.Has(122);
     }
 
     public void NativeSetComputeFullSubgroups(boolean value)
     {
-        features13.computeFullSubgroups(value);
+        strategy.Set(122, value);
     }
 
     public boolean NativeHasSynchronization2()
     {
-        return features13.synchronization2();
+        return strategy.Has(123);
     }
 
     public void NativeSetSynchronization2(boolean value)
     {
-        features13.synchronization2(value);
+        strategy.Set(123, value);
     }
 
     public boolean NativeHasTextureCompressionASTC_HDR()
     {
-        return features13.textureCompressionASTC_HDR();
+        return strategy.Has(124);
     }
 
     public void NativeSetTextureCompressionASTC_HDR(boolean value)
     {
-        features13.textureCompressionASTC_HDR(value);
+        strategy.Set(124, value);
     }
 
     public boolean NativeHasShaderZeroInitializeWorkgroupMemory()
     {
-        return features13.shaderZeroInitializeWorkgroupMemory();
+        return strategy.Has(125);
     }
 
     public void NativeSetShaderZeroInitializeWorkgroupMemory(boolean value)
     {
-        features13.shaderZeroInitializeWorkgroupMemory(value);
+        strategy.Set(125, value);
     }
 
     public boolean NativeHasDynamicRendering()
     {
-        return features13.dynamicRendering();
+        return strategy.Has(126);
     }
 
     public void NativeSetDynamicRendering(boolean value)
     {
-        features13.dynamicRendering(value);
+        strategy.Set(126, value);
     }
 
     public boolean NativeHasShaderIntegerDotProduct()
     {
-        return features13.shaderIntegerDotProduct();
+        return strategy.Has(127);
     }
 
     public void NativeSetShaderIntegerDotProduct(boolean value)
     {
-        features13.shaderIntegerDotProduct(value);
+        strategy.Set(127, value);
     }
 
     public boolean NativeHasMaintenance4()
     {
-        return features13.maintenance4();
+        return strategy.Has(128);
     }
 
     public void NativeSetMaintenance4(boolean value)
     {
-        features13.maintenance4(value);
+        strategy.Set(128, value);
     }
 
     public boolean NativeHasGlobalPriorityQuery()
     {
-        return features14.globalPriorityQuery();
+        return strategy.Has(129);
     }
 
     public void NativeSetGlobalPriorityQuery(boolean value)
     {
-        features14.globalPriorityQuery(value);
+        strategy.Set(129, value);
     }
 
     public boolean NativeHasShaderSubgroupRotate()
     {
-        return features14.shaderSubgroupRotate();
+        return strategy.Has(130);
     }
 
     public void NativeSetShaderSubgroupRotate(boolean value)
     {
-        features14.shaderSubgroupRotate(value);
+        strategy.Set(130, value);
     }
 
     public boolean NativeHasShaderSubgroupRotateClustered()
     {
-        return features14.shaderSubgroupRotateClustered();
+        return strategy.Has(131);
     }
 
     public void NativeSetShaderSubgroupRotateClustered(boolean value)
     {
-        features14.shaderSubgroupRotateClustered(value);
+        strategy.Set(131, value);
     }
 
     public boolean NativeHasShaderFloatControls2()
     {
-        return features14.shaderFloatControls2();
+        return strategy.Has(132);
     }
 
     public void NativeSetShaderFloatControls2(boolean value)
     {
-        features14.shaderFloatControls2(value);
+        strategy.Set(132, value);
     }
 
     public boolean NativeHasShaderExpectAssume()
     {
-        return features14.shaderExpectAssume();
+        return strategy.Has(133);
     }
 
     public void NativeSetShaderExpectAssume(boolean value)
     {
-        features14.shaderExpectAssume(value);
+        strategy.Set(133, value);
     }
 
     public boolean NativeHasRectangularLines()
     {
-        return features14.rectangularLines();
+        return strategy.Has(134);
     }
 
     public void NativeSetRectangularLines(boolean value)
     {
-        features14.rectangularLines(value);
+        strategy.Set(134, value);
     }
 
     public boolean NativeHasBresenhamLines()
     {
-        return features14.bresenhamLines();
+        return strategy.Has(135);
     }
 
     public void NativeSetBresenhamLines(boolean value)
     {
-        features14.bresenhamLines(value);
+        strategy.Set(135, value);
     }
 
     public boolean NativeHasSmoothLines()
     {
-        return features14.smoothLines();
+        return strategy.Has(136);
     }
 
     public void NativeSetSmoothLines(boolean value)
     {
-        features14.smoothLines(value);
+        strategy.Set(136, value);
     }
 
     public boolean NativeHasStippledRectangularLines()
     {
-        return features14.stippledRectangularLines();
+        return strategy.Has(137);
     }
 
     public void NativeSetStippledRectangularLines(boolean value)
     {
-        features14.stippledRectangularLines(value);
+        strategy.Set(137, value);
     }
 
     public boolean NativeHasStippledBresenhamLines()
     {
-        return features14.stippledBresenhamLines();
+        return strategy.Has(138);
     }
 
     public void NativeSetStippledBresenhamLines(boolean value)
     {
-        features14.stippledBresenhamLines(value);
+        strategy.Set(138, value);
     }
 
     public boolean NativeHasStippledSmoothLines()
     {
-        return features14.stippledSmoothLines();
+        return strategy.Has(139);
     }
 
     public void NativeSetStippledSmoothLines(boolean value)
     {
-        features14.stippledSmoothLines(value);
+        strategy.Set(139, value);
     }
 
     public boolean NativeHasVertexAttributeInstanceRateDivisor()
     {
-        return features14.vertexAttributeInstanceRateDivisor();
+        return strategy.Has(140);
     }
 
     public void NativeSetVertexAttributeInstanceRateDivisor(boolean value)
     {
-        features14.vertexAttributeInstanceRateDivisor(value);
+        strategy.Set(140, value);
     }
 
     public boolean NativeHasVertexAttributeInstanceRateZeroDivisor()
     {
-        return features14.vertexAttributeInstanceRateZeroDivisor();
+        return strategy.Has(141);
     }
 
     public void NativeSetVertexAttributeInstanceRateZeroDivisor(boolean value)
     {
-        features14.vertexAttributeInstanceRateZeroDivisor(value);
+        strategy.Set(141, value);
     }
 
     public boolean NativeHasIndexTypeUint8()
     {
-        return features14.indexTypeUint8();
+        return strategy.Has(142);
     }
 
     public void NativeSetIndexTypeUint8(boolean value)
     {
-        features14.indexTypeUint8(value);
+        strategy.Set(142, value);
     }
 
     public boolean NativeHasDynamicRenderingLocalRead()
     {
-        return features14.dynamicRenderingLocalRead();
+        return strategy.Has(143);
     }
 
     public void NativeSetDynamicRenderingLocalRead(boolean value)
     {
-        features14.dynamicRenderingLocalRead(value);
+        strategy.Set(143, value);
     }
 
     public boolean NativeHasMaintenance5()
     {
-        return features14.maintenance5();
+        return strategy.Has(144);
     }
 
     public void NativeSetMaintenance5(boolean value)
     {
-        features14.maintenance5(value);
+        strategy.Set(144, value);
     }
 
     public boolean NativeHasMaintenance6()
     {
-        return features14.maintenance6();
+        return strategy.Has(145);
     }
 
     public void NativeSetMaintenance6(boolean value)
     {
-        features14.maintenance6(value);
+        strategy.Set(145, value);
     }
 
     public boolean NativeHasPipelineProtectedAccess()
     {
-        return features14.pipelineProtectedAccess();
+        return strategy.Has(146);
     }
 
     public void NativeSetPipelineProtectedAccess(boolean value)
     {
-        features14.pipelineProtectedAccess(value);
+        strategy.Set(146, value);
     }
 
     public boolean NativeHasPipelineRobustness()
     {
-        return features14.pipelineRobustness();
+        return strategy.Has(147);
     }
 
     public void NativeSetPipelineRobustness(boolean value)
     {
-        features14.pipelineRobustness(value);
+        strategy.Set(147, value);
     }
 
     public boolean NativeHasHostImageCopy()
     {
-        return features14.hostImageCopy();
+        return strategy.Has(148);
     }
 
     public void NativeSetHostImageCopy(boolean value)
     {
-        features14.hostImageCopy(value);
+        strategy.Set(148, value);
     }
 
     public boolean NativeHasPushDescriptor()
     {
-        return features14.pushDescriptor();
+        return strategy.Has(149);
     }
 
     public void NativeSetPushDescriptor(boolean value)
     {
-        features14.pushDescriptor(value);
+        strategy.Set(149, value);
+    }
+
+    // LWJGL's structure, for DesktopVulkanDevice only.
+    public VkPhysicalDeviceFeatures GetVulkanFeatures()
+    {
+        return ((DesktopVulkanPhysicalDeviceFeatures)strategy).vulkanFeatures;
+    }
+
+    public VulkanPhysicalDeviceFeaturesStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

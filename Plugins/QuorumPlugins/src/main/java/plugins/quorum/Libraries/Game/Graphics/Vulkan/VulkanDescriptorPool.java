@@ -1,139 +1,49 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDescriptorPoolCreateInfo;
-import org.lwjgl.vulkan.VkDescriptorPoolSize;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanDescriptorPool;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanDescriptorPool;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanDescriptorPoolStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanDescriptorPool. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanDescriptorPool), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanDescriptorPool, with quorum-natives' src/vulkan).
+*/
 public class VulkanDescriptorPool
 {
     public Object me_;
 
-    private long poolHandle = 0L;
+    private final VulkanDescriptorPoolStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanDescriptorPool(this) : new DesktopVulkanDescriptorPool(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, int descriptorType, int poolFlags, int descriptorCount, int maxSets)
     {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(1, stack);
-            VkDescriptorPoolSize poolSize = poolSizes.get(0);
-            poolSize.type(descriptorType);
-            poolSize.descriptorCount(descriptorCount);
-
-            VkDescriptorPoolCreateInfo createInfo = VkDescriptorPoolCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.pPoolSizes(poolSizes);
-            createInfo.maxSets(maxSets);
-            if (poolFlags != 0)
-                createInfo.flags(poolFlags);
-
-            LongBuffer handleBuffer = stack.callocLong(1);
-
-            int vulkanResult = vkCreateDescriptorPool(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            poolHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, descriptorType, poolFlags, descriptorCount, maxSets);
     }
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, Array_ descriptorTypes, int poolFlags, int descriptorCount, int maxSets)
     {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(descriptorTypes.GetSize(), stack);
-            for (int i = 0; i < descriptorTypes.GetSize(); i++)
-            {
-                // Cast Quorum array items to Integer_, get their values, store as Java ints.
-                int descriptorType = (int)((quorum.Libraries.Language.Types.Integer_)descriptorTypes.Get(i)).GetValue();
-
-                VkDescriptorPoolSize poolSize = poolSizes.get(i);
-                poolSize.type(descriptorType);
-                poolSize.descriptorCount(descriptorCount);
-            }
-
-            VkDescriptorPoolCreateInfo createInfo = VkDescriptorPoolCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.pPoolSizes(poolSizes);
-            createInfo.maxSets(maxSets);
-            if (poolFlags != 0)
-                createInfo.flags(poolFlags);
-
-            LongBuffer handleBuffer = stack.callocLong(1);
-
-            int vulkanResult = vkCreateDescriptorPool(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            poolHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, descriptorTypes, poolFlags, descriptorCount, maxSets);
     }
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, Array_ descriptorTypes, int poolFlags, Array_ descriptorCounts, int maxSets)
     {
-        if (descriptorTypes.GetSize() != descriptorCounts.GetSize())
-            return false;
-
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkDescriptorPoolSize.Buffer poolSizes = VkDescriptorPoolSize.calloc(descriptorTypes.GetSize(), stack);
-            for (int i = 0; i < descriptorTypes.GetSize(); i++)
-            {
-                // Cast Quorum array items to Integer_, get their values, store as Java ints.
-                int descriptorType = (int)((quorum.Libraries.Language.Types.Integer_)descriptorTypes.Get(i)).GetValue();
-                int descriptorCount = (int)((quorum.Libraries.Language.Types.Integer_)descriptorCounts.Get(i)).GetValue();
-
-                VkDescriptorPoolSize poolSize = poolSizes.get(i);
-                poolSize.type(descriptorType);
-                poolSize.descriptorCount(descriptorCount);
-            }
-
-            VkDescriptorPoolCreateInfo createInfo = VkDescriptorPoolCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.pPoolSizes(poolSizes);
-            createInfo.maxSets(maxSets);
-            if (poolFlags != 0)
-                createInfo.flags(poolFlags);
-
-            LongBuffer handleBuffer = stack.callocLong(1);
-
-            int vulkanResult = vkCreateDescriptorPool(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            poolHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, descriptorTypes, poolFlags, descriptorCounts, maxSets);
     }
 
     public long GetPoolHandle()
     {
-        return poolHandle;
+        return strategy.GetPoolHandle();
     }
 
     public void DisposeNative(VulkanDevice_ quorumDevice)
     {
-        if (poolHandle == 0L)
-            return;
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkDestroyDescriptorPool(pluginDevice.GetDevice(), poolHandle, null);
-        poolHandle = 0L;
+        strategy.DisposeNative(quorumDevice);
+    }
+
+    public VulkanDescriptorPoolStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

@@ -1,0 +1,60 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanSurface;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanQueueFamilyStrategy;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.KHRSurface;
+import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VkQueueFamilyProperties;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanSurface_;
+
+import java.nio.IntBuffer;
+
+import static org.lwjgl.vulkan.VK10.VK_TRUE;
+
+public class DesktopVulkanQueueFamily implements VulkanQueueFamilyStrategy
+{
+    private final VulkanQueueFamily peer;
+
+    public DesktopVulkanQueueFamily(VulkanQueueFamily peer)
+    {
+        this.peer = peer;
+    }
+
+    // system action CanPresentToSurface(VulkanSurface surface) returns boolean
+    public boolean CanPresentToSurface(VulkanSurface_ quorumSurface)
+    {
+        quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily_ quorumFamily = (quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily_)peer.me_;
+        quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice quorumDevice = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumFamily.GetPhysicalDevice();
+        VulkanPhysicalDevice devicePlugin = quorumDevice.plugin_;
+
+        VulkanSurface surfacePlugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSurface)quorumSurface).plugin_;
+
+        int familyIndex = quorumFamily.GetQueueFamilyIndex();
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            IntBuffer resultBuffer = stack.mallocInt(1);
+            KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(devicePlugin.GetDevice(), familyIndex, surfacePlugin.GetSurfacePointer(), resultBuffer);
+
+            return resultBuffer.get(0) == VK_TRUE;
+        }
+    }
+
+    public int GetComputeQueueFamilyIndex(quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_ device) {
+        int index = -1;
+        VulkanPhysicalDevice plugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice) device).plugin_;
+        VkQueueFamilyProperties.Buffer queueFamilyProps = plugin.GetQueueFamilyProperties();
+        int numQueuesFamilies = queueFamilyProps.capacity();
+        for (int i = 0; i < numQueuesFamilies; i++) {
+            VkQueueFamilyProperties props = queueFamilyProps.get(i);
+            boolean computeQueue = (props.queueFlags() & VK10.VK_QUEUE_COMPUTE_BIT) != 0;
+            if (computeQueue) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
+}

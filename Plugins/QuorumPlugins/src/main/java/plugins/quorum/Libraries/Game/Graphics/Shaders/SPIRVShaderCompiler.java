@@ -1,54 +1,21 @@
 package plugins.quorum.Libraries.Game.Graphics.Shaders;
 
-import org.lwjgl.util.shaderc.Shaderc;
-import plugins.quorum.Libraries.Language.SharedClass;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPlatform;
 import quorum.Libraries.Containers.ByteArray;
 import quorum.Libraries.Containers.ByteArray_;
-
-import java.nio.ByteBuffer;
 
 public class SPIRVShaderCompiler
 {
     public Object me_;
 
+    // Compiled by the platform's shaders strategy: shaderc on the desktop,
+    // glslang on iOS and Android (VulkanPlatform.GetShaders).
     public ByteArray_ CompileNative(String shaderName, String code, int shaderType, boolean optimizeShaders)
     {
-        ByteArray resultArray = null;
+        byte[] compiledShader = VulkanPlatform.GetShaders().CompileToSPIRV(shaderName, code, shaderType, optimizeShaders);
 
-        long compilerHandle = 0;
-        long optionsHandle = 0;
-        byte[] compiledShader;
-
-        try
-        {
-            compilerHandle = Shaderc.shaderc_compiler_initialize();
-            optionsHandle = Shaderc.shaderc_compile_options_initialize();
-
-            // For tricky shader debugging, disabling optimization can prevent the compiler from stripping out
-            // code that doesn't contribute to final outputs or removing intermediate values that would be easier to debug.
-            if (!optimizeShaders)
-                Shaderc.shaderc_compile_options_set_optimization_level(optionsHandle, 0);
-
-            long result = Shaderc.shaderc_compile_into_spv(compilerHandle, code, shaderType, shaderName, "main", optionsHandle);
-
-            if (Shaderc.shaderc_result_get_compilation_status(result) != Shaderc.shaderc_compilation_status_success)
-            {
-                throw new RuntimeException("Failed to compile shader \"" + shaderName + "\": " + Shaderc.shaderc_result_get_error_message(result));
-            }
-
-            ByteBuffer buffer = Shaderc.shaderc_result_get_bytes(result);
-            compiledShader = new byte[buffer.remaining()];
-            buffer.get(compiledShader);
-
-            resultArray = new ByteArray();
-            resultArray.plugin_.setBytes(compiledShader);
-        }
-        finally
-        {
-            Shaderc.shaderc_compile_options_release(optionsHandle);
-            Shaderc.shaderc_compiler_release(compilerHandle);
-        }
-
+        ByteArray resultArray = new ByteArray();
+        resultArray.plugin_.setBytes(compiledShader);
         return resultArray;
     }
 }

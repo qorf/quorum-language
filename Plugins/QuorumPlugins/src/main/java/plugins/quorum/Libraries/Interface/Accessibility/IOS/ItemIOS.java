@@ -1,12 +1,15 @@
 package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 
+import org.robovm.apple.coregraphics.CGPoint;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.NSArray;
 import org.robovm.apple.foundation.NSMutableArray;
 import org.robovm.apple.uikit.*;
 import org.robovm.objc.Selector;
 import org.robovm.objc.block.Block1;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.IOSApplication;
+import plugins.quorum.Libraries.Game.IOSInput;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
@@ -181,6 +184,59 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     @Override
     public boolean performMagicTap() {
         return false;
+    }
+
+    /*
+        VoiceOver's zoom action (iOS 17 and later). VoiceOver takes over the
+        pinch gesture, so an item that listens for gestures says it supports
+        zoom, and each zoom in or out reaches it as one pinch step (see
+        IOSInput.AddAccessibilityPinchEvents). 1.5 matches the pinch size
+        Android marks with isPinch.
+     */
+    static final double ZOOM_STEP = 1.5;
+
+    public boolean HasGestureListeners() {
+        return item != null && item.GetGestureListeners().HasNext();
+    }
+
+    @Override
+    public UIAccessibilityTraits getAccessibilityTraits() {
+        UIAccessibilityTraits traits = super.getAccessibilityTraits();
+        if (HasGestureListeners()) {
+            return new UIAccessibilityTraits(traits.value() | UIAccessibilityTraits.SupportsZoomValue.value());
+        }
+        return traits;
+    }
+
+    @Override
+    public boolean zoomInAtPoint(CGPoint point) {
+        return Zoom(point, ZOOM_STEP);
+    }
+
+    @Override
+    public boolean zoomOutAtPoint(CGPoint point) {
+        return Zoom(point, 1.0 / ZOOM_STEP);
+    }
+
+    /*
+        The pinch goes to whatever is under the point, so a point outside this
+        item (VoiceOver may give the element's center, or nothing) is moved to
+        the item's center. The game handles the pinch in its next frame, so
+        true means the item listens for it, not that it zoomed.
+     */
+    private boolean Zoom(CGPoint point, double scale) {
+        if (!HasGestureListeners()) {
+            return false;
+        }
+
+        CGRect frame = getAccessibilityFrame();
+        if (point == null || !frame.contains(point)) {
+            point = new CGPoint(frame.getMidX(), frame.getMidY());
+        }
+
+        IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
+        input.AddAccessibilityPinchEvents(point, scale);
+        return true;
     }
 
     /*

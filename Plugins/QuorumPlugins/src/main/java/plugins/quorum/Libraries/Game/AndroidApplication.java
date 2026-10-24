@@ -12,6 +12,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +51,8 @@ public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
-    static final int MINIMUM_SDK = 21;
+    // Android 15, Quorum's minimum (for Vulkan 1.3).
+    static final int MINIMUM_SDK = 35;
     
     public static Activity androidActivity = null;
     private static boolean initialized = false;
@@ -159,10 +162,9 @@ public class AndroidApplication
         UseImmersiveMode(this.useImmersiveMode);
 
         viewRoot = androidActivity.getWindow().getDecorView();
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        androidActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenHeight = displayMetrics.heightPixels;
-        screenWidth = displayMetrics.widthPixels;
+        Rect bounds = androidActivity.getWindowManager().getCurrentWindowMetrics().getBounds();
+        screenHeight = bounds.height();
+        screenWidth = bounds.width();
         accessibilityNodeProvider = new AccessibilityNodeProvider() {
             @Override
             public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
@@ -317,23 +319,18 @@ public class AndroidApplication
         }
     }
     
+    /*
+    Hides the status bar with the window's WindowInsetsController (Android 11
+    and later), which replaced setSystemUiVisibility.
+    */
     public void HideStatusBar(boolean hide)
     {
-        if (!hide || GetVersion() < 11)
+        if (!hide)
             return;
-        View rootView = androidActivity.getWindow().getDecorView();
-        
-        try
-        {
-            Method m = View.class.getMethod("setSystemUiVisibility", int.class);
-            if (GetVersion() <= 13)
-                m.invoke(rootView, 0x0);
-            m.invoke(rootView, 0x1);
-        }
-        catch (Exception e)
-        {
-            //log("AndroidApplication", "Can't hide status bar", e);
-        }
+
+        WindowInsetsController controller = androidActivity.getWindow().getInsetsController();
+        if (controller != null)
+            controller.hide(WindowInsets.Type.statusBars());
     }
     
     public void onWindowFocusChanged(boolean hasFocus)
@@ -355,23 +352,20 @@ public class AndroidApplication
         }
     }
     
+    /*
+    Immersive mode: the status and navigation bars are hidden, and come back
+    for a moment when the person swipes from the edge of the screen.
+    */
     public void UseImmersiveMode(boolean mode)
     {
-        if (!mode || GetVersion() < Build.VERSION_CODES.KITKAT)
+        if (!mode)
             return;
-        
-        View view = androidActivity.getWindow().getDecorView();
-        try
+
+        WindowInsetsController controller = androidActivity.getWindow().getInsetsController();
+        if (controller != null)
         {
-            Method m = View.class.getMethod("setSystemUiVisibility", int.class);
-            int code = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION 
-                | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            m.invoke(view, code);
-        }
-        catch (Exception e)
-        {
-            //log("AndroidApplication", "Can't set immersive mode", e);
+            controller.hide(WindowInsets.Type.systemBars());
+            controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
     }
     

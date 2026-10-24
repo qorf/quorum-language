@@ -78,14 +78,17 @@ public class Process {
             builder.directory(new File(directory.GetAbsolutePath()));
             myProcess.FireProcessStartedEvent();
             process = builder.start();
-            watch = new QuorumProcessWatcher(process.getInputStream(), process.getErrorStream());
+            // A local copy, since the watcher sets watch to null when it
+            // finishes, which can be before the join below for a quick process.
+            QuorumProcessWatcher watcher = new QuorumProcessWatcher(process.getInputStream(), process.getErrorStream());
+            watch = watcher;
             OutputStream outputStream = process.getOutputStream();
-            watch.setStream(outputStream);
-            watch.start();
-            
+            watcher.setStream(outputStream);
+            watcher.start();
+
             exit = process.waitFor();
             cancelled = true;
-            watch.GetThread().join();
+            watcher.GetThread().join();
         } catch (IOException ex) {
             sendExceptionToStandardError(ex);
         } catch (InterruptedException ex) {

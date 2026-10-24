@@ -1,41 +1,33 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkPipelineCacheCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanPipelineCache;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanPipelineCache;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanPipelineCacheStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreatePipelineCache;
-
+/*
+The Java side of Quorum's VulkanPipelineCache. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanPipelineCache), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanPipelineCache, with quorum-natives' src/vulkan).
+*/
 public class VulkanPipelineCache
 {
     public Object me_;
 
-    private long vulkanCacheHandle = 0L;
+    private final VulkanPipelineCacheStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanPipelineCache(this) : new DesktopVulkanPipelineCache(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice)
     {
-        VulkanDevice device = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkPipelineCacheCreateInfo createInfo = VkPipelineCacheCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreatePipelineCache(device.GetDevice(), createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            vulkanCacheHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice);
     }
 
-    public long GetVulkanCacheHandle() {
-        return vulkanCacheHandle;
+    public long GetVulkanCacheHandle()
+    {
+        return strategy.GetVulkanCacheHandle();
+    }
+
+    public VulkanPipelineCacheStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

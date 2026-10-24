@@ -1,0 +1,84 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanQueue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanGraphicsStrategy;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.KHRSwapchain;
+import org.lwjgl.vulkan.VkPresentInfoKHR;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueue_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain_;
+
+import java.nio.IntBuffer;
+
+import static org.lwjgl.vulkan.KHRSwapchain.VK_SUBOPTIMAL_KHR;
+import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
+
+public class DesktopVulkanGraphics implements VulkanGraphicsStrategy
+{
+    private final VulkanGraphics peer;
+
+    public DesktopVulkanGraphics(VulkanGraphics peer)
+    {
+        this.peer = peer;
+    }
+
+    int currentSwapchainIndex = 0;
+
+    public int PrepareNextSwapchainImage(VulkanDevice_ quorumDevice, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore)
+    {
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanSwapchain pluginSwapchain = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain)quorumSwapchain).plugin_;
+        VulkanSemaphore pluginSemaphore = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore)quorumSemaphore).plugin_;
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            IntBuffer imageIndexBuffer = stack.mallocInt(1);
+            int vulkanResult = KHRSwapchain.vkAcquireNextImageKHR(pluginDevice.GetDevice(), pluginSwapchain.GetVulkanSwapchainHandle(),
+                    Long.MAX_VALUE, pluginSemaphore.GetSemaphoreHandle(), 0L, imageIndexBuffer);
+
+            if (vulkanResult == VK_SUCCESS || vulkanResult == VK_SUBOPTIMAL_KHR || vulkanResult == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR)
+            {
+                currentSwapchainIndex = imageIndexBuffer.get(0);
+                return vulkanResult;
+            }
+            else
+            {
+                throw new RuntimeException("Could not acquire the next swapchain image! Error code: " + vulkanResult);
+            }
+        }
+    }
+
+    public int GetCurrentSwapchainIndexNative()
+    {
+        return currentSwapchainIndex;
+    }
+
+    public boolean DisplayCurrentImageNative(VulkanQueue_ quorumQueue, VulkanSwapchain_ quorumSwapchain, VulkanSemaphore_ quorumSemaphore, int imageIndex)
+    {
+        VulkanQueue pluginQueue = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanQueue)quorumQueue).plugin_;
+        VulkanSwapchain pluginSwapchain = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain)quorumSwapchain).plugin_;
+        VulkanSemaphore pluginSemaphore = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore)quorumSemaphore).plugin_;
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack);
+            presentInfo.sType$Default();
+            presentInfo.pWaitSemaphores(stack.longs(pluginSemaphore.GetSemaphoreHandle()));
+            presentInfo.swapchainCount(1);
+            presentInfo.pSwapchains(stack.longs(pluginSwapchain.GetVulkanSwapchainHandle()));
+            presentInfo.pImageIndices(stack.ints(imageIndex));
+
+            int vulkanResult = KHRSwapchain.vkQueuePresentKHR(pluginQueue.GetVulkanQueue(), presentInfo);
+            if (vulkanResult != VK_SUCCESS && vulkanResult != VK_SUBOPTIMAL_KHR)
+                return false;
+        }
+
+        return true;
+    }
+}

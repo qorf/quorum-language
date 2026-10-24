@@ -1,48 +1,43 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.vulkan.VkDrawIndirectCommand;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanDrawIndirectDataMappedMemory;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanDrawIndirectDataMappedMemory;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanDrawIndirectDataMappedMemoryStrategy;
 
-import java.nio.ByteBuffer;
-
+/*
+The Java side of Quorum's VulkanDrawIndirectDataMappedMemory. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanDrawIndirectDataMappedMemory), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanDrawIndirectDataMappedMemory, with quorum-natives' src/vulkan).
+*/
 public class VulkanDrawIndirectDataMappedMemory
 {
     public Object me_;
 
-    VkDrawIndirectCommand.Buffer drawBuffer = null;
+    private final VulkanDrawIndirectDataMappedMemoryStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanDrawIndirectDataMappedMemory(this) : new DesktopVulkanDrawIndirectDataMappedMemory(this);
 
     public void CreateNative(VulkanBuffer_ quorumBuffer)
     {
-        VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
-        ByteBuffer dataBuffer = MemoryUtil.memByteBuffer(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize());
-        drawBuffer = new VkDrawIndirectCommand.Buffer(dataBuffer);
+        strategy.CreateNative(quorumBuffer);
     }
 
     public void SetNative(int index, int vertexCount, int instanceCount, int firstVertex, int firstInstance)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkDrawIndirectCommand data = VkDrawIndirectCommand.calloc(stack);
-            data.vertexCount(vertexCount);
-            data.instanceCount(instanceCount);
-            data.firstVertex(firstVertex);
-            data.firstInstance(firstInstance);
-
-            drawBuffer.put(index, data);
-        }
+        strategy.SetNative(index, vertexCount, instanceCount, firstVertex, firstInstance);
     }
 
     public int GetByteStride()
     {
-        return VkDrawIndirectCommand.SIZEOF;
+        return strategy.GetByteStride();
     }
 
     public void Dispose()
     {
-        // The memory belongs to the VulkanBuffer, which VMA frees; only the
-        // view of it is dropped here.
-        drawBuffer = null;
+        strategy.Dispose();
+    }
+
+    public VulkanDrawIndirectDataMappedMemoryStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

@@ -1,55 +1,38 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDevice;
-import org.lwjgl.vulkan.VkSemaphoreCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanSemaphore;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanSemaphore;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanSemaphoreStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanSemaphore. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanSemaphore), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanSemaphore, with quorum-natives' src/vulkan).
+*/
 public class VulkanSemaphore
 {
     public Object me_;
 
-    private long semaphoreHandle = 0L;
+    private final VulkanSemaphoreStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanSemaphore(this) : new DesktopVulkanSemaphore(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice)
     {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        VkDevice vulkanDevice = pluginDevice.GetDevice();
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkSemaphoreCreateInfo createInfo = VkSemaphoreCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            LongBuffer handleBuffer = stack.mallocLong(1);
-
-            int vulkanResult = vkCreateSemaphore(vulkanDevice, createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            semaphoreHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice);
     }
 
     public long GetSemaphoreHandle()
     {
-        return semaphoreHandle;
+        return strategy.GetSemaphoreHandle();
     }
 
     public void Dispose()
     {
-        if (semaphoreHandle == 0L)
-            return;
+        strategy.Dispose();
+    }
 
-        VulkanDevice_ quorumDevice = ((VulkanSemaphore_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanSemaphore__device_();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkDestroySemaphore(pluginDevice.GetDevice(), semaphoreHandle, null);
-        semaphoreHandle = 0L;
+    public VulkanSemaphoreStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

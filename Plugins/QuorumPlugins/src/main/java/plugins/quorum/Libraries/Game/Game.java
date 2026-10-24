@@ -139,7 +139,7 @@ public class Game
                 {
                     graphics = new AndroidOpenGL();
                     GameStateManager.nativeGraphics = ((AndroidOpenGL)graphics).plugin_;
-                    GameStateManager.operatingSystem = "Linux (Android) : TEST-CODE-MCX";
+                    GameStateManager.operatingSystem = "Android";
                 }
             }
             else

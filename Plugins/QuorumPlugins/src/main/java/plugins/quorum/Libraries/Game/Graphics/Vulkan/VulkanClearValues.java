@@ -1,74 +1,40 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import org.lwjgl.vulkan.VkClearValue;
-import quorum.Libraries.Containers.Array_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue_;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValues_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanClearValues;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanClearValues;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanClearValuesStrategy;
 
+/*
+The Java side of Quorum's VulkanClearValues. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanClearValues), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanClearValues, with quorum-natives' src/vulkan).
+*/
 public class VulkanClearValues
 {
     public Object me_;
 
-    VkClearValue.Buffer buffer = null;
+    private final VulkanClearValuesStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanClearValues(this) : new DesktopVulkanClearValues(this);
 
     public void SystemUpdateNativeValues()
     {
-        Array_ quorumArray = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValues)me_).clearValues;
-
-        if (buffer == null)
-        {
-            buffer = VkClearValue.calloc(quorumArray.GetSize());
-        }
-
-        for (int i = 0; i < quorumArray.GetSize(); i++)
-        {
-            VulkanClearValue_ quorumValue = (VulkanClearValue_)quorumArray.Get(i);
-            if (quorumValue.IsColorClearValue())
-            {
-                switch (quorumValue.GetColorComponents())
-                {
-                    case 1:
-                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed()));
-                        break;
-                    case 2:
-                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
-                                .float32(1, (float) quorumValue.GetGreen()));
-                        break;
-                    case 3:
-                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
-                                .float32(1, (float) quorumValue.GetGreen())
-                                .float32(2, (float) quorumValue.GetBlue()));
-                        break;
-                    case 4:
-                        buffer.apply(i, v -> v.color().float32(0, (float) quorumValue.GetRed())
-                                .float32(1, (float) quorumValue.GetGreen())
-                                .float32(2, (float) quorumValue.GetBlue())
-                                .float32(3, (float) quorumValue.GetAlpha()));
-                }
-            }
-            else
-            {
-                buffer.apply(i, v -> v.depthStencil().depth((float) quorumValue.GetDepth()));
-                buffer.apply(i, v -> v.depthStencil().stencil(quorumValue.GetStencil()));
-            }
-        }
+        strategy.SystemUpdateNativeValues();
     }
 
     public void DisposeNative()
     {
-        if (buffer != null)
-        {
-            buffer.free();
-            buffer = null;
-        }
+        strategy.DisposeNative();
     }
+
+    // LWJGL's objects, for the other desktop strategies only.
 
     public VkClearValue.Buffer GetBuffer()
     {
-        VulkanClearValues_ quorumValues = (VulkanClearValues_)me_;
-        if (quorumValues.IsDirty())
-            quorumValues.UpdateNativeValues();
+        return ((DesktopVulkanClearValues)strategy).GetBuffer();
+    }
 
-        return buffer;
+    public VulkanClearValuesStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

@@ -1,51 +1,40 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanClearValue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanClearValue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanClearValueStrategy;
 
+/*
+The Java side of Quorum's VulkanClearValue. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanClearValue), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanClearValue, with quorum-natives' src/vulkan).
+*/
 public class VulkanClearValue
 {
     public Object me_;
 
-    VkClearValue.Buffer clearValue = null;
+    private final VulkanClearValueStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanClearValue(this) : new DesktopVulkanClearValue(this);
 
     public void SetNativeValues()
     {
-        if (clearValue == null)
-        {
-            clearValue = VkClearValue.calloc(2);
-        }
-
-        VulkanClearValue_ quorumValue = (VulkanClearValue_)me_;
-
-        if (quorumValue.GetRed() >= 0 || quorumValue.GetGreen() >= 0 || quorumValue.GetBlue() >= 0 || quorumValue.GetAlpha() >= 0)
-        {
-            clearValue.apply(0,
-                    v -> v.color().float32(0, (float) quorumValue.GetRed())
-                            .float32(1, (float) quorumValue.GetGreen())
-                            .float32(2, (float) quorumValue.GetBlue())
-                            .float32(3, (float) quorumValue.GetAlpha()));
-        }
-
-        if (true)
-        {
-            clearValue.apply(1, v -> v.depthStencil().depth((float) quorumValue.GetDepth()));
-            clearValue.apply(1, v -> v.depthStencil().stencil(quorumValue.GetStencil()));
-        }
+        strategy.SetNativeValues();
     }
 
     public void DisposeNative()
     {
-        if (clearValue != null)
-        {
-            clearValue.free();
-            clearValue = null;
-        }
+        strategy.DisposeNative();
     }
+
+    // LWJGL's objects, for the other desktop strategies only.
 
     public VkClearValue.Buffer GetClearValue()
     {
-        return clearValue;
+        return ((DesktopVulkanClearValue)strategy).GetClearValue();
+    }
+
+    public VulkanClearValueStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

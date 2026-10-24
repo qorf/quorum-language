@@ -12,6 +12,7 @@ import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
 
 import org.robovm.apple.coregraphics.CGRect;
 
@@ -63,6 +64,23 @@ public class IOSApplication
         @Override
         public long indexOfAccessibilityElement(UIAccessibilityElement element) {
             return accessibilityElements.indexOf(element);
+        }
+
+        // The elements UI automation tools (XCUITest, Appium) see, iOS 17 and
+        // later. Unless something sets its own list, they see what VoiceOver
+        // sees, so a Quorum program can be tested by its items.
+        private NSArray<?> automationElements = null;
+
+        @Override
+        public NSArray<?> getAutomationElements() {
+            if (automationElements != null)
+                return automationElements;
+            return accessibilityElements;
+        }
+
+        @Override
+        public void setAutomationElements(NSArray<?> v) {
+            automationElements = v;
         }
     }
     static final String SIMULATOR_SEARCH = "CoreSimulator";
@@ -201,11 +219,19 @@ public class IOSApplication
             }
         }
 
-        plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
-
         IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
-        input.Initialize(this);
-        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
+        if (GameStateManager.graphics instanceof VulkanGraphics)
+        {
+            // Vulkan (IOSConfiguration's useVulkan) draws on a Metal layer.
+            input.Initialize(this);
+            ((IOSDisplay)display).plugin_.InitializeVulkan(scale, this, config, input);
+        }
+        else
+        {
+            plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
+            input.Initialize(this);
+            ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
+        }
 
         // The window is made in CreateWindow, when iOS connects the scene.
         return true;
@@ -220,7 +246,7 @@ public class IOSApplication
     final UIWindow CreateWindow(UIWindowScene scene)
     {
         this.uiWindow = new UIWindow(scene);
-        this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
+        this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.GetViewController());
         this.uiWindow.makeKeyAndVisible();
         accessibilityContainer = new IOSAccessibilityContainer();
         accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();

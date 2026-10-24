@@ -1,41 +1,32 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkPushConstantRange;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanPushConstantRange;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanPushConstantRange;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanPushConstantRangeStrategy;
 
-import static org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_COMPUTE_BIT;
-
-public class VulkanPushConstantRange {
+/*
+The Java side of Quorum's VulkanPushConstantRange. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanPushConstantRange), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanPushConstantRange, with quorum-natives' src/vulkan).
+*/
+public class VulkanPushConstantRange
+{
     public Object me_;
-    VkPushConstantRange.Buffer pushConstantBuffer = null;
-    public void Create() {
-        VulkanPushConstantRange_ quorumSide = (VulkanPushConstantRange_) me_;
-        int capacity = quorumSide.GetCapacity();
-        int size = quorumSide.GetSize();
-        int offset = quorumSide.GetOffset();
-        int stage = quorumSide.GetStage();
 
-//        try (MemoryStack stack = MemoryStack.stackPush()) {
-            VkPushConstantRange.Buffer vpcr = null;
-            if (size > 0) {
-//                vpcr = VkPushConstantRange.calloc(1, stack);
-                vpcr = VkPushConstantRange.calloc(capacity);
-                VkPushConstantRange range = vpcr.get(0);
-                range.stageFlags(stage);
-                range.offset(offset);
-                range.size(size);
-                pushConstantBuffer = vpcr;
-            }
-//        }
+    private final VulkanPushConstantRangeStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanPushConstantRange(this) : new DesktopVulkanPushConstantRange(this);
+
+    public void Create()
+    {
+        strategy.Create();
     }
 
     public void Dispose()
     {
-        if (pushConstantBuffer != null)
-        {
-            pushConstantBuffer.free();
-            pushConstantBuffer = null;
-        }
+        strategy.Dispose();
+    }
+
+    public VulkanPushConstantRangeStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

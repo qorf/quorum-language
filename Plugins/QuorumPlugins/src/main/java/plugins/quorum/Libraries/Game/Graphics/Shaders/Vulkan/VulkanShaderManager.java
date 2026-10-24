@@ -1,18 +1,15 @@
 package plugins.quorum.Libraries.Game.Graphics.Shaders.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkDevice;
-import org.lwjgl.vulkan.VkShaderModuleCreateInfo;
-import plugins.quorum.Libraries.Language.SharedClass;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPlatform;
 import quorum.Libraries.Containers.ByteArray;
 import quorum.Libraries.Containers.ByteArray_;
 import quorum.Libraries.Game.Graphics.Shaders.Shader_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 
-import java.nio.ByteBuffer;
-import java.nio.LongBuffer;
 import java.util.HashMap;
 
+// Compile-time constants only: javac copies their values, so LWJGL isn't
+// loaded for them on iOS and Android.
 import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanShaderManager
@@ -21,30 +18,15 @@ public class VulkanShaderManager
 
     private static HashMap<Shader_, Long> vulkanShaderHandles = new HashMap<>();
 
+    // The module is made by the platform's shaders strategy (VulkanPlatform.GetShaders).
     public boolean CompileShaderNative(Shader_ quorumShader, VulkanDevice_ device, ByteArray_ codeArray)
     {
         byte[] rawBytes = ((ByteArray)codeArray).plugin_.getBytes();
-        VkDevice vulkanDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)device).plugin_.GetDevice();
+        long handle = VulkanPlatform.GetShaders().CreateShaderModule(device, rawBytes);
+        if (handle == 0L)
+            return false;
 
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            ByteBuffer codeBuffer = stack.malloc(rawBytes.length);
-            codeBuffer.put(rawBytes);
-            codeBuffer.flip();
-
-            VkShaderModuleCreateInfo createInfo = VkShaderModuleCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.pCode(codeBuffer);
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-
-            int vulkanResult = vkCreateShaderModule(vulkanDevice, createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            vulkanShaderHandles.put(quorumShader, handleBuffer.get(0));
-        }
-
+        vulkanShaderHandles.put(quorumShader, handle);
         return true;
     }
 

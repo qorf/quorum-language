@@ -1,71 +1,39 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkSamplerCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanSampler;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanSampler;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanSamplerStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanSampler. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanSampler), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanSampler, with quorum-natives' src/vulkan).
+*/
 public class VulkanSampler
 {
     public Object me_;
 
-    private long samplerHandle = 0L;
+    private final VulkanSamplerStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanSampler(this) : new DesktopVulkanSampler(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, VulkanSamplerInfo_ info)
     {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkSamplerCreateInfo createInfo = VkSamplerCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.magFilter(info.GetMagnifyFilter());
-            createInfo.minFilter(info.GetMinifyFilter());
-            createInfo.mipmapMode(info.GetMipMapMode());
-            createInfo.addressModeU(info.GetHorizontalWrapMode());
-            createInfo.addressModeV(info.GetVerticalWrapMode());
-            createInfo.addressModeW(info.GetDepthWrapMode());
-            createInfo.mipLodBias((float)info.GetMipLodBias());
-            createInfo.anisotropyEnable(info.GetAnisotropyEnable());
-            createInfo.maxAnisotropy((float)info.GetMaxAnisotropy());
-            createInfo.compareEnable(info.GetCompareEnable());
-            createInfo.compareOp(info.GetCompareOp());
-            createInfo.minLod((float)info.GetMinLod());
-            createInfo.maxLod((float)info.GetMaxLod());
-            createInfo.borderColor(info.GetBorderColor());
-            createInfo.unnormalizedCoordinates(info.GetUnnormalizedCoordinates());
-
-            if (info.GetFlags() != 0)
-                createInfo.flags(info.GetFlags());
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreateSampler(pluginDevice.GetDevice(), createInfo, null, handleBuffer);
-
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            samplerHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, info);
     }
 
     public long GetSamplerHandle()
     {
-        return samplerHandle;
+        return strategy.GetSamplerHandle();
     }
 
     public void DisposeNative(VulkanDevice_ quorumDevice)
     {
-        if (samplerHandle == 0L)
-            return;
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkDestroySampler(pluginDevice.GetDevice(), samplerHandle, null);
-        samplerHandle = 0L;
+        strategy.DisposeNative(quorumDevice);
+    }
+
+    public VulkanSamplerStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

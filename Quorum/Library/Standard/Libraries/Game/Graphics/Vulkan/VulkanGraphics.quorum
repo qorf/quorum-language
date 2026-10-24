@@ -6,6 +6,7 @@ use Libraries.Game.Graphics.GraphicsManager
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Vulkan.Commands.all
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgramStrategy
 use Libraries.Game.GameStateManager
 use Libraries.Game.DesktopApplication
 use Libraries.Game.DesktopDisplay
@@ -116,6 +117,13 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     VulkanQueue computeQueue = undefined
     VulkanCommandPool computeCommandPool = undefined
     VulkanCommandBuffer computeCommandBuffer = undefined
+
+    // True once Initialize has finished. On iOS and Android, Initialize runs
+    // later than on the desktop, once the window exists (Game:InitializeLayers).
+    boolean initialized = false
+
+    // True while Android has taken the window's surface away (LoseSurface).
+    boolean surfaceLost = false
 
     on create
         clearValues:AddColor(0.85, 0.85, 0.85, 1.0)
@@ -238,8 +246,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         // display's refresh (FIFO); off, the default, shows frames as soon as
         // they're ready (IMMEDIATE), which can tear. The swapchain falls back
         // to FIFO if the device doesn't offer IMMEDIATE.
+        // Phones and tablets always show each frame at the display's refresh.
         DesktopConfiguration desktop = gameState:GetGame():GetDesktopConfiguration()
-        if desktop not= undefined
+        if not (gameState:GetApplication() is DesktopApplication)
+            swapchainInfo:SetPresentMode(constants:PRESENT_MODE_FIFO)
+        elseif desktop not= undefined
             if desktop:vSyncEnabled
                 swapchainInfo:SetPresentMode(constants:PRESENT_MODE_FIFO)
             else
@@ -344,7 +355,62 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         ndc:SetDefaultCoordinateSpace(ndc:LEFT_HANDED)
         ndc:SetDefaultDepthRange(ndc:DEPTH_ZERO_TO_ONE)
 
+        initialized = true
         return true
+    end
+
+    /*
+    This action returns true once Initialize has finished successfully.
+    */
+    action IsInitialized returns boolean
+        return initialized
+    end
+
+    /*
+    Android takes the window's surface away when the app goes to the
+    background, and gives a new one when it comes back. This action frees what
+    was made on the old surface (the swapchain's framebuffers, the swapchain,
+    then the surface), so RestoreSurface can make them again on the new one.
+    Android's display calls both.
+    */
+    action LoseSurface
+        if not initialized or surfaceLost
+            return now
+        end
+
+        device:WaitUntilIdle()
+        ReleaseRetired(true)
+
+        integer i = 0
+        repeat while i < swapchainFramebuffers:GetSize()
+            VulkanFramebuffer buffer = swapchainFramebuffers:Get(i)
+            buffer:Dispose()
+            i = i + 1
+        end
+        swapchain:Dispose()
+        surface:Dispose()
+        surfaceLost = true
+    end
+
+    /*
+    This action makes the surface, swapchain and framebuffers again on the new
+    surface Android gives when the app comes back (see LoseSurface).
+    */
+    action RestoreSurface
+        if not surfaceLost
+            return now
+        end
+
+        VulkanSurface newSurface
+        if not newSurface:Create(instance, gameState:GetGameDisplay())
+            alert("I couldn't make Vulkan's surface again after the app came back.")
+        end
+        surface = newSurface
+        surfaceLost = false
+
+        // The old framebuffers and swapchain are already freed, and freeing
+        // them again does nothing, so this makes new ones as after a resize.
+        RegenerateSwapchain()
     end
 
     /*
@@ -880,6 +946,15 @@ boolean success = swapchain:Create(device, surface, info)
     /*
     */
     action CreateShaderProgram(ShaderProgram program) returns integer
+        alert("NYI")
+    end
+
+    /*
+    GraphicsManager's blueprint for OpenGL's shader programs, which Vulkan
+    doesn't use (its programs are made by VulkanShaderManager). Defined so
+    VulkanGraphics can be created in Quorum, as Game does on iOS and Android.
+    */
+    action CreateShaderProgram(ShaderProgramStrategy strategy) returns integer
         alert("NYI")
     end
 

@@ -2,7 +2,9 @@ package plugins.quorum.Libraries.Interface.Accessibility;
 
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.uikit.*;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.IOSApplication;
+import plugins.quorum.Libraries.Game.IOSInput;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ButtonIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.CheckboxIOS;
 import plugins.quorum.Libraries.Interface.Accessibility.IOS.ToggleButtonIOS;
@@ -32,7 +34,27 @@ public class IOSAccessibility {
 
     public void  BoundsChanged(Item_ item) {}
 
-    public void  TextFieldUpdatePassword(TextField_ field) {}
+    /*
+        A text field became, or stopped being, a password field. VoiceOver's
+        value is hidden or shown to match, and if the field has the keyboard,
+        the keyboard switches to or from secure entry.
+     */
+    public void  TextFieldUpdatePassword(TextField_ field) {
+        if (field == null) {
+            return;
+        }
+
+        Object element = mapAccessibilityElements.get(field.GetHashCode());
+        if (element instanceof TextFieldIOS) {
+            TextFieldIOS textField = (TextFieldIOS) element;
+            textField.setAccessibilityValue(textField.GetAccessibleText());
+
+            IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
+            if (input.getFocusedTextAdjust() == textField) {
+                input.UpdateSecureEntry();
+            }
+        }
+    }
 
     public void  Update() {
     }
@@ -203,12 +225,16 @@ public class IOSAccessibility {
             element = itemIOS;
         }
 
+        // The identifier is how UI automation tools (XCUITest, Appium) find an
+        // element, so it is the item's name, which stays the same from run to
+        // run. Unnamed items fall back to their hash code.
         if (item.GetName() != null) {
-            element.setAccessibilityIdentifier(item.GetName() + " ID");
+            element.setAccessibilityIdentifier(item.GetName());
             element.setAccessibilityValue(item.GetName() + " Value");
             element.setAccessibilityLabel(item.GetName());
         }
         else {
+            element.setAccessibilityIdentifier("" + item.GetHashCode());
             element.setAccessibilityLabel("Name");
         }
 
@@ -225,7 +251,6 @@ public class IOSAccessibility {
 //        }
 
         //accessibilityElement.setAccessibilityValue(item.GetDescription());
-        element.setAccessibilityIdentifier("" + item.GetHashCode());
         element.setAccessibilityFrame(new CGRect(x, y, width, height));
 
         // Add the accessibility element to the list

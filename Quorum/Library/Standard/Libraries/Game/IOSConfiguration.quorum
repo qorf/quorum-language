@@ -1,5 +1,7 @@
 package Libraries.Game
 
+use Libraries.Game.Graphics.Vulkan.VulkanOptions
+
 class IOSConfiguration is ApplicationConfiguration
     
     /*
@@ -183,5 +185,19 @@ class IOSConfiguration is ApplicationConfiguration
     the return key. By default, this value is true.
     */
     public boolean keyboardCloseOnReturn = true
-    
+
+    /*
+    Whether or not the game draws with Vulkan, through MoltenVK, instead of
+    OpenGL ES. Vulkan needs iOS 15 or later. The iOS simulator always uses
+    OpenGL ES, since it can't run Quorum's Vulkan renderer. This value must be
+    set before starting the game. By default, this value is false.
+    */
+    public boolean useVulkan = false
+
+    /*
+    How Vulkan is used when useVulkan is true, such as which Vulkan version is
+    asked for.
+    */
+    public VulkanOptions vulkanOptions
+
 end

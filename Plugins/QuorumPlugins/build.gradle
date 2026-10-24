@@ -1,12 +1,16 @@
-import org.gradle.internal.os.OperatingSystem
-
 plugins {
     id 'java'
     id 'application'
 }
 
-group 'plugins.quorum'
-version '10.0'
+// The operating system, from Java rather than Gradle's internal OperatingSystem
+// class, which Gradle doesn't promise to keep.
+def osName = System.getProperty("os.name").toLowerCase()
+def isMac = osName.contains("mac")
+def isWindows = osName.contains("windows")
+
+group = 'plugins.quorum'
+version = '10.0'
 
 project.ext.lwjglVersion = "3.4.1"
 project.ext.lwjglMac = "natives-macos"
@@ -14,21 +18,38 @@ project.ext.lwjglMacArm = "natives-macos-arm64"
 project.ext.lwjglWindows = "natives-windows"
 project.ext.lwjglWindows32 = "natives-windows-x86"
 
-switch (OperatingSystem.current()) {
-    case OperatingSystem.MAC_OS:
-        project.ext.lwjglNatives = "natives-macos"
-        break
-    case OperatingSystem.WINDOWS:
-        def osArch = System.getProperty("os.arch")
-        project.ext.lwjglNatives = osArch.contains("64")
-                ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
-                : "natives-windows-x86"
-        break
+if (isMac) {
+    project.ext.lwjglNatives = "natives-macos"
+} else if (isWindows) {
+    def osArch = System.getProperty("os.arch")
+    project.ext.lwjglNatives = osArch.contains("64")
+            ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
+            : "natives-windows-x86"
 }
 
 repositories {
     mavenCentral()
     //google()
+}
+
+// Android's API (compile only), from the newest Android platform installed in
+// the Android SDK (ANDROID_HOME, or where Android Studio puts it). The Android
+// code needs API 31 or later; Quorum targets 36. Without an Android SDK, the
+// old API 23 jar in the repository is used, which can't compile that code.
+def androidSdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+if (androidSdk == null) {
+    androidSdk = isWindows
+            ? System.getenv("LOCALAPPDATA") + "/Android/Sdk"
+            : System.getProperty("user.home") + "/Library/Android/sdk"
+}
+def androidJar = file('../GamePlugin/JavaGame/libs/android.jar')
+def androidPlatforms = file("$androidSdk/platforms").listFiles()
+if (androidPlatforms != null) {
+    def newest = androidPlatforms
+            .findAll { new File(it, "android.jar").exists() && it.name ==~ /android-\d+.*/ }
+            .max { (it.name =~ /android-(\d+)/)[0][1] as int }
+    if (newest != null)
+        androidJar = new File(newest, "android.jar")
 }
 
 
@@ -39,7 +60,7 @@ dependencies {
 
     //local dependencies
     compileOnly files('../../Quorum/Library/Compiled/Run/QuorumStandardLibrary.jar')
-    compileOnly files('../GamePlugin/JavaGame/libs/android.jar')
+    compileOnly files(androidJar)
 
     //These dependencies are the old ones used from the older RoboVM. The new ones
     //should be compiled against instead, but we need to check compatability, and as such
@@ -49,9 +70,9 @@ dependencies {
     //compileOnly files('../GamePlugin/JavaGame/libs/robovm-rt-1.8.0.jar')
 
     //Mobivm dependencies
-    compileOnly 'com.mobidevelop.robovm:robovm-compiler:2.3.20'
-    compileOnly 'com.mobidevelop.robovm:robovm-rt:2.3.20'
-    compileOnly 'com.mobidevelop.robovm:robovm-cocoatouch:2.3.20'
+    compileOnly 'com.mobidevelop.robovm:robovm-compiler:2.3.26'
+    compileOnly 'com.mobidevelop.robovm:robovm-rt:2.3.26'
+    compileOnly 'com.mobidevelop.robovm:robovm-cocoatouch:2.3.26'
 
     implementation 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
 
@@ -156,15 +177,20 @@ test {
     //useJUnitPlatform()
 }
 
-// Copies the plugins jar and its libraries into the standard library. The jar
-// copy is in doLast, after the jar task: a copy written directly in this block
-// runs while Gradle sets up the build, and copies the previous build's jar.
-task copyToQuorum(type: Copy) {
+// Copies the plugins jar and its libraries into the standard library. The
+// copies are in doLast, after the jar task: a copy written directly in this
+// block runs while Gradle sets up the build, and copies the previous build's
+// jar. It's a plain task, not a Copy task, because Gradle skips a Copy task
+// whose files (the libraries) haven't changed, and its doLast with it, so the
+// new jar was never copied.
+task copyToQuorum {
     dependsOn jar
-    from configurations.runtimeClasspath
-    into '../../Quorum/Library/Compiled/Run/libraries'
 
     doLast {
+        copy {
+            from configurations.runtimeClasspath
+            into '../../Quorum/Library/Compiled/Run/libraries'
+        }
         copy {
             from jar.archiveFile
             into '../../Quorum/Library/Compiled/Run/'

@@ -1,81 +1,49 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.vma.VmaAllocatorCreateInfo;
-import org.lwjgl.util.vma.VmaTotalStatistics;
-import org.lwjgl.util.vma.VmaVulkanFunctions;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanMemoryAllocator;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanMemoryAllocator;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanMemoryAllocatorStrategy;
 
-import static org.lwjgl.util.vma.Vma.*;
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-
+/*
+The Java side of Quorum's VulkanMemoryAllocator. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanMemoryAllocator), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanMemoryAllocator, with quorum-natives' src/vulkan).
+*/
 public class VulkanMemoryAllocator
 {
     public Object me_;
 
-    long allocatorPointer = 0L;
+    private final VulkanMemoryAllocatorStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanMemoryAllocator(this) : new DesktopVulkanMemoryAllocator(this);
 
     public boolean CreateNative(VulkanInstance_ quorumInstance, VulkanDevice_ quorumDevice)
     {
-        VulkanInstance pluginInstance = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance)quorumInstance).plugin_;
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        VulkanPhysicalDevice pluginPhysicalDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumDevice.GetPhysicalDevice()).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            PointerBuffer pointerBuffer = stack.mallocPointer(1);
-
-            // Create the interface the VMA will use for accessing Vulkan functions through our structures.
-            VmaVulkanFunctions vulkanFunctions = VmaVulkanFunctions.calloc(stack);
-            vulkanFunctions.set(pluginInstance.GetInstance(), pluginDevice.GetDevice());
-
-            VmaAllocatorCreateInfo createInfo = VmaAllocatorCreateInfo.calloc(stack);
-            createInfo.instance(pluginInstance.GetInstance());
-            createInfo.device(pluginDevice.GetDevice());
-            createInfo.physicalDevice(pluginPhysicalDevice.GetDevice());
-            createInfo.pVulkanFunctions(vulkanFunctions);
-            createInfo.flags(VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT);
-
-            int vulkanResult = vmaCreateAllocator(createInfo, pointerBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            allocatorPointer = pointerBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumInstance, quorumDevice);
     }
 
     public void DisposeNative()
     {
-        vmaDestroyAllocator(allocatorPointer);
-        allocatorPointer = 0L;
+        strategy.DisposeNative();
     }
 
     public long GetAllocatorPointer()
     {
-        return allocatorPointer;
+        return strategy.GetAllocatorPointer();
     }
 
     public double GetAllocatedBytes()
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
-            vmaCalculateStatistics(allocatorPointer, statistics);
-            return (double)statistics.total().statistics().allocationBytes();
-        }
+        return strategy.GetAllocatedBytes();
     }
 
     public int GetAllocationCount()
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
-            vmaCalculateStatistics(allocatorPointer, statistics);
-            return statistics.total().statistics().allocationCount();
-        }
+        return strategy.GetAllocationCount();
+    }
+
+    public VulkanMemoryAllocatorStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

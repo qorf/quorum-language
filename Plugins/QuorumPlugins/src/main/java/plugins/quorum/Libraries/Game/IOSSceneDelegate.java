@@ -13,10 +13,12 @@ import org.robovm.apple.uikit.UIResponder;
 import org.robovm.apple.uikit.UIScene;
 import org.robovm.apple.uikit.UISceneConnectionOptions;
 import org.robovm.apple.uikit.UISceneSession;
+import org.robovm.apple.uikit.UISceneWindowingControlStyle;
 import org.robovm.apple.uikit.UITraitCollection;
 import org.robovm.apple.uikit.UIWindow;
 import org.robovm.apple.uikit.UIWindowScene;
 import org.robovm.apple.uikit.UIWindowSceneDelegate;
+import org.robovm.apple.uikit.UIWindowSceneGeometry;
 import org.robovm.objc.annotation.CustomClass;
 import org.robovm.objc.annotation.NotImplemented;
 import org.robovm.objc.block.VoidBooleanBlock;
@@ -118,4 +120,13 @@ public class IOSSceneDelegate extends UIResponder implements UIWindowSceneDelega
 
     @NotImplemented("windowScene:userDidAcceptCloudKitShareWithMetadata:")
     public void userDidAcceptCloudKitShare(UIWindowScene windowScene, CKShareMetadata cloudKitShareMetadata) {}
+
+    // Added in iOS 26 (MobiVM 2.3.26), for iPad windows. Size changes already
+    // reach the view controllers (viewDidLayoutSubviews), and the default
+    // window controls are right.
+    @NotImplemented("windowScene:didUpdateEffectiveGeometry:")
+    public void didUpdateEffectiveGeometry(UIWindowScene windowScene, UIWindowSceneGeometry previousEffectiveGeometry) {}
+
+    @NotImplemented("preferredWindowingControlStyleForScene:")
+    public UISceneWindowingControlStyle preferredWindowingControlStyleForScene(UIWindowScene windowScene) { return null; }
 }

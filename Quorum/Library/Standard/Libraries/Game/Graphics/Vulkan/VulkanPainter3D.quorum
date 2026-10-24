@@ -7,6 +7,7 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.GameStateManager
+use Libraries.Game.DesktopApplication
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Array
@@ -303,7 +304,7 @@ The attachments we need correspond to our phases of rendering:
         // (attachments 5 to 8, and a multisampled depth at 4), which the
         // subpass resolves into the four G-buffer images as it finishes. The
         // lighting pass reads the G-buffer images either way.
-        integer positionFormat = constants:FORMAT_R32G32B32A32_SFLOAT
+        integer positionFormat = GetPositionFormat()
         integer gBufferFormat = constants:FORMAT_R16G16B16A16_SFLOAT
         sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(positionFormat, 1, multisampled))
         repeat 3 times
@@ -532,7 +533,7 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         Array<VulkanImageView> multisampledViews
         VulkanImageView multisampledDepthView = undefined
         if multisampled
-            multisampledViews:Add(MakeMultisampledView(device, constants:FORMAT_R32G32B32A32_SFLOAT,
+            multisampledViews:Add(MakeMultisampledView(device, GetPositionFormat(),
                 constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT, constants:IMAGE_ASPECT_COLOR_BIT, swapchainWidth, swapchainHeight))
             repeat 3 times
                 multisampledViews:Add(MakeMultisampledView(device, constants:FORMAT_R16G16B16A16_SFLOAT,
@@ -549,7 +550,7 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             VulkanImageInfo positionImageInfo
             positionImageInfo:SetWidth(swapchainWidth)
             positionImageInfo:SetHeight(swapchainHeight)
-            positionImageInfo:SetFormat(constants:FORMAT_R32G32B32A32_SFLOAT)
+            positionImageInfo:SetFormat(GetPositionFormat())
             positionImageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
             VulkanImage positionImage
             positionImage:Create(device, positionImageInfo)
@@ -756,6 +757,24 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
 
         boolean success = renderPass:Create(graphics:GetDevice(), attachmentDescriptions, subpassDescriptions, subpassDependencies)
         return success
+    end
+
+    /*
+    This action returns the format of the G-buffer's position image. The
+    desktop keeps 32-bit floats. iOS and Android use 16-bit floats: Metal on
+    the iOS simulator and on A9/A10 iPhones allows at most 32 bytes of render
+    targets per pixel, and the G-buffer is 40 bytes with 32-bit position
+    (16 + 3 * 8), 32 with 16-bit. Half floats lose precision far from the
+    origin (about 0.5 units at 1000).
+
+    Attribute: Returns The position image's format.
+    */
+    private action GetPositionFormat returns integer
+        VulkanConstants constants
+        if gameState:GetApplication() is DesktopApplication
+            return constants:FORMAT_R32G32B32A32_SFLOAT
+        end
+        return constants:FORMAT_R16G16B16A16_SFLOAT
     end
 
     /*

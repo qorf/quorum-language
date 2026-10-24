@@ -1,5 +1,7 @@
 package Libraries.Game
 
+use Libraries.Game.Graphics.Vulkan.VulkanOptions
+
 class AndroidConfiguration is ApplicationConfiguration
 
     public constant integer LANDSCAPE = 1
@@ -107,6 +109,19 @@ class AndroidConfiguration is ApplicationConfiguration
     for things such as double-tap input.
     */
     public number multipleTapTimer = 0.5
+
+    /*
+    Whether or not the game draws with Vulkan instead of OpenGL ES. Vulkan
+    needs Android 15 or later and a phone with Vulkan 1.3. This value must be
+    set before starting the game. The default value is false.
+    */
+    public boolean useVulkan = false
+
+    /*
+    How Vulkan is used when useVulkan is true, such as which Vulkan version is
+    asked for.
+    */
+    public VulkanOptions vulkanOptions
 
     /*
     This action will set the game display to fill the entire screen of the 

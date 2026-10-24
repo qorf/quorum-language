@@ -1,194 +1,63 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.vma.VmaAllocationCreateInfo;
-import org.lwjgl.util.vma.VmaAllocatorCreateInfo;
-import org.lwjgl.vulkan.*;
-import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanBuffer;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanBuffer;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanBufferStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.util.vma.Vma.*;
-import static org.lwjgl.vulkan.VK10.*;
-import static org.lwjgl.vulkan.VK12.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-import static org.lwjgl.vulkan.VK12.vkGetBufferDeviceAddress;
-
+/*
+The Java side of Quorum's VulkanBuffer. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanBuffer), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanBuffer, with quorum-natives' src/vulkan).
+*/
 public class VulkanBuffer
 {
     public Object me_;
 
-    // A handle to the VulkanBuffer's internal data structure.
-    private long bufferHandle = 0L;
+    private final VulkanBufferStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanBuffer(this) : new DesktopVulkanBuffer(this);
 
-    // A handle to the chunk of allocated memory for this buffer. Used to find a region to map memory to.
-    private long memoryHandle = 0L;
-
-    // A pointer to the actual, raw memory after mapping has been performed.
-    private long mappedMemoryPointer = 0L;
-
-    // A pointer to the GPU-accessible buffer if using BDA (Buffer Device Address).
-    private long bufferDeviceAddress = 0L;
-
-    public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int bufferUsage, int memoryUsage,
-                                int allocationFlags, int requiredMemoryFlags, int preferredMemoryFlags, int sharingMode)
+    public boolean CreateNative(VulkanDevice_ quorumDevice, int size, int bufferUsage, int memoryUsage, int allocationFlags, int requiredMemoryFlags, int preferredMemoryFlags, int sharingMode)
     {
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        VulkanPhysicalDevice pluginPhysicalDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumDevice.GetPhysicalDevice()).plugin_;
-        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkBufferCreateInfo bufferCreateInfo = VkBufferCreateInfo.calloc(stack);
-            bufferCreateInfo.sType$Default();
-            bufferCreateInfo.size(size);
-            bufferCreateInfo.usage(bufferUsage);
-            bufferCreateInfo.sharingMode(sharingMode);
-
-            VmaAllocationCreateInfo allocationCreateInfo = VmaAllocationCreateInfo.calloc(stack);
-            if (memoryUsage == 0)
-                allocationCreateInfo.usage(VMA_MEMORY_USAGE_AUTO);
-            else
-                allocationCreateInfo.usage(memoryUsage);
-
-            if (allocationFlags != 0)
-                allocationCreateInfo.flags(allocationFlags);
-            if (requiredMemoryFlags != 0)
-                allocationCreateInfo.requiredFlags(requiredMemoryFlags);
-            if (preferredMemoryFlags != 0)
-                allocationCreateInfo.preferredFlags(preferredMemoryFlags);
-
-            PointerBuffer pointerBuffer = stack.callocPointer(1);
-            LongBuffer handleBuffer = stack.callocLong(1);
-
-            int vulkanResult = vmaCreateBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferCreateInfo, allocationCreateInfo,
-                    handleBuffer, pointerBuffer, null);
-
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            bufferHandle = handleBuffer.get(0);
-            memoryHandle = pointerBuffer.get(0);
-
-            if ((bufferUsage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) != 0)
-            {
-                VkBufferDeviceAddressInfo addressInfo = VkBufferDeviceAddressInfo.calloc(stack);
-                addressInfo.sType$Default();
-                addressInfo.buffer(bufferHandle);
-                bufferDeviceAddress = vkGetBufferDeviceAddress(pluginDevice.GetDevice(), addressInfo);
-            }
-        }
-
-        return true;
-    }
-
-
-    /*
-    The physical device has several different ways it can organize memory. The way that this is exposed to Vulkan is
-    as a sort of array of options, where we have to select the right index. Each index supports a different set of
-    properties, as described by the property flags for each of the memory types. We need to check each index for one
-    that supports all of the properties that we need.
-
-    This part is frankly pretty annoying. There's extra details here:
-    https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceMemoryProperties.html
-     */
-    public static int memoryTypeFromProperties(VkPhysicalDevice physicalDevice, int typeBits, int reqsMask)
-    {
-        int result = -1;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VkPhysicalDeviceMemoryProperties memoryProperties = VkPhysicalDeviceMemoryProperties.calloc(stack);
-            vkGetPhysicalDeviceMemoryProperties(physicalDevice, memoryProperties);
-
-            VkMemoryType.Buffer memoryTypes = memoryProperties.memoryTypes();
-            for (int i = 0; i < VK_MAX_MEMORY_TYPES; i++) {
-                if ((typeBits & 1) == 1 && (memoryTypes.get(i).propertyFlags() & reqsMask) == reqsMask) {
-                    result = i;
-                    break;
-                }
-                typeBits >>= 1;
-            }
-            if (result < 0) {
-                throw new RuntimeException("Failed to find memoryType");
-            }
-            return result;
-        }
+        return strategy.CreateNative(quorumDevice, size, bufferUsage, memoryUsage, allocationFlags, requiredMemoryFlags, preferredMemoryFlags, sharingMode);
     }
 
     public boolean IsMapping()
     {
-        return mappedMemoryPointer != 0L;
+        return strategy.IsMapping();
     }
 
     public boolean BeginMapping()
     {
-        if (IsMapping())
-            return true;
-
-        VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
-        VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
-        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
-
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            PointerBuffer pointerBuffer = stack.mallocPointer(1);
-            int vulkanResult = vmaMapMemory(pluginMemoryAllocator.GetAllocatorPointer(), memoryHandle, pointerBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            mappedMemoryPointer = pointerBuffer.get(0);
-        }
-
-        return true;
+        return strategy.BeginMapping();
     }
 
     public void StopMapping()
     {
-        if (!IsMapping())
-            return;
-
-        VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
-        VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
-        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
-
-        // VMA unmaps by allocation, not by the mapped address.
-        vmaUnmapMemory(pluginMemoryAllocator.GetAllocatorPointer(), memoryHandle);
-        mappedMemoryPointer = 0L;
+        strategy.StopMapping();
     }
 
     public long GetMappedMemoryPointer()
     {
-        return mappedMemoryPointer;
+        return strategy.GetMappedMemoryPointer();
     }
 
     public long GetBufferHandle()
     {
-        return bufferHandle;
+        return strategy.GetBufferHandle();
     }
 
     public void Dispose()
     {
-        // A second Dispose, or one before CreateNative, does nothing.
-        if (bufferHandle == 0L)
-            return;
-
-        StopMapping();
-
-        VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
-        VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
-        VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
-        vmaDestroyBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferHandle, memoryHandle);
-
-        bufferHandle = 0L;
-        memoryHandle = 0L;
-        bufferDeviceAddress = 0L;
+        strategy.Dispose();
     }
-
 
     public long GetBufferDeviceAddress()
     {
-        return bufferDeviceAddress;
+        return strategy.GetBufferDeviceAddress();
+    }
+
+    public VulkanBufferStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

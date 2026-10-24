@@ -17,7 +17,13 @@ import org.robovm.apple.glkit.GLKViewDrawableDepthFormat;
 import org.robovm.apple.glkit.GLKViewDrawableStencilFormat;
 import org.robovm.apple.glkit.GLKViewDrawableMultisample;
 import org.robovm.apple.uikit.*;
+import org.robovm.apple.coreanimation.CADisplayLink;
+import org.robovm.apple.coreanimation.CAMetalLayer;
 import org.robovm.apple.coregraphics.CGRect;
+import org.robovm.apple.coregraphics.CGSize;
+import org.robovm.apple.foundation.NSRunLoop;
+import org.robovm.apple.foundation.NSRunLoopMode;
+import org.robovm.apple.metal.MTLDevice;
 import org.robovm.objc.annotation.Method;
 import org.robovm.rt.bro.annotation.Pointer;
 import org.robovm.apple.opengles.EAGLContext;
@@ -209,6 +215,120 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             super(frame, context);
         }
     }
+
+    /*
+    The view controller when the game draws with Vulkan. It allows the same
+    orientations as the OpenGL one (IOSUIViewController).
+    */
+    static class IOSVulkanViewController extends UIViewController
+    {
+        final IOSApplication app;
+        final IOSDisplay display;
+
+        IOSVulkanViewController(IOSApplication app, IOSDisplay display)
+        {
+            this.app = app;
+            this.display = display;
+        }
+
+        @Override
+        public UIInterfaceOrientationMask getSupportedInterfaceOrientations()
+        {
+            long mask = 0;
+            if (app.config.Get_Libraries_Game_IOSConfiguration__landscapeSupported_())
+            {
+                mask |= ((1 << UIInterfaceOrientation.LandscapeLeft.value()) | (1 << UIInterfaceOrientation.LandscapeRight.value()));
+            }
+            if (app.config.Get_Libraries_Game_IOSConfiguration__portraitSupported_())
+            {
+                mask |= ((1 << UIInterfaceOrientation.Portrait.value()) | (1 << UIInterfaceOrientation.PortraitUpsideDown.value()));
+            }
+            return new UIInterfaceOrientationMask(mask);
+        }
+
+        @Override
+        public boolean shouldAutorotate()
+        {
+            return true;
+        }
+
+        @Override
+        public void viewDidLayoutSubviews()
+        {
+            super.viewDidLayoutSubviews();
+            CGRect bounds = app.GetBounds();
+            display.width = (int) bounds.getWidth();
+            display.height = (int) bounds.getHeight();
+        }
+    }
+
+    /*
+    The view when the game draws with Vulkan. Vulkan draws, through MoltenVK,
+    on a CAMetalLayer inside it, which is kept the view's size in pixels. Its
+    touches go to the input, as the OpenGL view's do.
+    */
+    static class IOSVulkanView extends UIView
+    {
+        final IOSDisplay display;
+        final CAMetalLayer metalLayer = new CAMetalLayer();
+
+        IOSVulkanView(CGRect frame, IOSDisplay display)
+        {
+            super(frame);
+            this.display = display;
+            metalLayer.setDevice(MTLDevice.getSystemDefaultDevice());
+            metalLayer.setFramebufferOnly(true);
+            getLayer().addSublayer(metalLayer);
+            UpdateLayer();
+        }
+
+        @Override
+        public void layoutSubviews()
+        {
+            super.layoutSubviews();
+            UpdateLayer();
+        }
+
+        /*
+            Sizes the Metal layer in pixels. The scale is the screen's native
+            scale (as IOSApplication uses for displayScaleFactor), not the
+            view's contentScaleFactor, which is 1.0 until UIKit puts the view
+            on a screen. Vulkan's swapchain takes its size from this layer.
+         */
+        void UpdateLayer()
+        {
+            CGRect bounds = getBounds();
+            double scale = UIScreen.getMainScreen().getNativeScale();
+            setContentScaleFactor(scale);
+            metalLayer.setFrame(bounds);
+            metalLayer.setContentsScale(scale);
+            metalLayer.setDrawableSize(new CGSize(bounds.getWidth() * scale, bounds.getHeight() * scale));
+        }
+
+        @Method(selector = "touchesBegan:withEvent:")
+        public void touchesBegan(@Pointer long touches, UIEvent event)
+        {
+            display.input.OnTouch(touches);
+        }
+
+        @Method(selector = "touchesCancelled:withEvent:")
+        public void touchesCancelled(@Pointer long touches, UIEvent event)
+        {
+            display.input.OnTouch(touches);
+        }
+
+        @Method(selector = "touchesEnded:withEvent:")
+        public void touchesEnded(@Pointer long touches, UIEvent event)
+        {
+            display.input.OnTouch(touches);
+        }
+
+        @Method(selector = "touchesMoved:withEvent:")
+        public void touchesMoved(@Pointer long touches, UIEvent event)
+        {
+            display.input.OnTouch(touches);
+        }
+    }
     
     IOSApplication app;
     IOSInput input;
@@ -239,6 +359,11 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     EAGLContext context;
     GLKView view;
     IOSUIViewController viewController;
+
+    // With Vulkan, instead of the GLKView and its controller.
+    IOSVulkanView vulkanView;
+    IOSVulkanViewController vulkanViewController;
+    CADisplayLink displayLink;
     
     boolean created = false;
     
@@ -368,6 +493,117 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         this.app = app;
         this.input = input;
         
+        SetConfigurationFormats(config);
+        InitializeDensity(scale);
+    }
+
+    /*
+    Sets up the display when the game draws with Vulkan (IOSConfiguration's
+    useVulkan): a view with a CAMetalLayer, and a CADisplayLink calling
+    DrawVulkanFrame once per screen refresh, as GLKViewController calls draw
+    with OpenGL. Vulkan itself starts on the first frame, once the window
+    exists (Game:InitializeLayers).
+    */
+    public void InitializeVulkan(float scale, IOSApplication app, IOSConfiguration_ config, IOSInput input)
+    {
+        this.config = config;
+        this.app = app;
+        this.input = input;
+
+        final CGRect bounds = app.GetBounds();
+        width = (int)bounds.getWidth();
+        height = (int)bounds.getHeight();
+
+        // UIKit frames are in points; GetBounds() is in pixels (displayScaleFactor).
+        vulkanView = new IOSVulkanView(UIScreen.getMainScreen().getBounds(), this);
+        vulkanView.setMultipleTouchEnabled(true);
+        InitializeGestures(vulkanView);
+
+        vulkanViewController = new IOSVulkanViewController(app, this);
+        vulkanViewController.setView(vulkanView);
+
+        displayLink = new CADisplayLink(new CADisplayLink.OnUpdateListener()
+        {
+            @Override
+            public void onUpdate(CADisplayLink link)
+            {
+                DrawVulkanFrame();
+            }
+        });
+        displayLink.setPreferredFramesPerSecond(config.Get_Libraries_Game_IOSConfiguration__preferredFramesPerSecond_());
+        // Not NSRunLoopMode.Common: MobiVM passes it as a new string, and the
+        // run loop only knows the common modes by pointer, so it makes a mode of
+        // that name that never runs, and the link never fires.
+        displayLink.addToRunLoop(NSRunLoop.getMain(), NSRunLoopMode.Default);
+
+        SetConfigurationFormats(config);
+        InitializeDensity(scale);
+    }
+
+    // The CAMetalLayer Vulkan draws on, for NativeVulkanSurface.
+    public long GetMetalLayerHandle()
+    {
+        return vulkanView.metalLayer.getHandle();
+    }
+
+    // The window's root view controller: the Vulkan one, or the OpenGL one.
+    public UIViewController GetViewController()
+    {
+        if (vulkanViewController != null)
+            return vulkanViewController;
+        return viewController;
+    }
+
+    /*
+    One frame with Vulkan, from the CADisplayLink. Nothing is drawn until the
+    view is in the window and has a size, since Vulkan's surface is its layer.
+    */
+    void DrawVulkanFrame()
+    {
+        if (vulkanView.getWindow() == null || vulkanView.getBounds().getWidth() <= 0 || vulkanView.getBounds().getHeight() <= 0)
+            return;
+
+        if (!created)
+        {
+            // This starts Vulkan (Game:InitializeLayers), now that the layer exists.
+            // The layer is sized again first, as the swapchain takes its size.
+            vulkanView.UpdateLayer();
+            app.game.InitializeLayers();
+            app.game.CreateGame();
+            created = true;
+        }
+        if (appPaused)
+        {
+            return;
+        }
+
+        long time = System.nanoTime();
+        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        lastFrameTime = time;
+        totalTime = totalTime + deltaTime;
+
+        frames++;
+        if (time - framesStart >= 1000000000l)
+        {
+            framesStart = time;
+            fps = frames;
+            frames = 0;
+        }
+
+        // NOTE: ProcessEvents sets up the List of events for the input. Actual
+        // input handling is processed during ContinueGame() in Game.quorum.
+        input.ProcessEvents();
+        frameID++;
+        app.game.ContinueGame();
+    }
+
+    /*
+    Sets the color, depth, stencil and multisample formats the configuration
+    asks for in its ApplicationConfiguration values, as libGDX keeps them in
+    a buffer format.
+    */
+    private void SetConfigurationFormats(IOSConfiguration_ config)
+    {
         int r = 0, g = 0, b = 0, a = 0, depth = 0, stencil = 0, samples = 0;
         if (config.Get_Libraries_Game_IOSConfiguration__colorFormat_() == config.Get_Libraries_Game_IOSConfiguration__RGB565_())
         {
@@ -415,9 +651,11 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         config.Set_Libraries_Game_ApplicationConfiguration__depth_(depth);
         config.Set_Libraries_Game_ApplicationConfiguration__stencil_(stencil);
         config.Set_Libraries_Game_ApplicationConfiguration__samples_(samples);
-        
-        // this.graphics = graphics;
-        
+    }
+
+    // The screen's pixels per inch and density, from the device's model.
+    private void InitializeDensity(float scale)
+    {
         String machineString = HWMachine.getMachineString();
         IOSDevice device = IOSDevice.getDevice(machineString);
         if (device == null)
@@ -438,7 +676,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         appPaused = false;
     }
 
-    private void InitializeGestures(GLKView view)
+    private void InitializeGestures(UIView view)
     {
         // Set up single and double tap recognizers.
         UITapGestureRecognizer doubleTapRecognizer = new UITapGestureRecognizer();
@@ -560,7 +798,9 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     
     void MakeCurrent()
     {
-        EAGLContext.setCurrentContext(context);
+        // With Vulkan there's no OpenGL context.
+        if (context != null)
+            EAGLContext.setCurrentContext(context);
     }
     
     @Override
@@ -667,7 +907,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             this.isContinuous = isContinuous;
             
             // If we were not continuous, but now we are, start the GLKViewController.
-            if (isContinuous)
+            if (isContinuous && viewController != null)
                 viewController.setPaused(false);
         }
     }
@@ -681,7 +921,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     {
         isFrameRequested = true;
         // Start the GLKViewController if we are in non-continuous mode.
-        if (!isContinuous)
+        if (!isContinuous && viewController != null)
             viewController.setPaused(false);
     }
     

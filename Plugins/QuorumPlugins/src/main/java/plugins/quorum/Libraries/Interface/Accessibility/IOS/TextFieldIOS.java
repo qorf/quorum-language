@@ -186,12 +186,18 @@ public class TextFieldIOS extends TextAdjust implements UIKeyInput, UITextInputT
 
     @Override
     public boolean isSecureTextEntry() {
-        return false;
+        return IsSecure();
     }
 
     @Override
     public void setSecureTextEntry(boolean v) {
 
+    }
+
+    @Override
+    public boolean IsSecure() {
+        TextField_ field = GetTextField();
+        return field != null && field.IsPassword();
     }
 
     @Override
@@ -212,6 +218,86 @@ public class TextFieldIOS extends TextAdjust implements UIKeyInput, UITextInputT
     @Override
     public void setPasswordRules(UITextInputPasswordRules v) {
 
+    }
+
+    /*
+        Keyboard features added in iOS 17 to 26 (MobiVM 2.3.26). The keyboard
+        itself belongs to the hidden text field in IOSInput, which UIKit
+        handles, so this control only reports UIKit's defaults. A password
+        field turns Writing Tools and predictions off, as UIKit does for
+        secure text.
+     */
+    private UITextInlinePredictionType inlinePredictionType = UITextInlinePredictionType.Default;
+    private UITextMathExpressionCompletionType mathExpressionCompletionType = UITextMathExpressionCompletionType.Default;
+    private UIWritingToolsBehavior writingToolsBehavior = UIWritingToolsBehavior.Default;
+    private UIWritingToolsResultOptions allowedWritingToolsResultOptions = UIWritingToolsResultOptions.Default;
+    private UIConversationContext conversationContext = null;
+    private boolean allowsNumberPadPopover = false;
+
+    @Override
+    public UITextInlinePredictionType getInlinePredictionType() {
+        if (IsSecure()) {
+            return UITextInlinePredictionType.No;
+        }
+        return inlinePredictionType;
+    }
+
+    @Override
+    public void setInlinePredictionType(UITextInlinePredictionType v) {
+        inlinePredictionType = v;
+    }
+
+    @Override
+    public UITextMathExpressionCompletionType getMathExpressionCompletionType() {
+        return mathExpressionCompletionType;
+    }
+
+    @Override
+    public void setMathExpressionCompletionType(UITextMathExpressionCompletionType v) {
+        mathExpressionCompletionType = v;
+    }
+
+    @Override
+    public UIWritingToolsBehavior getWritingToolsBehavior() {
+        if (IsSecure()) {
+            return UIWritingToolsBehavior.None;
+        }
+        return writingToolsBehavior;
+    }
+
+    @Override
+    public void setWritingToolsBehavior(UIWritingToolsBehavior v) {
+        writingToolsBehavior = v;
+    }
+
+    @Override
+    public UIWritingToolsResultOptions getAllowedWritingToolsResultOptions() {
+        return allowedWritingToolsResultOptions;
+    }
+
+    @Override
+    public void setAllowedWritingToolsResultOptions(UIWritingToolsResultOptions v) {
+        allowedWritingToolsResultOptions = v;
+    }
+
+    @Override
+    public UIConversationContext getConversationContext() {
+        return conversationContext;
+    }
+
+    @Override
+    public void setConversationContext(UIConversationContext v) {
+        conversationContext = v;
+    }
+
+    @Override
+    public boolean allowsNumberPadPopover() {
+        return allowsNumberPadPopover;
+    }
+
+    @Override
+    public void setAllowsNumberPadPopover(boolean v) {
+        allowsNumberPadPopover = v;
     }
 
     @Override

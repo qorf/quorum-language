@@ -1,73 +1,40 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.KHRSwapchain;
-import org.lwjgl.vulkan.VkDevice;
-import org.lwjgl.vulkan.VkImageViewCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanImageViewInfo_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanImage_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanImageView;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanImageView;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanImageViewStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanImageView. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanImageView), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanImageView, with quorum-natives' src/vulkan).
+*/
 public class VulkanImageView
 {
     public Object me_;
 
-    private long vulkanImageViewHandle = 0L;
+    private final VulkanImageViewStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanImageView(this) : new DesktopVulkanImageView(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, VulkanImage_ quorumImage, VulkanImageViewInfo_ info)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-            VkDevice vulkanDevice = pluginDevice.GetDevice();
-
-            VulkanImage pluginImage = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImage)quorumImage).plugin_;
-            long imageHandle = pluginImage.GetVulkanImageHandle();
-
-            VkImageViewCreateInfo viewCreateInfo = VkImageViewCreateInfo.calloc(stack);
-            viewCreateInfo.sType$Default();
-            viewCreateInfo.image(imageHandle);
-            viewCreateInfo.viewType(info.GetViewType());
-            viewCreateInfo.format(info.GetFormat());
-
-            // The subresource range describes the parts of an image that this view will access.
-            // More info at: https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkImageSubresourceRange.html
-            viewCreateInfo.subresourceRange().aspectMask(info.GetAspectMask());
-            viewCreateInfo.subresourceRange().baseMipLevel(info.GetBaseMipLevel());
-            viewCreateInfo.subresourceRange().levelCount(info.GetLevelCount());
-            viewCreateInfo.subresourceRange().baseArrayLayer(info.GetBaseArrayLayer());
-            viewCreateInfo.subresourceRange().layerCount(info.GetLayerCount());
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreateImageView(vulkanDevice, viewCreateInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            vulkanImageViewHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, quorumImage, info);
     }
 
     public long GetVulkanImageViewHandle()
     {
-        return vulkanImageViewHandle;
+        return strategy.GetVulkanImageViewHandle();
     }
 
     public void Dispose()
     {
-        if (vulkanImageViewHandle == 0L)
-            return;
+        strategy.Dispose();
+    }
 
-        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanImageView_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanImageView__device_();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        VkDevice vulkanDevice = pluginDevice.GetDevice();
-
-        vkDestroyImageView(vulkanDevice, vulkanImageViewHandle, null);
-        vulkanImageViewHandle = 0L;
+    public VulkanImageViewStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

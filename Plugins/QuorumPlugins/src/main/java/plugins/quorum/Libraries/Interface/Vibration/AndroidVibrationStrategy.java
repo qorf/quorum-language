@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Interface.Vibration;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.util.Log;
 import quorum.Libraries.Interface.Vibration.VibrationArray_;
 
@@ -25,8 +26,11 @@ public class AndroidVibrationStrategy implements VibrationStrategy {
         this.activity = activity;
     }
     
+    // The default vibrator, from the VibratorManager (Android 12 and later;
+    // Quorum needs Android 15).
     private Vibrator getVibrationUnit() {
-        return (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        VibratorManager manager = (VibratorManager) getActivity().getSystemService(Context.VIBRATOR_MANAGER_SERVICE);
+        return manager.getDefaultVibrator();
     }
         
     public void initialize() {
