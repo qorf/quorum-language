@@ -106,24 +106,20 @@ public class GLSurfaceView20 extends GLSurfaceView
     }
 
     
+    // TalkBack's tree of Quorum's items (AndroidAccessibilityProvider).
     @Override
-    public boolean onHoverEvent(MotionEvent event) {
-        if (AndroidApplication.accessibilityManager.isTouchExplorationEnabled()) {
-            final int action = event.getAction();
-            switch (action) {
-                case MotionEvent.ACTION_HOVER_ENTER: {
-                    event.setAction(MotionEvent.ACTION_DOWN);
-                } break;
-                case MotionEvent.ACTION_HOVER_MOVE: {
-                    event.setAction(MotionEvent.ACTION_MOVE);
-                } break;
-                case MotionEvent.ACTION_HOVER_EXIT: {
-                    event.setAction(MotionEvent.ACTION_UP);
-                } break;
-            }
-            return onTouchEvent(event);
-        }
-        return true;
+    public android.view.accessibility.AccessibilityNodeProvider getAccessibilityNodeProvider()
+    {
+        return plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibilityProvider.Get(this);
+    }
+
+    // Explore by touch: TalkBack reads what is under the finger.
+    @Override
+    public boolean dispatchHoverEvent(MotionEvent event)
+    {
+        if (plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibilityProvider.Get(this).OnHover(event))
+            return true;
+        return super.dispatchHoverEvent(event);
     }
 
     @Override
@@ -401,7 +397,8 @@ public class GLSurfaceView20 extends GLSurfaceView
         }
     }
 
-    private class QuorumGestureTranslator extends GestureDetector.SimpleOnGestureListener
+    // Also used by VulkanSurfaceView.
+    static class QuorumGestureTranslator extends GestureDetector.SimpleOnGestureListener
     {
     		
         @Override

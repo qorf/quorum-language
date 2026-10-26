@@ -112,8 +112,9 @@ class AndroidConfiguration is ApplicationConfiguration
 
     /*
     Whether or not the game draws with Vulkan instead of OpenGL ES. Vulkan
-    needs Android 15 or later and a phone with Vulkan 1.3. This value must be
-    set before starting the game. The default value is false.
+    needs a device with Vulkan 1.3; on others, the game draws with OpenGL ES
+    even when this is true. This value must be set before starting the game.
+    The default value is false.
     */
     public boolean useVulkan = false
 

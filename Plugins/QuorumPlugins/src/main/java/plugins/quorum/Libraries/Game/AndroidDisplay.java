@@ -95,6 +95,9 @@ public class AndroidDisplay implements Renderer
        private volatile Surface vulkanSurface = null;
        private HandlerThread vulkanThread = null;
        private Handler vulkanHandler = null;
+       // The display, so input and accessibility can reach the game's thread
+       // (RunOnGameThread).
+       private static AndroidDisplay current = null;
        private Choreographer choreographer = null;
        // Touched only on the Vulkan thread.
        private boolean vulkanRunning = false;
@@ -135,8 +138,9 @@ public class AndroidDisplay implements Renderer
         vulkanThread = new HandlerThread("Quorum Vulkan");
         vulkanThread.start();
         vulkanHandler = new Handler(vulkanThread.getLooper());
+        current = this;
 
-        SurfaceView surfaceView = new SurfaceView(application.GetContext());
+        SurfaceView surfaceView = new VulkanSurfaceView(application.GetContext());
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback()
         {
             @Override
@@ -232,6 +236,28 @@ public class AndroidDisplay implements Renderer
     }
 
     /*
+    Runs work on the thread the game runs on. With Vulkan that's the "Quorum
+    Vulkan" thread, while touches and TalkBack's requests come on Android's
+    main thread, so the work is posted there and Quorum's lists and items
+    are only changed by one thread. With OpenGL, it is queued on GLSurfaceView's thread.
+    */
+    public static void RunOnGameThread(Runnable work)
+    {
+        AndroidDisplay display = current;
+        if (display != null && display.vulkanHandler != null)
+            display.vulkanHandler.post(work);
+        else if (display != null && display.view instanceof GLSurfaceView)
+        {
+            // With OpenGL the game runs on GLSurfaceView's thread.
+            GLSurfaceView glView = (GLSurfaceView)display.view;
+            glView.queueEvent(work);
+            glView.requestRender();
+        }
+        else
+            work.run();
+    }
+
+    /*
     One frame with Vulkan, on the Vulkan thread. The first one starts Vulkan
     (Game:InitializeLayers), now that there's a Surface, and makes the game.
     */
@@ -283,6 +309,7 @@ public class AndroidDisplay implements Renderer
 
         EGLConfigChooser configChooser = getEglConfigChooser();
         GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
+        current = this;
         view.setEGLConfigChooser(configChooser);
         view.setRenderer(this);
         return view;

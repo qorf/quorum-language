@@ -314,8 +314,20 @@ class Game
             logger:Log("The iOS simulator can't run Quorum's Vulkan renderer, so this game uses OpenGL ES there. Vulkan runs on real iPhones and iPads.")
         end
 
+        // On Android, Vulkan needs a Vulkan 1.3 driver. Devices without one
+        // (many on Android 14) draw with OpenGL ES instead.
+        boolean androidVulkan = (application is AndroidApplication) and androidConfig:useVulkan
+        if androidVulkan
+            AndroidApplication androidApplication = cast(AndroidApplication, application)
+            if not androidApplication:IsVulkanAvailable()
+                androidVulkan = false
+                SharedLogger androidLogger
+                androidLogger:Log("This device doesn't have Vulkan 1.3, so this game uses OpenGL ES. Vulkan runs on Android devices that have Vulkan 1.3.")
+            end
+        end
+
         GraphicsManager graphics = undefined
-        if iosVulkan or ((application is AndroidApplication) and androidConfig:useVulkan)
+        if iosVulkan or androidVulkan
             VulkanGraphics mobileVulkan
             graphics = mobileVulkan
         else
@@ -2640,7 +2652,7 @@ if gl20 is OpenGLManager
         end
 
         if not started
-            alert("I couldn't start Vulkan on this device. It needs Vulkan 1.3, and iOS 15 or Android 15 or later.")
+            alert("I couldn't start Vulkan on this device. It needs Vulkan 1.3, and iOS 15 or Android 14 or later.")
         end
     end
 

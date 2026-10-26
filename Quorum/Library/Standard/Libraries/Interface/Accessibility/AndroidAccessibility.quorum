@@ -68,5 +68,16 @@ class AndroidAccessibility is Accessibility
 
     system action Shutdown
 
-    action IsScreenReaderListening returns boolean return false end
+    system action IsScreenReaderListening returns boolean
+
+    /*
+        Once a frame: Quorum's own focus check, then the tree TalkBack reads
+        is remade if anything changed.
+    */
+    action Update
+        parent:Accessibility:Update()
+        PublishChanges()
+    end
+
+    system action PublishChanges
 end

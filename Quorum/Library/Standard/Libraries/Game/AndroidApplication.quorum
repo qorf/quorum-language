@@ -25,6 +25,12 @@ class AndroidApplication is Application
 
     system action ResetOrientationToDefault(AndroidConfiguration config)
 
+    /*
+        Returns whether this device has Vulkan 1.3, which Quorum's Vulkan
+        renderer needs. Without it, games draw with OpenGL ES.
+    */
+    system action IsVulkanAvailable returns boolean
+
     system action Exit
 
     system action Log(text value)

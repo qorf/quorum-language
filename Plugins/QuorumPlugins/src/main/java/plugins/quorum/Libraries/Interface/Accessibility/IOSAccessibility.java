@@ -243,6 +243,30 @@ public class IOSAccessibility {
     }
 
     /*
+        After a double tap or scrub moves a chart's selection to another
+        level (into the bars, or back out to the chart area): asks for a
+        frame, shows VoiceOver the new level's parts to swipe through, and
+        moves VoiceOver to the selected part. FocusChanged can't be relied on
+        here: it waits for a frame, and it counts VoiceOver on a bar as
+        already on the chart area that holds it.
+     */
+    public static void ChartLevelChanged(Chart_ chart) {
+        IOSDisplay.RequestFrame();
+        if (instance == null || chart == null) {
+            return;
+        }
+        Object container = instance.mapAccessibilityElements.get(chart.GetHashCode());
+        if (container instanceof ChartIOS) {
+            instance.RebuildChart((ChartIOS) container);
+        }
+        ChartItem_ selected = chart.GetSelection() == null ? null : chart.GetSelection().GetChartItem();
+        UIAccessibilityElement target = GetVoiceOverTarget(selected);
+        if (target != null) {
+            instance.Post(UIAccessibilityNotification.LayoutChangedNotification, target);
+        }
+    }
+
+    /*
         VoiceOver can only go to elements. A list is a container and a tree a
         group: for them, the selected item, or the first.
      */

@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Game;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.graphics.Rect;
@@ -21,7 +22,6 @@ import java.io.InputStream;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityNodeProvider;
 
 import quorum.Libraries.Game.AndroidDisplay;
 import quorum.Libraries.Game.Game_;
@@ -51,8 +51,9 @@ public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
-    // Android 15, Quorum's minimum (for Vulkan 1.3).
-    static final int MINIMUM_SDK = 35;
+    // Android 14, Quorum's minimum. The natives need Android 13's Vulkan
+    // library; Vulkan itself is used only with a 1.3 driver.
+    static final int MINIMUM_SDK = 34;
     
     public static Activity androidActivity = null;
     private static boolean initialized = false;
@@ -79,9 +80,7 @@ public class AndroidApplication
     private boolean hasBeenOriented = false;
     public static AccessibilityManager accessibilityManager = null;
     public static AccessibilityEvent accessibilityEvent = null;
-    public static AccessibilityNodeProvider accessibilityNodeProvider = null;
     public static View viewRoot = null;
-    public static final Map<Integer, Item_> quorumItems = new HashMap<Integer, Item_>();;
     public static int screenHeight;
     public static int screenWidth;
 
@@ -165,88 +164,6 @@ public class AndroidApplication
         Rect bounds = androidActivity.getWindowManager().getCurrentWindowMetrics().getBounds();
         screenHeight = bounds.height();
         screenWidth = bounds.width();
-        accessibilityNodeProvider = new AccessibilityNodeProvider() {
-            @Override
-            public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
-                AccessibilityNodeInfo info = null;
-//                if (virtualViewId == View.NO_ID) {
-//                    info = AccessibilityNodeInfo.obtain(AndroidApplication.viewRoot);
-//                    // Add the virtual children of the root View.
-//                    for (Map.Entry<Integer, Item_> set : AndroidApplication.quorumItems.entrySet())
-//                    {
-//                        Item_ item = set.getValue();
-//                        info.addChild(AndroidApplication.viewRoot, item.GetHashCode());
-//                    }
-//                } 
-//                else {
-//                    // Find the view that corresponds to the given id.
-//                    Item_ item = quorumItems.get(virtualViewId);
-//                    if (item == null) {
-//                        return null;
-//                    }
-//                    // Obtain and initialize an AccessibilityNodeInfo with
-//                    // information about the virtual view.
-//                    info = AccessibilityNodeInfo.obtain();
-//                    info.setPackageName(androidActivity.getPackageName());
-//                    info.setClassName(item.GetName());
-//                    info.setSource(viewRoot, virtualViewId);
-//                    info.setParent(viewRoot);
-//                    info.setText(item.GetDescription());
-//                    Log.d("AndroidApplication", "SELECTION ADDED");
-////                  info.addAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
-////                  info.addAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
-//                    info.addAction(AccessibilityNodeInfo.ACTION_SELECT);
-//                    info.addAction(AccessibilityNodeInfo.ACTION_CLEAR_SELECTION);
-//                    info.setFocusable(false);
-//                    info.setVisibleToUser(true);
-//
-//                    Rect bounds;
-//                    if (item instanceof Item2D_)
-//                    {
-//                        double itemX = ((Item2D_)item).GetScreenX();
-//                        double itemY = (((Item2D_) item).GetScreenY());
-//
-//                        if (itemX == Double.NaN)
-//                            itemX = 0;
-//
-//                        if (itemY == Double.NaN)
-//                            itemY = 0;
-//
-//                        int left = (int)itemX;
-//                        int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
-//                        int right = (int) (itemX + ((Item2D_) item).GetWidth());
-//                        int bottom = AndroidApplication.screenHeight - (int)(itemY);
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//                    else if (item instanceof Item3D_)
-//                    {
-//                        // This is only a place holder, to place a small box roughly at the
-//                        // center of a 3D object in the screen. To calculate this correctly,
-//                        // check how we calculate mouse input detection for 3D objects.
-//
-//                        Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-//
-//                        int left = (int)rectangle.GetX();
-//                        int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
-//                        int right = (int) (rectangle.GetX() + rectangle.GetWidth());
-//                        int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//                    else
-//                    {
-//                        int left = 0;
-//                        int top = 0;
-//                        int right = 0;
-//                        int bottom = 0;
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//
-//
-//                    info.setBoundsInScreen(bounds);
-//                }
-                return info;
-            }
-        };
 
         /*
         if (this.useImmersiveMode && getVersion() >= Build.VERSION_CODES.KITKAT) {
@@ -299,13 +216,15 @@ public class AndroidApplication
     
     public void ResetOrientationToDefault(AndroidConfiguration_ config)
     {
+        // Either landscape (or either portrait), following the device as it
+        // turns over, not one fixed side.
         if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
         {
-            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
         {
-            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
         }
         
         hasBeenOriented = true;
@@ -477,6 +396,16 @@ public class AndroidApplication
     public Context GetContext()
     {
         return androidActivity;
+    }
+
+    /*
+        Whether this device can run Quorum's Vulkan renderer: a Vulkan 1.3
+        (0x403000) driver. Many Android 14 devices have only 1.1.
+    */
+    public boolean IsVulkanAvailable()
+    {
+        Context context = GetContext();
+        return context != null && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, 0x403000);
     }
     
     public Handler GetHandler()

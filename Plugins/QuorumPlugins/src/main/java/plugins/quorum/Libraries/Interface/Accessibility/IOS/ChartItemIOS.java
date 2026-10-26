@@ -2,6 +2,7 @@ package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 
 import org.robovm.apple.uikit.UIAccessibilityContainer;
 import org.robovm.apple.uikit.UIAccessibilityTraits;
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 import quorum.Libraries.Interface.Controls.Charts.ChartItem_;
 import quorum.Libraries.Interface.Controls.Charts.Chart_;
 
@@ -66,24 +67,45 @@ public class ChartItemIOS extends ItemIOS {
     @Override
     public boolean activate() {
         Chart_ chart = GetChart();
-        if (chart != null && ((ChartItem_) GetItem()).GetEnterItem() != null) {
-            chart.Select((ChartItem_) GetItem());
+        ChartItem_ part = (ChartItem_) GetItem();
+        boolean handled = false;
+        if (chart != null && part.GetEnterItem() != null) {
+            chart.Select(part);
             chart.SelectionEnter();
-            return true;
+            IOSAccessibility.ChartLevelChanged(chart);
+            handled = true;
         }
-        return false;
+        if (IOSAccessibility.debug) {
+            System.out.println("VoiceOver double tap on \"" + part.GetName() + "\": enters \""
+                + NameOf(part.GetEnterItem()) + "\", handled " + handled);
+        }
+        return handled;
     }
 
     // The two-finger scrub: back out to the containing group.
     @Override
     public boolean performEscape() {
         Chart_ chart = GetChart();
-        if (chart != null && ((ChartItem_) GetItem()).GetEscapeItem() != null) {
-            chart.Select((ChartItem_) GetItem());
+        ChartItem_ part = (ChartItem_) GetItem();
+        boolean handled = false;
+        if (chart != null && part.GetEscapeItem() != null) {
+            chart.Select(part);
             chart.SelectionEscape();
-            return true;
+            IOSAccessibility.ChartLevelChanged(chart);
+            handled = true;
         }
-        return false;
+        if (IOSAccessibility.debug) {
+            System.out.println("VoiceOver scrub on \"" + part.GetName() + "\": escapes to \""
+                + NameOf(part.GetEscapeItem()) + "\", handled " + handled);
+        }
+        return handled;
+    }
+
+    // A part's name for the debug lines, or "none".
+    private String NameOf(ChartItem_ part) {
+        if (part == null)
+            return "none";
+        return part.GetName();
     }
 
     // Swipe up and down: the next bar by value.

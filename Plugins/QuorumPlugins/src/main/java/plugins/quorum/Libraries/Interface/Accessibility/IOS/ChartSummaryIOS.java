@@ -1,5 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 import org.robovm.apple.accessibility.AXChart;
 import org.robovm.apple.accessibility.AXChartDescriptor;
 import org.robovm.apple.uikit.UIAccessibilityContainer;
@@ -44,6 +45,7 @@ public class ChartSummaryIOS extends ItemIOS implements AXChart {
         ChartItem_ selected = chart.GetSelection() == null ? null : chart.GetSelection().GetChartItem();
         if ((selected == null || selected == chart) && chart.GetChartArea() != null) {
             chart.Select(chart.GetChartArea());
+            IOSAccessibility.ChartLevelChanged(chart);
             return true;
         }
         return false;
