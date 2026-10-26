@@ -12,16 +12,13 @@ use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
-use Libraries.Game.Graphics.Worlds.TerrainData
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Behaviors.Scenes.Properties.TerrainGrowBehavior
-use Libraries.Compute.Math
 
 /*
     The TerrainPropertiesDialog shows a selected terrain's name, which can be
-    changed, and what the terrain is: its size, its regions, and how high
-    and low its ground goes. The facts are read only. Each is on its own line, which
-    the keyboard can move to, so a screen reader reads each one.
+    changed, in a card, and a button that grows the terrain. If the
+    terrain's files weren't found, a line under the name says so.
 
     It shows in the scene editor's Properties panel, with the terrain's
     physics after it (TerrainPhysicsPropertiesDialog).
@@ -29,10 +26,8 @@ use Libraries.Compute.Math
 class TerrainPropertiesDialog is PropertiesDialog
 
     TextField nameField = undefined
-    Label sizeLabel = undefined
-    Label regionsLabel = undefined
-    Label heightsLabel = undefined
-    Math math
+    // Shown only when the terrain's files weren't found.
+    Label missingLabel = undefined
 
     // The terrain whose properties are shown, or undefined.
     EditorTerrain terrain = undefined
@@ -52,16 +47,8 @@ class TerrainPropertiesDialog is PropertiesDialog
         // closes it when the panel shows several sections (step 15).
         SetHeading(headingLabel)
 
-        FlowLayout nameLayout
-        Control nameContainer
-        nameContainer:SetLayout(nameLayout)
-        nameContainer:SetPercentageWidth(1.0)
-        nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
-        nameContainer:SetLeftMargin(20)
-        nameContainer:SetTopMargin(10)
-        nameContainer:SetRightMargin(30)
-        nameContainer:SetBottomMargin(10)
-
+        Control card = AddCard(panel, "")
+        Control nameContainer = MakeCardLine()
         Label nameLabel
         nameLabel:SetText("Name:")
         nameLabel:SetRightMargin(10)
@@ -76,11 +63,22 @@ class TerrainPropertiesDialog is PropertiesDialog
         nameField:AddTextChangeListener(me)
         nameContainer:Add(nameField)
         focusArray:Add(nameField)
-        panel:Add(nameContainer)
+        card:Add(nameContainer)
 
-        sizeLabel = AddInfoLine(panel, focusArray)
-        regionsLabel = AddInfoLine(panel, focusArray)
-        heightsLabel = AddInfoLine(panel, focusArray)
+        // Not a focus stop: when shown, the name field's description says
+        // the same, so a screen reader hears it there (SetTerrain).
+        Label missing
+        missingLabel = missing
+        missingLabel:SetText("")
+        // Full width, so a long message wraps.
+        missingLabel:SetHorizontalLayoutMode(missingLabel:parent:Control:STANDARD)
+        missingLabel:SetPercentageWidth(1.0)
+        missingLabel:SetLeftMargin(12)
+        missingLabel:SetRightMargin(12)
+        missingLabel:SetTopMargin(4)
+        missingLabel:SetBottomMargin(6)
+        missingLabel:Hide()
+        card:Add(missingLabel)
 
         // Makes the terrain bigger without the brush (step 11).
         FlowLayout growLayout
@@ -110,22 +108,6 @@ class TerrainPropertiesDialog is PropertiesDialog
         if terrain not= undefined and GetSceneEditor() not= undefined
             GetSceneEditor():GrowTerrain(terrain)
         end
-    end
-
-    /*
-        Adds one read-only line of information, which the keyboard can move
-        to, so a screen reader reads it.
-    */
-    private action AddInfoLine(Control panel, Array<Control> focusArray) returns Label
-        Label line
-        line:SetText("")
-        line:SetLeftMargin(20)
-        line:SetTopMargin(6)
-        line:SetBottomMargin(4)
-        line:SetFocusable(true)
-        panel:Add(line)
-        focusArray:Add(line)
-        return line
     end
 
     /*
@@ -184,19 +166,18 @@ class TerrainPropertiesDialog is PropertiesDialog
 
         // A scene can name a terrain whose files weren't found.
         if terrain:IsMissing()
-            sizeLabel:SetText("Files not found: this terrain is empty")
-            regionsLabel:SetText("Its folder " + GetFolderText(terrain:GetTerrainFile()) + " may have been moved, or not copied with the project")
-            heightsLabel:SetText("Saving the scene keeps its file name")
-            return now
+            text message = "Files not found: this terrain is empty. Its folder " + GetFolderText(terrain:GetTerrainFile())
+                + " may have been moved, or not copied with the project. Saving the scene keeps its file name."
+            missingLabel:SetText(message)
+            missingLabel:Show()
+            nameField:SetDescription(message)
+        else
+            missingLabel:SetText("")
+            missingLabel:Hide()
+            nameField:SetDescription("")
         end
-
-        TerrainData data = terrain:GetWorldTerrain():GetData()
-        number width = terrain:GetMaximumX() - terrain:GetMinimumX()
-        number depth = terrain:GetMaximumZ() - terrain:GetMinimumZ()
-        integer regionSize = data:GetRegionSize()
-        sizeLabel:SetText("Size: " + width + " by " + depth + " units")
-        regionsLabel:SetText("Regions: " + data:GetRegionCount() + ", each " + regionSize + " by " + regionSize + " samples")
-        heightsLabel:SetText("Height: " + math:Round(data:GetLowestHeight(), 1) + " to " + math:Round(data:GetHighestHeight(), 1))
+        // The card is as tall as its shown lines.
+        missingLabel:RequestLayout()
     end
 
     /*

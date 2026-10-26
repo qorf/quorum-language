@@ -1,0 +1,27 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.TextField
+
+/*
+The TextTouchEndBehavior runs when a finger lifts from a text box or a text
+field, or moves off it. It ends the drag that a touch began there
+(TextBoxOpenKeyboardBehavior); the selection stays as it was.
+*/
+class TextTouchEndBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        TouchEvent touch = event:GetTouchEvent()
+        if item is TextBox
+            TextBox box = cast(TextBox, item)
+            box:TouchEnded(touch)
+        elseif item is TextField
+            TextField field = cast(TextField, item)
+            field:TouchEnded(touch)
+        end
+    end
+end

@@ -65,11 +65,9 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         // shows several sections (step 15).
         SetHeading(AddHeading(panel, "Generate", 18))
 
-        Control presetLine = MakeLine()
-        Label presetLabel
-        presetLabel:SetText("Preset:")
-        presetLine:Add(presetLabel)
-        panel:Add(presetLine)
+        // The settings in one card: the preset, two to a row, then the
+        // seed, the height and auto paint.
+        Control settingsCard = AddCard(panel, "Settings")
         ButtonGroup presets
         presetGroup = MakeGroup(presets, "Preset")
         integer preset = 0
@@ -78,31 +76,33 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
             preset = preset + 1
         end
         presetGroup:GetButtonAt(0):SetToggleState(true)
-        AddGroup(panel, presetGroup, focusArray)
+        AddGroup(settingsCard, presetGroup, focusArray)
 
-        Control seedLine = MakeLine()
+        Control seedLine = MakeCardLine()
         seedField = AddField(seedLine, "Seed:", "Seed", "7", focusArray)
-        panel:Add(seedLine)
+        settingsCard:Add(seedLine)
 
-        Control heightLine = MakeLine()
+        Control heightLine = MakeCardLine()
         heightField = AddField(heightLine, "Height:", "Height in world units", "32", focusArray)
-        panel:Add(heightLine)
+        settingsCard:Add(heightLine)
 
-        Control paintLine = MakeLine()
+        Control paintLine = MakeCardLine()
         Checkbox checkbox
         autoPaintCheckbox = checkbox
         autoPaintCheckbox:SetName("Auto paint afterward")
         paintLine:Add(autoPaintCheckbox)
-        panel:Add(paintLine)
+        settingsCard:Add(paintLine)
         focusArray:Add(autoPaintCheckbox)
 
-        Control wholeLine = MakeLine()
-        Button generate = AddButton(wholeLine, "Generate", "Remake the whole terrain's ground with the preset", GENERATE, focusArray)
-        panel:Add(wholeLine)
-        Control wholeLine2 = MakeLine()
-        Button erodeAll = AddButton(wholeLine2, "Erode All", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
-        Button paintAll = AddButton(wholeLine2, "Auto paint All", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
-        panel:Add(wholeLine2)
+        // What the settings act on, the whole terrain, in their own card on
+        // one row. Generate is the main one.
+        Control actionsCard = AddCard(panel, "Actions")
+        Control actionsLine = MakeButtonRow()
+        Button generate = AddButton(actionsLine, "Generate", "Remake the whole terrain's ground with the preset", GENERATE, focusArray)
+        generate:SetInterfaceOptionsKey("DialogAcceptButton")
+        Button erodeAll = AddButton(actionsLine, "Erode All", "Wear the whole ground as rain would", ERODE_ALL, focusArray)
+        Button paintAll = AddButton(actionsLine, "Auto paint All", "Paint the layers by height and slope", AUTO_PAINT_ALL, focusArray)
+        actionsCard:Add(actionsLine)
     end
 
     /*
@@ -116,23 +116,6 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         title:SetTopMargin(6)
         panel:Add(title)
         return title
-    end
-
-    /*
-        Makes a container for one line of controls, the width of the
-        section.
-    */
-    private action MakeLine returns Control
-        FlowLayout layout
-        Control line
-        line:SetLayout(layout)
-        line:SetPercentageWidth(1.0)
-        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
-        line:SetLeftMargin(20)
-        line:SetRightMargin(30)
-        line:SetTopMargin(4)
-        line:SetBottomMargin(4)
-        return line
     end
 
     /*
@@ -154,22 +137,21 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         description, if not empty, says it in full.
     */
     private action AddRadio(ButtonGroup group, text name, text description)
-        Control layoutValues
         RadioButton button
         button:SetName(name)
         if description not= ""
             button:SetDescription(description)
         end
-        button:SetHorizontalLayoutMode(layoutValues:FILL)
         group:AddToGrouping(button)
-        group:Add(button)
+        // Two to a row in the card.
+        AddHalfWidth(group, button)
     end
 
     /*
         Puts a group of radio buttons in the section.
     */
     private action AddGroup(Control panel, ButtonGroup group, Array<Control> focusArray)
-        Control line = MakeLine()
+        Control line = MakeCardLine()
         line:Add(group)
         panel:Add(line)
         focusArray:Add(group)

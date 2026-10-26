@@ -84,7 +84,7 @@ class FormContainerControl is Control
             label:SetFontSize(titleSize)
             label:SetName(GetName() + " Title Label")
             label:SetText(title)
-            label:SetFocusable(true)
+            label:SetFocusable(not skipLabelsInFocus)
             Add(0, label)
         end
     end
@@ -811,6 +811,9 @@ class FormContainerControl is Control
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
         icon:SetToHugeFont()
+        // One line of the huge font is too small for most images, so an icon
+        // is three lines tall. A program can still set its own size.
+        icon:SetLayoutRows(3)
 
         Add(icon)
         return icon
@@ -1082,6 +1085,9 @@ class FormContainerControl is Control
         TextBox item
         item:SetName(name)
         item:SetToDefaultFontSize()
+        item:SetLayoutRows(4)
+        item:SetTopPadding(3)
+        item:SetBottomPadding(3)
         Add(item)
         return item
     end

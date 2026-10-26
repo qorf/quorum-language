@@ -554,8 +554,8 @@ selectionRing:Hide()
         selectionRing:Show()
         ringShowing = true
         blinkTimer = blinkIdleTime
-        selectionRing:SetX(item:GetGlobalX() - padding/2)
-        selectionRing:SetY(item:GetGlobalY() - padding/2)
+        selectionRing:SetX(item:GetGlobalX() - GetGlobalX() - padding/2)
+        selectionRing:SetY(item:GetGlobalY() - GetGlobalY() - padding/2)
         selectionRing:SetSize(item:GetWidth() + padding, item:GetWidth() + padding)
     end
     

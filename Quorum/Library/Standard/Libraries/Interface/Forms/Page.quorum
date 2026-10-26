@@ -105,6 +105,7 @@ class Page is FormPrimitiveContainer, FormContainerControl, ScrollPane
         Grouping grouping
         grouping:SetForm(GetForm())
         grouping:SetName(name)
+        grouping:SetSkipLabelsInFocus(GetSkipLabelsInFocus())
 
         Add(grouping)
         return grouping

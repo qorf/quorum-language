@@ -12,6 +12,7 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
+use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
@@ -280,7 +281,12 @@ class Control is Item2D
         Returns true if rendering the focus event.
     */
     action IsRenderingFocus returns boolean
-        return IsFocused()
+        if not IsFocused()
+            return false
+        end
+        GameStateManager gameManager
+        Game game = gameManager:GetGame()
+        return game = undefined or not game:IsFocusOutlineHidden()
     end
 
     /*
@@ -1538,6 +1544,12 @@ elseif font:IsFontAvailable("courbd")
     */
     action RequestLayout
         needsLayout = true
+        // On a display that draws only when needed, a layout needs a frame.
+        GameStateManager manager
+        GameDisplay display = manager:GetGameDisplay()
+        if display not= undefined
+            display:RequestRendering()
+        end
 
         // If the parent container fits its contents based on us, and we need to
         // be laid out again, then the parent needs to be laid out as well, as  

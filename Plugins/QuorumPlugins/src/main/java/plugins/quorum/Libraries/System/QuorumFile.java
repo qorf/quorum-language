@@ -118,6 +118,14 @@ public class QuorumFile {
     public String GetWorkingDirectoryNative() {
         return workingDirectory;
     }
+
+    /*
+        Where the program saves its own data. On desktop computers, the
+        program's usual working directory. Phones override it.
+     */
+    public String GetStorageDirectoryNative() {
+        return defaultWorkingDirectory;
+    }
     
     /**
      * Set the user's current working directory.

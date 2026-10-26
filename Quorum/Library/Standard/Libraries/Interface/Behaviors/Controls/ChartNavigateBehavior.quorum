@@ -26,6 +26,11 @@ class ChartNavigateBehavior is Behavior
             integer direction = -1
             ChartItem chartItem = cast(ChartItem, event:GetItem())
             Chart chart = chartItem:GetContainer()
+            // A part with no chart set (such as a legend entry) has nothing
+            // to navigate.
+            if chart = undefined
+                return now
+            end
             InputMonitor monitor
             KeyboardEvent keyEvent = event:GetKeyboardEvent()
 

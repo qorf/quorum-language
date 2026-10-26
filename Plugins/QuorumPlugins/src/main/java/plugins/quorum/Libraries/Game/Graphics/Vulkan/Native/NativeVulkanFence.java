@@ -26,9 +26,14 @@ public class NativeVulkanFence implements VulkanFenceStrategy
         fenceHandle = 0L;
     }
 
+    // Time spent waiting on fences, for IOSDisplay's debug log.
+    public static long waitNanos;
+
     public void Wait()
     {
+        long start = System.nanoTime();
         WaitForFence(Device(), fenceHandle);
+        waitNanos = waitNanos + System.nanoTime() - start;
     }
 
     public void Reset()

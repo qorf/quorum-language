@@ -154,12 +154,10 @@ public class IOSApplication
         this.game = game;
         name = game.GetGameName();
 
-        // Make the default working directory more useful if we're not on a simulator.
-        if (IsSimulator())
-        {
-            plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
-            qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
-        }
+        // Files are found relative to the app bundle, where the project's media
+        // is copied, on devices and the simulator alike. Java's user.dir is the
+        // app's data folder instead. The bundle is read-only.
+        plugins.quorum.Libraries.System.QuorumFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
         System.out.println("IOSApplication: SetupNative: NSBundle.getMainBundle().getBundlePath() = " + NSBundle.getMainBundle().getBundlePath());
 
         delegate = new IOSDelegate();
@@ -249,11 +247,7 @@ public class IOSApplication
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.GetViewController());
         this.uiWindow.makeKeyAndVisible();
         accessibilityContainer = new IOSAccessibilityContainer();
-        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
-        screenBounds = GetBounds();
-        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
-        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
-        accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
+        UpdateAccessibilityBounds();
         accessibilityContainer.setHidden(false);
 
         accessibilityContainer.setAccessibilityIdentifier(name);
@@ -273,6 +267,29 @@ public class IOSApplication
         String systemVersion = UIDevice.getCurrentDevice().getSystemVersion();
         int version = Integer.parseInt(systemVersion.split("\\.")[0]);
         return version;
+    }
+
+    /*
+    The accessibility container's size, and the pixels per point used to place
+    VoiceOver's frames (ItemIOS.getAccessibilityFrame). Set when the window is
+    made, and again when the display changes size (rotation), since the
+    screen's width and height then swap.
+    */
+    public void UpdateAccessibilityBounds()
+    {
+        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
+        screenBounds = GetBounds();
+        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
+        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
+        if (accessibilityContainer != null)
+            accessibilityContainer.setFrame(accessibilityContainerBounds);
+    }
+
+    // True on this major iOS version or later.
+    public static boolean IsAtLeastIOS(int major)
+    {
+        String systemVersion = UIDevice.getCurrentDevice().getSystemVersion();
+        return Integer.parseInt(systemVersion.split("\\.")[0]) >= major;
     }
 
     public UIViewController GetUIViewController()

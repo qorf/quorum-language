@@ -9,6 +9,7 @@ use Libraries.Game.GameDisplay
 use Libraries.Game.DesktopDisplay
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
+use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
 use Libraries.Game.AndroidDisplay
@@ -188,6 +189,10 @@ class Game
     GameStateManager manager
     FocusManager focusManager
 
+    // True while the focus outline is hidden until the next touch or key
+    // press (HideFocusOutlineUntilTouch).
+    boolean focusOutlineHidden = false
+
     // MSAA for 3D under Vulkan (Item 27), passed to the graphics when they
     // start. 1 is off.
     integer multisampleCount = 1
@@ -356,6 +361,7 @@ class Game
             gl20 = manager:GetGameGraphics()
             
             IOSInput newInput
+            newInput:SetDebugInput(iosConfig:debugInput)
             gameInput = newInput
             manager:SetInput(newInput)
 
@@ -2606,6 +2612,17 @@ if gl20 is OpenGLManager
         currentLayer2D:SetName("Default Layer2D")
 
         gameInput:SetLayers(layers)
+
+        /*
+        Phones and tablets draw in pixels, several per screen point, so the
+        interface is scaled by that much to be as large as on a desktop.
+        CreateGame runs after this, so a program can still choose its own
+        scale there.
+        */
+        Application application = manager:GetApplication()
+        if application is IOSApplication or application is AndroidApplication
+            SetInterfaceScale(manager:GetGameDisplay():GetPixelScaleFactor())
+        end
     end
 
     /*
@@ -4155,6 +4172,46 @@ if gl20 is OpenGLManager
     end
 
     /*
+    The HideFocusOutlineUntilTouch action hides the outline around the
+    focused item on phones and tablets until the next touch or key press.
+    Forms calls it when a page opens: the first item gets the focus, so a
+    keyboard or VoiceOver starts there, but on a touch screen an outline on
+    an item nobody chose looks wrong. On a desktop it does nothing.
+    */
+    action HideFocusOutlineUntilTouch
+        Application application = manager:GetApplication()
+        if application is IOSApplication or application is AndroidApplication
+            focusOutlineHidden = true
+        end
+    end
+
+    /*
+    The ShowFocusOutline action draws the focus outline again after
+    HideFocusOutlineUntilTouch. MobileInput calls it on a touch or key press.
+    */
+    action ShowFocusOutline
+        if not focusOutlineHidden
+            return now
+        end
+        focusOutlineHidden = false
+        Item focused = GetFocus()
+        if focused is Item2D
+            Item2D focused2D = cast(Item2D, focused)
+            focused2D:RequestVerticesUpdate()
+        end
+    end
+
+    /*
+    The IsFocusOutlineHidden action returns true while the focus outline is
+    hidden until the next touch or key press.
+
+    Attribute: Returns True if the focus outline is hidden.
+    */
+    action IsFocusOutlineHidden returns boolean
+        return focusOutlineHidden
+    end
+
+    /*
     This action sets the FocusManager to be used for the Game. The FocusManager
     is responsible for moving focus between Items, which is essential for GUIs
     to function correctly.
@@ -4459,6 +4516,18 @@ if gl20 is OpenGLManager
         end
     end
     */
+    /*
+    The GetSafeRegion action returns the part of the display that nothing
+    covers, such as a camera cutout or a system bar, in pixels with (0, 0) at
+    the bottom left (see GameDisplay:GetSafeRegion). Games that draw their
+    own scenes can use it to keep important things visible.
+
+    Attribute: Returns The display's safe region.
+    */
+    action GetSafeRegion returns Rectangle
+        return manager:GetGameDisplay():GetSafeRegion()
+    end
+
     action SetInterfaceScale(number scale)
         integer counter = 0
         repeat while counter < layers:GetSize()

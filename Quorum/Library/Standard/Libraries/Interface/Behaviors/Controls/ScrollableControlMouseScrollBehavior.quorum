@@ -4,6 +4,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Item2D
 
 class ScrollableControlMouseScrollBehavior is Behavior
 
@@ -14,7 +15,30 @@ class ScrollableControlMouseScrollBehavior is Behavior
         end
 
         ScrollableControl control = cast(ScrollableControl, behaviorEvent:GetItem())
-        control:ScrolledMouse(event)
+        // A positive amount moves toward the top (ScrollableControl:ScrolledMouse).
+        boolean up = event:scrollAmount > 0
+        ScrollableControl target = FindScrollTarget(control, up)
+        target:ScrolledMouse(event)
+    end
+
+    /*
+    The control itself if it can still move that way, or else the nearest
+    scrollable control around it that can (such as the scroll pane a list
+    sits in), so scrolling continues past a list that is at its end or
+    shows everything. If none can, the control itself.
+    */
+    private action FindScrollTarget(ScrollableControl control, boolean up) returns ScrollableControl
+        Item2D seeker = control
+        repeat while seeker not= undefined
+            if seeker is ScrollableControl
+                ScrollableControl scrollable = cast(ScrollableControl, seeker)
+                if scrollable:CanScrollVertically(up)
+                    return scrollable
+                end
+            end
+            seeker = seeker:GetParent()
+        end
+        return control
     end
 
 end

@@ -3060,7 +3060,7 @@ action SetColorPalette(ColorPalette colorPalette)
         // If the title font size is default the title area percent will be 10% of the height
         if IsShowingTitle() and GetTitleLabel() not= undefined
             if not titleFontSizeOverride
-                integer fontsize = cast(integer, GetHeight()*(titleAreaHeightPercent/2))
+                integer fontsize = cast(integer, GetUnscaledHeight()*(titleAreaHeightPercent/2))
                 GetTitleLabel():SetFontSize(fontsize)
                 if GetTitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
                     fontsize = cast(integer, GetTitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetTitleLabel():GetWidth()))
@@ -3073,7 +3073,7 @@ action SetColorPalette(ColorPalette colorPalette)
         // If the title font size is default the title area percent will be 10% of the height
         if IsShowingSubtitle() and GetSubtitleLabel() not= undefined
             if not subtitleFontSizeOverride
-                integer fontsize = cast(integer, GetHeight()*(subtitleAreaHeightPercent/2))
+                integer fontsize = cast(integer, GetUnscaledHeight()*(subtitleAreaHeightPercent/2))
                 GetSubtitleLabel():SetFontSize(fontsize)
                 if GetSubtitleLabel():GetWidth() > GetWidth()*horizontalPanelWidthPercent // default size is too long
                     fontsize = cast(integer, GetSubtitleLabel():GetFontSize()*((GetWidth()*horizontalPanelWidthPercent)/GetSubtitleLabel():GetWidth()))
@@ -3124,7 +3124,7 @@ action SetColorPalette(ColorPalette colorPalette)
             integer tickWidth = horizontalPanel:GetTickWidth()
             integer tickHeight = horizontalPanel:GetTickHeight()
 
-            integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
+            integer titleautofontsize = cast(integer, ((GetUnscaledHeight()+GetUnscaledWidth())/2)*(0.05/2))
 
             if horizontalPanel:GetTitleLabel() not= undefined
                 if not xTitleFontSizeOverride // This is the auto-sized X-Axis Label
@@ -3148,7 +3148,7 @@ action SetColorPalette(ColorPalette colorPalette)
             end
 
             if horizontalPanel:GetLabelCount() > 0 and horizontalPanel:ShowLabels()
-                integer labelautofontsize = cast(integer, (GetWidth()*horizontalPanelWidthPercent)/horizontalPanel:GetLabelCount())
+                integer labelautofontsize = cast(integer, (GetUnscaledWidth()*horizontalPanelWidthPercent)/horizontalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
                 end
@@ -3191,6 +3191,21 @@ action SetColorPalette(ColorPalette colorPalette)
         legendPanelHeightPercent = verticalPanelHeightPercent
     end
     /*
+        The chart's width and height without the interface scale. Text is
+        multiplied by the interface scale when it is drawn, so the automatic
+        font sizes worked out from the chart's size use these. Using the size
+        in pixels would make text that many times too large on a phone, where
+        the scale is the screen's pixel scale.
+    */
+    private action GetUnscaledWidth returns number
+        return GetWidth() / GetInterfaceScale()
+    end
+
+    private action GetUnscaledHeight returns number
+        return GetHeight() / GetInterfaceScale()
+    end
+
+    /*
         This action adjusts for the y-axis.
     */
     action AdjustForYAxis()
@@ -3201,7 +3216,7 @@ action SetColorPalette(ColorPalette colorPalette)
             integer tickWidth = verticalPanel:GetTickWidth()
             integer tickHeight = verticalPanel:GetTickHeight()
 
-            integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
+            integer titleautofontsize = cast(integer, ((GetUnscaledHeight()+GetUnscaledWidth())/2)*(0.05/2))
 
             if verticalPanel:GetTitleLabel() not= undefined
                 if not yTitleFontSizeOverride // This is the auto-sized Y-Axis Label
@@ -3225,7 +3240,7 @@ action SetColorPalette(ColorPalette colorPalette)
             end
 
             if verticalPanel:GetLabelCount() > 0 and verticalPanel:ShowLabels()
-                integer labelautofontsize = cast(integer, (GetHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
+                integer labelautofontsize = cast(integer, (GetUnscaledHeight()*(1-horizontalPanelHeightPercent-(titleAreaHeightPercent+subtitleAreaHeightPercent)))/verticalPanel:GetLabelCount())
                 if labelautofontsize > cast(integer, titleautofontsize*0.75)
                     labelautofontsize = cast(integer, titleautofontsize*0.75)
                 end
@@ -3268,7 +3283,7 @@ action SetColorPalette(ColorPalette colorPalette)
             number labelWidth = 0
 
             if legend:DisplayOnLeft() or legend:DisplayOnRight()
-                integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
+                integer titleautofontsize = cast(integer, ((GetUnscaledHeight()+GetUnscaledWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
                     if not legendTitleFontSizeOverride // This is the auto-sized legend title
                         if allFontSizeOverride
@@ -3287,7 +3302,7 @@ action SetColorPalette(ColorPalette colorPalette)
                 number newWidthSum = 0.0
                 number newHeightSum = 0.0
                 if not legend:GetSeriesList():IsEmpty()
-                    integer labelautofontsize = cast(integer, GetWidth()*0.025)
+                    integer labelautofontsize = cast(integer, GetUnscaledWidth()*0.025)
                     if labelautofontsize > cast(integer, titleautofontsize*0.75)
                         labelautofontsize = cast(integer, titleautofontsize*0.75)
                     end
@@ -3328,7 +3343,7 @@ legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelH
                 legend:SetSize(GetWidth()*legendPanelWidthPercent, minimumHeightSpace)
                 legend:SetY(legendPanel:GetHeight() - legend:GetHeight())
             else //legend:DisplayOnTop() or legend:DisplayOnBottom()
-                integer titleautofontsize = cast(integer, ((GetHeight()+GetWidth())/2)*(0.05/2))
+                integer titleautofontsize = cast(integer, ((GetUnscaledHeight()+GetUnscaledWidth())/2)*(0.05/2))
                 if legend:GetTitleLabel() not= undefined
                     if not legendTitleFontSizeOverride // This is the auto-sized legend title
                         if allFontSizeOverride
@@ -3345,7 +3360,7 @@ legendPanel:SetSize(GetWidth()*legendPanelWidthPercent, GetHeight()*legendPanelH
                 end
 
                 if not legend:GetSeriesList():IsEmpty()
-                    integer labelautofontsize = cast(integer, GetHeight()*0.025)
+                    integer labelautofontsize = cast(integer, GetUnscaledHeight()*0.025)
                     if labelautofontsize > cast(integer, titleautofontsize*0.75)
                         labelautofontsize = cast(integer, titleautofontsize*0.75)
                     end
@@ -3584,8 +3599,10 @@ blinkTimer = blinkIdleTime
         selectionBoxShowing = true
         number borderThickness = selectionBox:GetBorderThickness()
             selectionBox:SetSize(item:GetWidth() + rightPadding + leftPadding, item:GetHeight() + bottomPadding + topPadding)
-            selectionBox:SetX(item:GetGlobalX() - leftPadding)
-            selectionBox:SetY(item:GetGlobalY() - bottomPadding)
+            // The selection box and its label are this chart's children, so
+            // they're placed from the chart's corner, not the window's.
+            selectionBox:SetX(item:GetGlobalX() - GetGlobalX() - leftPadding)
+            selectionBox:SetY(item:GetGlobalY() - GetGlobalY() - bottomPadding)
     end
     
     action ShowSelectionAnnotation(ChartItem item, number offsetX, number offsetY)
@@ -3594,8 +3611,8 @@ blinkTimer = blinkIdleTime
     
 action ShowSelectionAnnotation(ChartItem item, text annotation, number offsetX, number offsetY)
         selectionAnnotationLabel:Show()
-        selectionAnnotationLabel:SetX(item:GetGlobalX() + offsetX)
-        selectionAnnotationLabel:SetY(item:GetGlobalY() + offsetY)
+        selectionAnnotationLabel:SetX(item:GetGlobalX() - GetGlobalX() + offsetX)
+        selectionAnnotationLabel:SetY(item:GetGlobalY() - GetGlobalY() + offsetY)
         if annotation = ""
             selectionAnnotationLabel:SetText(" " + item:GetName() + " ")
         else

@@ -23,6 +23,7 @@ use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
 use Libraries.Compute.Vector4
+use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Texture
 
 class VulkanPainter2D is Painter2D
@@ -64,6 +65,10 @@ class VulkanPainter2D is Painter2D
     number clipHeight = -1
     boolean isClipping = false
     
+    // Used to turn clip coordinates, which are in world coordinates, into
+    // screen pixels through the camera.
+    Vector3 clipPoint
+
     integer viewportX = 0
     integer viewportY = 0
     integer viewportWidth = 0
@@ -468,8 +473,40 @@ clipValues:GetZ() not= lastClipValues:GetZ() or clipValues:GetW() not= lastClipV
 setScissor:SetPosition(0, 0)
             setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
                 else
-                    setScissor:SetPosition(cast(integer, clipValues:GetX()), swapchain:GetImageHeight() - cast(integer, clipValues:GetY() + clipValues:GetW()))
-setScissor:SetSize(cast(integer, clipValues:GetZ()), cast(integer, clipValues:GetW()))
+                    /*
+                    Clip coordinates are in world coordinates, so the corners
+                    go through the camera to find their pixels, as the OpenGL
+                    painter does. A moved camera (such as for a display's safe
+                    region) would otherwise clip the wrong part of the screen.
+                    */
+                    Matrix4 combined = camera:GetCombinedMatrix()
+                    clipPoint:Set(clipValues:GetX(), clipValues:GetY(), 0)
+                    clipPoint:Multiply(combined)
+                    integer x1 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth)
+                    integer y1 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight)
+                    clipPoint:Set(clipValues:GetX() + clipValues:GetZ(), clipValues:GetY() + clipValues:GetW(), 0)
+                    clipPoint:Multiply(combined)
+                    integer x2 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth)
+                    integer y2 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight)
+
+                    // Vulkan rejects negative scissor offsets and sizes.
+                    integer top = swapchain:GetImageHeight() - y2
+                    if x1 < 0
+                        x1 = 0
+                    end
+                    if top < 0
+                        top = 0
+                    end
+                    integer scissorWidth = x2 - x1
+                    integer scissorHeight = swapchain:GetImageHeight() - y1 - top
+                    if scissorWidth < 0
+                        scissorWidth = 0
+                    end
+                    if scissorHeight < 0
+                        scissorHeight = 0
+                    end
+                    setScissor:SetPosition(x1, top)
+                    setScissor:SetSize(scissorWidth, scissorHeight)
                 end
 commandBuffer:Record(setScissor)
             end

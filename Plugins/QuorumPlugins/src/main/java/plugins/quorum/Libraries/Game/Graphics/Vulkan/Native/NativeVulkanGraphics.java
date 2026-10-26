@@ -17,6 +17,11 @@ public class NativeVulkanGraphics implements VulkanGraphicsStrategy
 
     private int currentSwapchainIndex = 0;
 
+    // Time spent taking and showing swapchain images, for IOSDisplay's
+    // debug log.
+    public static long acquireNanos;
+    public static long presentNanos;
+
     public NativeVulkanGraphics(VulkanGraphics peer)
     {
     }
@@ -26,7 +31,9 @@ public class NativeVulkanGraphics implements VulkanGraphicsStrategy
         long swapchain = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain)quorumSwapchain).plugin_.GetVulkanSwapchainHandle();
         long semaphore = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore)quorumSemaphore).plugin_.GetSemaphoreHandle();
         int[] index = new int[1];
+        long start = System.nanoTime();
         int vulkanResult = AcquireImage(NativeVulkan.DeviceHandle(quorumDevice), swapchain, semaphore, index);
+        acquireNanos = acquireNanos + System.nanoTime() - start;
 
         if (vulkanResult == SUCCESS || vulkanResult == SUBOPTIMAL || vulkanResult == OUT_OF_DATE)
         {
@@ -52,7 +59,9 @@ public class NativeVulkanGraphics implements VulkanGraphicsStrategy
     {
         long swapchain = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSwapchain)quorumSwapchain).plugin_.GetVulkanSwapchainHandle();
         long semaphore = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanSemaphore)quorumSemaphore).plugin_.GetSemaphoreHandle();
+        long start = System.nanoTime();
         int vulkanResult = Present(NativeVulkanQueue.Handle(quorumQueue), swapchain, semaphore, imageIndex);
+        presentNanos = presentNanos + System.nanoTime() - start;
         return vulkanResult == SUCCESS || vulkanResult == SUBOPTIMAL;
     }
 

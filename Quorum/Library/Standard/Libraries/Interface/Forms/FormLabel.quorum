@@ -1,6 +1,7 @@
 package Libraries.Interface.Forms
 
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Label
 
 class FormLabel is Label
@@ -11,6 +12,21 @@ class FormLabel is Label
         end
 
         FormContainerControl control = GetContainer()
+
+        // A card's title is a section heading, in a muted color
+        // (FormRowLayout, the SectionTitle options key).
+        if control is Grouping
+            Grouping group = cast(Grouping, control)
+            // Compared as a Label, the type GetTitleLabel returns.
+            Label ownLabel = me
+            if group:GetDrawStyle() = group:CARD_STYLE and group:GetTitleLabel() = ownLabel
+                GameStateManager gameState
+                ColorGroup sectionColor = gameState:GetInterfaceOptions():GetFontColor("SectionTitle")
+                if sectionColor not= undefined
+                    return sectionColor
+                end
+            end
+        end
 
         if control not= undefined
             return control:GetFontColor()

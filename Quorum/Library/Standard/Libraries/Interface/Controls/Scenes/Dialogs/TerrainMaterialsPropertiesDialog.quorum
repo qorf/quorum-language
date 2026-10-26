@@ -36,10 +36,12 @@ use Libraries.Game.Graphics.Color
     covers the whole ground; the others show where they are painted, with
     the Paint tool in the Brush section.
 
-    Each layer has its name, its material file, its tile size, "Choose..."
-    to give it another material, and "Remove". The blend softness is how
-    softly texture set layers blend where they meet. Adding, choosing and
-    removing layers can be undone.
+    Each layer is a card titled with its name, holding its tile size and
+    its buttons: "Choose..." to give it another material, "Remove", and
+    "Details...". The blend softness, in its own card, is how softly
+    texture set layers blend where they meet. A line above the cards says
+    only what is worth saying, such as a missing material file. Adding,
+    choosing and removing layers can be undone.
 
     It shows in the scene editor's Properties panel, between the terrain's
     facts and its brush.
@@ -73,7 +75,6 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     // Each layer's row, and the controls in it.
     Array<Control> rows
     Array<Label> nameLabels
-    Array<Label> fileLabels
     Array<TextField> tileFields
     Array<Button> chooseButtons
     Array<Button> removeButtons
@@ -143,7 +144,12 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         Label status
         statusLabel = status
         statusLabel:SetText("")
+        // Full width, so a long note wraps. It is hidden when there is no
+        // note (SetTerrain).
+        statusLabel:SetHorizontalLayoutMode(statusLabel:parent:Control:STANDARD)
+        statusLabel:SetPercentageWidth(1.0)
         statusLabel:SetLeftMargin(20)
+        statusLabel:SetRightMargin(20)
         statusLabel:SetTopMargin(6)
         statusLabel:SetBottomMargin(4)
         statusLabel:SetFocusable(true)
@@ -164,20 +170,29 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             index = index + 1
         end
 
-        Control blend = MakeLine()
+        // The blend softness, in a card titled Blending. The title and card
+        // are together in one container, which ShowRows puts in or takes out.
+        Control blend
         blendContainer = blend
+        FlowLayout blendLayout
+        blendContainer:SetLayout(blendLayout)
+        blendContainer:SetPercentageWidth(1.0)
+        blendContainer:SetVerticalLayoutMode(blendContainer:FIT_CONTENTS)
+        Control blendCard = AddCard(blendContainer, "Blending")
+        Control blendLine = MakeCardLine()
         Label blendLabel
         blendLabel:SetText("Blend softness:")
         blendLabel:SetRightMargin(10)
-        blendContainer:Add(blendLabel)
+        blendLine:Add(blendLabel)
         TextField field
         blendField = field
         blendField:SetName("Blend softness")
         blendField:SetText("")
         blendField:SetFocusable(true)
         blendField:AddTextChangeListener(me)
-        blendField:SetHorizontalLayoutMode(blendContainer:FILL)
-        blendContainer:Add(blendField)
+        blendField:SetHorizontalLayoutMode(blendLine:FILL)
+        blendLine:Add(blendField)
+        blendCard:Add(blendLine)
         focusArray:Add(blendField)
 
         MakeDetails()
@@ -196,9 +211,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Makes one layer's row: its name, its file, its tile size, and its
-        Choose and Remove buttons. Rows are put in the panel when the
-        terrain has that layer.
+        Makes one layer's row: a card titled with the layer's name, holding
+        its tile size and its Choose, Remove and Details buttons. Rows are
+        put in the panel when the terrain has that layer.
     */
     private action MakeRow(integer index, Array<Control> focusArray)
         Control row
@@ -206,28 +221,16 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         row:SetLayout(rowLayout)
         row:SetPercentageWidth(1.0)
         row:SetVerticalLayoutMode(row:FIT_CONTENTS)
-        row:SetTopMargin(6)
 
-        // A grey line sets each layer apart from the one above it.
-        if index > 0
-            row:Add(MakeDivider())
-        end
-
-        Control nameLine = MakeLine()
-        Label nameLabel
-        nameLabel:SetText("Layer " + (index + 1))
+        // The card's title is the layer's name. Unlike other card titles,
+        // it is a focus stop, so a screen reader reads which layer it is.
+        Label nameLabel = MakeCardTitle("Layer " + (index + 1))
         nameLabel:SetFocusable(true)
-        nameLine:Add(nameLabel)
-        row:Add(nameLine)
+        row:Add(nameLabel)
+        Control card = MakeCard()
+        row:Add(card)
 
-        Control fileLine = MakeLine()
-        Label fileLabel
-        fileLabel:SetText("")
-        fileLabel:SetFocusable(true)
-        fileLine:Add(fileLabel)
-        row:Add(fileLine)
-
-        Control tileLine = MakeLine()
+        Control tileLine = MakeCardLine()
         Label tileLabel
         tileLabel:SetText("Tile size:")
         tileLabel:SetRightMargin(10)
@@ -239,9 +242,11 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         tileField:AddTextChangeListener(me)
         tileField:SetHorizontalLayoutMode(tileLine:FILL)
         tileLine:Add(tileField)
-        row:Add(tileLine)
+        card:Add(tileLine)
 
-        Control buttonLine = MakeLine()
+        // Choose, Remove and Details on one line, or one above another
+        // when they don't fit.
+        Control buttonLine = MakeButtonRow()
         Button chooseButton
         chooseButton:SetName("Choose...")
         chooseButton:SetDescription("Choose another material for layer " + (index + 1))
@@ -265,11 +270,10 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         detailsBehavior:Setup(me, DETAILS, index)
         detailsButton:SetBehavior(detailsBehavior)
         buttonLine:Add(detailsButton)
-        row:Add(buttonLine)
+        card:Add(buttonLine)
 
         rows:Add(row)
         nameLabels:Add(nameLabel)
-        fileLabels:Add(fileLabel)
         tileFields:Add(tileField)
         chooseButtons:Add(chooseButton)
         removeButtons:Add(removeButton)
@@ -279,30 +283,10 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         // shown, which SetTerrain arranges.
         if index = 0
             focusArray:Add(nameLabel)
-            focusArray:Add(fileLabel)
             focusArray:Add(tileField)
             focusArray:Add(chooseButton)
             focusArray:Add(removeButton)
         end
-    end
-
-    /*
-        Makes a thin grey line across the section, between two layers' rows.
-    */
-    private action MakeDivider returns Control
-        ControlShaderView view
-        view:Initialize()
-        Color color
-        Control divider
-        divider:SetView2D(view)
-        divider:SetBackgroundColor(color:Gray())
-        divider:SetPercentageWidth(1.0)
-        divider:SetPercentageHeight(0)
-        divider:SetPixelHeight(1)
-        divider:SetLeftMargin(20)
-        divider:SetRightMargin(30)
-        divider:SetBottomMargin(6)
-        return divider
     end
 
     /*
@@ -569,11 +553,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             if material:HasMixedPlainTileSizes()
                 status = status + " Plain textures share the first plain layer's tile size."
             end
-            if status = "" and count = 1
-                status = "1 layer"
-            elseif status = ""
-                status = count + " layers"
-            else
+            if status not= ""
                 status = status:GetSubtext(1)
             end
             statusLabel:SetText(status)
@@ -584,21 +564,17 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         repeat while i < count
             Material layerMaterial = material:GetLayerMaterial(i)
             nameLabels:Get(i):SetText("Layer " + (i + 1) + ": " + material:GetLayerName(i))
-            text fileText = "No file"
-            if layerMaterial:GetFile() not= undefined
-                fileText = "File: " + layerMaterial:GetFile():GetFileName()
-            end
-            if layerMaterial:UsesTextureSet()
-                fileText = fileText + ", a texture set"
-            elseif layerMaterial:GetTexturePath() not= ""
-                fileText = fileText + ", a plain texture"
-            else
-                fileText = fileText + ", not found"
-            end
-            fileLabels:Get(i):SetText(fileText)
             SetFieldText(tileFields:Get(i), layerMaterial:GetTextureScale())
             i = i + 1
         end
+
+        // The status line shows only when it has a note.
+        if statusLabel:GetText() = ""
+            statusLabel:Hide()
+        else
+            statusLabel:Show()
+        end
+        statusLabel:RequestLayout()
 
         addButton:SetName("Add material...")
         LinkFocus(count, material not= undefined)
@@ -783,17 +759,19 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
     /*
         Links the Tab order through the controls that are shown: the status
-        line, each layer's controls, the Material details if open, the blend
-        softness, then "Add material...". The status line and the button stay the first and
-        last, so the Properties panel's links to the other sections hold.
+        line while it has a note, each layer's controls, the Material details
+        if open, the blend softness, then "Add material...". The button stays
+        the last; the first is given to the Properties panel (SetFirstFocus),
+        so its links to the other sections hold.
     */
     private action LinkFocus(integer count, boolean withBlend)
         Array<Control> chain
-        chain:Add(statusLabel)
+        if statusLabel:GetText() not= ""
+            chain:Add(statusLabel)
+        end
         integer i = 0
         repeat while i < count
             chain:Add(nameLabels:Get(i))
-            chain:Add(fileLabels:Get(i))
             chain:Add(tileFields:Get(i))
             chain:Add(chooseButtons:Get(i))
             chain:Add(removeButtons:Get(i))
@@ -813,6 +791,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
             i = i + 1
         end
+        // The status line starts the chain only while it shows.
+        SetFirstFocus(chain:Get(0))
     end
 
     /*

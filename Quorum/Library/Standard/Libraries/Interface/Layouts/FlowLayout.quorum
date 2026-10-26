@@ -71,6 +71,36 @@ class FlowLayout is Layout
         VerticalFitContainer(container, items, containerWidth, containerHeight)
     end
 
+    /*
+    A control's margins, times the interface scale (unless this layout
+    ignores the scale), the same as its pixel width and height. The margins
+    are set in the same units as the font size, so on a phone, where the scale
+    is the screen's pixel scale, unscaled margins would be a fraction of the
+    size of the text around them.
+    */
+    private action GetMarginScale(LayoutProperties properties) returns number
+        if ignoreInterfaceScale
+            return 1.0
+        end
+        return properties:GetInterfaceScale()
+    end
+
+    private action GetScaledLeftMargin(LayoutProperties properties) returns number
+        return properties:GetLeftMargin() * GetMarginScale(properties)
+    end
+
+    private action GetScaledRightMargin(LayoutProperties properties) returns number
+        return properties:GetRightMargin() * GetMarginScale(properties)
+    end
+
+    private action GetScaledTopMargin(LayoutProperties properties) returns number
+        return properties:GetTopMargin() * GetMarginScale(properties)
+    end
+
+    private action GetScaledBottomMargin(LayoutProperties properties) returns number
+        return properties:GetBottomMargin() * GetMarginScale(properties)
+    end
+
     private action LayoutContainer(Control container, Array<Item2D> items, number newContainerWidth, number newContainerHeight)
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
@@ -117,11 +147,11 @@ class FlowLayout is Layout
                             if item is Control
                                 Control control = cast(Control, item)
                                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                                if properties:GetTopMargin() > topMargin
-                                    topMargin = properties:GetTopMargin()
+                                if GetScaledTopMargin(properties) > topMargin
+                                    topMargin = GetScaledTopMargin(properties)
                                 end
-                                if properties:GetBottomMargin() > bottomMargin
-                                    bottomMargin = properties:GetBottomMargin()
+                                if GetScaledBottomMargin(properties) > bottomMargin
+                                    bottomMargin = GetScaledBottomMargin(properties)
                                 end
                             end
                             i = i + 1
@@ -156,26 +186,27 @@ class FlowLayout is Layout
                                     end
 
                                     if properties:GetHorizontalLayoutMode() = properties:FIT_CONTENTS
-                                        totalWidthOffset = totalWidthOffset + control:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
+                                        totalWidthOffset = totalWidthOffset + control:GetWidth() + GetScaledLeftMargin(properties) + GetScaledRightMargin(properties)
                                     elseif properties:GetHorizontalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                                         // We have to estimate the height now to determine the width.
                                         number height = 0
                                         if properties:GetVerticalLayoutMode() = properties:STANDARD
-                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) + properties:GetPixelHeight() * interfaceScale
+                                            height = properties:GetPercentageHeight() * (containerHeight - containerBorder * 2 - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties)) + properties:GetPixelHeight() * interfaceScale
                                         elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                                             if properties:GetFont() not= undefined
                                                 height = properties:GetFont():GetLineHeight()
                                             end
                                         elseif properties:GetVerticalLayoutMode() = properties:FILL
-                                            height = containerHeight - properties:GetTopMargin() - properties:GetBottomMargin()
+                                            height = containerHeight - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties)
                                         elseif properties:GetVerticalLayoutMode() = properties:FIT_CONTENTS
                                             height = control:GetHeight()
                                         end
 
                                         totalWidthOffset = totalWidthOffset + (properties:GetPercentageWidth() * height)
-                                            + properties:GetLeftMargin() + properties:GetRightMargin()
+                                            + GetScaledLeftMargin(properties) + GetScaledRightMargin(properties)
                                     else
-                                        totalWidthOffset = totalWidthOffset + (properties:GetPixelWidth() + properties:GetLeftMargin() + properties:GetRightMargin()) * interfaceScale
+                                        totalWidthOffset = totalWidthOffset + properties:GetPixelWidth() * interfaceScale
+                                            + GetScaledLeftMargin(properties) + GetScaledRightMargin(properties)
                                         totalWidthPercentage = totalWidthPercentage + properties:GetPercentageWidth()
                                     end
                                 else
@@ -216,6 +247,13 @@ class FlowLayout is Layout
             repeat while centerCounter < items:GetSize()
                 Item2D lineItem = items:Get(centerCounter)
                 number destination = nextY + (currentY - lineItem:GetHeight()) / 2.0
+                if singleLine
+                    // A single line is the whole container, so its items are
+                    // centered in it. nextY (the line's bottom) isn't tracked
+                    // in single-line mode, so the formula above would put them
+                    // above the container.
+                    destination = containerBorder + (containerHeight - containerBorder * 2 - lineItem:GetHeight()) / 2.0
+                end
 
                 lineItem:SetY(destination)
                 centerCounter = centerCounter + 1
@@ -241,10 +279,10 @@ class FlowLayout is Layout
             if properties not= undefined and (ignoreHidden = false or control:IsShowing())
                 number width = 0
                 number height = 0
-                number leftMargin = properties:GetLeftMargin()
-                number rightMargin = properties:GetRightMargin()
-                number topMargin = properties:GetTopMargin()
-                number bottomMargin = properties:GetBottomMargin()
+                number leftMargin = GetScaledLeftMargin(properties)
+                number rightMargin = GetScaledRightMargin(properties)
+                number topMargin = GetScaledTopMargin(properties)
+                number bottomMargin = GetScaledBottomMargin(properties)
 
                 /*
                 Boolean used to ensure we don't perform redundant resizing
@@ -260,10 +298,10 @@ class FlowLayout is Layout
                         control:Resize()
                     elseif properties:GetVerticalLayoutMode() = properties:FILL
                         // Setting the height will trigger a resize.
-                        control:SetHeight(currentY - properties:GetTopMargin() - properties:GetBottomMargin())
+                        control:SetHeight(currentY - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties))
                     elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                         // Setting the height will trigger a resize.
-                        number setHeight = (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                        number setHeight = (containerHeight - containerBorder * 2 - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties)) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
                         control:SetHeight(setHeight)
                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                         if properties:GetFont() not= undefined
@@ -278,7 +316,7 @@ class FlowLayout is Layout
                         width = containerWidth
                     end
                 elseif properties:GetHorizontalLayoutMode() = properties:STANDARD
-                    width = (containerWidth - containerBorder * 2 - properties:GetLeftMargin() - properties:GetRightMargin()) * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
+                    width = (containerWidth - containerBorder * 2 - GetScaledLeftMargin(properties) - GetScaledRightMargin(properties)) * properties:GetPercentageWidth() + properties:GetPixelWidth() * interfaceScale
                 end
 
                 // Fix the width to an integer. We want things to align well to pixel coordinates.
@@ -330,7 +368,7 @@ class FlowLayout is Layout
                             height = font:GetLineHeight()
                         end
                     elseif properties:GetVerticalLayoutMode() = properties:STANDARD
-                        height = (containerHeight - containerBorder * 2 - properties:GetTopMargin() - properties:GetBottomMargin()) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
+                        height = (containerHeight - containerBorder * 2 - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties)) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
                     elseif properties:GetVerticalLayoutMode() = properties:MAINTAIN_ASPECT_RATIO
                         height = properties:GetPercentageHeight() * width
                     end

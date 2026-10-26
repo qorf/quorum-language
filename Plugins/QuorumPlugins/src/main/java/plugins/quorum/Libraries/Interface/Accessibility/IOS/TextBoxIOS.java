@@ -5,7 +5,6 @@ import org.robovm.apple.uikit.UIAccessibilityTraits;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.IOSInput;
 import quorum.Libraries.Interface.Controls.TextBox_;
-import quorum.Libraries.Interface.Controls.TextField_;
 
 public class TextBoxIOS extends TextAdjust{
     public boolean isAccessibilityElement() {
@@ -16,13 +15,13 @@ public class TextBoxIOS extends TextAdjust{
         super(container);
     }
 
-    public void Initialize(TextField_ field) {
+    public void Initialize(TextBox_ box) {
         // Use UIAccessibilityTraits.None instead of SearchField to ensure activate() is called
         // when VoiceOver is disabled. SearchField trait doesn't trigger activate() on tap
         // when the screen reader is off, but None does (matching behavior of other UI Elements).
         UIAccessibilityTraits traits = UIAccessibilityTraits.None;
         this.setAccessibilityTraits(traits);
-        super.Initialize(field);
+        super.Initialize(box);
     }
 
     public void Focus() {

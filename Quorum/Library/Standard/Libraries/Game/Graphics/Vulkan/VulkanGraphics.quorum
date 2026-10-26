@@ -125,6 +125,9 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     // True while Android has taken the window's surface away (LoseSurface).
     boolean surfaceLost = false
 
+    // True when the display asked for a new swapchain (RequestSwapchainRegeneration).
+    boolean swapchainRegenerationRequested = false
+
     on create
         clearValues:AddColor(0.85, 0.85, 0.85, 1.0)
         clearValues:AddDepthStencil(1, 0)
@@ -396,6 +399,16 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
     This action makes the surface, swapchain and framebuffers again on the new
     surface Android gives when the app comes back (see LoseSurface).
     */
+    /*
+    This action asks for the swapchain to be made again at the surface's
+    current size, at the start of the next frame. iOS's display calls it when
+    the device rotates, so drawing doesn't depend on the driver reporting the
+    old swapchain as out of date.
+    */
+    action RequestSwapchainRegeneration
+        swapchainRegenerationRequested = true
+    end
+
     action RestoreSurface
         if not surfaceLost
             return now
@@ -441,6 +454,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         // Abort early if rendering is paused.
         if renderingPaused
             return now
+        end
+
+        if swapchainRegenerationRequested and initialized and not surfaceLost
+            swapchainRegenerationRequested = false
+            RegenerateSwapchain()
         end
 
         // If the 2D sample count changed, remake the swapchain's

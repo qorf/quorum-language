@@ -7,6 +7,11 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Layouts.Layout
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Forms.FormRowSeparator
 
 /*
 
@@ -43,6 +48,10 @@ class Grouping is FormContainerControl, ButtonGroup
     on create
         SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
         SetInterfaceOptionsKey("Grouping")
+        // Titles read as section headings (FormRowLayout). Banners set their
+        // own, larger size.
+        FormConstants formConstants
+        SetTitleFontSize(formConstants:SMALL_FONT_SIZE)
     end
     /*
         An integer constant used to indicate the top position in the grouping.
@@ -61,6 +70,206 @@ class Grouping is FormContainerControl, ButtonGroup
     integer columns = 0
     
     boolean isUsingCustomLayout = false
+
+    /*
+    How FormRowLayout draws this grouping: plain (no background of its own),
+    as a card behind its rows, as a page's footer (a line above it), or as a
+    subsection inside a card. The layout sets it; programs don't need to.
+    */
+    public constant integer PLAIN_STYLE = 0
+    public constant integer CARD_STYLE = 1
+    public constant integer FOOTER_STYLE = 2
+    public constant integer SUBSECTION_STYLE = 3
+    integer drawStyle = PLAIN_STYLE
+    // In a footer, how many of the first buttons sit at the left.
+    integer leadingButtonCount = 0
+
+    // How round a card's corners are, in points before the interface scale.
+    constant number CARD_ROUNDING = 8
+
+    // The thin lines between a card's rows, made as FormRowLayout needs them.
+    Array<FormRowSeparator> rowSeparators
+
+    action SetDrawStyle(integer style)
+        if drawStyle = style
+            return now
+        end
+        drawStyle = style
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if style = FOOTER_STYLE
+            SetBorderStyle(properties:TOP)
+        else
+            SetBorderStyle(properties:ALL)
+        end
+        if style not= CARD_STYLE
+            HideRowSeparatorsFrom(0)
+        end
+        RequestVerticesUpdate()
+    end
+
+    action GetDrawStyle returns integer
+        return drawStyle
+    end
+
+    /*
+    This action sets how many of this grouping's first buttons sit at the
+    left when the grouping is a page's footer (an untitled grouping of
+    buttons placed at the bottom). The rest sit at the right. Use it for a
+    button like Back, which goes apart from Cancel and OK. The default is 0.
+
+    Attribute: Parameter count How many of the first buttons go at the left.
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.Grouping
+
+    Form form
+    Page page = form:GetMainPage()
+    Grouping footer = page:AddGrouping("Buttons")
+    footer:AddButton("Back")
+    footer:AddButton("Cancel")
+    footer:AddButton("Create")
+    footer:PositionFromBottom()
+    footer:SetLeadingButtonCount(1)
+    form:Display()
+    */
+    action SetLeadingButtonCount(integer count)
+        leadingButtonCount = count
+    end
+
+    /*
+    This action returns how many of this grouping's first buttons sit at the
+    left when the grouping is a page's footer.
+
+    Attribute: Returns How many of the first buttons go at the left.
+    */
+    action GetLeadingButtonCount returns integer
+        return leadingButtonCount
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if drawStyle = CARD_STYLE and not HasColorPropertyOverride("backgroundColor")
+            ColorGroup card = GetStyleOptions():GetBackgroundColor("FormCard")
+            if card not= undefined
+                return card
+            end
+        end
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action GetBorderColor returns ColorGroup
+        if drawStyle = FOOTER_STYLE and not HasColorPropertyOverride("borderColor")
+            ColorGroup line = GetStyleOptions():GetBorderColor("FormFooter")
+            if line not= undefined
+                return line
+            end
+        end
+        return parent:Control:GetBorderColor()
+    end
+
+    action GetBorderThickness returns number
+        if not HasNumberPropertyOverride("borderThickness")
+            if drawStyle = CARD_STYLE
+                return 0
+            elseif drawStyle = FOOTER_STYLE
+                return 1
+            end
+        end
+        return parent:Control:GetBorderThickness()
+    end
+
+    action GetTopLeftPixelRounding returns number
+        if drawStyle = CARD_STYLE
+            return CARD_ROUNDING
+        end
+        return parent:Control:GetTopLeftPixelRounding()
+    end
+
+    action GetTopRightPixelRounding returns number
+        if drawStyle = CARD_STYLE
+            return CARD_ROUNDING
+        end
+        return parent:Control:GetTopRightPixelRounding()
+    end
+
+    action GetBottomLeftPixelRounding returns number
+        if drawStyle = CARD_STYLE
+            return CARD_ROUNDING
+        end
+        return parent:Control:GetBottomLeftPixelRounding()
+    end
+
+    action GetBottomRightPixelRounding returns number
+        if drawStyle = CARD_STYLE
+            return CARD_ROUNDING
+        end
+        return parent:Control:GetBottomRightPixelRounding()
+    end
+
+    private action GetStyleOptions returns InterfaceOptions
+        GameStateManager gameState
+        return gameState:GetInterfaceOptions()
+    end
+
+    /*
+    Returns the separator line with this index, making it (and any before it)
+    if it doesn't exist yet. FormRowLayout positions them between a card's
+    rows.
+    */
+    action GetRowSeparator(integer index) returns FormRowSeparator
+        repeat while rowSeparators:GetSize() <= index
+            FormRowSeparator separator
+            rowSeparators:Add(separator)
+            parent:Item2D:Add(separator)
+        end
+        FormRowSeparator result = rowSeparators:Get(index)
+        result:Show()
+        return result
+    end
+
+    // Hides the separator lines from this index on.
+    action HideRowSeparatorsFrom(integer index)
+        integer counter = index
+        repeat while counter < rowSeparators:GetSize()
+            rowSeparators:Get(counter):Hide()
+            counter = counter + 1
+        end
+    end
+
+    /*
+    The children FormRowLayout lays out: all of them except the row separator
+    lines.
+    */
+    action GetLayoutChildren returns Array<Item2D>
+        Array<Item2D> result
+        Array<Item2D> children = GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            if not (children:Get(counter) is FormRowSeparator)
+                result:Add(children:Get(counter))
+            end
+            counter = counter + 1
+        end
+        return result
+    end
+
+    /*
+    This action adds a grouping inside this grouping. A titled grouping
+    inside another draws as a subsection of the outer one's card; an untitled
+    one is a row of its own children (see FormRowLayout).
+
+    Attribute: Parameter name The name of the new grouping.
+    Attribute: Returns The new grouping.
+    */
+    action AddGrouping(text name) returns Grouping
+        Grouping grouping
+        grouping:SetForm(GetForm())
+        grouping:SetName(name)
+        grouping:SetSkipLabelsInFocus(GetSkipLabelsInFocus())
+        Add(grouping)
+        return grouping
+    end
 
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
@@ -236,6 +445,7 @@ class Grouping is FormContainerControl, ButtonGroup
     action AddToggleButton(text name) returns ToggleButton
         ToggleButton button
         button:SetName(name)
+        button:SetToDefaultFontSize()
         //button:SetHorizontalLayoutMode(button:parent:Control:STANDARD)
         //button:SetVerticalLayoutMode(button:parent:Control:STANDARD)
 
@@ -309,6 +519,7 @@ class Grouping is FormContainerControl, ButtonGroup
     action AddRadioButton(text name) returns RadioButton
         RadioButton button
         button:SetName(name)
+        button:SetToDefaultFontSize()
 
         AddToGrouping(button)
         Add(button)

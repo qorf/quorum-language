@@ -41,6 +41,12 @@ class Dialog is Control, FormPrimitiveContainer
     Page currentPage = undefined
     Page defaultPage = undefined
 
+    // The top bar's height, in points before the interface scale.
+    constant number BAR_HEIGHT = 32
+    // Space between the bar's edges and its name and close button.
+    constant number BAR_SIDE_PADDING = 16
+    constant number CLOSE_BUTTON_SIZE = 26
+
     on create
         SetName("Dialog")
         SetInputGroup("Dialog")
@@ -49,7 +55,7 @@ class Dialog is Control, FormPrimitiveContainer
         topBar:SetInterfaceOptionsKey("DialogBar")
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        topBar:SetBorderStyle(properties:LEFT + properties:RIGHT + properties:TOP)
+        topBar:SetBorderStyle(properties:BOTTOM)
         
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
@@ -120,7 +126,10 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
 //            barProperties:SetVerticalLayoutMode(barProperties:FIT_FONT)
 
             // Because we're using a manual layout, we need to set a concrete value. This should change in the future.
-            number barHeight = 20
+            number barHeight = BAR_HEIGHT
+            // ManualLayout scales sizes but not positions, so the side
+            // padding is scaled here.
+            number scale = game:GetInterfaceScale()
 
             barProperties:SetFont(font)
             barProperties:SetPercentageWidth(1.0)
@@ -130,11 +139,13 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             bar:SetLayout(manualLayout)
 
             LayoutProperties labelProperties = nameLabel:GetDefaultLayoutProperties()
-            labelProperties:SetPercentageOriginX(0.5)
-            labelProperties:SetPercentageX(0.5)
+            labelProperties:SetPercentageOriginX(0)
+            labelProperties:SetPercentageX(0)
+            labelProperties:SetPixelX(BAR_SIDE_PADDING * scale)
             labelProperties:SetPercentageOriginY(0.5)
             labelProperties:SetPercentageY(0.5)
             labelProperties:SetPixelY(4)
+            nameLabel:SetFontSize(16)
 
             nameLabel:SetText(GetName())
             nameLabel:SetFontColor(topBar:GetFontColor())
@@ -152,11 +163,14 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             LayoutProperties buttonProperties = closeButton:GetDefaultLayoutProperties()
             buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
             buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
-            buttonProperties:SetPixelHeight(barHeight)
-            buttonProperties:SetPixelWidth(barHeight)
+            closeButton:SetInterfaceOptionsKey("DialogClose")
+            buttonProperties:SetPixelHeight(CLOSE_BUTTON_SIZE)
+            buttonProperties:SetPixelWidth(CLOSE_BUTTON_SIZE)
             buttonProperties:SetPercentageOriginX(1.0)
             buttonProperties:SetPercentageX(1)
-            buttonProperties:SetPercentageY(0)
+            buttonProperties:SetPixelX((CLOSE_BUTTON_SIZE - BAR_HEIGHT) / 2.0 * scale)
+            buttonProperties:SetPercentageOriginY(0.5)
+            buttonProperties:SetPercentageY(0.5)
             buttonProperties:SetFont(undefined)
             
 
@@ -193,15 +207,16 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         closeIcon:SetPercentageWidth(1.0)
         LayoutProperties properties
         //closeIcon:SetBackgroundColor(color:CustomColor(0,0,0,0))
-        closeIcon:SetBackgroundColor(topBar:GetForegroundColor())
-        closeIcon:SetTopRightPixelRounding(8)
+        // Clear, so the button's hover and focus colors show through.
+        closeIcon:SetBackgroundColor(color:CustomColor(0, 0, 0, 0))
         
         Control stroke1
         ControlShaderView strokeView
         strokeView:Initialize()
         stroke1:SetView2D(strokeView)
-        stroke1:SetPercentageWidth(0.9)
-        stroke1:SetPercentageHeight(0.15)
+        stroke1:SetBackgroundColor(topBar:GetFontColor())
+        stroke1:SetPercentageWidth(0.55)
+        stroke1:SetPercentageHeight(0.08)
         stroke1:SetCornerRounding(1,1,1,1)
         stroke1:SetRotation(45)
         stroke1:SetPercentageOriginX(0.5)
@@ -214,8 +229,9 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         ControlShaderView stroke2View
         stroke2View:Initialize()
         stroke2:SetView2D(stroke2View)
-        stroke2:SetPercentageWidth(0.9)
-        stroke2:SetPercentageHeight(0.15)
+        stroke2:SetBackgroundColor(topBar:GetFontColor())
+        stroke2:SetPercentageWidth(0.55)
+        stroke2:SetPercentageHeight(0.08)
         stroke2:SetCornerPixelRounding(5,5,5,5)
         stroke2:SetRotation(-45)
         stroke2:SetPercentageOriginX(0.5)
@@ -367,7 +383,7 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
     
     action ApplyDefaultStyleToPage(Page page)
         if showTopBar
-            page:SetPixelHeight(-20)
+            page:SetPixelHeight(-BAR_HEIGHT)
             page:SetTopMargin(-0.5)
         end
         

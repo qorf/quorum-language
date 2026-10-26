@@ -44,17 +44,26 @@ class DarkModeOptions is InterfaceOptions
         Color controlBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
         Color hoverBlue = color:CustomColor(78.0 / MAX, 139.0 / MAX, 175.0 / MAX, 1)
         number defaultButtonRounding = 0.5
-        SetButtonBorderThickness(1)
-        SetButtonBackgroundColor(controlBackground)
+        //Buttons (K3): a soft neutral fill and no visible border. The 2-point
+        //border is the fill's own color, so it only shows as a focus ring,
+        //in the accent color. Focus doesn't repaint the fill.
+        Color buttonFill = color:CustomColor(74.0 / MAX, 78.0 / MAX, 82.0 / MAX, 1)
+        Color buttonHover = color:CustomColor(86.0 / MAX, 91.0 / MAX, 96.0 / MAX, 1)
+        Color focusRing = color:CustomColor(125.0 / MAX, 176.0 / MAX, 255.0 / MAX, 1)
+        SetButtonBorderThickness(2)
+        SetButtonBackgroundColor(buttonFill)
+        SetButtonBorderColor(buttonFill)
         SetButtonFontColor(lightFont)
         SetButtonTopLeftRounding(defaultButtonRounding)
         SetButtonTopRightRounding(defaultButtonRounding)
         SetButtonBottomLeftRounding(defaultButtonRounding)
         SetButtonBottomRightRounding(defaultButtonRounding)
-        SetButtonMouseOverColor(hoverBlue)
-        SetButtonFocusColor(acceptBlue)
-        SetButtonFocusFontColor(darkFont)
-        SetButtonFocusBorderColor(acceptBlue)
+        SetButtonMouseOverColor(buttonHover)
+        SetButtonMouseOverBorderColor(buttonHover)
+        SetButtonMouseDownColor(color:CustomColor(64.0 / MAX, 68.0 / MAX, 72.0 / MAX, 1))
+        SetButtonFocusColor(buttonFill)
+        SetButtonFocusFontColor(lightFont)
+        SetButtonFocusBorderColor(focusRing)
 
         // ToggleButton properties.
         SetToggleButtonBorderThickness(1)
@@ -91,13 +100,14 @@ class DarkModeOptions is InterfaceOptions
         SetCheckboxBottomRightRounding(defaultButtonRounding)
         
         SetCheckboxBackgroundColor(controlBackground)
-        SetCheckboxSelectionColor(acceptBlue)
+        // Checks and radio choices use the accent, like main buttons (K3).
+        SetCheckboxSelectionColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
         SetCheckboxFocusColor(color:CustomColor(0,0,0,0))
         SetCheckboxUnfocusedSelectionColor(color:CustomColor(0,0,0,0))
         SetCheckboxFocusBorderColor(acceptBlue)
         
         SetCheckboxBorderColor(color:CustomColor(215.0 / MAX, 215.0 / MAX, 215.0 / MAX, 1))
-        SetCheckboxSelectionBorderColor(acceptBlue)
+        SetCheckboxSelectionBorderColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
         SetCheckboxAccentColor(controlBackground)
 
         // ProgressBar specific colors.
@@ -113,10 +123,11 @@ class DarkModeOptions is InterfaceOptions
         // RadioButton specific colors.
         SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
         SetRadioButtonBorderColor(color:CustomColor(178.0/255.0, 178.0/255.0, 178.0/255.0, 1))
-        SetRadioButtonSelectionColor(color:CustomColor(59.0/255.0, 153/255.0, 252/255.0, 1))
-        SetRadioButtonSelectionBorderColor(color:CustomColor(151.0/255.0, 197/255.0, 245/255.0, 1))
-        SetRadioButtonFontColor(commonFontColor)
-        SetRadioButtonSelectionFontColor(commonFontColor)
+        SetRadioButtonSelectionColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
+        SetRadioButtonSelectionBorderColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
+        // Radio text matches checkbox text.
+        SetRadioButtonFontColor(lightFont)
+        SetRadioButtonSelectionFontColor(lightFont)
 
         SetRadioButtonBorderThickness(1)
 
@@ -126,16 +137,26 @@ class DarkModeOptions is InterfaceOptions
 
         //TABS
         SetTabBarBackgroundColor(color:CustomColor(80.0 / MAX, 83.0 / MAX, 85.0 / MAX, 1))
-        SetTabFontColor(commonFontColor)
-        SetTabSelectionColor(color:CustomColor(58.0 / MAX, 81.0 / MAX, 113.0 / MAX, 1))
-        SetTabSelectionFontColor(color:White())
+        //The selected tab joins the panel below it: the editor's background,
+        //with an accent line across its top (gray when its pane doesn't have
+        //the focus). The others sit back with dimmer text, are tinted under
+        //the mouse, and have a quiet gray close button (the foreground is the
+        //close button's circle, the accent its X).
+        Color tabMutedText = color:CustomColor(138.0 / MAX, 147.0 / MAX, 158.0 / MAX, 1)
+        SetTabFontColor(tabMutedText)
+        SetTabSelectionColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetTabSelectionFontColor(commonFontColor)
         SetTabFocusColor(color:CustomColor(30.0 / MAX, 61.0 / MAX, 92.0 / MAX, 1))
-        SetTabForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
-        SetTabAccentColor(color:White())
+        SetTabForegroundColor(color:CustomColor(0, 0, 0, 0))
+        SetTabAccentColor(tabMutedText)
         SetTabUnfocusedSelectionFontColor(commonFontColor)
-        SetTabUnfocusedSelectionColor(color:CustomColor(13.0 / MAX, 41.0 / MAX, 62.0 / MAX, 1))
+        SetTabUnfocusedSelectionColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetTabMouseOverColor(color:CustomColor(65.0 / MAX, 71.0 / MAX, 78.0 / MAX, 1))
 
-        SetTabBorderThickness(1)
+        SetTabBorderThickness(0)
+        SetTabSelectionBorderThickness(2)
+        SetTabSelectionBorderColor(color:CustomColor(74.0 / MAX, 136.0 / MAX, 224.0 / MAX, 1))
+        SetTabUnfocusedSelectionBorderColor(color:CustomColor(95.0 / MAX, 99.0 / MAX, 104.0 / MAX, 1))
         SetTabTopLeftRounding(0.5)
         SetTabTopRightRounding(0.5)
 
@@ -148,6 +169,14 @@ class DarkModeOptions is InterfaceOptions
         SetTreeItemFontColor(commonFontColor)
         SetTreeItemSelectionColor(color:CustomColor(47.0 / MAX, 101.0 / MAX, 202.0 / MAX, 1))
         SetTreeItemSelectionFontColor(color:White())
+
+        //A row's selection and hover are a rounded band across the tree
+        //(TreeRowHighlight). The hover is a soft neutral tint.
+        SetTreeItemMouseOverColor(color:CustomColor(78.0 / MAX, 81.0 / MAX, 84.0 / MAX, 1))
+        SetTreeItemTopLeftRounding(0.3)
+        SetTreeItemTopRightRounding(0.3)
+        SetTreeItemBottomLeftRounding(0.3)
+        SetTreeItemBottomRightRounding(0.3)
 
         //MENUS
         SetMenuItemBackgroundColor(color:CustomColor(0.0 / MAX, 0.0 / MAX, 0.0 / MAX, 0))
@@ -207,6 +236,20 @@ class DarkModeOptions is InterfaceOptions
         SetListItemBackgroundColor(color:CustomColor(1, 1, 1, 0))
         SetListItemFontColor(GetTextBoxFontColor())
 
+        // A list's box is slightly rounded, and its items' selection and
+        // hover are rounded bands inside it, as tree rows are. The hover is a
+        // soft neutral tint over the list's background.
+        SetListItemMouseOverColor(color:CustomColor(62.0 / MAX, 62.0 / MAX, 62.0 / MAX, 1))
+        // A fixed radius, so the box's corners show however tall it is.
+        SetListTopLeftPixelRounding(8)
+        SetListTopRightPixelRounding(8)
+        SetListBottomLeftPixelRounding(8)
+        SetListBottomRightPixelRounding(8)
+        SetListItemTopLeftRounding(0.3)
+        SetListItemTopRightRounding(0.3)
+        SetListItemBottomLeftRounding(0.3)
+        SetListItemBottomRightRounding(0.3)
+
         // Dialog colors.
         SetDialogShadowColor(color:CustomColor(0, 0, 0, 0.5))
         SetDialogShadowX(4)
@@ -221,31 +264,46 @@ class DarkModeOptions is InterfaceOptions
 
         // Dialog bar specific colors.
         SetDialogBarBackgroundColor(darkGray)
-        SetDialogBarBorderColor(color:CustomColor(50.0 / MAX, 50.0 / MAX, 50.0 / MAX, 1))
+        SetDialogBarBorderColor(color:CustomColor(74.0 / MAX, 78.0 / MAX, 82.0 / MAX, 1))
+        SetDialogBarBorderThickness(1)
         SetDialogBarForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetDialogBarAccentColor(color:White())
         SetDialogBarFontColor(commonFontColor)
+
+        // The dialog close button: no fill until hovered or focused.
+        Color closeClear = color:CustomColor(0, 0, 0, 0)
+        SetBackgroundColor("DialogClose", closeClear)
+        SetBorderColor("DialogClose", closeClear)
+        SetBorderThickness("DialogClose", 2)
+        SetMouseOverColor("DialogClose", buttonHover)
+        SetMouseOverBorderColor("DialogClose", buttonHover)
+        SetFocusColor("DialogClose", closeClear)
+        SetFocusBorderColor("DialogClose", focusRing)
+        SetTopLeftPixelRounding("DialogClose", 6)
+        SetTopRightPixelRounding("DialogClose", 6)
+        SetBottomLeftPixelRounding("DialogClose", 6)
+        SetBottomRightPixelRounding("DialogClose", 6)
         SetDialogBarTopRightPixelRounding(8)
         SetDialogBarTopLeftPixelRounding(8)
 
-        // Dialog accept button colors.
-        SetDialogAcceptButtonBorderThickness(1)
+        // Dialog accept button (the main action): the accent fill, white
+        // text, and a ring when focused.
+        Color acceptFill = color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1)
+        Color acceptHover = color:CustomColor(74.0 / MAX, 132.0 / MAX, 230.0 / MAX, 1)
+        SetDialogAcceptButtonBorderThickness(2)
         SetDialogAcceptButtonTopLeftRounding(defaultButtonRounding)
         SetDialogAcceptButtonTopRightRounding(defaultButtonRounding)
         SetDialogAcceptButtonBottomLeftRounding(defaultButtonRounding)
         SetDialogAcceptButtonBottomRightRounding(defaultButtonRounding)
-        SetDialogAcceptButtonMouseOverColor(hoverBlue)
-        SetDialogAcceptButtonFocusColor(acceptBlue)
-        SetDialogAcceptButtonFocusFontColor(darkFont)
-        SetDialogAcceptButtonFocusBorderColor(acceptBlue)
-        SetDialogAcceptButtonBackgroundColor(acceptBlue)
-        SetDialogAcceptButtonFontColor(darkFont)
-        SetDialogAcceptButtonBorderColor(acceptBlue)
-        
-        Gradient okayMouseOver
-        okayMouseOver:Set(color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.85, 0.85, 1, 1), color:CustomColor(0.95, 0.95, 1, 1), color:CustomColor(0.95, 0.95, 1, 1))
-        SetDialogAcceptButtonMouseOverColor(okayMouseOver)
-        SetDialogAcceptButtonMouseDownColor(color:CustomColor(0.58, 0.58, 0.68, 1))
+        SetDialogAcceptButtonBackgroundColor(acceptFill)
+        SetDialogAcceptButtonBorderColor(acceptFill)
+        SetDialogAcceptButtonFontColor(color:White())
+        SetDialogAcceptButtonMouseOverColor(acceptHover)
+        SetDialogAcceptButtonMouseOverBorderColor(acceptHover)
+        SetDialogAcceptButtonMouseDownColor(color:CustomColor(46.0 / MAX, 96.0 / MAX, 184.0 / MAX, 1))
+        SetDialogAcceptButtonFocusColor(acceptFill)
+        SetDialogAcceptButtonFocusFontColor(color:White())
+        SetDialogAcceptButtonFocusBorderColor(color:CustomColor(169.0 / MAX, 203.0 / MAX, 255.0 / MAX, 1))
         
 // Label specific properties.
         SetLabelBackgroundColor(color:CustomColor(1, 1, 1, 0))
@@ -258,6 +316,16 @@ SetLabelTopRightPixelRounding(6)
         
 // Values for ControlLabels.
         SetBackgroundColor("ControlLabel", color:CustomColor(1, 1, 1, 0))
+
+        // Forms (FormRowLayout): section titles above cards, captions above
+        // fields on narrow pages, cards behind titled groupings, and the
+        // line above a page's footer.
+        SetFontColor("SectionTitle", color:CustomColor(176.0 / MAX, 184.0 / MAX, 194.0 / MAX, 1))
+        SetFontColor("FieldCaption", color:CustomColor(186.0 / MAX, 197.0 / MAX, 210.0 / MAX, 1))
+        SetBackgroundColor("FormCard", color:CustomColor(70.0 / MAX, 73.0 / MAX, 77.0 / MAX, 1))
+        SetBorderColor("FormCard", color:CustomColor(86.0 / MAX, 90.0 / MAX, 95.0 / MAX, 1))
+        SetBorderColor("FormFooter", color:CustomColor(86.0 / MAX, 90.0 / MAX, 95.0 / MAX, 1))
+
 
         // Flowchart and flowchart element properties.
         SetFlowchartBackgroundColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))

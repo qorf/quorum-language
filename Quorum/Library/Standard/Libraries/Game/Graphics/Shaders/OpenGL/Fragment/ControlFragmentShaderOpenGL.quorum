@@ -88,9 +88,9 @@ void main()
     else if (renderBorders)
     {
         // The enabled borders vector stores values for the sides in the following order:
-        // x: right
+        // x: left
         // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
-        // z: left
+        // z: right
         // w: bottom (y-negative)
         vec2 fillPoint = point - vec2(borderThickness.x - borderThickness.z, borderThickness.y - borderThickness.w);
         vec2 fillDimensions = vec2(dimensions.x - borderThickness.x - borderThickness.z, dimensions.y - borderThickness.y - borderThickness.w);

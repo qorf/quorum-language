@@ -54,6 +54,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     Control flattenHeightPart = undefined
     Control takeHeightPart = undefined
     Control settingsLabelPart = undefined
+    // The Brush Settings card, which holds the size, strength and falloff.
+    Control settingsPart = undefined
     Control sizePart = undefined
     Control strengthPart = undefined
     Control falloffPart = undefined
@@ -92,21 +94,17 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         // closes it when the panel shows several sections (step 15).
         SetHeading(headingLabel)
 
-        Control toolPanel
-        toolPanel:SetPercentageWidth(1.0)
-        toolPanel:SetVerticalLayoutMode(toolPanel:FIT_CONTENTS)
-        FlowLayout toolPanelLayout
-        toolPanel:SetLayout(toolPanelLayout)
-        toolPanel:SetLeftMargin(20)
-        toolPanel:SetRightMargin(30)
-        toolPanel:SetTopMargin(10)
-        toolPanel:SetBottomMargin(10)
+        // Each part is a card with its title, in one container, so a part
+        // comes and goes as one piece (ShowToolParts).
+        Control toolPanel = MakePart()
+        Control toolCard = AddCard(toolPanel, "Tool")
+        Control toolLine = MakeCardLine()
 
         ButtonGroup group
         toolGroup = group
         toolGroup:SetName("Tool")
-        toolGroup:SetHorizontalLayoutMode(toolPanel:FILL)
-        toolGroup:SetVerticalLayoutMode(toolPanel:FIT_CONTENTS)
+        toolGroup:SetHorizontalLayoutMode(toolLine:FILL)
+        toolGroup:SetVerticalLayoutMode(toolLine:FIT_CONTENTS)
         FlowLayout groupLayout
         toolGroup:SetLayout(groupLayout)
 
@@ -130,41 +128,23 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddToolButton("Auto paint")
         toolGroup:AddSelectionListener(me)
 
-        toolPanel:Add(toolGroup)
+        toolLine:Add(toolGroup)
+        toolCard:Add(toolLine)
         panel:Add(toolPanel)
         toolPart = toolPanel
         focusArray:Add(toolGroup)
 
-        Control layerPanel
-        layerPanel:SetPercentageWidth(1.0)
-        layerPanel:SetVerticalLayoutMode(layerPanel:FIT_CONTENTS)
-        FlowLayout layerPanelLayout
-        layerPanel:SetLayout(layerPanelLayout)
-        layerPanel:SetLeftMargin(20)
-        layerPanel:SetRightMargin(30)
-        layerPanel:SetBottomMargin(10)
-
-        // The label is on its own line, with the buttons under it.
-        Control layerLabelLine
-        layerLabelLine:SetPercentageWidth(1.0)
-        layerLabelLine:SetVerticalLayoutMode(layerLabelLine:FIT_CONTENTS)
-        FlowLayout layerLabelLayout
-        layerLabelLine:SetLayout(layerLabelLayout)
-        layerLabelLine:SetLeftMargin(20)
-        layerLabelLine:SetRightMargin(30)
-        Label layerLabel
-        layerLabel:SetText("Paint Layer")
-        layerLabelLine:Add(layerLabel)
-        panel:Add(layerLabelLine)
-        paintLabelPart = layerLabelLine
-
+        // The paint layer: a title, then a card with the layers' buttons.
+        paintLabelPart = MakeCardTitle("Paint Layer")
+        panel:Add(paintLabelPart)
+        Control layerCard = MakeCard()
+        Control layerLine = MakeCardLine()
         ButtonGroup layers
         layerGroup = layers
         layerGroup:SetName("Paint layer")
         layerGroup:SetDescription("The material the Paint tool paints, one of the terrain's materials")
-        Control layoutValues
-        layerGroup:SetHorizontalLayoutMode(layoutValues:FILL)
-        layerGroup:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
+        layerGroup:SetHorizontalLayoutMode(layerLine:FILL)
+        layerGroup:SetVerticalLayoutMode(layerLine:FIT_CONTENTS)
         FlowLayout layerGroupLayout
         layerGroup:SetLayout(layerGroupLayout)
         integer layer = 0
@@ -173,53 +153,56 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             layer = layer + 1
         end
         layerGroup:AddSelectionListener(me)
-        layerPanel:Add(layerGroup)
-        panel:Add(layerPanel)
-        paintPart = layerPanel
+        layerLine:Add(layerGroup)
+        layerCard:Add(layerLine)
+        panel:Add(layerCard)
+        paintPart = layerCard
         focusArray:Add(layerGroup)
 
-        // Flatten: what it evens the ground to (step 8).
-        flattenLabelPart = AddCaption(panel, "Flatten to:")
-        Control flattenPanel = MakeLine()
+        // Flatten: what it evens the ground to (step 8), in one card. The
+        // height and its button show only for a set height (ShowToolParts).
+        flattenLabelPart = MakeCardTitle("Flatten")
+        panel:Add(flattenLabelPart)
+        Control flattenCard = MakeCard()
+        Control flattenLine = MakeCardLine()
         ButtonGroup flattenChoices
         flattenGroup = flattenChoices
         flattenGroup:SetName("Flatten to")
-        flattenGroup:SetHorizontalLayoutMode(layoutValues:FILL)
-        flattenGroup:SetVerticalLayoutMode(layoutValues:FIT_CONTENTS)
+        flattenGroup:SetHorizontalLayoutMode(flattenLine:FILL)
+        flattenGroup:SetVerticalLayoutMode(flattenLine:FIT_CONTENTS)
         FlowLayout flattenLayout
         flattenGroup:SetLayout(flattenLayout)
         AddChoice(flattenGroup, "Stroke start", "Flatten to the height where each stroke starts")
         AddChoice(flattenGroup, "Set height", "Flatten to the height in the Height field")
         flattenGroup:AddSelectionListener(me)
-        flattenPanel:Add(flattenGroup)
-        panel:Add(flattenPanel)
-        flattenPart = flattenPanel
+        flattenLine:Add(flattenGroup)
+        flattenCard:Add(flattenLine)
+        panel:Add(flattenCard)
+        flattenPart = flattenCard
         focusArray:Add(flattenGroup)
-        flattenHeightField = AddNumberField(panel, focusArray, "Height:", "Flatten height")
+        flattenHeightField = AddNumberField(flattenCard, focusArray, "Height:", "Flatten height")
         flattenHeightPart = cast(Control, flattenHeightField:GetParent())
-        Control takeLine = MakeLine()
+        Control takeLine = MakeCardLine()
         takeButton = AddBrushButton(takeLine, "Use Height Under Brush", "Flatten to the ground's height where the brush is now", TAKE_HEIGHT)
-        panel:Add(takeLine)
+        flattenCard:Add(takeLine)
         takeHeightPart = takeLine
         focusArray:Add(takeButton)
 
         // The ramp has no controls here: its ends are set with the Ramp
         // tool, by clicking or with the ramp point key (step 8).
 
-        // Size, strength and falloff, under their own heading (step 16).
-        Control settingsLine = MakeLine()
-        settingsLine:SetTopMargin(10)
-        Label settingsLabel
-        settingsLabel:SetSize(16)
-        settingsLabel:SetText("Brush Settings")
-        settingsLine:Add(settingsLabel)
-        panel:Add(settingsLine)
-        settingsLabelPart = settingsLine
-        sizeField = AddNumberField(panel, focusArray, "Size:", "Size")
+        // Size, strength and falloff, in the Brush Settings card (step 16).
+        // The strength and falloff show only for the tools that use them.
+        settingsLabelPart = MakeCardTitle("Brush Settings")
+        panel:Add(settingsLabelPart)
+        Control settingsCard = MakeCard()
+        panel:Add(settingsCard)
+        settingsPart = settingsCard
+        sizeField = AddNumberField(settingsCard, focusArray, "Size:", "Size")
         sizePart = cast(Control, sizeField:GetParent())
-        strengthField = AddNumberField(panel, focusArray, "Strength:", "Strength")
+        strengthField = AddNumberField(settingsCard, focusArray, "Strength:", "Strength")
         strengthPart = cast(Control, strengthField:GetParent())
-        falloffField = AddNumberField(panel, focusArray, "Falloff:", "Falloff")
+        falloffField = AddNumberField(settingsCard, focusArray, "Falloff:", "Falloff")
         falloffPart = cast(Control, falloffField:GetParent())
 
         // Every part is in the panel now; the ones the tool doesn't use are
@@ -229,12 +212,20 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         partsShown:Add(paintPart)
         partsShown:Add(flattenLabelPart)
         partsShown:Add(flattenPart)
-        partsShown:Add(flattenHeightPart)
-        partsShown:Add(takeHeightPart)
         partsShown:Add(settingsLabelPart)
-        partsShown:Add(sizePart)
-        partsShown:Add(strengthPart)
-        partsShown:Add(falloffPart)
+        partsShown:Add(settingsPart)
+    end
+
+    /*
+        Makes a container for a part with its card and title together.
+    */
+    private action MakePart returns Control
+        FlowLayout layout
+        Control part
+        part:SetLayout(layout)
+        part:SetPercentageWidth(1.0)
+        part:SetVerticalLayoutMode(part:FIT_CONTENTS)
+        return part
     end
 
     /*
@@ -272,23 +263,24 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             wanted:Add(flattenPart)
             chain:Add(flattenGroup)
             if not flattensToStart
-                wanted:Add(flattenHeightPart)
-                wanted:Add(takeHeightPart)
                 chain:Add(flattenHeightField)
                 chain:Add(takeButton)
             end
         end
+        // Inside their cards, the lines a tool doesn't use are hidden.
+        ShowLine(flattenHeightPart, not flattensToStart)
+        ShowLine(takeHeightPart, not flattensToStart)
         if usesSize
             wanted:Add(settingsLabelPart)
-            wanted:Add(sizePart)
+            wanted:Add(settingsPart)
             chain:Add(sizeField)
         end
         if usesStrength
-            wanted:Add(strengthPart)
-            wanted:Add(falloffPart)
             chain:Add(strengthField)
             chain:Add(falloffField)
         end
+        ShowLine(strengthPart, usesStrength)
+        ShowLine(falloffPart, usesStrength)
 
         boolean same = wanted:GetSize() = partsShown:GetSize()
         integer i = 0
@@ -326,42 +318,24 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         Adds one tool's radio button to the tool group.
     */
     private action AddToolButton(text name)
-        // FILL is read through a plain Control: the compiler finds a
-        // Control's layout values only through that type.
-        Control layoutValues
         RadioButton button
         button:SetName(name)
-        button:SetHorizontalLayoutMode(layoutValues:FILL)
         toolGroup:AddToGrouping(button)
-        toolGroup:Add(button)
+        // Two to a row in the card.
+        AddHalfWidth(toolGroup, button)
     end
 
     /*
-        Adds a caption on its own line, and returns the line.
+        Shows or hides a line inside a card. The card is as tall as its
+        shown lines.
     */
-    private action AddCaption(Control panel, text value) returns Control
-        Control line = MakeLine()
-        Label caption
-        caption:SetText(value)
-        line:Add(caption)
-        panel:Add(line)
-        return line
-    end
-
-    /*
-        Makes a container for one line, the width of the section.
-    */
-    private action MakeLine returns Control
-        FlowLayout layout
-        Control line
-        line:SetLayout(layout)
-        line:SetPercentageWidth(1.0)
-        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
-        line:SetLeftMargin(20)
-        line:SetRightMargin(30)
-        line:SetTopMargin(4)
-        line:SetBottomMargin(4)
-        return line
+    private action ShowLine(Control line, boolean show)
+        if show
+            line:Show()
+        else
+            line:Hide()
+        end
+        line:RequestLayout()
     end
 
     /*
@@ -370,13 +344,12 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         description says it in full.
     */
     private action AddChoice(ButtonGroup group, text name, text description)
-        Control layoutValues
         RadioButton button
         button:SetName(name)
         button:SetDescription(description)
-        button:SetHorizontalLayoutMode(layoutValues:FILL)
         group:AddToGrouping(button)
-        group:Add(button)
+        // Two to a row in the card.
+        AddHalfWidth(group, button)
     end
 
     /*
@@ -413,12 +386,11 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         terrain's materials.
     */
     private action AddLayerButton(integer layer)
-        Control layoutValues
         RadioButton button
         button:SetName("Layer " + (layer + 1))
-        button:SetHorizontalLayoutMode(layoutValues:FILL)
         layerGroup:AddToGrouping(button)
-        layerGroup:Add(button)
+        // Two to a row in the card.
+        AddHalfWidth(layerGroup, button)
     end
 
     /*
@@ -430,10 +402,11 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         container:SetLayout(layout)
         container:SetPercentageWidth(1.0)
         container:SetVerticalLayoutMode(container:FIT_CONTENTS)
-        container:SetLeftMargin(20)
-        container:SetTopMargin(10)
-        container:SetRightMargin(30)
-        container:SetBottomMargin(10)
+        // A line in a card (MakeCardLine's margins).
+        container:SetLeftMargin(12)
+        container:SetTopMargin(4)
+        container:SetRightMargin(12)
+        container:SetBottomMargin(4)
 
         // The label sits in a box of one width, so the fields after the
         // labels line up and are the same size.

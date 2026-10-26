@@ -345,7 +345,12 @@ public class IOSInput
                 }
 
                 focusedTextAdjust.setAccessibilityValue(focusedTextAdjust.GetAccessibleText());
-                return true;
+                // The typed text needs a frame to show (drawOnlyWhenNeeded).
+                IOSDisplay.RequestFrame();
+                // Quorum keeps the text. The hidden field keeps its one "x",
+                // so iOS always has something to delete and every backspace
+                // reaches us.
+                return false;
             }
 
             @Override
@@ -384,8 +389,9 @@ public class IOSInput
         if (visible) {
             System.out.println("Visible");
             UpdateSecureEntry();
-            textfield.becomeFirstResponder();
+            textfield.setText("x");
             textfield.setDelegate(textDelegate);
+            textfield.becomeFirstResponder();
         } else {
             System.out.println("Not visible");
             textfield.resignFirstResponder();
@@ -776,6 +782,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddDoubleTapEvent(UIGestureRecognizer recognizer)
@@ -786,6 +794,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddSwipeEvent(UIGestureRecognizer recognizer)
@@ -809,6 +819,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddLongPressEvent(UIGestureRecognizer recognizer)
@@ -821,6 +833,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPanEvent(UIGestureRecognizer recognizer)
@@ -857,6 +871,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchBeginEvent(UIGestureRecognizer recognizer)
@@ -874,6 +890,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchContinueEvent(UIGestureRecognizer recognizer)
@@ -891,6 +909,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchEndEvent(UIGestureRecognizer recognizer)
@@ -908,6 +928,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     /*
@@ -937,6 +959,7 @@ public class IOSInput
             quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
             quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
             gestureEventList.Add(quorumEvent);
+            IOSDisplay.RequestFrame();
         }
     }
 

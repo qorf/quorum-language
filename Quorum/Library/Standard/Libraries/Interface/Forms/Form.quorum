@@ -1,5 +1,7 @@
 package Libraries.Interface.Forms
 
+use Libraries.Game.IOSConfiguration
+
 use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.DesktopConfiguration
@@ -48,6 +50,7 @@ class Form is Game, FormPrimitiveContainer
     constant text DEFAULT_PAGE_NAME = "Main"
     InterfaceOptions options = undefined
     text media = undefined
+    boolean useSafeRegion = true
 
     FormDelayedAssetLoader delayedLoader
 
@@ -56,6 +59,10 @@ class Form is Game, FormPrimitiveContainer
         desktop:targetFramesPerSecond = 10
         WebConfiguration web = GetWebConfiguration()
         web:framesPerSecondLimit = 10
+        // An app's screen is still most of the time: iOS draws only when
+        // something changes (IOSConfiguration's drawOnlyWhenNeeded).
+        IOSConfiguration ios = GetIOSConfiguration()
+        ios:drawOnlyWhenNeeded = true
         
         StackedRowPage page
         page:SetForm(me)
@@ -310,12 +317,14 @@ class Form is Game, FormPrimitiveContainer
         Item2D item = page:GetFirstFocusableItem()
         if item not= undefined
             manager:SetFocus(item)
+            HideFocusOutlineUntilTouch()
         end
     end
 
     action CreateGame
         ManualLayout layout
         SetLayout(layout)
+        SetUseSafeRegion(useSafeRegion)
 
         GameStateManager manager
         
@@ -338,6 +347,7 @@ class Form is Game, FormPrimitiveContainer
         Item2D item = currentPage:GetFirstFocusableItem()
         if item not= undefined
             item:Focus()
+            HideFocusOutlineUntilTouch()
         end
     end
 
@@ -364,6 +374,22 @@ class Form is Game, FormPrimitiveContainer
         
         Attribute: Returns the main and default page.
     */
+    /*
+    The SetUseSafeRegion action sets whether the form's pages stay inside the
+    display's safe region, away from camera cutouts, notches and system bars
+    (see Layer:SetUseSafeRegion). It is on by default, and changes nothing on
+    a display that nothing covers.
+
+    Attribute: Parameter enabled True to keep the pages in the safe region.
+    */
+    action SetUseSafeRegion(boolean enabled)
+        useSafeRegion = enabled
+        Layer2D layer = GetCurrentLayer2D()
+        if layer not= undefined
+            layer:SetUseSafeRegion(enabled)
+        end
+    end
+
     action GetMainPage returns Page
         return mainPage
     end

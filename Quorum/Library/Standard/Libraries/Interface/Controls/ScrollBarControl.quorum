@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Layouts.ManualLayout
 
@@ -36,6 +37,34 @@ class ScrollBarControl is Control
         end
 
         return parent:Control:GetBackgroundColor()
+    end
+
+    /*
+    Under the mouse (or a finger) the handle is drawn halfway between its
+    accent color and the text color: lighter in dark mode, darker in light
+    mode.
+    */
+    action GetMouseOverColor returns ColorGroup
+        if HasColorPropertyOverride("mouseOverColor")
+            return parent:Control:GetMouseOverColor()
+        end
+
+        ScrollableControl control = GetScrollableControl()
+        if control not= undefined
+            ColorGroup accent = control:GetAccentColor()
+            ColorGroup font = control:GetFontColor()
+            if accent is Color and font is Color
+                Color accentColor = cast(Color, accent)
+                Color fontColor = cast(Color, font)
+                Color mixed
+                mixed:SetColor((accentColor:GetRed() + fontColor:GetRed()) / 2,
+                    (accentColor:GetGreen() + fontColor:GetGreen()) / 2,
+                    (accentColor:GetBlue() + fontColor:GetBlue()) / 2,
+                    accentColor:GetAlpha())
+                return mixed
+            end
+        end
+        return parent:Control:GetMouseOverColor()
     end
 
     action GetScrollableControl returns ScrollableControl

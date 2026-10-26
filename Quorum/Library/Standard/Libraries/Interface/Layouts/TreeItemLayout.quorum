@@ -25,7 +25,7 @@ class TreeItemLayout is Layout
 
                 Iterator<TreeItem> iterator = panel:GetTreeItems()
                 number height = iterator:Next():GetHeight()
-                panel:SetPosition(panel:GetPixelX(), -height)
+                panel:SetPosition(panel:GetPixelX() * container:GetInterfaceScale(), -height)
             end
 
             counter = counter + 1

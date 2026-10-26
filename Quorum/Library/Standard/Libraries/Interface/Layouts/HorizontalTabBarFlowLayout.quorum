@@ -8,6 +8,9 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 
 class HorizontalTabBarFlowLayout is TabBarFlowLayout
+    // A small space between tabs, in points before the interface scale.
+    constant number TAB_GAP = 2
+
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
         // This is the x position of the next item, unless it flows onto the
@@ -218,7 +221,7 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                         containHeight = container:GetHeight()
                     end
                     control:SetPosition(x, currentY - control:GetHeight() - topMargin)
-                    x = x + control:GetWidth() + rightMargin
+                    x = x + control:GetWidth() + rightMargin + TAB_GAP * properties:GetInterfaceScale()
                 end
             end
 
@@ -245,6 +248,7 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                 number rightMargin = 0
                 number topMargin = 0
                 number bottomMargin = 0
+                number placedGap = 0
 
                 if item is Control
                     Control control = cast(Control, item)
@@ -254,6 +258,7 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                         rightMargin = properties:GetRightMargin()
                         topMargin = properties:GetTopMargin()
                         bottomMargin = properties:GetBottomMargin()
+                        placedGap = TAB_GAP * properties:GetInterfaceScale()
                     end
                 end
 
@@ -264,7 +269,7 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                 end
 
                 item:SetPosition(x, currentY - item:GetHeight() - topMargin)
-                x = x + item:GetWidth() + rightMargin
+                x = x + item:GetWidth() + rightMargin + placedGap
 
                 counter = counter + 1
             end

@@ -32,6 +32,11 @@ import plugins.quorum.Libraries.Game.libGDX.HWMachine;
 import plugins.quorum.Libraries.Game.libGDX.IOSDevice;
 import plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.IOSConfiguration_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics_;
+import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanFence;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanGraphics;
 
 /**
  *
@@ -200,10 +205,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         @Override
         public void viewDidLayoutSubviews () {
             super.viewDidLayoutSubviews();
-            // get the view size and update graphics
-            CGRect bounds = app.GetBounds();
-            display.width = (int) bounds.getWidth();
-            display.height = (int) bounds.getHeight();
+            display.OnViewLayout();
             display.MakeCurrent();
         }
     }
@@ -256,9 +258,7 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         public void viewDidLayoutSubviews()
         {
             super.viewDidLayoutSubviews();
-            CGRect bounds = app.GetBounds();
-            display.width = (int) bounds.getWidth();
-            display.height = (int) bounds.getHeight();
+            display.OnViewLayout();
         }
     }
 
@@ -341,6 +341,10 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     long framesStart;
     int frames;
     int fps;
+    // Time spent in DrawVulkanFrame this second, and the longest frame, for
+    // the debugAccessibility log.
+    long busyNanos;
+    long longestFrameNanos;
     //BufferFormat bufferFormat;
     String extensions;
     
@@ -354,6 +358,17 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     private long frameID = -1;
     private boolean isContinuous = true;
     private boolean isFrameRequested = true;
+
+    // Drawing only when needed (IOSConfiguration's drawOnlyWhenNeeded):
+    // after each request, frames keep coming this long, so animations and
+    // layout finish.
+    private static final long DRAW_GRACE_NANOS = 1000000000L;
+    private boolean drawOnlyWhenNeeded = false;
+    private long lastFrameRequest = 0;
+
+    // The display, so accessibility and input can ask it for a frame
+    // (RequestFrame).
+    private static IOSDisplay current = null;
     
     IOSConfiguration_ config;
     EAGLContext context;
@@ -509,6 +524,8 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         this.config = config;
         this.app = app;
         this.input = input;
+        current = this;
+        drawOnlyWhenNeeded = config.Get_Libraries_Game_IOSConfiguration__drawOnlyWhenNeeded_();
 
         final CGRect bounds = app.GetBounds();
         width = (int)bounds.getWidth();
@@ -571,13 +588,23 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
             app.game.InitializeLayers();
             app.game.CreateGame();
             created = true;
+            lastFrameRequest = System.nanoTime();
         }
         if (appPaused)
         {
             return;
         }
 
+        // A still screen draws nothing (drawOnlyWhenNeeded), so the main
+        // thread is free for VoiceOver. The time still moves on, so the next
+        // frame's step is one tick.
         long time = System.nanoTime();
+        if (drawOnlyWhenNeeded && !isFrameRequested && time - lastFrameRequest > DRAW_GRACE_NANOS)
+        {
+            lastFrameTime = time;
+            return;
+        }
+        isFrameRequested = false;
         deltaTime = (time - lastFrameTime) / 1000000000.0f;
         lastFrameTime = time;
         totalTime = totalTime + deltaTime;
@@ -585,9 +612,24 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         frames++;
         if (time - framesStart >= 1000000000l)
         {
+            if (IOSAccessibility.debug)
+            {
+                long elapsed = time - framesStart;
+                System.out.println("Frames: " + frames + " a second, main thread busy "
+                    + (busyNanos * 100 / elapsed) + "%, longest frame "
+                    + (longestFrameNanos / 1000000) + " ms; waiting on fences "
+                    + (NativeVulkanFence.waitNanos / 1000000) + " ms, acquire "
+                    + (NativeVulkanGraphics.acquireNanos / 1000000) + " ms, present "
+                    + (NativeVulkanGraphics.presentNanos / 1000000) + " ms");
+                NativeVulkanFence.waitNanos = 0;
+                NativeVulkanGraphics.acquireNanos = 0;
+                NativeVulkanGraphics.presentNanos = 0;
+            }
             framesStart = time;
             fps = frames;
             frames = 0;
+            busyNanos = 0;
+            longestFrameNanos = 0;
         }
 
         // NOTE: ProcessEvents sets up the List of events for the input. Actual
@@ -595,6 +637,11 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         input.ProcessEvents();
         frameID++;
         app.game.ContinueGame();
+        PostLayoutChanged();
+
+        long frameNanos = System.nanoTime() - time;
+        busyNanos = busyNanos + frameNanos;
+        longestFrameNanos = Math.max(longestFrameNanos, frameNanos);
     }
 
     /*
@@ -731,6 +778,18 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         UIPinchGestureRecognizer pinchRecognizer = new UIPinchGestureRecognizer();
         pinchRecognizer.addListener(new OnPinchListener());
         view.addGestureRecognizer(pinchRecognizer);
+
+        // Gestures are seen alongside the touches, not instead of them, as on
+        // Android. By default, UIKit cancels a view's touches once a gesture
+        // is recognized, which would end every drag (selecting text, a
+        // chart's touch exploration) as soon as it became a pan or a swipe,
+        // and holds back a lifted finger until the tap recognizers decide
+        // (about a third of a second, waiting to rule out a double tap).
+        for (UIGestureRecognizer recognizer : view.getGestureRecognizers())
+        {
+            recognizer.setCancelsTouchesInView(false);
+            recognizer.setDelaysTouchesEnded(false);
+        }
     }
     
     public void Resume()
@@ -794,8 +853,54 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
         input.ProcessEvents();
         frameID++;
         app.game.ContinueGame();
+        PostLayoutChanged();
     }
     
+    // Set when the size changed, so VoiceOver is told once the game has laid out again.
+    boolean layoutChanged = false;
+
+    /*
+    Called after UIKit lays out the view: at startup, and when the device is
+    rotated. If the size changed, the game gets a ResizeEvent at the start of
+    its next frame, as the desktop's window gives one (MobileInput sends it to
+    the layers). This runs on the main thread, where frames also run, so the
+    queue needs no lock. The Vulkan view has already resized its Metal layer;
+    the swapchain is made again at the next frame.
+    */
+    void OnViewLayout()
+    {
+        CGRect bounds = app.GetBounds();
+        int newWidth = (int) bounds.getWidth();
+        int newHeight = (int) bounds.getHeight();
+        if (newWidth == width && newHeight == height)
+            return;
+
+        // The first layout only sets the size; the game hasn't started yet.
+        boolean first = width == 0 && height == 0;
+        width = newWidth;
+        height = newHeight;
+        app.UpdateAccessibilityBounds();
+        if (first)
+            return;
+
+        ResizeProcessor.AddResizeEvent(0, width, height);
+        if (GameStateManager.graphics instanceof VulkanGraphics_)
+            ((VulkanGraphics_) GameStateManager.graphics).RequestSwapchainRegeneration();
+        layoutChanged = true;
+        RequestRendering();
+    }
+
+    // After a resize, once the game has laid out again, VoiceOver reads the
+    // new frames.
+    private void PostLayoutChanged()
+    {
+        if (layoutChanged)
+        {
+            layoutChanged = false;
+            UIAccessibilityGlobals.postNotification(UIAccessibilityNotification.LayoutChangedNotification, null);
+        }
+    }
+
     void MakeCurrent()
     {
         // With Vulkan there's no OpenGL context.
@@ -843,6 +948,46 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     public int GetHeight()
     {
         return height;
+    }
+
+    // Pixels per screen point (3 on most current iPhones).
+    public double GetPixelScaleFactor()
+    {
+        return app.displayScaleFactor;
+    }
+
+    /*
+        The safe region's edges, in Quorum's pixels like the screen size: how
+        far the Dynamic Island or notch, the status bar, rounded corners and
+        the home indicator reach in from each side. 0 before the view is on
+        screen.
+     */
+    public double GetSafeLeft()
+    {
+        return SafeInsets().getLeft() * app.displayScaleFactor;
+    }
+
+    public double GetSafeRight()
+    {
+        return SafeInsets().getRight() * app.displayScaleFactor;
+    }
+
+    public double GetSafeTop()
+    {
+        return SafeInsets().getTop() * app.displayScaleFactor;
+    }
+
+    public double GetSafeBottom()
+    {
+        return SafeInsets().getBottom() * app.displayScaleFactor;
+    }
+
+    private UIEdgeInsets SafeInsets()
+    {
+        UIView shown = vulkanView != null ? vulkanView : view;
+        if (shown == null)
+            return new UIEdgeInsets(0, 0, 0, 0);
+        return shown.getSafeAreaInsets();
     }
     
     public double GetSecondsBetweenFrames()
@@ -920,9 +1065,20 @@ public class IOSDisplay extends NSObject implements GLKViewDelegate, GLKViewCont
     public void RequestRendering()
     {
         isFrameRequested = true;
+        lastFrameRequest = System.nanoTime();
         // Start the GLKViewController if we are in non-continuous mode.
         if (!isContinuous && viewController != null)
             viewController.setPaused(false);
+    }
+
+    /*
+    Asks the display for a frame, from code that has no display of its own,
+    such as accessibility and input. Does nothing before the display starts.
+    */
+    public static void RequestFrame()
+    {
+        if (current != null)
+            current.RequestRendering();
     }
     
     public boolean IsFullscreen()

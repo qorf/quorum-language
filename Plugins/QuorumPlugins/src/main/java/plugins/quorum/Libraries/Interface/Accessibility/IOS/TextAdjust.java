@@ -38,4 +38,10 @@ public abstract class TextAdjust extends ItemIOS {
         }
         return dots.toString();
     }
+
+    // VoiceOver reads the text as the value, always current.
+    @Override
+    public String getAccessibilityValue() {
+        return GetAccessibleText();
+    }
 }

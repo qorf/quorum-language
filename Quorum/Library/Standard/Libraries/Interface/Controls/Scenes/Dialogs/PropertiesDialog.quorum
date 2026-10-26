@@ -8,6 +8,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Layouts.ButtonRowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
@@ -18,6 +19,8 @@ use Libraries.Interface.Controls.Tree
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Item2D
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.ColorGroup
 
 /*
     The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
@@ -178,6 +181,138 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     */
     action SetHeading(Label label)
         heading = label
+    end
+
+    /*
+        Adds a card to a section: a title in the theme's section title color,
+        then a rounded panel in its card color (as Forms draws a titled
+        grouping), which the section adds its lines to. A title of "" adds
+        only the card. Lines in a card use a left and right margin of 12.
+
+        Attribute: Parameter panel Where the card goes, such as the body CreateInterface is given
+        Attribute: Parameter title The card's title, or "" for none
+        Attribute: Returns The card, to add lines to
+    */
+    action AddCard(Control panel, text title) returns Control
+        if title not= ""
+            panel:Add(MakeCardTitle(title))
+        end
+        Control card = MakeCard()
+        panel:Add(card)
+        return card
+    end
+
+    /*
+        Makes a card's title: a small label in the theme's section title
+        color. It isn't a focus stop; the card's first control is.
+
+        Attribute: Parameter title The title
+        Attribute: Returns The label
+    */
+    action MakeCardTitle(text title) returns Label
+        Label cardTitle
+        cardTitle:SetSize(14)
+        cardTitle:SetText(title)
+        cardTitle:SetLeftMargin(22)
+        cardTitle:SetTopMargin(10)
+        cardTitle:SetBottomMargin(2)
+        GameStateManager gameState
+        ColorGroup titleColor = gameState:GetInterfaceOptions():GetFontColor("SectionTitle")
+        if titleColor not= undefined
+            cardTitle:SetFontColor(titleColor)
+        end
+        return cardTitle
+    end
+
+    /*
+        Makes an empty card: a rounded panel in the theme's card color
+        (FormCard), as wide as the section less 20 on each side, as tall as
+        its lines. Hidden lines in it take no room.
+
+        Attribute: Returns The card
+    */
+    action MakeCard returns Control
+        ControlShaderView view
+        view:Initialize()
+        Control card
+        card:SetView2D(view)
+        FlowLayout layout
+        layout:SetIgnoreHidden(true)
+        card:SetLayout(layout)
+        card:SetPercentageWidth(1.0)
+        card:SetVerticalLayoutMode(card:FIT_CONTENTS)
+        card:SetLeftMargin(20)
+        card:SetRightMargin(20)
+        card:SetTopMargin(2)
+        card:SetBottomMargin(4)
+        card:SetCornerPixelRounding(8, 8, 8, 8)
+        card:SetBorderThickness(0)
+        GameStateManager gameState
+        ColorGroup cardColor = gameState:GetInterfaceOptions():GetBackgroundColor("FormCard")
+        if cardColor not= undefined
+            card:SetBackgroundColor(cardColor)
+        end
+        return card
+    end
+
+    /*
+        Makes a line for a card: as wide as the card, as tall as what is in
+        it, with a margin of 12 at the sides and 4 above and below. Controls
+        added to it go side by side, such as a label and its field, or a row
+        of buttons.
+
+        Attribute: Returns The line
+    */
+    action MakeCardLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(12)
+        line:SetRightMargin(12)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        Makes a line of buttons for a card: side by side when they fit, or
+        each on its own line, the card's width, when they don't
+        (ButtonRowLayout). Its margins are MakeCardLine's.
+
+        Attribute: Returns The line
+    */
+    action MakeButtonRow returns Control
+        ButtonRowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(12)
+        line:SetRightMargin(12)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        Adds a choice (such as a radio button) to a group in a cell half the
+        group's width, so choices go two to a row in their columns. The
+        choice keeps its own size in the cell; a radio button's layout needs
+        the width of its contents.
+
+        Attribute: Parameter group The group the choice goes in
+        Attribute: Parameter choice The choice
+    */
+    action AddHalfWidth(Control group, Control choice)
+        FlowLayout layout
+        Control cell
+        cell:SetLayout(layout)
+        cell:SetPercentageWidth(0.5)
+        cell:SetVerticalLayoutMode(cell:FIT_CONTENTS)
+        cell:Add(choice)
+        group:Add(cell)
     end
 
     /*
@@ -458,6 +593,24 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     */
     action SetLastFocus(Control control)
         lastFocus = control
+        if dock not= undefined
+            dock:SectionLayoutChanged()
+        end
+    end
+
+    /*
+        Sets the first field in the section's Tab order, for a section that
+        shows and hides its own controls, such as a line shown only when it
+        has something to say. The header and the panel link to it.
+
+        Attribute: Parameter control The first field
+    */
+    action SetFirstFocus(Control control)
+        if firstFocus = control
+            return now
+        end
+        firstFocus = control
+        LinkHeaderFocus()
         if dock not= undefined
             dock:SectionLayoutChanged()
         end

@@ -1,5 +1,7 @@
 package Libraries.Game
 
+use Libraries.Game.Shapes.Rectangle
+
 class IOSDisplay is GameDisplay
      
     private IOSConfiguration config = undefined
@@ -127,9 +129,28 @@ class IOSDisplay is GameDisplay
     /*
     This action returns the ratio between screen coordinates and pixels.
     */
-    action GetPixelScaleFactor returns number
-        alert("Not yet implemented!")
+    system action GetPixelScaleFactor returns number
+
+    /*
+    This action returns the part of the display that nothing covers: not the
+    Dynamic Island or notch, the status bar, the rounded corners or the home
+    indicator. It is in pixels, with (0, 0) at the bottom left.
+    */
+    action GetSafeRegion returns Rectangle
+        number left = GetSafeLeft()
+        number bottom = GetSafeBottom()
+        Rectangle region
+        region:SetRectangle(left, bottom, GetWidth() - left - GetSafeRight(), GetHeight() - bottom - GetSafeTop())
+        return region
     end
+
+    private system action GetSafeLeft returns number
+
+    private system action GetSafeRight returns number
+
+    private system action GetSafeTop returns number
+
+    private system action GetSafeBottom returns number
 
     /*
     The IsAvailable action returns whether or not a display is available

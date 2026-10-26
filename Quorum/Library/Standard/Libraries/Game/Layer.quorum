@@ -11,6 +11,7 @@ use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Events.TouchListener
 use Libraries.Containers.Array
 use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.Shapes.Rectangle
 
 class Layer 
     
@@ -23,6 +24,14 @@ class Layer
     text name = "Layer"
 
     boolean automaticResizing = true
+
+    boolean useSafeRegion = false
+
+    // The region last applied, to notice when the display's changes.
+    number safeX = 0
+    number safeY = 0
+    number safeWidth = 0
+    number safeHeight = 0
 
     /*
     This action sets the name of the Layer. This is used to identify the layer,
@@ -645,5 +654,80 @@ class Layer
 
     action GetViewportHeight returns integer
         return viewportHeight
+    end
+
+    /*
+    The SetUseSafeRegion action sets whether this layer keeps its content
+    inside the display's safe region (see GameDisplay:GetSafeRegion), away
+    from camera cutouts, notches, rounded corners and system bars. Each kind
+    of layer does this its own way: a Layer2D lays out its controls in the
+    region, and a Layer3D draws its scene in it. It is off by default, and on
+    a display that nothing covers it changes nothing.
+
+    Attribute: Parameter enabled True to keep this layer's content in the safe region.
+    */
+    action SetUseSafeRegion(boolean enabled)
+        useSafeRegion = enabled
+        UpdateSafeRegion()
+        ApplySafeRegion()
+    end
+
+    /*
+    The UsesSafeRegion action returns whether this layer keeps its content
+    inside the display's safe region.
+
+    Attribute: Returns True if this layer uses the safe region.
+    */
+    action UsesSafeRegion returns boolean
+        return useSafeRegion
+    end
+
+    /*
+    The GetContentRegion action returns where this layer's content goes, in
+    display pixels with (0, 0) at the bottom left: the display's safe region
+    if this layer uses it, or else the whole display.
+
+    Attribute: Returns The region this layer's content goes in.
+    */
+    action GetContentRegion returns Rectangle
+        GameStateManager manager
+        GameDisplay display = manager:GetGameDisplay()
+        if useSafeRegion and display not= undefined
+            return display:GetSafeRegion()
+        end
+
+        Rectangle region
+        if display not= undefined
+            region:SetRectangle(0, 0, display:GetWidth(), display:GetHeight())
+        end
+        return region
+    end
+
+    /*
+    The UpdateSafeRegion action checks the content region against the one
+    last applied, and returns true if it changed (for example, the phone
+    rotated, or the view reached the screen). Layers that use the safe region
+    call it as they update.
+    */
+    action UpdateSafeRegion returns boolean
+        Rectangle region = GetContentRegion()
+        if region:GetX() = safeX and region:GetY() = safeY and region:GetWidth() = safeWidth and region:GetHeight() = safeHeight
+            return false
+        end
+
+        safeX = region:GetX()
+        safeY = region:GetY()
+        safeWidth = region:GetWidth()
+        safeHeight = region:GetHeight()
+        return true
+    end
+
+    /*
+    The ApplySafeRegion action moves this layer's content into its content
+    region (see GetContentRegion). Layer2D and Layer3D each do this their own
+    way; by default it does nothing. It is called when the setting changes,
+    when the region changes, and after a resize.
+    */
+    action ApplySafeRegion
     end
 end

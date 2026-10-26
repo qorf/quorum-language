@@ -299,6 +299,12 @@ shared class DefaultInputSets
         menuItemTable:Add(touchUp, upBehavior)
         menuItemTable:Add(mouseOn, onBehavior)
 
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior offBehavior
+        menuItemTable:Add(mouseOff, offBehavior)
+
         gameInput:AddInputTable(menuItemTable)
 
 
@@ -367,12 +373,15 @@ shared class DefaultInputSets
         InputSet doubleClickSet
         doubleClickSet:SetMouseInput(mouse:LEFT)
         doubleClickSet:SetEventCount(2)
-        InputSet doubleTouchSet
-        doubleTouchSet:SetInputType(doubleTouchSet:TOUCH_INPUT)
-        doubleTouchSet:SetEventCount(2)
+        // On touch screens a tap opens or closes an item, as on phones. The
+        // tap is the platform's own gesture, so a finger that scrolls doesn't
+        // open the item it started on.
+        GestureEvent gestures
+        InputSet tapSet
+        tapSet:SetGestureInput(gestures:SINGLE_TAP)
         TreeDoubleClickBehavior doubleClickBehavior
         treeItemTable:Add(doubleClickSet, doubleClickBehavior)
-        treeItemTable:Add(doubleTouchSet, doubleClickBehavior)
+        treeItemTable:Add(tapSet, doubleClickBehavior)
 
         InputSet clickSet
         clickSet:SetMouseInput(mouse:LEFT)
@@ -395,6 +404,20 @@ shared class DefaultInputSets
             rightClickControlSet:AddModifier(rightClickControlSet:CONTROL)
             treeItemTable:Add(rightClickControlSet, treeOpenContextMenuBehavior)
         end
+
+        // Hover: the row under the mouse (or a finger, see MobileInput) is
+        // tinted, as buttons are.
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        treeItemTable:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        treeItemTable:Add(mouseOff, mouseOffBehavior)
 
         gameInput:AddInputTable(treeItemTable)
 
@@ -618,6 +641,13 @@ shared class DefaultInputSets
         ScrollableControlMouseScrollBehavior scrollBehavior
         listInputTable:Add(mouseScrollSet, scrollBehavior)
 
+        // A finger's drag scrolls the list on a touch screen.
+        GestureEvent panGestures
+        InputSet panSet
+        panSet:SetGestureInput(panGestures:PAN)
+        ScrollableControlPanBehavior panBehavior
+        listInputTable:Add(panSet, panBehavior)
+
         gameInput:AddInputTable(listInputTable)
 
         InputTable listItemTable
@@ -633,12 +663,38 @@ shared class DefaultInputSets
         InputSet touchDown
         touchDown:SetInputType(touchDown:TOUCH_INPUT)
 
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+
+        // On touch screens a double tap opens an item, like a double click.
+        GestureEvent gestures
+        InputSet doubleTapSet
+        doubleTapSet:SetGestureInput(gestures:DOUBLE_TAP)
+
         ClickDownBehavior downBehavior
         ClickUpBehavior upBehavior
 
+        // A touch selects an item as a click does (ListItem:ClickedMouse).
         listItemTable:Add(clickDown, downBehavior)
-        listItemTable:Add(touchDown, upBehavior)
+        listItemTable:Add(touchDown, downBehavior)
+        listItemTable:Add(touchUp, upBehavior)
         listItemTable:Add(doubleClickSet, listActivate)
+        listItemTable:Add(doubleTapSet, listActivate)
+
+        // Hover: the item under the mouse (or a finger) is tinted, as tree
+        // rows are.
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        listItemTable:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        listItemTable:Add(mouseOff, mouseOffBehavior)
 
         gameInput:AddInputTable(listItemTable)
     end
@@ -992,10 +1048,29 @@ InputSet textBoxControlDelete
         TextBoxRemoveIndentationBehavior removeIndentBehavior
         textBoxTable:Add(shiftTabSet, removeIndentBehavior)
 
+        // A touch focuses the box and places its caret (and shows the keyboard).
         InputSet touchSet
         touchSet:SetInputType(touchSet:TOUCH_INPUT)
         TextBoxOpenKeyboardBehavior openKeyboardBehavior
         textBoxTable:Add(touchSet, openKeyboardBehavior)
+
+        // Moving the finger selects; lifting it, or moving off the control,
+        // ends the drag.
+        InputSet touchMoveSet
+        touchMoveSet:SetInputType(touchMoveSet:TOUCH_MOVEMENT_INPUT)
+        touchMoveSet:SetInputTrigger(touchMoveSet:CONTINUE)
+        TextTouchDragBehavior touchDragBehavior
+        textBoxTable:Add(touchMoveSet, touchDragBehavior)
+
+        TextTouchEndBehavior touchEndBehavior
+        InputSet touchUpSet
+        touchUpSet:SetInputType(touchUpSet:TOUCH_INPUT)
+        touchUpSet:SetInputTrigger(touchUpSet:FINISH)
+        textBoxTable:Add(touchUpSet, touchEndBehavior)
+        InputSet touchLeaveSet
+        touchLeaveSet:SetInputType(touchLeaveSet:TOUCH_MOVEMENT_INPUT)
+        touchLeaveSet:SetInputTrigger(touchLeaveSet:FINISH)
+        textBoxTable:Add(touchLeaveSet, touchEndBehavior)
 
         InputSet homeSet
         homeSet:SetKeyboardInput(keys:HOME)
@@ -1431,6 +1506,30 @@ InputSet shiftF10SetTextBox
         rightClickSetTextBox:SetMouseInput(mouse:RIGHT)
         textFieldTable:Add(rightClickSetTextBox, textBoxOpenPopupMenuBehavior)
         
+        // A touch focuses the field and places its caret (and shows the keyboard).
+        InputSet touchSet
+        touchSet:SetInputType(touchSet:TOUCH_INPUT)
+        TextBoxOpenKeyboardBehavior openKeyboardBehavior
+        textFieldTable:Add(touchSet, openKeyboardBehavior)
+
+        // Moving the finger selects; lifting it, or moving off the control,
+        // ends the drag.
+        InputSet touchMoveSet
+        touchMoveSet:SetInputType(touchMoveSet:TOUCH_MOVEMENT_INPUT)
+        touchMoveSet:SetInputTrigger(touchMoveSet:CONTINUE)
+        TextTouchDragBehavior touchDragBehavior
+        textFieldTable:Add(touchMoveSet, touchDragBehavior)
+
+        TextTouchEndBehavior touchEndBehavior
+        InputSet touchUpSet
+        touchUpSet:SetInputType(touchUpSet:TOUCH_INPUT)
+        touchUpSet:SetInputTrigger(touchUpSet:FINISH)
+        textFieldTable:Add(touchUpSet, touchEndBehavior)
+        InputSet touchLeaveSet
+        touchLeaveSet:SetInputType(touchLeaveSet:TOUCH_MOVEMENT_INPUT)
+        touchLeaveSet:SetInputTrigger(touchLeaveSet:FINISH)
+        textFieldTable:Add(touchLeaveSet, touchEndBehavior)
+
         gameInput:AddInputTable(textFieldTable)
     end
 
@@ -2764,7 +2863,34 @@ connectorTable:Add(startDrag, dragBehavior)
         Behavior emptyBehavior
         scrollBarTable:Add(leftClickSet, emptyBehavior)
 
+        // The handle is tinted under the mouse (or a finger).
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        scrollBarTable:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        scrollBarTable:Add(mouseOff, mouseOffBehavior)
+
         gameInput:AddInputTable(scrollBarTable)
+
+        // A click or tap on the track, outside the handle, moves one page
+        // toward it. This also keeps the click from reaching the text under
+        // the bar.
+        InputTable trackTable
+        trackTable:SetIdentifier("ScrollBarTrack")
+        InputSet trackClick
+        trackClick:SetMouseInput(mouse:LEFT)
+        InputSet trackTouch
+        trackTouch:SetInputType(trackTouch:TOUCH_INPUT)
+        ScrollBarTrackPageBehavior pageBehavior
+        trackTable:Add(trackClick, pageBehavior)
+        trackTable:Add(trackTouch, pageBehavior)
+        gameInput:AddInputTable(trackTable)
     end
 
     action SetupScrollPaneInput(GameInput gameInput)
@@ -2775,6 +2901,13 @@ connectorTable:Add(startDrag, dragBehavior)
         mouseScrollSet:SetInputType(mouseScrollSet:MOUSE_WHEEL_INPUT)
         ScrollableControlMouseScrollBehavior scrollBehavior
         scrollPaneTable:Add(mouseScrollSet, scrollBehavior)
+
+        // A finger's drag scrolls the pane on a touch screen.
+        GestureEvent panGestures
+        InputSet panSet
+        panSet:SetGestureInput(panGestures:PAN)
+        ScrollableControlPanBehavior panBehavior
+        scrollPaneTable:Add(panSet, panBehavior)
 
         gameInput:AddInputTable(scrollPaneTable)
     end

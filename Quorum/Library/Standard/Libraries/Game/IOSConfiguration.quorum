@@ -195,6 +195,37 @@ class IOSConfiguration is ApplicationConfiguration
     public boolean useVulkan = false
 
     /*
+    Whether or not Quorum prints, on the console, how it describes the screen
+    to VoiceOver: the order of the items VoiceOver moves through (with their
+    frames) after every change, and every notification sent to VoiceOver. It
+    is for finding accessibility problems. This value must be set before
+    starting the game. By default, this value is false.
+    */
+    public boolean debugAccessibility = false
+
+    /*
+    Whether or not Quorum logs touches, through the SharedLogger: each touch
+    going down, lifting or being cancelled, where it was, what it hit, and
+    which item's input handled it (MobileInput:SetDebugInput). It is for
+    finding input problems. The program must give the SharedLogger a logger,
+    such as a ConsoleLogger, to see the lines. This value must be set before
+    starting the game. By default, this value is false.
+    */
+    public boolean debugInput = false
+
+    /*
+    Whether the game draws a new frame only when something asks for one: a
+    touch, typing, a change the screen reader is told about (such as the
+    focus moving or a button being pressed), or a control being laid out.
+    Frames keep coming for a second after each request, so animations
+    finish. A still screen then draws nothing, which saves the battery and
+    leaves the phone free to answer VoiceOver. Games that move every frame
+    should leave this false. A Form sets it to true. This value must be set
+    before starting the game. By default, this value is false.
+    */
+    public boolean drawOnlyWhenNeeded = false
+
+    /*
     How Vulkan is used when useVulkan is true, such as which Vulkan version is
     asked for.
     */

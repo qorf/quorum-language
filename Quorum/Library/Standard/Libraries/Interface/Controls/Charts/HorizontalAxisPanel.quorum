@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Charts
 
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Item2D
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
@@ -807,6 +808,19 @@ class HorizontalAxisPanel is ChartItem
     end
 
     /*
+        Removes an axis line, tick, bracket, label or grid line from whatever
+        holds it. Grid lines and axis lines are added to the chart area, and
+        some items to sub panels, not to this panel, so removing them from
+        this panel would leave them on screen.
+    */
+    private action RemoveFromHolder(Item2D item)
+        Item2D holder = item:GetParent()
+        if holder not= undefined
+            holder:Remove(item)
+        end
+    end
+
+    /*
         DisposeDrawables destroys the previous drawables as to avoid duplicates with 
         the axis is resized and redrawn. It is called in LoadAxis before any new items
         are added to the panel.
@@ -825,7 +839,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = axislines:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1
@@ -840,7 +854,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = ticks:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1
@@ -855,7 +869,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = brackets:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1
@@ -870,7 +884,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = majorlines:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1
@@ -885,7 +899,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = minorlines:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1
@@ -900,7 +914,7 @@ class HorizontalAxisPanel is ChartItem
                 temp = labels:Get(i)
                 if temp not= undefined
                     temp:Dispose()
-                    Remove(temp)
+                    RemoveFromHolder(temp)
                     temp = undefined
                 end
                 i = i + 1

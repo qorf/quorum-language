@@ -35,12 +35,59 @@ class Banner is Grouping
 
     Label label = undefined
 
+    // Whether the banner's background reaches the screen's edges when it is
+    // the first item on its page (SetExtendToScreenEdges).
+    boolean extendToScreenEdges = false
+
     on create
         CenterAlignTitle()
         CenterAlignContent()
         SetTitleSizeLarge()
-        
+
         SetInterfaceOptionsKey("Banner")
+    end
+
+    /*
+        The SetExtendToScreenEdges action sets whether this banner's
+        background reaches the edges of the screen when the banner is the
+        first item on its page and the page keeps its content in the display's
+        safe region (see Layer:SetUseSafeRegion). The background then fills
+        the space behind a camera cutout, such as the Dynamic Island on an
+        iPhone, while the banner's text stays in the safe region below it. It
+        is off by default.
+
+        Attribute: Parameter enabled True to stretch the banner's background to the screen's edges.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.Banner
+
+        class Main
+            action Main
+                Form form
+                Page homePage = form:GetMainPage()
+
+                Banner banner = homePage:AddBanner("Hello World", "Today is a great day!")
+                banner:SetExtendToScreenEdges(true)
+
+                form:Display()
+            end
+        end
+    */
+    action SetExtendToScreenEdges(boolean enabled)
+        extendToScreenEdges = enabled
+        RequestLayout()
+    end
+
+    /*
+        The ExtendsToScreenEdges action returns whether this banner's
+        background reaches the screen's edges (see SetExtendToScreenEdges).
+
+        Attribute: Returns True if the banner stretches to the screen's edges.
+    */
+    action ExtendsToScreenEdges returns boolean
+        return extendToScreenEdges
     end
     /*
         This action sets up and fills in the banners title.

@@ -34,6 +34,10 @@ class TreeItem is Control
 
     LayoutProperties panelProperties
 
+    // The rounded band behind this row when it is selected or hovered. It
+    // is not laid out by TreeItemLayout; PlaceRowHighlight sizes it.
+    TreeRowHighlight rowHighlight
+
     Behavior activationBehavior = undefined
 
     on create
@@ -49,11 +53,15 @@ class TreeItem is Control
 
         panelProperties = panel:GetDefaultLayoutProperties()
 
+        rowHighlight:Hide()
+        parent:Item2D:Add(rowHighlight)
+
         SetAccessibilityCode(parent:Item:TREE_ITEM)
     end
 
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
+        rowHighlight:SetInterfaceOptionsKey(key)
         if contents not= undefined
             contents:SetInterfaceOptionsKey(key)
         end
@@ -97,6 +105,7 @@ class TreeItem is Control
         treeItems:Add(item)
         item:SetTree(GetTree())
         item:SetParentTreeItem(me)
+        item:SetFontSize(GetFontSize())
     end
 
     action Add(integer location, TreeItem item)
@@ -108,6 +117,25 @@ class TreeItem is Control
         treeItems:Add(location, item)
         item:SetTree(GetTree())
         item:SetParentTreeItem(me)
+        item:SetFontSize(GetFontSize())
+    end
+
+    /*
+    This action sets the font size of this item, its row and all of the items
+    under it.
+
+    Attribute: Parameter size The font size for this item and its children.
+    */
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        if contents not= undefined
+            contents:SetFontSize(size)
+        end
+        integer i = 0
+        repeat while i < treeItems:GetSize()
+            treeItems:Get(i):SetFontSize(size)
+            i = i + 1
+        end
     end
 
     action Add(Array<TreeItem> items)
@@ -230,6 +258,10 @@ class TreeItem is Control
         content:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
         content:SetTreeItem(me)
         parent:Item2D:Add(0, contents)
+
+        // The highlight stays first, so it is drawn behind the row.
+        parent:Item2D:Remove(rowHighlight)
+        parent:Item2D:Add(0, rowHighlight)
     end
 
     action GetTreeItemContent returns TreeItemContent
@@ -295,7 +327,8 @@ class TreeItem is Control
             number height = GetHeight()
 
             TreeLayout treeLayout = GetPanelLayout()
-            number padding = treeLayout:GetPadding()
+            // TreeLayout scales the gap between rows by the panel's scale.
+            number padding = treeLayout:GetPadding() * panel:GetInterfaceScale()
 
             integer counter = 0
             Array<Item2D> children = panel:GetChildren()
@@ -357,7 +390,12 @@ class TreeItem is Control
         return activationBehavior
     end
 
-    action OnDoubleClick(BehaviorEvent event)
+    /*
+    The ToggleOpen action opens this item if it is closed, or closes it if it
+    is open. Items without children do nothing. A double click, a tap, and a
+    screen reader's activation all use it.
+    */
+    action ToggleOpen
         if not panel:GetChildren():IsEmpty()
             if open
                 Close()
@@ -365,7 +403,10 @@ class TreeItem is Control
                 Open()
             end
         end
+    end
 
+    action OnDoubleClick(BehaviorEvent event)
+        ToggleOpen()
         Activate()
     end
 
@@ -379,6 +420,9 @@ class TreeItem is Control
         if contents not= undefined
             contents:GainedSelection()
         end
+        rowHighlight:GainedSelection()
+        rowHighlight:SetShowsFocus(true)
+        ShowRowHighlight()
     end
 
     action LostSelection
@@ -386,11 +430,123 @@ class TreeItem is Control
         if contents not= undefined
             contents:LostSelection()
         end
+        rowHighlight:LostSelection()
+        UpdateRowHighlightVisibility()
     end
 
     action UnfocusedSelection
         if contents not= undefined
             contents:UnfocusedSelection()
+        end
+        rowHighlight:GainedSelection()
+        rowHighlight:SetShowsFocus(false)
+        ShowRowHighlight()
+    end
+
+    /*
+    This action is used when the mouse, or a finger on a touch screen, moves
+    onto this row: the row is tinted with the mouse over color.
+    */
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+        rowHighlight:BeginMouseOver()
+        ShowRowHighlight()
+    end
+
+    /*
+    This action is used when the mouse, or a finger, leaves this row.
+    */
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        rowHighlight:EndMouseOver()
+        UpdateRowHighlightVisibility()
+    end
+
+    /*
+    This action returns whether a point, in the layer's coordinates, is on this
+    item. Besides the item itself, its whole row counts: the tree's width at
+    this row's height, where its highlight is drawn, so a click or tap beside
+    the words selects the row as the highlight suggests.
+
+    Attribute: Parameter containsX The point's x coordinate
+    Attribute: Parameter containsY The point's y coordinate
+    Attribute: Returns True if the point is on this item or across its row
+    */
+    action Contains(number containsX, number containsY) returns boolean
+        if parent:Item2D:Contains(containsX, containsY)
+            return true
+        end
+        Tree tree = GetTree()
+        if tree = undefined or contents = undefined
+            return false
+        end
+        number rowBottom = contents:GetGlobalY()
+        number rowLeft = tree:GetGlobalX()
+        return containsY >= rowBottom and containsY <= rowBottom + contents:GetHeight()
+            and containsX >= rowLeft and containsX <= rowLeft + tree:GetWidth()
+    end
+
+    /*
+    Each frame, while the row's highlight is showing, it is kept the width of
+    the tree and the height of this row, since the tree's width and this row's
+    place in it change with layout and scrolling.
+    */
+    action Update(number seconds)
+        if rowHighlight:IsShowing()
+            PlaceRowHighlight()
+        end
+    end
+
+    // Only the standard row draws its selection with the band; other
+    // contents (such as the scene editor's palette) draw their own.
+    private action ShowRowHighlight
+        if not (contents is DefaultTreeItemContent)
+            return now
+        end
+        PlaceRowHighlight()
+        rowHighlight:Show()
+    end
+
+    // Hides the highlight once the row is neither selected nor hovered.
+    private action UpdateRowHighlightVisibility
+        if not rowHighlight:IsRenderingSelection() and not rowHighlight:IsRenderingMouseOver()
+            rowHighlight:Hide()
+        end
+    end
+
+    /*
+    Sizes the highlight as a rounded band across the whole tree, inset a
+    little from its sides, at this row's height. It is placed in this item's
+    coordinates, so its left edge is moved back by this row's indent.
+    */
+    private action PlaceRowHighlight
+        Tree tree = GetTree()
+        if tree = undefined or contents = undefined
+            return now
+        end
+
+        if rowHighlight:GetInterfaceScale() not= GetInterfaceScale()
+            rowHighlight:SetInterfaceScale(GetInterfaceScale())
+        end
+
+        number inset = 4 * GetInterfaceScale()
+        number x = tree:GetGlobalX() - GetGlobalX() + inset
+        number width = tree:GetWidth() - inset * 2
+        if width < 0
+            width = 0
+        end
+        number height = contents:GetHeight()
+
+        if rowHighlight:GetX() not= x or rowHighlight:GetY() not= 0
+            rowHighlight:SetPosition(x, 0)
+        end
+        if rowHighlight:GetWidth() not= width or rowHighlight:GetHeight() not= height
+            rowHighlight:SetSize(width, height)
+        end
+
+        LayoutProperties properties = rowHighlight:GetDefaultLayoutProperties()
+        if properties:NeedsRendering()
+            rowHighlight:LoadGraphics(properties)
         end
     end
 
@@ -538,10 +694,16 @@ class TreeItem is Control
         // Hardcoded value sufficient for basic cases. Should be replaced with
         // something more responsive to design in the future.
         panelLayout:SetPadding(2)
+        // The indent is one and a half lines of the font, in the same units
+        // as the font size; TreeItemLayout scales it. The font is shared
+        // with the label, which resizes it when it draws, so a copy at the
+        // unscaled size is measured.
         integer height = 12
         Font font = properties:GetFont()
         if font not= undefined
-            height = font:GetLineHeight()
+            Font measure = font:Copy()
+            measure:SetSize(cast(integer, properties:GetFontSize()))
+            height = measure:GetLineHeight()
         end
         panelProperties:SetPixelX(height/2 * 3)
 

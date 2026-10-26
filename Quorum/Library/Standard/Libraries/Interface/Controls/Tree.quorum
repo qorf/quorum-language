@@ -60,14 +60,31 @@ class Tree is Control, FirstLetterNavigator
 
     action Add(TreeItem item)
         item:SetTree(me)
+        item:SetFontSize(GetFontSize())
         treeItems:Add(item)
         panel:Add(item)
     end
 
     action Add(integer location, TreeItem item)
         item:SetTree(me)
+        item:SetFontSize(GetFontSize())
         treeItems:Add(location, item)
         panel:Add(location, item)
+    end
+
+    /*
+    This action sets the font size of this tree and of all of its items, as a
+    List does for its items.
+
+    Attribute: Parameter size The font size for the tree and its items.
+    */
+    action SetFontSize(integer size)
+        parent:Control:SetFontSize(size)
+        integer i = 0
+        repeat while i < treeItems:GetSize()
+            treeItems:Get(i):SetFontSize(size)
+            i = i + 1
+        end
     end
     
     action Remove(TreeItem item)

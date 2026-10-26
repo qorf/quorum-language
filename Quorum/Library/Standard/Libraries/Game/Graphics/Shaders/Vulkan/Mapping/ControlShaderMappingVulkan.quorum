@@ -368,9 +368,11 @@ borderColor = control:GetMouseOverBorderColor()
         end
 
         shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
-        shape:SetDataForAllVertices(bordersIndex, rightBorder)
+        // Left, top, right, bottom: the order the fragment shader reads, and
+        // the OpenGL vertex shader's (ControlVertexShaderOpenGL).
+        shape:SetDataForAllVertices(bordersIndex, leftBorder)
         shape:SetDataForAllVertices(bordersIndex + 1, topBorder)
-        shape:SetDataForAllVertices(bordersIndex + 2, leftBorder)
+        shape:SetDataForAllVertices(bordersIndex + 2, rightBorder)
         shape:SetDataForAllVertices(bordersIndex + 3, bottomBorder)
         shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
         shape:SetDataForAllVertices(antiAliasIndex, 1.0 / height)

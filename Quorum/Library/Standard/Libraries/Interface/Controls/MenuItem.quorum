@@ -405,6 +405,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     end
 
     action BeginMouseOver
+        parent:Control:BeginMouseOver()
         MenuRoot bar = GetMenuRoot()
         if bar not= undefined and bar:IsSelecting()
             if not open

@@ -1752,7 +1752,18 @@ class Item2D is Item
     */
     action ProcessTouchEvent(TouchEvent event)
 
-        if not Contains(event:GetX(), event:GetY())
+        // The touch is in screen coordinates and Contains in world ones, so it
+        // goes through the layer's camera, as for gestures.
+        number touchX = event:GetX()
+        number touchY = event:GetY()
+        Layer touchLayer = GetLayer()
+        if touchLayer not= undefined and touchLayer:GetCamera() not= undefined
+            Vector3 touchPoint = touchLayer:GetCamera():ScreenToWorldCoordinates(event:GetX() - touchLayer:GetViewportX(), event:GetY() - touchLayer:GetViewportY())
+            touchX = touchPoint:GetX()
+            touchY = touchPoint:GetY()
+        end
+
+        if not Contains(touchX, touchY)
             if parentItem not= undefined
                 parentItem:ProcessTouchEvent(event)
             end

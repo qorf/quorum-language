@@ -73,6 +73,9 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         iconLayoutProperties:SetLeftMargin(4)
         
         defaultProperties = GetDefaultLayoutProperties()
+        // Only the top edge has a border: the selected tab's accent line
+        // (the Tab selection border in the interface options).
+        defaultProperties:SetBorderStyle(defaultProperties:TOP)
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
 

@@ -1,0 +1,56 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+
+/*
+The TreeRowHighlight class is the rounded band behind a tree row that shows
+it is selected or that the mouse (or a finger) is over it. Each TreeItem has
+one, hidden until it is needed, and stretches it across the tree's width. It
+uses the TreeItem colors from the interface options: the selection color, the
+unfocused selection color when the tree doesn't have the focus, and the mouse
+over color. Most programs never use this class directly.
+*/
+class TreeRowHighlight is Control
+    // Whether a selection is drawn in the focused color (see SetShowsFocus).
+    boolean showsFocus = true
+
+    on create
+        SetInterfaceOptionsKey("TreeItem")
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+        SetFocusable(false)
+    end
+
+    /*
+    The SetShowsFocus action sets whether a selection is drawn in the
+    selection color (the tree has the focus) or in the unfocused selection
+    color.
+
+    Attribute: Parameter shows True to draw the selection in the focused color.
+    */
+    action SetShowsFocus(boolean shows)
+        if showsFocus not= shows
+            showsFocus = shows
+            RequestVerticesUpdate()
+        end
+    end
+
+    /*
+    The control shader draws the unfocused selection color when this returns
+    false. The band itself never has the focus; this reports whether its tree
+    does.
+    */
+    action IsRenderingFocus returns boolean
+        return showsFocus
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        parent:Control:LoadGraphics(properties)
+    end
+end

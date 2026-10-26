@@ -117,20 +117,32 @@ class ButtonLayout is Layout
                 container:SetHeight(totalHeight)
             end
         else
+            // Margins are in unscaled pixels, like the padding they come from,
+            // so they grow with the interface scale as the font does.
+            number marginScale = container:GetInterfaceScale()
             
 number iconWidth = 0
             number iconHeight = 0
             number iconLeftMargin = 0
 
             if icon not= undefined
-                // For simplicity, presume the Icon is always the height of the container minus the label margins, for now, and use its aspect ratio for width.
-                iconHeight = containerHeight - label:GetTopMargin() - label:GetBottomMargin()
+                // The icon is the height of the button's inside: the container
+                // less the label's margins. When this layout sets the height
+                // itself (below), the container isn't that height yet, so the
+                // icon is the height the inside will be: one line of the font,
+                // or the label's height.
+                iconHeight = containerHeight - (label:GetTopMargin() * marginScale) - (label:GetBottomMargin() * marginScale)
+                if setContainerHeight and containerHeightMode = container:FIT_FONT
+                    iconHeight = container:GetFont():GetLineHeight()
+                elseif setContainerHeight and containerHeightMode = container:FIT_CONTENTS
+                    iconHeight = label:GetHeight()
+                end
                 iconWidth = iconHeight * icon:GetPercentageWidth()
-                iconLeftMargin = icon:GetLeftMargin()
+                iconLeftMargin = (icon:GetLeftMargin() * marginScale)
             end
 
-            number labelLeftMargin = label:GetLeftMargin()
-            number labelRightMargin = label:GetRightMargin()
+            number labelLeftMargin = (label:GetLeftMargin() * marginScale)
+            number labelRightMargin = (label:GetRightMargin() * marginScale)
 
             if setContainerWidth = false
                 label:SetMaximumWidth(container:GetWidth() - iconWidth - iconLeftMargin - labelLeftMargin - labelRightMargin)
@@ -146,11 +158,11 @@ number iconWidth = 0
                 constant integer maximumFontSize = 100
 
                 number candidateHeight = candidatePercentage * containerHeight
-                if candidateHeight > containerHeight - label:GetTopMargin() - label:GetBottomMargin()
-                    candidateHeight = containerHeight - label:GetTopMargin() - label:GetBottomMargin()
+                if candidateHeight > containerHeight - (label:GetTopMargin() * marginScale) - (label:GetBottomMargin() * marginScale)
+                    candidateHeight = containerHeight - (label:GetTopMargin() * marginScale) - (label:GetBottomMargin() * marginScale)
                 end
-                if icon not= undefined and (candidateHeight > containerHeight - icon:GetTopMargin() - icon:GetBottomMargin())
-                    candidateHeight = containerHeight - icon:GetTopMargin() - icon:GetBottomMargin()
+                if icon not= undefined and (candidateHeight > containerHeight - (icon:GetTopMargin() * marginScale) - (icon:GetBottomMargin() * marginScale))
+                    candidateHeight = containerHeight - (icon:GetTopMargin() * marginScale) - (icon:GetBottomMargin() * marginScale)
                 end
 
                 integer candidateFontSize = label:GetFontSize()
@@ -159,13 +171,13 @@ number iconWidth = 0
                 number heightRatio = candidateHeight / startHeight
 
                 number candidateWidth = candidatePercentage * containerWidth
-                if candidateWidth > containerWidth - label:GetLeftMargin() - label:GetRightMargin()
-                    candidateWidth = containerWidth - label:GetLeftMargin() - label:GetRightMargin()
+                if candidateWidth > containerWidth - (label:GetLeftMargin() * marginScale) - (label:GetRightMargin() * marginScale)
+                    candidateWidth = containerWidth - (label:GetLeftMargin() * marginScale) - (label:GetRightMargin() * marginScale)
                 end
 
                 // Shorten the candidate width area by the predicted size of the icon
                 if icon not= undefined
-                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - icon:GetLeftMargin()
+                    candidateWidth = candidateWidth - (startHeight * heightRatio * icon:GetPercentageWidth()) - (icon:GetLeftMargin() * marginScale)
                 end
 
                 number startWidth = CalculateTextLength(label:GetFont(), label:GetText())
@@ -241,8 +253,8 @@ candidateFontSize = cast(integer, candidateFontSize * widthRatio)
             using the MAINTAIN_ASPECT_RATIO mode).
             */
             number totalHeight = 0
-            number labelTopMargin = label:GetTopMargin()
-            number labelBottomMargin = label:GetBottomMargin()
+            number labelTopMargin = (label:GetTopMargin() * marginScale)
+            number labelBottomMargin = (label:GetBottomMargin() * marginScale)
             if setContainerHeight
                 if containerHeightMode = container:FIT_FONT
                     totalHeight = container:GetFont():GetLineHeight() + labelTopMargin + labelBottomMargin
@@ -275,8 +287,8 @@ candidateFontSize = cast(integer, candidateFontSize * widthRatio)
             end
             
             number iconY = (totalHeight - iconHeight) / 2.0
-            if icon not= undefined and iconY < icon:GetBottomMargin()
-                iconY = icon:GetBottomMargin()
+            if icon not= undefined and iconY < (icon:GetBottomMargin() * marginScale)
+                iconY = (icon:GetBottomMargin() * marginScale)
             end
 
             number labelX = iconX
@@ -289,9 +301,20 @@ candidateFontSize = cast(integer, candidateFontSize * widthRatio)
             number labelY = (totalHeight - label:GetHeight()) / 2.0
             if label:GetLineCount() > 1
                 labelY = labelY + label:GetFont():GetLineHeight() * (label:GetLineCount() - 1)
-            end
-            if labelY < labelBottomMargin
-                labelY = labelBottomMargin
+                if labelY < labelBottomMargin
+                    labelY = labelBottomMargin
+                end
+            else
+                // One line: center the letters above the baseline (the
+                // ascent), not the whole line, whose descent is empty for
+                // most button text. The label is drawn from the bottom of its
+                // descent, so it starts that much lower.
+                Font labelFont = label:GetFont()
+                number descent = labelFont:GetMaximumDescent()
+                if descent < 0
+                    descent = -descent
+                end
+                labelY = (totalHeight - labelFont:GetMaximumAscent()) / 2.0 - descent
             end
 
             if icon not= undefined

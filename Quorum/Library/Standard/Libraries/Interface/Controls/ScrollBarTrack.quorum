@@ -11,6 +11,9 @@ class ScrollBarTrack is Control
 
     on create
         SetName("Scroll Bar Track")
+        // A click or tap on the track pages toward it
+        // (ScrollBarTrackPageBehavior).
+        SetInputGroup("ScrollBarTrack")
 
         ManualLayout layout
         SetLayout(layout)
@@ -46,6 +49,18 @@ class ScrollBarTrack is Control
             result = result:GetParent()
         end
         return cast(ScrollableControl, result)
+    end
+
+    // The handle inside this track, or undefined.
+    action GetHandle returns ScrollBarControl
+        integer i = 0
+        repeat while i < GetChildren():GetSize()
+            if GetChildren():Get(i) is ScrollBarControl
+                return cast(ScrollBarControl, GetChildren():Get(i))
+            end
+            i = i + 1
+        end
+        return undefined
     end
 
     action IsVertical returns boolean

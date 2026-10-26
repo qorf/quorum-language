@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Interface.Item
 use Libraries.Interface.Item3D
+use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
@@ -157,6 +158,12 @@ class Layer3D is Layer
     GameStateManager manager
     SystemHelper systemHelper
     GraphicsManager graphics = undefined
+
+    // The viewport the safe region last set, to tell it from one a program set.
+    integer safeViewportX = 0
+    integer safeViewportY = 0
+    integer safeViewportWidth = 0
+    integer safeViewportHeight = 0
     
 // The painter is lazy-loaded. Once it's loaded, it'll instantiate a different type of Painter depending on if the system uses OpenGL or Vulkan.
     Painter3D painter = undefined
@@ -865,6 +872,10 @@ class Layer3D is Layer
     to use this action directly.
     */
     action Update(number seconds)
+        if UsesSafeRegion() and UpdateSafeRegion()
+            ApplySafeRegion()
+        end
+
         // The next leaf is found before an item is updated, so an item can
         // remove itself while it updates.
         RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
@@ -3458,7 +3469,44 @@ they were added. Behaviors must not be added or removed during this loop.*/
 
         camera:Update()
 
+        if UsesSafeRegion()
+            UpdateSafeRegion()
+            ApplySafeRegion()
+        end
+
         // Resize items, if reasonable to do so, here.
+    end
+
+    /*
+    This action draws the scene in the content region (see
+    Layer:GetContentRegion): the viewport becomes the region, and the
+    camera's width and height match it, so its view fits. A 3D layer has no
+    layout, so this is how it avoids camera cutouts and system bars. It only
+    changes a viewport this layer chose (the whole display, or the last safe
+    region), never one the program set.
+    */
+    action ApplySafeRegion
+        GameDisplay display = manager:GetGameDisplay()
+        if display = undefined or camera = undefined
+            return now
+        end
+
+        boolean wholeDisplay = GetViewportX() = 0 and GetViewportY() = 0 and GetViewportWidth() = display:GetWidth() and GetViewportHeight() = display:GetHeight()
+        boolean lastSafe = GetViewportX() = safeViewportX and GetViewportY() = safeViewportY and GetViewportWidth() = safeViewportWidth and GetViewportHeight() = safeViewportHeight
+        if not wholeDisplay and not lastSafe
+            return now
+        end
+
+        Rectangle region = GetContentRegion()
+        safeViewportX = cast(integer, region:GetX())
+        safeViewportY = cast(integer, region:GetY())
+        safeViewportWidth = cast(integer, region:GetWidth())
+        safeViewportHeight = cast(integer, region:GetHeight())
+
+        SetViewport(safeViewportX, safeViewportY, safeViewportWidth, safeViewportHeight)
+        camera:SetWidth(safeViewportWidth)
+        camera:SetHeight(safeViewportHeight)
+        camera:Update()
     end
 
     /*

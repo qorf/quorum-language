@@ -3,6 +3,7 @@ package Libraries.Game
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.OrthographicCamera
 use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.TouchEvent
@@ -143,6 +144,10 @@ class Layer2D is Layer
 
     Array<Control> controls
     boolean shouldLayout = false
+
+    // How far the camera is moved to keep content in the safe region.
+    number safeShiftX = 0
+    number safeShiftY = 0
     boolean shouldSortDepthBuffer = true
 
     // A pair of reusable Vector2 objects used for one-off calculations, such
@@ -1130,10 +1135,43 @@ CollisionEdge2D edge = item:GetCollisionList()
             counter = counter + 1
         end
 
+        if UsesSafeRegion() and UpdateSafeRegion()
+            ApplySafeRegion()
+        end
+
         if shouldLayout and layerLayout not= undefined
-            layerLayout:Layout(undefined, controls, camera:GetWidth(), camera:GetHeight())
+            LayoutControls()
             shouldLayout = false
         end
+    end
+
+    /*
+    Lays out this layer's controls in the camera's size, or, if this layer
+    uses the safe region, in the safe region's size. Only this layer's own
+    layout uses it: each control lays out its insides from its own size.
+    */
+    private action LayoutControls
+        if UsesSafeRegion()
+            Rectangle region = GetContentRegion()
+            layerLayout:Layout(undefined, controls, region:GetWidth(), region:GetHeight())
+        else
+            layerLayout:Layout(undefined, controls, camera:GetWidth(), camera:GetHeight())
+        end
+    end
+
+    /*
+    This action moves this layer's camera so that (0, 0) is at the corner of
+    the content region (see Layer:GetContentRegion), and lays the controls out
+    again in the region's size. No item's position changes. The camera moves
+    only by the difference from the last move, so calling this again is safe.
+    */
+    action ApplySafeRegion
+        Rectangle region = GetContentRegion()
+        camera:Move(safeShiftX - region:GetX(), safeShiftY - region:GetY(), 0)
+        camera:Update()
+        safeShiftX = region:GetX()
+        safeShiftY = region:GetY()
+        shouldLayout = true
     end
     
     /*
@@ -1557,11 +1595,16 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
         Item2D temp = undefined
         Item result = undefined
 
-        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX() - GetViewportX(), event:GetY() - GetViewportY())
 
         repeat while counter > 0 and processing
             counter = counter - 1
-            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+            // As for the mouse (DoesItemContainPoint), hidden items and the
+            // clipped-away parts of items don't take touches.
+            temp = items:Get(counter):GetVisibleItemAt(pointVector:GetX(), pointVector:GetY())
+            if temp not= undefined and not DoesItemContainPoint(temp, pointVector:GetX(), pointVector:GetY())
+                temp = undefined
+            end
 
             if temp not= undefined
                 event:SetSource(temp)
@@ -1639,11 +1682,16 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
     public constant integer PINCH = 6
 */
 
-        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX(), event:GetY())
+        Vector3 pointVector = camera:ScreenToWorldCoordinates(event:GetX() - GetViewportX(), event:GetY() - GetViewportY())
 
         repeat while counter > 0 and processing
             counter = counter - 1
-            temp = items:Get(counter):GetItemAt(pointVector:GetX(), pointVector:GetY())
+            // As for the mouse (DoesItemContainPoint), hidden items and the
+            // clipped-away parts of items don't take touches.
+            temp = items:Get(counter):GetVisibleItemAt(pointVector:GetX(), pointVector:GetY())
+            if temp not= undefined and not DoesItemContainPoint(temp, pointVector:GetX(), pointVector:GetY())
+                temp = undefined
+            end
 
             if temp not= undefined
                 event:SetSource(temp)
@@ -3084,6 +3132,11 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
         camera:SetHeight(height)
 
         camera:Update()
+
+        if UsesSafeRegion()
+            UpdateSafeRegion()
+            ApplySafeRegion()
+        end
 
         if layerLayout not= undefined
             shouldLayout = true

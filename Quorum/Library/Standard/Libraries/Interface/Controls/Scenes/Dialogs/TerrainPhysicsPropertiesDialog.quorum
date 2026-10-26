@@ -62,31 +62,9 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         // closes it when the panel shows several sections (step 15).
         SetHeading(headingLabel)
 
-        FlowLayout collisionLayout
-        Control collisionContainer
-        collisionContainer:SetLayout(collisionLayout)
-        collisionContainer:SetPercentageWidth(1.0)
-        collisionContainer:SetVerticalLayoutMode(collisionContainer:FIT_CONTENTS)
-        collisionContainer:SetLeftMargin(20)
-        collisionContainer:SetTopMargin(10)
-        collisionContainer:SetRightMargin(30)
-        collisionContainer:SetBottomMargin(10)
-
-        // The label is on its own line, with the choices under it.
-        FlowLayout collisionLabelLayout
-        Control collisionLabelLine
-        collisionLabelLine:SetLayout(collisionLabelLayout)
-        collisionLabelLine:SetPercentageWidth(1.0)
-        collisionLabelLine:SetVerticalLayoutMode(collisionLabelLine:FIT_CONTENTS)
-        collisionLabelLine:SetLeftMargin(20)
-        collisionLabelLine:SetTopMargin(10)
-        collisionLabelLine:SetRightMargin(30)
-        Label collisionLabel
-        collisionLabel:SetText("Collision in games:")
-        collisionLabelLine:Add(collisionLabel)
-        panel:Add(collisionLabelLine)
-        collisionContainer:SetTopMargin(4)
-
+        // How the ground collides in games, and its friction, in one card.
+        Control collisionCard = AddCard(panel, "Collision in games")
+        Control collisionContainer = MakeCardLine()
         ButtonGroup group
         collisionGroup = group
         collisionGroup:SetName("Collision in games")
@@ -103,20 +81,10 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         collisionGroup:AddSelectionListener(me)
         collisionContainer:Add(collisionGroup)
         focusArray:Add(collisionGroup)
-        panel:Add(collisionContainer)
+        collisionCard:Add(collisionContainer)
 
-        FlowLayout frictionLayout
-        Control frictionContainer
-        frictionContainer:SetLayout(frictionLayout)
-        frictionContainer:SetPercentageWidth(1.0)
-        frictionContainer:SetVerticalLayoutMode(frictionContainer:FIT_CONTENTS)
-        frictionContainer:SetLeftMargin(20)
-        frictionContainer:SetTopMargin(10)
-        frictionContainer:SetRightMargin(30)
-        frictionContainer:SetBottomMargin(10)
-
+        Control frictionContainer = MakeCardLine()
         frictionContainer:Add(MakeFieldLabel("Friction:"))
-
         TextField field
         frictionField = field
         frictionField:SetName("Friction")
@@ -127,17 +95,11 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
         frictionContainer:Add(frictionField)
         focusArray:Add(frictionField)
-        panel:Add(frictionContainer)
+        collisionCard:Add(frictionContainer)
 
-        FlowLayout streamingLayout
-        Control streamingContainer
-        streamingContainer:SetLayout(streamingLayout)
-        streamingContainer:SetPercentageWidth(1.0)
-        streamingContainer:SetVerticalLayoutMode(streamingContainer:FIT_CONTENTS)
-        streamingContainer:SetLeftMargin(20)
-        streamingContainer:SetTopMargin(10)
-        streamingContainer:SetRightMargin(30)
-        streamingContainer:SetBottomMargin(4)
+        // Streaming, and how far around the camera it draws, in one card.
+        Control streamingCard = AddCard(panel, "Streaming")
+        Control streamingContainer = MakeCardLine()
         Checkbox checkbox
         streamingCheckbox = checkbox
         streamingCheckbox:SetName("Stream Regions")
@@ -147,17 +109,9 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         streamingCheckbox:SetBehavior(streamingBehavior)
         streamingContainer:Add(streamingCheckbox)
         focusArray:Add(streamingCheckbox)
-        panel:Add(streamingContainer)
+        streamingCard:Add(streamingContainer)
 
-        FlowLayout radiusLayout
-        Control radiusContainer
-        radiusContainer:SetLayout(radiusLayout)
-        radiusContainer:SetPercentageWidth(1.0)
-        radiusContainer:SetVerticalLayoutMode(radiusContainer:FIT_CONTENTS)
-        radiusContainer:SetLeftMargin(20)
-        radiusContainer:SetTopMargin(4)
-        radiusContainer:SetRightMargin(30)
-        radiusContainer:SetBottomMargin(10)
+        Control radiusContainer = MakeCardLine()
         radiusContainer:Add(MakeFieldLabel("Draw radius:"))
         TextField radius
         radiusField = radius
@@ -169,7 +123,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         radiusField:SetHorizontalLayoutMode(radiusContainer:FILL)
         radiusContainer:Add(radiusField)
         focusArray:Add(radiusField)
-        panel:Add(radiusContainer)
+        streamingCard:Add(radiusContainer)
     end
 
     /*
