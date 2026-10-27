@@ -219,6 +219,13 @@ java {
     }
 }
 
+// The sources are UTF-8. Without this, javac reads them in the system's default
+// encoding: UTF-8 on a Mac, but the code page on Windows (usually Cp1252), which
+// turns characters like the bullet in TextAdjust.java into three and fails.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
 jar {
     manifest {
 
