@@ -185,6 +185,14 @@ public class AndroidApplication
     
     public boolean RequiresOrientationChange(AndroidConfiguration_ config)
     {
+        // Any orientation: nothing to wait for; the sensor is followed.
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__ANY_ORIENTATION_())
+        {
+            if (!hasBeenOriented)
+                ResetOrientationToDefault(config);
+            return false;
+        }
+
         boolean required = true;
         
         if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
@@ -225,6 +233,11 @@ public class AndroidApplication
         else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
         {
             androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__ANY_ORIENTATION_())
+        {
+            // Every way up, unless the person locked the rotation.
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         }
         
         hasBeenOriented = true;

@@ -6,11 +6,13 @@ class AndroidConfiguration is ApplicationConfiguration
 
     public constant integer LANDSCAPE = 1
     public constant integer PORTRAIT = 2
+    public constant integer ANY_ORIENTATION = 3
 
     /*
     What orientation the phone should be in by default when running a Game.
-    This should be one of either the LANDSCAPE or PORTRAIT constants. The 
-    default value is LANDSCAPE.
+    This should be one of the LANDSCAPE, PORTRAIT or ANY_ORIENTATION
+    constants. ANY_ORIENTATION follows the device as it turns, unless the
+    person has locked the rotation. The default value is LANDSCAPE.
     */
     public integer defaultOrientation = LANDSCAPE
 

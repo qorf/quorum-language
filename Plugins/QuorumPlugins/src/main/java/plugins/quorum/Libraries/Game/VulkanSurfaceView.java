@@ -5,6 +5,9 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.accessibility.AccessibilityNodeProvider;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
+import plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput;
 import plugins.quorum.Libraries.Interface.Accessibility.AndroidAccessibilityProvider;
 
 /*
@@ -35,6 +38,19 @@ public class VulkanSurfaceView extends SurfaceView
         input.plugin_.AddEvent(event);
         gestureDetector.onTouchEvent(event);
         return true;
+    }
+
+    // The keyboard types into Quorum's focused text control (AndroidTextInput).
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs)
+    {
+        return AndroidTextInput.CreateConnection(this, outAttrs);
+    }
+
+    @Override
+    public boolean onCheckIsTextEditor()
+    {
+        return AndroidTextInput.IsActive();
     }
 
     // TalkBack's tree of Quorum's items (AndroidAccessibilityProvider).

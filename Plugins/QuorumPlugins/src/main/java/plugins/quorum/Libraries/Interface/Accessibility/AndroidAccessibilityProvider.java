@@ -24,6 +24,12 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
 
     private static AndroidAccessibilityProvider provider = null;
 
+    // The custom "Back to the group" action on chart parts.
+    public static final int ACTION_CHART_ESCAPE = 0x7f0b0001;
+    // Chart parts that move by value (TalkBack's Actions menu).
+    public static final int ACTION_CHART_UP = 0x7f0b0002;
+    public static final int ACTION_CHART_DOWN = 0x7f0b0003;
+
     private final View view;
     // The snapshot, by id, and the top-level ids in reading order.
     private volatile Map<Integer, AndroidNode> nodes = new HashMap<>();
@@ -75,13 +81,13 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         Moves TalkBack to a node, for a focus change that came from Quorum
         (a new page, the program's own Focus call), from the game thread.
      */
-    public void MoveTalkBackTo(final int id) {
+    public void MoveTalkBackTo(final int id, final String reason) {
         view.post(new Runnable() {
             public void run() {
                 if (id == accessibilityFocusId || !nodes.containsKey(id) || !IsTalkBackOn()) {
                     return;
                 }
-                SetAccessibilityFocus(id);
+                SetAccessibilityFocus(id, "Quorum (" + reason + ")");
             }
         });
     }
@@ -126,6 +132,7 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         info.setEditable(node.editable);
         info.setHeading(node.heading);
         info.setClickable(node.clickable);
+        info.setFocused(node.focused);
         info.setFocusable(node.clickable || node.editable);
         info.setScreenReaderFocusable(node.readerFocusable);
         info.setContainerTitle(node.containerTitle);
@@ -141,6 +148,21 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
             }
         }
+        if (node.editable) {
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT);
+        }
+        if (node.escapeLabel != null) {
+            info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_CHART_ESCAPE, node.escapeLabel));
+        }
+        // Not scroll actions: TalkBack sends those when a swipe reaches the
+        // end of something scrollable, which pulled it back into the chart.
+        if (node.adjustable) {
+            info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_CHART_UP, "Next by value"));
+            info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_CHART_DOWN, "Previous by value"));
+        }
+        if (node.editable && !node.focused) {
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_FOCUS);
+        }
         return info;
     }
 
@@ -153,9 +175,10 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         if (node == null) {
             return false;
         }
+        Log.d(TAG, "TalkBack action " + ActionName(action) + " on " + Describe(node, id));
         switch (action) {
             case AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS:
-                SetAccessibilityFocus(id);
+                SetAccessibilityFocus(id, "TalkBack");
                 // Quorum's focus follows TalkBack, as it follows VoiceOver.
                 AndroidAccessibility.FocusFromTalkBack(id);
                 return true;
@@ -165,11 +188,34 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                     Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED), id);
                 }
                 return true;
+            case ACTION_CHART_ESCAPE:
+                AndroidAccessibility.ChartFromTalkBack(id, AndroidAccessibility.CHART_ESCAPE);
+                return true;
+            case ACTION_CHART_UP:
+                AndroidAccessibility.ChartFromTalkBack(id, AndroidAccessibility.CHART_UP);
+                return true;
+            case ACTION_CHART_DOWN:
+                AndroidAccessibility.ChartFromTalkBack(id, AndroidAccessibility.CHART_DOWN);
+                return true;
+            case AccessibilityNodeInfo.ACTION_FOCUS:
+                // TalkBack's double tap on a field asks for input focus
+                // first: the field takes it and the keyboard opens.
+                if (!node.editable) {
+                    return false;
+                }
+                AndroidAccessibility.ActivateFromTalkBack(id);
+                return true;
+            case AccessibilityNodeInfo.ACTION_SET_TEXT:
+                if (!node.editable || arguments == null) {
+                    return false;
+                }
+                CharSequence value = arguments.getCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
+                AndroidAccessibility.SetTextFromTalkBack(id, value == null ? "" : value.toString());
+                return true;
             case AccessibilityNodeInfo.ACTION_CLICK:
                 if (!node.clickable) {
                     return false;
                 }
-                Log.d(TAG, "TalkBack double tap on \"" + node.text + "\"");
                 AndroidAccessibility.ActivateFromTalkBack(id);
                 Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED), id);
                 return true;
@@ -241,14 +287,14 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         return found;
     }
 
-    private void SetAccessibilityFocus(int id) {
+    private void SetAccessibilityFocus(int id, String who) {
         int old = accessibilityFocusId;
         accessibilityFocusId = id;
         if (old != AndroidNode.HOST && old != id) {
             Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUS_CLEARED), old);
         }
         AndroidNode node = nodes.get(id);
-        Log.d(TAG, "TalkBack moved to " + (node == null ? id : node.className + " \"" + node.text + "\""));
+        Log.d(TAG, who + " moved to " + Describe(node, id));
         Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED), id);
     }
 
@@ -268,7 +314,39 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         return manager != null && manager.isEnabled() && manager.isTouchExplorationEnabled();
     }
 
+    // A node for the log: class, text (or the hint when there's none), and
+    // where it is on the screen.
+    private String Describe(AndroidNode node, int id) {
+        if (node == null) {
+            return "" + id;
+        }
+        String words = "\"" + (node.text == null ? "" : node.text) + "\"";
+        if (node.text == null && node.hint != null) {
+            words = words + " (" + node.hint + ")";
+        }
+        return node.className + " " + words + " at " + node.bounds.toShortString();
+    }
+
+    private String ActionName(int action) {
+        switch (action) {
+            case AccessibilityNodeInfo.ACTION_CLICK: return "click";
+            case AccessibilityNodeInfo.ACTION_FOCUS: return "focus";
+            case AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS: return "accessibility focus";
+            case AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS: return "clear accessibility focus";
+            case AccessibilityNodeInfo.ACTION_SET_TEXT: return "set text";
+            case ACTION_CHART_ESCAPE: return "back to the group";
+            case ACTION_CHART_UP: return "next by value";
+            case ACTION_CHART_DOWN: return "previous by value";
+        }
+        return "" + action;
+    }
+
     private void Send(AccessibilityEvent event, int id) {
+        // Android throws when no accessibility service is on.
+        AccessibilityManager manager = (AccessibilityManager) view.getContext().getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+        if (manager == null || !manager.isEnabled()) {
+            return;
+        }
         ViewParent parent = view.getParent();
         if (parent == null) {
             return;

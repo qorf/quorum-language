@@ -15,6 +15,7 @@ import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Controls.RadioButton_;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -310,7 +311,13 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         if (IOSAccessibility.debug) {
             System.out.println("VoiceOver moved to " + getClass().getSimpleName() + " \"" + getAccessibilityLabel() + "\"");
         }
-        item.Focus();
+        // A radio button takes the focus without being selected: a double
+        // tap selects it (RadioButtonIOS.activate).
+        if (item instanceof RadioButton_) {
+            ((RadioButton_) item).FocusWithoutSelecting();
+        } else {
+            item.Focus();
+        }
     }
 
     @Override

@@ -56,13 +56,8 @@ public class AndroidKeyboard {
     public static final int DONE = 6;
   
     public Object me_ = null;
-    static boolean created = false;         // tracks if keyboard is already created or not
-    static int layoutID;                    // to keep track of the layout
-    static int textID;                      // to keep track of the textfield
     public int keyboardType = -1;           
     public int returnButtonType = -1;
-    public GameStateManager manager = new GameStateManager();   // needed to manually flush the keyboard events sometimes
-    public static AndroidInput in = new AndroidInput();         // needed to manually flush the keyboard events sometimes
     
     // Allows users to display a keyboard without specifying parameters.
     // Creates one based on default parameters.
@@ -71,135 +66,26 @@ public class AndroidKeyboard {
         DisplayKeyboard(TEXT_NO_CORRECTIONS, DONE);
     }
     
-    // Main function for creating and displaying the soft keyboard.
-    // keyboardType should be one of the constants from above to set the type
-    // of keyboard to create, and returnButtonType should do the same to set
-    // the type of return button.
+    // Shows the soft keyboard for the focused text field or box, with a
+    // keyboard type and a return button from the constants above. The
+    // keyboard types into the game's own view (AndroidTextInput), as on iOS.
     public void DisplayKeyboard(int keyboardType, int returnButtonType)
-    {   
-        if(created) {
-            // if a keyboard has already been created, close this one and exit function
-            CloseKeyboard();
-            return;
-        }
-        
+    {
         this.keyboardType = keyboardType;
         this.returnButtonType = returnButtonType;
-        if(manager.GetInput() instanceof AndroidInput)
-            in = (AndroidInput)manager.GetInput();
-        
-        // Programmatically creating a new layout and textview.
-        // Layout parameters must be set to be added to the UI correctly.
-        LinearLayout layout = new LinearLayout(getContext());
-        layoutID = LinearLayout.generateViewId();
-        layout.setId(layoutID);
-        
-        EditText textField = new EditText(getContext());
-        textID = EditText.generateViewId();
-        textField.setId(textID);
-        
-        LinearLayout.LayoutParams textFieldParams = new LinearLayout.LayoutParams(
-            LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        //textFieldParams.height = 0;   // this line needs to be readded to hide the textfield
-        textField.setLayoutParams(textFieldParams);
-        
-        layout.addView(textField);
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT);
-              
-        // InputMethodManager deals with handling different types of input
-        // (touch, keyboard, etc.). We have to get the system service that
-        // lets us enter text on the keyboard.
-        InputMethodManager methodManager = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        SetKeyboardType(keyboardType, textField);
-        SetKeyboardReturnButton(returnButtonType, textField);
-        
-        // Anything updating the UI has to be run on the UI thread.
-        // Will crash otherwise. Adds the layout to the OpenGL surface.
-        getActivity().runOnUiThread(new Runnable(){
-            @Override
-            public void run(){
-                getActivity().addContentView(layout, layoutParams);
-                // Using the method manager from before, we simply toggle
-                // display of the keyboard (on if off, and vice versa). 
-                methodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                textField.requestFocus();   // automatically put cursor on edit text box
-            }
-        });
-       
-        created = true;
-        
-        // TextWatcher looks for changes to the text field and calls these functions
-        // when it changes. 
-        textField.addTextChangedListener(new TextWatcher() {
-            String before = "";
-            @Override
-            public void beforeTextChanged(CharSequence cs, int start, int count, int after) {
-                before = textField.getText().toString();
-            }
-
-            @Override
-            public void onTextChanged(CharSequence cs, int start, int before, int count) {   
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                FixInput(before, textField.getText().toString());
-            }   
-            
-            // Kind of a hack and not the best solution (although Android mostly
-            // does this delete and replace solution as well). We need to make sure
-            // that previous text input events have been processed before we send in
-            // more backspace events. Otherwise, since text is always handled after
-            // keyboard events by the Quorum game update, we will process all the
-            // backspaces at once without any text in the textbox, and then we add
-            // in all the various text strings, causing bad input. This is primarily
-            // needed due to midline spaces, which splits strings up into three
-            // parts (first half, second half, and the new string) but processes
-            // them in reverse order (second half, first half, new string).
-            private void FixInput(String before, String after)
-            {
-                in.HandleTextInputEvents();
-                for(int i = 0; i < before.length(); i++)
-                    KeyboardProcessor.AddKeyboardEvent(0, GLFW_BACKSPACE, QUORUM_BACKSPACE, GLFW_PRESS, 0);
-                TextInputProcessor.AddTextInputEvent(0, 0, after); 
-            }
-        });
-        
-        // Listens for the return/enter key being pressed.
-        textField.setOnEditorActionListener(new OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
-                CloseKeyboard();
-                return true;       
-            }
-        });
-    }   
-    
-    // This function handles closing all of the UI elements that pop up
-    // once opening the keyboard. Hides the keyboard and removes the text input
-    // field from the screen. Then sets created to false so that the DisplayKeyboard
-    // function knows to display all of this again the next time it is called. 
-    public void CloseKeyboard() {
-        if(created) {
-            Activity activity = getActivity();
-            ViewGroup parentView = (ViewGroup) activity.findViewById(layoutID);
-            InputMethodManager methodManager = (InputMethodManager)activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            // All UI changes must be run on the UI thread to avoid crashes
-            activity.runOnUiThread(new Runnable(){
-                @Override
-                public void run(){
-                parentView.removeView(activity.findViewById(layoutID));
-                parentView.removeView(activity.findViewById(textID));
-                methodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                }
-            });
-            created = false;
-        }
+        int inputType = InputTypeFor(keyboardType);
+        boolean lines = returnButtonType == LINEFEED;
+        if (lines)
+            inputType = inputType | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+        AndroidTextInput.Show(inputType, ImeOptionsFor(returnButtonType), lines);
     }
-    
+
+    // Hides the soft keyboard.
+    public void CloseKeyboard()
+    {
+        AndroidTextInput.Hide();
+    }
+
     public int GetKeyboardType()
     {
         return keyboardType;
@@ -217,97 +103,74 @@ public class AndroidKeyboard {
     // within applications on the same device (one messaging app send button
     // looks the same as another if using the same keyboard). See constants in
     // the Quorum class for a descripton of what each looks like.
-    private void SetKeyboardReturnButton(int returnButton, EditText textField)
+    private int ImeOptionsFor(int returnButton)
     {
         switch (returnButton) {
             case SEARCH:
-                textField.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-                break;
+                return EditorInfo.IME_ACTION_SEARCH;
             case NEXT:
-                textField.setImeOptions(EditorInfo.IME_ACTION_NEXT);
-                break;
+                return EditorInfo.IME_ACTION_NEXT;
             case GO:
-                textField.setImeOptions(EditorInfo.IME_ACTION_GO);
-                break;
+                return EditorInfo.IME_ACTION_GO;
             case PREVIOUS:
-                textField.setImeOptions(EditorInfo.IME_ACTION_PREVIOUS);
-                break;
+                return EditorInfo.IME_ACTION_PREVIOUS;
             case SEND:
-                textField.setImeOptions(EditorInfo.IME_ACTION_SEND);
-                break;
+                return EditorInfo.IME_ACTION_SEND;
             case LINEFEED:
-                textField.setInputType(textField.getInputType() | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-                textField.setImeOptions(EditorInfo.IME_ACTION_UNSPECIFIED);
-                break;
+                // The multi-line flag is added in DisplayKeyboard.
+                return EditorInfo.IME_ACTION_UNSPECIFIED;
             case DONE:
             default:
-                textField.setImeOptions(EditorInfo.IME_ACTION_DONE);
-                break;
+                return EditorInfo.IME_ACTION_DONE;
         }
     }
     
     // Function to set the type of keyboard to make, as well as enable/disable
     // any options for it. See the related Quorum class for a description of
     // what each of these constants does. 
-    private void SetKeyboardType(int keyboardType, EditText textField)
+    private int InputTypeFor(int keyboardType)
     {
         switch (keyboardType) {
             case DATE_AND_TIME:
-                textField.setInputType(InputType.TYPE_CLASS_DATETIME);
-                break;
+                return InputType.TYPE_CLASS_DATETIME;
             case DATE:
-                textField.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE);
-                break;
+                return InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_DATE;
             case TIME:
-                textField.setInputType(InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_TIME);
-                break;
+                return InputType.TYPE_CLASS_DATETIME | InputType.TYPE_DATETIME_VARIATION_TIME;
             case NUMERIC_NO_PUNCTUATION:
-                textField.setInputType(InputType.TYPE_CLASS_NUMBER);
-                break;
+                return InputType.TYPE_CLASS_NUMBER;
             case NUMERIC_WITH_DECIMAL:
-                textField.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                break;
+                return InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL;
             case NUMERIC_SIGNED:
-                textField.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
-                break;
+                return InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED;
             case NUMERIC_SIGNED_DECIMAL:
-                textField.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED 
-                    | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                break;
+                return InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED 
+                    | InputType.TYPE_NUMBER_FLAG_DECIMAL;
             case PHONE:
-                textField.setInputType(InputType.TYPE_CLASS_PHONE);
-                break;
+                return InputType.TYPE_CLASS_PHONE;
             case EMAIL_ADDRESS:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
             case TEXT_AUTO_CAPITALIZE_SENTENCES_AUTO_CORRECT:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
-                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
+                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
             case TEXT_AUTO_CAPITALIZE_WORDS_AUTO_CORRECT:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
-                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
+                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_WORDS;
             case TEXT_AUTO_CAPITALIZE_LETTERS_AUTO_CORRECT:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
-                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE 
+                    | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS;
             case TEXT_AUTO_CAPITALIZE_SENTENCES_NO_SUGGESTIONS:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
-                    | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                    | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
             case TEXT_AUTO_CAPITALIZE_WORDS_NO_SUGGESTIONS:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS 
-                    | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS 
+                    | InputType.TYPE_TEXT_FLAG_CAP_WORDS;
             case TEXT_AUTO_CAPITALIZE_LETTERS_NO_SUGGESTIONS:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS 
-                    | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS 
+                    | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS;
             case TEXT_NO_CORRECTIONS:    
             default:
-                textField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-                break;
+                return InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
         }
     }
     

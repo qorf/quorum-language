@@ -1,6 +1,7 @@
 package Libraries.Interface.Forms
 
 use Libraries.Game.IOSConfiguration
+use Libraries.Game.AndroidConfiguration
 
 use Libraries.Game.Game
 use Libraries.Interface.Layouts.ManualLayout
@@ -63,6 +64,9 @@ class Form is Game, FormPrimitiveContainer
         // something changes (IOSConfiguration's drawOnlyWhenNeeded).
         IOSConfiguration ios = GetIOSConfiguration()
         ios:drawOnlyWhenNeeded = true
+        // An app's pages turn with the device, as on iOS.
+        AndroidConfiguration android = GetAndroidConfiguration()
+        android:defaultOrientation = android:ANY_ORIENTATION
         
         StackedRowPage page
         page:SetForm(me)

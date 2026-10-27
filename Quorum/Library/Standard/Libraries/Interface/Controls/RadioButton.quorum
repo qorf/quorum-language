@@ -53,6 +53,9 @@ class RadioButton is ToggleButton
     Control innerIcon
     Label label
     number iconRadius = -1
+    // False while a screen reader moves the focus here
+    // (FocusWithoutSelecting), so the answer doesn't change.
+    boolean selectOnFocus = true
     
     /* Radio Button colors are set using Background, Selection, and Border colors but that would
  conflict with the updated graphics so they are stored for use then nulled out when graphics are loaded 
@@ -205,8 +208,29 @@ label:SetColor(GetFontColor())
         This action is fired if the item received the focus.
     */
     action GainedFocus(FocusEvent event)
-        SetToggleState(true)
+        if selectOnFocus
+            SetToggleState(true)
+        end
         parent:Control:GainedFocus(event)
+    end
+
+    /*
+    This action gives the radio button the focus without selecting it, as
+    VoiceOver and TalkBack do when they move onto the button: the person
+    hears the choice, and a double tap selects it. Arrow keys, touches and
+    clicks still select it when it takes the focus.
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.RadioButton
+
+    RadioButton button
+    button:FocusWithoutSelecting()
+    */
+    action FocusWithoutSelecting
+        selectOnFocus = false
+        Focus()
+        selectOnFocus = true
     end
     /*
         This action gets the next focus item in the button group

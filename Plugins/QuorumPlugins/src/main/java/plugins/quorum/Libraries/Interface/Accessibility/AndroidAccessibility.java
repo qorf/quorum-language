@@ -6,12 +6,18 @@ import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.ListItem_;
+import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Forms.Banner_;
 import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Interface.Controls.List_;
 import quorum.Libraries.Interface.Controls.TextField_;
+import quorum.Libraries.Interface.Controls.TextBox_;
+import quorum.Libraries.Interface.Controls.Charts.Chart_;
+import quorum.Libraries.Interface.Controls.Charts.ChartItem_;
+import plugins.quorum.Libraries.Interface.Mobile.AndroidKeyboard;
+import plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item2D_;
@@ -21,6 +27,8 @@ import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +45,18 @@ public class AndroidAccessibility {
 
     private static AndroidAccessibility instance = null;
 
+    // What TalkBack asked a chart part to do (ChartFromTalkBack).
+    static final int CHART_ESCAPE = 0;
+    static final int CHART_UP = 1;
+    static final int CHART_DOWN = 2;
+
     private final Map<Integer, Item_> items = new LinkedHashMap<>();
     private boolean changed = true;
     // Quorum's focus moved, and TalkBack should follow (not when TalkBack
     // moved it).
     private Item_ focusToFollow = null;
+    // Why TalkBack is moved there, for the log.
+    private String followReason = "";
     private int focusFromTalkBack = AndroidNode.HOST;
     // Where Quorum's focus ended up after TalkBack moved it: a control may
     // pass it on (a radio button to its group, a tree item to its tree).
@@ -93,6 +108,10 @@ public class AndroidAccessibility {
 
     public void FocusChanged(FocusEvent_ event) {
         Item_ item = event.Get_Libraries_Interface_Events_FocusEvent__gainedFocus_();
+        // The keyboard goes when the focus leaves a text control.
+        if (AndroidTextInput.IsActive() && !(item instanceof TextField_) && !(item instanceof TextBox_)) {
+            AndroidTextInput.Hide();
+        }
         if (item == null || !items.containsKey(item.GetHashCode())) {
             return;
         }
@@ -111,6 +130,7 @@ public class AndroidAccessibility {
             return;
         }
         focusToFollow = item;
+        followReason = "focus changed";
     }
 
     public void Notify(Item_ item, String value) {
@@ -146,7 +166,7 @@ public class AndroidAccessibility {
             BuildSnapshot(provider);
         }
         if (focusToFollow != null) {
-            provider.MoveTalkBackTo(focusToFollow.GetHashCode());
+            provider.MoveTalkBackTo(focusToFollow.GetHashCode(), followReason);
             focusToFollow = null;
         }
     }
@@ -157,8 +177,24 @@ public class AndroidAccessibility {
         List<Integer> roots = new ArrayList<>();
 
         List<Item_> all = new ArrayList<>(items.values());
+
+        // A chart shows one level at a time: the ring of its selected part,
+        // as on iOS. Parts outside it aren't nodes.
+        Set<Item_> chartParts = new HashSet<>();
+        for (Item_ item : all) {
+            if (item instanceof Chart_) {
+                ChartItem_ selected = SelectedPart((Chart_) item);
+                if (selected != null && selected != item) {
+                    chartParts.addAll(GetRing(selected));
+                }
+            }
+        }
+
         for (Item_ item : all) {
             if (!item.IsShowing()) {
+                continue;
+            }
+            if (item instanceof ChartItem_ && !(item instanceof Chart_) && !chartParts.contains(item)) {
                 continue;
             }
             AndroidNode node = MakeNode(item);
@@ -195,6 +231,18 @@ public class AndroidAccessibility {
                 node.childIds = InOrder(((Tree_) item).GetTreeItems(), nodes);
             } else if (item instanceof TreeItem_) {
                 node.childIds = InOrder(((TreeItem_) item).GetTreeItems(), nodes);
+            } else if (item instanceof Chart_) {
+                // A chart's parts in ring order.
+                ChartItem_ selected = SelectedPart((Chart_) item);
+                List<Integer> ids = new ArrayList<>();
+                if (selected != null && selected != item) {
+                    for (ChartItem_ part : GetRing(selected)) {
+                        if (nodes.containsKey(part.GetHashCode())) {
+                            ids.add(part.GetHashCode());
+                        }
+                    }
+                }
+                node.childIds = ToArray(ids);
             }
         }
         provider.Publish(nodes, ToArray(roots));
@@ -212,6 +260,13 @@ public class AndroidAccessibility {
             Item_ owner = treeItem.GetParentTreeItem() != null ? treeItem.GetParentTreeItem() : treeItem.GetTree();
             if (owner != null && nodes.containsKey(owner.GetHashCode())) {
                 return owner.GetHashCode();
+            }
+        }
+        // A chart part is in its chart.
+        if (item instanceof ChartItem_ && !(item instanceof Chart_)) {
+            Chart_ chart = ((ChartItem_) item).GetContainer();
+            if (chart != null && nodes.containsKey(chart.GetHashCode())) {
+                return chart.GetHashCode();
             }
         }
         if (item instanceof ListItem_) {
@@ -275,10 +330,12 @@ public class AndroidAccessibility {
             node.editable = true;
             node.hint = node.text;
             node.text = Clean(((TextField_) item).GetText());
+            node.focused = HasFocus(item);
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
             node.className = "android.widget.EditText";
             node.clickable = true;
             node.editable = true;
+            node.focused = HasFocus(item);
         } else if (code == item.Get_Libraries_Interface_Item__LIST_()) {
             node.className = "android.widget.ListView";
         } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_()) {
@@ -306,6 +363,29 @@ public class AndroidAccessibility {
             node.clickable = true;
         } else if (code == item.Get_Libraries_Interface_Item__PROGRESS_BAR_()) {
             node.className = "android.widget.ProgressBar";
+        } else if (code == item.Get_Libraries_Interface_Item__CHART_()) {
+            // The chart's summary, as iOS's ChartSummaryIOS: its title, then
+            // what it shows. A double tap goes to the top level.
+            Chart_ chart = (Chart_) item;
+            node.className = "android.view.View";
+            String title = Clean(chart.GetTitle());
+            node.text = title != null ? title : node.text;
+            node.hint = Clean(chart.GetDisplayName());
+            node.clickable = chart.GetChartArea() != null;
+            node.clickLabel = "explore";
+        } else if (code == item.Get_Libraries_Interface_Item__CHART_SECTION_()
+                || code == item.Get_Libraries_Interface_Item__CHART_ITEM_()) {
+            // As iOS's ChartItemIOS: the part's name ("Monday bar"), then its
+            // value or summary.
+            ChartItem_ part = (ChartItem_) item;
+            node.className = "android.view.View";
+            node.text = TrimChartName(item.GetName());
+            String value = Clean(part.GetDisplayName());
+            node.hint = value != null ? value : Clean(item.GetDescription());
+            node.clickable = part.GetEnterItem() != null;
+            node.clickLabel = "go in";
+            node.escapeLabel = part.GetEscapeItem() != null ? "Back to the group" : null;
+            node.adjustable = part.GetUpItem() != null || part.GetDownItem() != null;
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
             // A label's text is its description (iOS's LabelIOS); its name
             // is for the program ("Explore Title Label").
@@ -353,6 +433,73 @@ public class AndroidAccessibility {
         return value.isEmpty() ? null : value;
     }
 
+    private boolean HasFocus(Item_ item) {
+        return GameStateManager.game != null && GameStateManager.game.GetFocus() == item;
+    }
+
+    private static ChartItem_ SelectedPart(Chart_ chart) {
+        return chart.GetSelection() == null ? null : chart.GetSelection().GetChartItem();
+    }
+
+    /*
+        The parts at a part's level, in reading order: its ring of left and
+        right items (copied from iOS's ChartDescriptors.GetRing, which can't
+        be used on Android: it imports MobiVM's Audio Graph classes).
+     */
+    private static List<ChartItem_> GetRing(ChartItem_ part) {
+        ChartItem_ start = part;
+        Set<ChartItem_> seen = new HashSet<>();
+        seen.add(start);
+        ChartItem_ left = start.GetLeftItem();
+        while (left != null && !seen.contains(left)) {
+            seen.add(left);
+            start = left;
+            left = left.GetLeftItem();
+        }
+        // In a ring the walk stops back at the part, so start there.
+        if (left == part) {
+            start = part;
+        }
+
+        List<ChartItem_> ring = new ArrayList<>();
+        Set<ChartItem_> visited = new HashSet<>();
+        ChartItem_ next = start;
+        while (next != null && !visited.contains(next)) {
+            visited.add(next);
+            ring.add(next);
+            next = next.GetRightItem();
+        }
+        return ring;
+    }
+
+    // Chart names are built to be spoken before a description ("Monday bar,").
+    private static String TrimChartName(String name) {
+        if (name == null) {
+            return null;
+        }
+        String trimmed = name.trim();
+        while (trimmed.endsWith(",")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+        }
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /*
+        After the chart's selection moved to another level or part: the
+        snapshot is remade with that level, and TalkBack goes to the selected
+        part, even though it is "inside" what TalkBack was on.
+     */
+    private void FollowChartSelection(Chart_ chart) {
+        changed = true;
+        ChartItem_ selected = SelectedPart(chart);
+        if (selected != null) {
+            focusToFollow = selected;
+            followReason = "chart level";
+            focusFromTalkBack = AndroidNode.HOST;
+            focusAfterTalkBack = AndroidNode.HOST;
+        }
+    }
+
     private int[] InOrder(Iterator_ iterator, Map<Integer, AndroidNode> nodes) {
         List<Integer> ids = new ArrayList<>();
         while (iterator.HasNext()) {
@@ -395,7 +542,20 @@ public class AndroidAccessibility {
                 Item_ item = self.items.get(id);
                 if (item != null) {
                     self.focusFromTalkBack = id;
-                    item.Focus();
+                    // A radio button takes the focus without being selected:
+                    // a double tap selects it (ActivateFromTalkBack).
+                    if (item instanceof RadioButton_) {
+                        ((RadioButton_) item).FocusWithoutSelecting();
+                    } else {
+                        item.Focus();
+                    }
+                    // The chart's selection box follows TalkBack, as on iOS.
+                    if (item instanceof ChartItem_ && !(item instanceof Chart_)) {
+                        Chart_ chart = ((ChartItem_) item).GetContainer();
+                        if (chart != null) {
+                            chart.Select((ChartItem_) item);
+                        }
+                    }
                     Item_ result = GameStateManager.game == null ? null : GameStateManager.game.GetFocus();
                     self.focusAfterTalkBack = result == null ? AndroidNode.HOST : result.GetHashCode();
                 }
@@ -413,7 +573,29 @@ public class AndroidAccessibility {
                 // As on iOS: a tree item with children opens or closes, one
                 // without and a list item are selected, anything else is
                 // activated.
-                if (item instanceof TreeItem_) {
+                if (item instanceof Chart_) {
+                    // The summary: to the top level (the chart area's ring).
+                    Chart_ chart = (Chart_) item;
+                    if (chart.GetChartArea() != null) {
+                        chart.Select(chart.GetChartArea());
+                    }
+                    self.FollowChartSelection(chart);
+                } else if (item instanceof ChartItem_) {
+                    ChartItem_ part = (ChartItem_) item;
+                    Chart_ chart = part.GetContainer();
+                    if (chart != null) {
+                        chart.Select(part);
+                        chart.SelectionEnter();
+                        self.FollowChartSelection(chart);
+                    }
+                } else if (item instanceof TextField_ || item instanceof TextBox_) {
+                    // As a touch does (TextBoxOpenKeyboardBehavior): the
+                    // field takes the focus and the keyboard opens.
+                    item.Focus();
+                    AndroidKeyboard keyboard = new AndroidKeyboard();
+                    keyboard.DisplayKeyboard(AndroidKeyboard.TEXT_NO_CORRECTIONS,
+                        item instanceof TextBox_ ? AndroidKeyboard.LINEFEED : AndroidKeyboard.DONE);
+                } else if (item instanceof TreeItem_) {
                     TreeItem_ treeItem = (TreeItem_) item;
                     if (treeItem.GetSize() > 0) {
                         treeItem.ToggleOpen();
@@ -424,6 +606,47 @@ public class AndroidAccessibility {
                     ((ListItem_) item).Select();
                 } else if (item instanceof Control_) {
                     ((Control_) item).Activate();
+                }
+                self.changed = true;
+            }
+        });
+    }
+
+    // TalkBack's Actions menu or adjust gesture on a chart part.
+    static void ChartFromTalkBack(final int id, final int what) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (!(item instanceof ChartItem_)) return;
+                ChartItem_ part = (ChartItem_) item;
+                Chart_ chart = part.GetContainer();
+                if (chart == null) return;
+                chart.Select(part);
+                if (what == CHART_ESCAPE) {
+                    chart.SelectionEscape();
+                } else if (what == CHART_UP) {
+                    chart.SelectionUp();
+                } else {
+                    chart.SelectionDown();
+                }
+                self.FollowChartSelection(chart);
+            }
+        });
+    }
+
+    // Voice typing or paste through TalkBack: the field's whole text.
+    static void SetTextFromTalkBack(final int id, final String value) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (item instanceof TextField_) {
+                    ((TextField_) item).SetText(value);
+                } else if (item instanceof TextBox_) {
+                    ((TextBox_) item).SetText(value);
                 }
                 self.changed = true;
             }

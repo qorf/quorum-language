@@ -31,6 +31,7 @@ import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
 import quorum.Libraries.Game.AndroidConfiguration;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics_;
+import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -100,7 +101,7 @@ public class AndroidDisplay implements Renderer
        private static AndroidDisplay current = null;
        private Choreographer choreographer = null;
        // Touched only on the Vulkan thread.
-       private boolean vulkanRunning = false;
+       private volatile boolean vulkanRunning = false;
        private boolean frameRequested = false;
        private final Choreographer.FrameCallback vulkanFrame = new Choreographer.FrameCallback()
        {
@@ -141,6 +142,7 @@ public class AndroidDisplay implements Renderer
         current = this;
 
         SurfaceView surfaceView = new VulkanSurfaceView(application.GetContext());
+        plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput.SetView(surfaceView);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback()
         {
             @Override
@@ -149,8 +151,26 @@ public class AndroidDisplay implements Renderer
             }
 
             @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int newWidth, int newHeight)
+            public void surfaceChanged(SurfaceHolder holder, int format, final int newWidth, final int newHeight)
             {
+                // A new size on a surface Vulkan already draws on (the device
+                // turned): the game lays out again and the swapchain is made
+                // again, as on iOS. Otherwise, frames start on the new surface.
+                if (vulkanRunning && holder.getSurface() == vulkanSurface)
+                {
+                    width = newWidth;
+                    height = newHeight;
+                    vulkanHandler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            ResizeProcessor.AddResizeEvent(0, newWidth, newHeight);
+                            ((VulkanGraphics_)GameStateManager.graphics).RequestSwapchainRegeneration();
+                        }
+                    });
+                    return;
+                }
                 width = newWidth;
                 height = newHeight;
                 StartVulkanFrames(holder.getSurface());
@@ -310,6 +330,7 @@ public class AndroidDisplay implements Renderer
         EGLConfigChooser configChooser = getEglConfigChooser();
         GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
         current = this;
+        plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput.SetView(view);
         view.setEGLConfigChooser(configChooser);
         view.setRenderer(this);
         return view;
@@ -407,8 +428,13 @@ public class AndroidDisplay implements Renderer
     public void onSurfaceChanged (javax.microedition.khronos.opengles.GL10 gl, int width, int height) 
     {
         Log.d("Android Application - Android Display", "Beginning onSurfaceChanged");
+        // A new size after the game started (the device turned): the game
+        // lays out again, as on iOS and the desktop.
+        boolean resized = created && (width != this.width || height != this.height);
         this.width = width;
         this.height = height;
+        if (resized)
+            ResizeProcessor.AddResizeEvent(0, width, height);
         UpdatePPI();
         gl.glViewport(0, 0, this.width, this.height);
         if (created == false) 

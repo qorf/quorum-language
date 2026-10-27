@@ -34,6 +34,12 @@ public class AndroidNode {
     public boolean readerFocusable = true;
     // What a double tap does, said as "double tap to …".
     public String clickLabel = null;
+    // A text control with Quorum's focus, so TalkBack says "editing".
+    public boolean focused = false;
+    // A chart part's way back out (TalkBack's Actions menu), and whether it
+    // moves by value (swipe up and down).
+    public String escapeLabel = null;
+    public boolean adjustable = false;
 
     public static final int HOST = android.view.View.NO_ID;
 }
