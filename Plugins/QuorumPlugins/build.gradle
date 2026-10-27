@@ -43,13 +43,49 @@ if (androidSdk == null) {
             : System.getProperty("user.home") + "/Library/Android/sdk"
 }
 def androidJar = file('../GamePlugin/JavaGame/libs/android.jar')
+def androidApi = 23
 def androidPlatforms = file("$androidSdk/platforms").listFiles()
 if (androidPlatforms != null) {
     def newest = androidPlatforms
             .findAll { new File(it, "android.jar").exists() && it.name ==~ /android-\d+.*/ }
             .max { (it.name =~ /android-(\d+)/)[0][1] as int }
-    if (newest != null)
+    if (newest != null) {
         androidJar = new File(newest, "android.jar")
+        androidApi = (newest.name =~ /android-(\d+)/)[0][1] as int
+    }
+}
+
+// The newest Android API the plugins use (AccessibilityNodeInfo.setContainerTitle).
+// Below it, stop with what to install rather than dozens of compile errors. This
+// is checked only when compiling, so tasks like clean still work without an SDK.
+// The user installs the SDK themselves: it asks them to accept Google's license.
+def minimumAndroidApi = 34
+tasks.named('compileJava') {
+    doFirst {
+        if (androidApi < minimumAndroidApi) {
+            def found = androidApi == 23
+                    ? "No Android SDK was found (looked in ANDROID_HOME, ANDROID_SDK_ROOT and ${androidSdk})."
+                    : "The newest Android platform in ${androidSdk} is API ${androidApi}."
+            def install = isWindows
+                    ? """  Install Android Studio (https://developer.android.com/studio), or run:
+    winget install Google.AndroidStudio
+  then, in Android Studio, open Settings, Languages & Frameworks, Android SDK,
+  and install Android 16 (API 36) under SDK Platforms.
+  With only the command-line tools, run:
+    sdkmanager --sdk_root="%LOCALAPPDATA%\\Android\\Sdk" "platforms;android-36\""""
+                    : """  Install Android Studio (https://developer.android.com/studio), then, in
+  Android Studio, open Settings, Languages & Frameworks, Android SDK, and install
+  Android 16 (API 36) under SDK Platforms.
+  Or install only the command-line tools (they need a JDK 17 or later):
+    brew install --cask android-commandlinetools
+    sdkmanager --sdk_root="\$HOME/Library/Android/sdk" "platforms;android-36\""""
+            throw new GradleException("""Quorum's Android plugins need the Android SDK, API ${minimumAndroidApi} or later (Quorum targets 36).
+${found}
+${install}
+Both ask you to accept the Android SDK license. Then build the standard library again.
+If the SDK is somewhere else, set ANDROID_HOME to its folder.""")
+        }
+    }
 }
 
 
