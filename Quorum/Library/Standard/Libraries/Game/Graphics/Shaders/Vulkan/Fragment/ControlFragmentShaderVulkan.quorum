@@ -82,46 +82,77 @@ float signedDistanceFunction(in vec2 point, in vec2 dimensions, in vec4 rounding
 void main()
 {
     vec4 textureColor = texture(nonuniformEXT(sampler2D(globalTextures[v_textureIndex], immutableSampler)), v_textureCoords);
-//    vec4 rounding = v_rounding;
-//    vec4 borderThickness = v_borderThickness;
-//    float aspectRatio = v_aspectRatio;
-//    float antiAliasDistance = v_antiAlias;
 
-//    vec4 borderColor = v_borderColor;
-    bool renderBorders = (v_borderThickness.x + v_borderThickness.y + v_borderThickness.z + v_borderThickness.w) > 0.0;
-    bool renderAllBorders = (v_borderThickness.x > 0.0) && (v_borderThickness.y > 0.0) && (v_borderThickness.z > 0.0) && (v_borderThickness.w > 0.0);
-
+    // The control runs from -1 to 1 up and down, so its half height is 1.0 here.
     vec2 point = (v_textureCoords.xy - 0.5) * 2.0;
     point.x *= v_aspectRatio;
     vec2 dimensions = vec2(v_aspectRatio, 1.0);
 
-    float distance = signedDistanceFunction(point, dimensions, v_rounding);
-    vec4 resultColor;
+    // One screen pixel in these units, from how fast point changes across the
+    // screen. Right at any zoom, interface scale or rotation. (Taken before the
+    // branch below, which goes the same way for the whole control.)
+    float pixel = max(length(vec2(dFdx(point.y), dFdy(point.y))), 0.000001);
+    float halfPixel = 0.5 * pixel;
+    highp vec2 unitsPerPixel = vec2(dFdx(point.x), dFdy(point.y));
+    bool axisAligned = abs(dFdy(point.x)) < 0.001 * abs(unitsPerPixel.x)
+                    && abs(dFdx(point.y)) < 0.001 * abs(unitsPerPixel.y);
 
-    if (renderAllBorders)
+    // The GPU draws only the pixels whose centers are inside the control, so what's
+    // drawn always ends on pixel boundaries. Measure from those boundaries, not from
+    // edges that may fall partway into a pixel; otherwise a side whose edge is
+    // mid-pixel spreads its border over two rows, thinner looking than the others.
+    // (Rotated controls skip this.)
+    if (axisAligned)
     {
-        resultColor = mix(v_borderColor * textureColor, vec4(v_borderColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
-        resultColor = mix(v_color * textureColor, resultColor, smoothstep(0.0, v_antiAlias, distance + v_borderThickness.x + v_borderThickness.z));
+        highp vec2 edgeA = gl_FragCoord.xy + (-dimensions - point) / unitsPerPixel;
+        highp vec2 edgeB = gl_FragCoord.xy + (dimensions - point) / unitsPerPixel;
+        highp vec2 snappedA = floor(edgeA + 0.5);
+        highp vec2 snappedB = floor(edgeB + 0.5);
+        point = (gl_FragCoord.xy - 0.5 * (snappedA + snappedB)) * unitsPerPixel;
+        dimensions = 0.5 * abs(snappedB - snappedA) * abs(unitsPerPixel);
     }
-    else if (renderBorders)
+
+    float distance = signedDistanceFunction(point, dimensions, v_rounding);
+
+    // Each side's border, in the same units. The mapping gives each as half the
+    // border in these units (thickness / height), which is what the fill's shift and
+    // size below use. A side with a border is a whole number of screen pixels wide,
+    // at least one (half a pixel per pixel here), so every side's border fills the
+    // same rows and none falls between rows when zoomed out. A side without one
+    // stays zero.
+    vec4 hasBorder = step(vec4(0.000001), v_borderThickness);
+    vec4 borderThickness = max(floor(v_borderThickness / halfPixel + 0.5), vec4(1.0)) * halfPixel * hasBorder;
+    float borderSides = dot(hasBorder, vec4(1.0));
+
+    vec4 resultColor = v_color * textureColor;
+
+    if (borderSides > 3.5)
+    {
+        // Every side: the fill starts one border width inside the edge (left plus
+        // right is one width, as the sides are equal). Blended across the pixel there.
+        float inside = 1.0 - smoothstep(-halfPixel, halfPixel, distance + borderThickness.x + borderThickness.z);
+        resultColor = mix(v_borderColor * textureColor, resultColor, inside);
+    }
+    else if (borderSides > 0.5)
     {
         // The enabled borders vector stores values for the sides in the following order:
         // x: left
         // y: top (y-positive: technically the bottom due to how GLSL handles texture coordinates)
         // z: right
         // w: bottom (y-negative)
-        vec2 fillPoint = point - vec2(v_borderThickness.x - v_borderThickness.z, v_borderThickness.y - v_borderThickness.w);
-        vec2 fillDimensions = vec2(dimensions.x - v_borderThickness.x - v_borderThickness.z, dimensions.y - v_borderThickness.y - v_borderThickness.w);
+        vec2 fillPoint = point - vec2(borderThickness.x - borderThickness.z, borderThickness.y - borderThickness.w);
+        vec2 fillDimensions = vec2(dimensions.x - borderThickness.x - borderThickness.z, dimensions.y - borderThickness.y - borderThickness.w);
         float fillDistance = signedDistanceFunction(fillPoint, fillDimensions, v_rounding);
     
-        resultColor = mix(v_borderColor * textureColor, vec4(v_borderColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
-        resultColor = mix(v_color * textureColor, resultColor, smoothstep(0.0, v_antiAlias, fillDistance));
+        float inside = 1.0 - smoothstep(-halfPixel, halfPixel, fillDistance);
+        resultColor = mix(v_borderColor * textureColor, resultColor, inside);
     }
-    else
-    {
-        resultColor = v_color * textureColor;
-        resultColor = mix(resultColor, vec4(resultColor.rgb, 0.0), smoothstep(0.0, v_antiAlias, distance));
-    }
+
+    // Fade out at the control's edge, blended across the pixel there, so the
+    // outermost pixels inside are drawn on every side. Keeps the color and lowers
+    // the alpha, as before.
+    float coverage = 1.0 - smoothstep(-halfPixel, halfPixel, distance);
+    resultColor = mix(vec4(resultColor.rgb, 0.0), resultColor, coverage);
 
     " + GetAppendedCode() + "
 

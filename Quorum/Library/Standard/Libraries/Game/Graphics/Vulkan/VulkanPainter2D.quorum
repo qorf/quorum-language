@@ -482,12 +482,20 @@ setScissor:SetPosition(0, 0)
                     Matrix4 combined = camera:GetCombinedMatrix()
                     clipPoint:Set(clipValues:GetX(), clipValues:GetY(), 0)
                     clipPoint:Multiply(combined)
-                    integer x1 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth)
-                    integer y1 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight)
+                    /*
+                    Rounded to the nearest pixel boundary, as the GPU decides
+                    which pixels to draw (those whose centers are inside). Cutting
+                    the fraction off instead dropped the right column and top row
+                    a clipped control draws, whenever its edge fell more than
+                    halfway into a pixel, such as a text field's border on
+                    those sides.
+                    */
+                    integer x1 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth + 0.5)
+                    integer y1 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight + 0.5)
                     clipPoint:Set(clipValues:GetX() + clipValues:GetZ(), clipValues:GetY() + clipValues:GetW(), 0)
                     clipPoint:Multiply(combined)
-                    integer x2 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth)
-                    integer y2 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight)
+                    integer x2 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth + 0.5)
+                    integer y2 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight + 0.5)
 
                     // Vulkan rejects negative scissor offsets and sizes.
                     integer top = swapchain:GetImageHeight() - y2

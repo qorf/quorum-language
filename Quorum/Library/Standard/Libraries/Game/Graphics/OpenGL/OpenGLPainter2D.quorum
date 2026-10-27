@@ -941,14 +941,21 @@ OpenGLManager graphics = GetGraphics()
         the clip point will apply to.
         */
         clipPoint:Multiply(projectionMatrix)
-        integer x = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
-        integer y = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        /*
+        Rounded to the nearest pixel boundary, as the GPU decides which pixels
+        to draw (those whose centers are inside). Cutting the fraction off
+        instead dropped the right column and top row a clipped control draws,
+        whenever its edge fell more than halfway into a pixel, such as a text
+        field's border on those sides.
+        */
+        integer x = cast(integer, (clipPoint:GetX() + 1) / 2.0 * display:GetWidth() + 0.5)
+        integer y = cast(integer, (clipPoint:GetY() + 1) / 2.0 * display:GetHeight() + 0.5)
         
         clipPoint:Set(GetClipX2(), GetClipY2(), 0)
         
         clipPoint:Multiply(projectionMatrix)
-        integer x2 = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
-        integer y2 = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        integer x2 = cast(integer, (clipPoint:GetX() + 1) / 2.0 * display:GetWidth() + 0.5)
+        integer y2 = cast(integer, (clipPoint:GetY() + 1) / 2.0 * display:GetHeight() + 0.5)
         
         integer width = 0
         integer height = 0
