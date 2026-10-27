@@ -64,26 +64,49 @@ tasks.named('compileJava') {
     doFirst {
         if (androidApi < minimumAndroidApi) {
             def found = androidApi == 23
-                    ? "No Android SDK was found (looked in ANDROID_HOME, ANDROID_SDK_ROOT and ${androidSdk})."
-                    : "The newest Android platform in ${androidSdk} is API ${androidApi}."
-            def install = isWindows
-                    ? """  Install Android Studio (https://developer.android.com/studio), or run:
-    winget install Google.AndroidStudio
-  then, in Android Studio, open Settings, Languages & Frameworks, Android SDK,
-  and install Android 16 (API 36) under SDK Platforms.
-  With only the command-line tools, run:
-    sdkmanager --sdk_root="%LOCALAPPDATA%\\Android\\Sdk" "platforms;android-36\""""
-                    : """  Install Android Studio (https://developer.android.com/studio), then, in
-  Android Studio, open Settings, Languages & Frameworks, Android SDK, and install
-  Android 16 (API 36) under SDK Platforms.
-  Or install only the command-line tools (they need a JDK 17 or later):
-    brew install --cask android-commandlinetools
-    sdkmanager --sdk_root="\$HOME/Library/Android/sdk" "platforms;android-36\""""
-            throw new GradleException("""Quorum's Android plugins need the Android SDK, API ${minimumAndroidApi} or later (Quorum targets 36).
-${found}
-${install}
-Both ask you to accept the Android SDK license. Then build the standard library again.
-If the SDK is somewhere else, set ANDROID_HOME to its folder.""")
+                    ? "No Android SDK was found. Looked in ANDROID_HOME, ANDROID_SDK_ROOT and ${androidSdk}."
+                    : "The Android SDK in ${androidSdk} only has API ${androidApi}. Quorum needs API ${minimumAndroidApi} or later."
+            def steps = isWindows
+                    ? """RUN THESE STEPS, IN ORDER:
+
+  1. Install Android Studio. In a terminal, run:
+
+       winget install Google.AndroidStudio
+
+  2. Open Android Studio and finish its setup. It installs the Android SDK.
+     Then open Settings > Languages & Frameworks > Android SDK.
+     Under SDK Platforms, check Android 16 (API 36), and click OK.
+     Accept the license when it asks.
+
+  3. Build the standard library again."""
+                    : """RUN THESE COMMANDS IN A TERMINAL, IN ORDER:
+
+  1. Install the Android command-line tools (skip this if sdkmanager already works):
+
+       brew install --cask android-commandlinetools
+
+  2. Install the Android platform Quorum compiles against:
+
+       sdkmanager --sdk_root="\$HOME/Library/Android/sdk" "platforms;android-36"
+
+     It shows the Android SDK license. Read it, type y, and press Return.
+     (Keep --sdk_root as it is: that's where this build looks.)
+
+  3. Build the standard library again.
+
+  These need Homebrew (https://brew.sh) and Java 17 or later (check with: java -version).
+  Or, instead of steps 1 and 2: install Android Studio (https://developer.android.com/studio),
+  open Settings > Languages & Frameworks > Android SDK, and install Android 16 (API 36)."""
+            throw new GradleException("""
+==============================================================================
+ Quorum's Android plugins need the Android SDK (API 36).
+ ${found}
+==============================================================================
+
+${steps}
+
+If the Android SDK is installed somewhere else, set ANDROID_HOME to its folder.
+==============================================================================""")
         }
     }
 }
