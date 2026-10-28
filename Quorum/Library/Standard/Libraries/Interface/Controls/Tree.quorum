@@ -155,6 +155,71 @@ class Tree is Control, FirstLetterNavigator
         // Set our selection object with the new path, triggering a selection
         // event.
         selection:Set(path)
+
+        // Keep the selected row in view when the tree is in a scroll pane.
+        if not path:IsEmpty()
+            ScrollSelectionIntoView(path:GetFromEnd())
+        end
+    end
+
+    /*
+    This action scrolls the ScrollPane holding this tree, if there is one, just
+    far enough to show the given item's row: up so the row's top is at the
+    view's top, or down so its bottom is at the view's bottom. A row already
+    in view doesn't move anything.
+    */
+    private action ScrollSelectionIntoView(TreeItem item)
+        if item = undefined
+            return now
+        end
+
+        // The tree sits in a ScrollPane's anchor, the content that scrolls.
+        Item2D candidate = GetParent()
+        repeat until candidate = undefined or candidate is ScrollPaneRendererAnchor
+            candidate = candidate:GetParent()
+        end
+        if candidate = undefined
+            return now
+        end
+        ScrollPaneRendererAnchor anchor = cast(ScrollPaneRendererAnchor, candidate)
+        ScrollPane pane = anchor:GetScrollPane()
+        if pane = undefined
+            return now
+        end
+
+        // A subtree that just opened may not be placed yet; lay out first.
+        if pane:NeedsLayout() or anchor:NeedsLayout() or NeedsLayout()
+            pane:Resize()
+        end
+
+        number contentHeight = pane:GetTotalContentHeight()
+        number viewRatio = pane:GetScrollPercentageHeight()
+        if contentHeight <= 0 or viewRatio >= 1.0
+            return now
+        end
+        number viewHeight = viewRatio * contentHeight
+
+        // The row is the item's own line, not its open subtree.
+        number rowY = item:GetGlobalY()
+        number rowHeight = item:GetHeight()
+        TreeItemContent row = item:GetTreeItemContent()
+        if row not= undefined
+            rowY = row:GetGlobalY()
+            rowHeight = row:GetHeight()
+        end
+
+        // Distances measured down from the top of the content. The scroll
+        // pane shows the content from scrollPercentageY times its height.
+        number contentTop = anchor:GetGlobalY() + contentHeight
+        number rowTop = contentTop - (rowY + rowHeight)
+        number rowBottom = rowTop + rowHeight
+        number viewTop = pane:GetScrollPercentageY() * contentHeight
+
+        if rowTop < viewTop
+            pane:SetScrollPercentageY(rowTop / contentHeight)
+        elseif rowBottom > viewTop + viewHeight
+            pane:SetScrollPercentageY((rowBottom - viewHeight) / contentHeight)
+        end
     end
 
     action Deselect

@@ -1530,6 +1530,20 @@ InputSet shiftF10SetTextBox
         touchLeaveSet:SetInputTrigger(touchLeaveSet:FINISH)
         textFieldTable:Add(touchLeaveSet, touchEndBehavior)
 
+        // H3: a text field's edge firms up under the mouse
+        // (TextField:BeginMouseOver hands it to its background).
+        InputSet fieldMouseOn
+        fieldMouseOn:SetInputType(fieldMouseOn:MOUSE_MOVEMENT_INPUT)
+        fieldMouseOn:SetInputTrigger(fieldMouseOn:BEGIN)
+        MouseOnBehavior fieldOnBehavior
+        textFieldTable:Add(fieldMouseOn, fieldOnBehavior)
+
+        InputSet fieldMouseOff
+        fieldMouseOff:SetInputType(fieldMouseOff:MOUSE_MOVEMENT_INPUT)
+        fieldMouseOff:SetInputTrigger(fieldMouseOff:FINISH)
+        MouseOffBehavior fieldOffBehavior
+        textFieldTable:Add(fieldMouseOff, fieldOffBehavior)
+
         gameInput:AddInputTable(textFieldTable)
     end
 

@@ -2230,6 +2230,24 @@ elseif font:IsFontAvailable("courbd")
         return defaultProperties:HasMouseOverBorderThickness()
     end
 
+    /*
+    This action sets the border thickness used while this control has the
+    focus.
+
+    Attribute: Parameter value The thickness, in points before the interface scale.
+    */
+    action SetFocusBorderThickness(number value)
+        defaultProperties:SetFocusBorderThickness(value)
+    end
+
+    action GetFocusBorderThickness returns number
+        return defaultProperties:GetFocusBorderThickness()
+    end
+
+    action HasFocusBorderThickness returns boolean
+        return defaultProperties:HasFocusBorderThickness()
+    end
+
     /*  
         This action sets the font outline thickness value.
 

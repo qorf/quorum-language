@@ -215,6 +215,13 @@ end
                         borderThickness = (1.0 / height) * (control:GetMouseOverBorderThickness() * control:GetInterfaceScale())
                     end
                 end
+                // While focused, the focus ring's own thickness, over the
+                // hover one (light mode's 1-point edge becomes a 2-point ring).
+                if overrideBorder = false and control:IsRenderingFocus()
+                    if control:HasFocusBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetFocusBorderThickness() * control:GetInterfaceScale())
+                    end
+                end
 
                 if borderThickness > 0
                     if control:HasLeftBorder()

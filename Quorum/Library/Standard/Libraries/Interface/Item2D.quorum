@@ -2723,6 +2723,15 @@ class Item2D is Item
     end
 
     /*
+    A clip edge on the same whole-point grid that a drawable's corners are
+    snapped to (DrawableShape), so a clipping control's region matches what
+    it draws and none of its border falls outside it.
+    */
+    private action SnapClipEdge(number value) returns number
+        return cast(integer, value + 0.01)
+    end
+
+    /*
     This action gets the clipping coordinates of this Item2D. The coordinates
     are returned via the two provided Vector2 parameters, the first vector
     storing the x values of the left and right sides of the clipping coordinates
@@ -2746,17 +2755,21 @@ class Item2D is Item
         repeat while item not= undefined
             if item:IsClipping()
                 applyClipping = true
-                if item:GetGlobalX() > left
-                    left = item:GetGlobalX()
+                number itemLeft = SnapClipEdge(item:GetGlobalX())
+                number itemRight = SnapClipEdge(item:GetGlobalX() + item:GetWidth())
+                number itemBottom = SnapClipEdge(item:GetGlobalY())
+                number itemTop = SnapClipEdge(item:GetGlobalY() + item:GetHeight())
+                if itemLeft > left
+                    left = itemLeft
                 end
-                if item:GetGlobalX() + item:GetWidth() < right
-                    right = item:GetGlobalX() + item:GetWidth()
+                if itemRight < right
+                    right = itemRight
                 end
-                if item:GetGlobalY() > bottom
-                    bottom = item:GetGlobalY()
+                if itemBottom > bottom
+                    bottom = itemBottom
                 end
-                if item:GetGlobalY() + item:GetHeight() < top
-                    top = item:GetGlobalY() + item:GetHeight()
+                if itemTop < top
+                    top = itemTop
                 end
             end
 
@@ -2774,17 +2787,21 @@ class Item2D is Item
         repeat while item not= undefined
             if item:IsClipping()
                 applyClipping = true
-                if item:GetGlobalX() > left
-                    left = item:GetGlobalX()
+                number itemLeft = SnapClipEdge(item:GetGlobalX())
+                number itemRight = SnapClipEdge(item:GetGlobalX() + item:GetWidth())
+                number itemBottom = SnapClipEdge(item:GetGlobalY())
+                number itemTop = SnapClipEdge(item:GetGlobalY() + item:GetHeight())
+                if itemLeft > left
+                    left = itemLeft
                 end
-                if item:GetGlobalX() + item:GetWidth() < right
-                    right = item:GetGlobalX() + item:GetWidth()
+                if itemRight < right
+                    right = itemRight
                 end
-                if item:GetGlobalY() > bottom
-                    bottom = item:GetGlobalY()
+                if itemBottom > bottom
+                    bottom = itemBottom
                 end
-                if item:GetGlobalY() + item:GetHeight() < top
-                    top = item:GetGlobalY() + item:GetHeight()
+                if itemTop < top
+                    top = itemTop
                 end
             end
 

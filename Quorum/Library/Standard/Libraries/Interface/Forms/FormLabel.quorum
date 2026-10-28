@@ -19,6 +19,15 @@ class FormLabel is Label
             Grouping group = cast(Grouping, control)
             // Compared as a Label, the type GetTitleLabel returns.
             Label ownLabel = me
+            // A card that rises into a banner has its heading on the
+            // banner's fill, in the banner's text color (M2).
+            if group:GetDrawStyle() = group:CARD_STYLE and group:GetTitleLabel() = ownLabel and group:IsOverlappingBanner()
+                GameStateManager bannerState
+                ColorGroup bannerText = bannerState:GetInterfaceOptions():GetFontColor("Banner")
+                if bannerText not= undefined
+                    return bannerText
+                end
+            end
             if group:GetDrawStyle() = group:CARD_STYLE and group:GetTitleLabel() = ownLabel
                 GameStateManager gameState
                 ColorGroup sectionColor = gameState:GetInterfaceOptions():GetFontColor("SectionTitle")
@@ -61,6 +70,40 @@ class FormLabel is Label
         else
             return parent:Control:GetFontOutlineThickness()
         end
+    end
+
+    // On a banner, the focus ring (Label's focus box, drawn in the focus
+    // color) takes the banner's focus color, as the text takes its font
+    // color, so it shows on the banner's fill.
+    action GetFocusColor returns ColorGroup
+        if HasColorPropertyOverride("focusColor")
+            return parent:Control:GetFocusColor()
+        end
+
+        FormContainerControl control = GetContainer()
+        if control is Banner and control:GetFocusColor() not= undefined
+            return control:GetFocusColor()
+        end
+
+        // A card heading on a banner (M2) focuses in the banner's focus
+        // color, as its text takes the banner's text color.
+        if control is Grouping
+            Grouping group = cast(Grouping, control)
+            Label ownLabel = me
+            if group:IsOverlappingBanner() and group:GetTitleLabel() = ownLabel
+                GameStateManager bannerState
+                ColorGroup bannerFocus = bannerState:GetInterfaceOptions():GetFocusColor("Banner")
+                if bannerFocus not= undefined
+                    return bannerFocus
+                end
+            end
+        end
+        return parent:Control:GetFocusColor()
+    end
+
+    // On a banner, focus shows as a line under the text (U1).
+    action UsesFocusUnderline returns boolean
+        return GetContainer() is Banner
     end
 
     private action GetContainer returns FormContainerControl

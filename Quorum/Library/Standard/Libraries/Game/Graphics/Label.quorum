@@ -78,6 +78,10 @@ class Label is Control
     // A box used to indicate focus, if this Label is made focusable.
     Control focusBox = undefined
 
+    // The focus bar beside a focused label (LC), in points.
+    constant number FOCUS_BAR_WIDTH = 3
+    constant number FOCUS_BAR_GAP = 6
+
     on create
         LayoutProperties defaultProperties = GetDefaultLayoutProperties()
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
@@ -785,7 +789,9 @@ class Label is Control
                     glyphIndex = 0
 
                     boolean hasSpace = false
-                    if wordsIndex + 1 not= words:GetSize() or endsWithSpace
+                    // A text ending in a space splits into a last, empty
+                    // word; the word before it already has the space.
+                    if wordsIndex + 1 not= words:GetSize() or (endsWithSpace and currentWord:GetSize() > 0)
                         currentWord = currentWord + " "
                         hasSpace = true
                     end
@@ -1009,7 +1015,7 @@ end
                 
             end
             
-            if IsFocusable()
+            if ShowsFocusIndicator()
                 if focusBox = undefined
 Control control
             focusBox = control
@@ -1027,11 +1033,24 @@ Control control
             focusBox:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
             focusBox:SetTopRightPixelRounding(GetTopRightPixelRounding())
             focusBox:SetBorderThickness(GetBorderThickness())
+            // A 2-point line under the text instead of a box
+            // (UsesFocusUnderline).
+            if UsesFocusUnderline()
+                focusBox:SetBorderStyle(focusBox:GetDefaultLayoutProperties():BOTTOM)
+                focusBox:SetCornerPixelRounding(0, 0, 0, 0)
+                focusBox:SetBorderThickness(2)
+            else
+                // Otherwise a bar in the focus color, in the margin left of
+                // the text (LC), so the text doesn't move.
+                focusBox:SetBackgroundColor(GetFocusColor())
+                focusBox:SetBorderThickness(0)
+                focusBox:SetCornerPixelRounding(0, 0, 0, 0)
+            end
             
             Add(focusBox)
                 end
                 
-if IsFocused() = false
+            if IsShowingFocus() = false
                 focusBox:Hide()
                 else
                     focusBox:Show()
@@ -1052,11 +1071,26 @@ number multiLineOffset = 0
 multiLineOffset = (GetLineCount() - 1) * GetLineHeight()
                 end
                 
-focusBox:SetSize(GetWidth() + 2 * (borders + extraPadding), GetHeight() + 2 * (borders + extraPadding))
-            if positionOnBaseLine
-focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding + font:GetMaximumDescent() - multiLineOffset)
+            // The color can change after the box is made, for example when
+            // a card heading comes to sit on a banner.
+            if UsesFocusUnderline()
+                focusBox:SetBorderColor(GetFocusColor())
             else
-focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding - multiLineOffset)
+                focusBox:SetBackgroundColor(GetFocusColor())
+            end
+
+            number boxX = -borders - extraPadding
+            number boxWidth = GetWidth() + 2 * (borders + extraPadding)
+            if not UsesFocusUnderline()
+                // LC: a 3-point bar, 6 points left of the text.
+                boxWidth = FOCUS_BAR_WIDTH * GetInterfaceScale()
+                boxX = -(FOCUS_BAR_WIDTH + FOCUS_BAR_GAP) * GetInterfaceScale()
+            end
+            focusBox:SetSize(boxWidth, GetHeight() + 2 * (borders + extraPadding))
+            if positionOnBaseLine
+                focusBox:SetPosition(boxX, -borders - extraPadding + font:GetMaximumDescent() - multiLineOffset)
+            else
+                focusBox:SetPosition(boxX, -borders - extraPadding - multiLineOffset)
             end
         end
         end
@@ -1492,6 +1526,55 @@ focusBox:SetPosition(-borders - extraPadding, -borders - extraPadding - multiLin
         return alignment = JUSTIFY_ALIGN
     end
     
+    /*
+    This action returns whether this Label shows its focus as a line under
+    its text instead of a box around it. It is false here; FormLabel uses it
+    inside a Banner.
+
+    Attribute: Returns True to underline the text when focused.
+    */
+    action UsesFocusUnderline returns boolean
+        return false
+    end
+
+    /*
+    This action returns whether this Label draws a focus indicator (a bar,
+    or an underline). By default, it does when it can take the focus.
+    Subclasses can show focus for another control, such as a checkbox's
+    label for its checkbox.
+
+    Attribute: Returns True if this Label draws a focus indicator.
+    */
+    action ShowsFocusIndicator returns boolean
+        return IsFocusable()
+    end
+
+    /*
+    This action returns whether the focus indicator is showing now. By
+    default, it is while this Label has the focus.
+
+    Attribute: Returns True if the focus indicator should show.
+    */
+    action IsShowingFocus returns boolean
+        return IsFocused()
+    end
+
+    /*
+    This action shows or hides the focus indicator to match
+    IsShowingFocus, for a Label that shows another control's focus.
+    */
+    action RefreshFocusIndicator
+        if focusBox = undefined
+            return now
+        end
+        focusBox:SetBorderColor(GetFocusColor())
+        if IsShowingFocus()
+            focusBox:Show()
+        else
+            focusBox:Hide()
+        end
+    end
+
     action SetFocusable(boolean focusable)
         if focusable = IsFocusable()
             return now

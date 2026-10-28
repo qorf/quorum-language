@@ -433,6 +433,19 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     end
 
     /*
+        Moves the focus into the section: to its first field when it is
+        open, or to its header when it is closed, so the focus never goes
+        to a field that isn't in the panel.
+    */
+    action FocusSection
+        if IsCollapsible() and not IsOpen()
+            FocusHeader()
+        else
+            FocusField()
+        end
+    end
+
+    /*
         Returns true if an item is the section's header, or inside it.
 
         Attribute: Parameter item The item

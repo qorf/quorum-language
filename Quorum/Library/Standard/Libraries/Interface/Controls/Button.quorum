@@ -27,6 +27,8 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Events.TextureLoadListener
 use Libraries.Interface.Events.TextureLoadEvent
 use Libraries.Interface.Layouts.ButtonLayout
+use Libraries.Interface.Views.DropShadowView
+use Libraries.Interface.Options.InterfaceOptions
 
 /*
     The Button class is a control object and UI element it is added to the Game 
@@ -73,6 +75,19 @@ class Button is Control, TextureLoadListener
         the auto-font sizing has been explicitly set here.
     */
     boolean explicitAutoFontSizing = false
+
+    // The accent line along the top, and the shadow below: -1 follows the
+    // interface options for this button's key, 0 is off, 1 is on.
+    integer topAccentSetting = -1
+    integer raisedSetting = -1
+    // With a shadow, the button's own view draws the shadow, and this child
+    // draws the button above it, as Dialog draws its page over its shadow.
+    Drawable face = undefined
+    // The accent line: a second shape over the button, the same size and
+    // corners, with only its top border drawn, in the accent color.
+    Drawable accentLine = undefined
+    LayoutProperties accentProperties
+    Color transparentColor
     
     on create
         ButtonLayout layout
@@ -97,6 +112,8 @@ class Button is Control, TextureLoadListener
         SetBottomPadding(7)
         SetLeftPadding(7)
         SetRightPadding(7)
+
+        transparentColor:SetColor(0, 0, 0, 0)
     end
 
     /*
@@ -303,6 +320,7 @@ class Button is Control, TextureLoadListener
     action GainedFocus(FocusEvent event)
         parent:Control:GainedFocus(event)
         UpdateLabelColor()
+        UpdateAccentLine()
     end
 
     /*
@@ -311,6 +329,152 @@ class Button is Control, TextureLoadListener
     action LostFocus(FocusEvent event)
         parent:Control:LostFocus(event)
         UpdateLabelColor()
+        UpdateAccentLine()
+    end
+
+    /*
+    This action sets whether this button draws a colored line along its top,
+    hidden while it has the focus (the focus ring goes all the way around
+    then). By default it follows the interface options
+    (InterfaceOptions:SetTopAccent).
+
+    Attribute: Parameter show True to draw the accent line.
+    */
+    action SetTopAccent(boolean show)
+        if show
+            topAccentSetting = 1
+        else
+            topAccentSetting = 0
+        end
+        // Reloaded at the next layout, not here: reloading disposes the
+        // icon, and with it the texture an icon may share with others.
+        GetDefaultLayoutProperties():SetRenderingFlag(true)
+        RequestLayout()
+    end
+
+    // Whether this button draws the accent line along the top.
+    action HasTopAccent returns boolean
+        if topAccentSetting >= 0
+            return topAccentSetting = 1
+        end
+        InterfaceOptions options = manager:GetInterfaceOptions()
+        return options not= undefined and options:HasTopAccent(GetInterfaceOptionsKey())
+    end
+
+    /*
+    This action sets whether this button is drawn raised, with a soft
+    shadow below it. By default it follows the interface options
+    (InterfaceOptions:SetRaised).
+
+    Attribute: Parameter raised True to draw the shadow.
+    */
+    action SetRaised(boolean raised)
+        if raised
+            raisedSetting = 1
+        else
+            raisedSetting = 0
+        end
+        // Reloaded at the next layout, not here: reloading disposes the
+        // icon, and with it the texture an icon may share with others.
+        GetDefaultLayoutProperties():SetRenderingFlag(true)
+        RequestLayout()
+    end
+
+    // Whether this button is drawn raised.
+    action IsRaised returns boolean
+        if raisedSetting >= 0
+            return raisedSetting = 1
+        end
+        InterfaceOptions options = manager:GetInterfaceOptions()
+        return options not= undefined and options:IsRaised(GetInterfaceOptionsKey())
+    end
+
+    /*
+    Makes, updates or removes the accent line. It is shown unless the
+    button has the focus.
+    */
+    private action UpdateAccentLine
+        InterfaceOptions options = manager:GetInterfaceOptions()
+        text key = GetInterfaceOptionsKey()
+        if not HasTopAccent() or options = undefined or options:GetTopAccentColor(key) = undefined
+            if accentLine not= undefined
+                Remove(accentLine)
+                accentLine:Dispose()
+                accentLine = undefined
+            end
+            return now
+        end
+
+        accentProperties:SetBackgroundColor(transparentColor)
+        accentProperties:SetBorderColor(options:GetTopAccentColor(key))
+        accentProperties:SetBorderThickness(options:GetTopAccentThickness(key))
+        accentProperties:SetBorderStyle(accentProperties:TOP)
+        accentProperties:SetTopLeftRounding(GetTopLeftRounding())
+        accentProperties:SetTopRightRounding(GetTopRightRounding())
+        accentProperties:SetBottomLeftRounding(GetBottomLeftRounding())
+        accentProperties:SetBottomRightRounding(GetBottomRightRounding())
+        accentProperties:SetTopLeftPixelRounding(GetTopLeftPixelRounding())
+        accentProperties:SetTopRightPixelRounding(GetTopRightPixelRounding())
+        accentProperties:SetBottomLeftPixelRounding(GetBottomLeftPixelRounding())
+        accentProperties:SetBottomRightPixelRounding(GetBottomRightPixelRounding())
+        accentProperties:SetInterfaceScale(GetInterfaceScale())
+
+        if accentLine = undefined
+            Drawable line
+            accentLine = line
+            accentLine:SetName("Accent Line")
+            ControlShaderView lineView
+            lineView:Initialize()
+            lineView:SetShaderData(accentProperties)
+            accentLine:SetView2D(lineView)
+            // Over the face (when raised), under the label and icon.
+            if face not= undefined
+                Add(1, accentLine)
+            else
+                Add(0, accentLine)
+            end
+        end
+        accentLine:SetSize(GetWidth(), GetHeight())
+        if IsFocused()
+            accentLine:Hide()
+        else
+            accentLine:Show()
+        end
+        accentLine:RequestVerticesUpdate()
+    end
+
+    // The face and the accent line keep the button's size.
+    action SetSize(number newWidth, number newHeight)
+        parent:Control:SetSize(newWidth, newHeight)
+        ResizeLayers()
+    end
+
+    action SetWidth(number newWidth)
+        parent:Control:SetWidth(newWidth)
+        ResizeLayers()
+    end
+
+    action SetHeight(number newHeight)
+        parent:Control:SetHeight(newHeight)
+        ResizeLayers()
+    end
+
+    private action ResizeLayers
+        if face not= undefined
+            face:SetSize(GetWidth(), GetHeight())
+        end
+        if accentLine not= undefined
+            accentLine:SetSize(GetWidth(), GetHeight())
+        end
+    end
+
+    // Hover, press and focus redraw the face too, which draws the button
+    // when it is raised.
+    action RequestVerticesUpdate
+        parent:Control:RequestVerticesUpdate()
+        if face not= undefined
+            face:RequestVerticesUpdate()
+        end
     end
 
     /*
@@ -347,12 +511,41 @@ class Button is Control, TextureLoadListener
         View2D view = properties:GetView2D()
 
         if font not= undefined and labelText not= ""
-            if view = undefined
-                ControlShaderView newView
-                newView:Initialize()
-                view = newView
-                SetView2D(view)
+            if IsRaised()
+                // The shadow is the button's own view; the face draws the
+                // button above it, before the label and icon.
+                if not (view is DropShadowView)
+                    DropShadowView shadow
+                    shadow:Initialize()
+                    view = shadow
+                    SetView2D(view)
+                end
+                if face = undefined
+                    Drawable newFace
+                    face = newFace
+                    face:SetName("Face")
+                    ControlShaderView faceView
+                    faceView:Initialize()
+                    // The view is what gets drawn, so the data goes on it.
+                    faceView:SetShaderData(me)
+                    face:SetView2D(faceView)
+                    Add(0, face)
+                end
+                face:SetSize(GetWidth(), GetHeight())
+            else
+                if face not= undefined
+                    Remove(face)
+                    face:Dispose()
+                    face = undefined
+                end
+                if view = undefined or view is DropShadowView
+                    ControlShaderView newView
+                    newView:Initialize()
+                    view = newView
+                    SetView2D(view)
+                end
             end
+            UpdateAccentLine()
 
             if iconTexture not= undefined
                 if icon not= undefined

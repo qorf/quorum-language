@@ -182,7 +182,16 @@ class TreeTable is Control, FirstLetterNavigator
             end
 
             TreeTableCell parentCell = firstColumn:GetCell(targetIndex)
-            targetIndex = targetIndex + position
+
+            // The new row goes after its parent, and after every row shown for
+            // the siblings before it, counting their own open children.
+            targetIndex = targetIndex + 1
+            Array<TreeTableRow> siblings = parentRow:GetChildren()
+            integer sibling = 0
+            repeat while sibling < position and sibling < siblings:GetSize()
+                targetIndex = targetIndex + GetActiveRowCount(siblings:Get(sibling))
+                sibling = sibling + 1
+            end
 
             newRow:SetParentTreeTable(me)
             SetParentTreeTableReferences(newRow:GetChildren(), me)

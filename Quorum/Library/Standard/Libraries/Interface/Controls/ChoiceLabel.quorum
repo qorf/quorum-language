@@ -1,0 +1,47 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
+
+/*
+The label inside a Checkbox or a RadioButton. It shows its control's focus
+as a line under its text (CD, R1), without taking the focus itself.
+*/
+class ChoiceLabel is Label
+    Control owner = undefined
+
+    /*
+    This action sets the control whose focus this label shows.
+
+    Attribute: Parameter choice The checkbox or radio button this label belongs to.
+    */
+    action SetOwner(Control choice)
+        owner = choice
+    end
+
+    action ShowsFocusIndicator returns boolean
+        return owner not= undefined
+    end
+
+    action IsShowingFocus returns boolean
+        GameStateManager focusState
+        if owner is RadioButton
+            RadioButton radio = cast(RadioButton, owner)
+            return radio:IsShowingChoiceFocus()
+        end
+        return owner not= undefined and focusState:GetGame() not= undefined and owner:IsFocused()
+    end
+
+    action UsesFocusUnderline returns boolean
+        return true
+    end
+
+    // The line is in its control's focus border color, the accent.
+    action GetFocusColor returns ColorGroup
+        if owner not= undefined and owner:GetFocusBorderColor() not= undefined
+            return owner:GetFocusBorderColor()
+        end
+        return parent:Label:GetFocusColor()
+    end
+end

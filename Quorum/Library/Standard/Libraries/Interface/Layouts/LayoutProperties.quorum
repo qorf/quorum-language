@@ -1608,6 +1608,46 @@ action IsSettingLeftPadding returns boolean
         return default:HasMouseOverBorderThickness()
     end
 
+    action SetFocusBorderThickness(number value)
+        if options = undefined
+            options = NewInterfaceOptions()
+        end
+
+        options:SetFocusBorderThickness(value)
+        needsRendering = true
+    end
+
+    action GetFocusBorderThickness returns number
+        if options not= undefined and options:GetFocusBorderThickness():IsNotANumber() = false
+            return options:GetFocusBorderThickness()
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFocusBorderThickness()
+            return controlPalette:GetFocusBorderThickness()
+        end
+
+        if default:HasFocusBorderThickness()
+            return default:GetFocusBorderThickness()
+        end
+        return 0
+    end
+
+    action HasFocusBorderThickness returns boolean
+        if options not= undefined and options:HasFocusBorderThickness()
+            return true
+        end
+
+        InterfaceOptions default = manager:GetInterfaceOptions()
+        InterfaceOptions controlPalette = default:GetInterfaceOptions(optionsKey)
+        if controlPalette not= undefined and controlPalette:HasFocusBorderThickness()
+            return true
+        end
+
+        return default:HasFocusBorderThickness()
+    end
+
     action SetFontOutlineThickness(number value)
         if options = undefined
             options = NewInterfaceOptions()

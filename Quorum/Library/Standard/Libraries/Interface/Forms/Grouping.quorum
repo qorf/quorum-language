@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Forms.FormRowSeparator
+use Libraries.Interface.Events.FocusEvent
 
 /*
 
@@ -44,6 +45,10 @@ use Libraries.Interface.Forms.FormRowSeparator
 
 */
 class Grouping is FormContainerControl, ButtonGroup
+
+    // Set by the form's layout when this card rises into a banner above it,
+    // so its heading takes the banner's text color.
+    boolean overlappingBanner = false
 
     on create
         SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
@@ -80,6 +85,14 @@ class Grouping is FormContainerControl, ButtonGroup
     public constant integer CARD_STYLE = 1
     public constant integer FOOTER_STYLE = 2
     public constant integer SUBSECTION_STYLE = 3
+    // A grouping of only choices beside a label, drawn as a shaded track (G3).
+    public constant integer CHOICE_STYLE = 4
+    constant number CHOICE_ROUNDING = 8
+
+    // The group's 3-point left line while one of its choices has the focus
+    // (G3), like a focused text field's.
+    boolean choiceFocus = false
+    constant number CHOICE_FOCUS_THICKNESS = 3
     integer drawStyle = PLAIN_STYLE
     // In a footer, how many of the first buttons sit at the left.
     integer leadingButtonCount = 0
@@ -148,7 +161,59 @@ class Grouping is FormContainerControl, ButtonGroup
         return leadingButtonCount
     end
 
+    /*
+        For radio buttons: sets whether one of this group's choices has the
+        focus, which draws the group's left line (G3).
+
+        Attribute: Parameter focused True while a choice in this group has the focus.
+    */
+    action SetChoiceFocus(boolean focused)
+        choiceFocus = focused
+        if focused
+            SetBorderStyle(GetDefaultLayoutProperties():LEFT)
+        else
+            SetBorderStyle(GetDefaultLayoutProperties():ALL)
+        end
+        RequestVerticesUpdate()
+    end
+
+    // A group of radio buttons takes the focus itself (G3): its left line,
+    // and the selected button's circle edge and underline.
+    action GainedFocus(FocusEvent event)
+        parent:ButtonGroup:GainedFocus(event)
+        if GetSize() > 0
+            SetChoiceFocus(true)
+            RefreshChoiceButtons()
+        end
+    end
+
+    action LostFocus(FocusEvent event)
+        parent:Control:LostFocus(event)
+        if GetSize() > 0
+            SetChoiceFocus(false)
+            RefreshChoiceButtons()
+        end
+    end
+
+    private action RefreshChoiceButtons
+        Array<ToggleButton> choices = GetButtons()
+        integer index = 0
+        repeat while index < choices:GetSize()
+            if choices:Get(index) is RadioButton
+                RadioButton radio = cast(RadioButton, choices:Get(index))
+                radio:RefreshChoiceFocus()
+            end
+            index = index + 1
+        end
+    end
+
     action GetBackgroundColor returns ColorGroup
+        if drawStyle = CHOICE_STYLE and not HasColorPropertyOverride("backgroundColor")
+            ColorGroup track = GetStyleOptions():GetBackgroundColor("ChoiceGroup")
+            if track not= undefined
+                return track
+            end
+        end
         if drawStyle = CARD_STYLE and not HasColorPropertyOverride("backgroundColor")
             ColorGroup card = GetStyleOptions():GetBackgroundColor("FormCard")
             if card not= undefined
@@ -159,6 +224,12 @@ class Grouping is FormContainerControl, ButtonGroup
     end
 
     action GetBorderColor returns ColorGroup
+        if choiceFocus
+            ColorGroup focusLine = GetStyleOptions():GetFocusBorderColor("RadioButton")
+            if focusLine not= undefined
+                return focusLine
+            end
+        end
         if drawStyle = FOOTER_STYLE and not HasColorPropertyOverride("borderColor")
             ColorGroup line = GetStyleOptions():GetBorderColor("FormFooter")
             if line not= undefined
@@ -169,8 +240,11 @@ class Grouping is FormContainerControl, ButtonGroup
     end
 
     action GetBorderThickness returns number
+        if choiceFocus
+            return CHOICE_FOCUS_THICKNESS
+        end
         if not HasNumberPropertyOverride("borderThickness")
-            if drawStyle = CARD_STYLE
+            if drawStyle = CARD_STYLE or drawStyle = CHOICE_STYLE
                 return 0
             elseif drawStyle = FOOTER_STYLE
                 return 1
@@ -183,12 +257,18 @@ class Grouping is FormContainerControl, ButtonGroup
         if drawStyle = CARD_STYLE
             return CARD_ROUNDING
         end
+        if drawStyle = CHOICE_STYLE
+            return CHOICE_ROUNDING
+        end
         return parent:Control:GetTopLeftPixelRounding()
     end
 
     action GetTopRightPixelRounding returns number
         if drawStyle = CARD_STYLE
             return CARD_ROUNDING
+        end
+        if drawStyle = CHOICE_STYLE
+            return CHOICE_ROUNDING
         end
         return parent:Control:GetTopRightPixelRounding()
     end
@@ -197,12 +277,18 @@ class Grouping is FormContainerControl, ButtonGroup
         if drawStyle = CARD_STYLE
             return CARD_ROUNDING
         end
+        if drawStyle = CHOICE_STYLE
+            return CHOICE_ROUNDING
+        end
         return parent:Control:GetBottomLeftPixelRounding()
     end
 
     action GetBottomRightPixelRounding returns number
         if drawStyle = CARD_STYLE
             return CARD_ROUNDING
+        end
+        if drawStyle = CHOICE_STYLE
+            return CHOICE_ROUNDING
         end
         return parent:Control:GetBottomRightPixelRounding()
     end
@@ -652,4 +738,23 @@ class Grouping is FormContainerControl, ButtonGroup
         return me:isUsingCustomLayout
     end
     
+
+    /*
+        For the form's layout: sets whether this card rises into a banner
+        above it (Banner:SetOverlapNextCard).
+
+        Attribute: Parameter overlapping True if the card overlaps a banner.
+    */
+    action SetOverlappingBanner(boolean overlapping)
+        overlappingBanner = overlapping
+    end
+
+    /*
+        This action returns whether this card rises into a banner above it.
+
+        Attribute: Returns True if the card overlaps a banner.
+    */
+    action IsOverlappingBanner returns boolean
+        return overlappingBanner
+    end
 end

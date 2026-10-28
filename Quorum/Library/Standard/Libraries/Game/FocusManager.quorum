@@ -11,6 +11,11 @@ use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Controls.ScrollPane
+use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Interface.Controls.Spreadsheet
 
 class FocusManager is KeyboardListener
 
@@ -80,6 +85,34 @@ class FocusManager is KeyboardListener
             FocusListener listener = iterator:Next()
             listener:GainedFocus(event)
             listener:LostFocus(event)
+        end
+
+        // Scroll the panes around the new focus to show it, unless a
+        // listener has already moved the focus on.
+        if item is Item2D and focused = item
+            ShowInScrollPanes(cast(Item2D, item))
+        end
+    end
+
+    /*
+    Scrolls each ScrollPane holding an item, innermost first, just far
+    enough to show it. A Tree, TreeTable, Spreadsheet, List or text box
+    scrolls its own contents, so an item inside one is left to it, and a
+    whole Tree, TreeTable or Spreadsheet is never scrolled to.
+    */
+    private action ShowInScrollPanes(Item2D item)
+        if item is Tree or item is TreeTable or item is Spreadsheet
+            return now
+        end
+        Item2D current = item:GetParent()
+        repeat while current not= undefined
+            if current is ScrollPane
+                ScrollPane pane = cast(ScrollPane, current)
+                pane:ScrollToShow(item)
+            elseif current is Tree or current is TreeTable or current is Spreadsheet or current is ScrollableControl
+                return now
+            end
+            current = current:GetParent()
         end
     end
 

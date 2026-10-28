@@ -18,6 +18,9 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Forms.Grouping
 
 
 /*
@@ -51,7 +54,12 @@ class RadioButton is ToggleButton
 
     Icon buttonIcon
     Control innerIcon
-    Label label
+    // A thin accent ring just outside the circle, with a small gap, while
+    // this radio button shows the focus (G3).
+    Control focusRing
+    constant number FOCUS_RING_GAP = 2
+    constant number FOCUS_RING_THICKNESS = 2
+    ChoiceLabel label
     number iconRadius = -1
     // False while a screen reader moves the focus here
     // (FocusWithoutSelecting), so the answer doesn't change.
@@ -69,9 +77,12 @@ class RadioButton is ToggleButton
   if false then instead the radio button will use a 'ring' style where the border changes to the selection color
   and the border thickens. 
 */
-    boolean dotStyleSelection = true
+    // A selected radio button is a thick ring around a white center (G3).
+    // UseDotSelectionStyle brings back the dot.
+    boolean dotStyleSelection = false
 
     on create
+        label:SetOwner(me)
         label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         
         // The layout should already be present, courtesy of our inheritance of Button.
@@ -175,7 +186,17 @@ else
                     buttonIcon:SetBorderThickness(radioBorderThickness)
             end
 end
+            // The outer ring shows focus (G3); the circle keeps its own
+            // colors. There's no focus before the game exists.
+            if IsShowingChoiceFocus()
+                focusRing:Show()
+            else
+                focusRing:Hide()
+            end
             buttonIcon:RequestVerticesUpdate()
+            // The arrow keys move the selection inside a focused group, so
+            // the line under the label moves with it.
+            label:RefreshFocusIndicator()
         end
 
         if toggleState
@@ -212,6 +233,68 @@ label:SetColor(GetFontColor())
             SetToggleState(true)
         end
         parent:Control:GainedFocus(event)
+        // G3: the outer ring, the line under the label, and the group's
+        // left line.
+        RefreshChoiceFocus()
+        ButtonGroup focusGroup = GetButtonGroup()
+        if focusGroup is Grouping
+            Grouping choiceGroup = cast(Grouping, focusGroup)
+            choiceGroup:SetChoiceFocus(true)
+        end
+    end
+
+    /*
+    This action returns whether this radio button shows the focus (G3): when
+    it has the focus itself, or when it's the selected one in a group that
+    has the focus.
+
+    Attribute: Returns True if this radio button shows the focus.
+    */
+    action IsShowingChoiceFocus returns boolean
+        GameStateManager focusState
+        if focusState:GetGame() = undefined
+            return false
+        end
+        if IsFocused()
+            return true
+        end
+        ButtonGroup group = GetButtonGroup()
+        return GetToggleState() and group not= undefined and group:IsFocused()
+    end
+
+    /*
+    This action redraws the circle's edge and the line under the label to
+    match IsShowingChoiceFocus.
+    */
+    action RefreshChoiceFocus
+        if radioBorderColor = undefined
+            return now
+        end
+        if GetToggleState()
+            buttonIcon:SetBorderColor(radioToggledColor)
+        else
+            buttonIcon:SetBorderColor(radioBorderColor)
+        end
+        if IsShowingChoiceFocus()
+            focusRing:Show()
+        else
+            focusRing:Hide()
+        end
+        buttonIcon:RequestVerticesUpdate()
+        label:RefreshFocusIndicator()
+    end
+
+    /*
+        This action is fired if the item lost the focus.
+    */
+    action LostFocus(FocusEvent event)
+        parent:Control:LostFocus(event)
+        RefreshChoiceFocus()
+        ButtonGroup focusGroup = GetButtonGroup()
+        if focusGroup is Grouping
+            Grouping choiceGroup = cast(Grouping, focusGroup)
+            choiceGroup:SetChoiceFocus(false)
+        end
     end
 
     /*
@@ -351,14 +434,44 @@ label:SetColor(GetFontColor())
             innerIcon:Hide()
             
             buttonIcon:Add(innerIcon)
+
+            // The outer focus ring (G3), centered on the circle like the
+            // dot, and a little larger on every side.
+            ControlShaderView ringView
+            ringView:Initialize()
+            focusRing:SetView2D(ringView)
+            focusRing:SetBackgroundColor(transparent)
+            focusRing:SetBorderThickness(FOCUS_RING_THICKNESS)
+            focusRing:SetBorderColor(GetFocusBorderColor())
+            focusRing:SetPercentageOriginX(0.5)
+            focusRing:SetPercentageOriginY(0.5)
+            focusRing:SetPercentageX(0.5)
+            focusRing:SetPercentageY(0.5)
+            focusRing:SetPercentageWidth(1)
+            focusRing:SetPercentageHeight(1)
+            // ManualLayout scales these sizes by the interface scale.
+            focusRing:SetPixelWidth(2 * (FOCUS_RING_GAP + FOCUS_RING_THICKNESS))
+            focusRing:SetPixelHeight(2 * (FOCUS_RING_GAP + FOCUS_RING_THICKNESS))
+            focusRing:SetCornerRounding(1, 1, 1, 1)
+            focusRing:SetName("Focus Ring")
+            focusRing:SetAccessibilityCode(focusRing:parent:Item:NOT_ACCESSIBLE)
+            focusRing:SetFocusable(false)
+            // A drawing only: clicks pass through to the radio button.
+            focusRing:SetAcceptsMouseInput(false)
+            focusRing:Hide()
+            buttonIcon:Add(focusRing)
             
             // null out certain colors so it only effects the box not the whole control
             SetBackgroundColor(transparent)
             SetSelectionBorderColor(transparent)
         SetBackgroundColor(transparent)
         SetSelectionColor(transparent)
-        SetMouseOverColor(transparent)
+        // H3: the hover band behind the whole choice, from the theme.
+        SetMouseOverColor(GetStyleMouseOverColor())
         SetBorderColor(transparent)
+            // No outline around the circle and label: the circle's edge,
+            // the line under the label and the group's line show focus.
+            SetBorderStyle(properties:NONE)
             
         end
 
@@ -377,5 +490,40 @@ label:SetColor(GetFontColor())
                 end
             end
      end
+    end
+
+    // H3: the theme's hover band for this choice (its mouse-over color), or
+    // clear when the theme has none.
+    private action GetStyleMouseOverColor returns ColorGroup
+        GameStateManager styleState
+        InterfaceOptions options = styleState:GetInterfaceOptions()
+        if options not= undefined
+            ColorGroup band = options:GetMouseOverColor(GetInterfaceOptionsKey())
+            if band not= undefined
+                return band
+            end
+        end
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        return clear
+    end
+
+    // H3: a firmer box or circle edge under the mouse, unless it shows
+    // focus or a selection.
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+        if not IsShowingChoiceFocus() and not GetToggleState() and GetMouseOverBorderColor() not= undefined
+            buttonIcon:SetBorderColor(GetMouseOverBorderColor())
+            buttonIcon:RequestVerticesUpdate()
+        end
+    end
+
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        // Back to its own edge.
+        if not IsShowingChoiceFocus() and not GetToggleState() and radioBorderColor not= undefined
+            buttonIcon:SetBorderColor(radioBorderColor)
+            buttonIcon:RequestVerticesUpdate()
+        end
     end
 end

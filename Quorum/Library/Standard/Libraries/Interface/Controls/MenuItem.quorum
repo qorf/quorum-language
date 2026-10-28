@@ -84,6 +84,8 @@ class MenuItem is Control
     on create
         SetInputGroup("MenuItem")
         SetAccessibilityCode(parent:Item:MENU_ITEM)
+        // Mnemonics show only on the item under the mouse or selected.
+        label:HideUnderline()
 
         MenuPanel panel
         me:panel = panel
@@ -118,19 +120,25 @@ class MenuItem is Control
         iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
         iconProperties:SetPercentageWidth(1.0)
         iconProperties:SetPercentageHeight(1)
-        iconProperties:SetLeftMargin(6)
+        // Clear of the selected item's 3-point tag (M4).
+        iconProperties:SetLeftMargin(12)
         iconProperties:SetTopMargin(4)
         iconProperties:SetBottomMargin(4)
 
         labelProperties:SetVerticalLayoutMode(labelProperties:FIT_CONTENTS)
-        labelProperties:SetLeftMargin(6)
+        // The text starts clear of the tag, with a little room above and
+        // below it.
+        labelProperties:SetLeftMargin(12)
         labelProperties:SetRightMargin(6)
-        labelProperties:SetBottomMargin(4)
+        labelProperties:SetTopMargin(3)
+        labelProperties:SetBottomMargin(5)
 
         shortcutProperties:SetVerticalLayoutMode(shortcutProperties:FIT_CONTENTS)
-        shortcutProperties:SetLeftMargin(4)
-        shortcutProperties:SetRightMargin(6)
-        shortcutProperties:SetBottomMargin(4)
+        // A clear gap between the names and the shortcuts.
+        shortcutProperties:SetLeftMargin(24)
+        shortcutProperties:SetRightMargin(12)
+        shortcutProperties:SetTopMargin(3)
+        shortcutProperties:SetBottomMargin(5)
 
         arrowProperties:SetHorizontalLayoutMode(arrowProperties:MAINTAIN_ASPECT_RATIO)
         arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
@@ -255,6 +263,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             panelProperties:SetPercentageOriginY(1)
             panelProperties:SetPercentageY(0)
             panelProperties:SetPercentageX(0)
+            // A title inset from the bar's bottom edge (its bottom margin)
+            // still opens its panel at that edge, not over the bar.
+            number drop = GetDefaultLayoutProperties():GetBottomMargin() * GetInterfaceScale()
+            panelProperties:SetPixelY(-drop)
         elseif direction = UP
             anchorProperties:SetPercentageX(0)
             anchorProperties:SetPercentageY(1)
@@ -406,6 +418,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action BeginMouseOver
         parent:Control:BeginMouseOver()
+        label:ShowUnderline()
+        // The theme's hover text color, if it has one (selecting the item
+        // below sets the selection color instead).
+        if not IsSelected()
+            ColorGroup hoverFont = GetDefaultLayoutProperties():GetMouseOverFontColor()
+            if hoverFont not= undefined
+                label:SetColor(hoverFont)
+            end
+        end
         MenuRoot bar = GetMenuRoot()
         if bar not= undefined and bar:IsSelecting()
             if not open
@@ -415,8 +436,19 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        if not IsSelected()
+            label:HideUnderline()
+            if GetDefaultLayoutProperties():GetMouseOverFontColor() not= undefined
+                label:SetColor(GetDefaultLayoutProperties():GetFontColor())
+            end
+        end
+    end
+
     action GainedSelection
         parent:Control:GainedSelection()
+        label:ShowUnderline()
         LayoutProperties properties = GetDefaultLayoutProperties()
         ColorGroup select = properties:GetSelectionFontColor()
 
@@ -431,10 +463,11 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action LostSelection
         parent:Control:LostSelection()
+        label:HideUnderline()
         LayoutProperties properties = GetDefaultLayoutProperties()
         ColorGroup select = properties:GetFontColor()
         label:SetColor(select)
-        shortcutLabel:SetColor(properties:GetFontColor())
+        ColorShortcut(properties, false)
 
         if open
             Close()
@@ -541,11 +574,29 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action GetShortcutWidth returns number
         if shortcutLabel:IsShowing() and shortcutLabel:GetText() not= ""
-            LayoutProperties properties = label:GetDefaultLayoutProperties()
+            // The shortcut's own margins, which MenuItemLayout places it by.
+            LayoutProperties properties = shortcutLabel:GetDefaultLayoutProperties()
             return shortcutLabel:GetWidth() + properties:GetLeftMargin() + properties:GetRightMargin()
         else
             return 0
         end
+    end
+
+    /*
+    Colors the shortcut: the selection font color on the selected item, and
+    otherwise the MenuItem accent color (a muted text color), or the font
+    color when the theme has no accent.
+    */
+    private action ColorShortcut(LayoutProperties properties, boolean selected)
+        if selected
+            shortcutLabel:SetColor(properties:GetSelectionFontColor())
+            return now
+        end
+        ColorGroup muted = properties:GetAccentColor()
+        if muted = undefined
+            muted = properties:GetFontColor()
+        end
+        shortcutLabel:SetColor(muted)
     end
 
     action GetSubmenuIconWidth returns number
@@ -699,6 +750,8 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             SetMenuDirection(DOWN)
 
             properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
+            // Titles on the bar never show the tag (M4).
+            properties:SetBorderStyle(properties:NONE)
         else
             if GetLayout() = undefined or GetLayout():Equals(menuItemLayout) = false
                 SetLayout(menuItemLayout)
@@ -706,6 +759,9 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
             properties:SetHorizontalLayoutMode(properties:STANDARD)
             properties:SetPercentageWidth(1.0)
+            // The selected item's tag: its left border, drawn only while
+            // selected (the MenuItem selection border, M4).
+            properties:SetBorderStyle(properties:LEFT)
 
             SetMenuDirection(RIGHT)
 
@@ -717,8 +773,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
 
         panel:SetName(GetName() + " Menu Panel")
-        panel:SetBorderThickness(properties:GetBorderThickness())
-        panel:SetBorderStyle(properties:ALL - properties:TOP)
+        // The panel keeps its own border, not the items' (whose border
+        // is the tag).
+        if not panelProperties:HasBorderThickness()
+            panel:SetBorderThickness(1)
+        end
+        // A rounded panel has its edge all the way round (M4).
+        panel:SetBorderStyle(properties:ALL)
 
         if properties:GetIcon() not= undefined
             TextureRegion region = properties:GetIcon()
@@ -762,6 +823,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetColor(properties:GetSelectionFontColor())
         else
             label:SetColor(properties:GetFontColor())
+        end
+        // A theme's muted shortcut color applies from the start.
+        if properties:GetAccentColor() not= undefined
+            ColorShortcut(properties, selected)
         end
 
         shortcutLabel:SetSize(properties:GetFontSize())

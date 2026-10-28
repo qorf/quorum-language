@@ -36,6 +36,9 @@ class FormRowLayout is Layout
     // Sizes in points, before the interface scale.
     // The space between items in a row (A6).
     constant number IN_ROW_GAP = 12
+    // How far a card right after a page's first banner rises into it, in
+    // points (M2).
+    constant number BANNER_CARD_OVERLAP = 20
     // A text field with no width of its own is at most this wide (A3).
     constant number MAX_FIELD_WIDTH = 480
     // A label and its control share a row (A8) when the space is at least
@@ -44,6 +47,9 @@ class FormRowLayout is Layout
     constant number ROW_LABEL_SHARE = 0.45
     // A text field's width beside its label, when it has none of its own.
     constant number ROW_FIELD_WIDTH = 160
+    // The share of a row that a text field or a group of choices takes
+    // beside its label, so they all start at the same place in a card.
+    constant number ROW_CONTROL_SHARE = 0.5
     // A field holding more characters than this goes under its label at full
     // width instead (a file path, for example).
     constant integer LONG_FIELD_TEXT = 24
@@ -53,6 +59,8 @@ class FormRowLayout is Layout
     constant number CARD_ROW_PADDING = 6
     // The space between choices stacked top to bottom.
     constant number CHOICE_STACK_GAP = 4
+    // Space between a choice track's edge and its choices (G3), in points.
+    constant number CHOICE_TRACK_PADDING = 6
     // Footer buttons are at least this wide (A5).
     constant number MIN_FOOTER_BUTTON_WIDTH = 88
 
@@ -151,6 +159,8 @@ class FormRowLayout is Layout
 
             integer i = 0
             number rowTopY = containerHeight - defaultRowHeight
+            // The first banner, when a card right after it rises into it.
+            Banner overlapBanner = undefined
             // The bottom area (such as a footer) has no space above its
             // first row: the areas' heights add up to the page's height, so
             // that space would make a page that fits scroll anyway.
@@ -189,6 +199,30 @@ class FormRowLayout is Layout
                         cardWidth = cardGroup:GetPixelWidth() + containerWidth * cardGroup:GetPercentageWidth()
                     end
                     rowTopY = LayoutCard(cardGroup, (containerWidth - cardWidth) / 2.0, cardWidth, rowTopY, defaultRowVerticalPadding, containerHeight, containerFont)
+                    cardGroup:SetOverlappingBanner(false)
+                    // M2: the banner just above grows down past this card's
+                    // heading, to BANNER_CARD_OVERLAP below the box's top.
+                    if overlapBanner not= undefined and i = 1
+                        number boxTop = cardGroup:GetY() + cardGroup:GetHeight()
+                        number newBottom = boxTop - BANNER_CARD_OVERLAP * scale
+                        number bannerTopEdge = overlapBanner:GetY() + overlapBanner:GetHeight()
+                        if newBottom < overlapBanner:GetY()
+                            number added = overlapBanner:GetY() - newBottom
+                            overlapBanner:SetSize(overlapBanner:GetWidth(), bannerTopEdge - newBottom)
+                            overlapBanner:SetPosition(overlapBanner:GetX(), newBottom)
+                            // Its title and subtitle are placed from its
+                            // bottom, so they move up by what was added.
+                            Array<Item2D> bannerChildren = overlapBanner:GetChildren()
+                            integer b = 0
+                            repeat while b < bannerChildren:GetSize()
+                                Item2D child = bannerChildren:Get(b)
+                                child:SetY(child:GetY() + added)
+                                b = b + 1
+                            end
+                            cardGroup:SetOverlappingBanner(true)
+                        end
+                    end
+                    overlapBanner = undefined
                 elseif item is Label and not isTitle and PairsWithNextOnPage(items, i)
                     // A label and the field after it (A2, A8).
                     Label pairLabel = cast(Label, item)
@@ -289,7 +323,8 @@ class FormRowLayout is Layout
                             number height = font:GetLineHeight()
         
                             if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
-                                height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+                                // Pixel heights are in points (see SizeControl).
+                                height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
                             end
         
                             height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
@@ -364,8 +399,14 @@ class FormRowLayout is Layout
                     number bannerLeft = 0
                     number bannerRight = 0
                     number bannerTop = 0
-                    if group is Banner and i = 0 and areaCounter = 0 and parentControl is FormContainerControl
+                    // The first banner's color covers the gap above the first
+                    // row, on any display, and the safe region's insets too.
+                    boolean bannerReachesTop = false
+                    // The page itself, or a page's scroll anchor (container
+                    // is found at the top of Layout).
+                    if group is Banner and i = 0 and areaCounter = 0 and container not= undefined
                         Banner banner = cast(Banner, group)
+                        bannerReachesTop = banner:ExtendsToScreenEdges()
                         Layer2D layer = parentControl:GetLayer()
                         if banner:ExtendsToScreenEdges() and layer not= undefined and layer:UsesSafeRegion()
                             Rectangle region = layer:GetContentRegion()
@@ -482,13 +523,18 @@ class FormRowLayout is Layout
                     if group is Banner
                         number bannerY = rowTopY - contentRowHeight
                         number bannerHeight = contentRowHeight + groupTitleHeightOffset
-                        if bannerTop > 0 or bannerLeft > 0 or bannerRight > 0
+                        if bannerReachesTop
                             // Up to the top of the screen, over the gap above
                             // the first row too.
                             bannerHeight = containerHeight + bannerTop - bannerY
                         end
                         group:SetSize(containerWidth + bannerLeft + bannerRight, bannerHeight)
                         group:SetPosition(-bannerLeft, bannerY)
+                        // A card right after it rises into its bottom edge (M2).
+                        Banner thisBanner = cast(Banner, group)
+                        if bannerReachesTop and thisBanner:OverlapsNextCard()
+                            overlapBanner = thisBanner
+                        end
                     else
                         group:SetSize(rowWidth, contentRowHeight + groupTitleHeightOffset)
                         group:SetPosition((containerWidth - rowWidth) / 2, rowTopY - contentRowHeight)
@@ -517,7 +563,13 @@ class FormRowLayout is Layout
                                     control:LoadGraphics(control:GetDefaultLayoutProperties())
                                 end
         
-                                control:SetPosition(cast(integer, elementX + (elementWidth - control:GetWidth()) / 2.0), cast(integer, (currentRowHeight - control:GetHeight()) / 2.0) + bannerPadding + previousRowHeights)
+                                number controlX = elementX + (elementWidth - control:GetWidth()) / 2.0
+                                // A left-aligned banner (the default) starts
+                                // its text at the row's edge, under its title.
+                                if group is Banner and group:GetContentAlignment() = constants:LEFT_ALIGN
+                                    controlX = elementX
+                                end
+                                control:SetPosition(cast(integer, controlX), cast(integer, (currentRowHeight - control:GetHeight()) / 2.0) + bannerPadding + previousRowHeights)
     
                                 elementX = elementX + elementWidth + defaultInRowPadding
                             end
@@ -558,7 +610,8 @@ class FormRowLayout is Layout
                     end
 
                     if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
-                        height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+                        // Pixel heights are in points (see SizeControl).
+                        height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
                     end
 
                     height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
@@ -880,13 +933,31 @@ class FormRowLayout is Layout
 
     // The width of a line of text in a control's font at its drawn size.
     private action MeasureText(Control control, text value, Font fallback) returns number
+        return MeasureText(control, value, control:GetFontSize(), fallback)
+    end
+
+    /*
+    A label's width at the size it has beside its field. A caption is
+    measured at the default size, not its smaller caption size: measured
+    small, it would fit beside the field, go back to the default size there,
+    no longer fit, and become a caption again, flipping on every layout.
+    */
+    private action RowLabelWidth(Label label, Font fallback) returns number
+        if captionLabels:HasKey(label)
+            return MeasureText(label, label:GetText(), constants:DEFAULT_FONT_SIZE, fallback)
+        end
+        return MeasureText(label, label:GetText(), fallback)
+    end
+
+    // The width of a line of text in a control's font at the given size.
+    private action MeasureText(Control control, text value, integer size, Font fallback) returns number
         Font font = control:GetFont()
         if font = undefined
             font = fallback:Copy()
         else
             font = font:Copy()
         end
-        font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
+        font:SetSize(cast(integer, size * control:GetInterfaceScale()))
         number width = 0
         integer index = 0
         repeat while index < value:GetSize()
@@ -915,7 +986,8 @@ class FormRowLayout is Layout
         font:SetSize(cast(integer, control:GetFontSize() * control:GetInterfaceScale()))
         number height = font:GetLineHeight()
         if control:GetPixelHeight() not= 0 or control:GetPercentageHeight() not= 0
-            height = control:GetPixelHeight() + containerHeight * control:GetPercentageHeight()
+            // Pixel heights are in points, like FieldWidth's pixel widths.
+            height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
         end
         height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
         if control is Label
@@ -974,7 +1046,7 @@ class FormRowLayout is Layout
     private action BuildPairRow(Label label, Control control, number width, number gap, number containerHeight, Font fallback) returns FormRow
         FormRow row
         number scale = label:GetInterfaceScale()
-        number labelWidth = MeasureText(label, label:GetText(), fallback)
+        number labelWidth = RowLabelWidth(label, fallback)
 
         boolean side = width >= ROW_LAYOUT_MIN_WIDTH * scale and labelWidth <= width * ROW_LABEL_SHARE
         if control is TextBox
@@ -1000,11 +1072,15 @@ class FormRowLayout is Layout
             labelWidth = MeasureText(label, label:GetText(), fallback)
             number available = width - labelWidth - IN_ROW_GAP * scale
             number controlWidth = ROW_FIELD_WIDTH * scale
+            if control is TextField or control is Grouping
+                // One column for fields and choices beside their labels.
+                controlWidth = width * ROW_CONTROL_SHARE
+                if controlWidth > MAX_FIELD_WIDTH * scale
+                    controlWidth = MAX_FIELD_WIDTH * scale
+                end
+            end
             if control:GetPixelWidth() > 0
                 controlWidth = control:GetPixelWidth() * scale
-            end
-            if control is Grouping
-                controlWidth = available * 0.6
             end
             if controlWidth > available
                 controlWidth = available
@@ -1090,6 +1166,16 @@ class FormRowLayout is Layout
             end
         end
 
+        // Choices that fit side by side sit on a shaded track (G3), inset
+        // from its edges.
+        number innerWidth = width
+        number trackPadding = 0
+        if AllChoices(children, 0)
+            group:SetDrawStyle(group:CHOICE_STYLE)
+            trackPadding = CHOICE_TRACK_PADDING * group:GetInterfaceScale()
+            innerWidth = width - 2 * trackPadding
+        end
+
         // Plain buttons take the width of their words, and the other
         // children share what's left (L1). A row of only buttons, such as
         // Add and Remove under a list, leaves the rest of the row empty.
@@ -1113,7 +1199,7 @@ class FormRowLayout is Layout
         end
         number share = 0
         if sharingCount > 0
-            share = (width - gapWidth * (count - 1) - fixedWidth) / sharingCount
+            share = (innerWidth - gapWidth * (count - 1) - fixedWidth) / sharingCount
         end
 
         number tallest = 0
@@ -1131,7 +1217,7 @@ class FormRowLayout is Layout
             end
             index = index + 1
         end
-        return tallest
+        return tallest + 2 * trackPadding
     end
 
     /*
@@ -1290,6 +1376,10 @@ class FormRowLayout is Layout
         // Each child already has its width from SizeInline.
         number gapWidth = IN_ROW_GAP * group:GetInterfaceScale()
         number childX = 0
+        // On a choice track, the choices start inside its padding (G3).
+        if group:GetDrawStyle() = group:CHOICE_STYLE
+            childX = CHOICE_TRACK_PADDING * group:GetInterfaceScale()
+        end
         integer index = 0
         repeat while index < count
             Item2D child = children:Get(index)

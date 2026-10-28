@@ -9,6 +9,9 @@ import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Item_;
 
 public class ListItemKit extends ItemKit{
+    // The name ListItem gives itself in its on create.
+    private static final String DEFAULT_LIST_ITEM_NAME = "List Item";
+
     public ListItemKit() {
         SetRole(Role.LIST_ITEM);
     }
@@ -22,7 +25,15 @@ public class ListItemKit extends ItemKit{
             builder.setBounds(rect);
             //this may need to change as access kit changes. It feels like this
             //should be setValue, but that may be an incorrect assumption.
-            builder.setName(listItem.GetText());
+            //A name set by the program (anything but ListItem's default,
+            //"List Item") is what the screen reader reads, as on Windows;
+            //otherwise the row's text.
+            String name = listItem.GetName();
+            if (name != null && !name.isEmpty() && !name.equals(DEFAULT_LIST_ITEM_NAME)) {
+                builder.setName(name);
+            } else {
+                builder.setName(listItem.GetText());
+            }
         } else {
             builder.setName(item.GetName() + ", " + item.GetDescription());
         }

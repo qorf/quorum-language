@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.Blocks.RootBlock
 use Libraries.Interface.Controls.Blocks.FreeformBlock
 use Libraries.Interface.Controls.Blocks.MultipleLineBlockPart
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Item2D
 use Libraries.Containers.MultipleLineText
 use Libraries.Interface.Events.TextChangeEvent
 use Libraries.Interface.Undo.BlockEditManager
@@ -26,6 +27,14 @@ class CodeEditorRenderer is Control
     RootBlock rootBlock = undefined
     Array<Block> drawnBlocks
     Control cursor
+
+    /*
+    Items drawn over the background and under the blocks, in the order they
+    were added, such as a debugger's band on the stopped line. They are
+    children of the renderer, so they move and clip with it, and Empty
+    leaves them alone.
+    */
+    Array<Item2D> underlays
 
     /*
     A queue containing the multiple line blocks being rendered on this frame.
@@ -124,9 +133,36 @@ class CodeEditorRenderer is Control
         RecycleBlock(block)
     end
 
+    /*
+    This action adds an item to draw over the editor's background and under
+    its blocks. Its position is the renderer's own. It does nothing if the
+    item is undefined or already added.
+    */
+    action AddUnderlay(Item2D item)
+        if item = undefined or underlays:Has(item)
+            return now
+        end
+        underlays:Add(item)
+        Add(item)
+    end
+
+    // This action removes an item added with AddUnderlay.
+    action RemoveUnderlay(Item2D item)
+        if item not= undefined and underlays:Remove(item)
+            Remove(item)
+        end
+    end
+
     action Draw(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
+        end
+
+        // Over the background, under the blocks.
+        integer index = 0
+        repeat while index < underlays:GetSize()
+            underlays:Get(index):Draw(painter)
+            index = index + 1
         end
 
         integer counter = 0

@@ -129,7 +129,15 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
     TextFieldBackground background
 
+    // A thick line in the focus border color along the left edge, shown
+    // while the field has the focus (FD).
+    Control focusLine
+    constant number FOCUS_LINE_THICKNESS = 4
+
     integer leftCharacterPadding = 9
+    // A little room above and below the text, in points. The same on both
+    // sides, so the text stays centered.
+    constant number VERTICAL_PADDING = 2
 
     /*
     Values used for when text is being selected by dragging the mouse.
@@ -174,6 +182,16 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         AddMouseMovementListener(me)
 
         Add(background)
+        focusLine:SetName("Focus Line")
+        focusLine:SetAccessibilityCode(focusLine:parent:Item:NOT_ACCESSIBLE)
+        focusLine:SetFocusable(false)
+        // A drawing only: clicks pass through to the field.
+        focusLine:SetAcceptsMouseInput(false)
+        LayoutProperties lineLayout = focusLine:GetDefaultLayoutProperties()
+        lineLayout:SetPercentageWidth(1)
+        lineLayout:SetPercentageHeight(1)
+        focusLine:Hide()
+        Add(focusLine)
 
         caret = background:GetCaret()
 
@@ -201,6 +219,8 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         defaultProperties:SetFontSize(font:GetSize())
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:STANDARD)
+        defaultProperties:SetTopPadding(VERTICAL_PADDING)
+        defaultProperties:SetBottomPadding(VERTICAL_PADDING)
 
         HideCaret()
     end
@@ -315,6 +335,24 @@ GameStateManager manager
             background:SetView2D(backgroundView)
         end
 
+        // The focus line (FD): the field's shape, with only its left edge
+        // drawn, thick, in the focus border color.
+        if focusLine:GetView2D() = undefined
+            ControlShaderView lineView
+            lineView:Initialize()
+            focusLine:SetView2D(lineView)
+        end
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        focusLine:SetBackgroundColor(clear)
+        focusLine:SetBorderStyle(focusLine:GetDefaultLayoutProperties():LEFT)
+        focusLine:SetBorderThickness(FOCUS_LINE_THICKNESS)
+        focusLine:SetBorderColor(GetFocusBorderColor())
+        focusLine:SetTopLeftRounding(GetTopLeftRounding())
+        focusLine:SetTopRightRounding(GetTopRightRounding())
+        focusLine:SetBottomLeftRounding(GetBottomLeftRounding())
+        focusLine:SetBottomRightRounding(GetBottomRightRounding())
+
         caret:SetColor(GetIconColor())
 
         GetLineDrawables()
@@ -349,7 +387,8 @@ GameStateManager manager
         integer lineHeight = font:GetLineHeight()
         integer maxDescent = font:GetMaximumDescent()
 
-        number bottomPadding = GetBottomPadding()
+        // The layout scales the padding, so the text sits on the scaled amount.
+        number bottomPadding = GetBottomPadding() * GetInterfaceScale()
 
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
@@ -379,7 +418,7 @@ GameStateManager manager
                 highlight:Load(selectionTexture)
                 highlight:SetSize(glyph:horizontalAdvance, lineHeight)
                 highlight:SetColor(selectionColor)
-                highlight:SetPosition(x, 0)
+                highlight:SetPosition(x, bottomPadding)
                 highlight:SetAcceptsMouseInput(false)
                 background:AddSelectionDrawable(highlight)
             end
@@ -453,7 +492,7 @@ GameStateManager manager
             counter = counter + 1
         end
 
-        caret:SetPosition(x + leftCharacterPadding, GetBottomPadding())
+        caret:SetPosition(x + leftCharacterPadding, GetBottomPadding() * GetInterfaceScale())
         return x + leftCharacterPadding
     end
 
@@ -1141,6 +1180,9 @@ TextChangeEvent changeEvent
     action GainedFocus(FocusEvent event)
         ShowCaret()
         background:SetBorderColor(GetFocusBorderColor())
+        focusLine:SetBorderColor(GetFocusBorderColor())
+        focusLine:Show()
+        focusLine:RequestVerticesUpdate()
         SetBorderThickness(GetBorderThickness())
         RequestLayout()
         parent:Control:GainedFocus(event)
@@ -1150,6 +1192,7 @@ TextChangeEvent changeEvent
     action LostFocus(FocusEvent event)
         HideCaret()
         background:SetBorderColor(GetBorderColor())
+        focusLine:Hide()
         SetBorderThickness(GetBorderThickness())
         RequestLayout()
         parent:Control:LostFocus(event)
@@ -1860,7 +1903,7 @@ TextChangeEvent changeEvent
             integer styleStart = style:GetIndex()
             integer styleEnd = styleStart + style:GetSize()
 
-            number targetY = GetBottomPadding()
+            number targetY = GetBottomPadding() * GetInterfaceScale()
             number highlightHeight = font:GetLineHeight()
 
             Drawable draw = undefined

@@ -38,7 +38,9 @@ use Libraries.Game.Graphics.Color
 
     Each layer is a card titled with its name, holding its tile size and
     its buttons: "Choose..." to give it another material, "Remove", and
-    "Details...". The blend softness, in its own card, is how softly
+    "Details...". Two arrows on the title line move the layer up or down
+    one place (step 18); the painting stays where it is, so the ground is
+    drawn again with the materials in their new places. The blend softness, in its own card, is how softly
     texture set layers blend where they meet. A line above the cards says
     only what is worth saying, such as a missing material file. Adding,
     choosing and removing layers can be undone.
@@ -64,6 +66,13 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     public constant integer CLEAR_MAP = 6
     public constant integer FIND_MAPS = 7
     public constant integer MAKE_PLAIN = 8
+    // Moving a layer up or down one place (step 18).
+    public constant integer MOVE_UP = 9
+    public constant integer MOVE_DOWN = 10
+
+    // How much of a layer's title line its arrows take, in pixels before
+    // the interface scale: two 24 pixel buttons and the space around them.
+    constant number ARROWS_WIDTH = 64
 
     Control sectionPanel = undefined
     Label statusLabel = undefined
@@ -79,6 +88,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     Array<Button> chooseButtons
     Array<Button> removeButtons
     Array<Button> detailsButtons
+    // Each layer's arrows, which move it up or down one place (step 18).
+    Array<LayerMoveButton> upButtons
+    Array<LayerMoveButton> downButtons
 
     // What the layers panel holds now, in order, so it can be put together
     // again: the rows shown, the details, the blend softness.
@@ -224,9 +236,53 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
         // The card's title is the layer's name. Unlike other card titles,
         // it is a focus stop, so a screen reader reads which layer it is.
+        // Its line ends with the arrows that move the layer (step 18).
+        Control titleLine
+        FlowLayout titleLayout
+        titleLine:SetLayout(titleLayout)
+        titleLine:SetPercentageWidth(1.0)
+        titleLine:SetVerticalLayoutMode(titleLine:FIT_CONTENTS)
+        titleLine:SetLeftMargin(22)
+        titleLine:SetRightMargin(20)
+        titleLine:SetTopMargin(8)
+        titleLine:SetBottomMargin(2)
+
+        // The name takes the line, less the arrows' room.
+        Control nameBox
+        FlowLayout nameLayout
+        nameBox:SetLayout(nameLayout)
+        nameBox:SetPercentageWidth(1.0)
+        nameBox:SetPixelWidth(-ARROWS_WIDTH)
+        nameBox:SetVerticalLayoutMode(nameBox:FIT_CONTENTS)
         Label nameLabel = MakeCardTitle("Layer " + (index + 1))
+        nameLabel:SetLeftMargin(0)
+        nameLabel:SetTopMargin(4)
+        nameLabel:SetBottomMargin(0)
         nameLabel:SetFocusable(true)
-        row:Add(nameLabel)
+        nameBox:Add(nameLabel)
+        titleLine:Add(nameBox)
+
+        // A hidden arrow keeps its place, so the down arrows line up from
+        // row to row.
+        LayerMoveButton upButton
+        upButton:SetUp(true)
+        upButton:SetName("Move layer " + (index + 1) + " up")
+        upButton:SetDescription("Move this material up one place. The ground is drawn again with the new order.")
+        upButton:SetRightMargin(4)
+        TerrainMaterialButtonBehavior upBehavior
+        upBehavior:Setup(me, MOVE_UP, index)
+        upButton:SetBehavior(upBehavior)
+        titleLine:Add(upButton)
+        LayerMoveButton downButton
+        downButton:SetUp(false)
+        downButton:SetName("Move layer " + (index + 1) + " down")
+        downButton:SetDescription("Move this material down one place. The ground is drawn again with the new order.")
+        TerrainMaterialButtonBehavior downBehavior
+        downBehavior:Setup(me, MOVE_DOWN, index)
+        downButton:SetBehavior(downBehavior)
+        titleLine:Add(downButton)
+        row:Add(titleLine)
+
         Control card = MakeCard()
         row:Add(card)
 
@@ -274,6 +330,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
         rows:Add(row)
         nameLabels:Add(nameLabel)
+        upButtons:Add(upButton)
+        downButtons:Add(downButton)
         tileFields:Add(tileField)
         chooseButtons:Add(chooseButton)
         removeButtons:Add(removeButton)
@@ -563,7 +621,22 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         integer i = 0
         repeat while i < count
             Material layerMaterial = material:GetLayerMaterial(i)
-            nameLabels:Get(i):SetText("Layer " + (i + 1) + ": " + material:GetLayerName(i))
+            text layerName = material:GetLayerName(i)
+            nameLabels:Get(i):SetText("Layer " + (i + 1) + ": " + layerName)
+            // The first layer can't move up, nor the last down; their
+            // arrows are hidden and out of the Tab order (LinkFocus).
+            upButtons:Get(i):SetName("Move " + layerName + " up")
+            downButtons:Get(i):SetName("Move " + layerName + " down")
+            if i > 0
+                upButtons:Get(i):Show()
+            else
+                upButtons:Get(i):Hide()
+            end
+            if i < count - 1
+                downButtons:Get(i):Show()
+            else
+                downButtons:Get(i):Hide()
+            end
             SetFieldText(tileFields:Get(i), layerMaterial:GetTextureScale())
             i = i + 1
         end
@@ -759,7 +832,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
     /*
         Links the Tab order through the controls that are shown: the status
-        line while it has a note, each layer's controls, the Material details
+        line while it has a note, each layer's controls (its name, the arrows
+        it shows, its tile size and buttons), the Material details
         if open, the blend softness, then "Add material...". The button stays
         the last; the first is given to the Properties panel (SetFirstFocus),
         so its links to the other sections hold.
@@ -772,6 +846,12 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         integer i = 0
         repeat while i < count
             chain:Add(nameLabels:Get(i))
+            if i > 0
+                chain:Add(upButtons:Get(i))
+            end
+            if i < count - 1
+                chain:Add(downButtons:Get(i))
+            end
             chain:Add(tileFields:Get(i))
             chain:Add(chooseButtons:Get(i))
             chain:Add(removeButtons:Get(i))
@@ -819,7 +899,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         This action is called by the section's buttons: it asks for a file
         to add a layer or choose a layer's material, or removes a layer.
 
-        Attribute: Parameter kind ADD, CHOOSE or REMOVE
+        Attribute: Parameter kind ADD, CHOOSE, REMOVE, MOVE_UP or MOVE_DOWN, or a details button
         Attribute: Parameter layer The layer, from 0, for CHOOSE and REMOVE
     */
     action ButtonActivated(integer kind, integer layer)
@@ -829,6 +909,9 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         end
         if kind = REMOVE
             editor:RemoveTerrainLayer(terrain, layer)
+            return now
+        elseif kind = MOVE_UP or kind = MOVE_DOWN
+            MoveLayer(editor, layer, kind = MOVE_UP)
             return now
         elseif kind = DETAILS
             detailsLayer = layer
@@ -872,6 +955,46 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             editor:AddTerrainLayer(terrain, chosen)
         else
             editor:ChooseTerrainLayer(terrain, layer, chosen)
+        end
+    end
+
+    /*
+        Moves a layer up or down one place (step 18). The open Material
+        details follow the material they show. Afterward the focus is on the
+        moved layer's arrow in its new place, the same way if it can go
+        further, so pressing again keeps moving it, or else the other way.
+    */
+    private action MoveLayer(SceneEditor editor, integer layer, boolean up)
+        integer target = layer + 1
+        if up
+            target = layer - 1
+        end
+        integer count = terrain:GetLayerCount()
+        if target < 0 or target >= count
+            return now
+        end
+        integer detailsBefore = detailsLayer
+        if detailsLayer = layer
+            detailsLayer = target
+        elseif detailsLayer = target
+            detailsLayer = layer
+        end
+        if not editor:MoveTerrainLayer(terrain, layer, up)
+            detailsLayer = detailsBefore
+            return now
+        end
+        // The editor showed the new order; the focus goes with the material.
+        if target >= rowsShown
+            return now
+        end
+        if up and target > 0
+            upButtons:Get(target):Focus()
+        elseif up
+            downButtons:Get(target):Focus()
+        elseif target < count - 1
+            downButtons:Get(target):Focus()
+        else
+            upButtons:Get(target):Focus()
         end
     end
 

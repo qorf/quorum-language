@@ -164,6 +164,11 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
             buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
             closeButton:SetInterfaceOptionsKey("DialogClose")
+            // The button draws its own hover square behind the X (X1); with
+            // no label or icon, Button gives it no view of its own.
+            ControlShaderView closeSurface
+            closeSurface:Initialize()
+            closeButton:SetView2D(closeSurface)
             buttonProperties:SetPixelHeight(CLOSE_BUTTON_SIZE)
             buttonProperties:SetPixelWidth(CLOSE_BUTTON_SIZE)
             buttonProperties:SetPercentageOriginX(1.0)

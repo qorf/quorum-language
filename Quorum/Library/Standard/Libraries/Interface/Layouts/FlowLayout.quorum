@@ -4,6 +4,7 @@ use Libraries.Compute.Math
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
 use Libraries.Game.Graphics.Font
 
 class FlowLayout is Layout
@@ -305,7 +306,7 @@ class FlowLayout is Layout
                         control:SetHeight(setHeight)
                     elseif properties:GetVerticalLayoutMode() = properties:FIT_FONT
                         if properties:GetFont() not= undefined
-                            control:SetHeight(properties:GetFont():GetLineHeight())
+                            control:SetHeight(FitFontHeight(control, properties:GetFont(), interfaceScale))
                         end
                     end
                     width = control:GetWidth()
@@ -365,7 +366,7 @@ class FlowLayout is Layout
                                 font:SetSize(cast(integer, properties:GetFontSize() * interfaceScale))
                             end
 
-                            height = font:GetLineHeight()
+                            height = FitFontHeight(control, font, interfaceScale)
                         end
                     elseif properties:GetVerticalLayoutMode() = properties:STANDARD
                         height = (containerHeight - containerBorder * 2 - GetScaledTopMargin(properties) - GetScaledBottomMargin(properties)) * properties:GetPercentageHeight() + properties:GetPixelHeight() * interfaceScale
@@ -449,5 +450,19 @@ class FlowLayout is Layout
 
     action IsIgnoringInterfaceScale returns boolean
         return ignoreInterfaceScale
+    end
+
+    /*
+    The height FIT_FONT gives a control: one line of its font, plus, for a
+    text field, its top and bottom padding (as FormRowLayout sizes it). A
+    text field draws its text above its bottom padding, so without that room
+    the text crowds the top of the field.
+    */
+    private action FitFontHeight(Control control, Font font, number interfaceScale) returns number
+        number height = font:GetLineHeight()
+        if control is TextField
+            height = height + (control:GetTopPadding() + control:GetBottomPadding()) * interfaceScale
+        end
+        return height
     end
 end

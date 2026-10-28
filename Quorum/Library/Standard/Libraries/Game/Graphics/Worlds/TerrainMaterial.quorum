@@ -149,6 +149,23 @@ class TerrainMaterial
     end
 
     /*
+    This action swaps two layers' places: their names and materials. No
+    terrain's painting changes, so where the first was painted, the second
+    now shows, and the other way around.
+
+    Attribute: Parameter first One layer, from 0.
+    Attribute: Parameter second The other layer, from 0.
+    */
+    action SwapLayers(integer first, integer second)
+        text firstName = layerNames:Get(first)
+        Material firstMaterial = layerMaterials:Get(first)
+        layerNames:Set(first, layerNames:Get(second))
+        layerMaterials:Set(first, layerMaterials:Get(second))
+        layerNames:Set(second, firstName)
+        layerMaterials:Set(second, firstMaterial)
+    end
+
+    /*
     This action removes a layer; the layers after it move down one place.
     It doesn't change any terrain's painting: TerrainData's RemoveSplatLayer
     does that.

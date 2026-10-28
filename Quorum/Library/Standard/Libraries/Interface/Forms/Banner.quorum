@@ -36,12 +36,16 @@ class Banner is Grouping
     Label label = undefined
 
     // Whether the banner's background reaches the screen's edges when it is
-    // the first item on its page (SetExtendToScreenEdges).
-    boolean extendToScreenEdges = false
+    // the first item on its page (SetExtendToScreenEdges). On by default, so
+    // the color fills behind a camera cutout on phones.
+    boolean extendToScreenEdges = true
+
+    // Whether a card right after this banner rises into its bottom edge (M2).
+    boolean overlapNextCard = true
 
     on create
-        CenterAlignTitle()
-        CenterAlignContent()
+        LeftAlignTitle()
+        LeftAlignContent()
         SetTitleSizeLarge()
 
         SetInterfaceOptionsKey("Banner")
@@ -54,7 +58,8 @@ class Banner is Grouping
         safe region (see Layer:SetUseSafeRegion). The background then fills
         the space behind a camera cutout, such as the Dynamic Island on an
         iPhone, while the banner's text stays in the safe region below it. It
-        is off by default.
+        is on by default; set it to false to keep the background inside the
+        safe region with the text.
 
         Attribute: Parameter enabled True to stretch the banner's background to the screen's edges.
 
@@ -88,6 +93,29 @@ class Banner is Grouping
     */
     action ExtendsToScreenEdges returns boolean
         return extendToScreenEdges
+    end
+
+    /*
+        The SetOverlapNextCard action sets whether a card that comes right
+        after this banner rises into the banner's bottom edge, so the two
+        read as one header. It applies when the banner is the first item on
+        its page and extends to the screen's edges. It is on by default.
+
+        Attribute: Parameter enabled True to let the next card overlap the banner.
+    */
+    action SetOverlapNextCard(boolean enabled)
+        overlapNextCard = enabled
+        RequestLayout()
+    end
+
+    /*
+        The OverlapsNextCard action returns whether a card right after this
+        banner rises into it (see SetOverlapNextCard).
+
+        Attribute: Returns True if the next card overlaps the banner.
+    */
+    action OverlapsNextCard returns boolean
+        return overlapNextCard
     end
     /*
         This action sets up and fills in the banners title.

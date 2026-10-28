@@ -10,6 +10,8 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Controls.Support.FirstLetterNavigator
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Graphics.Color
 
 class List is ScrollableLineControl, FirstLetterNavigator
 
@@ -20,6 +22,11 @@ class List is ScrollableLineControl, FirstLetterNavigator
     Behavior itemBehavior = undefined
 
     ListRenderer renderer
+
+    // A thick accent line along the list's left edge while it has the
+    // focus (LS5), like a focused text field's (FD).
+    Control focusLine = undefined
+    constant number FOCUS_LINE_THICKNESS = 4
     
     on create
         LayoutProperties properties = GetDefaultLayoutProperties()
@@ -43,6 +50,66 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return true
     end
 
+    action GainedFocus(FocusEvent event)
+        parent:ScrollableLineControl:GainedFocus(event)
+        ShowFocusLine(true)
+        RefreshSelectedItem()
+    end
+
+    action LostFocus(FocusEvent event)
+        parent:ScrollableLineControl:LostFocus(event)
+        ShowFocusLine(false)
+        RefreshSelectedItem()
+    end
+
+    // The line is made the first time it's shown, when the graphics exist.
+    private action ShowFocusLine(boolean show)
+        if focusLine = undefined
+            if not show
+                return now
+            end
+            Control line
+            focusLine = line
+            focusLine:SetName("Focus Line")
+            focusLine:SetAccessibilityCode(focusLine:parent:Item:NOT_ACCESSIBLE)
+            focusLine:SetFocusable(false)
+            // A drawing only: clicks pass through to the rows under it.
+            focusLine:SetAcceptsMouseInput(false)
+            ControlShaderView lineView
+            lineView:Initialize()
+            focusLine:SetView2D(lineView)
+            LayoutProperties lineLayout = focusLine:GetDefaultLayoutProperties()
+            lineLayout:SetPercentageWidth(1)
+            lineLayout:SetPercentageHeight(1)
+            Color clear
+            clear:SetColor(0, 0, 0, 0)
+            focusLine:SetBackgroundColor(clear)
+            focusLine:SetBorderStyle(lineLayout:LEFT)
+            focusLine:SetBorderThickness(FOCUS_LINE_THICKNESS)
+            focusLine:SetCornerPixelRounding(GetBottomLeftPixelRounding(), GetBottomRightPixelRounding(),
+                GetTopLeftPixelRounding(), GetTopRightPixelRounding())
+            // Not a list item: the Control's own Add, as the scroll bars are.
+            parent:Control:Add(focusLine)
+            RequestLayout()
+        end
+        focusLine:SetBorderColor(GetFocusBorderColor())
+        if show
+            focusLine:Show()
+        else
+            focusLine:Hide()
+        end
+        focusLine:RequestVerticesUpdate()
+    end
+
+    // The selected item's look follows the list's focus (LS5).
+    private action RefreshSelectedItem
+        ListItem item = selection:GetListItem()
+        if item not= undefined
+            item:RefreshSelectionText()
+            item:RequestVerticesUpdate()
+        end
+    end
+
     action Add(text entry)
         Add(NewListItem(entry))
     end
@@ -63,6 +130,10 @@ class List is ScrollableLineControl, FirstLetterNavigator
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
         end
+        // An item kept and added again may still be hidden from an earlier
+        // scroll. A hidden item isn't added to the Mac's accessibility tree,
+        // and the renderer hides it again if it's off screen.
+        item:Show()
         renderer:Add(item)
     end
 
@@ -70,6 +141,10 @@ class List is ScrollableLineControl, FirstLetterNavigator
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
         end
+        // An item kept and added again may still be hidden from an earlier
+        // scroll. A hidden item isn't added to the Mac's accessibility tree,
+        // and the renderer hides it again if it's off screen.
+        item:Show()
         renderer:Add(index, item)
     end
 
@@ -154,8 +229,9 @@ class List is ScrollableLineControl, FirstLetterNavigator
         if item not= undefined
             item:GainedSelection()
 
-            if item:GetY() + item:GetHeight() > renderer:GetHeight() or item:GetY() < 0
-                GoToItem(GetIndexOf(item))
+            integer itemIndex = GetIndexOf(item)
+            if not IsLineVisible(itemIndex, item)
+                GoToItem(itemIndex)
             end
         end
 
@@ -174,12 +250,20 @@ class List is ScrollableLineControl, FirstLetterNavigator
         ListItem item = GetListItem(index)
         if item not= undefined
             item:GainedSelection()
-            if item:GetY() + item:GetHeight() > renderer:GetHeight() or item:GetY() < 0
-                GoToItem(GetIndexOf(item))
+            if not IsLineVisible(index, item)
+                GoToItem(index)
             end
         end
 
         selection:Set(index)
+    end
+
+    // Whether the line is wholly inside the box at the current scroll.
+    // GetLineY is where RefreshContents would draw it; an item's own
+    // position is stale while it's off screen.
+    private action IsLineVisible(integer index, ListItem item) returns boolean
+        number y = GetLineY(index)
+        return y >= 0 and y + GetLineHeight(index) <= renderer:GetHeight()
     end
 
     action Deselect
@@ -304,8 +388,9 @@ class List is ScrollableLineControl, FirstLetterNavigator
 
         integer i = 0
         repeat while i < GetLineCount()
-            ListItem item = GetListItem(i)
-            result = result + item:GetHeight()
+            // An item off screen may never have been sized; GetLineHeight
+            // sizes it first, so the total counts every line.
+            result = result + GetLineHeight(i)
             i = i + 1
         end
 
@@ -376,10 +461,26 @@ class List is ScrollableLineControl, FirstLetterNavigator
     action GetLineY(integer line) returns number
         number contentHeight = GetTotalContentHeight()
 
-        number baseY = GetHeight() - ((line + 1.0) / GetLineCount() * contentHeight)
+        // Rows can differ in height, so each sits below the real heights of
+        // the rows above it, not the average.
+        number baseY = GetHeight() - GetHeightThrough(line)
         number scrollOffset = GetScrollPercentageY() * contentHeight
 
         return baseY + scrollOffset
+    end
+
+    /*
+    This action returns the total height of lines 0 through the given line,
+    in pixels.
+    */
+    private action GetHeightThrough(integer line) returns number
+        number result = 0
+        integer i = 0
+        repeat while i <= line and i < GetLineCount()
+            result = result + GetLineHeight(i)
+            i = i + 1
+        end
+        return result
     end
 
     /*
@@ -397,15 +498,26 @@ class List is ScrollableLineControl, FirstLetterNavigator
     Attribute: Returns The index of the first visible line.
     */
     action GetFirstVisibleLine returns integer
-        return cast(integer, GetScrollPercentageY() * GetLineCount())
+        // The first line whose bottom is below the scrolled-off part.
+        number offset = GetScrollPercentageY() * GetTotalContentHeight()
+        number bottom = 0
+        integer i = 0
+        repeat while i < GetLineCount()
+            bottom = bottom + GetLineHeight(i)
+            if bottom > offset
+                return i
+            end
+            i = i + 1
+        end
+        return 0
     end
 
     action GoToItem(integer index)
-        // ScrollPercentY = (y - (height - ((line + 1) / LineCount * contentHeight))) / contentHeight
+        // ScrollPercentY = (y - (height - heightThroughLine)) / contentHeight
         number height = renderer:GetHeight()
         number contentHeight = GetTotalContentHeight()
         number targetY = height / 2.0
-        number result = (targetY - (height - ((index + 1) / GetLineCount() * contentHeight))) / contentHeight
+        number result = (targetY - (height - GetHeightThrough(index))) / contentHeight
         SetScrollPercentageY(result)
     end
 

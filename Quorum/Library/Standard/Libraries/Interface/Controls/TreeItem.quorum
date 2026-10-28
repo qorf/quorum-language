@@ -595,23 +595,29 @@ class TreeItem is Control
         if IsSubtree() and IsOpen()
             treeItems:Get(0):Select()
         elseif parentTreeItem not= undefined
-            parentTreeItem:SelectionDown(GetName())
+            parentTreeItem:SelectionDown(me)
         elseif parentTree not= undefined
             parentTree:SelectionSkipForward()
         end
     end
 
-    private action SelectionDown(text name)
+    /*
+    This action selects the item after the given child of this item. The
+    child is found by identity, not by name, so two children with the same
+    name, such as two "Main.quorum" files, aren't mixed up. This is how
+    MenuItem finds its place, too.
+    */
+    private action SelectionDown(TreeItem previous)
         if IsSubtree() and IsOpen()
             integer counter = 0
             repeat while counter < treeItems:GetSize()
-                if treeItems:Get(counter):GetName() = name
+                if treeItems:Get(counter):Equals(previous)
                     integer select = counter + 1
 
                     // If the last element was selected, go to the next subtree.
                     if select >= treeItems:GetSize()
                         if parentTreeItem not= undefined
-                            parentTreeItem:SelectionDown(GetName())
+                            parentTreeItem:SelectionDown(me)
                         elseif parentTree not= undefined
                             parentTree:SelectionSkipForward()
                         end
@@ -624,7 +630,7 @@ class TreeItem is Control
                 counter = counter + 1
             end
         elseif parentTreeItem not= undefined
-            parentTreeItem:SelectionDown(GetName())
+            parentTreeItem:SelectionDown(me)
         elseif parentTree not= undefined
             parentTree:SelectionSkipForward()
         end
@@ -632,17 +638,21 @@ class TreeItem is Control
 
     action SelectionUp
         if parentTreeItem not= undefined
-            parentTreeItem:SelectionUp(GetName())
+            parentTreeItem:SelectionUp(me)
         elseif parentTree not= undefined
             parentTree:SelectionSkipBackward()
         end
     end
 
-    private action SelectionUp(text name)
+    /*
+    This action selects the item before the given child of this item, found
+    by identity, as SelectionDown does.
+    */
+    private action SelectionUp(TreeItem previous)
         if IsSubtree() and IsOpen()
             integer counter = 0
             repeat while counter < treeItems:GetSize()
-                if treeItems:Get(counter):GetName() = name
+                if treeItems:Get(counter):Equals(previous)
                     integer select = counter - 1
                     // If this was the first element, select the subtree containing it.
                     if select < 0
@@ -656,7 +666,7 @@ class TreeItem is Control
                 counter = counter + 1
             end
         elseif parentTreeItem not= undefined
-            parentTreeItem:SelectionUp(GetName())
+            parentTreeItem:SelectionUp(me)
         elseif parentTree not= undefined
             parentTree:SelectionSkipBackward()
         end

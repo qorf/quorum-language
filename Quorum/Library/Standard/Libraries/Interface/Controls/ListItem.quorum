@@ -10,6 +10,8 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.ColorGroup
 
 /*
 The ListItem class is used internally to represent an entry in a list. Users
@@ -20,6 +22,9 @@ actions in List to add and remove entries.
 class ListItem is Control
 
     Label label
+    // The label's color before the selection changed it.
+    ColorGroup restingColor = undefined
+    boolean restingColorSaved = false
     Icon icon
 
     // The Behavior to use when the item is activated (e.g. by double click).
@@ -99,18 +104,48 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action GainedSelection
         parent:Control:GainedSelection()
+        RefreshSelectionText()
+    end
 
-        if GetSelectionFontColor() not= undefined
-            label:SetColor(GetSelectionFontColor())
+    // A selected list item shows the focused wash while its List has the
+    // focus, and the plain gray otherwise (LS5).
+    action IsRenderingFocus returns boolean
+        GameStateManager focusState
+        if focusState:GetGame() = undefined
+            return false
+        end
+        List list = GetList()
+        if list = undefined
+            return false
+        end
+        return list:IsRenderingFocus()
+    end
+
+    // The selected text follows its List's focus (LS5).
+    action RefreshSelectionText
+        // The label's own color, so it comes back when the selection leaves.
+        if not restingColorSaved
+            restingColor = label:GetFontColor()
+            restingColorSaved = true
+        end
+        if IsRenderingFocus()
+            if GetSelectionFontColor() not= undefined
+                label:SetColor(GetSelectionFontColor())
+            end
+        elseif GetUnfocusedSelectionFontColor() not= undefined
+            label:SetColor(GetUnfocusedSelectionFontColor())
         end
     end
 
     action LostSelection
         parent:Control:LostSelection()
 
-        if GetFontColor() not= undefined
+        if restingColorSaved and restingColor not= undefined
+            label:SetColor(restingColor)
+        elseif GetFontColor() not= undefined
             label:SetColor(GetFontColor())
         end
+        restingColorSaved = false
     end
 
     action LoadGraphics(LayoutProperties properties)

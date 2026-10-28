@@ -2,6 +2,8 @@ package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Gradient
 use Libraries.Interface.Accessibility
@@ -47,7 +49,7 @@ class Checkbox is ToggleButton
 
     Icon buttonIcon
     Control checkmark
-    Label label
+    ChoiceLabel label
     /* Check box colors are set using Background, Selection, Border, and SelectionBorder colors but that would
  conflict with the updated graphics so they are stored for use then nulled out when graphics are loaded 
  */
@@ -57,6 +59,7 @@ class Checkbox is ToggleButton
     ColorGroup checkmarkColor = undefined
 
     on create
+        label:SetOwner(me)
         label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         FlowLayout layout
         //layout:SetSingleLine(true)
@@ -149,6 +152,12 @@ class Checkbox is ToggleButton
                 buttonIcon:SetBackgroundColor(boxColor)
                 buttonIcon:SetBorderColor(boxBorderColor)
             end
+            // A focused box keeps its accent edge (CD). There's no focus
+            // before the game exists, such as while a program is built.
+            GameStateManager focusState
+            if focusState:GetGame() not= undefined and IsFocused()
+                buttonIcon:SetBorderColor(GetFocusBorderColor())
+            end
             buttonIcon:RequestVerticesUpdate()
         end
 
@@ -203,7 +212,8 @@ content:SetCheckColor(GetSelectionColor())
             end
         end
         end
-        SetSelectionBorderColor(GetFocusBorderColor())
+        buttonIcon:SetBorderColor(GetFocusBorderColor())
+        label:RefreshFocusIndicator()
         parent:Control:GainedFocus(event)
         buttonIcon:RequestVerticesUpdate()
     end
@@ -221,6 +231,12 @@ content:SetCheckColor(GetSelectionColor())
         end
         Color color
         SetSelectionBorderColor(color:CustomColor(0,0,0,0))
+        if GetToggleState()
+            buttonIcon:SetBorderColor(boxCheckedColor)
+        else
+            buttonIcon:SetBorderColor(boxBorderColor)
+        end
+        label:RefreshFocusIndicator()
         parent:Control:LostFocus(event)
         buttonIcon:RequestVerticesUpdate()
     end
@@ -307,8 +323,13 @@ content:SetCheckColor(GetSelectionColor())
             SetSelectionBorderColor(transparent)
         SetBackgroundColor(transparent)
         SetSelectionColor(transparent)
-        SetMouseOverColor(transparent)
+        // H3: the hover band behind the whole choice, from the theme.
+        SetMouseOverColor(GetStyleMouseOverColor())
         SetBorderColor(transparent)
+            // No outline around the box and label at all, even while
+            // focused: the box's edge and the line under the label show
+            // focus (CD). The focus border color stays, since they use it.
+            SetBorderStyle(properties:NONE)
             
         end
 
@@ -333,5 +354,40 @@ content:SetCheckColor(buttonIcon:GetAccentColor())
         // adjust box be slightly lower to be more in line with cap height
         //buttonIcon:SetTopMargin(GetFontSize()*0.18)
         parent:ToggleButton:Resize()
+    end
+
+    // H3: the theme's hover band for this choice (its mouse-over color), or
+    // clear when the theme has none.
+    private action GetStyleMouseOverColor returns ColorGroup
+        GameStateManager styleState
+        InterfaceOptions options = styleState:GetInterfaceOptions()
+        if options not= undefined
+            ColorGroup band = options:GetMouseOverColor(GetInterfaceOptionsKey())
+            if band not= undefined
+                return band
+            end
+        end
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        return clear
+    end
+
+    // H3: a firmer box or circle edge under the mouse, unless it shows
+    // focus or a selection.
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+        if not IsFocused() and not GetToggleState() and GetMouseOverBorderColor() not= undefined
+            buttonIcon:SetBorderColor(GetMouseOverBorderColor())
+            buttonIcon:RequestVerticesUpdate()
+        end
+    end
+
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        // Back to its own edge.
+        if not IsFocused() and not GetToggleState() and boxBorderColor not= undefined
+            buttonIcon:SetBorderColor(boxBorderColor)
+            buttonIcon:RequestVerticesUpdate()
+        end
     end
 end

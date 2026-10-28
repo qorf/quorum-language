@@ -578,6 +578,23 @@ class FormContainerControl is Control
         return undefined
     end
 
+    // The last focusable item in a child: its own last one when the child
+    // is a container (GetFocusedItem gives a container's first).
+    private action GetLastFocusedItem(Item2D control) returns Item2D
+        if control not= undefined
+            if control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Item2D item = interface:GetLastFocusableItem()
+                if item not= undefined and item:IsFocusable()
+                    return item
+                end
+            elseif control:IsFocusable()
+                return control
+            end
+        end
+        return undefined
+    end
+
     private action GetFocusedItem(Item2D control) returns Item2D
         if control not= undefined 
             if control is FormContainerControl
@@ -604,7 +621,7 @@ class FormContainerControl is Control
         i = children:GetSize() - 1
         repeat while i >= 0
             Item2D control = children:Get(i)
-            Item2D item = GetFocusedItem(control)
+            Item2D item = GetLastFocusedItem(control)
             if item not= undefined and item:IsFocusable()
                 return item
             end

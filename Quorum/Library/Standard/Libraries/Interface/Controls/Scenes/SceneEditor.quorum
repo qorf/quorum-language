@@ -604,11 +604,16 @@ class SceneEditor is Control, DefaultSceneManager
     end
 
     action FocusItemProperties
+        // A terrain's key goes to its brush settings (step 6, Part B).
+        if GetSelectedItem() is TerrainSelectionHighlight and terrainBrushPropertiesDialog:IsShowing()
+            terrainBrushPropertiesDialog:FocusSection()
+            return now
+        end
         integer counter = 0
         repeat while counter < propertiesDialogs:GetSize()
             PropertiesDialog dialog = propertiesDialogs:Get(counter)
             if dialog:IsShowing()
-                dialog:FocusField()
+                dialog:FocusSection()
                 return now
             end
             counter = counter + 1
@@ -2351,6 +2356,54 @@ action Update(number seconds)
             chosenMessage = chosenMessage + " " + layerMaterialNote
         end
         TerrainMaterialEdited(terrain, current, chosenMessage)
+    end
+
+    /*
+    This action moves one of a terrain's ground layers up or down one place,
+    swapping it with its neighbor (step 18). The painting stays where it
+    is, so where the layer was painted, its neighbor now shows, and the
+    ground is drawn again. Every terrain sharing the terrain material
+    changes. The brush's paint layer follows the material it named. It can
+    be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer to move, from 0
+    Attribute: Parameter up True to move it up (toward layer 1), false for down
+    Attribute: Returns True if it moved
+    */
+    action MoveTerrainLayer(EditorTerrain terrain, integer layer, boolean up) returns boolean
+        if not CanChangeMaterials(terrain)
+            return false
+        end
+        integer count = terrain:GetLayerCount()
+        integer target = layer + 1
+        text direction = "down"
+        if up
+            target = layer - 1
+            direction = "up"
+        end
+        if layer < 0 or layer >= count or target < 0 or target >= count
+            return false
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        TerrainMaterial before = current:Copy()
+        text movedName = current:GetLayerName(layer)
+        text otherName = current:GetLayerName(target)
+        current:SwapLayers(layer, target)
+        SceneEditorTerrainMaterialEdit edit
+        edit:Create(me, terrain, "move " + movedName + " " + direction, current, terrain:GetMaterialFile(), current, terrain:GetMaterialFile())
+        edit:SetChangedLayers(current, before, current:Copy())
+        editManager:Add(edit)
+        terrain:RefreshMaterial()
+        TerrainBrush brush = terrain:GetBrush()
+        if brush:GetLayer() = layer
+            brush:SetLayer(target)
+        elseif brush:GetLayer() = target
+            brush:SetLayer(layer)
+        end
+        TerrainMaterialEdited(terrain, current, movedName + " moved " + direction + " to layer " + (target + 1) + ". "
+            + otherName + " is now layer " + (layer + 1) + ".")
+        return true
     end
 
     /*
