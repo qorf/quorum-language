@@ -2011,6 +2011,12 @@ InputSet shiftF10SetTextBox
         TerrainTakeHeightBehavior terrainTakeHeightBehavior
         selectionTable:Add(sceneKeys:GetTerrainTakeHeightKey(), terrainTakeHeightBehavior)
 
+        // Drops the focused item, or a new item's preview, onto the terrain
+        // under it once, Shift+Alt+B by default (Items on terrain, phase 1).
+        ItemDropToGroundBehavior itemDropToGroundBehavior
+        selectionTable:Add(sceneKeys:GetItemDropToGroundKey(), itemDropToGroundBehavior)
+        itemPreviewTable:Add(sceneKeys:GetItemDropToGroundKey(), itemDropToGroundBehavior)
+
         // 2D selection
         selectionTable2D:Add(reportLocation, reportLocationBehavior)
 

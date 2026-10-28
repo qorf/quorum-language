@@ -110,6 +110,7 @@ use Libraries.Interface.Undo.SceneEditorMaterialEdit
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.BoundingBox
 use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Worlds.TerrainGenerator
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainGeneratePropertiesDialog
@@ -238,10 +239,38 @@ class SceneEditor is Control, DefaultSceneManager
     EditorTerrain brushTerrain = undefined
     TerrainBrushPreview brushPreview = undefined
     boolean brushPreviewShown = false
+    // The ring blinks like a text cursor: solid for a second after it
+    // moves, then on and off (TextField's caretIdleTime and caretBlinkTime).
+    number ringBlinkTimer = 0
+    boolean ringBlinkHidden = false
+    constant number RING_IDLE_TIME = 1.0
+    constant number RING_BLINK_TIME = 0.35
     number previewX = 0
     number previewZ = 0
     number previewSize = 0
     TerrainBrushMouseListener brushMouseListener
+
+    // The terrain cursor: the terrain whose highlight has the focus, whose
+    // brush position the arrow keys move with or without a tool; an unsaved
+    // item at the cursor that the camera follows; whether the pointer moved
+    // the cursor last; and whether it is stopped at the terrain's edge.
+    EditorTerrain cursorTerrain = undefined
+    Item3D terrainCursorTarget = undefined
+    boolean terrainCursorMovedByPointer = false
+    boolean terrainCursorAtEdge = false
+    // Said before the scene cursor's place once, as "Left Terrain1. Scene
+    // cursor. ", when Escape leaves a terrain (Round 2); cleared when the
+    // cursor moves or the editor loses the focus.
+    text terrainLeftMessage = ""
+
+    // New items start on the ground (Items on terrain, phase 1): the terrain
+    // whose cursor a new item's preview started at, so Escape goes back to
+    // that cursor, or undefined; the terrain the last ground search found,
+    // or undefined; and boxes reused to measure an item's shape.
+    EditorTerrain placementTerrain = undefined
+    EditorTerrain lastGround = undefined
+    BoundingBox shapeBox
+    BoundingBox groundBox
 
     // A ramp being marked (step 8): a green ring at its start, and a green
     // outline from there to the brush, which turns red as the ramp's end.
@@ -271,9 +300,11 @@ class SceneEditor is Control, DefaultSceneManager
     constant number BRUSH_WEAKEST = 0.1
     constant number BRUSH_STRONGEST = 50
 
-    // How fast the arrow keys move a terrain's brush, compared with how fast
-    // they move a selection.
-    constant number BRUSH_KEY_SPEED = 2
+    // How far one arrow key step moves the terrain cursor, as a share of
+    // the brush's size R, and how many sizes a second it glides with the
+    // grid off (Round 2): R/2 a step, R a second.
+    constant number CURSOR_STEP_SHARE = 0.5
+    constant number CURSOR_GLIDE_RATE = 1
     // How much each size key grows or shrinks the brush, and its limits.
     constant number BRUSH_SIZE_STEP = 1.15
     constant number BRUSH_SMALLEST = 0.5
@@ -432,8 +463,10 @@ class SceneEditor is Control, DefaultSceneManager
             end
 
             Array<Item> items = cursor:GetItemsAtCursor()
+            // Just after Escape left a terrain, this starts with "Left
+            // Terrain1. Scene cursor. " (Round 2).
             if items:GetSize() = 0
-                return position
+                return terrainLeftMessage + position
             elseif items:GetSize() <= 3
                 integer counter = items:GetSize()
                 text names = ""
@@ -441,7 +474,7 @@ class SceneEditor is Control, DefaultSceneManager
                     counter = counter - 1
                     names = names + items:Get(counter):GetName() + ", "
                 end
-                return names + position + ", press Enter to select items"
+                return terrainLeftMessage + names + position + ", press Enter to select items"
             else
                 integer counter = items:GetSize()
                 text names = ""
@@ -449,7 +482,7 @@ class SceneEditor is Control, DefaultSceneManager
                     counter = counter - 1
                     names = names + items:Get(counter):GetName() + ", "
                 end
-                return names + items:GetSize() + " items, " + position + ", press Enter to select items"
+                return terrainLeftMessage + names + items:GetSize() + " items, " + position + ", press Enter to select items"
             end
         end
 
@@ -700,6 +733,7 @@ action Update(number seconds)
         end
         UpdateTerrainStroke(seconds)
         UpdateBrushPreview()
+        BlinkBrushPreview(seconds)
 
         Camera camera = GetSelectedLayer():GetCamera()
         boolean moved = false
@@ -780,7 +814,13 @@ action Update(number seconds)
                         if gridMoveTimer <= 0
                             gridMoveTimer = gridMoveTimerMax
 
-                            if focus is CameraItem3D
+                            if focus is TerrainSelectionHighlight
+                                // The terrain cursor steps half the brush's
+                                // size over the ground, in whole grid units;
+                                // the terrain stays where it is.
+                                TerrainSelectionHighlight cursorHighlight = cast(TerrainSelectionHighlight, focus)
+                                StepTerrainCursor(cursorHighlight:GetEditorTerrain(), selectionXDirection, selectionZDirection)
+                            elseif focus is CameraItem3D
                                 CameraItem3D cameraItem = cast(CameraItem3D, focus)
                                 if selectionXDirection not= 0
                                     cameraItem:SetYaw(cameraItem:GetYaw() + selectionXDirection * CAMERA_ROTATIONAL_SPEED_3D)
@@ -947,6 +987,8 @@ action Update(number seconds)
 
             if isCursor
                 if accessibility not= undefined
+                    // The cursor moved, so "Left Terrain1" isn't said again.
+                    terrainLeftMessage = ""
                     Item2D newDummy
                     text describe = GetDescription()
                     newDummy:SetProperty(constants:EDITOR_TAG, undefined)
@@ -1220,6 +1262,9 @@ action Update(number seconds)
     end
 
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
+        // Set again below if the new item starts at the terrain cursor.
+        placementTerrain = undefined
+
         // A terrain has no preview to place: it is added flat, at the
         // origin, at once.
         if schematic is TerrainBlueprint
@@ -1325,7 +1370,14 @@ action Update(number seconds)
             end
 
             layer:Add(preview)
+            // A new item starts on the ground, if a terrain is there. This
+            // runs before the preview gets the focus, which ends the
+            // terrain's selection, while the terrain cursor is still known.
+            text groundMessage = StartPreviewOnGround(preview)
             preview:Focus()
+            if groundMessage not= ""
+                NotifyAccessibility(preview, groundMessage)
+            end
             return preview
         end
         return undefined
@@ -1457,7 +1509,7 @@ action Update(number seconds)
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
         else
             brushTerrain = undefined
-            NotifyAccessibility(terrain, "No tool. The arrow keys move the selection again.")
+            NotifyAccessibility(terrain, "No tool. The arrow keys move the terrain cursor.")
         end
         UpdateBrushPreview()
         TerrainBrushChanged(terrain)
@@ -1492,7 +1544,7 @@ action Update(number seconds)
     Attribute: Parameter forward How far forward, as the selection would move along -z
     */
     action MoveTerrainBrush(EditorTerrain terrain, number right, number forward)
-        if terrain = undefined or not terrain:HasTool()
+        if terrain = undefined
             return now
         end
         EditorLayer layer = GetSelectedLayer()
@@ -1519,24 +1571,518 @@ action Update(number seconds)
         // In Quorum's left-handed world, the right of forward (x, z) is (z, -x).
         number rightX = forwardZ
         number rightZ = -forwardX
-        number speed = BRUSH_KEY_SPEED
+        // The move already holds the selection's speed and the frame's
+        // time, so this glides R units a second for a brush of size R
+        // (Round 2).
+        number speed = terrain:GetBrush():GetSize() * CURSOR_GLIDE_RATE / SELECTION_DIRECTIONAL_SPEED_3D
         number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
         number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
-        terrain:SetBrushPosition(x, z)
-        // Each arrow key move says the height in a few words; the report
-        // location key says everything (step 12).
-        NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
+        // With the grid off, the cursor glides while a key is held, so it
+        // speaks only when the key is let go (SetSelectionXDirection).
+        MoveTerrainCursorTo(terrain, x, z, false)
     end
 
     /*
-    This action makes a terrain's brush larger or smaller, by one step, and
-    says its new size (step 7).
+    This action gives the terrain cursor the focus, when a terrain's
+    highlight gets it: the cursor is placed if it has no place yet, at the
+    ground in the middle of the view or the terrain's middle; its ring
+    shows; and the camera follows it from where it is. A tool the user had
+    chosen when they last left this terrain is chosen again.
+
+    Attribute: Parameter highlight The terrain's highlight
+    */
+    action FocusTerrainCursor(TerrainSelectionHighlight highlight)
+        EditorTerrain terrain = highlight:GetEditorTerrain()
+        if terrain = undefined
+            return now
+        end
+        if not terrain:IsBrushPlaced()
+            EditorLayer layer = GetSelectedLayer()
+            Vector3 hit = undefined
+            if layer is EditorLayer3D
+                EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+                EditorCamera3D camera = layer3D:GetEditorCamera()
+                hit = PickTerrainGround(terrain, GetGlobalX() + camera:GetWidth() / 2, GetGlobalY() + camera:GetHeight() / 2)
+            end
+            if hit not= undefined
+                terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+            else
+                terrain:SetBrushPosition((terrain:GetMinimumX() + terrain:GetMaximumX()) / 2, (terrain:GetMinimumZ() + terrain:GetMaximumZ()) / 2)
+            end
+        end
+        cursorTerrain = terrain
+        terrainCursorAtEdge = false
+        // The tool chosen when the user last left this terrain comes back,
+        // quietly: the focus says it (Round 2). The saved number is used
+        // once, so "No tool" chosen in the Properties panel stays.
+        integer savedTool = terrain:GetSavedToolNumber()
+        if savedTool > 0
+            terrain:SetSavedToolNumber(0)
+            if not terrain:HasTool()
+                if brushTerrain not= undefined and brushTerrain not= terrain
+                    brushTerrain:SetToolNumber(0)
+                end
+                terrain:SetToolNumber(savedTool)
+                brushTerrain = terrain
+                // The Brush section's Tool group shows it.
+                TerrainBrushChanged(terrain)
+            end
+        end
+        AimCameraAtTerrainCursor(terrain)
+        UpdateBrushPreview()
+        if accessibility not= undefined
+            accessibility:DescriptionChanged(highlight)
+        end
+    end
+
+    /*
+    This action leaves the terrain cursor, when its terrain stops being
+    selected: a stroke is finished, the tool is remembered and then left
+    without a message, so the brush isn't in use on the scene, and the ring
+    is hidden. The tool comes back when the terrain gets the focus again
+    (FocusTerrainCursor). Calling it twice is harmless.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action LeaveTerrainCursor(EditorTerrain terrain)
+        if terrain = brushTerrain
+            if stroking
+                EndTerrainStroke()
+            end
+            terrain:SetSavedToolNumber(terrain:GetToolNumber())
+            terrain:SetToolNumber(0)
+            brushTerrain = undefined
+            TerrainBrushChanged(terrain)
+        end
+        if cursorTerrain = terrain
+            cursorTerrain = undefined
+        end
+        UpdateBrushPreview()
+    end
+
+    /*
+    This action leaves a terrain for the scene's own cursor, when Escape is
+    pressed on it, with or without a tool (Round 2): a stroke going on is
+    canceled; the tool is remembered and left; the scene's cursor moves to
+    where the terrain cursor was, on the ground; the terrain stops being
+    selected; and the scene editor gets the focus, which says "Left
+    Terrain1. Scene cursor." and where the cursor is, once.
+
+    Attribute: Parameter highlight The terrain's highlight
+    */
+    action ExitTerrainCursor(TerrainSelectionHighlight highlight)
+        EditorTerrain terrain = highlight:GetEditorTerrain()
+        text name = "the terrain"
+        if terrain not= undefined
+            name = terrain:GetName()
+            CancelTerrainStroke()
+            // The tool is left now, not when the highlight loses the
+            // selection: with a tool still chosen, GainedFocus would give
+            // the focus back to the terrain (refocusBrushHighlight).
+            LeaveTerrainCursor(terrain)
+            EditorLayer layer = GetSelectedLayer()
+            TerrainData data = terrain:GetWorldTerrain():GetData()
+            if layer is EditorLayer3D and terrain:IsBrushPlaced() and data:HasHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+                EditorCursor3D cursor = cast(EditorCursor3D, layer:GetCursor())
+                cursor:SetPosition(terrain:GetBrushX(), data:GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ()), terrain:GetBrushZ())
+            end
+        end
+        // GainedFocus reads GetDescription, which starts with this, so the
+        // place is said once, with no separate notification.
+        terrainLeftMessage = "Left " + name + ". Scene cursor. "
+        // Removes the highlight and focuses the scene editor itself.
+        Array<Item> none
+        SetFilteredItems(none, true)
+    end
+
+    /*
+    This action moves the terrain cursor one step with the arrow keys,
+    while the grid is on: half the brush's size, in whole grid units, at
+    least one (Round 2). Forward is the world axis nearest the way the
+    camera faces, and right is across it, and the cursor lands on the grid,
+    so the numbers it says are round.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter right 1 for right, -1 for left, 0 for neither
+    Attribute: Parameter forward 1 for away from the camera, -1 for toward it, 0 for neither
+    */
+    action StepTerrainCursor(EditorTerrain terrain, integer right, integer forward)
+        EditorLayer layer = GetSelectedLayer()
+        if terrain = undefined or not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        Camera camera = layer:GetCamera()
+        Vector3 direction = camera:GetDirection()
+        number forwardX = direction:GetX()
+        number forwardZ = direction:GetZ()
+        if math:AbsoluteValue(forwardX) < 0.0001 and math:AbsoluteValue(forwardZ) < 0.0001
+            // Looking straight down: forward is the camera's up.
+            Vector3 up = camera:GetUp()
+            forwardX = up:GetX()
+            forwardZ = up:GetZ()
+        end
+        if math:AbsoluteValue(forwardX) >= math:AbsoluteValue(forwardZ)
+            forwardZ = 0
+            if forwardX >= 0
+                forwardX = 1
+            else
+                forwardX = -1
+            end
+        else
+            forwardX = 0
+            if forwardZ >= 0
+                forwardZ = 1
+            else
+                forwardZ = -1
+            end
+        end
+        // In Quorum's left-handed world, the right of forward (x, z) is (z, -x).
+        number moveX = forwardZ * right + forwardX * forward
+        number moveZ = -forwardX * right + forwardZ * forward
+        number step = GetTerrainCursorStep(terrain)
+        Grid3D grid = layer3D:GetGrid()
+        number x = grid:GetNearestGridCoordinate(terrain:GetBrushX() + moveX * step)
+        number z = grid:GetNearestGridCoordinate(terrain:GetBrushZ() + moveZ * step)
+        MoveTerrainCursorTo(terrain, x, z, true)
+    end
+
+    /*
+    This action returns how far one arrow key step moves the terrain
+    cursor (Round 2): half the brush's size, and with the grid on, rounded
+    to whole grid units, at least one.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Returns The step, in world units
+    */
+    action GetTerrainCursorStep(EditorTerrain terrain) returns number
+        number step = terrain:GetBrush():GetSize() * CURSOR_STEP_SHARE
+        if IsGridSnapping()
+            number unit = GetGridUnitSize()
+            integer units = cast(integer, step / unit + 0.5)
+            if units < 1
+                units = 1
+            end
+            step = units * unit
+        end
+        return step
+    end
+
+    /*
+    This action puts the terrain cursor at a place, if there is ground there,
+    or anywhere in the grid of regions with the Add region tool. The camera
+    follows it. A step can say the new height; a move past the edge says so
+    once.
+    */
+    private action MoveTerrainCursorTo(EditorTerrain terrain, number x, number z, boolean speak)
+        boolean onGround = terrain:GetWorldTerrain():GetData():HasHeight(x, z)
+        if not onGround and terrain:GetToolNumber() not= 8
+            if not terrainCursorAtEdge
+                terrainCursorAtEdge = true
+                NotifyAccessibility(terrain, "Edge of the terrain")
+            end
+            return now
+        end
+        terrainCursorAtEdge = false
+        // The height where the step began, so the step can say the change.
+        TerrainData groundData = terrain:GetWorldTerrain():GetData()
+        boolean hadHeight = groundData:HasHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+        number before = 0
+        if hadHeight
+            before = groundData:GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+        end
+        if terrainCursorMovedByPointer
+            // The pointer moved the cursor last: the camera takes it as its
+            // target from where it is now, rather than jumping to it.
+            terrainCursorMovedByPointer = false
+            AimCameraAtTerrainCursor(terrain)
+        end
+        terrain:SetBrushPosition(x, z)
+        PlaceTerrainCursorTarget(terrain)
+        UpdateEditorCameraPosition()
+        if speak
+            if hadHeight
+                NotifyAccessibility(terrain, terrain:DescribeHeightChange(before))
+            else
+                NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
+            end
+        end
+    end
+
+    /*
+    This action makes the item at the terrain cursor the camera's target,
+    without moving the camera, so moving the cursor then moves the camera.
+    */
+    private action AimCameraAtTerrainCursor(EditorTerrain terrain)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        PlaceTerrainCursorTarget(terrain)
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        layer3D:GetEditorCamera():SetTargetWithoutMoving(terrainCursorTarget)
+    end
+
+    /*
+    This action puts the camera's target item at the terrain cursor, on the
+    ground. The item is the editor's own: it isn't saved, listed or drawn.
+    */
+    private action PlaceTerrainCursorTarget(EditorTerrain terrain)
+        if terrainCursorTarget = undefined
+            Item3D target
+            target:SetProperty(constants:EDITOR_TAG, undefined)
+            terrainCursorTarget = target
+        end
+        number height = 0
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if data:HasHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+            height = data:GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+        end
+        terrainCursorTarget:SetPosition(terrain:GetBrushX(), height, terrain:GetBrushZ())
+    end
+
+    /*
+    This action returns where a terrain's ground is under a point on the
+    screen, in the same coordinates as mouse events, or undefined.
+    */
+    private action PickTerrainGround(EditorTerrain terrain, number x, number y) returns Vector3
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return undefined
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        return terrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
+    end
+
+    /*
+    This action returns how far an item must move up, or down if negative,
+    so that its base rests on the ground under the middle of its base. The
+    base is the bottom of the box around the item's shape in the world,
+    after turning and scaling; an item with no shape to measure uses its
+    position. The ground is the highest terrain there. With no ground
+    there, off the terrains or over a hole, it returns 0, and GetLastGround
+    returns undefined. Nothing is moved. It is meant for an item in the
+    scene itself, or a child of an item that isn't turned or scaled.
+
+    Attribute: Parameter model The item, or a new item's preview
+    Attribute: Returns How far to move the item along y
+    */
+    action GetGroundChange(EditorModel model) returns number
+        lastGround = undefined
+        number centerX = model:GetGlobalX()
+        number centerZ = model:GetGlobalZ()
+        number base = model:GetGlobalY()
+        if model:GetModelBlueprint() not= undefined
+            model:CalculateBoundingBox(shapeBox)
+            Vector3 low = shapeBox:GetMinimum()
+            Vector3 high = shapeBox:GetMaximum()
+            // BoundingBox:IsValid needs some height, which a flat plane hasn't.
+            if low:GetX() <= high:GetX() and low:GetY() <= high:GetY() and low:GetZ() <= high:GetZ()
+                groundBox:Invalidate()
+                groundBox:Extend(shapeBox, model:GetTransform())
+                centerX = (groundBox:GetMinimum():GetX() + groundBox:GetMaximum():GetX()) / 2
+                centerZ = (groundBox:GetMinimum():GetZ() + groundBox:GetMaximum():GetZ()) / 2
+                base = groundBox:GetMinimum():GetY()
+            end
+        end
+
+        boolean found = false
+        number ground = 0
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer counter = 0
+        repeat while counter < terrains:GetSize()
+            EditorTerrain terrain = terrains:Get(counter)
+            TerrainData data = terrain:GetWorldTerrain():GetData()
+            if data:HasHeight(centerX, centerZ)
+                number height = data:GetSurfaceHeight(centerX, centerZ)
+                if not found or height > ground
+                    ground = height
+                    found = true
+                    lastGround = terrain
+                end
+            end
+            counter = counter + 1
+        end
+        if not found
+            return 0
+        end
+        return ground - base
+    end
+
+    /*
+    This action returns the terrain the last ground search found under an
+    item, or undefined if there was none.
+
+    Attribute: Returns The terrain, or undefined
+    */
+    action GetLastGround returns EditorTerrain
+        return lastGround
+    end
+
+    /*
+    This action rests an item's base on the ground under the middle of its
+    base, once. Nothing follows the ground afterward. The target moved is
+    the item's highlight, which moves the item with it, or a new item's
+    preview, which is its own item.
+
+    Attribute: Parameter target The highlight or preview to move
+    Attribute: Parameter model The item whose base rests on the ground
+    Attribute: Returns True if there was ground under it, false if not
+    */
+    action PutOnGround(EditorItem3D target, EditorModel model) returns boolean
+        number change = GetGroundChange(model)
+        if lastGround = undefined
+            return false
+        end
+        if change not= 0
+            target:MoveY(change)
+        end
+        return true
+    end
+
+    /*
+    This action drops the focused item, or a new item's preview, onto the
+    ground under the middle of its base, once (Shift+Alt+B by default). It
+    doesn't follow the ground afterward. It says where the item went, or
+    that there's no ground under it.
+
+    Attribute: Parameter focus The focused highlight or preview
+    */
+    action DropOnGround(EditorItem3D focus)
+        if focus is TerrainSelectionHighlight
+            NotifyAccessibility(focus, "A terrain is the ground itself.")
+            return now
+        end
+        EditorModel model = undefined
+        if focus is SelectionHighlight3D
+            SelectionHighlight3D highlight = cast(SelectionHighlight3D, focus)
+            Item selected = highlight:GetItem()
+            if selected is EditorModel
+                model = cast(EditorModel, selected)
+            end
+        elseif focus is ItemPreview3D
+            model = focus
+        end
+        if model = undefined
+            NotifyAccessibility(focus, "Only an item in the scene can be dropped onto the ground.")
+            return now
+        end
+        if not PutOnGround(focus, model)
+            NotifyAccessibility(focus, "No ground under " + model:GetName())
+            return now
+        end
+        UpdateActivePropertiesDialog(focus)
+        NotifyAccessibility(focus, "Dropped " + model:GetName() + " onto " + lastGround:GetName() + ", " + DescribeGroundPosition(model))
+    end
+
+    /*
+    This action starts a new item's preview on the ground, if a terrain is
+    under it: at the terrain cursor when a terrain is selected, or else
+    under the scene's cursor, where the preview was made. Lights and sounds
+    start on the ground too.
+
+    Attribute: Parameter preview The preview
+    Attribute: Returns What to say, such as "On Terrain1", or "" if it isn't on the ground
+    */
+    private action StartPreviewOnGround(ItemPreview3D preview) returns text
+        if cursorTerrain not= undefined and cursorTerrain:IsBrushPlaced()
+            placementTerrain = cursorTerrain
+            preview:SetPosition(cursorTerrain:GetBrushX(), preview:GetY(), cursorTerrain:GetBrushZ())
+        end
+        if PutOnGround(preview, preview)
+            return "On " + lastGround:GetName()
+        end
+        return ""
+    end
+
+    /*
+    This action gives the terrain cursor the focus again, after a new item
+    that started at it was placed or canceled with Escape: the terrain is
+    selected again, and its cursor is where it was.
+
+    Attribute: Returns True if it went back to a terrain, false if the new item didn't start at one
+    */
+    action ReturnToPlacementTerrain returns boolean
+        EditorTerrain terrain = placementTerrain
+        placementTerrain = undefined
+        if terrain = undefined or not (GetSelectedLayer() is EditorLayer3D)
+            return false
+        end
+        if not GetEditorTerrains():Has(terrain)
+            return false
+        end
+        Array<Item> chosen
+        chosen:Add(terrain)
+        SetFilteredItems(chosen, true)
+        return true
+    end
+
+    /*
+    This action returns where the nearest terrain's ground is under a point
+    on the screen, in the same coordinates as mouse events, or undefined if
+    no terrain is there.
+
+    Attribute: Parameter x The point's x
+    Attribute: Parameter y The point's y
+    Attribute: Returns The point on the ground, or undefined
+    */
+    action PickGround(number x, number y) returns Vector3
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return undefined
+        end
+        Vector3 eye = layer:GetCamera():GetPosition()
+        Vector3 nearest = undefined
+        number nearestDistance = 0
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer counter = 0
+        repeat while counter < terrains:GetSize()
+            Vector3 hit = PickTerrainGround(terrains:Get(counter), x, y)
+            if hit not= undefined
+                number distance = eye:Distance(hit)
+                if nearest = undefined or distance < nearestDistance
+                    nearest = hit
+                    nearestDistance = distance
+                end
+            end
+            counter = counter + 1
+        end
+        return nearest
+    end
+
+    /*
+    This action says where an item is, such as "12 4.8 30", rounded to one
+    place after the point.
+    */
+    private action DescribeGroundPosition(Item3D item) returns text
+        return SpeakNumber(item:GetGlobalX()) + " " + SpeakNumber(item:GetGlobalY()) + " " + SpeakNumber(item:GetGlobalZ())
+    end
+
+    /*
+    This action rounds a number to one place after the point for speaking,
+    without ".0" on a whole number.
+    */
+    private action SpeakNumber(number value) returns text
+        number rounded = RoundTenth(value)
+        if rounded = cast(integer, rounded)
+            return "" + cast(integer, rounded)
+        end
+        return "" + rounded
+    end
+
+    /*
+    This action makes a terrain's brush, which is also its cursor's ring,
+    larger or smaller by one step, with or without a tool, and says its new
+    size and, with the grid on, the arrow keys' new step (step 7, Round 2).
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter larger True to grow the brush, false to shrink it
     */
     action ResizeTerrainBrush(EditorTerrain terrain, boolean larger)
-        if terrain = undefined or not terrain:HasTool()
+        if terrain = undefined
             return now
         end
         TerrainBrush brush = terrain:GetBrush()
@@ -1552,7 +2098,11 @@ action Update(number seconds)
             size = BRUSH_LARGEST
         end
         brush:SetSize(size)
-        NotifyAccessibility(terrain, "Brush size " + (cast(integer, size * 10 + 0.5) / 10.0))
+        text message = "Brush size " + RoundTenth(size)
+        if IsGridSnapping()
+            message = message + ", step " + RoundTenth(GetTerrainCursorStep(terrain))
+        end
+        NotifyAccessibility(terrain, message)
         TerrainBrushChanged(terrain)
     end
 
@@ -1569,6 +2119,7 @@ action Update(number seconds)
         if not IsTerrainBrushActive()
             return now
         end
+        terrainCursorMovedByPointer = true
         EditorLayer layer = GetSelectedLayer()
         if not (layer is EditorLayer3D)
             return now
@@ -3281,7 +3832,7 @@ action Update(number seconds)
 
     /*
     This action says what the ground under a terrain's whole brush is like:
-    its heights, its steepest slope, and how much of it each layer covers
+    its heights and how much of it each layer covers
     (step 12). The Brush section's "Describe the area" button calls it.
 
     Attribute: Parameter terrain The terrain
@@ -3346,8 +3897,22 @@ action Update(number seconds)
     listed or picked.
     */
     private action UpdateBrushPreview
-        boolean show = IsTerrainBrushActive() and brushTerrain:IsBrushOnGround()
-        if not show
+        // The ring shows the brush of the terrain whose tool is chosen, or,
+        // with no tool, the terrain cursor, as a cyan ring. Either way it
+        // is the brush's size, so the size keys show (Round 2).
+        EditorTerrain shown = undefined
+        boolean cursorOnly = false
+        number size = 0
+        if IsTerrainBrushActive()
+            shown = brushTerrain
+        elseif cursorTerrain not= undefined
+            shown = cursorTerrain
+            cursorOnly = true
+        end
+        if shown not= undefined
+            size = shown:GetBrush():GetSize()
+        end
+        if shown = undefined or not shown:IsBrushOnGround()
             if brushPreviewShown
                 brushPreview:Hide()
                 brushPreviewShown = false
@@ -3359,26 +3924,32 @@ action Update(number seconds)
         if not (layer is EditorLayer3D)
             return now
         end
-        number size = brushTerrain:GetBrush():GetSize()
-        boolean moved = brushTerrain:GetBrushX() not= previewX or brushTerrain:GetBrushZ() not= previewZ or size not= previewSize
-        UpdateRampPreview(cast(EditorLayer3D, layer))
+        boolean moved = shown:GetBrushX() not= previewX or shown:GetBrushZ() not= previewZ or size not= previewSize
+        if cursorOnly
+            HideRampPreview()
+        else
+            UpdateRampPreview(cast(EditorLayer3D, layer))
+        end
         if brushPreview = undefined
             TerrainBrushPreview preview
             preview:SetName("Terrain Brush")
             preview:SetProperty(constants:EDITOR_TAG, undefined)
             // The ring lets clicks through to the scene editor.
             preview:SetAcceptsMouseInput(false)
-            preview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+            preview:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), size)
             brushPreview = preview
             EditorLayer3D layer3D = cast(EditorLayer3D, layer)
             layer3D:Add(preview)
             moved = false
         end
         if moved
-            brushPreview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+            brushPreview:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), size)
+            ResetRingBlink()
         end
-        // The brush turns red while it marks a ramp's end.
-        if brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+        if cursorOnly
+            brushPreview:SetRingColor(0.2, 0.8, 1)
+        elseif brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+            // The brush turns red while it marks a ramp's end.
             brushPreview:SetRingColor(0.95, 0.15, 0.1)
         else
             brushPreview:SetRingColor(1, 0.85, 0.1)
@@ -3386,10 +3957,48 @@ action Update(number seconds)
         if not brushPreviewShown
             brushPreview:Show()
             brushPreviewShown = true
+            ResetRingBlink()
         end
-        previewX = brushTerrain:GetBrushX()
-        previewZ = brushTerrain:GetBrushZ()
+        previewX = shown:GetBrushX()
+        previewZ = shown:GetBrushZ()
         previewSize = size
+    end
+
+    // Shows the ring solid and starts its idle second again.
+    private action ResetRingBlink
+        ringBlinkTimer = RING_IDLE_TIME
+        if ringBlinkHidden and brushPreview not= undefined
+            brushPreview:Show()
+        end
+        ringBlinkHidden = false
+    end
+
+    /*
+    This action blinks the ring like a text cursor. It doesn't change
+    brushPreviewShown, which says whether the ring is in use at all; a
+    blink only hides it for a moment. While a stroke is being made the
+    ring stays solid.
+    */
+    private action BlinkBrushPreview(number seconds)
+        if brushPreview = undefined or not brushPreviewShown
+            ringBlinkHidden = false
+            return now
+        end
+        if stroking
+            ResetRingBlink()
+            return now
+        end
+        ringBlinkTimer = ringBlinkTimer - seconds
+        if ringBlinkTimer < 0
+            ringBlinkTimer = RING_BLINK_TIME
+            if ringBlinkHidden
+                brushPreview:Show()
+                ringBlinkHidden = false
+            else
+                brushPreview:Hide()
+                ringBlinkHidden = true
+            end
+        end
     end
 
     /*
@@ -3816,8 +4425,8 @@ action Update(number seconds)
         if item is TerrainSelectionHighlight
             TerrainSelectionHighlight terrainHighlight = cast(TerrainSelectionHighlight, item)
             EditorTerrain highlighted = terrainHighlight:GetEditorTerrain()
-            if highlighted not= undefined and highlighted:HasTool()
-                return highlighted:DescribeBrush()
+            if highlighted not= undefined
+                return highlighted:DescribeCursor()
             end
         end
 
@@ -4137,6 +4746,10 @@ action Update(number seconds)
         EditorLayer layer = GetSelectedLayer()
         if layer not= undefined and not goingToDummy
             layer:ShowCursor(false)
+        end
+        if not goingToDummy
+            // "Left Terrain1" is said only on the way out of a terrain.
+            terrainLeftMessage = ""
         end
         parent:Control:LostFocus(event)
     end

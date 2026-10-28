@@ -20,16 +20,14 @@ class SelectionCancelBehavior is Behavior
     Array<Item3D> emptyArray
 
     action Run(BehaviorEvent event)
-        // With a terrain's tool chosen, Escape first cancels a stroke going
-        // on (step 8), then leaves the tool, and the terrain stays selected
-        // (step 7).
+        // Escape on a terrain always leaves it for the scene's own cursor,
+        // at the same place on the ground, with or without a tool, in one
+        // press (Round 2). A stroke going on is canceled first. The terrain
+        // remembers its tool, brush and cursor for when the user returns.
         if event:GetItem() is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
-            if highlight:GetSceneEditor() not= undefined and highlight:GetSceneEditor():CancelTerrainStroke()
-                return now
-            end
-            if highlight:GetEditorTerrain() not= undefined and highlight:GetEditorTerrain():HasTool()
-                highlight:GetSceneEditor():SetTerrainTool(highlight:GetEditorTerrain(), 0)
+            if highlight:GetSceneEditor() not= undefined
+                highlight:GetSceneEditor():ExitTerrainCursor(highlight)
                 return now
             end
         end

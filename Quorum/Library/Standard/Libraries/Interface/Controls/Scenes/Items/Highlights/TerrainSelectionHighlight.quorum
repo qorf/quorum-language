@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Items.Highlights
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Vector3
 use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
@@ -283,30 +284,55 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     /*
-        When the terrain stops being selected, its tool is left, so the arrow
-        keys and clicks act on the scene again (step 7).
+        When the terrain gets the focus, its cursor does: it is placed if it
+        has no place yet, its ring shows, and the camera follows it.
     */
-    action LostSelection
-        parent:SelectionHighlight3D:LostSelection()
-        if terrain not= undefined and terrain:HasTool() and GetSceneEditor() not= undefined
-            GetSceneEditor():SetTerrainTool(terrain, 0)
+    action GainedFocus(FocusEvent event)
+        parent:EditorItem:GainedFocus(event)
+        if terrain not= undefined and GetSceneEditor() not= undefined
+            GetSceneEditor():FocusTerrainCursor(me)
         end
     end
 
     /*
-        Returns true while the terrain's tool is chosen: the move keys then
-        move its brush, and the size keys size it (step 7).
+        A screen reader reads the terrain cursor, with the tool if one is
+        chosen, rather than the terrain as a whole.
     */
-    private action BrushInUse returns boolean
-        return terrain not= undefined and terrain:HasTool() and GetSceneEditor() not= undefined
+    action GetDescription returns text
+        if terrain = undefined or GetSceneEditor() = undefined
+            return parent:Item:GetDescription()
+        end
+        return terrain:DescribeCursor()
+    end
+
+    /*
+        When the terrain stops being selected, its tool is put aside and
+        remembered, so the arrow keys and clicks act on the scene again, and
+        the tool comes back when the user returns (Round 2).
+    */
+    action LostSelection
+        parent:SelectionHighlight3D:LostSelection()
+        if terrain not= undefined and GetSceneEditor() not= undefined
+            // Leaves the tool quietly and hides the cursor's ring.
+            GetSceneEditor():LeaveTerrainCursor(terrain)
+        end
+    end
+
+    /*
+        Returns true while the arrow keys move the terrain cursor, which is
+        whenever the terrain is selected in an editor.
+    */
+    private action CursorInUse returns boolean
+        return terrain not= undefined and GetSceneEditor() not= undefined
     end
 
     // A terrain isn't moved, turned or scaled. The Set calls use these
     // Move calls too, so they are covered.
 
     action MoveX(number x)
-        // With a tool chosen, the move keys move the brush (step 7).
-        if BrushInUse()
+        // The move keys move the terrain cursor, which is the brush when a
+        // tool is chosen.
+        if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, x, 0)
             return now
         end
@@ -318,8 +344,8 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action MoveY(number y)
-        // A terrain's brush stays on the ground, so up and down don't move it.
-        if BrushInUse()
+        // A terrain's cursor stays on the ground, so up and down don't move it.
+        if CursorInUse()
             return now
         end
         if placing
@@ -330,8 +356,9 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action MoveZ(number z)
-        // With a tool chosen, the move keys move the brush (step 7).
-        if BrushInUse()
+        // The move keys move the terrain cursor, which is the brush when a
+        // tool is chosen.
+        if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, 0, -z)
             return now
         end
@@ -343,8 +370,9 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Move(number x, number y, number z)
-        // With a tool chosen, the move keys move the brush (step 7).
-        if BrushInUse()
+        // The move keys move the terrain cursor, which is the brush when a
+        // tool is chosen.
+        if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, x, -z)
             return now
         end
@@ -356,8 +384,9 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Move(Vector3 vector)
-        // With a tool chosen, the move keys move the brush (step 7).
-        if BrushInUse()
+        // The move keys move the terrain cursor, which is the brush when a
+        // tool is chosen.
+        if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, vector:GetX(), -vector:GetZ())
             return now
         end
@@ -377,18 +406,21 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action Scale(Vector3 vector)
-        // With a tool chosen, the size keys size the brush (step 7).
-        if BrushInUse()
-            GetSceneEditor():ResizeTerrainBrush(terrain, vector:GetX() > 1)
-            return now
-        end
-        TellStaysAtOrigin()
+        Scale(vector:GetX(), vector:GetY(), vector:GetZ())
     end
 
     action Scale(number x, number y, number z)
-        if BrushInUse()
-            GetSceneEditor():ResizeTerrainBrush(terrain, x > 1)
-            return now
+        // The size keys size the brush, which is the terrain cursor's ring,
+        // with or without a tool (Round 2). Only the keys that scale evenly
+        // do; the one-axis keys say a terrain isn't scaled.
+        if CursorInUse()
+            if x > 1 and y > 1 and z > 1
+                GetSceneEditor():ResizeTerrainBrush(terrain, true)
+                return now
+            elseif x < 1 and y < 1 and z < 1
+                GetSceneEditor():ResizeTerrainBrush(terrain, false)
+                return now
+            end
         end
         TellStaysAtOrigin()
     end

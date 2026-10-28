@@ -5,6 +5,8 @@ use Libraries.Compute.Math
 use Libraries.Compute.Vector3
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 
@@ -25,6 +27,15 @@ class ReportLocationBehavior is Behavior
             Vector3 position = editor:GetSelectedLayer():GetCamera():GetPosition()
             text message = math:Round(position:GetX(), 2) + ", " + math:Round(position:GetY(), 2) + ", " + math:Round(position:GetZ(), 2)
             editor:NotifyAccessibility(editor, "Camera at " + message)
+        elseif event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            EditorTerrain terrain = highlight:GetEditorTerrain()
+            if terrain = undefined
+                highlight:NotifyAccessibility("Terrain")
+            else
+                // The same as the focus and a key's release (Round 2).
+                highlight:NotifyAccessibility(terrain:DescribeCursor())
+            end
         elseif event:GetItem() is EditorItem3D
             EditorItem3D item = cast(EditorItem3D, event:GetItem())
             Vector3 position = item:GetGlobalPosition()

@@ -376,6 +376,16 @@ class SceneEditorKeys
         return WithModifiers(keys:M, false, false, true, false)
     end
 
+    /*
+        Drops the focused item, or a new item's preview, onto the terrain
+        under the middle of its base, once (Items on terrain, phase 1).
+        Default: Shift+Alt+B (Shift+Option+B on a Mac). Cmd/Ctrl+B is
+        Studio's Build.
+    */
+    action GetItemDropToGroundKey returns InputSet
+        return WithModifiers(keys:B, false, false, true, true)
+    end
+
     // ------------------------------------------------------------ helpers
 
     /*

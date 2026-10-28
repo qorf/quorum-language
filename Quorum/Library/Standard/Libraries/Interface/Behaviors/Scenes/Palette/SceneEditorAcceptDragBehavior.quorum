@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview
+use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Compute.Ray
 
@@ -77,11 +78,22 @@ if pickRay:GetDirection():GetY() not= 0
                         hitZ = pickRay:GetOrigin():GetZ() + pickRay:GetDirection():GetZ() * t
 end
 end
+                // Over a terrain, the item goes where the pointer meets the
+                // ground and rests on it (Items on terrain, phase 1).
+                Vector3 groundHit = editor:PickGround(dropEvent:GetX(), dropEvent:GetY())
+                if groundHit not= undefined
+                    hitX = groundHit:GetX()
+                    hitZ = groundHit:GetZ()
+                end
                 hitX = layer:GetPreviousGridCoordinate(hitX)
                 hitZ = layer:GetPreviousGridCoordinate(hitZ)
                 
                 currentPreview:SetX(hitX)
                 currentPreview:SetZ(hitZ)
+                if groundHit not= undefined and currentPreview is ItemPreview3D
+                    ItemPreview3D groundPreview = cast(ItemPreview3D, currentPreview)
+                    editor:PutOnGround(groundPreview, groundPreview)
+                end
             end
         elseif schematic is TerrainBlueprint
             // A terrain has no preview to move around: its icon follows the
