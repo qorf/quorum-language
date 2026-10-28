@@ -253,6 +253,13 @@ task copyToQuorum {
     dependsOn jar
 
     doLast {
+        // The copy below only adds files, so remove LWJGL jars of any other
+        // version first; otherwise each upgrade leaves the old ones behind,
+        // and they end up in the installers.
+        delete fileTree('../../Quorum/Library/Compiled/Run/libraries') {
+            include 'lwjgl*.jar'
+            exclude "lwjgl*-${project.ext.lwjglVersion}*.jar"
+        }
         copy {
             from configurations.runtimeClasspath
             into '../../Quorum/Library/Compiled/Run/libraries'

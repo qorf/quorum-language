@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.NumberUtilities
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Interface.Views.View2D
 
 class DrawableShape
 
@@ -749,8 +750,17 @@ mesh = GenerateMesh(vertices:GetSize(), indices:GetSize())
                     localY = vector:GetY()
                 end
 
-                SetVertexData(i + X_OFFSET, localX + worldOriginX)
-                SetVertexData(i + Y_OFFSET, localY + worldOriginY)
+                // Interface views (a ControlShaderView is sized by scale) land
+                // on whole pixels, as unscaled shapes do above. Otherwise an
+                // edge can sit on a pixel's center, and the control shader
+                // rounds it one way on some rows and the other way on others.
+                if angle = 0 and drawable is View2D
+                    SetVertexData(i + X_OFFSET, cast(integer, localX + worldOriginX + PIXEL_SNAP_THRESHOLD))
+                    SetVertexData(i + Y_OFFSET, cast(integer, localY + worldOriginY + PIXEL_SNAP_THRESHOLD))
+                else
+                    SetVertexData(i + X_OFFSET, localX + worldOriginX)
+                    SetVertexData(i + Y_OFFSET, localY + worldOriginY)
+                end
                 SetVertexData(i + Z_OFFSET, globalZ)
                 if areTextureVerticesValid
                     SetVertexData(i + TEXTURE_OFFSET, convertedTextureID)
