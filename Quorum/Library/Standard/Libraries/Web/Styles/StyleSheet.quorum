@@ -1,0 +1,209 @@
+package Libraries.Web.Styles
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+/*
+    StyleSheet holds the rules of one stylesheet and writes them as text.
+    Each rule gives a class name and the declarations that go with it, and
+    an element uses only one plain rule, so plain rules never compete.
+    After the plain rules come rules that apply only in a state (while the
+    pointer is over an element, or while it has focus), then rules for
+    wider screens, narrowest first, and last the named rules scripts add
+    and remove. Each later kind changes only what it sets, on top of an
+    element's plain rule. A stylesheet can start with a reset that clears
+    browsers' own spacing. A WebSite builds one for the whole site from its
+    pages; people making pages don't use it directly.
+
+    Attribute: Example
+    use Libraries.Web.Styles.StyleSheet
+
+    StyleSheet sheet
+    sheet:AddRule("q1", "display:flex;flex-direction:column;")
+    output sheet:Generate()
+*/
+class StyleSheet
+    StyleSheetConstants constants
+
+    // Each plain rule's declarations, by class name.
+    HashTable<text, text> rules
+
+    // Rules for a state or a screen width, by class name, with what they
+    // apply in.
+    HashTable<text, text> conditionalRules
+    HashTable<text, text> statesOfRules
+    HashTable<text, number> widthsOfRules
+
+    // Rules with names scripts use, in the order added.
+    HashTable<text, text> scriptRules
+    Array<text> scriptRuleNames
+
+    boolean reset = false
+
+    /*
+        The reset: every box measured with its border; no margins on
+        headings, paragraphs, lists and the like; headings no larger or
+        bolder than text until styled; lists with no markers or indent
+        until styled; pictures no wider than their space; form controls in
+        the page's font; code in a fixed-width font, at the text's size;
+        links in the color of the text around them until styled; and
+        anything with the hidden attribute not shown, whatever its own look
+        says.
+    */
+    constant text RESET = "*,::before,::after{box-sizing:border-box;}html{-webkit-text-size-adjust:100%;line-height:1.5;}body,h1,h2,h3,h4,h5,h6,p,figure,blockquote,dl,dd,pre,hr{margin:0;}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit;}ol,ul{margin:0;padding:0;list-style:none;}img,svg,video,canvas,iframe{display:block;vertical-align:middle;}img,video{max-width:100%;height:auto;}button,input,select,textarea{font:inherit;color:inherit;margin:0;}button{background:transparent;border:0;padding:0;cursor:pointer;}code,kbd,pre,samp{font-family:monospace;font-size:1em;}table{border-collapse:collapse;text-indent:0;}dialog{padding:0;}a{color:inherit;text-decoration:inherit;}[hidden]{display:none!important;}"
+
+    /*
+        Sets whether the stylesheet starts with the reset.
+
+        Attribute: Parameter value True to start with the reset.
+    */
+    action SetReset(boolean value)
+        reset = value
+    end
+
+    /*
+        Adds a plain rule: every element with this class name gets these
+        declarations. A class name can have only one rule.
+
+        Attribute: Parameter className The class name, without the leading dot.
+        Attribute: Parameter declarations The declarations, such as "display:flex;".
+    */
+    action AddRule(text className, text declarations)
+        CheckNew(className)
+        rules:Set(className, declarations)
+    end
+
+    /*
+        Adds a rule that applies only in a state, such as ":hover".
+
+        Attribute: Parameter className The class name, without the leading dot.
+        Attribute: Parameter declarations The declarations.
+        Attribute: Parameter state The state, such as ":hover" or ":focus".
+    */
+    action AddStateRule(text className, text declarations, text state)
+        CheckNew(className)
+        conditionalRules:Set(className, declarations)
+        statesOfRules:Set(className, state)
+    end
+
+    /*
+        Adds a rule that applies only on screens at least this wide.
+
+        Attribute: Parameter className The class name, without the leading dot.
+        Attribute: Parameter declarations The declarations.
+        Attribute: Parameter pixels The narrowest screen the rule applies on.
+    */
+    action AddWidthRule(text className, text declarations, number pixels)
+        CheckNew(className)
+        conditionalRules:Set(className, declarations)
+        widthsOfRules:Set(className, pixels)
+    end
+
+    /*
+        Adds a rule with a name a page's scripts use, written after every
+        other rule so it wins while an element has it.
+
+        Attribute: Parameter className The name, without the leading dot.
+        Attribute: Parameter declarations The declarations.
+    */
+    action AddScriptRule(text className, text declarations)
+        CheckNew(className)
+        scriptRules:Set(className, declarations)
+        scriptRuleNames:Add(className)
+    end
+
+    /*
+        Returns the whole stylesheet as text, one rule per line: the reset
+        if asked for, plain rules, state rules, then rules for each screen
+        width from narrowest, then script rules. Each group is sorted by
+        class name, so the same rules always give the same file.
+
+        Attribute: Returns The stylesheet's text.
+    */
+    action Generate returns text
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        text result = ""
+        if reset
+            result = RESET + lineFeed
+        end
+
+        Array<text> names = Sorted(rules)
+        integer i = 0
+        repeat while i < names:GetSize()
+            result = result + "." + names:Get(i) + "{" + rules:GetValue(names:Get(i)) + "}" + lineFeed
+            i = i + 1
+        end
+
+        // State rules, then each screen width's rules, narrowest first.
+        Array<text> conditional = Sorted(conditionalRules)
+        Array<number> widths
+        i = 0
+        repeat while i < conditional:GetSize()
+            text name = conditional:Get(i)
+            if statesOfRules:HasKey(name)
+                result = result + "." + name + statesOfRules:GetValue(name) + "{" + conditionalRules:GetValue(name) + "}" + lineFeed
+            else
+                number width = widthsOfRules:GetValue(name)
+                if not Contains(widths, width)
+                    widths:Add(width)
+                end
+            end
+            i = i + 1
+        end
+        widths:Sort()
+        integer w = 0
+        repeat while w < widths:GetSize()
+            number width = widths:Get(w)
+            result = result + "@media (min-width:" + constants:ToWidthOfM(width) + "){"
+            i = 0
+            repeat while i < conditional:GetSize()
+                text name = conditional:Get(i)
+                if widthsOfRules:HasKey(name)
+                    if widthsOfRules:GetValue(name) = width
+                        result = result + "." + name + "{" + conditionalRules:GetValue(name) + "}"
+                    end
+                end
+                i = i + 1
+            end
+            result = result + "}" + lineFeed
+            w = w + 1
+        end
+
+        i = 0
+        repeat while i < scriptRuleNames:GetSize()
+            text name = scriptRuleNames:Get(i)
+            result = result + "." + name + "{" + scriptRules:GetValue(name) + "}" + lineFeed
+            i = i + 1
+        end
+        return result
+    end
+
+    private action CheckNew(text className)
+        if rules:HasKey(className) or conditionalRules:HasKey(className) or scriptRules:HasKey(className)
+            alert("The stylesheet already has a rule named " + className + ".")
+        end
+    end
+
+    private action Sorted(HashTable<text, text> table) returns Array<text>
+        Array<text> names
+        Iterator<text> iterator = table:GetKeyIterator()
+        repeat while iterator:HasNext()
+            names:Add(iterator:Next())
+        end
+        names:Sort()
+        return names
+    end
+
+    private action Contains(Array<number> values, number value) returns boolean
+        integer i = 0
+        repeat while i < values:GetSize()
+            if values:Get(i) = value
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+end

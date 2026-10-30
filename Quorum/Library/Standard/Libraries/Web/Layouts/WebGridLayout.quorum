@@ -1,0 +1,110 @@
+package Libraries.Web.Layouts
+use Libraries.Web.Styles.StyleSheetConstants
+
+/*
+    WebGridLayout places the items inside an element in columns of equal
+    width, filling each row before starting the next. It fits as many
+    columns as the space allows, with none narrower than the smallest
+    width, so a wide screen shows several side by side and a phone shows
+    one. The gap is the space between items, in pixels.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Layouts.WebGridLayout
+
+    class Main is WebPage
+        action Main
+            WebGridLayout cards
+            cards:SetGap(12)
+            cards:SetSmallestColumnWidth(224)
+
+            Division division
+            SetLayout(division, cards)
+            Include(division)
+        end
+    end
+*/
+class WebGridLayout is WebLayout
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+    number gap = 0
+    number smallestColumnWidth = 0
+    number columnGap = -1
+    boolean fittedFirstColumn = false
+
+    /*
+        Sets the space between items, across and down, in pixels.
+
+        Attribute: Parameter pixels The space between items. It can't be negative.
+    */
+    action SetGap(number pixels)
+        if pixels < 0
+            alert("A grid's gap can't be negative, but it was set to " + pixels + ".")
+        end
+        gap = pixels
+    end
+
+    /*
+        Sets the space between columns, in pixels, when it should differ
+        from the space between rows. SetGap sets both; this changes only
+        the space across.
+
+        Attribute: Parameter pixels The space between columns. It can't be negative.
+    */
+    action SetColumnGap(number pixels)
+        if pixels < 0
+            alert("A grid's column gap can't be negative, but it was set to " + pixels + ".")
+        end
+        columnGap = pixels
+    end
+
+    /*
+        Makes the grid two columns: the first only as wide as its widest
+        item, and the second the rest of the width. This suits pairs, such
+        as terms and their descriptions, where every description should
+        start at the same place.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebGridLayout
+
+        WebGridLayout pairs
+        pairs:UseFittedFirstColumn()
+    */
+    action UseFittedFirstColumn
+        fittedFirstColumn = true
+    end
+
+    /*
+        Sets the narrowest a column may be, in pixels. The grid fits as
+        many columns as it can at this width or wider.
+
+        Attribute: Parameter pixels The smallest column width. It must be more than 0.
+    */
+    action SetSmallestColumnWidth(number pixels)
+        if pixels <= 0
+            alert("A grid's smallest column width must be more than 0, but it was set to " + pixels + ".")
+        end
+        smallestColumnWidth = pixels
+    end
+
+    /*
+        Returns the stylesheet declarations for this grid. WebSite calls
+        this when it writes the stylesheet; people making pages don't.
+
+        Attribute: Returns The declarations for this grid.
+    */
+    action Generate returns text
+        text result = "display:grid;"
+        if fittedFirstColumn
+            result = result + "grid-template-columns:max-content 1fr;"
+        elseif smallestColumnWidth > 0
+            result = result + "grid-template-columns:repeat(auto-fit,minmax(" + constants:ToWidthOfM(smallestColumnWidth) + ",1fr));"
+        end
+        if columnGap >= 0
+            result = result + "row-gap:" + constants:ToWidthOfM(gap) + ";column-gap:" + constants:ToWidthOfM(columnGap) + ";"
+        elseif gap > 0
+            result = result + "gap:" + constants:ToWidthOfM(gap) + ";"
+        end
+        return result
+    end
+end

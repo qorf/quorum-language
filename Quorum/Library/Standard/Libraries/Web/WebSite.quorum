@@ -1,0 +1,1033 @@
+package Libraries.Web
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Containers.List
+use Libraries.Network.NetworkExchange
+use Libraries.Network.NetworkExchangeListener
+use Libraries.Network.WebServer
+use Libraries.System.File
+use Libraries.Web.Styles.StyleSheet
+use Libraries.Web.Styles.StyleOptions
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Styles.WebStyle
+use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.HeaderLink
+use Libraries.Web.Page.MetaData
+use Libraries.System.DateTime
+use Libraries.Web.Series.PageSeries
+use Libraries.Web.Styles.WebConditionalLook
+
+/*
+    WebSite holds everything on a website by where it lives: pages, and
+    other responders that answer requests with data. It can write the
+    pages to its folder, serve everything by location, or both. Either
+    way, it first makes one stylesheet with exactly the rules the pages
+    use, gives each styled element its one class name, and links the
+    stylesheet into every page.
+
+    Every location is inside the site and never starts with a slash, so
+    "style/site.css" can only mean one place. Files a page uses, such as a
+    table's data, live in the site's relative folder ("media" by default),
+    and a page names them relative to it.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.WebSite
+    use Libraries.Web.Styles.StyleOptions
+
+    class Main
+        action Main
+            StyleOptions options
+            WebSite site
+            site:SetFolder("html")
+
+            WebPage home
+            home:SetLocation("index.html")
+            home:SetStyleOptions(options)
+            site:AddPage(home)
+            home:Title("Welcome")
+            home:Section("About")
+            home:Paragraph("Hello")
+
+            site:Write()
+            site:Serve(8080)
+        end
+    end
+*/
+class WebSite is NetworkExchangeListener
+    // Everything that answers requests, by location. Pages are here too.
+    HashTable<text, ServerResponder> responders
+
+    // Only the pages, by location: what gets written and styled.
+    HashTable<text, WebPage> pages
+
+    text styleSheetLocation = "style/site.css"
+    text homeLocation = "index.html"
+
+    // Where the site is written, such as "html", and the folder inside it
+    // that pages name their files relative to.
+    text folder = ""
+    text relativeFolder = "media"
+    WebLocations locations
+    WebTextEscaper escaper
+
+    // For search engines and link previews.
+    text address = ""
+    text titleEnding = ""
+    text siteName = ""
+    text defaultShareImage = ""
+    text defaultShareImageDescription = ""
+    text sitemapLocation = "sitemap.xml"
+    text robotsLocation = "robots.txt"
+    Array<text> sitemapFolders
+    constant text SEPARATOR = "/"
+    constant text PAGE_EXTENSION = "html"
+    constant text SITEMAP_NAMESPACE = "http://www.sitemaps.org/schemas/sitemap/0.9"
+    constant text CANONICAL = "canonical"
+    constant text TYPE_ATTRIBUTE = "type"
+    constant text DESCRIPTION_NAME = "description"
+    constant text ROBOTS_NAME = "robots"
+    constant text NO_INDEX = "noindex"
+    constant text PROPERTY_ATTRIBUTE = "property"
+    constant text OPEN_GRAPH_TITLE = "og:title"
+    constant text OPEN_GRAPH_TYPE = "og:type"
+    constant text OPEN_GRAPH_WEBSITE = "website"
+    constant text OPEN_GRAPH_DESCRIPTION = "og:description"
+    constant text OPEN_GRAPH_SITE_NAME = "og:site_name"
+    constant text OPEN_GRAPH_ADDRESS = "og:url"
+    constant text OPEN_GRAPH_IMAGE = "og:image"
+    constant text OPEN_GRAPH_IMAGE_DESCRIPTION = "og:image:alt"
+
+    // Where the pages documenting a code library live, inside the site.
+    // "" is the top of the site, so Libraries.System.File is at
+    // "Libraries/System/File.html".
+    text libraryCodeFolder = ""
+    constant text LIBRARY_CODE_PAGE_ENDING = ".html"
+    constant text NAME_SEPARATOR = "."
+    constant text FOLDER_SEPARATOR = "/"
+    StyleSheet sheet = undefined
+
+    // Added to the stylesheet's link with a number made from its
+    // contents, so a browser fetches it again whenever it changes instead
+    // of using an old copy whose rule names no longer match.
+    constant text VERSION_QUERY = "?version="
+
+    // Separates a conditional look's state, width and declarations in the
+    // key that tells different looks apart.
+    constant text CONDITION_SEPARATOR = "|"
+
+    // Whether every finished page is checked for accessibility problems
+    // before it is written or served. Off unless asked for.
+    boolean accessibilityChecks = false
+    constant text CLASS_PREFIX = "q"
+    WebServer server = undefined
+
+    // Ordered groups of pages, such as courses.
+    Array<PageSeries> seriesList
+
+    // The look for pages the site builds itself, such as reports.
+    StyleOptions styleOptions = undefined
+
+    /*
+        Adds a page to the site, at its location, and tells the page which
+        site it is on. Add a page before setting it up, so it can find the
+        site's files while it is built. A page can be written to a file and
+        served.
+
+        Attribute: Parameter page The page to add.
+    */
+    action AddPage(WebPage page)
+        AddResponder(page)
+        pages:Set(page:GetLocation(), page)
+        page:SetWebSite(me)
+    end
+
+    /*
+        Adds a responder that isn't a page, such as one that signs people
+        in, at its location. It is served, but never written to a file.
+
+        Attribute: Parameter responder The responder to add.
+    */
+    action AddResponder(ServerResponder responder)
+        if sheet not= undefined
+            alert("Add everything to a site before writing or serving it.")
+        end
+        text location = responder:GetLocation()
+        if location:IsEmpty()
+            alert("Something needs a location before it's added to a site.")
+        end
+        if responders:HasKey(location)
+            alert("Two things on the site have the same location: " + location)
+        end
+        responders:Set(location, responder)
+    end
+
+    /*
+        Gives the site the look for pages it builds itself, such as a
+        report or an index that a subclass adds. Pages added by people are
+        handed their own.
+
+        Attribute: Parameter options The look.
+    */
+    action SetStyleOptions(StyleOptions options)
+        styleOptions = options
+    end
+
+    /*
+        Returns the look for pages the site builds itself.
+
+        Attribute: Returns The look.
+    */
+    action GetStyleOptions returns StyleOptions
+        if styleOptions = undefined
+            alert("The site needs style options for the pages it builds itself. Set them with SetStyleOptions.")
+        end
+        return styleOptions
+    end
+
+    /*
+        Sets the site's public address, such as
+        "https://quorumlanguage.com", with no slash at the end. Every page's
+        canonical address (the one address search engines should use for
+        it), its sharing address, and the sitemap are made from this. Pages
+        always name the public site, even when the site is run locally.
+
+        Attribute: Parameter value The site's public address.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        site:SetAddress("https://quorumlanguage.com")
+    */
+    action SetAddress(text value)
+        if value:EndsWith(SEPARATOR)
+            alert("A site's address has no slash at the end: " + value)
+        end
+        address = value
+    end
+
+    /*
+        Returns the site's public address, or nothing if none was set.
+
+        Attribute: Returns The address.
+    */
+    action GetAddress returns text
+        return address
+    end
+
+    /*
+        Returns the full public address of a location on the site, such as
+        "https://quorumlanguage.com/tutorials/start.html".
+
+        Attribute: Parameter location A location on the site, with no leading slash.
+        Attribute: Returns The full public address.
+    */
+    action GetPublicAddress(text location) returns text
+        return locations:Join(address, location)
+    end
+
+    /*
+        Sets the words added to the end of every page's browser tab title,
+        such as " - Quorum Programming Language", so pages don't type them.
+        A page that calls SetWebPageTitle itself keeps its own.
+
+        Attribute: Parameter value The ending, including any space or dash before it.
+    */
+    action SetTitleEnding(text value)
+        titleEnding = value
+    end
+
+    /*
+        Sets the site's name, as link previews show it, such as "Quorum
+        Programming Language".
+
+        Attribute: Parameter value The site's name.
+    */
+    action SetSiteName(text value)
+        siteName = value
+    end
+
+    /*
+        Returns the site's name, as link previews show it.
+
+        Attribute: Returns The site's name.
+    */
+    action GetSiteName returns text
+        return siteName
+    end
+
+    /*
+        Sets the picture shown when a page without its own is shared, from
+        the site's relative folder, with a description of what it shows.
+
+        Attribute: Parameter location The picture, inside the site's relative folder.
+        Attribute: Parameter imageDescription What the picture shows.
+    */
+    action SetDefaultShareImage(text location, text imageDescription)
+        locations:Check(location)
+        defaultShareImage = location
+        defaultShareImageDescription = imageDescription
+    end
+
+    /*
+        Sets where the sitemap is written, relative to the site's folder.
+        The default is "sitemap.xml", at the top of the site, where search
+        engines look for it.
+
+        Attribute: Parameter location Where the sitemap goes.
+    */
+    action SetSitemapLocation(text location)
+        locations:Check(location)
+        sitemapLocation = location
+    end
+
+    /*
+        Sets where the robots file is written, relative to the site's
+        folder. The default is "robots.txt", at the top of the site, the
+        only place search engines read it.
+
+        Attribute: Parameter location Where the robots file goes.
+    */
+    action SetRobotsLocation(text location)
+        locations:Check(location)
+        robotsLocation = location
+    end
+
+    /*
+        Adds a folder the site doesn't build itself, such as documentation
+        written by another program, to the sitemap: every page in it, and
+        in the folders inside it.
+
+        Attribute: Parameter location The folder, inside the site's folder, such as "Libraries".
+    */
+    action AddSitemapFolder(text location)
+        locations:Check(location)
+        sitemapFolders:Add(location)
+    end
+
+    /*
+        Adds a series of pages, such as a course, to the site. A page can
+        be in any number of series.
+
+        Attribute: Parameter series The series.
+    */
+    action AddSeries(PageSeries series)
+        integer i = 0
+        repeat while i < seriesList:GetSize()
+            if seriesList:Get(i):GetKey() = series:GetKey()
+                alert("Two series on the site have the key " + series:GetKey() + ".")
+            end
+            i = i + 1
+        end
+        seriesList:Add(series)
+    end
+
+    /*
+        Returns every series on the site, in the order added.
+
+        Attribute: Returns The series.
+    */
+    action GetSeriesList returns Array<PageSeries>
+        return seriesList
+    end
+
+    /*
+        Returns every series a page is in, in the order the series were
+        added to the site.
+
+        Attribute: Parameter page The page.
+        Attribute: Returns The series it is in, or none.
+    */
+    action GetSeriesOf(WebPage page) returns Array<PageSeries>
+        Array<PageSeries> result
+        integer i = 0
+        repeat while i < seriesList:GetSize()
+            if seriesList:Get(i):Contains(page:GetLocation())
+                result:Add(seriesList:Get(i))
+            end
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        Returns the series a page belongs to most, which its navigation
+        follows when a reader arrives without following a series: the one
+        the page set with SetHomeSeries, or its only series. A page in
+        several series must set one, or the build stops.
+
+        Attribute: Parameter page The page.
+        Attribute: Returns Its home series, or undefined if it is in none.
+    */
+    action GetHomeSeries(WebPage page) returns PageSeries
+        Array<PageSeries> all = GetSeriesOf(page)
+        PageSeries chosen = page:GetHomeSeries()
+        if chosen not= undefined
+            if not chosen:Contains(page:GetLocation())
+                alert(page:GetLocation() + " names a home series it isn't in: " + chosen:GetName())
+            end
+            return chosen
+        end
+        if all:GetSize() = 1
+            return all:Get(0)
+        end
+        if all:GetSize() > 1
+            alert(page:GetLocation() + " is in several series; choose its home series with SetHomeSeries.")
+        end
+        return undefined
+    end
+
+    /*
+        Returns every page on the site, in no particular order, for a
+        subclass's FinishContent.
+
+        Attribute: Returns The pages.
+    */
+    action GetPageIterator returns Iterator<WebPage>
+        return pages:GetValueIterator()
+    end
+
+    /*
+        Returns the page at a location, or undefined if there is none.
+
+        Attribute: Parameter location Where the page lives, such as "index.html".
+        Attribute: Returns The page, or undefined.
+    */
+    action GetPage(text location) returns WebPage
+        return pages:GetValue(location)
+    end
+
+    /*
+        Returns whatever answers requests at a location, page or not, or
+        undefined if there is nothing there.
+
+        Attribute: Parameter location A location, such as "index.html".
+        Attribute: Returns The responder, or undefined.
+    */
+    action GetResponder(text location) returns ServerResponder
+        return responders:GetValue(location)
+    end
+
+    /*
+        Sets where the site's stylesheet lives, relative to the site's
+        folder. The default is "style/site.css".
+
+        Attribute: Parameter location Where the stylesheet goes.
+    */
+    action SetStyleSheetLocation(text location)
+        locations:Check(location)
+        styleSheetLocation = location
+    end
+
+    /*
+        Sets which page answers a request for the site itself, with no
+        location ("/"). The default is "index.html".
+
+        Attribute: Parameter location The home page's location.
+    */
+    action SetHomeLocation(text location)
+        locations:Check(location)
+        homeLocation = location
+    end
+
+    /*
+        Sets the folder the site is written into, such as "html". Set it
+        before pages are set up, since they find their files inside it.
+
+        Attribute: Parameter folder The site's folder.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        site:SetFolder("html")
+    */
+    action SetFolder(text folder)
+        me:folder = folder
+    end
+
+    /*
+        Returns the folder the site is written into.
+
+        Attribute: Returns The site's folder.
+    */
+    action GetFolder returns text
+        return folder
+    end
+
+    /*
+        Sets the folder, inside the site, that pages name their files
+        relative to. The default is "media", so a page's
+        "scenes/Vocabulary.csv" is the site's "media/scenes/Vocabulary.csv".
+
+        Attribute: Parameter location The folder, inside the site, with no leading slash.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        site:SetRelativeFolder("media")
+    */
+    action SetRelativeFolder(text location)
+        locations:Check(location)
+        relativeFolder = location
+    end
+
+    /*
+        Returns the folder, inside the site, that pages name their files
+        relative to.
+
+        Attribute: Returns The relative folder, such as "media".
+    */
+    action GetRelativeFolder returns text
+        return relativeFolder
+    end
+
+    /*
+        Sets the folder, inside the site, where the pages documenting a
+        code library live. A class such as Libraries.System.File has its
+        page at this folder plus "Libraries/System/File.html". The default
+        is the top of the site.
+
+        Attribute: Parameter location The folder, inside the site, with no leading slash.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        site:SetLibraryCodeFolder("documentation")
+    */
+    action SetLibraryCodeFolder(text location)
+        locations:Check(location)
+        libraryCodeFolder = location
+    end
+
+    /*
+        Returns the address of the page documenting a class, from the top
+        of the site, for a link to it.
+
+        Attribute: Parameter className The class's full name, such as "Libraries.System.File".
+        Attribute: Returns The page's address, such as "/Libraries/System/File.html".
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        output site:GetLibraryCodeAddress("Libraries.System.File")
+    */
+    action GetLibraryCodeAddress(text className) returns text
+        text page = className:Replace(NAME_SEPARATOR, FOLDER_SEPARATOR) + LIBRARY_CODE_PAGE_ENDING
+        return locations:FromSiteTop(locations:Join(libraryCodeFolder, page))
+    end
+
+    /*
+        Returns a file in the site's relative folder. A page uses this to
+        find a file it names, such as a table's data.
+
+        Attribute: Parameter location The file's location inside the relative folder, such as "scenes/Vocabulary.csv".
+        Attribute: Returns The file.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+        use Libraries.System.File
+
+        WebSite site
+        site:SetFolder("html")
+        File file = site:GetRelativeFile("scenes/Vocabulary.csv")
+    */
+    action GetRelativeFile(text location) returns File
+        locations:Check(location)
+        File file
+        file:SetPath(locations:Join(locations:Join(folder, relativeFolder), location))
+        return file
+    end
+
+    /*
+        Writes the site into its folder: the stylesheet, every page, and,
+        if the site has an address, the sitemap and robots file.
+        Responders that aren't pages aren't written.
+    */
+    action Write
+        if folder:IsEmpty()
+            alert("The site needs a folder to be written into. Set it with SetFolder.")
+        end
+        Prepare()
+        WriteFile(locations:Join(folder, styleSheetLocation), sheet:Generate())
+        Iterator<WebPage> iterator = pages:GetValueIterator()
+        repeat while iterator:HasNext()
+            WebPage page = iterator:Next()
+            WriteFile(locations:Join(folder, page:GetLocation()), page:Generate())
+        end
+        WriteSitemapAndRobots()
+    end
+
+    /*
+        Starts answering requests on a port: each request goes to whatever
+        is at its location, and the stylesheet is served at its own
+        location. This keeps running until the server is stopped.
+
+        Attribute: Parameter port The port to listen on, such as 8080.
+    */
+    action Serve(integer port)
+        Prepare()
+        WebServer newServer
+        server = newServer
+        server:Create(port)
+        server:Add("/", me)
+        server:Start()
+    end
+
+    /*
+        Answers one request by its location. WebServer calls this; people
+        making pages don't.
+
+        Attribute: Parameter exchange The request, and the way to answer it.
+    */
+    action ResponseReceived(NetworkExchange exchange)
+        text location = ToLocation(exchange:GetPath())
+        if location = styleSheetLocation
+            Send(exchange, 200, "text/css; charset=UTF-8", sheet:Generate())
+            return now
+        end
+
+        ServerResponder responder = responders:GetValue(location)
+        if responder = undefined
+            Send(exchange, 404, "text/plain; charset=UTF-8", "Not found: " + location)
+        else
+            responder:ResponseReceived(exchange)
+        end
+    end
+
+    /*
+        Called once every page is set up, before the stylesheet is built
+        and anything is written or served. It does nothing here. A
+        subclass fills it in for anything that needs every page at once,
+        such as adding pages built from what the others recorded; pages it
+        adds then are styled and written like any other.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        class MySite is WebSite
+            action FinishContent
+                // build an index of every page here
+            end
+        end
+    */
+    action FinishContent
+    end
+
+    /*
+        Sets whether every page is checked for accessibility problems once
+        it is finished, frame and all, before the site is written or
+        served (see WebAccessibilityChecker). If any page has problems,
+        the build stops and lists them all. The default is off.
+
+        Attribute: Parameter value True to check every page.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+
+        WebSite site
+        site:SetAccessibilityChecks(true)
+    */
+    action SetAccessibilityChecks(boolean value)
+        accessibilityChecks = value
+    end
+
+    action HasAccessibilityChecks returns boolean
+        return accessibilityChecks
+    end
+
+    /*
+        Done once, before the first Write or Serve: lets a subclass finish
+        anything that needs every page (FinishContent), builds the
+        stylesheet, gives each styled element its class name, checks every
+        page's headings have text, and links the stylesheet into every
+        page, with a version made from its contents. Nothing can be added
+        after this.
+    */
+    private action Prepare
+        if sheet not= undefined
+            return now
+        end
+
+        // Every page is set up: anything that needs them all comes now.
+        FinishContent()
+
+        sheet = BuildStyleSheet()
+        text contents = sheet:Generate()
+        text styleSheetAddress = locations:FromSiteTop(styleSheetLocation) + VERSION_QUERY + contents:GetHashCode()
+        Iterator<WebPage> iterator = pages:GetValueIterator()
+        repeat while iterator:HasNext()
+            WebPage page = iterator:Next()
+            page:CheckHeadings()
+            AddSearchAndSharing(page)
+            page:AddStylesheet(styleSheetAddress)
+        end
+
+        if accessibilityChecks
+            CheckAccessibility()
+        end
+    end
+
+    // Checks every page, and stops the build listing every problem found,
+    // in the order of the pages' locations.
+    private action CheckAccessibility
+        Array<text> pageLocations
+        Iterator<text> keys = pages:GetKeyIterator()
+        repeat while keys:HasNext()
+            pageLocations:Add(keys:Next())
+        end
+        pageLocations:Sort()
+
+        WebAccessibilityChecker checker
+        text report = ""
+        integer count = 0
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        integer i = 0
+        repeat while i < pageLocations:GetSize()
+            Array<text> problems = checker:Check(pages:GetValue(pageLocations:Get(i)))
+            integer j = 0
+            repeat while j < problems:GetSize()
+                report = report + lineFeed + problems:Get(j)
+                count = count + 1
+                j = j + 1
+            end
+            i = i + 1
+        end
+        if count > 0
+            alert("The accessibility checks found " + count + " problems:" + report)
+        end
+    end
+
+    /*
+        Builds the stylesheet from every page's layouts and styles, and
+        gives each element its class name. Each element gets exactly one
+        rule: its layout's declarations followed by its style's. Layouts
+        and styles never set the same thing, so nothing in a rule competes.
+    */
+    private action BuildStyleSheet returns StyleSheet
+        // Pass 1: each element's whole look, and every different look.
+        HashTable<WebTag, text> looks
+        HashTable<text, text> classNames
+        Array<text> allDeclarations
+        Iterator<WebPage> pageIterator = pages:GetValueIterator()
+        repeat while pageIterator:HasNext()
+            WebPage page = pageIterator:Next()
+            Iterator<WebTag> elements = page:GetLayoutElements()
+            repeat while elements:HasNext()
+                WebTag element = elements:Next()
+                looks:Set(element, page:GetLayoutOf(element):Generate())
+            end
+            Iterator<WebTag> styledElements = page:GetStyledElements()
+            repeat while styledElements:HasNext()
+                WebTag styledElement = styledElements:Next()
+                text before = ""
+                if looks:HasKey(styledElement)
+                    before = looks:GetValue(styledElement)
+                end
+                looks:Set(styledElement, before + page:GetStyleOf(styledElement):Generate())
+            end
+        end
+
+        Iterator<text> lookIterator = looks:GetValueIterator()
+        repeat while lookIterator:HasNext()
+            text declarations = lookIterator:Next()
+            if not declarations:IsEmpty() and not classNames:HasKey(declarations)
+                classNames:Set(declarations, "")
+                allDeclarations:Add(declarations)
+            end
+        end
+
+        // Sorted, so the names and the file are the same on every build,
+        // whatever order the tables give.
+        allDeclarations:Sort()
+        StyleSheet newSheet
+        integer i = 0
+        repeat while i < allDeclarations:GetSize()
+            text declarations = allDeclarations:Get(i)
+            text className = CLASS_PREFIX + (i + 1)
+            classNames:Set(declarations, className)
+            newSheet:AddRule(className, declarations)
+            i = i + 1
+        end
+
+        // Pass 2: give each element its one class name.
+        Iterator<WebTag> elementIterator = looks:GetKeyIterator()
+        repeat while elementIterator:HasNext()
+            WebTag element = elementIterator:Next()
+            text declarations = looks:GetValue(element)
+            if not declarations:IsEmpty()
+                element:AddClassAttribute(classNames:GetValue(declarations))
+            end
+        end
+
+        // Looks for wider screens and states: each different one (its
+        // condition and its declarations) gets a name after the plain
+        // rules', and every element with it gets that name too.
+        HashTable<text, text> conditionalNames
+        HashTable<text, WebConditionalLook> conditionOfKey
+        Array<text> conditionalKeys
+        HashTable<WebTag, Array<text>> keysOfElement
+        pageIterator = pages:GetValueIterator()
+        repeat while pageIterator:HasNext()
+            WebPage page = pageIterator:Next()
+            Iterator<WebTag> conditionalElements = page:GetConditionalElements()
+            repeat while conditionalElements:HasNext()
+                WebTag element = conditionalElements:Next()
+                Array<WebConditionalLook> elementLooks = page:GetConditionalLooksOf(element)
+                Array<text> elementKeys
+                integer j = 0
+                repeat while j < elementLooks:GetSize()
+                    WebConditionalLook look = elementLooks:Get(j)
+                    text declarations = look:Generate()
+                    if not declarations:IsEmpty()
+                        text key = look:GetState() + CONDITION_SEPARATOR + look:GetFromWidth() + CONDITION_SEPARATOR + declarations
+                        if not conditionalNames:HasKey(key)
+                            conditionalNames:Set(key, "")
+                            conditionOfKey:Set(key, look)
+                            conditionalKeys:Add(key)
+                        end
+                        elementKeys:Add(key)
+                    end
+                    j = j + 1
+                end
+                keysOfElement:Set(element, elementKeys)
+            end
+        end
+        conditionalKeys:Sort()
+        integer next = allDeclarations:GetSize() + 1
+        i = 0
+        repeat while i < conditionalKeys:GetSize()
+            text key = conditionalKeys:Get(i)
+            WebConditionalLook look = conditionOfKey:GetValue(key)
+            text className = CLASS_PREFIX + next
+            conditionalNames:Set(key, className)
+            if look:GetState():IsEmpty()
+                newSheet:AddWidthRule(className, look:Generate(), look:GetFromWidth())
+            else
+                newSheet:AddStateRule(className, look:Generate(), look:GetState())
+            end
+            next = next + 1
+            i = i + 1
+        end
+        Iterator<WebTag> conditionalIterator = keysOfElement:GetKeyIterator()
+        repeat while conditionalIterator:HasNext()
+            WebTag element = conditionalIterator:Next()
+            Array<text> elementKeys = keysOfElement:GetValue(element)
+            integer j = 0
+            repeat while j < elementKeys:GetSize()
+                element:AddClassAttribute(conditionalNames:GetValue(elementKeys:Get(j)))
+                j = j + 1
+            end
+        end
+
+        // The reset, and the looks scripts add by name, from the options.
+        if styleOptions not= undefined
+            newSheet:SetReset(styleOptions:UsesReset())
+            Array<text> scriptNames = styleOptions:GetScriptClassNames()
+            i = 0
+            repeat while i < scriptNames:GetSize()
+                text name = scriptNames:Get(i)
+                newSheet:AddScriptRule(name, styleOptions:GetScriptClassDeclarations(name))
+                i = i + 1
+            end
+        end
+        return newSheet
+    end
+
+    /*
+        A request's path starts with a slash ("/tutorials/start.html");
+        locations don't. The site itself ("/") is the home page.
+    */
+    private action ToLocation(text path) returns text
+        // A query, such as the stylesheet's version, doesn't change which
+        // file is asked for.
+        if path not= undefined and path:Contains("?")
+            path = path:GetSubtext(0, path:IndexOf("?"))
+        end
+        if path = undefined or path = "" or path = "/"
+            return homeLocation
+        end
+        if path:StartsWith("/")
+            return path:GetSubtext(1, path:GetSize())
+        end
+        return path
+    end
+
+    private action Send(NetworkExchange exchange, integer status, text contentType, text response)
+        HashTable<text, List<text>> headers
+        List<text> type
+        type:Add(contentType)
+        headers:Add("Content-Type", type)
+        exchange:SetResponseHeaders(headers)
+        exchange:SendResponseHeaders(status, response)
+        exchange:SendResponse(response)
+    end
+
+    /*
+        Adds what search engines and link previews read to one page's head:
+        its tab title (from its title and the site's ending, unless it set
+        its own), its summary, whether it may be listed, its canonical
+        address, and its sharing tags (Open Graph).
+    */
+    private action AddSearchAndSharing(WebPage page)
+        if not page:HasWebPageTitle()
+            page:SetWebPageTitle(page:GetTitleText() + titleEnding)
+        end
+
+        text pageDescription = page:GetDescription()
+        if not pageDescription:IsEmpty()
+            AddNamedMetaData(page, DESCRIPTION_NAME, pageDescription)
+        end
+        if not page:IsSearchable()
+            AddNamedMetaData(page, ROBOTS_NAME, NO_INDEX)
+        end
+
+        AddPropertyMetaData(page, OPEN_GRAPH_TITLE, page:GetTitleText())
+        AddPropertyMetaData(page, OPEN_GRAPH_TYPE, OPEN_GRAPH_WEBSITE)
+        if not pageDescription:IsEmpty()
+            AddPropertyMetaData(page, OPEN_GRAPH_DESCRIPTION, pageDescription)
+        end
+        if not siteName:IsEmpty()
+            AddPropertyMetaData(page, OPEN_GRAPH_SITE_NAME, siteName)
+        end
+
+        // Addresses must be full ones, so they need the site's address.
+        if address:IsEmpty()
+            return now
+        end
+        text pageAddress = GetPublicAddress(page:GetLocation())
+        HeaderLink canonical
+        canonical:SetRelationship(CANONICAL)
+        // A header link starts as a stylesheet, with a stylesheet's type;
+        // a canonical link has no type.
+        canonical:GetAttributes():Remove(TYPE_ATTRIBUTE)
+        canonical:SetAddress(escaper:EscapeAttribute(pageAddress))
+        page:GetWebPageHeader():Add(canonical)
+        AddPropertyMetaData(page, OPEN_GRAPH_ADDRESS, pageAddress)
+
+        text image = page:GetShareImage()
+        text imageDescription = page:GetShareImageDescription()
+        if image:IsEmpty()
+            image = defaultShareImage
+            imageDescription = defaultShareImageDescription
+        end
+        if not image:IsEmpty()
+            AddPropertyMetaData(page, OPEN_GRAPH_IMAGE, GetPublicAddress(locations:Join(relativeFolder, image)))
+            AddPropertyMetaData(page, OPEN_GRAPH_IMAGE_DESCRIPTION, imageDescription)
+        end
+    end
+
+    // A <meta name="…" content="…"> tag, with the content escaped.
+    private action AddNamedMetaData(WebPage page, text name, text content)
+        MetaData meta
+        meta:SetName(name)
+        meta:SetContent(escaper:EscapeAttribute(content))
+        page:AddMetaData(meta)
+    end
+
+    // A <meta property="…" content="…"> tag (as Open Graph uses), with the
+    // content escaped.
+    private action AddPropertyMetaData(WebPage page, text property, text content)
+        MetaData meta
+        meta:AddAttribute(PROPERTY_ATTRIBUTE, property)
+        meta:SetContent(escaper:EscapeAttribute(content))
+        page:AddMetaData(meta)
+    end
+
+    /*
+        Writes the sitemap, listing every searchable page the site holds
+        (sorted, so it is the same every build) and every page in the
+        sitemap folders, each with today's date as its last change, and the
+        robots file pointing to it. Needs the site's address.
+    */
+    private action WriteSitemapAndRobots
+        if address:IsEmpty()
+            return now
+        end
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        text quote = ""
+        quote = quote:GetDoubleQuote()
+        text today = GetToday()
+
+        Array<text> listed
+        Iterator<WebPage> iterator = pages:GetValueIterator()
+        repeat while iterator:HasNext()
+            WebPage page = iterator:Next()
+            if page:IsSearchable()
+                listed:Add(page:GetLocation())
+            end
+        end
+        integer i = 0
+        repeat while i < sitemapFolders:GetSize()
+            AddFolderPages(sitemapFolders:Get(i), listed)
+            i = i + 1
+        end
+        listed:Sort()
+
+        text sitemap = "<?xml version=" + quote + "1.0" + quote + " encoding=" + quote + "UTF-8" + quote + "?>" + lineFeed
+        sitemap = sitemap + "<urlset xmlns=" + quote + SITEMAP_NAMESPACE + quote + ">" + lineFeed
+        i = 0
+        repeat while i < listed:GetSize()
+            sitemap = sitemap + "<url><loc>" + escaper:Escape(GetPublicAddress(listed:Get(i))) + "</loc><lastmod>" + today + "</lastmod></url>" + lineFeed
+            i = i + 1
+        end
+        sitemap = sitemap + "</urlset>" + lineFeed
+        WriteFile(locations:Join(folder, sitemapLocation), sitemap)
+
+        text robots = "User-agent: *" + lineFeed + "Allow: /" + lineFeed + "Sitemap: " + GetPublicAddress(sitemapLocation) + lineFeed
+        WriteFile(locations:Join(folder, robotsLocation), robots)
+    end
+
+    // Adds every web page in a folder, and in the folders inside it, to a
+    // list of locations.
+    private action AddFolderPages(text location, Array<text> listed)
+        File directory
+        directory:SetPath(locations:Join(folder, location))
+        if not directory:Exists()
+            alert("A sitemap folder doesn't exist: " + location)
+        end
+        Array<File> files = directory:GetDirectoryListing()
+        integer i = 0
+        repeat while i < files:GetSize()
+            File file = files:Get(i)
+            text inside = locations:Join(location, file:GetFileName())
+            if file:IsDirectory()
+                AddFolderPages(inside, listed)
+            elseif file:GetFileExtension() = PAGE_EXTENSION
+                listed:Add(inside)
+            end
+            i = i + 1
+        end
+    end
+
+    // Today's date as a sitemap writes it: 2026-10-30.
+    private action GetToday returns text
+        DateTime clock
+        return clock:GetYear() + "-" + TwoDigits(clock:GetMonth()) + "-" + TwoDigits(clock:GetDayOfMonth())
+    end
+
+    private action TwoDigits(integer value) returns text
+        if value < 10
+            return "0" + value
+        end
+        return "" + value
+    end
+
+    private action WriteFile(text path, text contents)
+        File file
+        file:SetPath(path)
+        File parentFolder = file:GetParentDirectory()
+        if parentFolder not= undefined and not parentFolder:Exists()
+            parentFolder:CreateDirectories()
+        end
+        file:Write(contents)
+    end
+end

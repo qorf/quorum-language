@@ -1,0 +1,436 @@
+package Libraries.Web.Styles
+
+/*
+    WebTextStyle sets how an element's text looks: its size, the height of
+    each line, whether it is bold or italic, its color, underlining,
+    capitals, and how it lines up. Anything not set writes
+    nothing, so the text keeps the site's starting look for it. Sizes are
+    in pixels, as in Quorum's games.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.WebTextStyle
+
+    class Main is WebPage
+        action Main
+            WebTextStyle title
+            title:SetFontSize(30)
+            title:SetLineHeight(36)
+            title:SetBold(true)
+
+            Section section
+            Heading heading = section:AddHeading("Welcome", 1)
+            SetStyle(heading, title)
+            Add(section)
+        end
+    end
+*/
+class WebTextStyle is WebStyle
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+    number fontSize = -1
+    number lineHeight = -1
+    boolean boldSet = false
+    boolean bold = false
+    boolean italicSet = false
+    boolean italic = false
+    boolean surroundingFont = false
+    WebColor color = undefined
+    boolean underlineSet = false
+    boolean underline = false
+    boolean uppercaseSet = false
+    boolean uppercase = false
+    integer alignment = constants:STRETCH_ALIGN
+    boolean breakLongWords = false
+    text font = ""
+
+    // What a reader's browser uses when the named font is missing.
+    constant text FALLBACK_FONT = "sans-serif"
+
+    /*
+        Sets the size of the text, in pixels.
+
+        Attribute: Parameter pixels The text size. It must be more than 0.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:SetFontSize(24)
+    */
+    action SetFontSize(number pixels)
+        if pixels <= 0
+            alert("A font size must be more than 0, but it was set to " + pixels + ".")
+        end
+        fontSize = pixels
+    end
+
+    /*
+        Returns the size of the text, in pixels, or -1 if it was never set.
+
+        Attribute: Returns The text size, or -1.
+    */
+    action GetFontSize returns number
+        return fontSize
+    end
+
+    /*
+        Sets the height of each line of text, in pixels, including the
+        space above and below the letters.
+
+        Attribute: Parameter pixels The line height. It must be more than 0.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:SetFontSize(24)
+        style:SetLineHeight(32)
+    */
+    action SetLineHeight(number pixels)
+        if pixels <= 0
+            alert("A line height must be more than 0, but it was set to " + pixels + ".")
+        end
+        lineHeight = pixels
+    end
+
+    /*
+        Returns the height of each line, in pixels, or -1 if it was never
+        set.
+
+        Attribute: Returns The line height, or -1.
+    */
+    action GetLineHeight returns number
+        return lineHeight
+    end
+
+    /*
+        Sets whether the text is bold.
+
+        Attribute: Parameter value True for bold text, false for normal text.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:SetBold(true)
+    */
+    action SetBold(boolean value)
+        boldSet = true
+        bold = value
+    end
+
+    /*
+        Returns true if the text was set to be bold.
+
+        Attribute: Returns Whether the text is bold.
+    */
+    action IsBold returns boolean
+        return boldSet and bold
+    end
+
+    /*
+        Sets whether the text is italic (slanted).
+
+        Attribute: Parameter value True for italic text, false for upright text.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:SetItalic(false)
+    */
+    action SetItalic(boolean value)
+        italicSet = true
+        italic = value
+    end
+
+    /*
+        Returns true if the text was set to be italic.
+
+        Attribute: Returns Whether the text is italic.
+    */
+    action IsItalic returns boolean
+        return italicSet and italic
+    end
+
+    /*
+        Uses the same font as the text around it, instead of a font the
+        browser or the site's reset would pick for this kind of element
+        (such as a code font for program output).
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:UseSurroundingFont()
+    */
+    action UseSurroundingFont
+        surroundingFont = true
+    end
+
+    /*
+        Returns true if the text uses the same font as the text around it.
+
+        Attribute: Returns Whether the surrounding font is used.
+    */
+    action UsesSurroundingFont returns boolean
+        return surroundingFont
+    end
+
+    /*
+        Sets the color of the text.
+
+        Attribute: Parameter value The text's color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor white
+        white:SetColor(255, 255, 255)
+        WebTextStyle style
+        style:SetColor(white)
+    */
+    action SetColor(WebColor value)
+        color = value
+    end
+
+    /*
+        Returns the color of the text, or undefined if it isn't set.
+
+        Attribute: Returns The text's color, or undefined.
+    */
+    action GetColor returns WebColor
+        return color
+    end
+
+    /*
+        Sets whether the text is underlined. Links are underlined unless
+        this says otherwise.
+
+        Attribute: Parameter value True to underline.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle quietLink
+        quietLink:SetUnderline(false)
+    */
+    action SetUnderline(boolean value)
+        underlineSet = true
+        underline = value
+    end
+
+    /*
+        Sets whether the text is shown in capital letters. The words stay
+        as written, so a screen reader reads them normally.
+
+        Attribute: Parameter value True for capital letters.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle label
+        label:SetUppercase(true)
+    */
+    action SetUppercase(boolean value)
+        uppercaseSet = true
+        uppercase = value
+    end
+
+    /*
+        Lines the text up on the left. Without an alignment, text lines up
+        as the element it is in does by default.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:AlignLeft()
+    */
+    action AlignLeft
+        alignment = constants:LEFT_ALIGN
+    end
+
+    /*
+        Centers the text.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:AlignCenter()
+    */
+    action AlignCenter
+        alignment = constants:CENTER_ALIGN
+    end
+
+    /*
+        Lines the text up on the right.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle style
+        style:AlignRight()
+    */
+    action AlignRight
+        alignment = constants:RIGHT_ALIGN
+    end
+
+    /*
+        Sets the font, by name, such as "Montserrat". If a reader's browser
+        doesn't have it, the browser uses its own plain font without
+        serifs.
+
+        Attribute: Parameter name The font's name.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle page
+        page:SetFont("Montserrat")
+    */
+    action SetFont(text name)
+        font = name
+    end
+
+    /*
+        Lets a word too long for its space break onto the next line,
+        instead of reaching past the edge, as in a narrow table column.
+
+        Attribute: Parameter value True to break long words.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle cell
+        cell:SetBreakLongWords(true)
+    */
+    action SetBreakLongWords(boolean value)
+        breakLongWords = value
+    end
+
+    /*
+        Returns a new text style with the same settings. Change the copy to
+        give one element its own look without changing every element that
+        shares this style.
+
+        Attribute: Returns A copy of this style.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle heading
+        heading:SetFontSize(24)
+        WebTextStyle larger = heading:Copy()
+        larger:SetFontSize(30)
+    */
+    action Copy returns WebTextStyle
+        WebTextStyle copy
+        if fontSize > 0
+            copy:SetFontSize(fontSize)
+        end
+        if lineHeight > 0
+            copy:SetLineHeight(lineHeight)
+        end
+        if boldSet
+            copy:SetBold(bold)
+        end
+        if italicSet
+            copy:SetItalic(italic)
+        end
+        if surroundingFont
+            copy:UseSurroundingFont()
+        end
+        if color not= undefined
+            copy:SetColor(color:Copy())
+        end
+        if underlineSet
+            copy:SetUnderline(underline)
+        end
+        if uppercaseSet
+            copy:SetUppercase(uppercase)
+        end
+        if alignment = constants:LEFT_ALIGN
+            copy:AlignLeft()
+        elseif alignment = constants:CENTER_ALIGN
+            copy:AlignCenter()
+        elseif alignment = constants:RIGHT_ALIGN
+            copy:AlignRight()
+        end
+        copy:SetBreakLongWords(breakLongWords)
+        if not font:IsEmpty()
+            copy:SetFont(font)
+        end
+        return copy
+    end
+
+    /*
+        Returns the stylesheet declarations for this text style. WebSite
+        calls this when it writes the stylesheet; people making pages
+        don't.
+
+        Attribute: Returns The declarations for this style.
+    */
+    action Generate returns text
+        text result = ""
+        if fontSize > 0
+            result = result + "font-size:" + constants:ToWidthOfM(fontSize) + ";"
+        end
+        if lineHeight > 0
+            result = result + "line-height:" + constants:ToWidthOfM(lineHeight) + ";"
+        end
+        if boldSet
+            if bold
+                result = result + "font-weight:" + constants:BOLD_FONT_WEIGHT + ";"
+            else
+                result = result + "font-weight:" + constants:NORMAL_FONT_WEIGHT + ";"
+            end
+        end
+        if italicSet
+            if italic
+                result = result + "font-style:italic;"
+            else
+                result = result + "font-style:normal;"
+            end
+        end
+        if surroundingFont
+            result = result + "font-family:inherit;"
+        end
+        if color not= undefined
+            result = result + "color:" + color:Generate() + ";"
+        end
+        if underlineSet
+            if underline
+                result = result + "text-decoration-line:underline;"
+            else
+                result = result + "text-decoration-line:none;"
+            end
+        end
+        if uppercaseSet
+            if uppercase
+                result = result + "text-transform:uppercase;"
+            else
+                result = result + "text-transform:none;"
+            end
+        end
+        if alignment = constants:LEFT_ALIGN
+            result = result + "text-align:left;"
+        elseif alignment = constants:CENTER_ALIGN
+            result = result + "text-align:center;"
+        elseif alignment = constants:RIGHT_ALIGN
+            result = result + "text-align:right;"
+        end
+        if breakLongWords
+            result = result + "overflow-wrap:break-word;"
+        end
+        if not font:IsEmpty()
+            text quote = ""
+            quote = quote:GetDoubleQuote()
+            result = result + "font-family:" + quote + font + quote + "," + FALLBACK_FONT + ";"
+        end
+        return result
+    end
+end

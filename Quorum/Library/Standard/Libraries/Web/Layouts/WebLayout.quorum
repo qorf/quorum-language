@@ -1,0 +1,40 @@
+package Libraries.Web.Layouts
+
+/*
+    WebLayout is the parent of every layout for a web page. A layout says
+    where the items inside an element go: one under another, side by side,
+    or in a grid. A layout is set on an element through the page, with
+    SetLayout. The website's build turns each layout into a stylesheet
+    rule, so a layout never needs any CSS from the person using it.
+
+    WebLayout itself can't be used on its own. Use one of its children,
+    such as WebStackLayout.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Layouts.WebStackLayout
+
+    class Main is WebPage
+        action Main
+            WebStackLayout stack
+            stack:SetGap(8)
+
+            Section section
+            SetLayout(section, stack)
+            section:AddParagraph("First")
+            section:AddParagraph("Second")
+            Add(section)
+        end
+    end
+*/
+class WebLayout
+    /*
+        Returns the stylesheet declarations for this layout: the settings
+        inside one rule, without the rule's name. Every kind of layout
+        writes its own. WebSite calls this when it writes the stylesheet;
+        people making pages don't.
+
+        Attribute: Returns The declarations for this layout, or nothing if it needs none.
+    */
+    blueprint action Generate returns text
+end

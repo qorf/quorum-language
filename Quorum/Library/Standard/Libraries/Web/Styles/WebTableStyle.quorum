@@ -1,0 +1,201 @@
+package Libraries.Web.Styles
+
+/*
+    WebTableStyle sets how a table as a whole is laid out: whether it
+    fills the width it is in, whether its columns share that width evenly,
+    and whether neighboring cells share one border instead of two.
+    Anything not set writes nothing, so the table keeps the site's
+    starting look for it. Styles for a table's parts, such as its header
+    row or cells, come later.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.WebTableStyle
+
+    class Main is WebPage
+        action Main
+            WebTableStyle wide
+            wide:SetFullWidth(true)
+            wide:SetEvenColumns(true)
+            wide:SetSharedBorders(true)
+
+            WebTable table
+            SetStyle(table, wide)
+            Add(table)
+        end
+    end
+*/
+class WebTableStyle is WebStyle
+    boolean fullWidthSet = false
+    boolean fullWidth = false
+    boolean evenColumnsSet = false
+    boolean evenColumns = false
+    boolean sharedBordersSet = false
+    boolean sharedBorders = false
+    boolean noCellSpacing = false
+    WebBoxStyle box = undefined
+
+    /*
+        Sets whether the table fills the whole width it is in.
+
+        Attribute: Parameter value True to fill the width.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTableStyle
+
+        WebTableStyle style
+        style:SetFullWidth(true)
+    */
+    action SetFullWidth(boolean value)
+        fullWidthSet = true
+        fullWidth = value
+    end
+
+    /*
+        Sets whether the columns share the table's width evenly, whatever
+        is in them. Without this, wider content makes a wider column.
+
+        Attribute: Parameter value True for even columns.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTableStyle
+
+        WebTableStyle style
+        style:SetEvenColumns(true)
+    */
+    action SetEvenColumns(boolean value)
+        evenColumnsSet = true
+        evenColumns = value
+    end
+
+    /*
+        Sets whether neighboring cells share one border instead of each
+        drawing its own.
+
+        Attribute: Parameter value True for shared borders.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTableStyle
+
+        WebTableStyle style
+        style:SetSharedBorders(true)
+    */
+    action SetSharedBorders(boolean value)
+        sharedBordersSet = true
+        sharedBorders = value
+    end
+
+    /*
+        Removes the space browsers leave between cells when they don't
+        share borders, so the cells touch. With rounded corners on the
+        table, this is how the corners round the cells too.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTableStyle
+
+        WebTableStyle style
+        style:SetSharedBorders(false)
+        style:RemoveCellSpacing()
+    */
+    action RemoveCellSpacing
+        noCellSpacing = true
+    end
+
+    /*
+        Sets how the table looks as a box: its rounded corners, shadow and
+        background. A table has one style, so its box goes here.
+
+        Attribute: Parameter style The table's look as a box.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTableStyle
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle card
+        card:SetRoundedCorners(8)
+        card:SetShadow(true)
+        WebTableStyle style
+        style:SetBox(card)
+    */
+    action SetBox(WebBoxStyle style)
+        box = style
+    end
+
+    action IsFullWidth returns boolean
+        return fullWidthSet and fullWidth
+    end
+
+    action HasEvenColumns returns boolean
+        return evenColumnsSet and evenColumns
+    end
+
+    action HasSharedBorders returns boolean
+        return sharedBordersSet and sharedBorders
+    end
+
+    /*
+        Returns a new table style with the same settings. Change the copy
+        to give one table its own look without changing every table that
+        shares this style.
+
+        Attribute: Returns A copy of this style.
+    */
+    action Copy returns WebTableStyle
+        WebTableStyle copy
+        if fullWidthSet
+            copy:SetFullWidth(fullWidth)
+        end
+        if evenColumnsSet
+            copy:SetEvenColumns(evenColumns)
+        end
+        if sharedBordersSet
+            copy:SetSharedBorders(sharedBorders)
+        end
+        if noCellSpacing
+            copy:RemoveCellSpacing()
+        end
+        if box not= undefined
+            copy:SetBox(box:Copy())
+        end
+        return copy
+    end
+
+    /*
+        Returns the stylesheet declarations for this table style. WebSite
+        calls this when it writes the stylesheet; people making pages
+        don't.
+
+        Attribute: Returns The declarations for this style.
+    */
+    action Generate returns text
+        text result = ""
+        if fullWidthSet
+            if fullWidth
+                result = result + "width:100%;"
+            else
+                result = result + "width:auto;"
+            end
+        end
+        if evenColumnsSet
+            if evenColumns
+                result = result + "table-layout:fixed;"
+            else
+                result = result + "table-layout:auto;"
+            end
+        end
+        if sharedBordersSet
+            if sharedBorders
+                result = result + "border-collapse:collapse;"
+            else
+                result = result + "border-collapse:separate;"
+            end
+        end
+        if noCellSpacing
+            result = result + "border-spacing:0;"
+        end
+        if box not= undefined
+            result = result + box:Generate()
+        end
+        return result
+    end
+end

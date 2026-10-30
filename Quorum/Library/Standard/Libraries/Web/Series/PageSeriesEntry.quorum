@@ -1,0 +1,79 @@
+package Libraries.Web.Series
+
+use Libraries.Web.Page.WebPage
+
+/*
+    PageSeriesEntry is one page in a PageSeries: its title and location,
+    and the page itself when the website builds it. A page the website
+    doesn't build (one still made some other way) has a title and a
+    location but no page. People making pages don't use this directly.
+*/
+class PageSeriesEntry
+    text title = ""
+    text location = ""
+    WebPage page = undefined
+    text description = ""
+
+    /*
+        Sets the entry's title, location and page.
+
+        Attribute: Parameter title The page's title, as links show it.
+        Attribute: Parameter location The page's location on the site.
+        Attribute: Parameter page The page, or undefined if the site doesn't build it.
+    */
+    action Setup(text title, text location, WebPage page)
+        me:title = title
+        me:location = location
+        me:page = page
+    end
+
+    /*
+        Returns the page's title: from the page itself when the website
+        builds it (so it is right even if the title is set later), or as
+        given otherwise.
+
+        Attribute: Returns The title.
+    */
+    action GetTitle returns text
+        if page not= undefined
+            return page:GetTitleText()
+        end
+        return title
+    end
+
+    /*
+        Sets the summary of a page the website doesn't build. A page it
+        builds gives its own.
+
+        Attribute: Parameter value One or two sentences on what the page teaches.
+    */
+    action SetDescription(text value)
+        description = value
+    end
+
+    /*
+        Returns the page's summary: from the page itself when the website
+        builds it, or as given otherwise. It may be empty.
+
+        Attribute: Returns The summary.
+    */
+    action GetDescription returns text
+        if page not= undefined
+            return page:GetDescription()
+        end
+        return description
+    end
+
+    action GetLocation returns text
+        return location
+    end
+
+    /*
+        Returns the page, or undefined if the website doesn't build it.
+
+        Attribute: Returns The page, or undefined.
+    */
+    action GetPage returns WebPage
+        return page
+    end
+end

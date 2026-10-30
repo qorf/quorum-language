@@ -1,0 +1,674 @@
+package Libraries.Web.Styles
+
+/*
+    WebBoxStyle sets how an element looks as a box: its background, the
+    space inside its edges, rounded corners, borders on its edges, and a
+    shadow under it. A box can also hold a text style, for the words
+    inside it, since an element has only one style. Anything not set
+    writes nothing, so the box keeps the site's starting look for it.
+    Sizes are in pixels.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.WebBoxStyle
+    use Libraries.Web.Styles.WebColor
+
+    class Main is WebPage
+        action Main
+            WebColor white
+            white:SetColor(255, 255, 255)
+
+            WebBoxStyle card
+            card:SetBackground(white)
+            card:SetPadding(8, 24)
+            card:SetRoundedCorners(8)
+
+            Division division
+            SetStyle(division, card)
+            Include(division)
+        end
+    end
+*/
+class WebBoxStyle is WebStyle
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+
+    WebColor background = undefined
+    number verticalPadding = -1
+    number horizontalPadding = -1
+    number topCorners = -1
+    number bottomCorners = -1
+    number topBorder = -1
+    WebColor topBorderColor = undefined
+    number bottomBorder = -1
+    WebColor bottomBorderColor = undefined
+    number leftBorder = -1
+    WebColor leftBorderColor = undefined
+    number allBorders = -1
+    WebColor allBordersColor = undefined
+    boolean shadowSet = false
+    boolean shadow = false
+    boolean clipSet = false
+    boolean clip = false
+    WebTextStyle textStyle = undefined
+    boolean displayedSet = false
+    boolean displayed = true
+    boolean visuallyHiddenSet = false
+    boolean visuallyHidden = false
+    number stickyTop = -1
+    number widthPercent = -1
+    number verticalMargin = -1
+    number horizontalMargin = -1
+    number leftMargin = -1
+    boolean growSet = false
+    boolean grow = false
+    number minimumHeight = -1
+    boolean fillScreenHeight = false
+    boolean shrinkBelowContent = false
+    number width = -1
+    number heightPercent = -1
+    boolean coverWindow = false
+
+    // How far above the page a box covering the window sits, so it is
+    // over everything else.
+    constant integer COVER_LAYER = 10
+
+    // A small shadow: two soft layers, in pixels.
+    constant number SHADOW_NEAR_OFFSET = 1
+    constant number SHADOW_NEAR_BLUR = 3
+    constant number SHADOW_FAR_OFFSET = 1
+    constant number SHADOW_FAR_BLUR = 2
+    constant number SHADOW_FAR_SPREAD = -1
+    constant text SHADOW_COLOR = "rgba(0,0,0,0.1)"
+
+    /*
+        Sets the color behind the box's content.
+
+        Attribute: Parameter color The background color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor white
+        white:SetColor(255, 255, 255)
+        WebBoxStyle box
+        box:SetBackground(white)
+    */
+    action SetBackground(WebColor color)
+        background = color
+    end
+
+    /*
+        Sets the space between the box's edges and its content, in pixels:
+        one amount for the top and bottom, another for the left and right.
+
+        Attribute: Parameter vertical The space at the top and bottom.
+        Attribute: Parameter horizontal The space at the left and right.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle box
+        box:SetPadding(8, 24)
+    */
+    action SetPadding(number vertical, number horizontal)
+        CheckSize(vertical, "padding")
+        CheckSize(horizontal, "padding")
+        verticalPadding = vertical
+        horizontalPadding = horizontal
+    end
+
+    /*
+        Rounds all four corners of the box.
+
+        Attribute: Parameter pixels How far the rounding reaches along each edge.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle box
+        box:SetRoundedCorners(8)
+    */
+    action SetRoundedCorners(number pixels)
+        SetRoundedTop(pixels)
+        SetRoundedBottom(pixels)
+    end
+
+    /*
+        Rounds the box's two top corners, as for a label sitting on top of
+        another box.
+
+        Attribute: Parameter pixels How far the rounding reaches along each edge.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle label
+        label:SetRoundedTop(8)
+    */
+    action SetRoundedTop(number pixels)
+        CheckSize(pixels, "corner")
+        topCorners = pixels
+    end
+
+    /*
+        Rounds the box's two bottom corners.
+
+        Attribute: Parameter pixels How far the rounding reaches along each edge.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle body
+        body:SetRoundedBottom(8)
+    */
+    action SetRoundedBottom(number pixels)
+        CheckSize(pixels, "corner")
+        bottomCorners = pixels
+    end
+
+    /*
+        Draws a line along the top edge of the box.
+
+        Attribute: Parameter pixels How thick the line is.
+        Attribute: Parameter color The line's color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor grey
+        grey:SetColor(114, 114, 114)
+        WebBoxStyle row
+        row:SetTopBorder(1, grey)
+    */
+    action SetTopBorder(number pixels, WebColor color)
+        CheckSize(pixels, "border")
+        topBorder = pixels
+        topBorderColor = color
+    end
+
+    /*
+        Draws a line along the bottom edge of the box.
+
+        Attribute: Parameter pixels How thick the line is.
+        Attribute: Parameter color The line's color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor grey
+        grey:SetColor(114, 114, 114)
+        WebBoxStyle row
+        row:SetBottomBorder(1, grey)
+    */
+    action SetBottomBorder(number pixels, WebColor color)
+        CheckSize(pixels, "border")
+        bottomBorder = pixels
+        bottomBorderColor = color
+    end
+
+    /*
+        Draws a line along the left edge of the box, as an accent.
+
+        Attribute: Parameter pixels How thick the line is.
+        Attribute: Parameter color The line's color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor blue
+        blue:SetColor(6, 149, 208)
+        WebBoxStyle box
+        box:SetLeftBorder(4, blue)
+    */
+    action SetLeftBorder(number pixels, WebColor color)
+        CheckSize(pixels, "border")
+        leftBorder = pixels
+        leftBorderColor = color
+    end
+
+    /*
+        Draws a line around all four edges of the box.
+
+        Attribute: Parameter pixels How thick the line is.
+        Attribute: Parameter color The line's color.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        WebColor paleBlue
+        paleBlue:SetColor(172, 209, 223)
+        WebBoxStyle chip
+        chip:SetBorder(1, paleBlue)
+    */
+    action SetBorder(number pixels, WebColor color)
+        CheckSize(pixels, "border")
+        allBorders = pixels
+        allBordersColor = color
+    end
+
+    /*
+        Sets whether the box has a small, soft shadow under it.
+
+        Attribute: Parameter value True for a shadow.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle card
+        card:SetShadow(true)
+    */
+    action SetShadow(boolean value)
+        shadowSet = true
+        shadow = value
+    end
+
+    /*
+        Sets whether anything inside the box that reaches past its edges
+        is cut off, so its rounded corners round what is inside, too.
+
+        Attribute: Parameter value True to cut off what reaches past the edges.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle table
+        table:SetRoundedCorners(8)
+        table:SetClipContent(true)
+    */
+    action SetClipContent(boolean value)
+        clipSet = true
+        clip = value
+    end
+
+    /*
+        Sets how the words inside the box look.
+
+        Attribute: Parameter style The text style for the box's words.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle words
+        words:SetBold(true)
+        WebBoxStyle label
+        label:SetTextStyle(words)
+    */
+    action SetTextStyle(WebTextStyle style)
+        textStyle = style
+    end
+
+    /*
+        Returns the style for the words inside the box, or undefined if it
+        has none.
+
+        Attribute: Returns The text style, or undefined.
+    */
+    action GetTextStyle returns WebTextStyle
+        return textStyle
+    end
+
+    /*
+        Sets whether the box is shown at all. A box not shown takes no
+        space and isn't read by screen readers. Set from a screen width
+        (see WebPage's SetStyleFromWidth), this hides a box on small
+        screens and shows it on wide ones.
+
+        Attribute: Parameter value True to show the box, false to hide it.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle hiddenOnPhones
+        hiddenOnPhones:SetDisplayed(false)
+    */
+    action SetDisplayed(boolean value)
+        displayedSet = true
+        displayed = value
+    end
+
+    /*
+        Sets whether the box is hidden from sight but still read by screen
+        readers, such as a link to skip to the content, shown only when it
+        has keyboard focus.
+
+        Attribute: Parameter value True to hide the box from sight only; false to show it again.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle skipLink
+        skipLink:SetVisuallyHidden(true)
+    */
+    action SetVisuallyHidden(boolean value)
+        visuallyHiddenSet = true
+        visuallyHidden = value
+    end
+
+    /*
+        Keeps the box in view as the page scrolls, this far from the top of
+        the window, once it reaches there, as for a list of contents beside
+        the text.
+
+        Attribute: Parameter pixels How far from the top of the window the box stays.
+    */
+    action SetStickyTop(number pixels)
+        CheckSize(pixels, "sticky top")
+        stickyTop = pixels
+    end
+
+    /*
+        Sets the box's width as a share of the width it is in.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetWidthPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's width is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        widthPercent = percent
+    end
+
+    /*
+        Sets the space outside the box's edges, in pixels: one amount for
+        the top and bottom, another for the left and right.
+
+        Attribute: Parameter vertical The space above and below.
+        Attribute: Parameter horizontal The space to the left and right.
+    */
+    action SetMargin(number vertical, number horizontal)
+        CheckSize(vertical, "margin")
+        CheckSize(horizontal, "margin")
+        verticalMargin = vertical
+        horizontalMargin = horizontal
+    end
+
+    /*
+        Sets the space to the left of the box only, in pixels, as for an
+        indented item.
+
+        Attribute: Parameter pixels The space to the left.
+    */
+    action SetLeftMargin(number pixels)
+        CheckSize(pixels, "margin")
+        leftMargin = pixels
+    end
+
+    /*
+        Sets whether the box grows to take up the room left over in a row
+        or stack, such as a page's main content between its header and
+        footer.
+
+        Attribute: Parameter value True to grow.
+    */
+    action SetGrow(boolean value)
+        growSet = true
+        grow = value
+    end
+
+    /*
+        Sets the least height the box may have, in pixels. It grows past
+        this when its content needs more.
+
+        Attribute: Parameter pixels The least height.
+    */
+    action SetMinimumHeight(number pixels)
+        CheckSize(pixels, "height")
+        minimumHeight = pixels
+    end
+
+    /*
+        Sets the box's width, in pixels. It still narrows on screens too
+        small for it if it may (see SetShrinkBelowContent).
+
+        Attribute: Parameter pixels The width.
+    */
+    action SetWidth(number pixels)
+        CheckSize(pixels, "width")
+        width = pixels
+    end
+
+    /*
+        Sets the box's height as a share of the height it is in.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetHeightPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's height is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        heightPercent = percent
+    end
+
+    /*
+        Sets whether the box covers the whole window, over everything else
+        on the page, and stays there as the page scrolls, as for the
+        shaded backdrop behind a dialog.
+
+        Attribute: Parameter value True to cover the window.
+    */
+    action SetCoverWindow(boolean value)
+        coverWindow = value
+    end
+
+    /*
+        Lets the box, in a row or stack, be narrower than the widest thing
+        inside it, such as a long line of code, which then scrolls inside
+        its own box instead of making the page wider than the screen.
+
+        Attribute: Parameter value True to let the box narrow.
+    */
+    action SetShrinkBelowContent(boolean value)
+        shrinkBelowContent = value
+    end
+
+    /*
+        Sets whether the box is at least as tall as the window, as for a
+        page whose footer should sit at the bottom even when the page is
+        short.
+
+        Attribute: Parameter value True to fill the window's height.
+    */
+    action SetFillScreenHeight(boolean value)
+        fillScreenHeight = value
+    end
+
+    /*
+        Returns a new box style with the same settings. Change the copy to
+        give one element its own look without changing every element that
+        shares this style. Its colors and text style are copied too.
+
+        Attribute: Returns A copy of this style.
+    */
+    action Copy returns WebBoxStyle
+        WebBoxStyle copy
+        if background not= undefined
+            copy:SetBackground(background:Copy())
+        end
+        if verticalPadding >= 0
+            copy:SetPadding(verticalPadding, horizontalPadding)
+        end
+        if topCorners >= 0
+            copy:SetRoundedTop(topCorners)
+        end
+        if bottomCorners >= 0
+            copy:SetRoundedBottom(bottomCorners)
+        end
+        if topBorder >= 0
+            copy:SetTopBorder(topBorder, topBorderColor:Copy())
+        end
+        if bottomBorder >= 0
+            copy:SetBottomBorder(bottomBorder, bottomBorderColor:Copy())
+        end
+        if leftBorder >= 0
+            copy:SetLeftBorder(leftBorder, leftBorderColor:Copy())
+        end
+        if allBorders >= 0
+            copy:SetBorder(allBorders, allBordersColor:Copy())
+        end
+        if shadowSet
+            copy:SetShadow(shadow)
+        end
+        if clipSet
+            copy:SetClipContent(clip)
+        end
+        if textStyle not= undefined
+            copy:SetTextStyle(textStyle:Copy())
+        end
+        if displayedSet
+            copy:SetDisplayed(displayed)
+        end
+        if visuallyHiddenSet
+            copy:SetVisuallyHidden(visuallyHidden)
+        end
+        if stickyTop >= 0
+            copy:SetStickyTop(stickyTop)
+        end
+        if widthPercent >= 0
+            copy:SetWidthPercent(widthPercent)
+        end
+        if verticalMargin >= 0
+            copy:SetMargin(verticalMargin, horizontalMargin)
+        end
+        if leftMargin >= 0
+            copy:SetLeftMargin(leftMargin)
+        end
+        if growSet
+            copy:SetGrow(grow)
+        end
+        if minimumHeight >= 0
+            copy:SetMinimumHeight(minimumHeight)
+        end
+        copy:SetFillScreenHeight(fillScreenHeight)
+        copy:SetShrinkBelowContent(shrinkBelowContent)
+        if width >= 0
+            copy:SetWidth(width)
+        end
+        if heightPercent >= 0
+            copy:SetHeightPercent(heightPercent)
+        end
+        copy:SetCoverWindow(coverWindow)
+        return copy
+    end
+
+    /*
+        Returns the stylesheet declarations for this box style, and its
+        text style if it has one. WebSite calls this when it writes the
+        stylesheet; people making pages don't.
+
+        Attribute: Returns The declarations for this style.
+    */
+    action Generate returns text
+        text result = ""
+        if background not= undefined
+            result = result + "background-color:" + background:Generate() + ";"
+        end
+        if verticalPadding >= 0
+            result = result + "padding:" + constants:ToWidthOfM(verticalPadding) + " " + constants:ToWidthOfM(horizontalPadding) + ";"
+        end
+        if topCorners >= 0
+            text top = constants:ToWidthOfM(topCorners)
+            result = result + "border-top-left-radius:" + top + ";border-top-right-radius:" + top + ";"
+        end
+        if bottomCorners >= 0
+            text bottom = constants:ToWidthOfM(bottomCorners)
+            result = result + "border-bottom-left-radius:" + bottom + ";border-bottom-right-radius:" + bottom + ";"
+        end
+        // All four edges first, so a single edge set too is drawn over it.
+        if allBorders >= 0
+            result = result + "border:" + constants:ToWidthOfM(allBorders) + " solid " + allBordersColor:Generate() + ";"
+        end
+        if topBorder >= 0
+            result = result + "border-top:" + constants:ToWidthOfM(topBorder) + " solid " + topBorderColor:Generate() + ";"
+        end
+        if bottomBorder >= 0
+            result = result + "border-bottom:" + constants:ToWidthOfM(bottomBorder) + " solid " + bottomBorderColor:Generate() + ";"
+        end
+        if leftBorder >= 0
+            result = result + "border-left:" + constants:ToWidthOfM(leftBorder) + " solid " + leftBorderColor:Generate() + ";"
+        end
+        if shadowSet
+            if shadow
+                text near = "0 " + constants:ToWidthOfM(SHADOW_NEAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_NEAR_BLUR) + " 0 " + SHADOW_COLOR
+                text far = "0 " + constants:ToWidthOfM(SHADOW_FAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_FAR_BLUR) + " " + constants:ToWidthOfM(SHADOW_FAR_SPREAD) + " " + SHADOW_COLOR
+                result = result + "box-shadow:" + near + "," + far + ";"
+            else
+                result = result + "box-shadow:none;"
+            end
+        end
+        if clipSet
+            if clip
+                result = result + "overflow:hidden;"
+            else
+                result = result + "overflow:visible;"
+            end
+        end
+        if displayedSet
+            if displayed
+                result = result + "display:block;"
+            else
+                result = result + "display:none;"
+            end
+        end
+        if visuallyHiddenSet
+            if visuallyHidden
+                result = result + "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0;"
+            else
+                result = result + "position:static;width:auto;height:auto;padding:0;margin:0;overflow:visible;clip:auto;white-space:normal;"
+            end
+        end
+        if stickyTop >= 0
+            result = result + "position:sticky;top:" + constants:ToWidthOfM(stickyTop) + ";"
+        end
+        if widthPercent >= 0
+            result = result + "width:" + widthPercent + "%;"
+        end
+        if verticalMargin >= 0
+            result = result + "margin:" + constants:ToWidthOfM(verticalMargin) + " " + constants:ToWidthOfM(horizontalMargin) + ";"
+        end
+        if leftMargin >= 0
+            result = result + "margin-left:" + constants:ToWidthOfM(leftMargin) + ";"
+        end
+        if growSet
+            if grow
+                result = result + "flex-grow:1;"
+            else
+                result = result + "flex-grow:0;"
+            end
+        end
+        if minimumHeight >= 0
+            result = result + "min-height:" + constants:ToWidthOfM(minimumHeight) + ";"
+        end
+        if fillScreenHeight
+            result = result + "min-height:100vh;"
+        end
+        if shrinkBelowContent
+            result = result + "min-width:0;"
+        end
+        if width >= 0
+            result = result + "width:" + constants:ToWidthOfM(width) + ";max-width:100%;"
+        end
+        if heightPercent >= 0
+            result = result + "height:" + heightPercent + "%;"
+        end
+        if coverWindow
+            result = result + "position:fixed;top:0;left:0;width:100%;height:100%;z-index:" + COVER_LAYER + ";"
+        end
+        if textStyle not= undefined
+            result = result + textStyle:Generate()
+        end
+        return result
+    end
+
+    private action CheckSize(number pixels, text kind)
+        if pixels < 0
+            alert("A box's " + kind + " size can't be negative, but it was set to " + pixels + ".")
+        end
+    end
+end

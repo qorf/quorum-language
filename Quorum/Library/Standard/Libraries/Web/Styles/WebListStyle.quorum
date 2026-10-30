@@ -1,0 +1,216 @@
+package Libraries.Web.Styles
+
+/*
+    WebListStyle sets how a list looks: the marker before each item
+    (discs, numbers or none), whether markers sit outside or inside the
+    items' text, and the space on the list's left. Anything not set writes
+    nothing, so the list keeps the site's starting look for it. It can be
+    set on a bulleted or a numbered list.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.WebListStyle
+
+    class Main is WebPage
+        action Main
+            WebListStyle bullets
+            bullets:UseDiscs()
+            bullets:MarkersOutside()
+            bullets:SetLeftPadding(32)
+
+            UnorderedList list
+            SetStyle(list, bullets)
+            list:AddListItem("First")
+            Add(list)
+        end
+    end
+*/
+class WebListStyle is WebStyle
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+    integer marker = constants:UNSET_MARKER
+    integer markerPosition = constants:UNSET_POSITION
+    number leftPadding = -1
+
+    /*
+        Puts a disc before each item.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:UseDiscs()
+    */
+    action UseDiscs
+        marker = constants:DISC_MARKER
+    end
+
+    /*
+        Puts a number before each item: 1, 2, 3 and so on.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:UseNumbers()
+    */
+    action UseNumbers
+        marker = constants:NUMBER_MARKER
+    end
+
+    /*
+        Puts no marker before the items.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:UseNoMarker()
+    */
+    action UseNoMarker
+        marker = constants:NO_MARKER
+    end
+
+    /*
+        Places the markers outside the items' text, so wrapped lines line
+        up with the first line's text, not the marker.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:MarkersOutside()
+    */
+    action MarkersOutside
+        markerPosition = constants:OUTSIDE_POSITION
+    end
+
+    /*
+        Places the markers inside the items' text, so wrapped lines line
+        up under the marker.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:MarkersInside()
+    */
+    action MarkersInside
+        markerPosition = constants:INSIDE_POSITION
+    end
+
+    /*
+        Sets the space on the list's left, in pixels. The markers sit in
+        this space when they are outside the text.
+
+        Attribute: Parameter pixels The space on the left. It can't be negative.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle style
+        style:SetLeftPadding(32)
+    */
+    action SetLeftPadding(number pixels)
+        if pixels < 0
+            alert("A list's left padding can't be negative, but it was set to " + pixels + ".")
+        end
+        leftPadding = pixels
+    end
+
+    /*
+        Returns the space on the list's left, in pixels, or -1 if it was
+        never set.
+
+        Attribute: Returns The left padding, in pixels, or -1.
+    */
+    action GetLeftPadding returns number
+        return leftPadding
+    end
+
+    action UsesDiscs returns boolean
+        return marker = constants:DISC_MARKER
+    end
+
+    action UsesNumbers returns boolean
+        return marker = constants:NUMBER_MARKER
+    end
+
+    action UsesNoMarker returns boolean
+        return marker = constants:NO_MARKER
+    end
+
+    action HasMarkersOutside returns boolean
+        return markerPosition = constants:OUTSIDE_POSITION
+    end
+
+    action HasMarkersInside returns boolean
+        return markerPosition = constants:INSIDE_POSITION
+    end
+
+    /*
+        Returns a new list style with the same settings. Change the copy to
+        give one list its own look without changing every list that shares
+        this style.
+
+        Attribute: Returns A copy of this style.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebListStyle
+
+        WebListStyle bullets
+        bullets:UseDiscs()
+        WebListStyle roomy = bullets:Copy()
+        roomy:SetLeftPadding(48)
+    */
+    action Copy returns WebListStyle
+        WebListStyle copy
+        if UsesDiscs()
+            copy:UseDiscs()
+        elseif UsesNumbers()
+            copy:UseNumbers()
+        elseif UsesNoMarker()
+            copy:UseNoMarker()
+        end
+
+        if HasMarkersOutside()
+            copy:MarkersOutside()
+        elseif HasMarkersInside()
+            copy:MarkersInside()
+        end
+
+        if leftPadding >= 0
+            copy:SetLeftPadding(leftPadding)
+        end
+        return copy
+    end
+
+    /*
+        Returns the stylesheet declarations for this list style. WebSite
+        calls this when it writes the stylesheet; people making pages
+        don't.
+
+        Attribute: Returns The declarations for this style.
+    */
+    action Generate returns text
+        text result = ""
+        if marker = constants:DISC_MARKER
+            result = result + "list-style-type:disc;"
+        elseif marker = constants:NUMBER_MARKER
+            result = result + "list-style-type:decimal;"
+        elseif marker = constants:NO_MARKER
+            result = result + "list-style-type:none;"
+        end
+
+        if markerPosition = constants:OUTSIDE_POSITION
+            result = result + "list-style-position:outside;"
+        elseif markerPosition = constants:INSIDE_POSITION
+            result = result + "list-style-position:inside;"
+        end
+
+        if leftPadding >= 0
+            result = result + "padding-left:" + constants:ToWidthOfM(leftPadding) + ";"
+        end
+        return result
+    end
+end

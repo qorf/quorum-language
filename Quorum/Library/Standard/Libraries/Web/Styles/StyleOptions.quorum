@@ -1,0 +1,585 @@
+package Libraries.Web.Styles
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Web.Layouts.WebGridLayout
+use Libraries.Web.Layouts.WebLayout
+use Libraries.Web.Layouts.WebStackLayout
+use Libraries.Web.WebLocations
+
+/*
+    StyleOptions holds a website's global look: one layout or style for
+    each role an element can play, such as a stack of sections, a bulleted
+    list, or a heading at each level. A page uses a role with, for
+    example, SetStyle(list, options:GetBulletList()). For one element with
+    its own look, copy the role and change the copy; the global role stays
+    as it is. Those are the only two levels: the global one here, and one
+    element's own.
+
+    The values here are plain, broad defaults, so any page looks
+    reasonable with no work. A website's own options are a child class
+    that changes values in its "on create", never the roles.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.StyleOptions
+
+    class Main is WebPage
+        action Main
+            StyleOptions options
+            SetStyleOptions(options)
+
+            Section section
+            SetLayout(section, options:GetStack())
+            UnorderedList list
+            SetStyle(list, options:GetBulletList())
+            list:AddListItem("First")
+            section:Add(list)
+            Add(section)
+        end
+    end
+*/
+class StyleOptions
+    // The shared constants: sizes and spacing. One copy.
+    StyleSheetConstants constants
+    WebStackLayout stack
+    WebListStyle bulletList
+    WebListStyle numberedList
+    WebTableStyle table
+
+    // Words inside a paragraph or list item, by what they are.
+    WebTextStyle term
+    WebTextStyle strong
+    WebTextStyle emphasis
+    WebTextStyle code
+    WebTextStyle key
+    WebTextStyle bold
+    WebTextStyle variable
+    WebTextStyle sampleOutput
+    Array<WebTextStyle> headings
+
+    // A table's parts: its caption, the cells naming each column, the
+    // cells naming each row, and the rest.
+    WebBoxStyle tableCaption
+    WebBoxStyle tableHeaderCell
+    WebBoxStyle tableRowHeaderCell
+    WebBoxStyle tableCell
+
+    // Code shown as an example, pictures with captions, boxes set apart
+    // from the text (such as a tip), and term and description pairs.
+    WebBoxStyle codeExample
+    WebStackLayout figure
+    WebTextStyle figureCaption
+    WebBoxStyle callout
+    WebBoxStyle calloutLabel
+    WebTextStyle descriptionTerm
+    WebBoxStyle description
+
+    // A description list's pairs, each term beside its description; and,
+    // when the list has a label, the box around it and the label.
+    WebGridLayout descriptionList
+    WebBoxStyle labeledDescriptionList
+    WebTextStyle descriptionListLabel
+    WebLocations locations
+
+    // Stylesheets every page with these options links, beside the site's
+    // own, such as a code highlighter's theme.
+    Array<text> styleSheets
+
+    // The page as a whole (its background, font and text color), and
+    // links in the text.
+    WebBoxStyle page
+    WebTextStyle link
+
+    // Whether the site's stylesheet starts by clearing browsers' own
+    // spacing and sizes, so every browser starts from the same place.
+    boolean reset = true
+
+    // Looks with names of their own, which a page's scripts add and remove
+    // by name, such as "hidden". Kept in the order added.
+    HashTable<text, WebStyle> scriptClasses
+    HashTable<text, WebLayout> scriptLayouts
+    Array<text> scriptClassNames
+    constant text NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789-"
+
+    on create
+        stack:SetGap(constants:SPACING_4)
+
+        bulletList:UseDiscs()
+        bulletList:MarkersOutside()
+        bulletList:SetLeftPadding(constants:SPACING_8)
+
+        numberedList:UseNumbers()
+        numberedList:MarkersOutside()
+        numberedList:SetLeftPadding(constants:SPACING_8)
+
+        table:SetFullWidth(true)
+        table:SetSharedBorders(true)
+
+        // Column and row names in bold, lined up with the rest, and a
+        // little space in every cell.
+        WebTextStyle namingWords
+        namingWords:SetBold(true)
+        namingWords:AlignLeft()
+        tableHeaderCell:SetTextStyle(namingWords)
+        tableHeaderCell:SetPadding(constants:SPACING_1, constants:SPACING_2)
+        tableRowHeaderCell:SetTextStyle(namingWords:Copy())
+        tableRowHeaderCell:SetPadding(constants:SPACING_1, constants:SPACING_2)
+        tableCell:SetPadding(constants:SPACING_1, constants:SPACING_2)
+        WebTextStyle captionWords
+        captionWords:SetBold(true)
+        tableCaption:SetTextStyle(captionWords)
+
+        figure:SetGap(constants:SPACING_2)
+        figureCaption:SetItalic(true)
+
+        WebTextStyle labelWords
+        labelWords:SetBold(true)
+        calloutLabel:SetTextStyle(labelWords)
+        calloutLabel:SetPadding(constants:SPACING_1, constants:SPACING_4)
+        callout:SetPadding(constants:SPACING_2, constants:SPACING_4)
+
+        descriptionTerm:SetBold(true)
+        link:SetUnderline(true)
+        descriptionList:UseFittedFirstColumn()
+        descriptionList:SetGap(constants:SPACING_1_5)
+        descriptionList:SetColumnGap(constants:SPACING_5)
+        labeledDescriptionList:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        descriptionListLabel:SetBold(true)
+
+        // As browsers show them: terms and stressed words in italics,
+        // important and bold words in bold. Code and keys are left as they
+        // are until fonts can be set.
+        term:SetItalic(true)
+        strong:SetBold(true)
+        emphasis:SetItalic(true)
+        bold:SetBold(true)
+        variable:SetItalic(true)
+
+        // Heading sizes from largest (level 1) to smallest (level 6).
+        WebTextStyle heading1
+        WebTextStyle heading2
+        WebTextStyle heading3
+        WebTextStyle heading4
+        WebTextStyle heading5
+        WebTextStyle heading6
+        headings:Add(heading1)
+        headings:Add(heading2)
+        headings:Add(heading3)
+        headings:Add(heading4)
+        headings:Add(heading5)
+        headings:Add(heading6)
+        SetHeadingSize(1, constants:EXTRA_LARGE_4_FONT_SIZE, constants:EXTRA_LARGE_4_LINE_HEIGHT)
+        SetHeadingSize(2, constants:EXTRA_LARGE_3_FONT_SIZE, constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        SetHeadingSize(3, constants:EXTRA_LARGE_2_FONT_SIZE, constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        SetHeadingSize(4, constants:EXTRA_LARGE_FONT_SIZE, constants:EXTRA_LARGE_LINE_HEIGHT)
+        SetHeadingSize(5, constants:LARGE_FONT_SIZE, constants:LARGE_LINE_HEIGHT)
+        SetHeadingSize(6, constants:BASE_FONT_SIZE, constants:BASE_LINE_HEIGHT)
+    end
+
+    /*
+        Returns the layout for a stack: items one under another, such as
+        the parts of a lesson.
+
+        Attribute: Returns The global stack layout.
+    */
+    action GetStack returns WebStackLayout
+        return stack
+    end
+
+    /*
+        Returns the style for a bulleted list.
+
+        Attribute: Returns The global bulleted list style.
+    */
+    action GetBulletList returns WebListStyle
+        return bulletList
+    end
+
+    /*
+        Returns the style for a numbered list.
+
+        Attribute: Returns The global numbered list style.
+    */
+    action GetNumberedList returns WebListStyle
+        return numberedList
+    end
+
+    /*
+        Returns the style for a table.
+
+        Attribute: Returns The global table style.
+    */
+    action GetTable returns WebTableStyle
+        return table
+    end
+
+    /*
+        Returns the style for a table's caption, its name above it.
+
+        Attribute: Returns The global table caption style.
+    */
+    action GetTableCaption returns WebBoxStyle
+        return tableCaption
+    end
+
+    /*
+        Returns the style for a cell naming a column, in a table's first
+        row.
+
+        Attribute: Returns The global column name style.
+    */
+    action GetTableHeaderCell returns WebBoxStyle
+        return tableHeaderCell
+    end
+
+    /*
+        Returns the style for a cell naming a row, at the start of each of
+        a table's rows after the first.
+
+        Attribute: Returns The global row name style.
+    */
+    action GetTableRowHeaderCell returns WebBoxStyle
+        return tableRowHeaderCell
+    end
+
+    /*
+        Returns the style for the rest of a table's cells.
+
+        Attribute: Returns The global table cell style.
+    */
+    action GetTableCell returns WebBoxStyle
+        return tableCell
+    end
+
+    /*
+        Returns the style for code shown as an example, on its own lines.
+
+        Attribute: Returns The global code example style.
+    */
+    action GetCodeExample returns WebBoxStyle
+        return codeExample
+    end
+
+    /*
+        Returns the layout for a figure: a picture with its caption under
+        it.
+
+        Attribute: Returns The global figure layout.
+    */
+    action GetFigure returns WebStackLayout
+        return figure
+    end
+
+    /*
+        Returns the style for a figure's caption.
+
+        Attribute: Returns The global figure caption style.
+    */
+    action GetFigureCaption returns WebTextStyle
+        return figureCaption
+    end
+
+    /*
+        Returns the style for the body of a callout: a box set apart from
+        the text, such as a tip.
+
+        Attribute: Returns The global callout style.
+    */
+    action GetCallout returns WebBoxStyle
+        return callout
+    end
+
+    /*
+        Returns the style for a callout's label, the bar naming it, such
+        as "Tip". A site with several kinds of callout gives each its own
+        label style in its options.
+
+        Attribute: Returns The global callout label style.
+    */
+    action GetCalloutLabel returns WebBoxStyle
+        return calloutLabel
+    end
+
+    /*
+        Returns the style for a term in a description list.
+
+        Attribute: Returns The global description term style.
+    */
+    action GetDescriptionTerm returns WebTextStyle
+        return descriptionTerm
+    end
+
+    /*
+        Returns the style for a description in a description list, under
+        its term.
+
+        Attribute: Returns The global description style.
+    */
+    action GetDescription returns WebBoxStyle
+        return description
+    end
+
+    /*
+        Returns the layout for a description list: each term beside its
+        description, with the descriptions lined up.
+
+        Attribute: Returns The global description list layout.
+    */
+    action GetDescriptionList returns WebGridLayout
+        return descriptionList
+    end
+
+    /*
+        Returns the style for the box around a description list that has
+        a label.
+
+        Attribute: Returns The global labeled description list style.
+    */
+    action GetLabeledDescriptionList returns WebBoxStyle
+        return labeledDescriptionList
+    end
+
+    /*
+        Returns the style for a description list's label, above its
+        pairs.
+
+        Attribute: Returns The global description list label style.
+    */
+    action GetDescriptionListLabel returns WebTextStyle
+        return descriptionListLabel
+    end
+
+    /*
+        Returns the style for a term at the place it is introduced or defined.
+
+        Attribute: Returns The global style for a term at the place it is introduced or defined.
+    */
+    action GetTerm returns WebTextStyle
+        return term
+    end
+
+    /*
+        Returns the style for important words.
+
+        Attribute: Returns The global style for important words.
+    */
+    action GetStrong returns WebTextStyle
+        return strong
+    end
+
+    /*
+        Returns the style for words said with stress.
+
+        Attribute: Returns The global style for words said with stress.
+    */
+    action GetEmphasis returns WebTextStyle
+        return emphasis
+    end
+
+    /*
+        Returns the style for code, such as an action's name.
+
+        Attribute: Returns The global style for code, such as an action's name.
+    */
+    action GetCode returns WebTextStyle
+        return code
+    end
+
+    /*
+        Returns the style for a key to press.
+
+        Attribute: Returns The global style for a key to press.
+    */
+    action GetKey returns WebTextStyle
+        return key
+    end
+
+    /*
+        Returns the style for bold words with no other meaning.
+
+        Attribute: Returns The global style for bold words with no other meaning.
+    */
+    action GetBold returns WebTextStyle
+        return bold
+    end
+
+    /*
+        Returns the style for the name of a variable.
+
+        Attribute: Returns The global style for variable names.
+    */
+    action GetVariable returns WebTextStyle
+        return variable
+    end
+
+    /*
+        Returns the style for what a program prints or says.
+
+        Attribute: Returns The global style for program output.
+    */
+    action GetOutput returns WebTextStyle
+        return sampleOutput
+    end
+
+    /*
+        Returns the style for a heading at one level, from 1 (the largest)
+        to 6.
+
+        Attribute: Parameter level The heading's level, from 1 to 6.
+        Attribute: Returns The global style for headings at that level.
+    */
+    action GetHeading(integer level) returns WebTextStyle
+        if level < 1 or level > 6
+            alert("Heading levels go from 1 to 6, but " + level + " was asked for.")
+        end
+        return headings:Get(level - 1)
+    end
+
+    /*
+        Adds a stylesheet that every page using these options links, such
+        as a reset that clears the browser's own spacing. A page links it
+        as soon as it is handed these options, so pages never name it.
+
+        Attribute: Parameter location The stylesheet's location in the site, with no leading slash, such as "style/reset.css".
+
+        Attribute: Example
+        use Libraries.Web.Styles.StyleOptions
+
+        StyleOptions options
+        options:AddStyleSheet("style/reset.css")
+    */
+    action AddStyleSheet(text location)
+        locations:Check(location)
+        styleSheets:Add(location)
+    end
+
+    /*
+        Returns the style for the page as a whole: its background, and,
+        through its text style, its font, text size and color. Every page
+        using these options has it.
+
+        Attribute: Returns The global page style.
+    */
+    action GetPage returns WebBoxStyle
+        return page
+    end
+
+    /*
+        Returns the style for links in the text, such as in a paragraph or
+        list item.
+
+        Attribute: Returns The global link style.
+    */
+    action GetLink returns WebTextStyle
+        return link
+    end
+
+    /*
+        Sets whether the site's stylesheet starts by clearing browsers' own
+        spacing and sizes (margins around headings and paragraphs, list
+        indents, and the like), so pages look the same in every browser and
+        only the site's styles add space. The default is true.
+
+        Attribute: Parameter value True to clear browsers' own spacing.
+    */
+    action SetReset(boolean value)
+        reset = value
+    end
+
+    action UsesReset returns boolean
+        return reset
+    end
+
+    /*
+        Gives a look a name of its own, which a page's scripts add to and
+        remove from elements by name, such as "hidden" for something a
+        button shows and hides. A named look wins over an element's own
+        look while the element has it. Names use lowercase letters, digits
+        and hyphens.
+
+        Attribute: Parameter name The name scripts use.
+        Attribute: Parameter style The look.
+
+        Attribute: Example
+        use Libraries.Web.Styles.StyleOptions
+        use Libraries.Web.Styles.WebBoxStyle
+
+        StyleOptions options
+        WebBoxStyle hidden
+        hidden:SetDisplayed(false)
+        options:AddScriptClass("hidden", hidden)
+    */
+    action AddScriptClass(text name, WebStyle style)
+        CheckScriptClassName(name)
+        scriptClasses:Set(name, style)
+        scriptClassNames:Add(name)
+    end
+
+    /*
+        Gives a layout a name of its own, which a page's scripts add to and
+        remove from elements by name, such as a menu that is laid out in a
+        row while it is open.
+
+        Attribute: Parameter name The name scripts use.
+        Attribute: Parameter layout The layout.
+    */
+    action AddScriptClass(text name, WebLayout layout)
+        CheckScriptClassName(name)
+        scriptLayouts:Set(name, layout)
+        scriptClassNames:Add(name)
+    end
+
+    /*
+        Returns the declarations of a named look, for the stylesheet.
+
+        Attribute: Parameter name The name.
+        Attribute: Returns The declarations.
+    */
+    action GetScriptClassDeclarations(text name) returns text
+        if scriptLayouts:HasKey(name)
+            return scriptLayouts:GetValue(name):Generate()
+        end
+        return scriptClasses:GetValue(name):Generate()
+    end
+
+    private action CheckScriptClassName(text name)
+        if name:IsEmpty()
+            alert("A script class needs a name.")
+        end
+        integer i = 0
+        repeat while i < name:GetSize()
+            if not NAME_CHARACTERS:Contains(name:GetCharacter(i))
+                alert("A script class's name uses lowercase letters, digits and hyphens, but " + name + " has other characters.")
+            end
+            i = i + 1
+        end
+        if scriptClasses:HasKey(name) or scriptLayouts:HasKey(name)
+            alert("There is already a script class named " + name + ".")
+        end
+    end
+
+    action GetScriptClassNames returns Array<text>
+        return scriptClassNames
+    end
+
+    action GetScriptClass(text name) returns WebStyle
+        return scriptClasses:GetValue(name)
+    end
+
+    /*
+        Returns the stylesheets every page using these options links.
+
+        Attribute: Returns The stylesheets' locations.
+    */
+    action GetStyleSheets returns Array<text>
+        return styleSheets
+    end
+
+    private action SetHeadingSize(integer level, number fontSize, number lineHeight)
+        WebTextStyle heading = GetHeading(level)
+        heading:SetFontSize(fontSize)
+        heading:SetLineHeight(lineHeight)
+        heading:SetBold(true)
+    end
+end

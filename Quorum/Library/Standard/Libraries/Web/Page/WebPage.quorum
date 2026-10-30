@@ -7,30 +7,166 @@ use Libraries.Web.Page.GlobalAttributeAccepter
 use Libraries.Web.Page.WebPageHeader
 use Libraries.Web.Page.DocumentType
 use Libraries.Web.Page.Body
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Network.NetworkExchange
+use Libraries.Web.Styles.WebStyle
+use Libraries.Web.Styles.WebListStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.StyleOptions
+use Libraries.Web.WebSite
+use Libraries.Web.Styles.WebTableStyle
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Compute.Statistics.DataFrameColumn
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.System.File
+use Libraries.Web.Layouts.WebLayout
+use Libraries.Web.Series.PageSeries
+use Libraries.Web.ServerResponder
+use Libraries.Web.Styles.WebConditionalLook
+use Libraries.Web.WebLocations
+use Libraries.Web.WebTextEscaper
 
 /*
-The WebPage class represents HTML's (Hypertext Markup Language) option tag which 
-defines the document as an html document. 
-You can find more information about this tag at: 
-<a href="http://www.w3schools.com/tags/tag_html.asp">The html attribute</a>.
+    WebPage is one web page: an HTML document with its head (title,
+    metadata, stylesheets, scripts) and its body. Content can be added
+    element by element, or written as an outline, like a document: Title,
+    then Section, Subsection and Subsubsection, each holding paragraphs,
+    lists, tables, code, pictures and more. Words in paragraphs and list
+    items are written with RichText, by what they are (a term, a key, a
+    variable), and every piece of text is made safe for the page.
 
-Attribute: Example
-use Libraries.Web.Page.all
-class Main
-   action main
-      WebPage page
-      
-      Body body
-      page:SetBody(body)
+    A page's look comes from its StyleOptions (its global look) and from
+    styles and layouts set on single elements; it never needs CSS. A page
+    is usually part of a WebSite, which writes or serves every page and
+    one stylesheet for them all, and adds what search engines and link
+    previews need. Every page starts with UTF-8 text, a viewport that fits
+    phones, and English as its language; adding a character set or
+    viewport of its own replaces the default.
 
-      page:AddToBody(body)
-      output page:Generate()
-   end
-end
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main is WebPage
+        action Main
+            Title("Welcome")
+            Section("About")
+            Paragraph("This page was written as an outline.")
+            output Generate()
+        end
+    end
 */
-class WebPage is WebGenerator, GlobalAttributeAccepter
+class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     DocumentType documentType
     WebPageHeader header
+    // Each element's layout. Setting a layout again replaces the old one.
+    HashTable<WebTag, WebLayout> layouts
+
+    // Each element's style. Setting a style again replaces the old one.
+    HashTable<WebTag, WebStyle> styles
+
+    // Looks an element takes only on wider screens or in a state, such as
+    // hover, in the order they were set.
+    HashTable<WebTag, Array<WebConditionalLook>> conditionalLooks
+
+    // The site's global look, handed to the page before it's set up.
+    StyleOptions styleOptions = undefined
+
+    // The site this page is on, set when the page is added to it.
+    WebSite site = undefined
+    WebLocations locations
+
+    // The outline's open parts, outermost first: index 0 is the section,
+    // 1 the subsection, 2 the subsubsection.
+    Array<Section> openParts
+    boolean titleAdded = false
+
+    // The list that items go into, and the description list that
+    // descriptions go into. Each ends when anything else is added.
+    WebTag currentList = undefined
+    DefinitionList currentDescriptionList = undefined
+
+    // The table that rows go into, while it is being built by hand, and
+    // its header and body. It ends when anything else is added.
+    WebTable currentTable = undefined
+    TableHeader currentTableHeader = undefined
+    TableBody currentTableBody = undefined
+
+    // The open callout's body, which content goes into until the next
+    // part starts or EndCallout is called.
+    Division openCallout = undefined
+
+    // Every picture on the page, so a site can add to them (such as
+    // letting a reader zoom in).
+    Array<Image> images
+
+    // The language of code examples, for the page's code highlighter.
+    text codeLanguage = "quorum"
+    constant text LINE_NUMBERS_CLASS = "line-numbers"
+    constant text LANGUAGE_CLASS_START = "language-"
+
+    constant text ROLE_ATTRIBUTE = "role"
+    constant text NOTE_ROLE = "note"
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text VIDEO_WIDTH = "100%"
+    constant text VIDEO_HEIGHT = "450"
+    constant text FULL_SCREEN_ATTRIBUTE = "allowfullscreen"
+
+    // Every heading on the page, checked for text before the page is
+    // written; the plain words of those written with text; and the
+    // identifiers given to them.
+    Array<Heading> headings
+    Heading lastHeading = undefined
+    HashTable<Heading, text> headingWords
+    HashTable<text, boolean> usedIdentifiers
+    constant text IDENTIFIER_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789"
+
+    // The title's words, for links to this page (such as in a standards
+    // report).
+    text titleText = ""
+    boolean webPageTitleSet = false
+    WebTextEscaper escaper
+
+    // For search engines and link previews: the page's summary, the
+    // picture shown when it is shared, and whether search engines may
+    // list it.
+    text description = ""
+    text shareImage = ""
+    text shareImageDescription = ""
+    boolean searchable = true
+
+    // The series this page belongs to most, for its navigation when a
+    // reader arrives without following any series.
+    PageSeries homeSeries = undefined
+    boolean sectionAdded = false
+    constant integer SECTION_DEPTH = 0
+    constant integer SUBSECTION_DEPTH = 1
+    constant integer SUBSUBSECTION_DEPTH = 2
+
+    // A part's heading is this many levels below its depth: a section
+    // (depth 0) has a level 2 heading, under the page's level 1 title.
+    constant integer HEADING_LEVEL_OFFSET = 2
+    constant integer TITLE_HEADING_LEVEL = 1
+
+    // Every page has these unless it changes them: UTF-8 text, a viewport
+    // that fits phones, and English as its language.
+    MetaData characterSet
+    MetaData viewport
+    boolean defaultCharacterSet = true
+    boolean defaultViewport = true
+    constant text VIEWPORT_NAME = "viewport"
+    constant text DEFAULT_CHARACTER_SET = "UTF-8"
+    constant text DEFAULT_VIEWPORT = "width=device-width, initial-scale=1"
+    constant text DEFAULT_LANGUAGE = "en"
+
+    on create
+        characterSet:SetCharacterSet(DEFAULT_CHARACTER_SET)
+        AddMetaData(characterSet)
+        viewport:SetName(VIEWPORT_NAME)
+        viewport:SetContent(DEFAULT_VIEWPORT)
+        AddMetaData(viewport)
+        SetLanguage(DEFAULT_LANGUAGE)
+    end
     Body body
     constant text manifest = "manifest"
     /*
@@ -141,10 +277,51 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
         
     */
     action SetWebPageTitle(text value)
-        header:SetTitleHeaderValue(value)
+        webPageTitleSet = true
+        header:SetTitleHeaderValue(escaper:Escape(value))
     end
 
+    /*
+        Returns true if the page set its browser tab title itself, with
+        SetWebPageTitle. If it didn't, its WebSite makes one from the
+        page's title and the site's title ending.
+
+        Attribute: Returns Whether the page set its own tab title.
+    */
+    action HasWebPageTitle returns boolean
+        return webPageTitleSet
+    end
+
+    /*
+        Adds metadata to the page's head. If it sets the character set or
+        the viewport, it replaces the page's default one, so the page never
+        has two.
+
+        Attribute: Parameter meta The metadata.
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+        use Libraries.Web.Page.MetaData
+
+        WebPage page
+        MetaData author
+        author:SetName("author")
+        author:SetContent("Quorum")
+        page:AddMetaData(author)
+    */
     action AddMetaData(MetaData meta)
+        if meta not= characterSet and meta not= viewport
+            if defaultCharacterSet and meta:GetCharacterSet() not= undefined
+                header:Remove(characterSet)
+                defaultCharacterSet = false
+            end
+            if defaultViewport and meta:GetName() not= undefined
+                if meta:GetName():GetValue() = VIEWPORT_NAME
+                    header:Remove(viewport)
+                    defaultViewport = false
+                end
+            end
+        end
         header:Add(meta)
     end
     /*
@@ -2019,5 +2196,1931 @@ class WebPage is WebGenerator, GlobalAttributeAccepter
     */
     action Add(WordBreak content)
         body:Add(content)
+    end
+
+    /*
+        Sets the layout of a header: where the items inside it go. The
+        website's build turns the layout into a stylesheet rule shared by
+        every page.
+
+        Attribute: Parameter element The header to lay out.
+        Attribute: Parameter layout The layout to use.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Layouts.WebStackLayout
+
+        class Main is WebPage
+            action Main
+                WebStackLayout stack
+                stack:SetGap(8)
+
+                Header headDiv
+                SetLayout(headDiv, stack)
+                Add(headDiv)
+            end
+        end
+    */
+    action SetLayout(Header element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a section: where the items inside it go. The
+        website's build turns the layout into a stylesheet rule shared by
+        every page.
+
+        Attribute: Parameter element The section to lay out.
+        Attribute: Parameter layout The layout to use.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Layouts.WebStackLayout
+
+        class Main is WebPage
+            action Main
+                WebStackLayout stack
+                stack:SetGap(8)
+
+                Section section
+                SetLayout(section, stack)
+                Add(section)
+            end
+        end
+    */
+    action SetLayout(Section element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a division: where the items inside it go.
+
+        Attribute: Parameter element The division to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Division element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a figure: where its picture and caption go.
+
+        Attribute: Parameter element The figure to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Figure element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a numbered list's items, such as a row for
+        breadcrumbs.
+
+        Attribute: Parameter element The list to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(OrderedList element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a bulleted list's items.
+
+        Attribute: Parameter element The list to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(UnorderedList element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a description list's terms and descriptions.
+
+        Attribute: Parameter element The list to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(DefinitionList element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a link's contents, such as a logo beside a name.
+
+        Attribute: Parameter element The link to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Link element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a span's contents.
+
+        Attribute: Parameter element The span to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Span element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a list item's contents.
+
+        Attribute: Parameter element The list item to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(ListItem element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Sets the layout of a form's fields.
+
+        Attribute: Parameter element The form to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Form element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
+        Returns every element on this page that has a layout, in no
+        particular order. WebSite uses this to write the stylesheet.
+
+        Attribute: Returns The elements with a layout.
+    */
+    action GetLayoutElements returns Iterator<WebTag>
+        return layouts:GetKeyIterator()
+    end
+
+    /*
+        Returns the layout set on an element of this page, or undefined if
+        it has none. WebSite uses this to write the stylesheet.
+
+        Attribute: Parameter element An element of this page.
+        Attribute: Returns The element's layout, or undefined.
+    */
+    action GetLayoutOf(WebTag element) returns WebLayout
+        return layouts:GetValue(element)
+    end
+
+    /*
+        Gives the page its global look: the roles its elements use, such
+        as GetStack or GetBulletList. Hand it to the page before the page
+        is set up. A page has exactly one; what it changes on single
+        elements is its own.
+
+        Attribute: Parameter options The global look.
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+        use Libraries.Web.Styles.StyleOptions
+
+        StyleOptions options
+        WebPage page
+        page:SetStyleOptions(options)
+    */
+    action SetStyleOptions(StyleOptions options)
+        if styleOptions not= undefined
+            alert("This page already has style options. Hand them over once, before setting the page up.")
+        end
+        styleOptions = options
+
+        // The page's own look: its background, font and text color.
+        SetStyle(body, options:GetPage())
+
+        // The options' own stylesheets, such as a reset, so pages never
+        // name them.
+        Array<text> styleSheets = options:GetStyleSheets()
+        integer i = 0
+        repeat while i < styleSheets:GetSize()
+            AddStylesheet(locations:FromSiteTop(styleSheets:Get(i)))
+            i = i + 1
+        end
+    end
+
+    /*
+        Changes the page's character set from the default, "UTF-8".
+
+        Attribute: Parameter value The character set, such as "UTF-8".
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+
+        WebPage page
+        page:SetCharacterSet("UTF-8")
+    */
+    action SetCharacterSet(text value)
+        characterSet:SetCharacterSet(value)
+    end
+
+    /*
+        Changes the page's viewport from the default,
+        "width=device-width, initial-scale=1", which fits the page to the
+        width of a phone or a computer screen.
+
+        Attribute: Parameter value The viewport's settings.
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+
+        WebPage page
+        page:SetViewport("width=device-width, initial-scale=1")
+    */
+    action SetViewport(text value)
+        viewport:SetContent(value)
+    end
+
+    /*
+        Returns the page's global look, or undefined if none was handed to
+        it.
+
+        Attribute: Returns The global look.
+    */
+    action GetStyleOptions returns StyleOptions
+        if styleOptions = undefined
+            alert("This page has no style options. Hand it some with SetStyleOptions before setting it up.")
+        end
+        return styleOptions
+    end
+
+    /*
+        Sets the style of a bulleted list: its markers and spacing. The
+        website's build turns the style into a stylesheet rule shared by
+        every page.
+
+        Attribute: Parameter element The list to style.
+        Attribute: Parameter style The list style to use.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebListStyle
+
+        class Main is WebPage
+            action Main
+                WebListStyle bullets
+                bullets:UseDiscs()
+                UnorderedList list
+                SetStyle(list, bullets)
+                Add(list)
+            end
+        end
+    */
+    action SetStyle(UnorderedList element, WebListStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a numbered list: its markers and spacing. The
+        website's build turns the style into a stylesheet rule shared by
+        every page.
+
+        Attribute: Parameter element The list to style.
+        Attribute: Parameter style The list style to use.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebListStyle
+
+        class Main is WebPage
+            action Main
+                WebListStyle numbers
+                numbers:UseNumbers()
+                OrderedList list
+                SetStyle(list, numbers)
+                Add(list)
+            end
+        end
+    */
+    action SetStyle(OrderedList element, WebListStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a heading's text. The website's build turns the
+        style into a stylesheet rule shared by every page.
+
+        Attribute: Parameter element The heading to style.
+        Attribute: Parameter style The text style to use.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebTextStyle
+
+        class Main is WebPage
+            action Main
+                WebTextStyle title
+                title:SetFontSize(30)
+                Section section
+                Heading heading = section:AddHeading("Welcome", 1)
+                SetStyle(heading, title)
+                Add(section)
+            end
+        end
+    */
+    action SetStyle(Heading element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Returns every element on this page that has a style, in no
+        particular order. WebSite uses this to write the stylesheet.
+
+        Attribute: Returns The elements with a style.
+    */
+    /*
+        Sets a style an element takes on screens at least this wide, on top
+        of its own look; the style changes only what it sets. Use the
+        screen widths in StyleSheetConstants, such as SMALL_SCREEN_WIDTH.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter pixels The narrowest screen the style applies on.
+        Attribute: Parameter style The style.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.StyleSheetConstants
+
+        class Main is WebPage
+            action Main
+                StyleSheetConstants constants
+                WebBoxStyle hidden
+                hidden:SetDisplayed(false)
+                WebBoxStyle shown
+                shown:SetDisplayed(true)
+
+                Division side
+                SetStyle(side, hidden)
+                SetStyleFromWidth(side, constants:SMALL_SCREEN_WIDTH, shown)
+                Include(side)
+            end
+        end
+    */
+    action SetStyleFromWidth(WebTag element, number pixels, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleFromWidth(pixels, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a layout an element takes on screens at least this wide, on
+        top of its own look.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter pixels The narrowest screen the layout applies on.
+        Attribute: Parameter layout The layout.
+    */
+    action SetLayoutFromWidth(WebTag element, number pixels, WebLayout layout)
+        WebConditionalLook look
+        look:SetLayoutFromWidth(pixels, layout)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while the pointer is over it, on top
+        of its own look. Nothing a reader needs may depend on it alone,
+        since keyboards and touch screens have no pointer.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleOnHover(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:HOVER, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it has keyboard focus, on top
+        of its own look, such as showing a link that is otherwise hidden
+        from sight.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleOnFocus(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:FOCUS, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style a form field takes while the page marks it as filled
+        in wrongly (aria-invalid), on top of its own look, such as a red
+        border. Screen readers announce the same mark, so sight and sound
+        agree.
+
+        Attribute: Parameter element The field.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenInvalid(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:INVALID, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Returns every element on this page with a look for wider screens or
+        a state. WebSite uses this to write the stylesheet.
+
+        Attribute: Returns The elements.
+    */
+    action GetConditionalElements returns Iterator<WebTag>
+        return conditionalLooks:GetKeyIterator()
+    end
+
+    /*
+        Returns an element's looks for wider screens or states, in the
+        order they were set.
+
+        Attribute: Parameter element An element of this page.
+        Attribute: Returns Its conditional looks.
+    */
+    action GetConditionalLooksOf(WebTag element) returns Array<WebConditionalLook>
+        return conditionalLooks:GetValue(element)
+    end
+
+    private action AddConditionalLook(WebTag element, WebConditionalLook look)
+        if not conditionalLooks:HasKey(element)
+            Array<WebConditionalLook> newLooks
+            conditionalLooks:Set(element, newLooks)
+        end
+        conditionalLooks:GetValue(element):Add(look)
+    end
+
+    action GetStyledElements returns Iterator<WebTag>
+        return styles:GetKeyIterator()
+    end
+
+    /*
+        Returns the style set on an element of this page, or undefined if
+        it has none. WebSite uses this to write the stylesheet.
+
+        Attribute: Parameter element An element of this page.
+        Attribute: Returns The element's style, or undefined.
+    */
+    action GetStyleOf(WebTag element) returns WebStyle
+        return styles:GetValue(element)
+    end
+
+    /*
+        Tells the page which site it is on. WebSite calls this when the
+        page is added; people making pages don't.
+
+        Attribute: Parameter site The site the page is on.
+    */
+    action SetWebSite(WebSite site)
+        me:site = site
+    end
+
+    /*
+        Returns the site this page is on. A page is added to its site
+        before it is set up, so the site is known while the page is built.
+
+        Attribute: Returns The page's site.
+    */
+    action GetWebSite returns WebSite
+        if site = undefined
+            alert("This page isn't on a site yet. Add it to a WebSite before setting it up.")
+        end
+        return site
+    end
+
+    /*
+        Adds the page's title: its main heading, at the top of the page.
+        A page has one title, and it comes before any section. Returns a
+        writer for the heading, to add more to it.
+
+        Attribute: Parameter headingText The page's main heading.
+        Attribute: Returns A writer for the title's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Title("Introduction to Scene Editing")
+            end
+        end
+    */
+    action Title(text headingText) returns RichText
+        titleText = headingText
+        RichText writer = Title()
+        NameHeading(lastHeading, headingText)
+        return writer:Text(headingText)
+    end
+
+    /*
+        Returns the words of the page's title, for links to the page. If
+        the title was written with rich text, or there is none, it returns
+        the page's location instead.
+
+        Attribute: Returns The title's words, or the page's location.
+    */
+    action GetTitleText returns text
+        if titleText:IsEmpty()
+            return GetLocation()
+        end
+        return titleText
+    end
+
+    /*
+        Adds the page's title with an empty heading, and returns a writer
+        to fill it in, such as with code or a term. A page has one title,
+        and it comes before any section.
+
+        Attribute: Returns A writer for the title's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Title():Text("Using "):Code("WebStackLayout")
+            end
+        end
+    */
+    action Title returns RichText
+        if titleAdded
+            alert("A page has one title, but a second was added.")
+        end
+        if sectionAdded
+            alert("The title comes before any section.")
+        end
+        titleAdded = true
+        EndCurrentList()
+
+        Header titleHeader
+        SetLayout(titleHeader, GetStyleOptions():GetStack())
+        Heading heading = NewHeading(TITLE_HEADING_LEVEL)
+        titleHeader:AddNestedTag(heading)
+        body:AddNestedTag(titleHeader)
+        return WriterFor(heading)
+    end
+
+    /*
+        Starts a section of the page, with its heading. It closes any
+        section, subsection or subsubsection that was open. Everything
+        added after it goes into this section, until the next section.
+        Returns a writer for the heading, to add more to it.
+
+        Attribute: Parameter headingText The section's heading.
+        Attribute: Returns A writer for the section's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Overview")
+                Paragraph("In this lesson, you will ...")
+            end
+        end
+    */
+    action Section(text headingText) returns RichText
+        RichText writer = Section()
+        NameHeading(lastHeading, headingText)
+        return writer:Text(headingText)
+    end
+
+    /*
+        Starts a section with an empty heading, and returns a writer to
+        fill it in. Everything added after the heading goes into this
+        section, until the next section.
+
+        Attribute: Returns A writer for the section's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section():Text("Using "):Code("SetGap")
+                Paragraph("A stack's gap is the space between its items.")
+            end
+        end
+    */
+    action Section returns RichText
+        return OpenPart(SECTION_DEPTH)
+    end
+
+    /*
+        Starts a subsection inside the current section, with its heading.
+        It closes any subsection or subsubsection that was open. Everything
+        added after it goes into this subsection, until the next subsection
+        or section. Returns a writer for the heading.
+
+        Attribute: Parameter headingText The subsection's heading.
+        Attribute: Returns A writer for the subsection's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Overview")
+                Subsection("Goals")
+                Paragraph("You will learn ...")
+            end
+        end
+    */
+    action Subsection(text headingText) returns RichText
+        RichText writer = Subsection()
+        NameHeading(lastHeading, headingText)
+        return writer:Text(headingText)
+    end
+
+    /*
+        Starts a subsection with an empty heading, and returns a writer to
+        fill it in.
+
+        Attribute: Returns A writer for the subsection's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Explore")
+                Subsection():Text("The "):Term("origin")
+            end
+        end
+    */
+    action Subsection returns RichText
+        if openParts:GetSize() < SUBSECTION_DEPTH
+            alert("A subsection needs a section to go in. Add a section first.")
+        end
+        return OpenPart(SUBSECTION_DEPTH)
+    end
+
+    /*
+        Starts a subsubsection inside the current subsection, with its
+        heading. It closes any subsubsection that was open. Everything
+        added after it goes into this subsubsection, until the next part
+        at its level or above. Returns a writer for the heading.
+
+        Attribute: Parameter headingText The subsubsection's heading.
+        Attribute: Returns A writer for the subsubsection's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Explore")
+                Subsection("Positions")
+                Subsubsection("In 3D")
+                Paragraph("A third coordinate ...")
+            end
+        end
+    */
+    action Subsubsection(text headingText) returns RichText
+        RichText writer = Subsubsection()
+        NameHeading(lastHeading, headingText)
+        return writer:Text(headingText)
+    end
+
+    /*
+        Starts a subsubsection with an empty heading, and returns a writer
+        to fill it in.
+
+        Attribute: Returns A writer for the subsubsection's heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Explore")
+                Subsection("Positions")
+                Subsubsection():Text("Along "):Variable("z")
+            end
+        end
+    */
+    action Subsubsection returns RichText
+        if openParts:GetSize() < SUBSUBSECTION_DEPTH
+            alert("A subsubsection needs a subsection to go in. Add a subsection first.")
+        end
+        return OpenPart(SUBSUBSECTION_DEPTH)
+    end
+
+    /*
+        Adds a paragraph to the current part of the page, starting with
+        some plain text. Returns a writer for the paragraph, to add more,
+        such as a term or a link.
+
+        Attribute: Parameter value The paragraph's first words.
+        Attribute: Returns A writer for the paragraph.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Scenes")
+                Paragraph("Scenes come in two kinds.")
+                Paragraph("A "):Term("2D"):Text(" scene is flat.")
+            end
+        end
+    */
+    action Paragraph(text value) returns RichText
+        return Paragraph():Text(value)
+    end
+
+    /*
+        Adds an empty paragraph to the current part of the page, and
+        returns a writer to fill it in.
+
+        Attribute: Returns A writer for the paragraph.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Positions")
+                Paragraph():Term("Coordinates"):Text(" give every item a position.")
+            end
+        end
+    */
+    action Paragraph returns RichText
+        Paragraph paragraph
+        Include(paragraph)
+        return WriterFor(paragraph)
+    end
+
+    /*
+        Starts a bulleted list in the current part of the page, with the
+        site's bulleted list style. It becomes the current list, so
+        ListItem adds to it, until anything else is added.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Goals")
+                BulletList()
+                ListItem("Learn about scenes.")
+            end
+        end
+    */
+    action BulletList
+        UnorderedList list
+        SetStyle(list, GetStyleOptions():GetBulletList())
+        Include(list)
+        currentList = list
+    end
+
+    /*
+        Starts a bulleted list with a label saying what it is, in a box set
+        apart from the text, each with a look of its own; a site uses this
+        for a list with a special job, such as a lesson's goals. Screen
+        readers announce the label as the list's name. It becomes the
+        current list, so ListItem adds to it, until anything else is added.
+
+        Attribute: Parameter label What the list is, such as "By the end of this lesson, you can".
+        Attribute: Parameter boxStyle The look of the box around the list.
+        Attribute: Parameter labelStyle The look of the label.
+    */
+    action BulletList(text label, WebBoxStyle boxStyle, WebTextStyle labelStyle)
+        Division box
+        SetStyle(box, boxStyle)
+        SetLayout(box, GetStyleOptions():GetStack())
+        Paragraph labelWords
+        labelWords:AddText(escaper:Escape(label))
+        SetStyle(labelWords, labelStyle)
+        box:AddNestedTag(labelWords)
+        UnorderedList list
+        list:AddAttribute(LABEL_ATTRIBUTE, escaper:EscapeAttribute(label))
+        SetStyle(list, GetStyleOptions():GetBulletList())
+        box:AddNestedTag(list)
+        Include(box)
+        currentList = list
+    end
+
+    /*
+        Starts a numbered list in the current part of the page, with the
+        site's numbered list style. It becomes the current list, so
+        ListItem adds to it, until anything else is added.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Steps")
+                NumberedList()
+                ListItem("Open Quorum Studio.")
+            end
+        end
+    */
+    action NumberedList
+        OrderedList list
+        SetStyle(list, GetStyleOptions():GetNumberedList())
+        Include(list)
+        currentList = list
+    end
+
+    /*
+        Adds an item to the current list, starting with some plain text.
+        Returns a writer for the item, to add more.
+
+        Attribute: Parameter value The item's first words.
+        Attribute: Returns A writer for the item.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Goals")
+                BulletList()
+                ListItem("Learn about scenes.")
+            end
+        end
+    */
+    action ListItem(text value) returns RichText
+        return ListItem():Text(value)
+    end
+
+    /*
+        Adds an empty item to the current list, and returns a writer to
+        fill it in.
+
+        Attribute: Returns A writer for the item.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Standards")
+                BulletList()
+                ListItem():Strong("S1-GMD-DD-02"):Text(": Create a storyboard ...")
+            end
+        end
+    */
+    action ListItem returns RichText
+        if currentList = undefined
+            alert("A list item needs a list to go in. Add a list first with BulletList or NumberedList.")
+        end
+        ListItem item
+        currentList:AddNestedTag(item)
+        return WriterFor(item)
+    end
+
+    /*
+        Sets the page's summary: one or two sentences that search engines
+        may show under the page's title, and that link previews show when
+        the page is shared. Write it as a reader should see it.
+
+        Attribute: Parameter value The summary.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                SetDescription("What a scene editor is, 2D and 3D scenes, and coordinates.")
+            end
+        end
+    */
+    action SetDescription(text value)
+        description = value
+    end
+
+    /*
+        Returns the page's summary, or nothing if it has none.
+
+        Attribute: Returns The summary.
+    */
+    action GetDescription returns text
+        return description
+    end
+
+    /*
+        Sets the picture shown when the page is shared, such as in a chat
+        or on social media, from the site's relative folder. Its
+        description is required, as for any image, and is given to apps
+        that read it aloud.
+
+        Attribute: Parameter location The picture, inside the site's relative folder, such as "scenes/Share.png".
+        Attribute: Parameter imageDescription What the picture shows.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                SetShareImage("scenes/Share.png", "Quorum Studio's scene editor with a tree selected")
+            end
+        end
+    */
+    action SetShareImage(text location, text imageDescription)
+        locations:Check(location)
+        shareImage = location
+        shareImageDescription = imageDescription
+    end
+
+    /*
+        Returns the location of the picture shown when the page is shared,
+        or nothing if the page has none of its own.
+
+        Attribute: Returns The picture's location in the site's relative folder.
+    */
+    action GetShareImage returns text
+        return shareImage
+    end
+
+    /*
+        Returns the description of the page's share picture.
+
+        Attribute: Returns The description.
+    */
+    action GetShareImageDescription returns text
+        return shareImageDescription
+    end
+
+    /*
+        Sets whether search engines may list the page. A page that
+        shouldn't be found, such as an experiment, a test or a page only a
+        server uses, is left out of the site's sitemap and asks search
+        engines not to list it. Pages are searchable unless set otherwise.
+
+        Attribute: Parameter value False to keep the page out of search.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                SetSearchable(false)
+            end
+        end
+    */
+    action SetSearchable(boolean value)
+        searchable = value
+    end
+
+    /*
+        Returns true if search engines may list the page.
+
+        Attribute: Returns Whether the page is searchable.
+    */
+    action IsSearchable returns boolean
+        return searchable
+    end
+
+    /*
+        Sets the series this page belongs to most: its navigation (Next,
+        Back and breadcrumbs) follows this series when a reader arrives
+        without following one, such as from a search. A page in only one
+        series doesn't need this; a page in several does.
+
+        Attribute: Parameter series The page's home series.
+    */
+    action SetHomeSeries(PageSeries series)
+        homeSeries = series
+    end
+
+    /*
+        Returns the series set with SetHomeSeries, or undefined.
+
+        Attribute: Returns The home series, or undefined.
+    */
+    action GetHomeSeries returns PageSeries
+        return homeSeries
+    end
+
+    /*
+        Returns every heading on the page, in the order they were added.
+        A website uses this to build a page's contents.
+
+        Attribute: Returns The headings.
+    */
+    action GetHeadings returns Array<Heading>
+        return headings
+    end
+
+    /*
+        Returns the heading added last, such as the one a section just
+        added, or undefined if there is none. A page uses this to link to
+        a part it has just started.
+
+        Attribute: Returns The last heading, or undefined.
+    */
+    action GetLastHeading returns Heading
+        return lastHeading
+    end
+
+    /*
+        Returns a heading's plain words, if it was written with plain text
+        (Section("Warm up")), or nothing if it was written with rich text.
+
+        Attribute: Parameter heading A heading on this page.
+        Attribute: Returns Its words, or nothing.
+    */
+    action GetHeadingText(Heading heading) returns text
+        if headingWords:HasKey(heading)
+            return headingWords:GetValue(heading)
+        end
+        return ""
+    end
+
+    /*
+        Moves everything on the page into a container, leaving the page
+        empty, so a website can build a frame around the page's content
+        (navigation, columns, a footer) and put the container inside it.
+
+        Attribute: Parameter container The container that will hold the page's content.
+    */
+    action MoveContentInto(WebTag container)
+        EndCurrentList()
+        Array<WebTag> existing
+        integer i = 0
+        repeat while i < body:GetNumberOfNestedTags()
+            existing:Add(body:GetTag(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < existing:GetSize()
+            body:Remove(existing:Get(i))
+            container:AddNestedTag(existing:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        Puts an element at the very start of the page, before everything
+        else, such as navigation a website adds. Pages don't usually need
+        this; their content goes in order with Title, Section and the rest.
+
+        Attribute: Parameter element The element.
+    */
+    action PlaceAtStart(WebTag element)
+        Array<WebTag> existing
+        integer i = 0
+        repeat while i < body:GetNumberOfNestedTags()
+            existing:Add(body:GetTag(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < existing:GetSize()
+            body:Remove(existing:Get(i))
+            i = i + 1
+        end
+        body:AddNestedTag(element)
+        i = 0
+        repeat while i < existing:GetSize()
+            body:AddNestedTag(existing:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+        Puts an element at the very end of the page, after everything
+        else, such as navigation a website adds.
+
+        Attribute: Parameter element The element.
+    */
+    action PlaceAtEnd(WebTag element)
+        EndCurrentList()
+        body:AddNestedTag(element)
+    end
+
+    /*
+        Stops the build with a clear message if any heading on the page has
+        no text, which would leave readers and screen readers an empty
+        heading. WebSite calls this before writing or serving the page;
+        people making pages don't.
+    */
+    action CheckHeadings
+        integer i = 0
+        repeat while i < headings:GetSize()
+            if headings:Get(i):GetNumberOfNestedTags() = 0
+                alert("A heading on " + GetLocation() + " has no text. Give each Title, Section, Subsection and Subsubsection some words.")
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Adds a table to the current part of the page, loaded from a file
+        in the site's relative folder (see WebSite:SetRelativeFolder), with
+        a caption and the site's table style.
+
+        Attribute: Parameter caption The table's caption.
+        Attribute: Parameter location The file, inside the site's relative folder, such as "scenes/Vocabulary.csv".
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Vocabulary")
+                Table("Vocabulary", "scenes/Introduction/Vocabulary.csv")
+            end
+        end
+    */
+    action Table(text caption, text location)
+        TableFromFile(caption, GetWebSite():GetRelativeFile(location))
+    end
+
+    /*
+        Adds a table to the current part of the page, loaded from any
+        file, with a caption and the site's table style. Use Table
+        instead for files in the site's relative folder.
+
+        Attribute: Parameter caption The table's caption.
+        Attribute: Parameter file The file to load.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.System.File
+
+        class Main is WebPage
+            action Main
+                File file
+                file:SetPath("data/Vocabulary.csv")
+                Section("Vocabulary")
+                TableFromFile("Vocabulary", file)
+            end
+        end
+    */
+    action TableFromFile(text caption, File file)
+        DataFrame frame
+        frame:Load(file)
+        Table(caption)
+        if frame:GetSize() = 0
+            return now
+        end
+
+        // Built row by row, as a table by hand is, so every cell's text is
+        // escaped and every cell has its role.
+        TableRowWriter headerRow = TableHeader()
+        integer rowCount = 0
+        integer column = 0
+        repeat while column < frame:GetSize()
+            DataFrameColumn data = frame:GetColumn(column)
+            text name = data:GetHeader()
+            if name = undefined
+                name = ""
+            end
+            headerRow:Cell(name)
+            if data:GetSize() > rowCount
+                rowCount = data:GetSize()
+            end
+            column = column + 1
+        end
+
+        integer row = 0
+        repeat while row < rowCount
+            TableRowWriter writer = TableRow()
+            column = 0
+            repeat while column < frame:GetSize()
+                DataFrameColumn data = frame:GetColumn(column)
+                if row < data:GetSize() and not data:IsUndefined(row)
+                    writer:Cell(data:GetAsText(row))
+                else
+                    writer:Cell("")
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+        Adds any element to the current part of the page: the innermost
+        open section, subsection or subsubsection, or the page itself if
+        none is open.
+
+        Attribute: Parameter element The element to add.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Overview")
+                Image picture
+                Include(picture)
+            end
+        end
+    */
+    action Include(WebTag element)
+        EndCurrentList()
+        if openCallout not= undefined
+            openCallout:AddNestedTag(element)
+        elseif openParts:GetSize() = 0
+            body:AddNestedTag(element)
+        else
+            openParts:Get(openParts:GetSize() - 1):AddNestedTag(element)
+        end
+    end
+
+    /*
+        Sets the style of a table as a whole. The website's build turns the
+        style into a stylesheet rule shared by every page.
+
+        Attribute: Parameter element The table to style.
+        Attribute: Parameter style The table style to use.
+    */
+    action SetStyle(WebTable element, WebTableStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a term. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(DefinedTerm element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of important words. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(StrongText element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of stressed words. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Emphasize element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of code. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(CodeBlock element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a key to press. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(KeyboardInput element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of bold words. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Bold element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a variable's name. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Variable element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of program output. RichText calls this with the site's role;
+        the website's build turns the style into a stylesheet rule.
+
+        Attribute: Parameter element The words to style.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(SampleOutput element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Starts an empty table in the current part of the page, with a
+        caption and the site's table style, to fill in row by row with
+        TableHeader and TableRow. It ends when anything else is added.
+
+        Attribute: Parameter caption The table's caption.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Keys")
+                Table("Keys")
+                TableHeader():Cell("Key"):Cell("What it does")
+                TableRow():Cell("Enter"):Cell("Places the item")
+            end
+        end
+    */
+    action Table(text caption)
+        WebTable table
+        SetStyle(table, GetStyleOptions():GetTable())
+        TableCaption tableCaption
+        tableCaption:AddText(escaper:Escape(caption))
+        SetStyle(tableCaption, GetStyleOptions():GetTableCaption())
+        table:Add(tableCaption)
+        Include(table)
+        currentTable = table
+    end
+
+    /*
+        Adds the row naming the current table's columns. Returns a writer
+        that adds one cell for each column name.
+
+        Attribute: Returns A writer for the row.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Table("Keys")
+                TableHeader():Cell("Key"):Cell("What it does")
+            end
+        end
+    */
+    action TableHeader returns TableRowWriter
+        CheckTable()
+        if currentTableHeader = undefined
+            TableHeader tableHead
+            currentTable:Add(tableHead)
+            currentTableHeader = tableHead
+        end
+        TableRow row
+        currentTableHeader:Add(row)
+        TableRowWriter writer
+        writer:SetTarget(row, true, me)
+        return writer
+    end
+
+    /*
+        Adds a row to the current table. Returns a writer that adds its
+        cells; the first cell names the row.
+
+        Attribute: Returns A writer for the row.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Table("Keys")
+                TableHeader():Cell("Key"):Cell("What it does")
+                TableRow():Cell("Enter"):Cell("Places the item")
+            end
+        end
+    */
+    action TableRow returns TableRowWriter
+        CheckTable()
+        if currentTableBody = undefined
+            TableBody tableBody
+            currentTable:Add(tableBody)
+            currentTableBody = tableBody
+        end
+        TableRow row
+        currentTableBody:Add(row)
+        TableRowWriter writer
+        writer:SetTarget(row, false, me)
+        return writer
+    end
+
+    /*
+        Adds code to the current part of the page, as an example on its own
+        lines, with line numbers and the page's code highlighting. The code
+        is shown exactly as written.
+
+        Attribute: Parameter code The code.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Positions")
+                CodeExample("box:SetPosition(2, 0, 5)")
+            end
+        end
+    */
+    action CodeExample(text code)
+        PreformattedText preformatted
+        preformatted:AddClassAttribute(LINE_NUMBERS_CLASS)
+        CodeBlock block
+        block:AddClassAttribute(LANGUAGE_CLASS_START + codeLanguage)
+        block:AddText(escaper:Escape(code))
+        preformatted:Add(block)
+        SetStyle(preformatted, GetStyleOptions():GetCodeExample())
+        Include(preformatted)
+    end
+
+    /*
+        Adds code from a file in the site's relative folder, as CodeExample
+        does.
+
+        Attribute: Parameter location The file's location inside the relative folder.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Hello")
+                CodeExampleFromFile("scenes/Introduction/Hello.quorum")
+            end
+        end
+    */
+    action CodeExampleFromFile(text location)
+        File file = GetWebSite():GetRelativeFile(location)
+        if not file:Exists()
+            alert("There's no code example at " + file:GetPath() + ".")
+        end
+        CodeExample(file:Read())
+    end
+
+    /*
+        Sets the language of the page's code examples, for highlighting.
+        The default is Quorum.
+
+        Attribute: Parameter language The language's name, as the highlighter knows it, such as "quorum".
+    */
+    action SetCodeLanguage(text language)
+        codeLanguage = language
+    end
+
+    /*
+        Adds a picture to the current part of the page. Its description is
+        what a reader who can't see it is told instead, so it is required:
+        say what the picture shows that matters here. For a picture that
+        is only decoration, use DecorativeImage.
+
+        Attribute: Parameter location The picture's location inside the site's relative folder.
+        Attribute: Parameter imageDescription What the picture shows.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("The editor")
+                Image("scenes/CreateScene/Palette2D.png", "The 2D grid in the scene editor.")
+            end
+        end
+    */
+    action Image(text location, text imageDescription)
+        if imageDescription:IsEmpty()
+            alert("The picture at " + location + " needs a description. For a picture that is only decoration, use DecorativeImage.")
+        end
+        Include(NewImage(location, imageDescription))
+    end
+
+    /*
+        Adds a picture that is only decoration, so readers who can't see
+        it are told nothing about it.
+
+        Attribute: Parameter location The picture's location inside the site's relative folder.
+    */
+    action DecorativeImage(text location)
+        Include(NewImage(location, ""))
+    end
+
+    /*
+        Adds a picture with a caption under it that everyone sees. The
+        description is still required, for readers who can't see the
+        picture; the caption adds to it. Returns a writer for the caption,
+        to add more.
+
+        Attribute: Parameter location The picture's location inside the site's relative folder.
+        Attribute: Parameter imageDescription What the picture shows.
+        Attribute: Parameter caption The caption.
+        Attribute: Returns A writer for the caption.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("2D scenes")
+                Figure("scenes/CreateScene/Palette2D.png", "The 2D grid in the scene editor.", "A 2D scene in Quorum Studio.")
+            end
+        end
+    */
+    action Figure(text location, text imageDescription, text caption) returns RichText
+        if imageDescription:IsEmpty()
+            alert("The picture at " + location + " needs a description.")
+        end
+        Figure figure
+        SetLayout(figure, GetStyleOptions():GetFigure())
+        figure:AddNestedTag(NewImage(location, imageDescription))
+        FigureCaption figureCaption
+        SetStyle(figureCaption, GetStyleOptions():GetFigureCaption())
+        figure:AddNestedTag(figureCaption)
+        Include(figure)
+        return WriterFor(figureCaption):Text(caption)
+    end
+
+    /*
+        Returns every picture on the page, in the order they were added.
+
+        Attribute: Returns The pictures.
+    */
+    action GetImages returns Array<Image>
+        return images
+    end
+
+    /*
+        Adds a video from another site, such as YouTube, in the current
+        part of the page. Its title names it for screen readers, so it is
+        required.
+
+        Attribute: Parameter address The video's embedding address.
+        Attribute: Parameter videoTitle What the video is.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Watch")
+                Video("https://www.youtube.com/embed/abc", "Placing items in a scene")
+            end
+        end
+    */
+    action Video(text address, text videoTitle)
+        if videoTitle:IsEmpty()
+            alert("The video at " + address + " needs a title.")
+        end
+        InlineFrame video
+        video:SetAddress(escaper:EscapeAttribute(address))
+        video:SetTitle(escaper:EscapeAttribute(videoTitle))
+        video:SetWidth(VIDEO_WIDTH)
+        video:SetHeight(VIDEO_HEIGHT)
+        video:AddAttribute(FULL_SCREEN_ATTRIBUTE, "")
+        Include(video)
+    end
+
+    /*
+        Starts a description list in the current part of the page: terms,
+        each with its description. Screen readers announce each pair
+        together. It ends when anything else is added.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Directions")
+                DescriptionList()
+                Description("x", "Left and right.")
+                Description("y", "Up and down.")
+            end
+        end
+    */
+    action DescriptionList
+        DefinitionList list
+        SetLayout(list, GetStyleOptions():GetDescriptionList())
+        Include(list)
+        currentDescriptionList = list
+    end
+
+    /*
+        Starts a description list with a label saying what its pairs are,
+        in a box set apart from the text. Screen readers announce the
+        label as the list's name. It ends when anything else is added.
+
+        Attribute: Parameter label What the pairs are, such as "The three directions".
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Directions")
+                DescriptionList("The three directions")
+                Description("x", "Left and right.")
+                Description("y", "Up and down.")
+                Description("z", "Toward and away from you.")
+            end
+        end
+    */
+    action DescriptionList(text label)
+        Division box
+        SetStyle(box, GetStyleOptions():GetLabeledDescriptionList())
+        SetLayout(box, GetStyleOptions():GetStack())
+        Paragraph labelWords
+        labelWords:AddText(escaper:Escape(label))
+        SetStyle(labelWords, GetStyleOptions():GetDescriptionListLabel())
+        box:AddNestedTag(labelWords)
+        DefinitionList list
+        list:AddAttribute(LABEL_ATTRIBUTE, escaper:EscapeAttribute(label))
+        SetLayout(list, GetStyleOptions():GetDescriptionList())
+        box:AddNestedTag(list)
+        Include(box)
+        currentDescriptionList = list
+    end
+
+    /*
+        Adds a term and its description to the current description list.
+        Returns a writer for the description, to add more.
+
+        Attribute: Parameter term The term.
+        Attribute: Parameter words The description.
+        Attribute: Returns A writer for the description.
+    */
+    action Description(text term, text words) returns RichText
+        return Description(term):Text(words)
+    end
+
+    /*
+        Adds a term with an empty description to the current description
+        list, and returns a writer to fill the description in.
+
+        Attribute: Parameter term The term.
+        Attribute: Returns A writer for the description.
+    */
+    action Description(text term) returns RichText
+        if currentDescriptionList = undefined
+            alert("A description needs a description list to go in. Add one first with DescriptionList.")
+        end
+        DefinitionListTerm termTag
+        termTag:AddText(escaper:Escape(term))
+        SetStyle(termTag, GetStyleOptions():GetDescriptionTerm())
+        currentDescriptionList:AddNestedTag(termTag)
+        Definition definition
+        SetStyle(definition, GetStyleOptions():GetDescription())
+        currentDescriptionList:AddNestedTag(definition)
+        return WriterFor(definition)
+    end
+
+    /*
+        Opens a callout in the current part of the page: a box set apart
+        from the text, with a label, such as a tip. Everything added after
+        it goes inside, until the next section, subsection or
+        subsubsection starts, or EndCallout is called.
+
+        Attribute: Parameter label The callout's label, such as "Tip".
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Engage")
+                Callout("Tip")
+                Paragraph("Work in pairs.")
+                EndCallout()
+                Paragraph("Then compare your lists.")
+            end
+        end
+    */
+    action Callout(text label)
+        Callout(label, GetStyleOptions():GetCalloutLabel())
+    end
+
+    /*
+        Opens a callout with a label of its own look, such as a site's
+        teaching tips, as Callout does.
+
+        Attribute: Parameter label The callout's label.
+        Attribute: Parameter labelStyle The look of the label's bar.
+    */
+    action Callout(text label, WebBoxStyle labelStyle)
+        EndCallout()
+        Division box
+        box:AddAttribute(ROLE_ATTRIBUTE, NOTE_ROLE)
+        box:AddAttribute(LABEL_ATTRIBUTE, escaper:EscapeAttribute(label))
+        Division labelBar
+        labelBar:AddText(escaper:Escape(label))
+        SetStyle(labelBar, labelStyle)
+        box:AddNestedTag(labelBar)
+        Division calloutBody
+        SetStyle(calloutBody, GetStyleOptions():GetCallout())
+        SetLayout(calloutBody, GetStyleOptions():GetStack())
+        box:AddNestedTag(calloutBody)
+        Include(box)
+        openCallout = calloutBody
+    end
+
+    /*
+        Closes the open callout, so what comes next goes after it, in the
+        current part. Starting a new part closes it too.
+    */
+    action EndCallout
+        EndCurrentList()
+        openCallout = undefined
+    end
+
+    /*
+        Sets the look of an element as a box: its background, edges and
+        corners, and the words in it. Any element can be a box.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The box style to use.
+    */
+    action SetStyle(WebTag element, WebBoxStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a link's words.
+
+        Attribute: Parameter element The link.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Link element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a span of words.
+
+        Attribute: Parameter element The words.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Span element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a paragraph's words.
+
+        Attribute: Parameter element The paragraph.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(Paragraph element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a list item's words.
+
+        Attribute: Parameter element The list item.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(ListItem element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a figure's caption.
+
+        Attribute: Parameter element The caption.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(FigureCaption element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    /*
+        Sets the style of a term in a description list.
+
+        Attribute: Parameter element The term.
+        Attribute: Parameter style The text style to use.
+    */
+    action SetStyle(DefinitionListTerm element, WebTextStyle style)
+        styles:Set(element, style)
+    end
+
+    // A picture, remembered, with its address from the top of the site.
+    private action NewImage(text location, text imageDescription) returns Image
+        Image picture
+        text address = locations:FromSiteTop(locations:Join(GetWebSite():GetRelativeFolder(), location))
+        picture:SetAddress(escaper:EscapeAttribute(address))
+        picture:SetAlternate(escaper:EscapeAttribute(imageDescription))
+        images:Add(picture)
+        return picture
+    end
+
+    private action CheckTable
+        if currentTable = undefined
+            alert("A table row needs a table to go in. Add one first with Table.")
+        end
+    end
+
+    // Ends the current list, so no more items go into it.
+    private action EndCurrentList
+        currentList = undefined
+        currentDescriptionList = undefined
+        currentTable = undefined
+        currentTableHeader = undefined
+        currentTableBody = undefined
+    end
+
+    // Closes every open part at this depth or deeper, then opens a new
+    // section there, inside the part around it, with an empty heading.
+    private action OpenPart(integer depth) returns RichText
+        EndCallout()
+        repeat while openParts:GetSize() > depth
+            openParts:RemoveFromEnd()
+        end
+        sectionAdded = true
+
+        Section section
+        SetLayout(section, GetStyleOptions():GetStack())
+        Heading heading = NewHeading(depth + HEADING_LEVEL_OFFSET)
+        section:AddNestedTag(heading)
+        Include(section)
+        openParts:Add(section)
+        return WriterFor(heading)
+    end
+
+    // An empty heading at a level, with its level's global style,
+    // remembered so it can be checked for text.
+    private action NewHeading(integer level) returns Heading
+        Heading heading
+        heading:SetScale(level)
+        SetStyle(heading, GetStyleOptions():GetHeading(level))
+        headings:Add(heading)
+        lastHeading = heading
+        return heading
+    end
+
+    /*
+        Gives a heading written with plain text an identifier made from
+        its words, so other pages and the page's own contents can link
+        straight to it: "Warm up" becomes "warm-up". Identifiers are
+        unique on a page; a repeated one gets a number added.
+    */
+    private action NameHeading(Heading heading, text words)
+        headingWords:Set(heading, words)
+        text base = ""
+        text lowered = words:ToLowerCase()
+        boolean lastWasHyphen = true
+        integer i = 0
+        repeat while i < lowered:GetSize()
+            text character = lowered:GetCharacter(i)
+            if IDENTIFIER_CHARACTERS:Contains(character)
+                base = base + character
+                lastWasHyphen = false
+            elseif not lastWasHyphen
+                base = base + "-"
+                lastWasHyphen = true
+            end
+            i = i + 1
+        end
+        if base:EndsWith("-")
+            base = base:GetSubtext(0, base:GetSize() - 1)
+        end
+        if base:IsEmpty()
+            base = "section"
+        end
+        text headingIdentifier = base
+        integer count = 2
+        repeat while usedIdentifiers:HasKey(headingIdentifier)
+            headingIdentifier = base + "-" + count
+            count = count + 1
+        end
+        usedIdentifiers:Set(headingIdentifier, true)
+        heading:SetIdentifier(headingIdentifier)
+    end
+
+    // A new writer for one paragraph, list item or heading.
+    private action WriterFor(WebTag target) returns RichText
+        RichText writer
+        writer:SetTarget(target, me)
+        return writer
+    end
+
+    /*
+        Answers a request for this page by sending its HTML. A page whose
+        content depends on the request (who is signed in, say) overrides
+        this action.
+
+        Attribute: Parameter exchange The request, and the way to answer it.
+    */
+    action ResponseReceived(NetworkExchange exchange)
+        text response = Generate()
+        HashTable<text, List<text>> headers
+        List<text> contentType
+        contentType:Add("text/html; charset=UTF-8")
+        headers:Add("Content-Type", contentType)
+        exchange:SetResponseHeaders(headers)
+        exchange:SendResponseHeaders(200, response)
+        exchange:SendResponse(response)
     end
 end

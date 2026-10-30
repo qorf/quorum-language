@@ -1,0 +1,112 @@
+package Libraries.Web
+
+/*
+    WebTextEscaper makes ordinary text safe to put in a web page. A few
+    characters have a special meaning in HTML: "<" starts a tag and "&"
+    starts a character name, so text such as "x < y" or "Q&A" could break
+    the page or be misread. This class writes those characters in a form
+    the browser shows as the characters themselves. Inside an attribute's
+    value, a double quote mark would end the value, so it is written the
+    same way there too.
+
+    Pages never use this directly: RichText escapes every piece of text it
+    writes. It is a shared class, so there is only one.
+
+    Attribute: Example
+    use Libraries.Web.WebTextEscaper
+
+    WebTextEscaper escaper
+    output escaper:Escape("if x < y and y > z")
+*/
+shared class WebTextEscaper
+    // The characters with a special meaning, and how each is written so
+    // the browser shows the character itself. The ampersand comes first,
+    // so the others' ampersands aren't changed again.
+    constant text AMPERSAND = "&"
+    constant text ESCAPED_AMPERSAND = "&amp;"
+    constant text LESS_THAN = "<"
+    constant text ESCAPED_LESS_THAN = "&lt;"
+    constant text GREATER_THAN = ">"
+    constant text ESCAPED_GREATER_THAN = "&gt;"
+    constant text ESCAPED_DOUBLE_QUOTE = "&quot;"
+    text doubleQuote = ""
+
+    // For text inside a script, such as structured data: a backslash
+    // starts an escape there, and a "<" could close the script early.
+    constant integer BACKSLASH_CODE = 92
+    constant text SCRIPT_LESS_THAN_CODE = "u003c"
+    constant text SCRIPT_LINE_FEED_CODE = "n"
+    constant text SCRIPT_CARRIAGE_RETURN_CODE = "r"
+    text backslash = ""
+    text lineFeed = ""
+    text carriageReturn = ""
+
+    on create
+        doubleQuote = doubleQuote:GetDoubleQuote()
+        backslash = backslash:GetUnicodeValue(BACKSLASH_CODE)
+        lineFeed = lineFeed:GetLineFeed()
+        carriageReturn = carriageReturn:GetCarriageReturn()
+    end
+
+    /*
+        Returns text that is safe to show inside an element: "&", "<" and
+        ">" are written so the browser shows them as themselves.
+
+        Attribute: Parameter value The text, as a reader should see it.
+        Attribute: Returns The text, safe to put in a page.
+
+        Attribute: Example
+        use Libraries.Web.WebTextEscaper
+
+        WebTextEscaper escaper
+        output escaper:Escape("Q&A")
+    */
+    action Escape(text value) returns text
+        text result = value:Replace(AMPERSAND, ESCAPED_AMPERSAND)
+        result = result:Replace(LESS_THAN, ESCAPED_LESS_THAN)
+        result = result:Replace(GREATER_THAN, ESCAPED_GREATER_THAN)
+        return result
+    end
+
+    /*
+        Returns text that is safe to use as an attribute's value, such as a
+        link's address or an abbreviation's full form: the same as Escape,
+        and double quote marks too, since one would end the value.
+
+        Attribute: Parameter value The value.
+        Attribute: Returns The value, safe to put in an attribute.
+
+        Attribute: Example
+        use Libraries.Web.WebTextEscaper
+
+        WebTextEscaper escaper
+        output escaper:EscapeAttribute("https://example.com/?a=1&b=2")
+    */
+    action EscapeAttribute(text value) returns text
+        return Escape(value):Replace(doubleQuote, ESCAPED_DOUBLE_QUOTE)
+    end
+
+    /*
+        Returns text that is safe inside a quoted value in a script, such
+        as the structured data that describes a page to search engines:
+        backslashes, quote marks and line breaks are written as escapes,
+        and "<" is written so it can never end the script early.
+
+        Attribute: Parameter value The text.
+        Attribute: Returns The text, safe inside a quoted value in a script.
+
+        Attribute: Example
+        use Libraries.Web.WebTextEscaper
+
+        WebTextEscaper escaper
+        output escaper:EscapeForScript("A lesson about x < y")
+    */
+    action EscapeForScript(text value) returns text
+        text result = value:Replace(backslash, backslash + backslash)
+        result = result:Replace(doubleQuote, backslash + doubleQuote)
+        result = result:Replace(carriageReturn, backslash + SCRIPT_CARRIAGE_RETURN_CODE)
+        result = result:Replace(lineFeed, backslash + SCRIPT_LINE_FEED_CODE)
+        result = result:Replace(LESS_THAN, backslash + SCRIPT_LESS_THAN_CODE)
+        return result
+    end
+end

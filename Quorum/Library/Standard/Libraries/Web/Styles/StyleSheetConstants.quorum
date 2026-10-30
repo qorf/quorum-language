@@ -1,0 +1,168 @@
+package Libraries.Web.Styles
+
+/*
+    StyleSheetConstants holds fixed values that every layout and style uses
+    when it writes its part of a stylesheet. It is a shared class, so there
+    is only ever one copy, however many layouts and styles use it.
+
+    Attribute: Example
+    use Libraries.Web.Styles.StyleSheetConstants
+
+    StyleSheetConstants constants
+    output "Pixels in one width of M: " + constants:PIXELS_PER_WIDTH_OF_M
+*/
+shared class StyleSheetConstants
+    /*
+        The number of pixels in one width of M at the browser's normal
+        text size. In a stylesheet this unit is written "rem", short for
+        "root em". An "em" is a printer's measure, named after the width of
+        a capital M. On the web, one rem is the text size of the whole
+        page: 16 pixels, unless the reader has made text larger or smaller
+        in their browser.
+    */
+    public constant number PIXELS_PER_WIDTH_OF_M = 16
+
+    /*
+        How a layout lines up its items across: stretched to the full
+        width (the default), or at their own width on the left, in the
+        center or on the right. Layouts store one of these; authors choose
+        with actions such as AlignCenter, never with these numbers.
+    */
+    public constant integer STRETCH_ALIGN = 0
+    public constant integer LEFT_ALIGN = 1
+    public constant integer CENTER_ALIGN = 2
+    public constant integer RIGHT_ALIGN = 3
+
+    /*
+        The marker a list puts before each item: none chosen yet (the
+        default, which writes nothing), discs, numbers, or no marker at
+        all. List styles store one of these; authors choose with actions
+        such as UseDiscs, never with these numbers.
+    */
+    public constant integer UNSET_MARKER = 0
+    public constant integer DISC_MARKER = 1
+    public constant integer NUMBER_MARKER = 2
+    public constant integer NO_MARKER = 3
+
+    /*
+        Where a list's markers sit: not chosen yet (the default, which
+        writes nothing), outside the items' text, or inside it. List styles
+        store one of these; authors choose with MarkersOutside or
+        MarkersInside.
+    */
+    public constant integer UNSET_POSITION = 0
+    public constant integer OUTSIDE_POSITION = 1
+    public constant integer INSIDE_POSITION = 2
+
+    /*
+        Text sizes, in pixels, from extra small to very large, on a scale
+        common on the web. Each size has a font size and the line height
+        that reads well with it.
+    */
+    public constant number EXTRA_SMALL_FONT_SIZE = 12
+    public constant number EXTRA_SMALL_LINE_HEIGHT = 16
+    public constant number SMALL_FONT_SIZE = 14
+    public constant number SMALL_LINE_HEIGHT = 20
+    public constant number BASE_FONT_SIZE = 16
+    public constant number BASE_LINE_HEIGHT = 24
+    public constant number LARGE_FONT_SIZE = 18
+    public constant number LARGE_LINE_HEIGHT = 28
+    public constant number EXTRA_LARGE_FONT_SIZE = 20
+    public constant number EXTRA_LARGE_LINE_HEIGHT = 28
+    public constant number EXTRA_LARGE_2_FONT_SIZE = 24
+    public constant number EXTRA_LARGE_2_LINE_HEIGHT = 32
+    public constant number EXTRA_LARGE_3_FONT_SIZE = 30
+    public constant number EXTRA_LARGE_3_LINE_HEIGHT = 36
+    public constant number EXTRA_LARGE_4_FONT_SIZE = 36
+    public constant number EXTRA_LARGE_4_LINE_HEIGHT = 40
+    public constant number EXTRA_LARGE_5_FONT_SIZE = 48
+    public constant number EXTRA_LARGE_5_LINE_HEIGHT = 48
+    public constant number EXTRA_LARGE_6_FONT_SIZE = 60
+    public constant number EXTRA_LARGE_6_LINE_HEIGHT = 60
+    public constant number EXTRA_LARGE_7_FONT_SIZE = 72
+    public constant number EXTRA_LARGE_7_LINE_HEIGHT = 72
+    public constant number EXTRA_LARGE_8_FONT_SIZE = 96
+    public constant number EXTRA_LARGE_8_LINE_HEIGHT = 96
+    public constant number EXTRA_LARGE_9_FONT_SIZE = 128
+    public constant number EXTRA_LARGE_9_LINE_HEIGHT = 128
+
+    /*
+        Font weights: normal text, and bold.
+    */
+    public constant integer NORMAL_FONT_WEIGHT = 400
+    public constant integer BOLD_FONT_WEIGHT = 700
+
+    /*
+        Spacing, in pixels, for gaps, padding and margins, on a scale
+        common on the web. Each step is 4 pixels: SPACING_2 is 8 pixels,
+        SPACING_4 is 16. SPACING_0_5 is half a step (2 pixels), and
+        SPACING_PIXEL is one pixel.
+    */
+    public constant number SPACING_0 = 0
+    public constant number SPACING_PIXEL = 1
+    public constant number SPACING_0_5 = 2
+    public constant number SPACING_1 = 4
+    public constant number SPACING_1_5 = 6
+    public constant number SPACING_2 = 8
+    public constant number SPACING_2_5 = 10
+    public constant number SPACING_3 = 12
+    public constant number SPACING_3_5 = 14
+    public constant number SPACING_4 = 16
+    public constant number SPACING_5 = 20
+    public constant number SPACING_6 = 24
+    public constant number SPACING_7 = 28
+    public constant number SPACING_8 = 32
+    public constant number SPACING_9 = 36
+    public constant number SPACING_10 = 40
+    public constant number SPACING_11 = 44
+    public constant number SPACING_12 = 48
+    public constant number SPACING_14 = 56
+    public constant number SPACING_16 = 64
+    public constant number SPACING_20 = 80
+    public constant number SPACING_24 = 96
+    public constant number SPACING_28 = 112
+    public constant number SPACING_32 = 128
+    public constant number SPACING_36 = 144
+    public constant number SPACING_40 = 160
+    public constant number SPACING_44 = 176
+    public constant number SPACING_48 = 192
+    public constant number SPACING_52 = 208
+    public constant number SPACING_56 = 224
+    public constant number SPACING_60 = 240
+    public constant number SPACING_64 = 256
+    public constant number SPACING_72 = 288
+    public constant number SPACING_80 = 320
+    public constant number SPACING_96 = 384
+
+    /*
+        Screen widths, in pixels, where a page's look may change: a look
+        set "from" one of these applies on screens at least that wide. A
+        small screen is a large phone turned sideways or a small tablet; a
+        large screen, a laptop.
+    */
+    public constant number SMALL_SCREEN_WIDTH = 640
+    public constant number MEDIUM_SCREEN_WIDTH = 768
+    public constant number LARGE_SCREEN_WIDTH = 1024
+    public constant number EXTRA_LARGE_SCREEN_WIDTH = 1280
+
+    /*
+        Turns a size in pixels into text a stylesheet can use, measured in
+        widths of the letter M (written "rem"; see PIXELS_PER_WIDTH_OF_M).
+        Sizes written this way grow and shrink with the reader's text size,
+        so 8 pixels becomes "0.5rem". Every layout and style uses this, so
+        they all convert sizes the same way.
+
+        Attribute: Parameter pixels A size in pixels, at the browser's normal text size.
+        Attribute: Returns The same size, as stylesheet text, such as "0.5rem".
+
+        Attribute: Example
+        use Libraries.Web.Styles.StyleSheetConstants
+
+        StyleSheetConstants constants
+        output constants:ToWidthOfM(8)
+    */
+    action ToWidthOfM(number pixels) returns text
+        number widths = pixels / PIXELS_PER_WIDTH_OF_M
+        return "" + widths + "rem"
+    end
+end

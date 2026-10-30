@@ -1,0 +1,104 @@
+package Libraries.Web.Page
+
+use Libraries.Web.WebTextEscaper
+
+/*
+    TableRowWriter adds cells to one row of a table, one after another. In
+    the row naming the columns, every cell names a column; in the other
+    rows, the first cell names the row and the rest hold its values. Each
+    cell takes its look from the page's style options, and its text is
+    made safe for the page. Cell returns the same writer, so a row's cells
+    can be chained in one line.
+
+    A page gets one from TableHeader or TableRow.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main is WebPage
+        action Main
+            Table("Keys")
+            TableHeader():Cell("Key"):Cell("What it does")
+            TableRow():Cell("Enter"):Cell("Places the item")
+        end
+    end
+*/
+class TableRowWriter
+    TableRow row = undefined
+    boolean namesColumns = false
+    WebPage page = undefined
+    integer cellCount = 0
+    WebTextEscaper escaper
+
+    constant text SCOPE_ATTRIBUTE = "scope"
+    constant text COLUMN_SCOPE = "col"
+    constant text ROW_SCOPE = "row"
+
+    /*
+        Attaches this writer to its row. WebPage calls this; people making
+        pages don't.
+
+        Attribute: Parameter row The row to write into.
+        Attribute: Parameter namesColumns True for the row naming the columns.
+        Attribute: Parameter page The page the table is on.
+    */
+    action SetTarget(TableRow row, boolean namesColumns, WebPage page)
+        me:row = row
+        me:namesColumns = namesColumns
+        me:page = page
+    end
+
+    /*
+        Adds a cell holding plain words.
+
+        Attribute: Parameter value The cell's words.
+        Attribute: Returns This writer, to add more cells.
+    */
+    action Cell(text value) returns TableRowWriter
+        Cell():Text(value)
+        return me
+    end
+
+    /*
+        Adds an empty cell, and returns a writer to fill it in with words
+        named by what they are, such as a key to press. Keep this writer
+        in a variable to add more cells after it.
+
+        Attribute: Returns A writer for the cell.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Table("Keys")
+                TableRowWriter save = TableRow()
+                save:Cell():Keys("Ctrl", "S")
+                save:Cell("Saves the scene")
+            end
+        end
+    */
+    action Cell returns RichText
+        WebTag cell = undefined
+        if namesColumns
+            TableHeaderCell columnName
+            columnName:AddAttribute(SCOPE_ATTRIBUTE, COLUMN_SCOPE)
+            page:SetStyle(columnName, page:GetStyleOptions():GetTableHeaderCell())
+            cell = columnName
+        elseif cellCount = 0
+            TableHeaderCell rowName
+            rowName:AddAttribute(SCOPE_ATTRIBUTE, ROW_SCOPE)
+            page:SetStyle(rowName, page:GetStyleOptions():GetTableRowHeaderCell())
+            cell = rowName
+        else
+            TableData data
+            page:SetStyle(data, page:GetStyleOptions():GetTableCell())
+            cell = data
+        end
+        row:AddNestedTag(cell)
+        cellCount = cellCount + 1
+        RichText writer
+        writer:SetTarget(cell, page)
+        return writer
+    end
+end

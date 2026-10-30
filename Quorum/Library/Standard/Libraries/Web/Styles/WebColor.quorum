@@ -1,0 +1,115 @@
+package Libraries.Web.Styles
+
+/*
+    WebColor is a color for a style: an amount of red, green and blue, each
+    from 0 to 255, and how opaque it is, from 0 (clear) to 1 (solid). A
+    site names its colors once, in its style options, and its styles use
+    those, so the same color is never typed twice.
+
+    Attribute: Example
+    use Libraries.Web.Styles.WebColor
+    use Libraries.Web.Styles.WebBoxStyle
+
+    WebColor darkBlue
+    darkBlue:SetColor(18, 90, 119)
+    WebBoxStyle box
+    box:SetBackground(darkBlue)
+*/
+class WebColor
+    integer red = 0
+    integer green = 0
+    integer blue = 0
+    number opacity = 1
+
+    constant integer LARGEST_AMOUNT = 255
+
+    /*
+        Sets the color, as amounts of red, green and blue.
+
+        Attribute: Parameter red How much red, from 0 to 255.
+        Attribute: Parameter green How much green, from 0 to 255.
+        Attribute: Parameter blue How much blue, from 0 to 255.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebColor
+
+        WebColor white
+        white:SetColor(255, 255, 255)
+    */
+    action SetColor(integer red, integer green, integer blue)
+        CheckAmount(red)
+        CheckAmount(green)
+        CheckAmount(blue)
+        me:red = red
+        me:green = green
+        me:blue = blue
+    end
+
+    /*
+        Sets how opaque the color is: 1 is solid, 0 is clear, and 0.5 lets
+        half of what is behind it show through.
+
+        Attribute: Parameter value The opacity, from 0 to 1.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebColor
+
+        WebColor shade
+        shade:SetColor(0, 0, 0)
+        shade:SetOpacity(0.1)
+    */
+    action SetOpacity(number value)
+        if value < 0 or value > 1
+            alert("A color's opacity goes from 0 to 1, but it was set to " + value + ".")
+        end
+        opacity = value
+    end
+
+    action GetRed returns integer
+        return red
+    end
+
+    action GetGreen returns integer
+        return green
+    end
+
+    action GetBlue returns integer
+        return blue
+    end
+
+    action GetOpacity returns number
+        return opacity
+    end
+
+    /*
+        Returns a new color with the same values. Change the copy to make
+        a related color without changing this one.
+
+        Attribute: Returns A copy of this color.
+    */
+    action Copy returns WebColor
+        WebColor copy
+        copy:SetColor(red, green, blue)
+        copy:SetOpacity(opacity)
+        return copy
+    end
+
+    /*
+        Returns the color as stylesheet text. Styles call this when the
+        site writes its stylesheet; people making pages don't.
+
+        Attribute: Returns The color, such as "rgb(18,90,119)".
+    */
+    action Generate returns text
+        if opacity = 1
+            return "rgb(" + red + "," + green + "," + blue + ")"
+        end
+        return "rgba(" + red + "," + green + "," + blue + "," + opacity + ")"
+    end
+
+    private action CheckAmount(integer amount)
+        if amount < 0 or amount > LARGEST_AMOUNT
+            alert("A color's red, green and blue go from 0 to 255, but one was set to " + amount + ".")
+        end
+    end
+end

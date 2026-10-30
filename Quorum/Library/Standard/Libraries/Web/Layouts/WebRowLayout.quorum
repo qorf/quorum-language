@@ -1,0 +1,171 @@
+package Libraries.Web.Layouts
+use Libraries.Web.Styles.StyleSheetConstants
+
+/*
+    WebRowLayout places the items inside an element side by side, from
+    left to right. The gap is the space between items, in pixels. Items
+    can wrap onto more lines when there isn't room, and can be spread out
+    so the first sits at the left edge and the last at the right.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Layouts.WebRowLayout
+
+    class Main is WebPage
+        action Main
+            WebRowLayout row
+            row:SetGap(8)
+            row:SetWrap(true)
+
+            Division division
+            SetLayout(division, row)
+            division:AddParagraph("First")
+            division:AddParagraph("Second")
+            Include(division)
+        end
+    end
+*/
+class WebRowLayout is WebLayout
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+    number gap = 0
+    boolean wrap = false
+    boolean spread = false
+    boolean centered = false
+    boolean alignedTop = false
+    boolean centeredAcross = false
+    boolean atEnd = false
+
+    /*
+        Sets the space between items, in pixels.
+
+        Attribute: Parameter pixels The space between items. It can't be negative.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebRowLayout
+
+        WebRowLayout row
+        row:SetGap(8)
+    */
+    action SetGap(number pixels)
+        if pixels < 0
+            alert("A row's gap can't be negative, but it was set to " + pixels + ".")
+        end
+        gap = pixels
+    end
+
+    action GetGap returns number
+        return gap
+    end
+
+    /*
+        Sets whether items move onto another line when the row runs out of
+        room, as words do. Without wrapping, they all stay on one line.
+
+        Attribute: Parameter value True to wrap.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebRowLayout
+
+        WebRowLayout row
+        row:SetWrap(true)
+    */
+    action SetWrap(boolean value)
+        wrap = value
+    end
+
+    /*
+        Spreads the items across the row: the first at the left edge, the
+        last at the right, and the rest evenly between.
+
+        Attribute: Parameter value True to spread the items out.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebRowLayout
+
+        WebRowLayout row
+        row:SetSpreadOut(true)
+    */
+    action SetSpreadOut(boolean value)
+        spread = value
+    end
+
+    /*
+        Lines items of different heights up on their centers, as for text
+        beside an icon. Without this, they stretch to the row's height.
+
+        Attribute: Parameter value True to center items vertically.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebRowLayout
+
+        WebRowLayout row
+        row:SetCenteredVertically(true)
+    */
+    action SetCenteredVertically(boolean value)
+        centered = value
+    end
+
+    /*
+        Gathers the items in the middle of the row, with the room left
+        over split on either side.
+
+        Attribute: Parameter value True to center the items across the row.
+    */
+    action SetCenteredHorizontally(boolean value)
+        centeredAcross = value
+    end
+
+    /*
+        Gathers the items at the right end of the row, as for a row of
+        buttons at the bottom of a form.
+
+        Attribute: Parameter value True to put the items at the end.
+    */
+    action SetAtEnd(boolean value)
+        atEnd = value
+    end
+
+    /*
+        Lines items of different heights up along the top of the row,
+        instead of stretching them to the row's height. A sticky item
+        beside a long one needs this to stay in view.
+
+        Attribute: Parameter value True to line items up along the top.
+    */
+    action SetAlignedTop(boolean value)
+        alignedTop = value
+    end
+
+    /*
+        Returns the stylesheet declarations for this row. WebSite calls
+        this when it writes the stylesheet; people making pages don't.
+
+        Attribute: Returns The declarations for this row.
+    */
+    action Generate returns text
+        text result = "display:flex;flex-direction:row;"
+        if wrap
+            result = result + "flex-wrap:wrap;"
+        end
+        if gap > 0
+            result = result + "column-gap:" + constants:ToWidthOfM(gap) + ";"
+            if wrap
+                result = result + "row-gap:" + constants:ToWidthOfM(gap) + ";"
+            end
+        end
+        if spread
+            result = result + "justify-content:space-between;"
+        elseif centeredAcross
+            result = result + "justify-content:center;"
+        elseif atEnd
+            result = result + "justify-content:flex-end;"
+        end
+        if centered
+            result = result + "align-items:center;"
+        elseif alignedTop
+            result = result + "align-items:flex-start;"
+        end
+        return result
+    end
+end
