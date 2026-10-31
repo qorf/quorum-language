@@ -53,13 +53,13 @@ class PageSeriesEntry
 
     /*
         Returns the page's summary: from the page itself when the website
-        builds it, or as given otherwise. It may be empty.
+        builds it (its GetSummary), or as given otherwise. It may be empty.
 
         Attribute: Returns The summary.
     */
     action GetDescription returns text
         if page not= undefined
-            return page:GetDescription()
+            return page:GetSummary()
         end
         return description
     end

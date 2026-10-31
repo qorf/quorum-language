@@ -139,8 +139,10 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
 
     // For search engines and link previews: the page's summary, the
     // picture shown when it is shared, and whether search engines may
-    // list it.
+    // list it. The other summary is what lists of pages say about it,
+    // when that differs.
     text description = ""
+    text summary = ""
     text shareImage = ""
     text shareImageDescription = ""
     boolean searchable = true
@@ -3294,6 +3296,41 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     */
     action GetDescription returns text
         return description
+    end
+
+    /*
+        Sets what a list of pages says about this page, such as a series
+        and its "Up next", when that differs from the description search
+        engines show (SetDescription). Without it, lists show the
+        description.
+
+        Attribute: Parameter value What lists say about the page.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                SetDescription("Learn about how to use actions in the Quorum programming language.")
+                SetSummary("how to use actions to provide additional behaviors our code can do")
+            end
+        end
+    */
+    action SetSummary(text value)
+        summary = value
+    end
+
+    /*
+        Returns what a list of pages says about this page: its summary, or
+        its description if it has no summary. It may be empty.
+
+        Attribute: Returns What lists say about the page.
+    */
+    action GetSummary returns text
+        if not summary:IsEmpty()
+            return summary
+        end
+        return GetDescription()
     end
 
     /*
