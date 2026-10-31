@@ -203,6 +203,12 @@ class WebSite is NetworkExchangeListener
         return plainPages:HasKey(page)
     end
 
+    // Whether any page uses the site's stylesheet: a site of only plain
+    // pages has none to write or serve.
+    private action HasStyledPages returns boolean
+        return plainPages:GetSize() < pages:GetSize()
+    end
+
     /*
         Adds a responder that isn't a page, such as one that signs people
         in, at its location. It is served, but never written to a file.
@@ -614,7 +620,7 @@ class WebSite is NetworkExchangeListener
             alert("The site needs a folder to be written into. Set it with SetFolder.")
         end
         Prepare()
-        if plainPages:GetSize() < pages:GetSize()
+        if HasStyledPages()
             WriteFile(locations:Join(folder, styleSheetLocation), sheet:Generate())
         end
         // Each page at the location the site knows it by, which is its own
@@ -629,8 +635,9 @@ class WebSite is NetworkExchangeListener
 
     /*
         Starts answering requests on a port: each request goes to whatever
-        is at its location, and the stylesheet is served at its own
-        location. This keeps running until the server is stopped.
+        is at its location, and the stylesheet (unless every page is plain)
+        is served at its own location. This keeps running until the server
+        is stopped.
 
         Attribute: Parameter port The port to listen on, such as 8080.
     */
@@ -651,7 +658,7 @@ class WebSite is NetworkExchangeListener
     */
     action ResponseReceived(NetworkExchange exchange)
         text location = ToLocation(exchange:GetPath())
-        if location = styleSheetLocation
+        if location = styleSheetLocation and HasStyledPages()
             Send(exchange, 200, "text/css; charset=UTF-8", sheet:Generate())
             return now
         end
