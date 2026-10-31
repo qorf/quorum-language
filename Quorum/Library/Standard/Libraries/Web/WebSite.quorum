@@ -66,6 +66,10 @@ class WebSite is NetworkExchangeListener
     // Pages added with AddPlainPage: written as they make themselves.
     HashTable<WebPage, boolean> plainPages
 
+    // The pages in the order they were added, which is the order they're
+    // set up in.
+    Array<WebPage> pagesInOrder
+
     text styleSheetLocation = "style/site.css"
     text homeLocation = "index.html"
 
@@ -144,6 +148,7 @@ class WebSite is NetworkExchangeListener
     action AddPage(WebPage page)
         AddResponder(page)
         pages:Set(page:GetLocation(), page)
+        pagesInOrder:Add(page)
         page:SetWebSite(me)
     end
 
@@ -188,6 +193,7 @@ class WebSite is NetworkExchangeListener
         end
         responders:Set(location, page)
         pages:Set(location, page)
+        pagesInOrder:Add(page)
         plainPages:Set(page, true)
         page:SetWebSite(me)
     end
@@ -725,11 +731,14 @@ class WebSite is NetworkExchangeListener
             return now
         end
 
-        // Every page is set up, now that all of them are on the site; then
-        // anything that needs them all.
-        Iterator<WebPage> setUp = pages:GetValueIterator()
-        repeat while setUp:HasNext()
-            setUp:Next():Setup()
+        // Every page is set up, now that all of them are on the site, in
+        // the order they were added, so a page that lists others (such as
+        // an index of a series) can be added after them; then anything
+        // that needs them all.
+        integer i = 0
+        repeat while i < pagesInOrder:GetSize()
+            pagesInOrder:Get(i):Setup()
+            i = i + 1
         end
         FinishContent()
 
