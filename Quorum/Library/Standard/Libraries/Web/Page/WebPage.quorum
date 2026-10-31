@@ -131,6 +131,9 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     // The title's words, for links to this page (such as in a standards
     // report).
     text titleText = ""
+
+    // The header holding the page's title, once Title has added it.
+    Header titleHeader = undefined
     boolean webPageTitleSet = false
     WebTextEscaper escaper
 
@@ -149,6 +152,7 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     constant integer SECTION_DEPTH = 0
     constant integer SUBSECTION_DEPTH = 1
     constant integer SUBSUBSECTION_DEPTH = 2
+    constant integer SUBSUBSUBSECTION_DEPTH = 3
 
     // A part's heading is this many levels below its depth: a section
     // (depth 0) has a level 2 heading, under the page's level 1 title.
@@ -2777,12 +2781,37 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
         titleAdded = true
         EndCurrentList()
 
-        Header titleHeader
-        SetLayout(titleHeader, GetStyleOptions():GetStack())
+        Header header
+        titleHeader = header
+        SetLayout(header, GetStyleOptions():GetStack())
         Heading heading = NewHeading(TITLE_HEADING_LEVEL)
-        titleHeader:AddNestedTag(heading)
-        body:AddNestedTag(titleHeader)
+        header:AddNestedTag(heading)
+        body:AddNestedTag(header)
         return WriterFor(heading)
+    end
+
+    /*
+        Returns the header that holds the page's title, so more can go
+        beside the title, such as a picture, or the header can be given a
+        look of its own. Returns undefined before Title is called.
+
+        Attribute: Returns The title's header, or undefined.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebBoxStyle
+
+        class Main is WebPage
+            action Main
+                Title("Quorum Blocks Online Programming Track")
+                WebBoxStyle banner
+                banner:SetPadding(16, 24)
+                SetStyle(GetTitleHeader(), banner)
+            end
+        end
+    */
+    action GetTitleHeader returns Header
+        return titleHeader
     end
 
     /*
@@ -2929,6 +2958,85 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
             alert("A subsubsection needs a subsection to go in. Add a subsection first.")
         end
         return OpenPart(SUBSUBSECTION_DEPTH)
+    end
+
+    /*
+        Starts a part inside the current subsubsection, with its heading:
+        the deepest part a page has. It closes any part at its level that
+        was open. Returns a writer for the heading.
+
+        Attribute: Parameter headingText The words of the part's heading.
+        Attribute: Returns A writer for the heading, to add more to it.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("2026")
+                Subsection("Quorum 14.0")
+                Subsubsection("Charts")
+                Subsubsubsection("Bar Charts")
+                Paragraph("Bar charts now ...")
+            end
+        end
+    */
+    action Subsubsubsection(text headingText) returns RichText
+        RichText writer = Subsubsubsection()
+        NameHeading(lastHeading, headingText)
+        return writer:Text(headingText)
+    end
+
+    /*
+        Starts a subsubsubsection with an empty heading, and returns a
+        writer to fill it in.
+
+        Attribute: Returns A writer for the heading.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("2026")
+                Subsection("Quorum 14.0")
+                Subsubsection("Charts")
+                Subsubsubsection():Text("Using "):Code("BarChart")
+            end
+        end
+    */
+    action Subsubsubsection returns RichText
+        if openParts:GetSize() < SUBSUBSUBSECTION_DEPTH
+            alert("A subsubsubsection needs a subsubsection to go in. Add a subsubsection first.")
+        end
+        return OpenPart(SUBSUBSUBSECTION_DEPTH)
+    end
+
+    /*
+        Returns the part (section, subsection and so on) most recently
+        started and still open, so it can be given a look of its own, such
+        as a card. Returns undefined before the first part.
+
+        Attribute: Returns The open part, or undefined.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebBoxStyle
+
+        class Main is WebPage
+            action Main
+                WebBoxStyle card
+                card:SetPadding(12, 16)
+                Section("Quorum 14.0")
+                SetStyle(GetCurrentPart(), card)
+            end
+        end
+    */
+    action GetCurrentPart returns Section
+        if openParts:IsEmpty()
+            return undefined
+        end
+        return openParts:Get(openParts:GetSize() - 1)
     end
 
     /*

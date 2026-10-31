@@ -354,7 +354,9 @@ class WebBoxStyle is WebStyle
     /*
         Keeps the box in view as the page scrolls, this far from the top of
         the window, once it reaches there, as for a list of contents beside
-        the text.
+        the text. The box is never taller than the window below that
+        point; if its contents are, it scrolls on its own, so all of it
+        can be reached.
 
         Attribute: Parameter pixels How far from the top of the window the box stays.
     */
@@ -624,7 +626,10 @@ class WebBoxStyle is WebStyle
             end
         end
         if stickyTop >= 0
-            result = result + "position:sticky;top:" + constants:ToWidthOfM(stickyTop) + ";"
+            // Never taller than the window below where it sticks, so all
+            // of it can be reached: a longer box scrolls on its own.
+            text top = constants:ToWidthOfM(stickyTop)
+            result = result + "position:sticky;top:" + top + ";max-height:calc(100vh - " + top + ");overflow-y:auto;"
         end
         if widthPercent >= 0
             result = result + "width:" + widthPercent + "%;"
