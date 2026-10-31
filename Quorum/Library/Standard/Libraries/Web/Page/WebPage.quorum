@@ -84,6 +84,13 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     // The list that items go into, and the description list that
     // descriptions go into. Each ends when anything else is added.
     WebTag currentList = undefined
+
+    // The item last added to the current list, which a nested list goes
+    // inside; and, while a nested list is open, the lists and items it is
+    // inside, outermost first.
+    WebTag currentListItem = undefined
+    Array<WebTag> outerLists
+    Array<WebTag> outerListItems
     DefinitionList currentDescriptionList = undefined
 
     // The table that rows go into, while it is being built by hand, and
@@ -375,6 +382,25 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     */
     action SetBody(Body body)
         me:body = body
+    end
+
+    /*
+        Writes the page's content. A page overrides this; its WebSite calls
+        it once, when the site is written or served, after every page has
+        been added, so the page can use the site (its files, its other
+        pages) while it is built. A page not on a site can call it itself.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Welcome is WebPage
+            action Setup
+                Title("Welcome")
+                Paragraph("Hello.")
+            end
+        end
+    */
+    action Setup
     end
 
     action Generate returns text
@@ -3068,7 +3094,69 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
         end
         ListItem item
         currentList:AddNestedTag(item)
+        currentListItem = item
         return WriterFor(item)
+    end
+
+    /*
+        Starts a bulleted list inside the item just added to the current
+        list, such as the kinds of a thing under the item naming it. Items
+        go into it until EndNestedList, which goes back to the list around
+        it. Lists can nest more than once.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("The palette")
+                BulletList()
+                ListItem("Basic 3D shapes:")
+                NestedBulletList()
+                ListItem("Cube")
+                ListItem("Sphere")
+                EndNestedList()
+                ListItem("Kits of models")
+            end
+        end
+    */
+    action NestedBulletList
+        UnorderedList list
+        SetStyle(list, GetStyleOptions():GetBulletList())
+        OpenNestedList(list)
+    end
+
+    /*
+        Starts a numbered list inside the item just added to the current
+        list, as NestedBulletList does.
+    */
+    action NestedNumberedList
+        OrderedList list
+        SetStyle(list, GetStyleOptions():GetNumberedList())
+        OpenNestedList(list)
+    end
+
+    /*
+        Ends the nested list started last, so the next item goes into the
+        list around it.
+    */
+    action EndNestedList
+        if outerLists:GetSize() = 0
+            alert("There's no nested list to end. Start one with NestedBulletList or NestedNumberedList.")
+        end
+        currentList = outerLists:RemoveFromEnd()
+        currentListItem = outerListItems:RemoveFromEnd()
+    end
+
+    private action OpenNestedList(WebTag list)
+        if currentListItem = undefined
+            alert("A nested list goes inside a list item. Add a list item first with ListItem.")
+        end
+        currentListItem:AddNestedTag(list)
+        outerLists:Add(currentList)
+        outerListItems:Add(currentListItem)
+        currentList = list
+        currentListItem = undefined
     end
 
     /*
@@ -3664,6 +3752,54 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     end
 
     /*
+        Adds text in another language than the page's code, such as a
+        settings file in JSON, on its own lines and shown exactly as
+        written, with that language's highlighting if the page's
+        highlighter knows it. With no language, it is plain text. Unlike
+        the page's own code, it has no line numbers.
+
+        Attribute: Parameter code The text.
+        Attribute: Parameter language The language's name, as the highlighter knows it, such as "json", or nothing for plain text.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Section("Settings")
+                CodeExample("{ " + "}", "json")
+            end
+        end
+    */
+    action CodeExample(text code, text language)
+        PreformattedText preformatted
+        CodeBlock block
+        if not language:IsEmpty()
+            preformatted:AddClassAttribute(LANGUAGE_CLASS_START + language)
+            block:AddClassAttribute(LANGUAGE_CLASS_START + language)
+        end
+        block:AddText(escaper:Escape(code))
+        preformatted:Add(block)
+        SetStyle(preformatted, GetStyleOptions():GetCodeExample())
+        Include(preformatted)
+    end
+
+    /*
+        Adds text in another language from a file in the site's relative
+        folder, as CodeExample with a language does.
+
+        Attribute: Parameter location The file's location inside the relative folder.
+        Attribute: Parameter language The language's name, such as "json", or nothing for plain text.
+    */
+    action CodeExampleFromFile(text location, text language)
+        File file = GetWebSite():GetRelativeFile(location)
+        if not file:Exists()
+            alert("There's no file at " + file:GetPath() + ".")
+        end
+        CodeExample(file:Read(), language)
+    end
+
+    /*
         Sets the language of the page's code examples, for highlighting.
         The default is Quorum.
 
@@ -4025,6 +4161,9 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     // Ends the current list, so no more items go into it.
     private action EndCurrentList
         currentList = undefined
+        currentListItem = undefined
+        outerLists:Empty()
+        outerListItems:Empty()
         currentDescriptionList = undefined
         currentTable = undefined
         currentTableHeader = undefined

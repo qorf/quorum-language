@@ -28,6 +28,7 @@ class PageSeries
     text name = ""
     text key = ""
     text description = ""
+    text image = ""
     text overviewLocation = ""
     WebLocations locations
 
@@ -88,6 +89,20 @@ class PageSeries
 
     action GetDescription returns text
         return description
+    end
+
+    /*
+        Sets a picture for the series, shown where the series is listed,
+        such as a card for each course.
+
+        Attribute: Parameter location The picture's address, as pages link to it.
+    */
+    action SetImage(text location)
+        image = location
+    end
+
+    action GetImage returns text
+        return image
     end
 
     /*

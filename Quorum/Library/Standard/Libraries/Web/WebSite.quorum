@@ -63,6 +63,9 @@ class WebSite is NetworkExchangeListener
     // Only the pages, by location: what gets written and styled.
     HashTable<text, WebPage> pages
 
+    // Pages added with AddPlainPage: written as they make themselves.
+    HashTable<WebPage, boolean> plainPages
+
     text styleSheetLocation = "style/site.css"
     text homeLocation = "index.html"
 
@@ -142,6 +145,62 @@ class WebSite is NetworkExchangeListener
         AddResponder(page)
         pages:Set(page:GetLocation(), page)
         page:SetWebSite(me)
+    end
+
+    /*
+        Adds a page the site writes and serves exactly as the page makes
+        itself: the site sets it up, but adds nothing to it (no stylesheet,
+        no search and sharing tags, no checks). For pages made before the
+        site's styling existed, which have their own look.
+
+        Attribute: Parameter page The page, at its own location.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+        use Libraries.Web.Page.WebPage
+
+        WebSite site
+        WebPage page
+        page:SetLocation("old.html")
+        site:AddPlainPage(page)
+    */
+    action AddPlainPage(WebPage page)
+        AddPlainPage(page, page:GetLocation())
+    end
+
+    /*
+        Adds a page the site writes and serves exactly as the page makes
+        itself, at the location given, for a page that doesn't know its own.
+
+        Attribute: Parameter page The page.
+        Attribute: Parameter location Where the page goes, with no leading slash, such as "reference.html".
+    */
+    action AddPlainPage(WebPage page, text location)
+        if sheet not= undefined
+            alert("Add everything to a site before writing or serving it.")
+        end
+        locations:Check(location)
+        if location:IsEmpty()
+            alert("A page needs a location before it's added to a site.")
+        end
+        if responders:HasKey(location)
+            alert("Two things on the site have the same location: " + location)
+        end
+        responders:Set(location, page)
+        pages:Set(location, page)
+        plainPages:Set(page, true)
+        page:SetWebSite(me)
+    end
+
+    /*
+        Returns true if a page was added with AddPlainPage, so the site
+        adds nothing to it.
+
+        Attribute: Parameter page A page on the site.
+        Attribute: Returns Whether the page is written as it makes itself.
+    */
+    action IsPlainPage(WebPage page) returns boolean
+        return plainPages:HasKey(page)
     end
 
     /*
@@ -546,20 +605,24 @@ class WebSite is NetworkExchangeListener
     end
 
     /*
-        Writes the site into its folder: the stylesheet, every page, and,
-        if the site has an address, the sitemap and robots file.
-        Responders that aren't pages aren't written.
+        Writes the site into its folder: the stylesheet (unless every page
+        is plain), every page, and, if the site has an address, the sitemap
+        and robots file. Responders that aren't pages aren't written.
     */
     action Write
         if folder:IsEmpty()
             alert("The site needs a folder to be written into. Set it with SetFolder.")
         end
         Prepare()
-        WriteFile(locations:Join(folder, styleSheetLocation), sheet:Generate())
-        Iterator<WebPage> iterator = pages:GetValueIterator()
-        repeat while iterator:HasNext()
-            WebPage page = iterator:Next()
-            WriteFile(locations:Join(folder, page:GetLocation()), page:Generate())
+        if plainPages:GetSize() < pages:GetSize()
+            WriteFile(locations:Join(folder, styleSheetLocation), sheet:Generate())
+        end
+        // Each page at the location the site knows it by, which is its own
+        // unless it was added with one.
+        Iterator<text> keys = pages:GetKeyIterator()
+        repeat while keys:HasNext()
+            text location = keys:Next()
+            WriteFile(locations:Join(folder, location), pages:GetValue(location):Generate())
         end
         WriteSitemapAndRobots()
     end
@@ -655,7 +718,12 @@ class WebSite is NetworkExchangeListener
             return now
         end
 
-        // Every page is set up: anything that needs them all comes now.
+        // Every page is set up, now that all of them are on the site; then
+        // anything that needs them all.
+        Iterator<WebPage> setUp = pages:GetValueIterator()
+        repeat while setUp:HasNext()
+            setUp:Next():Setup()
+        end
         FinishContent()
 
         sheet = BuildStyleSheet()
@@ -664,9 +732,11 @@ class WebSite is NetworkExchangeListener
         Iterator<WebPage> iterator = pages:GetValueIterator()
         repeat while iterator:HasNext()
             WebPage page = iterator:Next()
-            page:CheckHeadings()
-            AddSearchAndSharing(page)
-            page:AddStylesheet(styleSheetAddress)
+            if not IsPlainPage(page)
+                page:CheckHeadings()
+                AddSearchAndSharing(page)
+                page:AddStylesheet(styleSheetAddress)
+            end
         end
 
         if accessibilityChecks
@@ -691,7 +761,11 @@ class WebSite is NetworkExchangeListener
         lineFeed = lineFeed:GetLineFeed()
         integer i = 0
         repeat while i < pageLocations:GetSize()
-            Array<text> problems = checker:Check(pages:GetValue(pageLocations:Get(i)))
+            WebPage checked = pages:GetValue(pageLocations:Get(i))
+            Array<text> problems
+            if not IsPlainPage(checked)
+                problems = checker:Check(checked)
+            end
             integer j = 0
             repeat while j < problems:GetSize()
                 report = report + lineFeed + problems:Get(j)
