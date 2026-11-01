@@ -35,6 +35,8 @@ class PageSeries
     // The pages, in order, and each one's position by its location.
     Array<PageSeriesEntry> entries
     HashTable<text, integer> positions
+    // Pages that are part of an entry, not entries themselves (AddPart).
+    HashTable<text, boolean> parts
 
     // A key goes in addresses, so it uses only these characters.
     constant text KEY_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789-"
@@ -156,6 +158,49 @@ class PageSeries
     end
 
     /*
+        Adds a page as part of the entry added last, such as the second
+        problem in a set of problems whose entry is the set's first. The
+        page shows that entry as its place in the series (its navigation
+        marks it), but it isn't an entry itself, so the series' list and
+        its count don't change. The entry's own page may be added as a part
+        too, so it is treated like the entry's other parts (its breadcrumbs
+        name the entry, as theirs do).
+
+        Attribute: Parameter location The page's location on the site, with no leading slash.
+
+        Attribute: Example
+        use Libraries.Web.Series.PageSeries
+
+        PageSeries problems
+        problems:SetName("Practice Problems")
+        problems:AddOutsidePage("Output", "problems/output/start.html")
+        problems:AddPart("problems/output/change.html")
+    */
+    action AddPart(text location)
+        if entries:IsEmpty()
+            alert("A part belongs to an entry, but the series " + name + " has none yet.")
+        end
+        locations:Check(location)
+        integer last = entries:GetSize() - 1
+        if positions:HasKey(location) and location not= entries:Get(last):GetLocation()
+            alert("The series " + name + " already has the page " + location + ".")
+        end
+        positions:Set(location, last)
+        parts:Set(location, true)
+    end
+
+    /*
+        Returns true if the page at a location is part of an entry (added
+        with AddPart), not an entry itself.
+
+        Attribute: Parameter location The page's location.
+        Attribute: Returns Whether it is a part.
+    */
+    action IsPart(text location) returns boolean
+        return parts:HasKey(location)
+    end
+
+    /*
         Returns how many pages are in the series.
 
         Attribute: Returns The number of pages.
@@ -176,7 +221,7 @@ class PageSeries
 
     /*
         Returns a page's position in the series, from 0, or -1 if it isn't
-        in the series.
+        in the series. A part (AddPart) has its entry's position.
 
         Attribute: Parameter location The page's location.
         Attribute: Returns The position, or -1.

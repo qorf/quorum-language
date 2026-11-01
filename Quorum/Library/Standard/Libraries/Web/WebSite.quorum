@@ -115,6 +115,15 @@ class WebSite is NetworkExchangeListener
     constant text NAME_SEPARATOR = "."
     constant text FOLDER_SEPARATOR = "/"
     StyleSheet sheet = undefined
+    // Pages the site's server builds when asked: examples of each, set up
+    // and styled with the rest so their looks are in the stylesheet, never
+    // written (AddLookSample). Once the stylesheet is built, each look's
+    // class name, plain and conditional, and the stylesheet's address
+    // with its version, for the pages it serves (PrepareServedPage).
+    Array<WebPage> lookSamples
+    HashTable<text, text> lookNames
+    HashTable<text, text> conditionalLookNames
+    text versionedStyleSheetAddress = ""
 
     // Added to the stylesheet's link with a number made from its
     // contents, so a browser fetches it again whenever it changes instead
@@ -150,6 +159,72 @@ class WebSite is NetworkExchangeListener
         pages:Set(page:GetLocation(), page)
         pagesInOrder:Add(page)
         page:SetWebSite(me)
+    end
+
+    /*
+        Adds an example of a page the site's server builds when someone
+        asks for it, such as a page listing a reader's projects. The
+        example is set up and styled with the site's pages, so its looks
+        are in the stylesheet, but it is never written or served itself.
+        Give it the same kind of content the real pages have, then prepare
+        each real page with PrepareServedPage.
+
+        Attribute: Parameter page An example of the page, its content made up.
+
+        Attribute: Example
+        use Libraries.Web.WebSite
+        use Libraries.Web.Page.WebPage
+
+        WebSite site
+        WebPage example
+        site:AddLookSample(example)
+    */
+    action AddLookSample(WebPage page)
+        if sheet not= undefined
+            alert("Add everything to a site before writing or serving it.")
+        end
+        lookSamples:Add(page)
+        page:SetWebSite(me)
+    end
+
+    /*
+        Gets a page the site's server built when asked ready to send, as
+        the site's own pages are: finished as the site finishes its pages
+        (FinishServedPage, such as a site's frame), each element given its
+        class name from the stylesheet, and the stylesheet linked. Call
+        page:SetWebSite first, then the page's Setup, then this, once the
+        site is written or serving. An element whose look the stylesheet
+        doesn't have gets no class name and shows unstyled; add an example
+        of the page with AddLookSample so the stylesheet has its looks.
+
+        Attribute: Parameter page The page, set up.
+        Attribute: Returns How many of the page's looks the stylesheet doesn't have: 0 when every element is styled.
+    */
+    action PrepareServedPage(WebPage page) returns integer
+        if sheet = undefined
+            alert("Write or serve the site before preparing a page it serves.")
+        end
+        page:SetWebSite(me)
+        FinishServedPage(page)
+        integer missing = ApplyLooks(page)
+        page:CheckHeadings()
+        if not page:HasWebPageTitle()
+            page:SetWebPageTitle(page:GetTitleText() + titleEnding)
+        end
+        page:AddStylesheet(versionedStyleSheetAddress)
+        return missing
+    end
+
+    /*
+        Called for each page the server builds, by PrepareServedPage,
+        before the page is styled. It does nothing here. A subclass fills
+        it in to finish a served page as FinishContent finishes the site's
+        own, such as putting it in the site's frame; looks it adds must be
+        ones the site's pages already have.
+
+        Attribute: Parameter page The page, set up.
+    */
+    action FinishServedPage(WebPage page)
     end
 
     /*
@@ -740,11 +815,17 @@ class WebSite is NetworkExchangeListener
             pagesInOrder:Get(i):Setup()
             i = i + 1
         end
+        i = 0
+        repeat while i < lookSamples:GetSize()
+            lookSamples:Get(i):Setup()
+            i = i + 1
+        end
         FinishContent()
 
         sheet = BuildStyleSheet()
         text contents = sheet:Generate()
         text styleSheetAddress = locations:FromSiteTop(styleSheetLocation) + VERSION_QUERY + contents:GetHashCode()
+        versionedStyleSheetAddress = styleSheetAddress
         Iterator<WebPage> iterator = pages:GetValueIterator()
         repeat while iterator:HasNext()
             WebPage page = iterator:Next()
@@ -806,9 +887,11 @@ class WebSite is NetworkExchangeListener
         HashTable<WebTag, text> looks
         HashTable<text, text> classNames
         Array<text> allDeclarations
-        Iterator<WebPage> pageIterator = pages:GetValueIterator()
-        repeat while pageIterator:HasNext()
-            WebPage page = pageIterator:Next()
+        Array<WebPage> styledPages = GetStyledPageList()
+        integer pageIndex = 0
+        repeat while pageIndex < styledPages:GetSize()
+            WebPage page = styledPages:Get(pageIndex)
+            pageIndex = pageIndex + 1
             Iterator<WebTag> elements = page:GetLayoutElements()
             repeat while elements:HasNext()
                 WebTag element = elements:Next()
@@ -864,9 +947,10 @@ class WebSite is NetworkExchangeListener
         HashTable<text, WebConditionalLook> conditionOfKey
         Array<text> conditionalKeys
         HashTable<WebTag, Array<text>> keysOfElement
-        pageIterator = pages:GetValueIterator()
-        repeat while pageIterator:HasNext()
-            WebPage page = pageIterator:Next()
+        pageIndex = 0
+        repeat while pageIndex < styledPages:GetSize()
+            WebPage page = styledPages:Get(pageIndex)
+            pageIndex = pageIndex + 1
             Iterator<WebTag> conditionalElements = page:GetConditionalElements()
             repeat while conditionalElements:HasNext()
                 WebTag element = conditionalElements:Next()
@@ -917,6 +1001,10 @@ class WebSite is NetworkExchangeListener
             end
         end
 
+        // Kept for pages the server builds later (PrepareServedPage).
+        lookNames = classNames
+        conditionalLookNames = conditionalNames
+
         // The reset, and the looks scripts add by name, from the options.
         if styleOptions not= undefined
             newSheet:SetReset(styleOptions:UsesReset())
@@ -929,6 +1017,78 @@ class WebSite is NetworkExchangeListener
             end
         end
         return newSheet
+    end
+
+    // The site's own pages and the examples of pages it serves: every page
+    // whose looks go in the stylesheet.
+    private action GetStyledPageList returns Array<WebPage>
+        Array<WebPage> list
+        Iterator<WebPage> iterator = pages:GetValueIterator()
+        repeat while iterator:HasNext()
+            list:Add(iterator:Next())
+        end
+        integer i = 0
+        repeat while i < lookSamples:GetSize()
+            list:Add(lookSamples:Get(i))
+            i = i + 1
+        end
+        return list
+    end
+
+    // Gives a served page's elements their class names from the built
+    // stylesheet, as BuildStyleSheet does for the site's pages, and returns
+    // how many of its looks the stylesheet doesn't have.
+    private action ApplyLooks(WebPage page) returns integer
+        HashTable<WebTag, text> looks
+        Iterator<WebTag> elements = page:GetLayoutElements()
+        repeat while elements:HasNext()
+            WebTag element = elements:Next()
+            looks:Set(element, page:GetLayoutOf(element):Generate())
+        end
+        Iterator<WebTag> styledElements = page:GetStyledElements()
+        repeat while styledElements:HasNext()
+            WebTag styledElement = styledElements:Next()
+            text before = ""
+            if looks:HasKey(styledElement)
+                before = looks:GetValue(styledElement)
+            end
+            looks:Set(styledElement, before + page:GetStyleOf(styledElement):Generate())
+        end
+
+        integer missing = 0
+        Iterator<WebTag> elementIterator = looks:GetKeyIterator()
+        repeat while elementIterator:HasNext()
+            WebTag element = elementIterator:Next()
+            text declarations = looks:GetValue(element)
+            if not declarations:IsEmpty()
+                if lookNames:HasKey(declarations)
+                    element:AddClassAttribute(lookNames:GetValue(declarations))
+                else
+                    missing = missing + 1
+                end
+            end
+        end
+
+        Iterator<WebTag> conditionalElements = page:GetConditionalElements()
+        repeat while conditionalElements:HasNext()
+            WebTag element = conditionalElements:Next()
+            Array<WebConditionalLook> elementLooks = page:GetConditionalLooksOf(element)
+            integer j = 0
+            repeat while j < elementLooks:GetSize()
+                WebConditionalLook look = elementLooks:Get(j)
+                text declarations = look:Generate()
+                if not declarations:IsEmpty()
+                    text key = look:GetState() + CONDITION_SEPARATOR + look:GetFromWidth() + CONDITION_SEPARATOR + declarations
+                    if conditionalLookNames:HasKey(key)
+                        element:AddClassAttribute(conditionalLookNames:GetValue(key))
+                    else
+                        missing = missing + 1
+                    end
+                end
+                j = j + 1
+            end
+        end
+        return missing
     end
 
     /*

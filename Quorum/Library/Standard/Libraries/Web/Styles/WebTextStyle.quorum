@@ -48,6 +48,14 @@ class WebTextStyle is WebStyle
     boolean wrapping = true
     boolean keepSpaces = false
     boolean codeFont = false
+    integer weight = 0
+    boolean letterSpacingSet = false
+    number letterSpacing = 0
+    boolean capitalized = false
+    boolean ellipsis = false
+    boolean keepWordsWhole = false
+    boolean selectableSet = false
+    boolean selectable = true
 
     // What a reader's browser uses when the named font is missing.
     constant text FALLBACK_FONT = "sans-serif"
@@ -379,6 +387,84 @@ class WebTextStyle is WebStyle
     end
 
     /*
+        Sets how heavy the letters are, as a number from 100 (thinnest) to
+        900 (heaviest): StyleSheetConstants names LIGHT_FONT_WEIGHT,
+        NORMAL_FONT_WEIGHT, MEDIUM_FONT_WEIGHT, SEMIBOLD_FONT_WEIGHT and
+        BOLD_FONT_WEIGHT. It takes the place of SetBold and SetSemibold.
+        The font must have the weight, or the nearest one is shown.
+
+        Attribute: Parameter value The weight, from 100 to 900.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+        use Libraries.Web.Styles.StyleSheetConstants
+
+        StyleSheetConstants constants
+        WebTextStyle label
+        label:SetWeight(constants:MEDIUM_FONT_WEIGHT)
+    */
+    action SetWeight(integer value)
+        if value < 100 or value > 900
+            alert("A font weight is from 100 to 900, but it was set to " + value + ".")
+        end
+        weight = value
+    end
+
+    /*
+        Sets extra space between letters, in pixels, as for a heading in
+        capitals. It may be negative, to set letters closer.
+
+        Attribute: Parameter pixels The extra space.
+    */
+    action SetLetterSpacing(number pixels)
+        letterSpacingSet = true
+        letterSpacing = pixels
+    end
+
+    /*
+        Shows the first letter of each word as a capital, as in a title,
+        without changing the words themselves.
+
+        Attribute: Parameter value True for capitals.
+    */
+    action SetCapitalized(boolean value)
+        capitalized = value
+    end
+
+    /*
+        Keeps the words on one line and ends a line too long for its box
+        with "...", as for a long file name in a list. The whole text stays
+        in the page for screen readers.
+
+        Attribute: Parameter value True to cut long lines off.
+    */
+    action SetEllipsis(boolean value)
+        ellipsis = value
+    end
+
+    /*
+        Keeps each word whole when a line wraps, even in languages that
+        may break between any two characters.
+
+        Attribute: Parameter value True to keep words whole.
+    */
+    action SetKeepWordsWhole(boolean value)
+        keepWordsWhole = value
+    end
+
+    /*
+        Sets whether a reader can select the words, as to copy them. Turn
+        it off only for controls that are dragged or pressed often, such
+        as a button in an editor; never for content.
+
+        Attribute: Parameter value False to stop selection.
+    */
+    action SetSelectable(boolean value)
+        selectableSet = true
+        selectable = value
+    end
+
+    /*
         Returns a new text style with the same settings. Change the copy to
         give one element its own look without changing every element that
         shares this style.
@@ -436,6 +522,18 @@ class WebTextStyle is WebStyle
         end
         copy:SetKeepSpaces(keepSpaces)
         copy:UseCodeFont(codeFont)
+        if weight > 0
+            copy:SetWeight(weight)
+        end
+        if letterSpacingSet
+            copy:SetLetterSpacing(letterSpacing)
+        end
+        copy:SetCapitalized(capitalized)
+        copy:SetEllipsis(ellipsis)
+        copy:SetKeepWordsWhole(keepWordsWhole)
+        if selectableSet
+            copy:SetSelectable(selectable)
+        end
         return copy
     end
 
@@ -517,6 +615,29 @@ class WebTextStyle is WebStyle
                 result = result + "white-space:normal;"
             else
                 result = result + "white-space:nowrap;"
+            end
+        end
+        // Written after bold and semibold, so it takes their place.
+        if weight > 0
+            result = result + "font-weight:" + weight + ";"
+        end
+        if letterSpacingSet
+            result = result + "letter-spacing:" + constants:ToWidthOfM(letterSpacing) + ";"
+        end
+        if capitalized
+            result = result + "text-transform:capitalize;"
+        end
+        if ellipsis
+            result = result + "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+        end
+        if keepWordsWhole
+            result = result + "word-break:keep-all;"
+        end
+        if selectableSet
+            if selectable
+                result = result + "user-select:text;"
+            else
+                result = result + "user-select:none;"
             end
         end
         return result

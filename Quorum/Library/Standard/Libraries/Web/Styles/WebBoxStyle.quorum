@@ -47,8 +47,8 @@ class WebBoxStyle is WebStyle
     number allBorders = -1
     WebColor allBordersColor = undefined
     boolean shadowSet = false
-    boolean shadow = false
-    boolean deepShadow = false
+    integer shadowDepth = 0
+    WebColor shadowColor = undefined
     boolean clipSet = false
     boolean clip = false
     WebTextStyle textStyle = undefined
@@ -60,9 +60,14 @@ class WebBoxStyle is WebStyle
     number widthPercent = -1
     number verticalMargin = -1
     number horizontalMargin = -1
-    number leftMargin = -1
-    number topMargin = -1
-    number rightMargin = -1
+    boolean leftMarginSet = false
+    number leftMargin = 0
+    boolean topMarginSet = false
+    number topMargin = 0
+    boolean rightMarginSet = false
+    number rightMargin = 0
+    boolean bottomMarginSet = false
+    number bottomMargin = 0
     boolean growSet = false
     boolean grow = false
     number minimumHeight = -1
@@ -87,6 +92,43 @@ class WebBoxStyle is WebStyle
     boolean browserGesturesSet = false
     boolean browserGestures = true
     boolean showsUnavailable = false
+    number topPadding = -1
+    number bottomPadding = -1
+    number leftPadding = -1
+    number rightPadding = -1
+    number sidePaddingPercent = -1
+    boolean centeredHorizontally = false
+    boolean fitToContent = false
+    boolean windowHeight = false
+    number maximumWidth = -1
+    number maximumHeight = -1
+    number topLeftCorner = -1
+    number topRightCorner = -1
+    number bottomLeftCorner = -1
+    number bottomRightCorner = -1
+    number rightBorder = -1
+    WebColor rightBorderColor = undefined
+    boolean leftOffsetSet = false
+    number leftOffset = 0
+    boolean bottomOffsetSet = false
+    number bottomOffset = 0
+    boolean coverAnchor = false
+    boolean layerSet = false
+    integer layer = 0
+    boolean inFlow = false
+    boolean inline = false
+    boolean invisibleSet = false
+    boolean invisible = false
+    integer pictureFit = 0
+    boolean shrinkSet = false
+    boolean shrink = true
+    boolean equalShare = false
+    integer ownAlignment = -1
+    number outline = -1
+    WebColor outlineColor = undefined
+    boolean outlineOffsetSet = false
+    number outlineOffset = 0
+    boolean spanAllColumns = false
 
     // How far above the page a box covering the window sits, so it is
     // over everything else.
@@ -99,9 +141,34 @@ class WebBoxStyle is WebStyle
     constant number SHADOW_FAR_BLUR = 2
     constant number SHADOW_FAR_SPREAD = -1
     constant text SHADOW_COLOR = "rgba(0,0,0,0.1)"
+    // A large shadow, for a dialog over the page.
+    constant number LARGE_SHADOW_NEAR_OFFSET = 10
+    constant number LARGE_SHADOW_NEAR_BLUR = 15
+    constant number LARGE_SHADOW_NEAR_SPREAD = -3
+    constant number LARGE_SHADOW_FAR_OFFSET = 4
+    constant number LARGE_SHADOW_FAR_BLUR = 6
+    constant number LARGE_SHADOW_FAR_SPREAD = -4
+
+    // How deep a box's shadow is (SetShadowDepth).
+    public constant integer NO_SHADOW = 0
+    public constant integer SMALL_SHADOW = 1
+    public constant integer MEDIUM_SHADOW = 2
+    public constant integer LARGE_SHADOW = 3
+
+    // What is drawn over what (SetLayer): the page, a floating menu, a
+    // dialog, and above everything.
+    public constant integer PAGE_LAYER = 0
+    public constant integer FLOATING_LAYER = 10
+    public constant integer DIALOG_LAYER = 20
+    public constant integer TOP_LAYER = 50
+
+    // How a picture fills its box (SetPictureFit).
+    public constant integer PICTURE_COVER = 1
+    public constant integer PICTURE_CONTAIN = 2
+    public constant integer PICTURE_FILL = 3
     // One turn a second, steadily, by the keyframes StyleSheet writes.
     constant text SPIN_ANIMATION = "quorum-spin 1s linear infinite"
-    // A deeper shadow, for a box that stands further off the page.
+    // A medium shadow, for a box that stands further off the page.
     constant number DEEP_SHADOW_NEAR_OFFSET = 4
     constant number DEEP_SHADOW_NEAR_BLUR = 6
     constant number DEEP_SHADOW_NEAR_SPREAD = -1
@@ -293,18 +360,43 @@ class WebBoxStyle is WebStyle
     */
     action SetShadow(boolean value)
         shadowSet = true
-        shadow = value
+        if value
+            shadowDepth = SMALL_SHADOW
+        else
+            shadowDepth = NO_SHADOW
+        end
     end
 
     /*
-        Sets whether the shadow under the box is deeper, so the box looks
-        further off the page, as for an editor or a menu. It applies only
-        when the box has a shadow (SetShadow).
+        Sets how deep the shadow under the box is: NO_SHADOW, SMALL_SHADOW
+        (as SetShadow), MEDIUM_SHADOW, for a box that stands further off
+        the page, such as an editor or a menu, or LARGE_SHADOW, for a
+        dialog over the page.
 
-        Attribute: Parameter value True for a deeper shadow.
+        Attribute: Parameter depth One of this class's shadow constants.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle dialog
+        dialog:SetShadowDepth(dialog:LARGE_SHADOW)
     */
-    action SetDeepShadow(boolean value)
-        deepShadow = value
+    action SetShadowDepth(integer depth)
+        if depth < NO_SHADOW or depth > LARGE_SHADOW
+            alert("A box's shadow depth is one of WebBoxStyle's shadow constants, but it was set to " + depth + ".")
+        end
+        shadowSet = true
+        shadowDepth = depth
+    end
+
+    /*
+        Sets the color of the box's shadow, which is otherwise a faint
+        black. A see-through color (WebColor:SetOpacity) looks softest.
+
+        Attribute: Parameter color The shadow's color.
+    */
+    action SetShadowColor(WebColor color)
+        shadowColor = color
     end
 
     /*
@@ -437,17 +529,18 @@ class WebBoxStyle is WebStyle
         Attribute: Parameter pixels The space to the left.
     */
     action SetLeftMargin(number pixels)
-        CheckSize(pixels, "margin")
+        leftMarginSet = true
         leftMargin = pixels
     end
 
     /*
-        Sets the space above the box only, in pixels.
+        Sets the space above the box only, in pixels. It may be negative,
+        to pull the box up over what is above it.
 
         Attribute: Parameter pixels The space above.
     */
     action SetTopMargin(number pixels)
-        CheckSize(pixels, "margin")
+        topMarginSet = true
         topMargin = pixels
     end
 
@@ -457,7 +550,7 @@ class WebBoxStyle is WebStyle
         Attribute: Parameter pixels The space to the right.
     */
     action SetRightMargin(number pixels)
-        CheckSize(pixels, "margin")
+        rightMarginSet = true
         rightMargin = pixels
     end
 
@@ -725,6 +818,347 @@ class WebBoxStyle is WebStyle
     end
 
     /*
+        Sets the space inside the box above its content only, in pixels,
+        on top of SetPadding.
+
+        Attribute: Parameter pixels The space above the content.
+    */
+    action SetTopPadding(number pixels)
+        CheckSize(pixels, "padding")
+        topPadding = pixels
+    end
+
+    /*
+        Sets the space inside the box below its content only, in pixels,
+        on top of SetPadding.
+
+        Attribute: Parameter pixels The space below the content.
+    */
+    action SetBottomPadding(number pixels)
+        CheckSize(pixels, "padding")
+        bottomPadding = pixels
+    end
+
+    /*
+        Sets the space inside the box to the left of its content only, in
+        pixels, on top of SetPadding.
+
+        Attribute: Parameter pixels The space to the left of the content.
+    */
+    action SetLeftPadding(number pixels)
+        CheckSize(pixels, "padding")
+        leftPadding = pixels
+    end
+
+    /*
+        Sets the space inside the box to the right of its content only, in
+        pixels, on top of SetPadding.
+
+        Attribute: Parameter pixels The space to the right of the content.
+    */
+    action SetRightPadding(number pixels)
+        CheckSize(pixels, "padding")
+        rightPadding = pixels
+    end
+
+    /*
+        Sets the space inside the box on its left and right as a share of
+        the width it is in, so a wide section keeps the same proportions on
+        every screen.
+
+        Attribute: Parameter percent The share on each side, from 0 to 50.
+    */
+    action SetSidePaddingPercent(number percent)
+        if percent < 0 or percent > 50
+            alert("A box's side padding is a share from 0 to 50 percent, but it was set to " + percent + ".")
+        end
+        sidePaddingPercent = percent
+    end
+
+    /*
+        Sets the space below the box only, in pixels. It may be negative,
+        to pull what follows up under it.
+
+        Attribute: Parameter pixels The space below.
+    */
+    action SetBottomMargin(number pixels)
+        bottomMarginSet = true
+        bottomMargin = pixels
+    end
+
+    /*
+        Centers the box in the width it is in, with equal space on its
+        left and right. The box needs a width narrower than that (such as
+        SetWidth, SetMaximumWidth or SetFitToContent).
+
+        Attribute: Parameter value True to center the box.
+    */
+    action SetCenteredHorizontally(boolean value)
+        centeredHorizontally = value
+    end
+
+    /*
+        Sizes the box to what is inside it, as narrow and as short as its
+        content allows, as for a button that shouldn't stretch. It also
+        undoes a width or height set for smaller screens.
+
+        Attribute: Parameter value True to fit the content.
+    */
+    action SetFitToContent(boolean value)
+        fitToContent = value
+    end
+
+    /*
+        Makes the box exactly as tall as the window, as for a dialog's
+        backdrop or a page that fills the screen.
+
+        Attribute: Parameter value True for the window's height.
+    */
+    action SetWindowHeight(boolean value)
+        windowHeight = value
+    end
+
+    /*
+        Sets the widest the box may be, in pixels. It is narrower on
+        screens too small for it.
+
+        Attribute: Parameter pixels The widest width.
+    */
+    action SetMaximumWidth(number pixels)
+        CheckSize(pixels, "maximum width")
+        maximumWidth = pixels
+    end
+
+    /*
+        Sets the tallest the box may be, in pixels; what doesn't fit
+        scrolls if the box is scrollable (SetScrollable), or is cut off if
+        it clips (SetClipContent).
+
+        Attribute: Parameter pixels The tallest height.
+    */
+    action SetMaximumHeight(number pixels)
+        CheckSize(pixels, "maximum height")
+        maximumHeight = pixels
+    end
+
+    /*
+        Rounds the box's top left corner only, as for the first of a row
+        of tabs.
+
+        Attribute: Parameter pixels The corner's radius.
+    */
+    action SetRoundedTopLeft(number pixels)
+        CheckSize(pixels, "corner")
+        topLeftCorner = pixels
+    end
+
+    /*
+        Rounds the box's top right corner only, as for the last of a row
+        of tabs.
+
+        Attribute: Parameter pixels The corner's radius.
+    */
+    action SetRoundedTopRight(number pixels)
+        CheckSize(pixels, "corner")
+        topRightCorner = pixels
+    end
+
+    /*
+        Rounds the box's bottom left corner only.
+
+        Attribute: Parameter pixels The corner's radius.
+    */
+    action SetRoundedBottomLeft(number pixels)
+        CheckSize(pixels, "corner")
+        bottomLeftCorner = pixels
+    end
+
+    /*
+        Rounds the box's bottom right corner only.
+
+        Attribute: Parameter pixels The corner's radius.
+    */
+    action SetRoundedBottomRight(number pixels)
+        CheckSize(pixels, "corner")
+        bottomRightCorner = pixels
+    end
+
+    /*
+        Draws a solid line along the box's right edge, as between columns.
+
+        Attribute: Parameter pixels The line's thickness.
+        Attribute: Parameter color The line's color.
+    */
+    action SetRightBorder(number pixels, WebColor color)
+        CheckSize(pixels, "border")
+        rightBorder = pixels
+        rightBorderColor = color
+    end
+
+    /*
+        Places a floating or covering box this far in from the left edge
+        of the box it is placed against.
+
+        Attribute: Parameter pixels The distance, which may be negative.
+    */
+    action SetLeftOffset(number pixels)
+        leftOffsetSet = true
+        leftOffset = pixels
+    end
+
+    /*
+        Places a floating box this far up from the bottom edge of the box
+        it is placed against.
+
+        Attribute: Parameter pixels The distance, which may be negative.
+    */
+    action SetBottomOffset(number pixels)
+        bottomOffsetSet = true
+        bottomOffset = pixels
+    end
+
+    /*
+        Makes the box cover the whole of the nearest box set with
+        SetAnchor, over its content, as a shaded layer on a card or a
+        dialog's backdrop inside a part of the page.
+
+        Attribute: Parameter value True to cover the anchor.
+    */
+    action SetCoverAnchor(boolean value)
+        coverAnchor = value
+    end
+
+    /*
+        Sets which boxes are drawn over which: a box on a higher layer is
+        drawn over one on a lower layer. Use the layer constants:
+        PAGE_LAYER, FLOATING_LAYER (menus, as SetFloating uses),
+        DIALOG_LAYER and TOP_LAYER. It applies to boxes that float, cover
+        or stick.
+
+        Attribute: Parameter value The layer.
+    */
+    action SetLayer(integer value)
+        layerSet = true
+        layer = value
+    end
+
+    /*
+        Puts the box back in the page's flow, where it would be without
+        floating, covering or sticking, as for a menu that floats on
+        phones but sits in a row on wider screens.
+
+        Attribute: Parameter value True to put it back in the flow.
+    */
+    action SetInFlow(boolean value)
+        inFlow = value
+    end
+
+    /*
+        Makes the box sit in a line of words, as a word does, while
+        keeping its own padding, edges and size, as for a key, a badge or
+        a small button inside a sentence.
+
+        Attribute: Parameter value True to sit in the line.
+    */
+    action SetInline(boolean value)
+        inline = value
+    end
+
+    /*
+        Hides the box while keeping the room it takes, so nothing around
+        it moves, as for a message that appears in its place later.
+        Screen readers skip it too.
+
+        Attribute: Parameter value True to hide the box.
+    */
+    action SetInvisible(boolean value)
+        invisibleSet = true
+        invisible = value
+    end
+
+    /*
+        Sets how a picture fills a box of a set size: PICTURE_COVER fills
+        it, cutting off what doesn't fit; PICTURE_CONTAIN shows all of it,
+        leaving room around it; PICTURE_FILL stretches it. The picture
+        stays centered. Set it on the picture itself.
+
+        Attribute: Parameter value One of the picture constants.
+    */
+    action SetPictureFit(integer value)
+        if value < PICTURE_COVER or value > PICTURE_FILL
+            alert("A picture's fit is one of WebBoxStyle's picture constants, but it was set to " + value + ".")
+        end
+        pictureFit = value
+    end
+
+    /*
+        Sets whether the box may get narrower than its content to make
+        room in a row. False keeps it at least as wide as its content, as
+        for an icon beside words that wrap.
+
+        Attribute: Parameter value False to never shrink.
+    */
+    action SetShrink(boolean value)
+        shrinkSet = true
+        shrink = value
+    end
+
+    /*
+        Makes the box take an equal share of a row or stack with the other
+        boxes set this way, whatever their content.
+
+        Attribute: Parameter value True for an equal share.
+    */
+    action SetEqualShare(boolean value)
+        equalShare = value
+    end
+
+    /*
+        Lines this box up on its own in a row or stack, instead of the way
+        its layout lines up the others: across a stack, constants
+        LEFT_ALIGN, CENTER_ALIGN, RIGHT_ALIGN or STRETCH_ALIGN; in a row,
+        left means the top and right the bottom.
+
+        Attribute: Parameter alignment One of StyleSheetConstants' alignment constants.
+    */
+    action SetOwnAlignment(integer alignment)
+        ownAlignment = alignment
+    end
+
+    /*
+        Draws a line around the box's outside that takes no room, as for
+        showing where keyboard focus is (with WebPage:SetStyleOnKeyboardFocus).
+
+        Attribute: Parameter pixels The line's thickness; 0 removes the browser's own.
+        Attribute: Parameter color The line's color.
+    */
+    action SetOutline(number pixels, WebColor color)
+        CheckSize(pixels, "outline")
+        outline = pixels
+        outlineColor = color
+    end
+
+    /*
+        Sets how far the outline sits outside the box's edge (SetOutline).
+
+        Attribute: Parameter pixels The gap, which may be negative to draw it inside.
+    */
+    action SetOutlineOffset(number pixels)
+        outlineOffsetSet = true
+        outlineOffset = pixels
+    end
+
+    /*
+        Makes the box take a whole row of the grid it is in, across every
+        column, as for a heading inside a grid of cards.
+
+        Attribute: Parameter value True to span every column.
+    */
+    action SetSpanAllColumns(boolean value)
+        spanAllColumns = value
+    end
+
+    /*
         Returns a new box style with the same settings. Change the copy to
         give one element its own look without changing every element that
         shares this style. Its colors and text style are copied too.
@@ -757,9 +1191,11 @@ class WebBoxStyle is WebStyle
         if allBorders >= 0
             copy:SetBorder(allBorders, allBordersColor:Copy())
         end
-        copy:SetDeepShadow(deepShadow)
         if shadowSet
-            copy:SetShadow(shadow)
+            copy:SetShadowDepth(shadowDepth)
+        end
+        if shadowColor not= undefined
+            copy:SetShadowColor(shadowColor:Copy())
         end
         if clipSet
             copy:SetClipContent(clip)
@@ -782,13 +1218,13 @@ class WebBoxStyle is WebStyle
         if verticalMargin >= 0
             copy:SetMargin(verticalMargin, horizontalMargin)
         end
-        if leftMargin >= 0
+        if leftMarginSet
             copy:SetLeftMargin(leftMargin)
         end
-        if topMargin >= 0
+        if topMarginSet
             copy:SetTopMargin(topMargin)
         end
-        if rightMargin >= 0
+        if rightMarginSet
             copy:SetRightMargin(rightMargin)
         end
         if growSet
@@ -838,6 +1274,80 @@ class WebBoxStyle is WebStyle
             copy:SetBrowserGestures(browserGestures)
         end
         copy:SetShowsUnavailable(showsUnavailable)
+        if topPadding >= 0
+            copy:SetTopPadding(topPadding)
+        end
+        if bottomPadding >= 0
+            copy:SetBottomPadding(bottomPadding)
+        end
+        if leftPadding >= 0
+            copy:SetLeftPadding(leftPadding)
+        end
+        if rightPadding >= 0
+            copy:SetRightPadding(rightPadding)
+        end
+        if sidePaddingPercent >= 0
+            copy:SetSidePaddingPercent(sidePaddingPercent)
+        end
+        if bottomMarginSet
+            copy:SetBottomMargin(bottomMargin)
+        end
+        copy:SetCenteredHorizontally(centeredHorizontally)
+        copy:SetFitToContent(fitToContent)
+        copy:SetWindowHeight(windowHeight)
+        if maximumWidth >= 0
+            copy:SetMaximumWidth(maximumWidth)
+        end
+        if maximumHeight >= 0
+            copy:SetMaximumHeight(maximumHeight)
+        end
+        if topLeftCorner >= 0
+            copy:SetRoundedTopLeft(topLeftCorner)
+        end
+        if topRightCorner >= 0
+            copy:SetRoundedTopRight(topRightCorner)
+        end
+        if bottomLeftCorner >= 0
+            copy:SetRoundedBottomLeft(bottomLeftCorner)
+        end
+        if bottomRightCorner >= 0
+            copy:SetRoundedBottomRight(bottomRightCorner)
+        end
+        if rightBorder >= 0
+            copy:SetRightBorder(rightBorder, rightBorderColor:Copy())
+        end
+        if leftOffsetSet
+            copy:SetLeftOffset(leftOffset)
+        end
+        if bottomOffsetSet
+            copy:SetBottomOffset(bottomOffset)
+        end
+        copy:SetCoverAnchor(coverAnchor)
+        if layerSet
+            copy:SetLayer(layer)
+        end
+        copy:SetInFlow(inFlow)
+        copy:SetInline(inline)
+        if invisibleSet
+            copy:SetInvisible(invisible)
+        end
+        if pictureFit > 0
+            copy:SetPictureFit(pictureFit)
+        end
+        if shrinkSet
+            copy:SetShrink(shrink)
+        end
+        copy:SetEqualShare(equalShare)
+        if ownAlignment >= 0
+            copy:SetOwnAlignment(ownAlignment)
+        end
+        if outline >= 0
+            copy:SetOutline(outline, outlineColor:Copy())
+        end
+        if outlineOffsetSet
+            copy:SetOutlineOffset(outlineOffset)
+        end
+        copy:SetSpanAllColumns(spanAllColumns)
         return copy
     end
 
@@ -878,14 +1388,16 @@ class WebBoxStyle is WebStyle
             result = result + "border-left:" + constants:ToWidthOfM(leftBorder) + " solid " + leftBorderColor:Generate() + ";"
         end
         if shadowSet
-            if shadow and deepShadow
-                text near = "0 " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_OFFSET) + " " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_BLUR) + " " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_SPREAD) + " " + SHADOW_COLOR
-                text far = "0 " + constants:ToWidthOfM(DEEP_SHADOW_FAR_OFFSET) + " " + constants:ToWidthOfM(DEEP_SHADOW_FAR_BLUR) + " " + constants:ToWidthOfM(DEEP_SHADOW_FAR_SPREAD) + " " + SHADOW_COLOR
-                result = result + "box-shadow:" + near + "," + far + ";"
-            elseif shadow
-                text near = "0 " + constants:ToWidthOfM(SHADOW_NEAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_NEAR_BLUR) + " 0 " + SHADOW_COLOR
-                text far = "0 " + constants:ToWidthOfM(SHADOW_FAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_FAR_BLUR) + " " + constants:ToWidthOfM(SHADOW_FAR_SPREAD) + " " + SHADOW_COLOR
-                result = result + "box-shadow:" + near + "," + far + ";"
+            text color = SHADOW_COLOR
+            if shadowColor not= undefined
+                color = shadowColor:Generate()
+            end
+            if shadowDepth = LARGE_SHADOW
+                result = result + "box-shadow:" + ShadowLayer(LARGE_SHADOW_NEAR_OFFSET, LARGE_SHADOW_NEAR_BLUR, LARGE_SHADOW_NEAR_SPREAD, color) + "," + ShadowLayer(LARGE_SHADOW_FAR_OFFSET, LARGE_SHADOW_FAR_BLUR, LARGE_SHADOW_FAR_SPREAD, color) + ";"
+            elseif shadowDepth = MEDIUM_SHADOW
+                result = result + "box-shadow:" + ShadowLayer(DEEP_SHADOW_NEAR_OFFSET, DEEP_SHADOW_NEAR_BLUR, DEEP_SHADOW_NEAR_SPREAD, color) + "," + ShadowLayer(DEEP_SHADOW_FAR_OFFSET, DEEP_SHADOW_FAR_BLUR, DEEP_SHADOW_FAR_SPREAD, color) + ";"
+            elseif shadowDepth = SMALL_SHADOW
+                result = result + "box-shadow:" + ShadowLayer(SHADOW_NEAR_OFFSET, SHADOW_NEAR_BLUR, 0, color) + "," + ShadowLayer(SHADOW_FAR_OFFSET, SHADOW_FAR_BLUR, SHADOW_FAR_SPREAD, color) + ";"
             else
                 result = result + "box-shadow:none;"
             end
@@ -923,13 +1435,13 @@ class WebBoxStyle is WebStyle
         if verticalMargin >= 0
             result = result + "margin:" + constants:ToWidthOfM(verticalMargin) + " " + constants:ToWidthOfM(horizontalMargin) + ";"
         end
-        if leftMargin >= 0
+        if leftMarginSet
             result = result + "margin-left:" + constants:ToWidthOfM(leftMargin) + ";"
         end
-        if topMargin >= 0
+        if topMarginSet
             result = result + "margin-top:" + constants:ToWidthOfM(topMargin) + ";"
         end
-        if rightMargin >= 0
+        if rightMarginSet
             result = result + "margin-right:" + constants:ToWidthOfM(rightMargin) + ";"
         end
         if growSet
@@ -1001,10 +1513,126 @@ class WebBoxStyle is WebStyle
         if showsUnavailable
             result = result + "cursor:not-allowed;"
         end
+        // One-side padding after the shorthand, so it changes only that side.
+        if sidePaddingPercent >= 0
+            result = result + "padding-left:" + sidePaddingPercent + "%;padding-right:" + sidePaddingPercent + "%;"
+        end
+        if topPadding >= 0
+            result = result + "padding-top:" + constants:ToWidthOfM(topPadding) + ";"
+        end
+        if bottomPadding >= 0
+            result = result + "padding-bottom:" + constants:ToWidthOfM(bottomPadding) + ";"
+        end
+        if leftPadding >= 0
+            result = result + "padding-left:" + constants:ToWidthOfM(leftPadding) + ";"
+        end
+        if rightPadding >= 0
+            result = result + "padding-right:" + constants:ToWidthOfM(rightPadding) + ";"
+        end
+        if bottomMarginSet
+            result = result + "margin-bottom:" + constants:ToWidthOfM(bottomMargin) + ";"
+        end
+        if centeredHorizontally
+            result = result + "margin-left:auto;margin-right:auto;"
+        end
+        if fitToContent
+            result = result + "width:fit-content;height:auto;"
+        end
+        if windowHeight
+            result = result + "height:100vh;"
+        end
+        if maximumWidth >= 0
+            result = result + "max-width:" + constants:ToWidthOfM(maximumWidth) + ";"
+        end
+        if maximumHeight >= 0
+            result = result + "max-height:" + constants:ToWidthOfM(maximumHeight) + ";"
+        end
+        if topLeftCorner >= 0
+            result = result + "border-top-left-radius:" + constants:ToWidthOfM(topLeftCorner) + ";"
+        end
+        if topRightCorner >= 0
+            result = result + "border-top-right-radius:" + constants:ToWidthOfM(topRightCorner) + ";"
+        end
+        if bottomLeftCorner >= 0
+            result = result + "border-bottom-left-radius:" + constants:ToWidthOfM(bottomLeftCorner) + ";"
+        end
+        if bottomRightCorner >= 0
+            result = result + "border-bottom-right-radius:" + constants:ToWidthOfM(bottomRightCorner) + ";"
+        end
+        if rightBorder >= 0
+            result = result + "border-right:" + constants:ToWidthOfM(rightBorder) + " solid " + rightBorderColor:Generate() + ";"
+        end
+        if coverAnchor
+            result = result + "position:absolute;top:0;right:0;bottom:0;left:0;"
+        end
+        if inFlow
+            result = result + "position:static;"
+        end
+        if leftOffsetSet
+            result = result + "left:" + constants:ToWidthOfM(leftOffset) + ";"
+        end
+        if bottomOffsetSet
+            result = result + "bottom:" + constants:ToWidthOfM(bottomOffset) + ";"
+        end
+        if layerSet
+            result = result + "z-index:" + layer + ";"
+        end
+        if inline
+            result = result + "display:inline-block;"
+        end
+        if invisibleSet
+            if invisible
+                result = result + "visibility:hidden;"
+            else
+                result = result + "visibility:visible;"
+            end
+        end
+        if pictureFit = PICTURE_COVER
+            result = result + "object-fit:cover;object-position:center;"
+        elseif pictureFit = PICTURE_CONTAIN
+            result = result + "object-fit:contain;object-position:center;"
+        elseif pictureFit = PICTURE_FILL
+            result = result + "object-fit:fill;"
+        end
+        if shrinkSet
+            if shrink
+                result = result + "flex-shrink:1;"
+            else
+                result = result + "flex-shrink:0;"
+            end
+        end
+        if equalShare
+            result = result + "flex:1 1 0%;"
+        end
+        if ownAlignment = constants:LEFT_ALIGN
+            result = result + "align-self:flex-start;"
+        elseif ownAlignment = constants:CENTER_ALIGN
+            result = result + "align-self:center;"
+        elseif ownAlignment = constants:RIGHT_ALIGN
+            result = result + "align-self:flex-end;"
+        elseif ownAlignment = constants:STRETCH_ALIGN
+            result = result + "align-self:stretch;"
+        end
+        if outline = 0
+            result = result + "outline:none;"
+        elseif outline > 0
+            result = result + "outline:" + constants:ToWidthOfM(outline) + " solid " + outlineColor:Generate() + ";"
+        end
+        if outlineOffsetSet
+            result = result + "outline-offset:" + constants:ToWidthOfM(outlineOffset) + ";"
+        end
+        if spanAllColumns
+            result = result + "grid-column:1 / -1;"
+        end
         if textStyle not= undefined
             result = result + textStyle:Generate()
         end
         return result
+    end
+
+    // One layer of a shadow, straight down: its offset, blur and spread.
+    private action ShadowLayer(number offset, number blur, number spread, text color) returns text
+        return "0 " + constants:ToWidthOfM(offset) + " " + constants:ToWidthOfM(blur) + " " + constants:ToWidthOfM(spread) + " " + color
     end
 
     private action CheckSize(number pixels, text kind)

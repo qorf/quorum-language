@@ -28,6 +28,8 @@ use Libraries.Web.Styles.StyleSheetConstants
 class WebRowLayout is WebLayout
     // The shared constants and unit conversion. A shared class: one copy.
     StyleSheetConstants constants
+    // Shown right to left (SetReversed).
+    boolean reversed = false
     number gap = 0
     boolean wrap = false
     boolean spread = false
@@ -138,6 +140,18 @@ class WebRowLayout is WebLayout
     end
 
     /*
+        Sets whether the items are shown right to left: the last item in
+        the page first. Only the look changes; screen readers and the
+        keyboard keep the page's order. Use it to put a picture first on a
+        phone while the words come first in the page and on wide screens.
+
+        Attribute: Parameter value True to show the items right to left.
+    */
+    action SetReversed(boolean value)
+        reversed = value
+    end
+
+    /*
         Returns the stylesheet declarations for this row. WebSite calls
         this when it writes the stylesheet; people making pages don't.
 
@@ -145,6 +159,9 @@ class WebRowLayout is WebLayout
     */
     action Generate returns text
         text result = "display:flex;flex-direction:row;"
+        if reversed
+            result = "display:flex;flex-direction:row-reverse;"
+        end
         if wrap
             result = result + "flex-wrap:wrap;"
         end

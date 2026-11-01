@@ -2748,6 +2748,160 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     end
 
     /*
+        Sets a style an element takes while it has focus from the keyboard
+        (not from a click), on top of its own look, such as a focus ring
+        (WebBoxStyle:SetOutline). Readers who use a mouse don't see it.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleOnKeyboardFocus(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:KEYBOARD_FOCUS, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is marked unavailable
+        (aria-disabled is "true", as a script sets it), on top of its own
+        look, such as a faded link that can't be followed yet. Screen
+        readers announce the same state.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenUnavailable(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:UNAVAILABLE, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is the first in its parent,
+        on top of its own look, such as rounding the first of a row of
+        tabs. Give each sibling the same style and look.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenFirst(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:FIRST, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is the last in its parent,
+        on top of its own look, such as leaving off the line under the last
+        item of a list.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenLast(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:LAST, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while one of its attributes has a
+        value, on top of its own look, as for a quiz answer a script marks
+        data-state="correct". Use it for states the page's own scripts
+        set; the attribute's name and value are letters, digits and
+        hyphens only.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter attribute The attribute's name, such as "data-state".
+        Attribute: Parameter value The value, such as "correct".
+        Attribute: Parameter style The style.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+        use Libraries.Web.Styles.WebBoxStyle
+        use Libraries.Web.Styles.WebColor
+
+        class Main is WebPage
+            action Main
+                WebColor green
+                green:SetColor(21, 128, 61)
+                WebBoxStyle right
+                right:SetBorder(2, green)
+                Select answer
+                SetStyleWhenAttribute(answer, "data-state", "correct", right)
+                Add(answer)
+            end
+        end
+    */
+    action SetStyleWhenAttribute(WebTag element, text attribute, text value, WebStyle style)
+        CheckAttributePart(attribute)
+        CheckAttributePart(value)
+        WebConditionalLook look
+        look:SetStyleInState("[" + attribute + "='" + value + "']", style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while the checkbox or radio button
+        just before it (in the same parent) is checked, on top of its own
+        look, as for a switch drawn beside a checkbox that is hidden from
+        sight (WebBoxStyle:SetVisuallyHidden) but still used by the
+        keyboard and screen readers.
+
+        Attribute: Parameter element The element just after the control.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleAfterChecked(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:AFTER_CHECKED, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while the control just before it has
+        focus from the keyboard, on top of its own look, so a switch drawn
+        beside a hidden checkbox shows where focus is.
+
+        Attribute: Parameter element The element just after the control.
+        Attribute: Parameter style The style, such as an outline.
+    */
+    action SetStyleAfterKeyboardFocus(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:AFTER_KEYBOARD_FOCUS, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while the checkbox or radio button
+        just before its parent is checked, on top of its own look, as for
+        the knob inside a switch that moves when the switch is on.
+
+        Attribute: Parameter element The element, inside the element just after the control.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleInsideAfterChecked(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:INSIDE_AFTER_CHECKED, style)
+        AddConditionalLook(element, look)
+    end
+
+    // An attribute's name or value in a state: letters, digits and hyphens,
+    // so it can't break the stylesheet's rule.
+    private action CheckAttributePart(text part)
+        if part:IsEmpty()
+            alert("An attribute's name and value in a state can't be empty.")
+        end
+        text allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
+        integer i = 0
+        repeat while i < part:GetSize()
+            if not allowed:Contains(part:GetCharacter(i))
+                alert("An attribute's name and value in a state may hold only letters, digits and hyphens, but it was " + part + ".")
+            end
+            i = i + 1
+        end
+    end
+
+    /*
         Returns every element on this page with a look for wider screens or
         a state. WebSite uses this to write the stylesheet.
 

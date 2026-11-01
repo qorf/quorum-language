@@ -31,6 +31,7 @@ class WebGridLayout is WebLayout
     number smallestColumnWidth = 0
     number columnGap = -1
     boolean fittedFirstColumn = false
+    integer columns = 0
 
     /*
         Sets the space between items, across and down, in pixels.
@@ -88,6 +89,29 @@ class WebGridLayout is WebLayout
     end
 
     /*
+        Sets a fixed number of columns, all the same width, instead of
+        fitting as many as there is room for. Use a grid with fewer columns
+        for small screens, and WebPage:SetLayoutFromWidth for more on wider
+        ones, so nothing gets too narrow.
+
+        Attribute: Parameter count The number of columns, 1 or more.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebGridLayout
+
+        WebGridLayout oneColumn
+        oneColumn:SetColumns(1)
+        WebGridLayout threeColumns
+        threeColumns:SetColumns(3)
+    */
+    action SetColumns(integer count)
+        if count < 1
+            alert("A grid needs at least 1 column, but it was set to " + count + ".")
+        end
+        columns = count
+    end
+
+    /*
         Returns the stylesheet declarations for this grid. WebSite calls
         this when it writes the stylesheet; people making pages don't.
 
@@ -97,6 +121,8 @@ class WebGridLayout is WebLayout
         text result = "display:grid;"
         if fittedFirstColumn
             result = result + "grid-template-columns:max-content 1fr;"
+        elseif columns > 0
+            result = result + "grid-template-columns:repeat(" + columns + ",minmax(0,1fr));"
         elseif smallestColumnWidth > 0
             result = result + "grid-template-columns:repeat(auto-fit,minmax(" + constants:ToWidthOfM(smallestColumnWidth) + ",1fr));"
         end

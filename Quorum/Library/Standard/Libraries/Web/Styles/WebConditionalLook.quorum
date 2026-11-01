@@ -7,8 +7,9 @@ use Libraries.Web.Layouts.WebLayout
     WebConditionalLook is a style or layout that an element takes only
     sometimes: on screens at least some width wide, while the pointer is
     over it or it is pressed, while it has keyboard focus, while it is
-    disabled or empty, while it is the selected tab or the current item,
-    or while it sits inside a disabled control. It changes only what it
+    disabled, unavailable or empty, while it is the selected tab or the
+    current item, while it is first or last in its parent, or while it
+    sits inside a disabled control. It changes only what it
     sets; everything else stays as the element's own look says. A page
     makes these with SetStyleFromWidth, SetLayoutFromWidth,
     SetStyleOnHover, SetStyleOnFocus, SetStyleWhenPressed,
@@ -34,10 +35,26 @@ class WebConditionalLook
     // slide shown (aria-current, any value but "false").
     public constant text SELECTED = "[aria-selected='true']"
     public constant text CURRENT = "[aria-current]:not([aria-current='false'])"
+    // Focus that came from the keyboard, not a click: where a focus ring
+    // belongs.
+    public constant text KEYBOARD_FOCUS = ":focus-visible"
+    // Marked unavailable for readers (aria-disabled), as a link that
+    // can't be followed yet; unlike DISABLED, it can still take focus.
+    public constant text UNAVAILABLE = "[aria-disabled='true']"
+    // The first and last of the elements in the same parent.
+    public constant text FIRST = ":first-child"
+    public constant text LAST = ":last-child"
     // A state of the element's surroundings, not its own: inside a
     // disabled control, as a spinner shown in a button while it waits. A
     // state ending in a space is written before the element's class.
     public constant text INSIDE_DISABLED = ":disabled "
+    // States of the control just before the element, as for a switch drawn
+    // beside a checkbox hidden from sight: while that checkbox (or radio
+    // button) is checked, while it has keyboard focus, and, for a part
+    // inside the drawn switch, while it is checked.
+    public constant text AFTER_CHECKED = ":checked + "
+    public constant text AFTER_KEYBOARD_FOCUS = ":focus-visible + "
+    public constant text INSIDE_AFTER_CHECKED = ":checked + * "
 
     /*
         Makes this a style for screens at least this wide.
@@ -64,7 +81,8 @@ class WebConditionalLook
     /*
         Makes this a style for a state, such as HOVER, FOCUS, INVALID (a
         form field its page marks as filled in wrongly), DISABLED, EMPTY,
-        PRESSED, SELECTED, CURRENT or INSIDE_DISABLED.
+        PRESSED, SELECTED, CURRENT, KEYBOARD_FOCUS, UNAVAILABLE, FIRST,
+        LAST or INSIDE_DISABLED.
 
         Attribute: Parameter stateName The state, one of this class's constants.
         Attribute: Parameter value The style.
