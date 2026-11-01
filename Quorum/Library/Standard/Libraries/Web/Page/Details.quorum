@@ -80,12 +80,12 @@ class Details is WebTag
     end
 
     action Generate returns text
-        text result = "<aside " 
+        text result = "<details " 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
         result = result + me:GenerateNestedTags()
-        result = result + "</aside>"
+        result = result + "</details>"
         return result
     end
 

@@ -48,6 +48,7 @@ class WebBoxStyle is WebStyle
     WebColor allBordersColor = undefined
     boolean shadowSet = false
     boolean shadow = false
+    boolean deepShadow = false
     boolean clipSet = false
     boolean clip = false
     WebTextStyle textStyle = undefined
@@ -60,14 +61,32 @@ class WebBoxStyle is WebStyle
     number verticalMargin = -1
     number horizontalMargin = -1
     number leftMargin = -1
+    number topMargin = -1
+    number rightMargin = -1
     boolean growSet = false
     boolean grow = false
     number minimumHeight = -1
+    number minimumWidth = -1
+    number maximumWidthPercent = -1
+    number opacityPercent = -1
     boolean fillScreenHeight = false
     boolean shrinkBelowContent = false
     number width = -1
+    number height = -1
     number heightPercent = -1
     boolean coverWindow = false
+    boolean anchor = false
+    boolean floating = false
+    number topOffset = -1
+    number topOffsetPercent = -1
+    number rightOffset = -1
+    number belowWindowMargin = -1
+    boolean scrollable = false
+    boolean scrollSideways = false
+    boolean spinning = false
+    boolean browserGesturesSet = false
+    boolean browserGestures = true
+    boolean showsUnavailable = false
 
     // How far above the page a box covering the window sits, so it is
     // over everything else.
@@ -80,6 +99,15 @@ class WebBoxStyle is WebStyle
     constant number SHADOW_FAR_BLUR = 2
     constant number SHADOW_FAR_SPREAD = -1
     constant text SHADOW_COLOR = "rgba(0,0,0,0.1)"
+    // One turn a second, steadily, by the keyframes StyleSheet writes.
+    constant text SPIN_ANIMATION = "quorum-spin 1s linear infinite"
+    // A deeper shadow, for a box that stands further off the page.
+    constant number DEEP_SHADOW_NEAR_OFFSET = 4
+    constant number DEEP_SHADOW_NEAR_BLUR = 6
+    constant number DEEP_SHADOW_NEAR_SPREAD = -1
+    constant number DEEP_SHADOW_FAR_OFFSET = 2
+    constant number DEEP_SHADOW_FAR_BLUR = 4
+    constant number DEEP_SHADOW_FAR_SPREAD = -2
 
     /*
         Sets the color behind the box's content.
@@ -269,6 +297,17 @@ class WebBoxStyle is WebStyle
     end
 
     /*
+        Sets whether the shadow under the box is deeper, so the box looks
+        further off the page, as for an editor or a menu. It applies only
+        when the box has a shadow (SetShadow).
+
+        Attribute: Parameter value True for a deeper shadow.
+    */
+    action SetDeepShadow(boolean value)
+        deepShadow = value
+    end
+
+    /*
         Sets whether anything inside the box that reaches past its edges
         is cut off, so its rounded corners round what is inside, too.
 
@@ -403,6 +442,26 @@ class WebBoxStyle is WebStyle
     end
 
     /*
+        Sets the space above the box only, in pixels.
+
+        Attribute: Parameter pixels The space above.
+    */
+    action SetTopMargin(number pixels)
+        CheckSize(pixels, "margin")
+        topMargin = pixels
+    end
+
+    /*
+        Sets the space to the right of the box only, in pixels.
+
+        Attribute: Parameter pixels The space to the right.
+    */
+    action SetRightMargin(number pixels)
+        CheckSize(pixels, "margin")
+        rightMargin = pixels
+    end
+
+    /*
         Sets whether the box grows to take up the room left over in a row
         or stack, such as a page's main content between its header and
         footer.
@@ -434,6 +493,55 @@ class WebBoxStyle is WebStyle
     action SetWidth(number pixels)
         CheckSize(pixels, "width")
         width = pixels
+    end
+
+    /*
+        Sets the narrowest the box may be, in pixels, as for a chart that
+        should never shrink to nothing.
+
+        Attribute: Parameter pixels The narrowest width.
+    */
+    action SetMinimumWidth(number pixels)
+        CheckSize(pixels, "minimum width")
+        minimumWidth = pixels
+    end
+
+    /*
+        Sets the widest the box may be, as a share of the width it is in,
+        as for a chart that should never be wider than its column.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetMaximumWidthPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's maximum width is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        maximumWidthPercent = percent
+    end
+
+    /*
+        Sets how solid the box and everything in it is drawn, as a share:
+        100 is solid, 50 lets half of what is behind it show through, as
+        for a button that can't be used yet.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetOpacityPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's opacity is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        opacityPercent = percent
+    end
+
+    /*
+        Sets the box's height, in pixels, as for a console that keeps its
+        size and scrolls (see SetScrollable).
+
+        Attribute: Parameter pixels The height.
+    */
+    action SetHeight(number pixels)
+        CheckSize(pixels, "height")
+        height = pixels
     end
 
     /*
@@ -482,6 +590,141 @@ class WebBoxStyle is WebStyle
     end
 
     /*
+        Makes the box the one its floating boxes (SetFloating) are placed
+        against, as a toolbar holds a menu that opens below it.
+
+        Attribute: Parameter value True to place floating boxes against this box.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle toolbar
+        toolbar:SetAnchor(true)
+    */
+    action SetAnchor(boolean value)
+        anchor = value
+    end
+
+    /*
+        Floats the box over the content around it, as a menu or a dialog
+        over an editor, placed against the nearest box set with SetAnchor
+        (SetTopOffset and SetRightOffset place it). It is drawn over the
+        page, at the layer a box covering the window uses.
+
+        Attribute: Parameter value True to float the box.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle menu
+        menu:SetFloating(true)
+        menu:SetTopOffsetPercent(100)
+        menu:SetRightOffset(8)
+    */
+    action SetFloating(boolean value)
+        floating = value
+    end
+
+    /*
+        Places a floating box this far below the top of the box it is
+        placed against.
+
+        Attribute: Parameter pixels The distance, which may be negative to place it above.
+    */
+    action SetTopOffset(number pixels)
+        topOffset = pixels
+        topOffsetPercent = -1
+    end
+
+    /*
+        Places a floating box a share of the way down the box it is placed
+        against: 100 puts it just below that box.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetTopOffsetPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's top offset is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        topOffsetPercent = percent
+        topOffset = -1
+    end
+
+    /*
+        Places a floating box this far in from the right edge of the box it
+        is placed against.
+
+        Attribute: Parameter pixels The distance.
+    */
+    action SetRightOffset(number pixels)
+        CheckSize(pixels, "right offset")
+        rightOffset = pixels
+    end
+
+    /*
+        Keeps the box no taller than the window, less a margin, scrolling
+        what doesn't fit, as a dialog with a long list.
+
+        Attribute: Parameter pixels The room to leave, in all, above and below.
+    */
+    action SetMaximumHeightBelowWindow(number pixels)
+        CheckSize(pixels, "window margin")
+        belowWindowMargin = pixels
+    end
+
+    /*
+        Lets what doesn't fit in the box scroll inside it, in either
+        direction, as a console.
+
+        Attribute: Parameter value True to scroll.
+    */
+    action SetScrollable(boolean value)
+        scrollable = value
+    end
+
+    /*
+        Lets what is too wide for the box scroll sideways inside it, as a
+        row of buttons on a phone, without making the page wider.
+
+        Attribute: Parameter value True to scroll sideways.
+    */
+    action SetScrollSideways(boolean value)
+        scrollSideways = value
+    end
+
+    /*
+        Turns the box steadily, as a spinner while something works. Readers
+        who ask their system for less motion see it still.
+
+        Attribute: Parameter value True to spin.
+    */
+    action SetSpinning(boolean value)
+        spinning = value
+    end
+
+    /*
+        Sets whether the browser's own touch gestures (panning and zooming)
+        work on the box. Turn them off for a box with its own dragging, as
+        an editor whose blocks are dragged.
+
+        Attribute: Parameter value False to leave touch to the box's own script.
+    */
+    action SetBrowserGestures(boolean value)
+        browserGesturesSet = true
+        browserGestures = value
+    end
+
+    /*
+        Shows the pointer as "not allowed" over the box, as over a button
+        that can't be used yet.
+
+        Attribute: Parameter value True to show it.
+    */
+    action SetShowsUnavailable(boolean value)
+        showsUnavailable = value
+    end
+
+    /*
         Returns a new box style with the same settings. Change the copy to
         give one element its own look without changing every element that
         shares this style. Its colors and text style are copied too.
@@ -514,6 +757,7 @@ class WebBoxStyle is WebStyle
         if allBorders >= 0
             copy:SetBorder(allBorders, allBordersColor:Copy())
         end
+        copy:SetDeepShadow(deepShadow)
         if shadowSet
             copy:SetShadow(shadow)
         end
@@ -541,21 +785,59 @@ class WebBoxStyle is WebStyle
         if leftMargin >= 0
             copy:SetLeftMargin(leftMargin)
         end
+        if topMargin >= 0
+            copy:SetTopMargin(topMargin)
+        end
+        if rightMargin >= 0
+            copy:SetRightMargin(rightMargin)
+        end
         if growSet
             copy:SetGrow(grow)
         end
         if minimumHeight >= 0
             copy:SetMinimumHeight(minimumHeight)
         end
+        if minimumWidth >= 0
+            copy:SetMinimumWidth(minimumWidth)
+        end
+        if maximumWidthPercent >= 0
+            copy:SetMaximumWidthPercent(maximumWidthPercent)
+        end
+        if opacityPercent >= 0
+            copy:SetOpacityPercent(opacityPercent)
+        end
         copy:SetFillScreenHeight(fillScreenHeight)
         copy:SetShrinkBelowContent(shrinkBelowContent)
         if width >= 0
             copy:SetWidth(width)
         end
+        if height >= 0
+            copy:SetHeight(height)
+        end
         if heightPercent >= 0
             copy:SetHeightPercent(heightPercent)
         end
         copy:SetCoverWindow(coverWindow)
+        copy:SetAnchor(anchor)
+        copy:SetFloating(floating)
+        if topOffsetPercent >= 0
+            copy:SetTopOffsetPercent(topOffsetPercent)
+        elseif topOffset not= -1
+            copy:SetTopOffset(topOffset)
+        end
+        if rightOffset >= 0
+            copy:SetRightOffset(rightOffset)
+        end
+        if belowWindowMargin >= 0
+            copy:SetMaximumHeightBelowWindow(belowWindowMargin)
+        end
+        copy:SetScrollable(scrollable)
+        copy:SetScrollSideways(scrollSideways)
+        copy:SetSpinning(spinning)
+        if browserGesturesSet
+            copy:SetBrowserGestures(browserGestures)
+        end
+        copy:SetShowsUnavailable(showsUnavailable)
         return copy
     end
 
@@ -596,7 +878,11 @@ class WebBoxStyle is WebStyle
             result = result + "border-left:" + constants:ToWidthOfM(leftBorder) + " solid " + leftBorderColor:Generate() + ";"
         end
         if shadowSet
-            if shadow
+            if shadow and deepShadow
+                text near = "0 " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_OFFSET) + " " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_BLUR) + " " + constants:ToWidthOfM(DEEP_SHADOW_NEAR_SPREAD) + " " + SHADOW_COLOR
+                text far = "0 " + constants:ToWidthOfM(DEEP_SHADOW_FAR_OFFSET) + " " + constants:ToWidthOfM(DEEP_SHADOW_FAR_BLUR) + " " + constants:ToWidthOfM(DEEP_SHADOW_FAR_SPREAD) + " " + SHADOW_COLOR
+                result = result + "box-shadow:" + near + "," + far + ";"
+            elseif shadow
                 text near = "0 " + constants:ToWidthOfM(SHADOW_NEAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_NEAR_BLUR) + " 0 " + SHADOW_COLOR
                 text far = "0 " + constants:ToWidthOfM(SHADOW_FAR_OFFSET) + " " + constants:ToWidthOfM(SHADOW_FAR_BLUR) + " " + constants:ToWidthOfM(SHADOW_FAR_SPREAD) + " " + SHADOW_COLOR
                 result = result + "box-shadow:" + near + "," + far + ";"
@@ -640,6 +926,12 @@ class WebBoxStyle is WebStyle
         if leftMargin >= 0
             result = result + "margin-left:" + constants:ToWidthOfM(leftMargin) + ";"
         end
+        if topMargin >= 0
+            result = result + "margin-top:" + constants:ToWidthOfM(topMargin) + ";"
+        end
+        if rightMargin >= 0
+            result = result + "margin-right:" + constants:ToWidthOfM(rightMargin) + ";"
+        end
         if growSet
             if grow
                 result = result + "flex-grow:1;"
@@ -650,6 +942,15 @@ class WebBoxStyle is WebStyle
         if minimumHeight >= 0
             result = result + "min-height:" + constants:ToWidthOfM(minimumHeight) + ";"
         end
+        if minimumWidth >= 0
+            result = result + "min-width:" + constants:ToWidthOfM(minimumWidth) + ";"
+        end
+        if maximumWidthPercent >= 0
+            result = result + "max-width:" + maximumWidthPercent + "%;"
+        end
+        if opacityPercent >= 0
+            result = result + "opacity:" + (opacityPercent / 100) + ";"
+        end
         if fillScreenHeight
             result = result + "min-height:100vh;"
         end
@@ -659,11 +960,46 @@ class WebBoxStyle is WebStyle
         if width >= 0
             result = result + "width:" + constants:ToWidthOfM(width) + ";max-width:100%;"
         end
+        if height >= 0
+            result = result + "height:" + constants:ToWidthOfM(height) + ";"
+        end
         if heightPercent >= 0
             result = result + "height:" + heightPercent + "%;"
         end
         if coverWindow
             result = result + "position:fixed;top:0;left:0;width:100%;height:100%;z-index:" + COVER_LAYER + ";"
+        end
+        if anchor
+            result = result + "position:relative;"
+        end
+        if floating
+            result = result + "position:absolute;z-index:" + COVER_LAYER + ";"
+        end
+        if topOffsetPercent >= 0
+            result = result + "top:" + topOffsetPercent + "%;"
+        elseif topOffset not= -1
+            result = result + "top:" + constants:ToWidthOfM(topOffset) + ";"
+        end
+        if rightOffset >= 0
+            result = result + "right:" + constants:ToWidthOfM(rightOffset) + ";"
+        end
+        if belowWindowMargin >= 0
+            result = result + "max-height:calc(100vh - " + constants:ToWidthOfM(belowWindowMargin) + ");overflow-y:auto;"
+        end
+        if scrollable
+            result = result + "overflow:auto;"
+        end
+        if scrollSideways
+            result = result + "overflow-x:auto;"
+        end
+        if spinning
+            result = result + "animation:" + SPIN_ANIMATION + ";"
+        end
+        if browserGesturesSet and not browserGestures
+            result = result + "touch-action:none;"
+        end
+        if showsUnavailable
+            result = result + "cursor:not-allowed;"
         end
         if textStyle not= undefined
             result = result + textStyle:Generate()

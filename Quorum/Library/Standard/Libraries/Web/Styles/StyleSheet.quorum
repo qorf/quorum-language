@@ -42,6 +42,13 @@ class StyleSheet
     boolean reset = false
 
     /*
+        Motion: the turn that spinning boxes use (WebBoxStyle:SetSpinning),
+        and no animation at all for readers who ask their system for less
+        motion.
+    */
+    constant text MOTION = "@keyframes quorum-spin{to{transform:rotate(360deg);}}@media (prefers-reduced-motion:reduce){*,::before,::after{animation:none!important;}}"
+
+    /*
         The reset: every box measured with its border; no margins on
         headings, paragraphs, lists and the like; headings no larger or
         bolder than text until styled; lists with no markers or indent
@@ -75,7 +82,9 @@ class StyleSheet
     end
 
     /*
-        Adds a rule that applies only in a state, such as ":hover".
+        Adds a rule that applies only in a state, such as ":hover", or in
+        surroundings, such as ":disabled " (a state ending in a space, for
+        an element inside a disabled control).
 
         Attribute: Parameter className The class name, without the leading dot.
         Attribute: Parameter declarations The declarations.
@@ -115,7 +124,7 @@ class StyleSheet
 
     /*
         Returns the whole stylesheet as text, one rule per line: the reset
-        if asked for, plain rules, state rules, then rules for each screen
+        if asked for, the motion rules, plain rules, state rules, then rules for each screen
         width from narrowest, then script rules. Each group is sorted by
         class name, so the same rules always give the same file.
 
@@ -128,6 +137,7 @@ class StyleSheet
         if reset
             result = RESET + lineFeed
         end
+        result = result + MOTION + lineFeed
 
         Array<text> names = Sorted(rules)
         integer i = 0
@@ -143,7 +153,15 @@ class StyleSheet
         repeat while i < conditional:GetSize()
             text name = conditional:Get(i)
             if statesOfRules:HasKey(name)
-                result = result + "." + name + statesOfRules:GetValue(name) + "{" + conditionalRules:GetValue(name) + "}" + lineFeed
+                text state = statesOfRules:GetValue(name)
+                // A state ending in a space is the element's surroundings
+                // (":disabled " for inside a disabled control): it goes
+                // before the class. Others follow it (".q1:hover").
+                if state:EndsWith(" ")
+                    result = result + state + "." + name + "{" + conditionalRules:GetValue(name) + "}" + lineFeed
+                else
+                    result = result + "." + name + state + "{" + conditionalRules:GetValue(name) + "}" + lineFeed
+                end
             else
                 number width = widthsOfRules:GetValue(name)
                 if not Contains(widths, width)

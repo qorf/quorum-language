@@ -2346,6 +2346,17 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     end
 
     /*
+        Sets the layout of a button's contents, such as an icon above its
+        label.
+
+        Attribute: Parameter element The button to lay out.
+        Attribute: Parameter layout The layout to use.
+    */
+    action SetLayout(Button element, WebLayout layout)
+        layouts:Set(element, layout)
+    end
+
+    /*
         Sets the layout of a span's contents.
 
         Attribute: Parameter element The span to lay out.
@@ -2649,6 +2660,90 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
     action SetStyleWhenInvalid(WebTag element, WebStyle style)
         WebConditionalLook look
         look:SetStyleInState(look:INVALID, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is pressed (as a button
+        under a click), on top of its own look.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenPressed(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:PRESSED, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style a control takes while it is disabled, on top of its
+        own look, such as a grey Run button while a program runs. Screen
+        readers announce the same state.
+
+        Attribute: Parameter element The control.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenDisabled(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:DISABLED, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is empty, on top of its own
+        look, such as hiding a program's display until the program draws in
+        it (WebBoxStyle:SetDisplayed(false)).
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenEmpty(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:EMPTY, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is inside a disabled
+        control, on top of its own look, such as a spinner that shows in a
+        Run button only while the button waits.
+
+        Attribute: Parameter element The element, inside a control.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleInsideDisabled(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:INSIDE_DISABLED, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style a tab takes while it is the chosen one (its
+        aria-selected is "true", as a script sets it), on top of its own
+        look. Screen readers announce the same state.
+
+        Attribute: Parameter element The tab.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenSelected(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:SELECTED, style)
+        AddConditionalLook(element, look)
+    end
+
+    /*
+        Sets a style an element takes while it is the current one of a
+        set (it has aria-current, as a script sets it), on top of its own
+        look, such as the button for the slide shown. Screen readers
+        announce the same state.
+
+        Attribute: Parameter element The element.
+        Attribute: Parameter style The style.
+    */
+    action SetStyleWhenCurrent(WebTag element, WebStyle style)
+        WebConditionalLook look
+        look:SetStyleInState(look:CURRENT, style)
         AddConditionalLook(element, look)
     end
 

@@ -32,6 +32,7 @@ class WebTextStyle is WebStyle
     number lineHeight = -1
     boolean boldSet = false
     boolean bold = false
+    boolean semibold = false
     boolean italicSet = false
     boolean italic = false
     boolean surroundingFont = false
@@ -43,6 +44,10 @@ class WebTextStyle is WebStyle
     integer alignment = constants:STRETCH_ALIGN
     boolean breakLongWords = false
     text font = ""
+    boolean wrappingSet = false
+    boolean wrapping = true
+    boolean keepSpaces = false
+    boolean codeFont = false
 
     // What a reader's browser uses when the named font is missing.
     constant text FALLBACK_FONT = "sans-serif"
@@ -127,6 +132,16 @@ class WebTextStyle is WebStyle
     */
     action IsBold returns boolean
         return boldSet and bold
+    end
+
+    /*
+        Sets whether the text is a little bold (semibold), between normal
+        and bold, as for a button's label. Bold text stays bold.
+
+        Attribute: Parameter value True for semibold text.
+    */
+    action SetSemibold(boolean value)
+        semibold = value
     end
 
     /*
@@ -313,6 +328,57 @@ class WebTextStyle is WebStyle
     end
 
     /*
+        Sets whether the text may wrap onto more lines. Text that may not
+        stays on one line, as a short label under an icon or a button's
+        words in a row that scrolls sideways.
+
+        Attribute: Parameter value False to keep the text on one line.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle label
+        label:SetWrapping(false)
+    */
+    action SetWrapping(boolean value)
+        wrappingSet = true
+        wrapping = value
+    end
+
+    /*
+        Keeps the text's spaces and line breaks as they are, still wrapping
+        long lines, as a console showing a program's output.
+
+        Attribute: Parameter value True to keep spaces and line breaks.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle console
+        console:SetKeepSpaces(true)
+    */
+    action SetKeepSpaces(boolean value)
+        keepSpaces = value
+    end
+
+    /*
+        Shows the text in a code font, one where every letter has the same
+        width, as a console or anything that shows code outside a code
+        block.
+
+        Attribute: Parameter value True for a code font.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebTextStyle
+
+        WebTextStyle console
+        console:UseCodeFont(true)
+    */
+    action UseCodeFont(boolean value)
+        codeFont = value
+    end
+
+    /*
         Returns a new text style with the same settings. Change the copy to
         give one element its own look without changing every element that
         shares this style.
@@ -335,6 +401,7 @@ class WebTextStyle is WebStyle
         if lineHeight > 0
             copy:SetLineHeight(lineHeight)
         end
+        copy:SetSemibold(semibold)
         if boldSet
             copy:SetBold(bold)
         end
@@ -364,6 +431,11 @@ class WebTextStyle is WebStyle
         if not font:IsEmpty()
             copy:SetFont(font)
         end
+        if wrappingSet
+            copy:SetWrapping(wrapping)
+        end
+        copy:SetKeepSpaces(keepSpaces)
+        copy:UseCodeFont(codeFont)
         return copy
     end
 
@@ -388,6 +460,9 @@ class WebTextStyle is WebStyle
             else
                 result = result + "font-weight:" + constants:NORMAL_FONT_WEIGHT + ";"
             end
+        end
+        if semibold and not IsBold()
+            result = result + "font-weight:" + constants:SEMIBOLD_FONT_WEIGHT + ";"
         end
         if italicSet
             if italic
@@ -430,6 +505,19 @@ class WebTextStyle is WebStyle
             text quote = ""
             quote = quote:GetDoubleQuote()
             result = result + "font-family:" + quote + font + quote + "," + FALLBACK_FONT + ";"
+        end
+        if codeFont
+            result = result + "font-family:monospace;"
+        end
+        // Kept spaces wrap long lines; text that may not wrap stays on one.
+        if keepSpaces
+            result = result + "white-space:pre-wrap;"
+        elseif wrappingSet
+            if wrapping
+                result = result + "white-space:normal;"
+            else
+                result = result + "white-space:nowrap;"
+            end
         end
         return result
     end

@@ -5,12 +5,16 @@ use Libraries.Web.Layouts.WebLayout
 
 /*
     WebConditionalLook is a style or layout that an element takes only
-    sometimes: on screens at least some width wide, or while the pointer
-    is over it, or while it has keyboard focus. It changes only what it
+    sometimes: on screens at least some width wide, while the pointer is
+    over it or it is pressed, while it has keyboard focus, while it is
+    disabled or empty, while it is the selected tab or the current item,
+    or while it sits inside a disabled control. It changes only what it
     sets; everything else stays as the element's own look says. A page
     makes these with SetStyleFromWidth, SetLayoutFromWidth,
-    SetStyleOnHover and SetStyleOnFocus; people making pages don't use
-    this class directly.
+    SetStyleOnHover, SetStyleOnFocus, SetStyleWhenPressed,
+    SetStyleWhenDisabled, SetStyleWhenEmpty, SetStyleWhenSelected,
+    SetStyleWhenCurrent and SetStyleInsideDisabled; people making pages
+    don't use this class directly.
 */
 class WebConditionalLook
     number fromWidth = -1
@@ -22,6 +26,18 @@ class WebConditionalLook
     public constant text HOVER = ":hover"
     public constant text FOCUS = ":focus"
     public constant text INVALID = "[aria-invalid='true']"
+    public constant text DISABLED = ":disabled"
+    public constant text EMPTY = ":empty"
+    public constant text PRESSED = ":active"
+    // Marked by the page's scripts, so sight and screen readers agree:
+    // the chosen tab (aria-selected), and the current item, such as the
+    // slide shown (aria-current, any value but "false").
+    public constant text SELECTED = "[aria-selected='true']"
+    public constant text CURRENT = "[aria-current]:not([aria-current='false'])"
+    // A state of the element's surroundings, not its own: inside a
+    // disabled control, as a spinner shown in a button while it waits. A
+    // state ending in a space is written before the element's class.
+    public constant text INSIDE_DISABLED = ":disabled "
 
     /*
         Makes this a style for screens at least this wide.
@@ -46,8 +62,9 @@ class WebConditionalLook
     end
 
     /*
-        Makes this a style for a state, such as HOVER, FOCUS or INVALID
-        (a form field its page marks as filled in wrongly).
+        Makes this a style for a state, such as HOVER, FOCUS, INVALID (a
+        form field its page marks as filled in wrongly), DISABLED, EMPTY,
+        PRESSED, SELECTED, CURRENT or INSIDE_DISABLED.
 
         Attribute: Parameter stateName The state, one of this class's constants.
         Attribute: Parameter value The style.
