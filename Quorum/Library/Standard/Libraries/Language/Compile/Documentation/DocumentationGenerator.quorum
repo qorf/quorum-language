@@ -2,40 +2,18 @@ package Libraries.Language.Compile.Documentation
 
 use Libraries.Containers.Array
 use Libraries.Language.Compile.Translate.ClassOpcode
-use Libraries.Web.Page.NavigationDivision
 use Libraries.Web.Page.Footer
 use Libraries.Containers.Iterator
 use Libraries.Web.Page.WebPage
 use Libraries.System.File
 use Libraries.Web.Page.MetaData
-use Libraries.Web.Page.WebPageHeader
-use Libraries.Web.Page.MainContent
-use Libraries.Web.Page.Header
-use Libraries.Web.Page.Division
-use Libraries.Web.Page.WebTable
-use Libraries.Web.Page.TableRow
-use Libraries.Web.Page.TableHeaderCell
-use Libraries.Web.Page.TableData
-use Libraries.Web.Page.LineBreak
-use Libraries.Web.Page.StrongText
-use Libraries.Web.Page.Link
-use Libraries.Web.Page.HeaderLink
-use Libraries.Web.Page.SmallText
-use Libraries.Web.Page.Input
-use Libraries.Web.Page.Form
-use Libraries.Web.Page.ListItem
-use Libraries.Web.Page.UnorderedList
-use Libraries.Language.Compile.CompilerResult
 use Libraries.Containers.HashTable
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
-use Libraries.Language.Compile.Symbol.Documentation
 use Libraries.Language.Compile.Library
 use Libraries.Language.Compile.Compiler
 use Libraries.Web.Page.Section
 use Libraries.Web.Page.Heading
-use Libraries.Web.Page.Paragraph
-use Libraries.Web.Page.Image
 use Libraries.Web.Quorum.QuorumSite
 use Libraries.Web.Quorum.QuorumSiteOptions
 
@@ -44,8 +22,6 @@ class DocumentationGenerator
     constant text DOCUMENTATION_FOLDER = "Documents/"
     boolean isBuildingStandardLibrary = false
     boolean isBuildingSourceFiles = true
-    Section packageIndex = undefined
-    Section mobilePackageIndex = undefined
 
     // The standard library's pages in the website's look (Write(Library)):
     // the index, a page for each package and each class, framed as the
@@ -246,251 +222,47 @@ class DocumentationGenerator
         return path + DOCUMENTATION_FOLDER
     end
 
-    action GetSearchSection returns Section
-        Section section
+    /*
+        The actions below are only for ClassOpcode's WriteToWebPage, the
+        compiler's old way of writing one class's page, which the compiler
+        still has but nothing calls: Write makes every page now
+        (LibraryClassPage). They stay so the compiler compiles, and give
+        it plain parts, with no styles.
+    */
 
-        Form form
-        Input searchInput
-        searchInput:SetName("Search Query")
-        searchInput:SetType("text")
-        Input searchButton
-        searchButton:SetName("Search Button")
-        searchButton:SetType("submit")
-        form:Add(searchInput)
-        form:Add(searchButton)
-        section:Add(form)
-
-        return section
-    end
-    
-    action WriteIndexPage(SymbolTable symbolTable)
-        WebPage page
-        AddDefaultHeaders(page)
-        //auto-generate some sensible keywords
-        MetaData keywords
-        text keywordText = "programming for beginners, computer programming,
-        Quorum programming language, Standard Library"
-        keywords:AddAttribute("name", "keywords")
-        keywords:AddAttribute("content", keywordText)
-        page:AddMetaData(keywords)
-
-        MetaData metaDataDescription
-        metaDataDescription:SetContent("Read more about the Quorum programming language's standard library.")
-        metaDataDescription:SetName("description")
-        page:AddMetaData(metaDataDescription)
-
-        Compiler compiler
-        page:SetWebPageTitle("Standard Library Index - " + compiler:GetVersion())
-        MainContent mainRegion
-        mainRegion:AddAttribute("role","main")
-mainRegion:SetClassAttribute("flex flex-row w-full box-border mx-1 md:mx-2 lg:mx-4 md:gap-x-2")
-        
-        text phrase = "Introducing the " + compiler:GetVersion() + " Standard Library"
-        Header headDiv
-        Section introHeaderSection = CreateHeaderSection(phrase)
-        headDiv:Add(introHeaderSection)
-        page:Add(headDiv)
-
-        Division bodyDiv
-        bodyDiv:SetClassAttribute("w-full pr-4 pl-4 md:w-5/6 lg:w-4/6 md:pl-8 md:pr-8 md:pl-12 md:pr-12 space-y-2")
-        Heading heading = bodyDiv:AddHeading("Quorum's Built-in Packages and Classes", 2)
-        heading:SetClassAttribute("font-bold text-3xl pt-6")
-        bodyDiv:AddParagraph("This page shows the full list of classes Quorum 
-supports in the current version of the standard library. These classes are 
-placed into packages organized by their subject area. For example, math related 
-classes are in Libraries.Compute, general data structures are in 
-Libraries.Containers, user interfaces (e.g., buttons, text boxes) are in 
-Libraries.Interface. Besides these, there are many more packages that are 
-used for a variety of purposes (e.g., networking, robots, games, graphics, 
-sound, digital signal processing, mobile applications). The purpose of this 
-index page is to help users find information about specific packages or 
-classes. Thus, this page is structured as a reference and is not intended as a 
-tutorial.")
-        //Section searchSection = GetSearchSection()
-        //bodyDiv:Add(searchSection)
-        mainRegion:Add(packageIndex)
-        mainRegion:Add(bodyDiv)
-        page:Add(mainRegion)
-        page:Add(GetFooter())
-
-        File documentationFile
-        documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
-        documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + "libraries.html")
-        documentationFile:Write(page:Generate())
-    end
-
-    action CreateHeaderSection(text header) returns Section
-        Section blueSection
-        blueSection:AddClassAttribute("bg-quorum-blue-25 flex flex-row items-center justify-center py-10 w-full")
-    
-        // Quorum Icon and Text section
-        Division leftText
-        leftText:AddClassAttribute("flex flex-col") // Updated to flex-col and added gap and margin-right
-    
-        Heading quorumHeader
-        quorumHeader:SetScale(1)
-        quorumHeader:AddText(header)
-        quorumHeader:AddClassAttribute("text-2xl w-72 font-bold font-sans")
-        leftText:Add(quorumHeader)
-    
-        Paragraph p
-        p:AddText("Build complex applications, master data, and make programs accessible for everyone.")
-        p:AddClassAttribute("w-72 font-light")
-        leftText:Add(p)
-    
-        // Bunny Image
-        Division bunnyImageHolder
-        bunnyImageHolder:AddClassAttribute("w-1/4 max-w-[200px]")
-    
-        Image bunny
-        bunny:SetAddress("/media/userInterface/quorumAssets/LIBRARY.png")
-        bunny:AddClassAttribute("w-full")
-        bunny:SetAlternate("A cartoon rabbit named Quincy wearing glasses. 
-        Quincy is reading a book containing documentation for the standard library. We reluctantly admit it is a boring book.")
-        bunnyImageHolder:Add(bunny)
-        blueSection:Add(bunnyImageHolder)
-blueSection:Add(leftText)
-    
-        return blueSection
-    end
-
+    // The old page's headers: its language, character set and viewport.
     action AddDefaultHeaders(WebPage page)
-        //add language headers
         page:AddAttribute("xml:lang", "en")
         page:SetLanguage("en")
-
-        //add the meta-data character set
         MetaData charset
         charset:SetCharacterSet("UTF-8")
         page:AddMetaData(charset)
-
         MetaData viewport
         viewport:SetContent("width=device-width, initial-scale=1")
         viewport:SetName("viewport")
         page:AddMetaData(viewport)
-
-        text metaDescriptionContent = GetMetaDescription()
-        if metaDescriptionContent not= undefined
-            MetaData description
-            description:SetContent(metaDescriptionContent)
-            description:SetName("description")
-            page:AddMetaData(description)
-        end
-        
-        page:AddMetaData(GenerateKeywords())
-        page:AddScript("/script/jquery-1.8.3.min.js")
-        page:AddScript("/script/script.js")
-        page:AddScript("/script/prism-quorum.js")
-        
-        //add style sheet tags
-        //page:AddStylesheet("/style/style.css")
-        page:AddStylesheet("/style/google.css")
-        page:AddStylesheet("/style/output.css")
-        page:AddIcon("/media/favicon.ico")
-
-        //Add Responsive Stylesheets
-        WebPageHeader webHeader = page:GetWebPageHeader()
-        //webHeader:Add(GetMediaStyleSheet("/style/style-small.css", "(max-width: 500px)"))
-        //webHeader:Add(GetMediaStyleSheet("/style/style-medium.css", "(min-width: 501px) and (max-width: 1000px)"))
-        //webHeader:Add(GetMediaStyleSheet("/style/style-large.css", "(min-width: 1001px)"))
-
-        //Add the navigation bar
-        NavigationBar navigation
-        Section index = GetMobilePackageIndex()
-        UnorderedList list = navigation:GetList()
-        list:AddNestedTag(index)
-        page:Add(navigation)
     end
 
-    action GetMetaDescription returns text
-        return "This page includes documentation for part of the Quorum programming language."
+    // The old page's title section: the header's words, as a heading.
+    action CreateHeaderSection(text header) returns Section
+        Section section
+        Heading heading
+        heading:SetScale(1)
+        heading:AddText(header)
+        section:Add(heading)
+        return section
     end
 
-    action GenerateKeywords returns MetaData
-        MetaData keywords
-        keywords:AddAttribute("name", "keywords")
-        keywords:AddAttribute("content", "programming for beginners, game programming, 
-        lego programming, computer courses, programming 3D, programming,
-        animation, graphics, multimedia, games, accessibility, computer science for all,
-        computer science, computer languages, Quorum programming language, robot programming,
-        online programming")
-        return keywords
-    end
-
+    // The old page's footer.
     action GetFooter returns Footer
         Footer footer
         footer:AddText("The Quorum Programming Language")
-        footer:SetIdentifier("footer")
-        SmallText small
-        small:AddText("Copyright &copy; 2014-2023. Art and Design by 
-            Andreas Stefik, Melissa Stefik, Evan Pierzina, Kristine Monsada, and Brandon Fidler.")
-        footer:Add(small)
         return footer
     end
 
-    private action GetMediaStyleSheet(text name, text media) returns HeaderLink
-        HeaderLink link
-        link:SetAddress(name)
-        link:SetType("text/css")
-        link:SetRelationship("stylesheet")
-        link:SetMedia(media)
-        return link
-    end
-
-    private action GetClassLinkFromIndex(Class from) returns text
-        text link = ""
-        text key = from:GetStaticKey()
-        Array<text> fromSplit = key:Split("\.")
-        if fromSplit not= undefined
-            i = 0
-            repeat fromSplit:GetSize() times
-                if i < fromSplit:GetSize() - 1
-                    link = link + fromSplit:Get(i) + "/"
-                else
-                    link = link + fromSplit:Get(i) + ".php"
-                end
-                i = i + 1
-            end
-        end
-        text dq = link:GetDoubleQuote()
-        link = "<a href = " + dq + link + dq + ">" + from:GetName() + "</a>"
-        return link
-    end
-
-    private action GetWebLinkForClassFromIndex(Class from, boolean boldLink) returns Link
-        Link link
-        text key = from:GetStaticKey()
-        text linkText = "/"
-        Array<text> fromSplit = key:Split("\.")
-        if fromSplit not= undefined
-            i = 0
-            repeat fromSplit:GetSize() times
-                if i < fromSplit:GetSize() - 1
-                    linkText = linkText + fromSplit:Get(i) + "/"
-                else
-                    linkText = linkText + fromSplit:Get(i) + ".html"
-                end
-                i = i + 1
-            end
-        end
-        link:SetAddress(linkText)
-        if boldLink
-            StrongText strong
-            strong:AddText(from:GetName())
-            link:Add(strong)
-        else 
-            link:AddText(from:GetName())
-        end
-        
-        return link
-    end
-
+    // The old page's package list, now empty.
     action GetPackageIndex returns Section
-        return packageIndex
+        Section section
+        return section
     end
-
-    action GetMobilePackageIndex returns Section
-        return mobilePackageIndex
-    end
-
 end

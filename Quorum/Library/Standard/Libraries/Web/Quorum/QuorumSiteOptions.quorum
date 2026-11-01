@@ -411,6 +411,76 @@ shared class QuorumSiteOptions is StyleOptions
         hidden:SetDisplayed(false)
         AddScriptClass("hidden", hidden)
 
+        // The block editor's Fullscreen: script.js adds "editor-fullscreen"
+        // to the editor, which then covers the window with no margin, and
+        // "page-locked" to the page, so it doesn't scroll behind it.
+        WebBoxStyle editorFullscreen
+        editorFullscreen:SetCoverWindow(true)
+        editorFullscreen:SetMargin(constants:SPACING_0, constants:SPACING_0)
+        AddScriptClass("editor-fullscreen", editorFullscreen)
+        WebBoxStyle pageLocked
+        pageLocked:SetClipContent(true)
+        AddScriptClass("page-locked", pageLocked)
+
+        // For screen readers only, for parts a script makes, such as the
+        // block editor's "Jump to editor".
+        WebBoxStyle visuallyHidden
+        visuallyHidden:SetVisuallyHidden(true)
+        AddScriptClass("visually-hidden", visuallyHidden)
+
+        // Zooming in on a picture (QuorumSite's zoom script): each picture
+        // becomes a button with a zoom-in pointer, centered, that opens a
+        // dialog over the whole window, dark grey and see-through, with
+        // Close at the top right, the picture as large as fits, and its
+        // description under it in large white words.
+        WebBoxStyle zoomButton
+        zoomButton:SetPointer(zoomButton:POINTER_ZOOM_IN)
+        zoomButton:SetDisplayed(true)
+        zoomButton:SetCenteredHorizontally(true)
+        AddScriptClass("zoom-button", zoomButton)
+        WebColor zoomShade
+        zoomShade:SetColor(64, 64, 64)
+        zoomShade:SetOpacity(0.9)
+        WebBoxStyle zoomDialog
+        zoomDialog:SetCoverWindow(true)
+        zoomDialog:SetMaximumWidthPercent(100)
+        zoomDialog:SetMaximumHeightPercent(100)
+        zoomDialog:SetMargin(constants:SPACING_0, constants:SPACING_0)
+        zoomDialog:SetPadding(constants:SPACING_8, constants:SPACING_8)
+        zoomDialog:SetBorder(constants:SPACING_0, zoomShade)
+        zoomDialog:SetBackground(zoomShade)
+        AddScriptClass("zoom-dialog", zoomDialog)
+        WebStackLayout zoomStack
+        zoomStack:AlignCenter()
+        AddScriptClass("zoom-stack", zoomStack)
+        WebBoxStyle zoomInner
+        zoomInner:SetHeightPercent(100)
+        AddScriptClass("zoom-inner", zoomInner)
+        WebTextStyle zoomCloseWords
+        zoomCloseWords:SetBold(true)
+        WebBoxStyle zoomClose
+        zoomClose:SetOwnAlignment(constants:RIGHT_ALIGN)
+        zoomClose:SetBottomMargin(constants:SPACING_4)
+        zoomClose:SetPadding(constants:SPACING_2, constants:SPACING_4)
+        zoomClose:SetRoundedCorners(constants:SPACING_3)
+        zoomClose:SetBackground(white)
+        zoomClose:SetTextStyle(zoomCloseWords)
+        AddScriptClass("zoom-close", zoomClose)
+        WebBoxStyle zoomPicture
+        zoomPicture:SetHeightPercent(83)
+        zoomPicture:SetPictureFit(zoomPicture:PICTURE_CONTAIN)
+        zoomPicture:SetBottomMargin(constants:SPACING_8)
+        zoomPicture:SetBackground(grey10)
+        AddScriptClass("zoom-picture", zoomPicture)
+        WebTextStyle zoomWords
+        zoomWords:SetColor(white)
+        zoomWords:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        zoomWords:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        WebBoxStyle zoomCaption
+        zoomCaption:SetPadding(constants:SPACING_4, constants:SPACING_6)
+        zoomCaption:SetTextStyle(zoomWords)
+        AddScriptClass("zoom-words", zoomCaption)
+
         // On phones, the navigation bar's menu button opens the menu by
         // adding "menu-open": the menu shows, its links centered.
         WebRowLayout openMenu

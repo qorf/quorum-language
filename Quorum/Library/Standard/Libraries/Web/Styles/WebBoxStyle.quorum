@@ -102,6 +102,8 @@ class WebBoxStyle is WebStyle
     boolean windowHeight = false
     number maximumWidth = -1
     number maximumHeight = -1
+    number maximumHeightPercent = -1
+    integer pointer = 0
     number topLeftCorner = -1
     number topRightCorner = -1
     number bottomLeftCorner = -1
@@ -161,6 +163,13 @@ class WebBoxStyle is WebStyle
     public constant integer FLOATING_LAYER = 10
     public constant integer DIALOG_LAYER = 20
     public constant integer TOP_LAYER = 50
+
+    // The pointer over the box (SetPointer): the browser's own, a hand
+    // (something to click), or a magnifying glass to zoom in or out.
+    public constant integer POINTER_DEFAULT = 0
+    public constant integer POINTER_HAND = 1
+    public constant integer POINTER_ZOOM_IN = 2
+    public constant integer POINTER_ZOOM_OUT = 3
 
     // How a picture fills its box (SetPictureFit).
     public constant integer PICTURE_COVER = 1
@@ -818,6 +827,27 @@ class WebBoxStyle is WebStyle
     end
 
     /*
+        Sets the pointer shown over the box: POINTER_HAND, as over
+        something to click, POINTER_ZOOM_IN or POINTER_ZOOM_OUT, as over a
+        picture that zooms, or POINTER_DEFAULT, the browser's own. The "not
+        allowed" pointer (SetShowsUnavailable) wins over it.
+
+        Attribute: Parameter value One of the POINTER constants.
+
+        Attribute: Example
+        use Libraries.Web.Styles.WebBoxStyle
+
+        WebBoxStyle zoomable
+        zoomable:SetPointer(zoomable:POINTER_ZOOM_IN)
+    */
+    action SetPointer(integer value)
+        if value < POINTER_DEFAULT or value > POINTER_ZOOM_OUT
+            alert("A box's pointer is one of the POINTER constants, but it was set to " + value + ".")
+        end
+        pointer = value
+    end
+
+    /*
         Sets the space inside the box above its content only, in pixels,
         on top of SetPadding.
 
@@ -939,6 +969,19 @@ class WebBoxStyle is WebStyle
     action SetMaximumHeight(number pixels)
         CheckSize(pixels, "maximum height")
         maximumHeight = pixels
+    end
+
+    /*
+        Sets the tallest the box may be, as a share of the height it is in,
+        as for a dialog that may fill the window but no more.
+
+        Attribute: Parameter percent The share, from 0 to 100.
+    */
+    action SetMaximumHeightPercent(number percent)
+        if percent < 0 or percent > 100
+            alert("A box's maximum height is a share from 0 to 100 percent, but it was set to " + percent + ".")
+        end
+        maximumHeightPercent = percent
     end
 
     /*
@@ -1274,6 +1317,7 @@ class WebBoxStyle is WebStyle
             copy:SetBrowserGestures(browserGestures)
         end
         copy:SetShowsUnavailable(showsUnavailable)
+        copy:SetPointer(pointer)
         if topPadding >= 0
             copy:SetTopPadding(topPadding)
         end
@@ -1300,6 +1344,9 @@ class WebBoxStyle is WebStyle
         end
         if maximumHeight >= 0
             copy:SetMaximumHeight(maximumHeight)
+        end
+        if maximumHeightPercent >= 0
+            copy:SetMaximumHeightPercent(maximumHeightPercent)
         end
         if topLeftCorner >= 0
             copy:SetRoundedTopLeft(topLeftCorner)
@@ -1510,6 +1557,13 @@ class WebBoxStyle is WebStyle
         if browserGesturesSet and not browserGestures
             result = result + "touch-action:none;"
         end
+        if pointer = POINTER_HAND
+            result = result + "cursor:pointer;"
+        elseif pointer = POINTER_ZOOM_IN
+            result = result + "cursor:zoom-in;"
+        elseif pointer = POINTER_ZOOM_OUT
+            result = result + "cursor:zoom-out;"
+        end
         if showsUnavailable
             result = result + "cursor:not-allowed;"
         end
@@ -1546,6 +1600,9 @@ class WebBoxStyle is WebStyle
         end
         if maximumHeight >= 0
             result = result + "max-height:" + constants:ToWidthOfM(maximumHeight) + ";"
+        end
+        if maximumHeightPercent >= 0
+            result = result + "max-height:" + maximumHeightPercent + "%;"
         end
         if topLeftCorner >= 0
             result = result + "border-top-left-radius:" + constants:ToWidthOfM(topLeftCorner) + ";"
