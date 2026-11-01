@@ -1,0 +1,275 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    BlockEditorLooks holds the look of the block editor's parts on a
+    QuorumPage (QuorumPage:BlockEditor): its frame, the toolbar and its
+    buttons, Run and Stop, the blocks and the program's display, the
+    console, the "More" menu and the hotkeys dialog. What the editor needs
+    to work is set here: its layouts, what floats, scrolls or hides, and
+    what changes while Run waits. The site's colors, edges and words are
+    set in QuorumSiteOptions.
+
+    The editor's scripts (script.js) show the menu and the dialog, and swap
+    the toolbar's icons, by their ids; nothing here depends on its
+    classes.
+*/
+class BlockEditorLooks
+    // The shared constants: Tailwind's sizes and spacing. One copy.
+    StyleSheetConstants constants
+
+    // The editor's frame, a stack: the toolbar, the blocks, the console.
+    // The menu floats from it. Filled, it takes the width it is in.
+    WebBoxStyle editor
+    WebBoxStyle filledEditor
+    WebStackLayout editorLayout
+
+    // The toolbar: its title on the left, its buttons on the right,
+    // wrapping on a narrow screen.
+    WebBoxStyle toolbar
+    WebRowLayout toolbarLayout
+    WebBoxStyle title
+    WebRowLayout titleLayout
+    WebBoxStyle buttons
+    WebRowLayout buttonsLayout
+
+    // A toolbar button, its icon above its label, and the backgrounds a
+    // button or menu item takes under the pointer or focus, and pressed.
+    WebBoxStyle tool
+    WebStackLayout toolLayout
+    WebBoxStyle toolLabel
+    WebBoxStyle active
+    WebBoxStyle pressed
+
+    // Run and Stop, grey while unavailable. While Run waits (disabled),
+    // its icon hides and a spinner turns in its place.
+    WebBoxStyle run
+    WebBoxStyle stop
+    WebRowLayout runLayout
+    WebBoxStyle unavailable
+    WebBoxStyle hidden
+    WebBoxStyle spinner
+    WebBoxStyle shown
+
+    // The blocks with the program's display beside them (hidden while
+    // it is empty), and the console under them.
+    WebBoxStyle area
+    WebRowLayout areaLayout
+    WebBoxStyle tray
+    WebBoxStyle display
+    WebBoxStyle console
+
+    // The "More" menu, floating under the toolbar, and its items.
+    WebBoxStyle menu
+    WebBoxStyle menuItem
+
+    // The hotkeys dialog: centered, floating, with a close button in its
+    // corner, a title, the hotkeys, and each key in a small box.
+    WebRowLayout dialogRow
+    WebBoxStyle dialog
+    WebBoxStyle dialogContent
+    WebStackLayout dialogContentLayout
+    WebBoxStyle dialogClose
+    WebTextStyle dialogTitle
+    WebStackLayout hotkeys
+    WebBoxStyle key
+
+    on create
+        editor:SetAnchor(true)
+        editor:SetGrow(true)
+        filledEditor:SetAnchor(true)
+        filledEditor:SetGrow(true)
+        filledEditor:SetWidthPercent(100)
+
+        toolbar:SetAnchor(true)
+        toolbarLayout:SetSpreadOut(true)
+        toolbarLayout:SetCenteredVertically(true)
+        titleLayout:SetCenteredVertically(true)
+        buttons:SetGrow(true)
+        buttonsLayout:SetWrap(true)
+        buttonsLayout:SetAtEnd(true)
+        buttonsLayout:SetCenteredVertically(true)
+
+        toolLayout:AlignCenter()
+
+        runLayout:SetCenteredVertically(true)
+        runLayout:SetCenteredHorizontally(true)
+        unavailable:SetShowsUnavailable(true)
+        hidden:SetDisplayed(false)
+        spinner:SetDisplayed(false)
+        spinner:SetSpinning(true)
+        shown:SetDisplayed(true)
+
+        area:SetGrow(true)
+        area:SetBrowserGestures(false)
+        tray:SetAnchor(true)
+        tray:SetGrow(true)
+        display:SetAnchor(true)
+        display:SetWidthPercent(100)
+        display:SetClipContent(true)
+        console:SetScrollable(true)
+
+        menu:SetDisplayed(false)
+        menu:SetFloating(true)
+        menu:SetTopOffsetPercent(100)
+        menu:SetScrollable(true)
+        menuItem:SetDisplayed(true)
+        menuItem:SetWidthPercent(100)
+
+        dialogRow:SetCenteredHorizontally(true)
+        dialog:SetDisplayed(false)
+        dialog:SetFloating(true)
+        dialogContent:SetScrollable(true)
+        dialogContentLayout:SetCenteredVertically(true)
+        dialogClose:SetFloating(true)
+    end
+
+    action GetEditor returns WebBoxStyle
+        return editor
+    end
+
+    action GetFilledEditor returns WebBoxStyle
+        return filledEditor
+    end
+
+    action GetEditorLayout returns WebStackLayout
+        return editorLayout
+    end
+
+    action GetToolbar returns WebBoxStyle
+        return toolbar
+    end
+
+    action GetToolbarLayout returns WebRowLayout
+        return toolbarLayout
+    end
+
+    action GetTitle returns WebBoxStyle
+        return title
+    end
+
+    action GetTitleLayout returns WebRowLayout
+        return titleLayout
+    end
+
+    action GetButtons returns WebBoxStyle
+        return buttons
+    end
+
+    action GetButtonsLayout returns WebRowLayout
+        return buttonsLayout
+    end
+
+    action GetTool returns WebBoxStyle
+        return tool
+    end
+
+    action GetToolLayout returns WebStackLayout
+        return toolLayout
+    end
+
+    action GetToolLabel returns WebBoxStyle
+        return toolLabel
+    end
+
+    action GetActive returns WebBoxStyle
+        return active
+    end
+
+    action GetPressed returns WebBoxStyle
+        return pressed
+    end
+
+    action GetRun returns WebBoxStyle
+        return run
+    end
+
+    action GetStop returns WebBoxStyle
+        return stop
+    end
+
+    action GetRunLayout returns WebRowLayout
+        return runLayout
+    end
+
+    action GetUnavailable returns WebBoxStyle
+        return unavailable
+    end
+
+    action GetHidden returns WebBoxStyle
+        return hidden
+    end
+
+    action GetSpinner returns WebBoxStyle
+        return spinner
+    end
+
+    action GetShown returns WebBoxStyle
+        return shown
+    end
+
+    action GetArea returns WebBoxStyle
+        return area
+    end
+
+    action GetAreaLayout returns WebRowLayout
+        return areaLayout
+    end
+
+    action GetTray returns WebBoxStyle
+        return tray
+    end
+
+    action GetDisplay returns WebBoxStyle
+        return display
+    end
+
+    action GetConsole returns WebBoxStyle
+        return console
+    end
+
+    action GetMenu returns WebBoxStyle
+        return menu
+    end
+
+    action GetMenuItem returns WebBoxStyle
+        return menuItem
+    end
+
+    action GetDialogRow returns WebRowLayout
+        return dialogRow
+    end
+
+    action GetDialog returns WebBoxStyle
+        return dialog
+    end
+
+    action GetDialogContent returns WebBoxStyle
+        return dialogContent
+    end
+
+    action GetDialogContentLayout returns WebStackLayout
+        return dialogContentLayout
+    end
+
+    action GetDialogClose returns WebBoxStyle
+        return dialogClose
+    end
+
+    action GetDialogTitle returns WebTextStyle
+        return dialogTitle
+    end
+
+    action GetHotkeys returns WebStackLayout
+        return hotkeys
+    end
+
+    action GetKey returns WebBoxStyle
+        return key
+    end
+end

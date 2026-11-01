@@ -1,0 +1,23 @@
+package Libraries.Web.Page
+
+/*
+    WebTagNumbers hands out a different number to every WebTag made, which
+    the tag uses as its hash code. Objects' own hash codes can repeat, and
+    Object's Equals and Compare go by hash codes, so with enough tags (a
+    site of hundreds of thousands) two different tags could count as the
+    same one where tags are kept in a table, such as a page's styles. It is
+    a shared class, so every tag draws from the same count.
+*/
+shared class WebTagNumbers
+    integer count = 0
+
+    /*
+        Returns a number no tag has had before.
+
+        Attribute: Returns The number.
+    */
+    action Next returns integer
+        count = count + 1
+        return count
+    end
+end

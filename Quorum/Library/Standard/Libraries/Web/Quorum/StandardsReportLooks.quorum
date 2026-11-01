@@ -1,0 +1,181 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.WebTableStyle
+use Libraries.Web.Layouts.WebGridLayout
+use Libraries.Web.Layouts.WebRowLayout
+
+/*
+    StandardsReportLooks holds the look of a standards report's parts: the
+    summary's tiles, the coverage map, the row of other groups, and the
+    cards for each standard. The values here are plain defaults; a site
+    changes them in its own options and hands them to each report with
+    SetLooks.
+
+    Attribute: Example
+    use Libraries.Web.Page.Standards.StandardsReportLooks
+
+    StandardsReportLooks looks
+    looks:GetCoveredCard():SetRoundedCorners(8)
+*/
+class StandardsReportLooks
+    // The shared constants: Tailwind's sizes and spacing. One copy.
+    StyleSheetConstants constants
+
+    // The summary: a row of tiles, each with a label and a number.
+    WebRowLayout tiles
+    WebBoxStyle tile
+    WebTextStyle tileLabel
+    WebTextStyle tileNumber
+    WebTextStyle tileOutOf
+
+    // The coverage map: a small label, the table and its caption, its
+    // column and row names, its cells (with and without lessons), and
+    // links in them.
+    WebTextStyle sectionLabel
+    WebTableStyle map
+    WebBoxStyle mapCaption
+    WebBoxStyle mapName
+    WebBoxStyle mapCell
+    WebBoxStyle coveredMapCell
+    WebTextStyle mapLink
+
+    // Groups that don't fit the map, such as specialties, as a row of
+    // links, each set apart.
+    WebRowLayout otherGroups
+    WebBoxStyle otherGroup
+    WebBoxStyle coveredOtherGroup
+
+    // The cards for each standard, in a grid: covered and not.
+    WebGridLayout cards
+    WebBoxStyle coveredCard
+    WebBoxStyle uncoveredCard
+    WebTextStyle cardCode
+    WebTextStyle cardDetails
+    WebTextStyle cardWords
+
+    on create
+        tiles:SetGap(constants:SPACING_2_5)
+        tiles:SetWrap(true)
+        tile:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        tileLabel:SetBold(true)
+        tileNumber:SetBold(true)
+        sectionLabel:SetBold(true)
+
+        map:SetFullWidth(true)
+        WebTextStyle captionWords
+        captionWords:SetBold(true)
+        captionWords:AlignLeft()
+        mapCaption:SetTextStyle(captionWords)
+        mapName:SetPadding(constants:SPACING_1_5, constants:SPACING_2)
+        WebTextStyle nameWords
+        nameWords:SetBold(true)
+        nameWords:AlignLeft()
+        mapName:SetTextStyle(nameWords)
+        mapCell:SetPadding(constants:SPACING_1_5, constants:SPACING_2)
+        coveredMapCell:SetPadding(constants:SPACING_1_5, constants:SPACING_2)
+        WebTextStyle coveredWords
+        coveredWords:SetBold(true)
+        coveredMapCell:SetTextStyle(coveredWords)
+
+        otherGroups:SetGap(constants:SPACING_1_5)
+        otherGroups:SetWrap(true)
+        otherGroup:SetPadding(constants:SPACING_1, constants:SPACING_2_5)
+        coveredOtherGroup:SetPadding(constants:SPACING_1, constants:SPACING_2_5)
+        WebTextStyle coveredGroupWords
+        coveredGroupWords:SetBold(true)
+        coveredOtherGroup:SetTextStyle(coveredGroupWords)
+
+        cards:SetGap(constants:SPACING_2_5)
+        cards:SetSmallestColumnWidth(constants:SPACING_52)
+        coveredCard:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        uncoveredCard:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        cardCode:SetBold(true)
+    end
+
+    action GetTiles returns WebRowLayout
+        return tiles
+    end
+
+    action GetTile returns WebBoxStyle
+        return tile
+    end
+
+    action GetTileLabel returns WebTextStyle
+        return tileLabel
+    end
+
+    action GetTileNumber returns WebTextStyle
+        return tileNumber
+    end
+
+    action GetTileOutOf returns WebTextStyle
+        return tileOutOf
+    end
+
+    action GetSectionLabel returns WebTextStyle
+        return sectionLabel
+    end
+
+    action GetMap returns WebTableStyle
+        return map
+    end
+
+    action GetMapCaption returns WebBoxStyle
+        return mapCaption
+    end
+
+    action GetMapName returns WebBoxStyle
+        return mapName
+    end
+
+    action GetMapCell returns WebBoxStyle
+        return mapCell
+    end
+
+    action GetCoveredMapCell returns WebBoxStyle
+        return coveredMapCell
+    end
+
+    action GetMapLink returns WebTextStyle
+        return mapLink
+    end
+
+    action GetOtherGroups returns WebRowLayout
+        return otherGroups
+    end
+
+    action GetOtherGroup returns WebBoxStyle
+        return otherGroup
+    end
+
+    action GetCoveredOtherGroup returns WebBoxStyle
+        return coveredOtherGroup
+    end
+
+    action GetCards returns WebGridLayout
+        return cards
+    end
+
+    action GetCoveredCard returns WebBoxStyle
+        return coveredCard
+    end
+
+    action GetUncoveredCard returns WebBoxStyle
+        return uncoveredCard
+    end
+
+    action GetCardCode returns WebTextStyle
+        return cardCode
+    end
+
+    action GetCardDetails returns WebTextStyle
+        return cardDetails
+    end
+
+    action GetCardWords returns WebTextStyle
+        return cardWords
+    end
+end

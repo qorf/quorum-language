@@ -1,0 +1,98 @@
+package Libraries.Language.Compile.Documentation
+
+use Libraries.Language.Compile.Symbol.Documentation
+
+/*
+    LibraryLinks knows where the documentation's pages are, from the top of
+    the site, and the one-line summaries the index shows. A class's page
+    is where it always was, its key as folders ("Libraries/Containers/
+    Array.html"); a package's page is the index.html in its folder
+    ("Libraries/Containers/index.html"), which no class can be named.
+*/
+class LibraryLinks
+    constant text INDEX_LOCATION = "libraries.html"
+    constant text PACKAGE_PAGE = "/index.html"
+    constant text PAGE_ENDING = ".html"
+    constant text DEFAULT_PACKAGE = "Default package"
+
+    // A class's page, such as "Libraries/Containers/Array.html".
+    action GetClassLocation(text classKey) returns text
+        return classKey:Replace(".", "/") + PAGE_ENDING
+    end
+
+    // A package's page; the index, for the package with no name.
+    action GetPackageLocation(text packageKey) returns text
+        if packageKey:IsEmpty()
+            return INDEX_LOCATION
+        end
+        return packageKey:Replace(".", "/") + PACKAGE_PAGE
+    end
+
+    // A package's name as shown; the package with no name has one here.
+    action GetPackageName(text packageKey) returns text
+        if packageKey:IsEmpty()
+            return DEFAULT_PACKAGE
+        end
+        return packageKey
+    end
+
+    /*
+        The first sentence of a description, as plain words, for the
+        index: some descriptions hold markup, such as a link, which is
+        left out here (the class's own page shows it).
+    */
+    action GetSummary(Documentation documentation) returns text
+        if documentation = undefined
+            return ""
+        end
+        text words = documentation:GetDescription()
+        if words = undefined
+            return ""
+        end
+        words = PlainWords(words)
+        integer i = 0
+        // A period followed by a space ends the sentence; one inside a
+        // name, as in Libraries.Containers, doesn't.
+        repeat while i < words:GetSize() - 1
+            if words:GetCharacter(i) = "." and words:GetCharacter(i + 1) = " "
+                return words:GetSubtext(0, i + 1)
+            end
+            i = i + 1
+        end
+        return words
+    end
+
+    // The words with any markup left out, the few named characters the
+    // descriptions use turned back into characters, and each run of spaces
+    // and line breaks made one space.
+    private action PlainWords(text words) returns text
+        text result = ""
+        boolean inTag = false
+        boolean lastWasSpace = true
+        integer i = 0
+        repeat while i < words:GetSize()
+            text character = words:GetCharacter(i)
+            if inTag
+                if character = ">"
+                    inTag = false
+                end
+            elseif character = "<"
+                inTag = true
+            elseif character = " " or character = character:GetLineFeed() or character = character:GetCarriageReturn() or character = character:GetTab()
+                if not lastWasSpace
+                    result = result + " "
+                    lastWasSpace = true
+                end
+            else
+                result = result + character
+                lastWasSpace = false
+            end
+            i = i + 1
+        end
+        result = result:Replace("&nbsp;", " ")
+        result = result:Replace("&lt;", "<")
+        result = result:Replace("&gt;", ">")
+        result = result:Replace("&amp;", "&")
+        return result:Trim()
+    end
+end

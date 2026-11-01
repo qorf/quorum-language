@@ -1,0 +1,2290 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleOptions
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebListStyle
+use Libraries.Web.Styles.WebTableStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebColor
+use Libraries.Web.Layouts.WebGridLayout
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    QuorumSiteOptions is the Quorum website's global look. It changes the
+    plain defaults in StyleOptions to the values the site uses today, so
+    pages look the same as they did with Tailwind. Every size is a
+    constant from StyleSheetConstants, named as Tailwind names it, and
+    every color is one of the site's colors below, named as the site's
+    Tailwind settings name it.
+
+    It adds roles only this site has: its two kinds of callout, and the
+    parts of its course navigation. It is a shared class, so a Quorum page
+    and the site reach the same options without being handed them.
+*/
+shared class QuorumSiteOptions is StyleOptions
+    // A parent's fields aren't visible here, so the shared constants are
+    // named again. A shared class: still one copy.
+    StyleSheetConstants constants
+
+    // The code highlighter's theme: its colors for keywords and the like,
+    // and its line numbers. It belongs to the highlighter, as its script
+    // does.
+    constant text HIGHLIGHTER_STYLE_SHEET = "style/prism-quorum.css"
+
+    // The site's font.
+    constant text FONT = "Montserrat"
+
+    // The site's colors (tailwind.config.js).
+    WebColor black            // neutral-black
+    WebColor white            // neutral-white
+    WebColor grey25           // neutral-grey-25
+    WebColor grey40           // neutral-grey-40
+    WebColor grey50           // neutral-grey-50
+    WebColor quorumBlue25     // quorum-blue-25
+    WebColor quorumBlue10     // quorum-blue-10
+    WebColor quorumBlue100    // quorum-blue-100
+    WebColor quorumBlue150    // quorum-blue-150
+    WebColor quorumBlue50     // quorum-blue-50
+    WebColor grey10           // neutral-grey-10
+    WebColor grey65           // neutral-grey-65
+    WebColor grey95           // neutral-grey-95
+    WebColor pageBackground   // website-bg
+    WebColor textColor        // the body's text color
+    WebColor trackYellow      // header-yellow-100
+    WebColor stopRed          // the block editor's Stop button
+
+    // A lesson's goals (design A): a white box with a dark blue bar on
+    // its left and a small grey label. Only goals look this way, not
+    // every list.
+    WebBoxStyle goals
+
+    // A page's banner (banner 4, for the track pages): a white box with a
+    // yellow bar on its left, the page's title and words beside its
+    // picture. Text colors are set, not inherited, so the contrast holds
+    // (15.33:1).
+    WebBoxStyle banner
+    WebRowLayout bannerLayout
+    WebTextStyle bannerTitle
+    WebTextStyle bannerWords
+    WebBoxStyle bannerPicture
+    WebBoxStyle bannerPictureWide
+    WebRowLayout bannerActions
+    WebRowLayout bannerLayoutWide
+
+    // A track's lessons, in order: each lesson's title (a link) above its
+    // one-line description, with room between lessons.
+    WebStackLayout lessonList
+    WebTextStyle lessonTitle
+    WebTextStyle lessonDescription
+
+    // A lesson's practice problem sets (design A): a card for each set, a
+    // white box with a dark blue bar on its top, holding a small grey
+    // label ("Set 1"), the set's name as a link, and "Start".
+    WebGridLayout problemSets
+    WebBoxStyle problemSetCard
+    WebTextStyle problemSetCardWords
+    WebStackLayout problemSetCardLayout
+    WebTextStyle problemSetLabel
+    WebTextStyle problemSetName
+    WebTextStyle problemSetStart
+    WebTextStyle goalsLabel
+
+    // The two kinds of callout in lessons.
+    WebBoxStyle teachingTipLabel
+    WebBoxStyle discussionGoalLabel
+
+    // Course navigation: the breadcrumb row, its links, the marks between
+    // them and the current page; then the "Up next" box at the end of a
+    // lesson, its parts, and the line under it.
+    WebRowLayout breadcrumbs
+    WebListStyle breadcrumbList
+    WebTextStyle breadcrumbLink
+    WebTextStyle breadcrumbSeparator
+    WebTextStyle breadcrumbCurrent
+    WebBoxStyle upNext
+    WebTextStyle upNextLabel
+    WebTextStyle upNextLink
+    WebTextStyle upNextDescription
+    WebTextStyle courseLine
+
+    // Slides (F6, the Code with Mary pages): a row under the slides with
+    // Previous, a button for each slide and Next, as white buttons with a
+    // grey edge and dark blue words. The current slide's button is
+    // reversed (white on dark blue, 7.6 to 1); a button that can't be
+    // used is faded by half.
+    WebRowLayout slidesNavigation
+    WebBoxStyle slideButton
+    WebTextStyle slideButtonWords
+    WebBoxStyle slideButtonCurrent
+    WebBoxStyle slideButtonUnavailable
+
+    // A chart from a file: never narrower than 100 pixels, nor wider than
+    // its column.
+    WebBoxStyle chartBox
+
+    // The Reference page's topic map (phase 5, C2 + C3, V1): a search box
+    // with a dark blue edge, topic chips (dark blue on white, reversed on
+    // hover), and a grid of white tutorial cards with a grey edge that
+    // shows against the page (4.8 to 1), each listing every lesson. Grey
+    // words are #656565 on white (5.8 to 1).
+    WebBoxStyle topicSearchBox
+    WebRowLayout topicSearchRow
+    WebBoxStyle topicSearchLabel
+    // The chips' row scrolls sideways on a phone, with room for the
+    // scroll bar and the chips' focus outline; a chip's words never wrap.
+    WebBoxStyle topicChipsBox
+    WebRowLayout topicChips
+    WebRowLayout topicChipsWrapping
+    WebBoxStyle topicChip
+    WebTextStyle topicChipWords
+    WebBoxStyle topicChipActive
+    WebTextStyle topicChipWordsActive
+    WebGridLayout topicCards
+    WebBoxStyle topicCard
+    WebStackLayout topicCardLayout
+    WebTextStyle topicCardWords
+    WebTextStyle topicCardLessons
+    WebTextStyle topicStatus
+
+    // A picture beside words (phase 5B): stacked on a phone, side by side
+    // from a small screen up, the picture taking two fifths of the row.
+    // Questions that open: each with a grey line under it.
+    WebStackLayout pictureStack
+    WebRowLayout pictureRow
+    WebBoxStyle pictureBesideWide
+    WebBoxStyle pictureFeatureWide
+    WebBoxStyle pictureWords
+    WebBoxStyle question
+    WebBoxStyle anchoredBox
+
+    // The home page's old look (phase 5C, from its Tailwind): a light blue
+    // hero band with white pill buttons; a switcher (a grey pill bar, the
+    // chosen button light blue); centered sections with large headings,
+    // narrow centered words, an outline pill and a black pill; a light
+    // blue notice strip. The switcher's unchosen words are #404040 (7.1
+    // to 1 on its grey), not the old #656565 (4.0 to 1, too low).
+    WebBoxStyle heroBanner
+    WebBoxStyle heroBannerWide
+    WebRowLayout heroLogoRow
+    WebBoxStyle heroLogo
+    WebTextStyle heroTitle
+    WebTextStyle heroWords
+    WebBoxStyle heroWordsBox
+    WebBoxStyle heroPill
+    WebTextStyle heroPillWords
+    WebBoxStyle heroPicture
+    WebRowLayout switcherBar
+    WebBoxStyle switcherBarBox
+    WebBoxStyle switcherButton
+    WebTextStyle switcherButtonWords
+    WebBoxStyle switcherButtonChosen
+    WebStackLayout switcherLayout
+    WebBoxStyle switcherInfo
+    WebBoxStyle switcherInfoWide
+    WebTextStyle switcherHeading
+    WebBoxStyle switcherPicture
+    WebBoxStyle homeSection
+    WebTextStyle homeSectionWords
+    WebTextStyle homeHeading
+    WebRowLayout centeredRow
+    WebBoxStyle narrowWords
+    WebBoxStyle narrowWordsWide
+    WebBoxStyle outlinePill
+    WebTextStyle outlinePillWords
+    WebBoxStyle darkPill
+    WebTextStyle darkPillWords
+    WebBoxStyle notice
+    WebTextStyle noticeWordsLeft
+    WebBoxStyle noticePicture
+    WebBoxStyle noticePictureWide
+    WebTextStyle noticeHeading
+    WebBoxStyle noticeWords
+
+    // The Download page's old look (phase 5B, from its Tailwind): a grey
+    // product banner (grey 25) with the words in a third and the
+    // screenshot in two thirds, a full-width button in the button blue
+    // with dark bold words (6.2 to 1), a bold underlined link; a black
+    // feature card with white words; course cards with grey lower halves.
+    // A color banner (ColorBanner, the practice problems' header): a light
+    // blue band across the window (the old "bg-quorum-blue-25 py-4
+    // lg:px-10%"), the title and words beside the picture, shorter than
+    // the old 320 pixels; stacked on a phone.
+    WebBoxStyle colorBanner
+    WebBoxStyle colorBannerWide
+    WebStackLayout colorBannerStack
+    WebRowLayout colorBannerRow
+    WebRowLayout colorBannerRowSmall
+    WebBoxStyle colorBannerColumn
+    WebBoxStyle colorBannerColumnWide
+    WebTextStyle colorBannerTitle
+    WebTextStyle colorBannerTitleWide
+    WebTextStyle colorBannerWords
+    WebTextStyle colorBannerWordsWide
+    WebBoxStyle colorBannerPicture
+    WebBoxStyle colorBannerPictureWide
+    WebBoxStyle productBanner
+    WebBoxStyle productBannerWide
+    WebRowLayout productLinkRow
+    WebStackLayout productStack
+    WebRowLayout productRow
+    WebBoxStyle productWords
+    WebBoxStyle productWordsWide
+    WebTextStyle productTitle
+    WebTextStyle productTagline
+    WebBoxStyle productButton
+    WebTextStyle productButtonWords
+    WebTextStyle productLink
+    WebBoxStyle productPictureWide
+    WebBoxStyle featureCard
+    WebTextStyle featureCardWords
+    WebTextStyle featureCardHeading
+    WebBoxStyle featureCardText
+    WebBoxStyle featureCardTextWide
+    WebBoxStyle featureCardPicture
+    WebBoxStyle featureCardPictureWide
+    WebBoxStyle greyCardBody
+
+    // Choice tiles (phase 5, design C, the Learn page's "New to Quorum?"):
+    // a grid of links, each a tile in the site's dark blue with white bold
+    // words and an icon beside them (7.6 to 1, WCAG AAA; the button blue
+    // with black words was 6.2 to 1); on hover or focus, near black with
+    // white words (16.3 to 1).
+    WebGridLayout choices
+    WebBoxStyle choiceTile
+    WebBoxStyle choiceTileActive
+    WebTextStyle choiceWords
+    WebTextStyle choiceWordsActive
+    WebRowLayout choiceTileLayout
+
+    // Course cards (phase 5, the Learn page, design A): a grid of white
+    // cards, one column on a phone, each with its picture across the top,
+    // then its name, description and a "Details" disclosure.
+    WebGridLayout courseCards
+    WebBoxStyle courseCard
+    WebStackLayout courseCardLayout
+    WebBoxStyle courseCardPicture
+    WebBoxStyle courseCardBody
+
+    // A track page's unit cards (phase 5, design A): a small picture
+    // beside the words, which take the rest of the row (no wrapping, so
+    // the words stay beside it), and the "Lessons" disclosure's label in
+    // dark blue bold words.
+    WebBoxStyle unitPicture
+    WebBoxStyle unitWords
+    WebRowLayout unitLayout
+    WebBoxStyle unitLessonsLabel
+    WebTextStyle unitLessonsWords
+
+    // A lesson's standards, for teachers (design 2): a small label, a
+    // grid of cards, one for each standard, and a link to every standard.
+    WebTextStyle standardsLabel
+    WebGridLayout standardsGrid
+    WebBoxStyle standardCard
+    WebBoxStyle card
+    WebTextStyle standardCode
+    WebTextStyle standardDetails
+    WebTextStyle standardWords
+    WebTextStyle standardsLink
+
+    // The standards report (design 1): summary tiles, the coverage map,
+    // the specialties, and a card for every standard.
+    StandardsReportLooks standardsReport
+
+    // The block editor (phase 5C, from the old BlockIDE's Tailwind): a
+    // white frame with a light blue edge and a deep shadow, a light blue
+    // toolbar, a light blue Run with black words (8.6 to 1), a red Stop
+    // with white words (6.5 to 1), both grey with white words while
+    // unavailable (4.8 to 1), and a grey console in the code font.
+    BlockEditorLooks blockEditor
+
+    // Forms (phase 6, F7): fields with a grey edge and a dark blue focus
+    // ring, the button blue with black bold words (6.2 to 1), messages as
+    // the sign-in dialog shows them, and a quiz's right and wrong words in
+    // a darker green (5.0 to 1) and red (6.5 to 1) than the old Tailwind
+    // green-600 (3.3 to 1, too low) and red-600.
+    FormLooks forms
+
+    // Steps (phase 6, the practice problems' row of numbered problems): a
+    // white box with a grey edge and a medium shadow; each step a small
+    // circle with a blue edge, the current one black with white numbers;
+    // grey arrows between. And a problem's buttons (Previous, Check, Next):
+    // light blue pills, faded while unavailable; its hint, a dark blue
+    // heading over a white box.
+    WebBoxStyle steps
+    WebBoxStyle stepsWide
+    WebRowLayout stepsRow
+    WebRowLayout stepItem
+    WebBoxStyle step
+    WebRowLayout stepLayout
+    WebBoxStyle stepCurrent
+    WebRowLayout problemButtons
+    WebBoxStyle problemButtonsBox
+    WebBoxStyle problemButton
+    WebBoxStyle problemButtonUnavailable
+    WebBoxStyle hintHeading
+    WebBoxStyle hintBody
+
+    // Numbered rows (NumberedRows, design B, a set's problems): a white
+    // card with a grey edge; each row its number in a blue-edged circle,
+    // its title, and a light blue pill link at the right (black words on
+    // light blue, 8.6 to 1), with a grey line between rows.
+    WebBoxStyle numberedRows
+    WebBoxStyle numberedRow
+    WebBoxStyle numberedRowFirst
+    WebRowLayout numberedRowLayout
+    WebTextStyle numberedRowTitle
+    WebBoxStyle numberedRowTitleBox
+    WebBoxStyle numberedRowLink
+    WebBoxStyle numberedRowLinkHover
+
+    // A reader's projects (phase 6, design A): how many there are, under
+    // the title and its New Project button; the table as a white card with a
+    // light grey edge, light blue column names in dark blue (7.6 to 1),
+    // white rows with a grey line between, the names bold, and Delete in
+    // red (6.5 to 1). On a phone the table scrolls sideways in its box.
+    WebTextStyle projectsCount
+    WebBoxStyle projectsTableBox
+    WebTableStyle projectsTable
+    WebBoxStyle projectsHeader
+    WebBoxStyle projectsCell
+    WebBoxStyle projectsNameCell
+    WebBoxStyle projectsDelete
+    WebBoxStyle projectsCaption
+    // The title beside the button; the actions together, at the right;
+    // and the public switch: a grey track (white knob on the left) that
+    // turns dark blue with the knob on the right, drawn beside its
+    // checkbox, which is hidden from sight but still used by the keyboard
+    // and screen readers.
+    WebRowLayout projectsTitleRow
+    WebBoxStyle projectsHeaderEnd
+    WebRowLayout projectsActions
+    WebBoxStyle switchInput
+    WebBoxStyle switchTrack
+    WebBoxStyle switchTrackOn
+    WebBoxStyle switchTrackFocus
+    WebBoxStyle switchKnob
+    WebBoxStyle switchKnobOn
+
+    on create
+        AddStyleSheet(HIGHLIGHTER_STYLE_SHEET)
+
+        black:SetColor(0, 0, 0)
+        white:SetColor(255, 255, 255)
+        grey25:SetColor(215, 215, 215)
+        grey40:SetColor(114, 114, 114)
+        grey50:SetColor(101, 101, 101)
+        quorumBlue25:SetColor(172, 209, 223)
+        quorumBlue100:SetColor(6, 149, 208)
+        quorumBlue10:SetColor(238, 250, 254)
+        quorumBlue150:SetColor(18, 90, 119)
+        quorumBlue50:SetColor(117, 189, 219)
+        grey10:SetColor(246, 246, 247)
+        grey65:SetColor(64, 64, 64)
+        grey95:SetColor(32, 32, 32)
+        pageBackground:SetColor(243, 243, 243)
+        textColor:SetColor(37, 37, 37)
+        trackYellow:SetColor(228, 184, 25)
+        stopRed:SetColor(179, 38, 30)
+
+        // The page: Montserrat, dark grey on light grey, lines one and a
+        // half times the text's size (input.css's body).
+        WebTextStyle pageWords
+        pageWords:SetFont(FONT)
+        pageWords:SetColor(textColor)
+        pageWords:SetFontSize(constants:BASE_FONT_SIZE)
+        pageWords:SetLineHeight(constants:BASE_LINE_HEIGHT)
+        WebBoxStyle page = GetPage()
+        page:SetBackground(pageBackground)
+        page:SetTextStyle(pageWords)
+
+        // Links in the text: dark blue and underlined (input.css's
+        // "#content p a").
+        WebTextStyle link = GetLink()
+        link:SetUnderline(true)
+        link:SetColor(quorumBlue150)
+
+        // The site's scripts show and hide parts of the frame by adding
+        // and removing "hidden".
+        WebBoxStyle hidden
+        hidden:SetDisplayed(false)
+        AddScriptClass("hidden", hidden)
+
+        // On phones, the navigation bar's menu button opens the menu by
+        // adding "menu-open": the menu shows, its links centered.
+        WebRowLayout openMenu
+        openMenu:SetCenteredHorizontally(true)
+        AddScriptClass("menu-open", openMenu)
+
+        // "flex flex-col gap-y-2"
+        GetStack():SetGap(constants:SPACING_2)
+
+        // "list-disc list-outside pl-8"
+        WebListStyle bullets = GetBulletList()
+        bullets:UseDiscs()
+        bullets:MarkersOutside()
+        bullets:SetLeftPadding(constants:SPACING_8)
+
+        // "list-decimal list-outside pl-8"
+        WebListStyle numbers = GetNumberedList()
+        numbers:UseNumbers()
+        numbers:MarkersOutside()
+        numbers:SetLeftPadding(constants:SPACING_8)
+
+        // Lesson's tables: "border-collapse table-fixed w-full"
+        WebTableStyle tables = GetTable()
+        tables:SetFullWidth(true)
+        tables:SetEvenColumns(true)
+        // Lesson rounded and shaded its tables: "rounded-lg shadow
+        // overflow-hidden". Corners only round cells when cells don't
+        // share borders, so cells keep their own, with no space between.
+        tables:SetSharedBorders(false)
+        tables:RemoveCellSpacing()
+        WebBoxStyle tableBox
+        tableBox:SetRoundedCorners(constants:SPACING_2)
+        tableBox:SetShadow(true)
+        tableBox:SetClipContent(true)
+        tables:SetBox(tableBox)
+
+        // Caption: "text-xl font-bold p-4"
+        WebTextStyle captionWords
+        captionWords:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        captionWords:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        captionWords:SetBold(true)
+        WebBoxStyle caption = GetTableCaption()
+        caption:SetTextStyle(captionWords)
+        caption:SetPadding(constants:SPACING_4, constants:SPACING_4)
+
+        // Column names: "bg-neutral-black text-neutral-white text-left
+        // py-3 px-4 font-semibold break-words text-sm". Bold stands in
+        // for semibold until text styles have more weights.
+        WebTextStyle headerWords
+        headerWords:SetColor(white)
+        headerWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        headerWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        headerWords:SetBold(true)
+        headerWords:AlignLeft()
+        headerWords:SetBreakLongWords(true)
+        WebBoxStyle header = GetTableHeaderCell()
+        header:SetBackground(black)
+        header:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        header:SetTextStyle(headerWords)
+
+        // Other cells: "bg-neutral-grey-25 border-y border-neutral-grey-40
+        // text-left py-3 px-4 break-words", with the first column bold.
+        WebTextStyle cellWords
+        cellWords:AlignLeft()
+        cellWords:SetBreakLongWords(true)
+        WebBoxStyle cell = GetTableCell()
+        cell:SetBackground(grey25)
+        cell:SetTopBorder(constants:SPACING_PIXEL, grey40)
+        cell:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        cell:SetTextStyle(cellWords)
+        WebTextStyle rowNameWords = cellWords:Copy()
+        rowNameWords:SetBold(true)
+        WebBoxStyle rowName = GetTableRowHeaderCell()
+        rowName:SetBackground(grey25)
+        rowName:SetTopBorder(constants:SPACING_PIXEL, grey40)
+        rowName:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        rowName:SetTextStyle(rowNameWords)
+
+        // Callouts: a white body, "rounded-b-lg bg-neutral-white px-6
+        // py-2", under a label bar, "rounded-t-lg px-6 py-2 font-bold
+        // text-neutral-white", dark blue for teaching tips and discussion
+        // goals alike (Lesson used green for discussion goals), the same
+        // blue as the standards cards.
+        WebBoxStyle calloutBody = GetCallout()
+        calloutBody:SetBackground(white)
+        calloutBody:SetRoundedBottom(constants:SPACING_2)
+        calloutBody:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        WebTextStyle labelWords
+        labelWords:SetBold(true)
+        labelWords:SetColor(white)
+        WebBoxStyle label = GetCalloutLabel()
+        label:SetTextStyle(labelWords)
+        label:SetRoundedTop(constants:SPACING_2)
+        label:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        label:SetClipContent(true)
+        label:SetBackground(quorumBlue150)
+        teachingTipLabel = label:Copy()
+        discussionGoalLabel = label:Copy()
+
+        // Labeled description lists (design C): a white box with a dark
+        // blue bar on its left, a small grey label in capitals, and the
+        // terms in dark blue, each beside its description.
+        WebBoxStyle labeledPairs = GetLabeledDescriptionList()
+        labeledPairs:SetBackground(white)
+        labeledPairs:SetLeftBorder(constants:SPACING_1, quorumBlue150)
+        labeledPairs:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        WebTextStyle pairsLabel = GetDescriptionListLabel()
+        pairsLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        pairsLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        pairsLabel:SetUppercase(true)
+        pairsLabel:SetBold(true)
+        pairsLabel:SetColor(grey50)
+        GetDescriptionTerm():SetColor(quorumBlue150)
+
+        goals:SetBackground(white)
+        goals:SetLeftBorder(constants:SPACING_1, quorumBlue150)
+        goals:SetPadding(constants:SPACING_3, constants:SPACING_4)
+
+        banner:SetBackground(white)
+        banner:SetBorder(constants:SPACING_PIXEL, grey25)
+        banner:SetLeftBorder(constants:SPACING_1_5, trackYellow)
+        banner:SetPadding(constants:SPACING_4, constants:SPACING_6)
+        bannerLayout:SetGap(constants:SPACING_6)
+        bannerLayout:SetWrap(true)
+        bannerLayout:SetCenteredVertically(true)
+        bannerTitle:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        bannerTitle:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        bannerTitle:SetBold(true)
+        bannerTitle:SetColor(textColor)
+        bannerWords:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        bannerWords:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        bannerWords:SetColor(textColor)
+        bannerPicture:SetWidth(constants:SPACING_72)
+        bannerPictureWide:SetWidthPercent(45)
+        // From a small screen up, a banner's picture stays beside its words.
+        bannerLayoutWide:SetGap(constants:SPACING_6)
+        bannerLayoutWide:SetCenteredVertically(true)
+        bannerActions:SetGap(constants:SPACING_4)
+        bannerActions:SetWrap(true)
+        bannerActions:SetCenteredVertically(true)
+
+        lessonList:SetGap(constants:SPACING_4)
+        lessonTitle:SetBold(true)
+        lessonDescription:SetColor(textColor)
+
+        problemSets:SetGap(constants:SPACING_2_5)
+        problemSets:SetSmallestColumnWidth(constants:SPACING_56)
+        problemSetCardWords:SetColor(textColor)
+        problemSetCardWords:SetUnderline(false)
+        problemSetCard:SetBackground(white)
+        problemSetCard:SetBorder(constants:SPACING_PIXEL, grey25)
+        problemSetCard:SetTopBorder(constants:SPACING_1, quorumBlue150)
+        problemSetCard:SetRoundedBottom(constants:SPACING_2)
+        problemSetCard:SetPadding(constants:SPACING_2_5, constants:SPACING_3)
+        problemSetCard:SetTextStyle(problemSetCardWords)
+        problemSetCardLayout:SetGap(constants:SPACING_1)
+        problemSetLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        problemSetLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        problemSetLabel:SetBold(true)
+        problemSetLabel:SetUppercase(true)
+        problemSetLabel:SetColor(grey50)
+        problemSetName:SetBold(true)
+        problemSetName:SetColor(quorumBlue150)
+        problemSetName:SetUnderline(true)
+        problemSetStart:SetFontSize(constants:SMALL_FONT_SIZE)
+        problemSetStart:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        problemSetStart:SetColor(textColor)
+        goalsLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        goalsLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        goalsLabel:SetUppercase(true)
+        goalsLabel:SetBold(true)
+        goalsLabel:SetColor(grey50)
+
+        // Figures: the caption small and grey, under the picture.
+        WebTextStyle figureWords = GetFigureCaption()
+        figureWords:SetItalic(false)
+        figureWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        figureWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        figureWords:SetColor(grey50)
+
+        // Breadcrumbs (design B): one wrapping row, links without
+        // underlines, grey marks between, the current page in bold.
+        breadcrumbs:SetGap(constants:SPACING_2)
+        breadcrumbs:SetWrap(true)
+        breadcrumbs:SetCenteredVertically(true)
+        breadcrumbList:UseNoMarker()
+        breadcrumbList:SetLeftPadding(constants:SPACING_0)
+        breadcrumbLink:SetUnderline(false)
+        breadcrumbLink:SetColor(quorumBlue150)
+        breadcrumbSeparator:SetColor(grey40)
+        breadcrumbCurrent:SetBold(true)
+
+        // "Up next" (design F): a white box with a blue bar on its left,
+        // a small grey label, the next lesson's name large and bold, its
+        // description, and a grey line under the box.
+        upNext:SetBackground(white)
+        upNext:SetLeftBorder(constants:SPACING_1, quorumBlue100)
+        upNext:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        upNextLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        upNextLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        upNextLabel:SetUppercase(true)
+        upNextLabel:SetBold(true)
+        upNextLabel:SetColor(grey50)
+        upNextLink:SetFontSize(constants:LARGE_FONT_SIZE)
+        upNextLink:SetLineHeight(constants:LARGE_LINE_HEIGHT)
+        upNextLink:SetBold(true)
+        upNextLink:SetUnderline(false)
+        upNextLink:SetColor(quorumBlue150)
+        upNextDescription:SetFontSize(constants:SMALL_FONT_SIZE)
+        upNextDescription:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        courseLine:SetFontSize(constants:SMALL_FONT_SIZE)
+        courseLine:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        courseLine:SetColor(grey50)
+
+        slidesNavigation:SetGap(constants:SPACING_2)
+        slidesNavigation:SetWrap(true)
+        slidesNavigation:SetCenteredVertically(true)
+        slidesNavigation:SetSpreadOut(true)
+        slideButtonWords:SetBold(true)
+        slideButtonWords:SetColor(quorumBlue150)
+        slideButton:SetBackground(white)
+        slideButton:SetBorder(constants:SPACING_PIXEL, grey25)
+        slideButton:SetRoundedCorners(constants:SPACING_2)
+        slideButton:SetPadding(constants:SPACING_1, constants:SPACING_3)
+        slideButton:SetTextStyle(slideButtonWords)
+        WebTextStyle currentWords
+        currentWords:SetColor(white)
+        slideButtonCurrent:SetBackground(quorumBlue150)
+        slideButtonCurrent:SetTextStyle(currentWords)
+        slideButtonUnavailable:SetOpacityPercent(50)
+        slideButtonUnavailable:SetShowsUnavailable(true)
+        unitPicture:SetWidth(constants:SPACING_32)
+
+        topicSearchBox:SetBackground(white)
+        topicSearchBox:SetBorder(constants:SPACING_0_5, quorumBlue150)
+        topicSearchBox:SetRoundedCorners(constants:SPACING_2)
+        topicSearchBox:SetPadding(constants:SPACING_2, constants:SPACING_3)
+        topicSearchBox:SetGrow(true)
+        topicSearchBox:SetShrinkBelowContent(true)
+        topicSearchRow:SetGap(constants:SPACING_2)
+        topicSearchRow:SetCenteredVertically(true)
+        topicSearchLabel:SetVisuallyHidden(true)
+        topicChips:SetGap(constants:SPACING_2)
+        topicChipsWrapping:SetGap(constants:SPACING_2)
+        topicChipsWrapping:SetWrap(true)
+        topicChipWords:SetBold(true)
+        topicChipWords:SetUnderline(false)
+        topicChipWords:SetColor(quorumBlue150)
+        topicChipWords:SetWrapping(false)
+        topicChipsBox:SetScrollSideways(true)
+        topicChipsBox:SetPadding(constants:SPACING_1, constants:SPACING_0)
+        // The Access Charts widget draws inside a positioned box.
+        anchoredBox:SetAnchor(true)
+        // "min-width: 100px; max-width: 100%"
+        chartBox:SetMinimumWidth(constants:SPACING_24 + constants:SPACING_1)
+        chartBox:SetMaximumWidthPercent(100)
+        topicChip:SetBackground(white)
+        topicChip:SetBorder(constants:SPACING_0_5, quorumBlue150)
+        topicChip:SetRoundedCorners(constants:SPACING_4)
+        topicChip:SetPadding(constants:SPACING_1, constants:SPACING_3)
+        topicChip:SetTextStyle(topicChipWords)
+        topicChipWordsActive:SetColor(white)
+        topicChipActive:SetBackground(quorumBlue150)
+        topicChipActive:SetTextStyle(topicChipWordsActive)
+        topicCards:SetGap(constants:SPACING_3)
+        topicCards:SetSmallestColumnWidth(constants:SPACING_64)
+        topicCard:SetBackground(white)
+        topicCard:SetBorder(constants:SPACING_PIXEL, grey40)
+        topicCard:SetRoundedCorners(constants:SPACING_2)
+        topicCard:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        topicCardLayout:SetGap(constants:SPACING_1)
+        topicCardWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        topicCardWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        topicCardWords:SetColor(grey50)
+        topicCardLessons:SetFontSize(constants:SMALL_FONT_SIZE)
+        topicCardLessons:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        topicStatus:SetFontSize(constants:SMALL_FONT_SIZE)
+        topicStatus:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+
+        pictureStack:SetGap(constants:SPACING_3)
+        pictureRow:SetGap(constants:SPACING_6)
+        pictureRow:SetCenteredVertically(true)
+        pictureBesideWide:SetWidthPercent(40)
+        pictureFeatureWide:SetWidthPercent(55)
+        pictureWords:SetGrow(true)
+        pictureWords:SetShrinkBelowContent(true)
+        question:SetBottomBorder(constants:SPACING_PIXEL, grey40)
+        question:SetPadding(constants:SPACING_2, constants:SPACING_0)
+
+        heroBanner:SetBackground(quorumBlue25)
+        heroBanner:SetPadding(constants:SPACING_10, constants:SPACING_6)
+        heroBannerWide:SetPadding(constants:SPACING_10, constants:SPACING_40)
+        heroLogoRow:SetGap(constants:SPACING_4)
+        heroLogoRow:SetCenteredVertically(true)
+        heroLogo:SetWidth(constants:SPACING_16)
+        heroTitle:SetFontSize(constants:EXTRA_LARGE_4_FONT_SIZE)
+        heroTitle:SetLineHeight(constants:EXTRA_LARGE_4_LINE_HEIGHT)
+        heroTitle:SetBold(true)
+        heroTitle:SetColor(textColor)
+        heroWords:SetBold(true)
+        heroWords:SetColor(quorumBlue150)
+        heroWordsBox:SetWidth(constants:SPACING_52)
+        heroWordsBox:SetTextStyle(heroWords)
+        heroPillWords:SetBold(true)
+        heroPillWords:SetUnderline(false)
+        heroPillWords:SetColor(textColor)
+        heroPill:SetBackground(white)
+        heroPill:SetRoundedCorners(constants:SPACING_6)
+        heroPill:SetPadding(constants:SPACING_2, constants:SPACING_12)
+        heroPill:SetTextStyle(heroPillWords)
+        heroPicture:SetWidth(constants:SPACING_72)
+        switcherBar:SetGap(constants:SPACING_2)
+        switcherBarBox:SetBackground(grey25)
+        switcherBarBox:SetRoundedCorners(constants:SPACING_6)
+        switcherButtonWords:SetBold(true)
+        switcherButtonWords:SetColor(grey65)
+        switcherButton:SetBackground(grey25)
+        switcherButton:SetRoundedCorners(constants:SPACING_6)
+        switcherButton:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        switcherButton:SetTextStyle(switcherButtonWords)
+        // The chosen tab: light blue with black words (8.6 to 1).
+        WebTextStyle chosenWords
+        chosenWords:SetColor(black)
+        switcherButtonChosen:SetBackground(quorumBlue50)
+        switcherButtonChosen:SetTextStyle(chosenWords)
+        switcherLayout:SetGap(constants:SPACING_8)
+        switcherInfoWide:SetWidthPercent(40)
+        switcherHeading:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        switcherHeading:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        switcherHeading:SetBold(true)
+        switcherHeading:SetColor(textColor)
+        switcherPicture:SetWidth(constants:SPACING_72)
+        homeSectionWords:AlignCenter()
+        homeSection:SetMargin(constants:SPACING_12, constants:SPACING_0)
+        homeSection:SetTextStyle(homeSectionWords)
+        homeHeading:SetFontSize(constants:EXTRA_LARGE_4_FONT_SIZE)
+        homeHeading:SetLineHeight(constants:EXTRA_LARGE_4_LINE_HEIGHT)
+        homeHeading:SetBold(true)
+        homeHeading:SetColor(textColor)
+        homeHeading:AlignCenter()
+        centeredRow:SetCenteredHorizontally(true)
+        narrowWordsWide:SetWidthPercent(60)
+        outlinePillWords:SetBold(true)
+        outlinePillWords:SetUnderline(false)
+        outlinePillWords:SetColor(quorumBlue150)
+        outlinePill:SetBackground(quorumBlue10)
+        outlinePill:SetBorder(constants:SPACING_0_5, quorumBlue150)
+        outlinePill:SetRoundedCorners(constants:SPACING_6)
+        outlinePill:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        outlinePill:SetTextStyle(outlinePillWords)
+        darkPillWords:SetBold(true)
+        darkPillWords:SetUnderline(false)
+        darkPillWords:SetColor(white)
+        darkPill:SetBackground(black)
+        darkPill:SetRoundedCorners(constants:SPACING_6)
+        darkPill:SetPadding(constants:SPACING_2, constants:SPACING_4)
+        darkPill:SetTextStyle(darkPillWords)
+        notice:SetBackground(quorumBlue25)
+        notice:SetRoundedCorners(constants:SPACING_6)
+        notice:SetPadding(constants:SPACING_2, constants:SPACING_8)
+        // Left-aligned, inside a section that centers its words.
+        noticeWordsLeft:AlignLeft()
+        notice:SetTextStyle(noticeWordsLeft)
+        noticePicture:SetDisplayed(false)
+        noticePictureWide:SetDisplayed(true)
+        noticePictureWide:SetWidth(constants:SPACING_24)
+        noticeHeading:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        noticeHeading:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        noticeHeading:SetBold(true)
+        noticeHeading:SetColor(textColor)
+        noticeWords:SetGrow(true)
+        noticeWords:SetShrinkBelowContent(true)
+
+        colorBanner:SetBackground(quorumBlue25)
+        colorBanner:SetPadding(constants:SPACING_6, constants:SPACING_4)
+        colorBanner:SetClipContent(true)
+        colorBannerWide:SetSidePaddingPercent(10)
+        colorBannerStack:SetGap(constants:SPACING_4)
+        colorBannerRow:SetGap(constants:SPACING_8)
+        colorBannerRow:SetCenteredHorizontally(true)
+        colorBannerRow:SetCenteredVertically(true)
+        // On a phone (design A), the picture on the left and the words
+        // beside it, taking the rest of the row: the words come first in
+        // the page, so the row is shown reversed. From a medium screen, the
+        // words first and the picture after them, centered.
+        colorBannerRowSmall:SetReversed(true)
+        colorBannerRowSmall:SetGap(constants:SPACING_4)
+        colorBannerRowSmall:SetCenteredVertically(true)
+        colorBannerColumn:SetGrow(true)
+        colorBannerColumn:SetShrinkBelowContent(true)
+        colorBannerColumnWide:SetGrow(false)
+        colorBannerTitle:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        colorBannerTitle:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        colorBannerTitle:SetBold(true)
+        colorBannerTitle:SetColor(textColor)
+        colorBannerTitleWide:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        colorBannerTitleWide:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        colorBannerWords:SetFontSize(constants:BASE_FONT_SIZE)
+        colorBannerWords:SetLineHeight(constants:BASE_LINE_HEIGHT)
+        colorBannerWords:SetColor(textColor)
+        colorBannerWordsWide:SetFontSize(constants:LARGE_FONT_SIZE)
+        colorBannerWordsWide:SetLineHeight(constants:LARGE_LINE_HEIGHT)
+        colorBannerPicture:SetHeight(constants:SPACING_24)
+        colorBannerPicture:SetShrink(false)
+        colorBannerPicture:SetOwnAlignment(constants:CENTER_ALIGN)
+        colorBannerPictureWide:SetHeight(constants:SPACING_44)
+        productBanner:SetBackground(grey25)
+        productBanner:SetPadding(constants:SPACING_10, constants:SPACING_8)
+        productBanner:SetClipContent(true)
+        // "px-5% lg:px-10%", and no room under the screenshot ("pt-10").
+        productBannerWide:SetPadding(constants:SPACING_10, constants:SPACING_40)
+        productLinkRow:SetCenteredHorizontally(true)
+        productStack:SetGap(constants:SPACING_4)
+        productRow:SetGap(constants:SPACING_8)
+        productRow:SetCenteredHorizontally(true)
+        productRow:SetCenteredVertically(true)
+        productWords:SetShrinkBelowContent(true)
+        productWordsWide:SetWidthPercent(33)
+        productTitle:SetFontSize(constants:EXTRA_LARGE_4_FONT_SIZE)
+        productTitle:SetLineHeight(constants:EXTRA_LARGE_4_LINE_HEIGHT)
+        productTitle:SetBold(true)
+        productTitle:SetColor(textColor)
+        productTagline:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        productTagline:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        productTagline:SetColor(textColor)
+        productButtonWords:SetBold(true)
+        productButtonWords:SetUnderline(false)
+        productButtonWords:SetColor(black)
+        productButton:SetBackground(quorumBlue100)
+        productButton:SetRoundedCorners(constants:SPACING_4)
+        productButton:SetPadding(constants:SPACING_2, constants:SPACING_12)
+        productButton:SetWidthPercent(100)
+        productButton:SetTextStyle(productButtonWords)
+        productLink:SetBold(true)
+        productLink:SetUnderline(true)
+        productLink:SetColor(quorumBlue150)
+        productPictureWide:SetWidthPercent(66)
+        featureCardWords:SetColor(white)
+        featureCard:SetBackground(black)
+        featureCard:SetRoundedCorners(constants:SPACING_2)
+        featureCard:SetShadow(true)
+        featureCard:SetClipContent(true)
+        featureCard:SetTextStyle(featureCardWords)
+        featureCardHeading:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        featureCardHeading:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        featureCardHeading:SetBold(true)
+        featureCardHeading:SetColor(white)
+        featureCardText:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        featureCardTextWide:SetWidthPercent(25)
+        featureCardTextWide:SetPadding(constants:SPACING_4, constants:SPACING_6)
+        featureCardPicture:SetPadding(constants:SPACING_6, constants:SPACING_6)
+        featureCardPictureWide:SetWidthPercent(75)
+        featureCardPictureWide:SetPadding(constants:SPACING_6, constants:SPACING_6)
+        greyCardBody:SetBackground(grey25)
+        greyCardBody:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        greyCardBody:SetGrow(true)
+
+        courseCards:SetGap(constants:SPACING_4)
+        courseCards:SetSmallestColumnWidth(constants:SPACING_60)
+        courseCard:SetBackground(white)
+        courseCard:SetBorder(constants:SPACING_PIXEL, grey25)
+        courseCard:SetRoundedCorners(constants:SPACING_2)
+        courseCard:SetClipContent(true)
+        courseCardPicture:SetWidthPercent(100)
+        courseCardBody:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        courseCardLayout:SetGap(constants:SPACING_2)
+
+        choices:SetGap(constants:SPACING_2_5)
+        choices:SetSmallestColumnWidth(constants:SPACING_40)
+        choiceWords:SetBold(true)
+        choiceWords:SetUnderline(false)
+        choiceWords:SetColor(white)
+        choiceTile:SetBackground(quorumBlue150)
+        choiceTile:SetRoundedCorners(constants:SPACING_3)
+        choiceTile:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        choiceTile:SetTextStyle(choiceWords)
+        choiceWordsActive:SetColor(white)
+        choiceTileActive:SetBackground(grey95)
+        choiceTileActive:SetTextStyle(choiceWordsActive)
+        choiceTileLayout:SetGap(constants:SPACING_2)
+        choiceTileLayout:SetCenteredHorizontally(true)
+        choiceTileLayout:SetCenteredVertically(true)
+        unitWords:SetGrow(true)
+        unitWords:SetShrinkBelowContent(true)
+        unitLayout:SetGap(constants:SPACING_4)
+        unitLayout:SetAlignedTop(true)
+        unitLessonsWords:SetBold(true)
+        unitLessonsWords:SetColor(quorumBlue150)
+        unitLessonsLabel:SetPadding(constants:SPACING_1, constants:SPACING_0)
+        unitLessonsLabel:SetTextStyle(unitLessonsWords)
+
+        // Standards (design 2): white cards with a dark blue bar on top,
+        // side by side when there's room.
+        standardsLabel = upNextLabel:Copy()
+        standardsGrid:SetGap(constants:SPACING_2_5)
+        standardsGrid:SetSmallestColumnWidth(constants:SPACING_56)
+        standardCard:SetBackground(white)
+        standardCard:SetTopBorder(constants:SPACING_1, quorumBlue150)
+        standardCard:SetRoundedBottom(constants:SPACING_2)
+        standardCard:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        card:SetBackground(white)
+        card:SetBorder(constants:SPACING_PIXEL, grey25)
+        card:SetRoundedCorners(constants:SPACING_2)
+        card:SetPadding(constants:SPACING_4, constants:SPACING_6)
+        standardCode:SetBold(true)
+        standardCode:SetUnderline(false)
+        standardCode:SetColor(quorumBlue150)
+        standardDetails:SetFontSize(constants:SMALL_FONT_SIZE)
+        standardDetails:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        standardDetails:SetColor(grey50)
+        standardWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        standardWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        standardsLink:SetFontSize(constants:SMALL_FONT_SIZE)
+        standardsLink:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        standardsLink:SetBold(true)
+        standardsLink:SetUnderline(false)
+        standardsLink:SetColor(quorumBlue150)
+
+        // The standards report (design 1). Tiles: white, rounded, a small
+        // grey label in capitals over a large bold number.
+        WebBoxStyle reportTile = standardsReport:GetTile()
+        reportTile:SetBackground(white)
+        reportTile:SetRoundedCorners(constants:SPACING_2)
+        reportTile:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        WebTextStyle reportTileLabel = standardsReport:GetTileLabel()
+        reportTileLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        reportTileLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        reportTileLabel:SetUppercase(true)
+        reportTileLabel:SetBold(true)
+        reportTileLabel:SetColor(grey50)
+        WebTextStyle reportTileNumber = standardsReport:GetTileNumber()
+        reportTileNumber:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        reportTileNumber:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        reportTileNumber:SetBold(true)
+        WebTextStyle reportOutOf = standardsReport:GetTileOutOf()
+        reportOutOf:SetFontSize(constants:SMALL_FONT_SIZE)
+        reportOutOf:SetBold(false)
+        reportOutOf:SetColor(grey50)
+        WebTextStyle reportLabel = standardsReport:GetSectionLabel()
+        reportLabel:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        reportLabel:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        reportLabel:SetUppercase(true)
+        reportLabel:SetBold(true)
+        reportLabel:SetColor(grey50)
+        // The map's caption looks like the other labels.
+        WebTextStyle reportCaptionWords = reportLabel:Copy()
+        reportCaptionWords:AlignLeft()
+        standardsReport:GetMapCaption():SetTextStyle(reportCaptionWords)
+
+        // The map: small text, white cells with a little space between
+        // them, light blue where there are lessons.
+        standardsReport:GetMap():SetSharedBorders(false)
+        WebTextStyle mapWords
+        mapWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        mapWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        mapWords:AlignLeft()
+        WebTextStyle mapNameWords = mapWords:Copy()
+        mapNameWords:SetBold(true)
+        standardsReport:GetMapName():SetTextStyle(mapNameWords)
+        WebBoxStyle reportMapCell = standardsReport:GetMapCell()
+        reportMapCell:SetBackground(white)
+        reportMapCell:SetRoundedCorners(constants:SPACING_1)
+        reportMapCell:SetTextStyle(mapWords)
+        WebBoxStyle reportCoveredCell = standardsReport:GetCoveredMapCell()
+        reportCoveredCell:SetBackground(quorumBlue25)
+        reportCoveredCell:SetRoundedCorners(constants:SPACING_1)
+        reportCoveredCell:SetTextStyle(mapNameWords:Copy())
+        WebTextStyle reportMapLink = standardsReport:GetMapLink()
+        reportMapLink:SetColor(quorumBlue150)
+        reportMapLink:SetUnderline(true)
+
+        // Specialties: white chips with a pale blue edge; dark blue edge
+        // and bold where there are lessons.
+        WebTextStyle chipWords
+        chipWords:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        chipWords:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        chipWords:SetColor(quorumBlue150)
+        chipWords:SetUnderline(true)
+        WebBoxStyle chip = standardsReport:GetOtherGroup()
+        chip:SetBackground(white)
+        chip:SetBorder(constants:SPACING_PIXEL, quorumBlue25)
+        chip:SetRoundedCorners(constants:SPACING_96)
+        chip:SetTextStyle(chipWords)
+        WebBoxStyle coveredChip = standardsReport:GetCoveredOtherGroup()
+        coveredChip:SetBackground(white)
+        coveredChip:SetBorder(constants:SPACING_PIXEL, quorumBlue150)
+        coveredChip:SetRoundedCorners(constants:SPACING_96)
+        WebTextStyle coveredChipWords = chipWords:Copy()
+        coveredChipWords:SetBold(true)
+        coveredChip:SetTextStyle(coveredChipWords)
+
+        // Cards, as on the lessons: white with a dark blue bar on top when
+        // a lesson covers the standard, a grey bar when none does yet.
+        WebBoxStyle reportCovered = standardsReport:GetCoveredCard()
+        reportCovered:SetBackground(white)
+        reportCovered:SetTopBorder(constants:SPACING_1, quorumBlue150)
+        reportCovered:SetRoundedBottom(constants:SPACING_2)
+        reportCovered:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        WebBoxStyle reportUncovered = standardsReport:GetUncoveredCard()
+        reportUncovered:SetBackground(white)
+        reportUncovered:SetTopBorder(constants:SPACING_1, grey25)
+        reportUncovered:SetRoundedBottom(constants:SPACING_2)
+        reportUncovered:SetPadding(constants:SPACING_2_5, constants:SPACING_3_5)
+        WebTextStyle reportCardDetails = standardsReport:GetCardDetails()
+        reportCardDetails:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        reportCardDetails:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        reportCardDetails:SetColor(grey50)
+        WebTextStyle reportCardWords = standardsReport:GetCardWords()
+        reportCardWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        reportCardWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+
+        // Lesson made every bold word <strong>, which Tailwind's reset
+        // shows as "font-weight: bolder". Terms keep that look: bold, not
+        // italic.
+        WebTextStyle terms = GetTerm()
+        terms:SetBold(true)
+        terms:SetItalic(false)
+        GetStrong():SetBold(true)
+
+        // Variables (x, y, z) were bold words too: bold, not italic.
+        WebTextStyle variables = GetVariable()
+        variables:SetBold(true)
+        variables:SetItalic(false)
+
+        // Program output ("Placed") was plain text: keep the page's own
+        // font instead of the reset's code font.
+        GetOutput():UseSurroundingFont()
+
+        // Lesson's headings, all bold: "text-3xl" for level 1 down to
+        // "text-sm" for level 6.
+        SetHeading(1, constants:EXTRA_LARGE_3_FONT_SIZE, constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        SetHeading(2, constants:EXTRA_LARGE_2_FONT_SIZE, constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        SetHeading(3, constants:EXTRA_LARGE_FONT_SIZE, constants:EXTRA_LARGE_LINE_HEIGHT)
+        SetHeading(4, constants:LARGE_FONT_SIZE, constants:LARGE_LINE_HEIGHT)
+        SetHeading(5, constants:BASE_FONT_SIZE, constants:BASE_LINE_HEIGHT)
+        SetHeading(6, constants:SMALL_FONT_SIZE, constants:SMALL_LINE_HEIGHT)
+
+        SetBlockEditorLooks()
+        SetFormLooks()
+        SetProblemLooks()
+        SetProjectsLooks()
+    end
+
+    // A reader's projects table (ProfilePage).
+    private action SetProjectsLooks
+        projectsCount:SetColor(grey65)
+        projectsCount:SetFontSize(constants:SMALL_FONT_SIZE)
+        projectsCount:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        projectsTableBox:SetScrollSideways(true)
+
+        projectsTable:SetFullWidth(true)
+        projectsTable:SetSharedBorders(false)
+        projectsTable:RemoveCellSpacing()
+        WebBoxStyle card
+        card:SetBackground(white)
+        card:SetBorder(constants:SPACING_PIXEL, grey25)
+        card:SetRoundedCorners(constants:SPACING_3)
+        card:SetClipContent(true)
+        projectsTable:SetBox(card)
+
+        WebTextStyle headerWords
+        headerWords:SetColor(quorumBlue150)
+        headerWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        headerWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        headerWords:SetBold(true)
+        headerWords:AlignLeft()
+        projectsHeader:SetBackground(quorumBlue10)
+        projectsHeader:SetPadding(constants:SPACING_2_5, constants:SPACING_4)
+        projectsHeader:SetTextStyle(headerWords)
+
+        WebTextStyle cellWords
+        cellWords:AlignLeft()
+        cellWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        cellWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        projectsCell:SetBackground(white)
+        projectsCell:SetTopBorder(constants:SPACING_PIXEL, grey25)
+        projectsCell:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        projectsCell:SetTextStyle(cellWords)
+        WebTextStyle nameWords = cellWords:Copy()
+        nameWords:SetBold(true)
+        nameWords:SetBreakLongWords(true)
+        projectsNameCell:SetBackground(white)
+        projectsNameCell:SetTopBorder(constants:SPACING_PIXEL, grey25)
+        projectsNameCell:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        projectsNameCell:SetTextStyle(nameWords)
+
+        WebColor red
+        red:SetColor(185, 28, 28)
+        WebTextStyle deleteWords
+        deleteWords:SetUnderline(true)
+        deleteWords:SetColor(red)
+        projectsDelete:SetTextStyle(deleteWords)
+        // The table's caption is for screen readers; the page's title says it.
+        projectsCaption:SetVisuallyHidden(true)
+
+        projectsTitleRow:SetSpreadOut(true)
+        projectsTitleRow:SetCenteredVertically(true)
+        projectsTitleRow:SetWrap(true)
+        projectsTitleRow:SetGap(constants:SPACING_4)
+        projectsHeaderEnd = projectsHeader:Copy()
+        WebTextStyle headerEndWords = projectsHeaderEnd:GetTextStyle():Copy()
+        headerEndWords:AlignRight()
+        projectsHeaderEnd:SetTextStyle(headerEndWords)
+        projectsActions:SetAtEnd(true)
+        projectsActions:SetCenteredVertically(true)
+        projectsActions:SetGap(constants:SPACING_4)
+
+        switchInput:SetVisuallyHidden(true)
+        switchTrack:SetInline(true)
+        switchTrack:SetAnchor(true)
+        switchTrack:SetWidth(constants:SPACING_8)
+        switchTrack:SetHeight(constants:SPACING_5)
+        switchTrack:SetRoundedCorners(constants:SPACING_2_5)
+        switchTrack:SetBackground(grey40)
+        switchTrack:SetShrink(false)
+        switchTrackOn:SetBackground(quorumBlue150)
+        switchTrackFocus:SetOutline(constants:SPACING_0_5, quorumBlue150)
+        switchTrackFocus:SetOutlineOffset(constants:SPACING_0_5)
+        switchKnob:SetFloating(true)
+        switchKnob:SetTopOffset(constants:SPACING_0_5)
+        switchKnob:SetLeftOffset(constants:SPACING_0_5)
+        switchKnob:SetWidth(constants:SPACING_4)
+        switchKnob:SetHeight(constants:SPACING_4)
+        switchKnob:SetRoundedCorners(constants:SPACING_2)
+        switchKnob:SetBackground(white)
+        switchKnobOn:SetLeftOffset(constants:SPACING_3_5)
+    end
+
+    // The practice problems' steps, buttons and hint ("flex flex-wrap
+    // items-center p-3 gap-4 text-sm font-medium text-gray-500 bg-white
+    // rounded-lg border border-slate-600 shadow-md sm:p-4 sm:text-base";
+    // each step "w-5 h-5 text-xs border border-quorum-blue-100
+    // rounded-full", the current "bg-neutral-black text-neutral-white").
+    private action SetProblemLooks
+        WebTextStyle stepsWords
+        stepsWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        stepsWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        stepsWords:SetWeight(constants:MEDIUM_FONT_WEIGHT)
+        stepsWords:SetColor(grey50)
+        steps:SetBackground(white)
+        steps:SetBorder(constants:SPACING_PIXEL, grey50)
+        steps:SetRoundedCorners(constants:SPACING_2)
+        steps:SetShadowDepth(steps:MEDIUM_SHADOW)
+        steps:SetPadding(constants:SPACING_3, constants:SPACING_3)
+        steps:SetTextStyle(stepsWords)
+        stepsWide:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        stepsRow:SetWrap(true)
+        stepsRow:SetCenteredVertically(true)
+        stepsRow:SetGap(constants:SPACING_4)
+        stepItem:SetCenteredVertically(true)
+        stepItem:SetGap(constants:SPACING_2)
+        WebTextStyle stepWords
+        stepWords:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        stepWords:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        stepWords:SetUnderline(false)
+        step:SetWidth(constants:SPACING_5)
+        step:SetHeight(constants:SPACING_5)
+        step:SetRoundedCorners(constants:SPACING_5)
+        step:SetBorder(constants:SPACING_PIXEL, quorumBlue100)
+        step:SetShrink(false)
+        step:SetTextStyle(stepWords)
+        stepLayout:SetCenteredVertically(true)
+        stepLayout:SetCenteredHorizontally(true)
+        WebTextStyle currentWords
+        currentWords:SetColor(white)
+        stepCurrent:SetBackground(black)
+        stepCurrent:SetBorder(constants:SPACING_PIXEL, black)
+        stepCurrent:SetTextStyle(currentWords)
+
+        // "flex justify-between items-center w-full p-4"; each button
+        // "py-2.5 px-4 text-center rounded-2xl w-36 text-sm font-bold
+        // bg-quorum-blue-50", while unavailable "bg-neutral-grey-25
+        // opacity-50 cursor-not-allowed".
+        problemButtons:SetSpreadOut(true)
+        problemButtons:SetCenteredVertically(true)
+        problemButtons:SetWrap(true)
+        problemButtons:SetGap(constants:SPACING_2)
+        problemButtonsBox:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        WebTextStyle buttonWords
+        buttonWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        buttonWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        buttonWords:SetBold(true)
+        buttonWords:SetColor(textColor)
+        buttonWords:SetUnderline(false)
+        buttonWords:AlignCenter()
+        problemButton:SetPadding(constants:SPACING_2_5, constants:SPACING_4)
+        problemButton:SetRoundedCorners(constants:SPACING_4)
+        problemButton:SetWidth(constants:SPACING_36)
+        problemButton:SetBackground(quorumBlue50)
+        problemButton:SetDisplayed(true)
+        problemButton:SetTextStyle(buttonWords)
+        problemButtonUnavailable:SetBackground(grey25)
+        problemButtonUnavailable:SetOpacityPercent(50)
+        problemButtonUnavailable:SetShowsUnavailable(true)
+
+        numberedRows:SetBackground(white)
+        numberedRows:SetBorder(constants:SPACING_PIXEL, grey25)
+        numberedRows:SetRoundedCorners(constants:SPACING_3)
+        numberedRows:SetClipContent(true)
+        numberedRow:SetPadding(constants:SPACING_2_5, constants:SPACING_4)
+        numberedRow:SetTopBorder(constants:SPACING_PIXEL, grey25)
+        numberedRowFirst:SetTopBorder(constants:SPACING_0, white)
+        numberedRowLayout:SetCenteredVertically(true)
+        numberedRowLayout:SetGap(constants:SPACING_3)
+        numberedRowTitle:SetBold(true)
+        numberedRowTitle:SetColor(textColor)
+        numberedRowTitleBox:SetGrow(true)
+        numberedRowTitleBox:SetShrinkBelowContent(true)
+        numberedRowTitleBox:SetTextStyle(numberedRowTitle)
+        WebTextStyle linkWords
+        linkWords:SetBold(true)
+        linkWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        linkWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        linkWords:SetColor(black)
+        linkWords:SetUnderline(false)
+        numberedRowLink:SetBackground(quorumBlue50)
+        numberedRowLink:SetRoundedCorners(constants:SPACING_4)
+        numberedRowLink:SetPadding(constants:SPACING_1_5, constants:SPACING_4)
+        numberedRowLink:SetShrink(false)
+        numberedRowLink:SetTextStyle(linkWords)
+        numberedRowLinkHover:SetBackground(quorumBlue25)
+
+        // "rounded-t-lg bg-quorum-blue-150 px-6 py-2 font-bold
+        // text-neutral-white" over "rounded-b-lg bg-neutral-white px-6 py-2".
+        WebTextStyle hintWords
+        hintWords:SetBold(true)
+        hintWords:SetColor(white)
+        hintHeading:SetBackground(quorumBlue150)
+        hintHeading:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        hintHeading:SetRoundedTop(constants:SPACING_2)
+        hintHeading:SetTextStyle(hintWords)
+        hintBody:SetBackground(white)
+        hintBody:SetPadding(constants:SPACING_2, constants:SPACING_6)
+        hintBody:SetRoundedBottom(constants:SPACING_2)
+    end
+
+    // The forms' colors, edges and words, on the structure FormLooks sets.
+    private action SetFormLooks
+        WebColor right
+        right:SetColor(21, 128, 61)
+        WebColor wrong
+        wrong:SetColor(185, 28, 28)
+
+        WebTextStyle label = forms:GetLabel()
+        label:SetSemibold(true)
+        forms:GetLabelBox():SetTextStyle(label)
+        WebBoxStyle entry = forms:GetEntry()
+        entry:SetPadding(constants:SPACING_2, constants:SPACING_2)
+        entry:SetRoundedCorners(constants:SPACING_1_5)
+        entry:SetBorder(constants:SPACING_PIXEL, grey50)
+        entry:SetBackground(white)
+        WebBoxStyle entryFocus = forms:GetEntryFocus()
+        entryFocus:SetOutline(constants:SPACING_0_5, quorumBlue150)
+        entryFocus:SetOutlineOffset(constants:SPACING_0_5)
+        forms:GetEntryWrong():SetBorder(constants:SPACING_0_5, wrong)
+        forms:GetEntryRight():SetBorder(constants:SPACING_0_5, right)
+
+        // "py-2 px-10 w-fit bg-quorum-blue-100 font-bold rounded-2xl",
+        // with a large shadow under the pointer ("hover:shadow-lg").
+        WebTextStyle buttonWords
+        buttonWords:SetBold(true)
+        buttonWords:SetColor(black)
+        WebBoxStyle button = forms:GetButton()
+        button:SetPadding(constants:SPACING_2, constants:SPACING_10)
+        button:SetRoundedCorners(constants:SPACING_4)
+        button:SetBackground(quorumBlue100)
+        button:SetFitToContent(true)
+        button:SetTextStyle(buttonWords)
+        WebBoxStyle buttonHover = forms:GetButtonHover()
+        buttonHover:SetShadowDepth(buttonHover:LARGE_SHADOW)
+        WebBoxStyle buttonFocus = forms:GetButtonFocus()
+        buttonFocus:SetOutline(constants:SPACING_0_5, quorumBlue150)
+        buttonFocus:SetOutlineOffset(constants:SPACING_0_5)
+
+        // As the sign-in dialog's messages: green, rose and light blue,
+        // with black words.
+        WebColor green
+        green:SetColor(210, 232, 222)
+        WebColor rose
+        rose:SetColor(231, 179, 176)
+        WebTextStyle messageWords
+        messageWords:SetColor(black)
+        SetMessage(forms:GetProblem(), rose, messageWords)
+        SetMessage(forms:GetFeedback(), quorumBlue25, messageWords)
+        SetMessage(forms:GetSuccess(), green, messageWords)
+        WebTextStyle messageHeading = forms:GetMessageHeading()
+        messageHeading:SetBold(true)
+        messageHeading:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        messageHeading:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        WebTextStyle messageText = forms:GetMessageWords()
+        messageText:SetFontSize(constants:SMALL_FONT_SIZE)
+        messageText:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+
+        // A quiz: "text-lg font-semibold text-gray-700" questions (in the
+        // site's dark grey, 10.4 to 1), "text-sm mt-1" lines under them,
+        // and a "text-lg font-semibold" result.
+        WebTextStyle question = forms:GetQuestion()
+        question:SetFontSize(constants:LARGE_FONT_SIZE)
+        question:SetLineHeight(constants:LARGE_LINE_HEIGHT)
+        question:SetSemibold(true)
+        question:SetColor(grey65)
+        WebTextStyle answerLine = forms:GetAnswerLine()
+        answerLine:SetFontSize(constants:SMALL_FONT_SIZE)
+        answerLine:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        WebTextStyle resultWords
+        resultWords:SetFontSize(constants:LARGE_FONT_SIZE)
+        resultWords:SetLineHeight(constants:LARGE_LINE_HEIGHT)
+        resultWords:SetSemibold(true)
+        forms:GetResult():SetTextStyle(resultWords)
+        WebTextStyle rightWords = forms:GetRight()
+        rightWords:SetColor(right)
+        WebTextStyle wrongWords = forms:GetWrong()
+        wrongWords:SetColor(wrong)
+        AddScriptClass("quiz-right", rightWords)
+        AddScriptClass("quiz-wrong", wrongWords)
+
+        // Link-like buttons ("underline"), in the links' dark blue.
+        WebTextStyle linkButtonWords
+        linkButtonWords:SetUnderline(true)
+        linkButtonWords:SetColor(quorumBlue150)
+        forms:GetLinkButton():SetTextStyle(linkButtonWords)
+
+        // "disabled:opacity-50 disabled:cursor-not-allowed".
+        WebBoxStyle buttonDisabled = forms:GetButtonDisabled()
+        buttonDisabled:SetOpacityPercent(50)
+        buttonDisabled:SetShowsUnavailable(true)
+
+        // Dialogs, as the sign-in dialog: "bg-modal-black-50" behind,
+        // "p-10 bg-neutral-white rounded-2xl shadow-lg flex flex-col gap-6"
+        // in front, a "text-3xl font-bold" title, and a close button
+        // "text-3xl font-bold text-quorum-blue-100 hover:text-quorum-blue-150"
+        // (blue 150 throughout here: blue 100 is 3.1 to 1 on white).
+        WebColor shade
+        shade:SetColor(0, 0, 0)
+        shade:SetOpacity(0.5)
+        forms:GetBackdrop():SetBackground(shade)
+        WebBoxStyle dialog = forms:GetDialog()
+        dialog:SetPadding(constants:SPACING_10, constants:SPACING_10)
+        dialog:SetBackground(white)
+        dialog:SetRoundedCorners(constants:SPACING_4)
+        dialog:SetShadowDepth(dialog:LARGE_SHADOW)
+        forms:GetDialogLayout():SetGap(constants:SPACING_6)
+        WebTextStyle dialogTitle = forms:GetDialogTitle()
+        dialogTitle:SetBold(true)
+        dialogTitle:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        dialogTitle:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        WebTextStyle closeWords
+        closeWords:SetColor(quorumBlue150)
+        WebBoxStyle close = forms:GetClose()
+        close:SetPadding(constants:SPACING_1, constants:SPACING_1)
+        close:SetRoundedCorners(constants:SPACING_1)
+        close:SetTextStyle(closeWords)
+        WebBoxStyle closeHover = forms:GetCloseHover()
+        closeHover:SetBackground(quorumBlue10)
+    end
+
+    // A message box: its color, room and words.
+    private action SetMessage(WebBoxStyle box, WebColor background, WebTextStyle words)
+        box:SetBackground(background)
+        box:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        box:SetRoundedCorners(constants:SPACING_3)
+        box:SetMargin(constants:SPACING_3, constants:SPACING_0)
+        box:SetTextStyle(words)
+    end
+
+    // The block editor's colors, edges and words, on the structure
+    // BlockEditorLooks sets ("mt-4 border-2 rounded-lg shadow-md" and the
+    // like).
+    private action SetBlockEditorLooks
+        // Its own words, left-aligned inside a section that centers them.
+        WebTextStyle editorWords
+        editorWords:SetColor(textColor)
+        editorWords:AlignLeft()
+        SetEditorFrame(blockEditor:GetEditor(), editorWords)
+        SetEditorFrame(blockEditor:GetFilledEditor(), editorWords)
+
+        WebBoxStyle toolbar = blockEditor:GetToolbar()
+        toolbar:SetPadding(constants:SPACING_1, constants:SPACING_1)
+        toolbar:SetBottomBorder(constants:SPACING_0_5, quorumBlue50)
+        toolbar:SetRoundedTop(constants:SPACING_2)
+        toolbar:SetBackground(quorumBlue10)
+        blockEditor:GetToolbarLayout():SetGap(constants:SPACING_2)
+        WebTextStyle titleWords
+        titleWords:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        titleWords:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        titleWords:SetBold(true)
+        blockEditor:GetTitle():SetTextStyle(titleWords)
+        blockEditor:GetTitleLayout():SetGap(constants:SPACING_2_5)
+        blockEditor:GetButtons():SetRightMargin(constants:SPACING_5)
+        blockEditor:GetButtonsLayout():SetGap(constants:SPACING_2_5)
+
+        WebTextStyle toolWords
+        toolWords:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        toolWords:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        toolWords:SetColor(textColor)
+        WebBoxStyle tool = blockEditor:GetTool()
+        tool:SetPadding(constants:SPACING_1, constants:SPACING_1)
+        tool:SetRoundedCorners(constants:SPACING_4)
+        tool:SetTextStyle(toolWords)
+        blockEditor:GetToolLayout():SetGap(constants:SPACING_1)
+        WebTextStyle labelWords
+        labelWords:AlignCenter()
+        labelWords:SetWrapping(false)
+        blockEditor:GetToolLabel():SetTextStyle(labelWords)
+        blockEditor:GetActive():SetBackground(quorumBlue25)
+        blockEditor:GetPressed():SetBackground(quorumBlue50)
+
+        WebTextStyle runWords
+        runWords:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        runWords:SetSemibold(true)
+        runWords:SetColor(black)
+        SetEditorPill(blockEditor:GetRun(), quorumBlue50, runWords)
+        WebTextStyle stopWords = runWords:Copy()
+        stopWords:SetColor(white)
+        SetEditorPill(blockEditor:GetStop(), stopRed, stopWords)
+        WebTextStyle unavailableWords
+        unavailableWords:SetColor(white)
+        WebBoxStyle unavailable = blockEditor:GetUnavailable()
+        unavailable:SetBackground(grey40)
+        unavailable:SetTextStyle(unavailableWords)
+
+        // "min-h-[32rem]"
+        blockEditor:GetArea():SetMinimumHeight(constants:SPACING_64 + constants:SPACING_64)
+        blockEditor:GetDisplay():SetLeftBorder(constants:SPACING_PIXEL, grey25)
+        WebTextStyle consoleWords
+        consoleWords:UseCodeFont(true)
+        consoleWords:SetFontSize(constants:BASE_FONT_SIZE)
+        consoleWords:SetKeepSpaces(true)
+        WebBoxStyle console = blockEditor:GetConsole()
+        console:SetHeight(constants:SPACING_24)
+        console:SetPadding(constants:SPACING_2, constants:SPACING_2)
+        console:SetTopBorder(constants:SPACING_0_5, quorumBlue50)
+        console:SetRoundedBottom(constants:SPACING_2)
+        console:SetBackground(grey10)
+        console:SetTextStyle(consoleWords)
+
+        WebBoxStyle menu = blockEditor:GetMenu()
+        menu:SetRightOffset(constants:SPACING_2)
+        // "-mt-2": up over the toolbar's lower edge, as the old menu.
+        menu:SetTopMargin(0 - constants:SPACING_2)
+        menu:SetPadding(constants:SPACING_2, constants:SPACING_2)
+        menu:SetRoundedCorners(constants:SPACING_1_5)
+        menu:SetBackground(grey10)
+        menu:SetShadowDepth(menu:MEDIUM_SHADOW)
+        WebTextStyle menuWords
+        menuWords:SetColor(textColor)
+        menuWords:SetFontSize(constants:BASE_FONT_SIZE)
+        menuWords:AlignLeft()
+        WebBoxStyle menuItem = blockEditor:GetMenuItem()
+        menuItem:SetPadding(constants:SPACING_2, constants:SPACING_2)
+        menuItem:SetRoundedCorners(constants:SPACING_4)
+        menuItem:SetTextStyle(menuWords)
+
+        WebBoxStyle dialog = blockEditor:GetDialog()
+        // "max-h-[calc(100vh-100px)]"
+        dialog:SetMaximumHeightBelowWindow(constants:SPACING_24 + constants:SPACING_1)
+        dialog:SetPadding(constants:SPACING_5, constants:SPACING_5)
+        dialog:SetRoundedCorners(constants:SPACING_1_5)
+        dialog:SetBackground(grey10)
+        dialog:SetShadowDepth(dialog:MEDIUM_SHADOW)
+        WebBoxStyle close = blockEditor:GetDialogClose()
+        close:SetTopOffset(constants:SPACING_5)
+        close:SetRightOffset(constants:SPACING_5)
+        WebTextStyle dialogTitle = blockEditor:GetDialogTitle()
+        dialogTitle:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        dialogTitle:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        dialogTitle:SetBold(true)
+        blockEditor:GetHotkeys():SetGap(constants:SPACING_2_5)
+        WebTextStyle keyWords
+        keyWords:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        keyWords:SetLineHeight(constants:EXTRA_SMALL_LINE_HEIGHT)
+        WebBoxStyle key = blockEditor:GetKey()
+        key:SetPadding(constants:SPACING_0_5, constants:SPACING_1)
+        key:SetRoundedCorners(constants:SPACING_1)
+        key:SetBackground(white)
+        key:SetTextStyle(keyWords)
+    end
+
+    // The editor's frame, filled or not.
+    private action SetEditorFrame(WebBoxStyle frame, WebTextStyle words)
+        frame:SetTopMargin(constants:SPACING_4)
+        frame:SetBorder(constants:SPACING_0_5, quorumBlue50)
+        frame:SetRoundedCorners(constants:SPACING_2)
+        frame:SetShadowDepth(frame:MEDIUM_SHADOW)
+        frame:SetBackground(white)
+        frame:SetTextStyle(words)
+    end
+
+    // Run or Stop: "h-6 px-4 rounded-2xl text-xs font-semibold".
+    private action SetEditorPill(WebBoxStyle pill, WebColor background, WebTextStyle words)
+        pill:SetMinimumHeight(constants:SPACING_6)
+        pill:SetPadding(constants:SPACING_0, constants:SPACING_4)
+        pill:SetRoundedCorners(constants:SPACING_4)
+        pill:SetBackground(background)
+        pill:SetTextStyle(words)
+    end
+
+    // A lesson's goals.
+    action GetGoals returns WebBoxStyle
+        return goals
+    end
+
+    // A page's banner (see the fields above).
+    action GetBanner returns WebBoxStyle
+        return banner
+    end
+
+    action GetBannerLayout returns WebRowLayout
+        return bannerLayout
+    end
+
+    action GetBannerPictureWide returns WebBoxStyle
+        return bannerPictureWide
+    end
+
+    action GetBannerLayoutWide returns WebRowLayout
+        return bannerLayoutWide
+    end
+
+    action GetBannerActions returns WebRowLayout
+        return bannerActions
+    end
+
+    action GetBannerTitle returns WebTextStyle
+        return bannerTitle
+    end
+
+    action GetBannerWords returns WebTextStyle
+        return bannerWords
+    end
+
+    action GetBannerPicture returns WebBoxStyle
+        return bannerPicture
+    end
+
+    // A track's list of lessons.
+    action GetLessonList returns WebStackLayout
+        return lessonList
+    end
+
+    action GetLessonTitle returns WebTextStyle
+        return lessonTitle
+    end
+
+    action GetLessonDescription returns WebTextStyle
+        return lessonDescription
+    end
+
+    // A lesson's practice problem sets (see the fields above).
+    action GetProblemSets returns WebGridLayout
+        return problemSets
+    end
+
+    action GetProblemSetCard returns WebBoxStyle
+        return problemSetCard
+    end
+
+    action GetProblemSetCardLayout returns WebStackLayout
+        return problemSetCardLayout
+    end
+
+    action GetProblemSetLabel returns WebTextStyle
+        return problemSetLabel
+    end
+
+    action GetProblemSetName returns WebTextStyle
+        return problemSetName
+    end
+
+    action GetProblemSetStart returns WebTextStyle
+        return problemSetStart
+    end
+
+    action GetGoalsLabel returns WebTextStyle
+        return goalsLabel
+    end
+
+    // The label bars for the site's two kinds of callout.
+    action GetTeachingTipLabel returns WebBoxStyle
+        return teachingTipLabel
+    end
+
+    action GetDiscussionGoalLabel returns WebBoxStyle
+        return discussionGoalLabel
+    end
+
+    // Course navigation, as the site's frame draws it.
+    action GetBreadcrumbs returns WebRowLayout
+        return breadcrumbs
+    end
+
+    action GetBreadcrumbList returns WebListStyle
+        return breadcrumbList
+    end
+
+    action GetBreadcrumbLink returns WebTextStyle
+        return breadcrumbLink
+    end
+
+    action GetBreadcrumbSeparator returns WebTextStyle
+        return breadcrumbSeparator
+    end
+
+    action GetBreadcrumbCurrent returns WebTextStyle
+        return breadcrumbCurrent
+    end
+
+    action GetSlidesNavigation returns WebRowLayout
+        return slidesNavigation
+    end
+
+    action GetSlideButton returns WebBoxStyle
+        return slideButton
+    end
+
+    action GetSlideButtonCurrent returns WebBoxStyle
+        return slideButtonCurrent
+    end
+
+    action GetSlideButtonUnavailable returns WebBoxStyle
+        return slideButtonUnavailable
+    end
+
+    action GetChartBox returns WebBoxStyle
+        return chartBox
+    end
+
+    action GetTopicSearchBox returns WebBoxStyle
+        return topicSearchBox
+    end
+
+    action GetTopicSearchRow returns WebRowLayout
+        return topicSearchRow
+    end
+
+    action GetTopicSearchLabel returns WebBoxStyle
+        return topicSearchLabel
+    end
+
+    action GetTopicChipsBox returns WebBoxStyle
+        return topicChipsBox
+    end
+
+    action GetTopicChips returns WebRowLayout
+        return topicChips
+    end
+
+    // A box that what is inside it is placed against, such as a widget's.
+    action GetAnchoredBox returns WebBoxStyle
+        return anchoredBox
+    end
+
+    action GetTopicChipsWrapping returns WebRowLayout
+        return topicChipsWrapping
+    end
+
+    action GetTopicChip returns WebBoxStyle
+        return topicChip
+    end
+
+    action GetTopicChipActive returns WebBoxStyle
+        return topicChipActive
+    end
+
+    action GetTopicCards returns WebGridLayout
+        return topicCards
+    end
+
+    action GetTopicCard returns WebBoxStyle
+        return topicCard
+    end
+
+    action GetTopicCardLayout returns WebStackLayout
+        return topicCardLayout
+    end
+
+    action GetTopicCardWords returns WebTextStyle
+        return topicCardWords
+    end
+
+    action GetTopicCardLessons returns WebTextStyle
+        return topicCardLessons
+    end
+
+    action GetTopicStatus returns WebTextStyle
+        return topicStatus
+    end
+
+    action GetPictureStack returns WebStackLayout
+        return pictureStack
+    end
+
+    action GetPictureRow returns WebRowLayout
+        return pictureRow
+    end
+
+    action GetPictureBesideWide returns WebBoxStyle
+        return pictureBesideWide
+    end
+
+    action GetPictureFeatureWide returns WebBoxStyle
+        return pictureFeatureWide
+    end
+
+    action GetPictureWords returns WebBoxStyle
+        return pictureWords
+    end
+
+    action GetQuestion returns WebBoxStyle
+        return question
+    end
+
+    action GetHeroBanner returns WebBoxStyle
+        return heroBanner
+    end
+
+    action GetHeroBannerWide returns WebBoxStyle
+        return heroBannerWide
+    end
+
+    action GetHeroLogoRow returns WebRowLayout
+        return heroLogoRow
+    end
+
+    action GetHeroLogo returns WebBoxStyle
+        return heroLogo
+    end
+
+    action GetHeroTitle returns WebTextStyle
+        return heroTitle
+    end
+
+    action GetHeroWordsBox returns WebBoxStyle
+        return heroWordsBox
+    end
+
+    action GetHeroPill returns WebBoxStyle
+        return heroPill
+    end
+
+    action GetHeroPicture returns WebBoxStyle
+        return heroPicture
+    end
+
+    action GetSwitcherBar returns WebRowLayout
+        return switcherBar
+    end
+
+    action GetSwitcherBarBox returns WebBoxStyle
+        return switcherBarBox
+    end
+
+    action GetSwitcherButton returns WebBoxStyle
+        return switcherButton
+    end
+
+    action GetSwitcherButtonChosen returns WebBoxStyle
+        return switcherButtonChosen
+    end
+
+    action GetSwitcherLayout returns WebStackLayout
+        return switcherLayout
+    end
+
+    action GetSwitcherInfo returns WebBoxStyle
+        return switcherInfo
+    end
+
+    action GetSwitcherInfoWide returns WebBoxStyle
+        return switcherInfoWide
+    end
+
+    action GetSwitcherHeading returns WebTextStyle
+        return switcherHeading
+    end
+
+    action GetSwitcherPicture returns WebBoxStyle
+        return switcherPicture
+    end
+
+    action GetHomeSection returns WebBoxStyle
+        return homeSection
+    end
+
+    action GetHomeHeading returns WebTextStyle
+        return homeHeading
+    end
+
+    action GetCenteredRow returns WebRowLayout
+        return centeredRow
+    end
+
+    action GetNarrowWords returns WebBoxStyle
+        return narrowWords
+    end
+
+    action GetNarrowWordsWide returns WebBoxStyle
+        return narrowWordsWide
+    end
+
+    action GetOutlinePill returns WebBoxStyle
+        return outlinePill
+    end
+
+    action GetDarkPill returns WebBoxStyle
+        return darkPill
+    end
+
+    action GetNotice returns WebBoxStyle
+        return notice
+    end
+
+    action GetNoticePicture returns WebBoxStyle
+        return noticePicture
+    end
+
+    action GetNoticePictureWide returns WebBoxStyle
+        return noticePictureWide
+    end
+
+    action GetNoticeHeading returns WebTextStyle
+        return noticeHeading
+    end
+
+    action GetNoticeWords returns WebBoxStyle
+        return noticeWords
+    end
+
+    action GetProductBanner returns WebBoxStyle
+        return productBanner
+    end
+
+    action GetProductBannerWide returns WebBoxStyle
+        return productBannerWide
+    end
+
+    action GetProductLinkRow returns WebRowLayout
+        return productLinkRow
+    end
+
+    action GetProductStack returns WebStackLayout
+        return productStack
+    end
+
+    action GetProductRow returns WebRowLayout
+        return productRow
+    end
+
+    action GetProductWords returns WebBoxStyle
+        return productWords
+    end
+
+    action GetProductWordsWide returns WebBoxStyle
+        return productWordsWide
+    end
+
+    action GetProductTitle returns WebTextStyle
+        return productTitle
+    end
+
+    action GetProductTagline returns WebTextStyle
+        return productTagline
+    end
+
+    action GetProductButton returns WebBoxStyle
+        return productButton
+    end
+
+    action GetProductLink returns WebTextStyle
+        return productLink
+    end
+
+    action GetProductPictureWide returns WebBoxStyle
+        return productPictureWide
+    end
+
+    action GetFeatureCard returns WebBoxStyle
+        return featureCard
+    end
+
+    action GetFeatureCardHeading returns WebTextStyle
+        return featureCardHeading
+    end
+
+    action GetFeatureCardText returns WebBoxStyle
+        return featureCardText
+    end
+
+    action GetFeatureCardTextWide returns WebBoxStyle
+        return featureCardTextWide
+    end
+
+    action GetFeatureCardPicture returns WebBoxStyle
+        return featureCardPicture
+    end
+
+    action GetFeatureCardPictureWide returns WebBoxStyle
+        return featureCardPictureWide
+    end
+
+    action GetGreyCardBody returns WebBoxStyle
+        return greyCardBody
+    end
+
+    action GetCourseCards returns WebGridLayout
+        return courseCards
+    end
+
+    action GetCourseCard returns WebBoxStyle
+        return courseCard
+    end
+
+    action GetCourseCardLayout returns WebStackLayout
+        return courseCardLayout
+    end
+
+    action GetCourseCardPicture returns WebBoxStyle
+        return courseCardPicture
+    end
+
+    action GetCourseCardBody returns WebBoxStyle
+        return courseCardBody
+    end
+
+    action GetChoices returns WebGridLayout
+        return choices
+    end
+
+    action GetChoiceTile returns WebBoxStyle
+        return choiceTile
+    end
+
+    action GetChoiceTileActive returns WebBoxStyle
+        return choiceTileActive
+    end
+
+    action GetChoiceTileLayout returns WebRowLayout
+        return choiceTileLayout
+    end
+
+    action GetUnitPicture returns WebBoxStyle
+        return unitPicture
+    end
+
+    action GetUnitWords returns WebBoxStyle
+        return unitWords
+    end
+
+    action GetUnitLayout returns WebRowLayout
+        return unitLayout
+    end
+
+    action GetUnitLessonsLabel returns WebBoxStyle
+        return unitLessonsLabel
+    end
+
+    action GetUpNext returns WebBoxStyle
+        return upNext
+    end
+
+    action GetUpNextLabel returns WebTextStyle
+        return upNextLabel
+    end
+
+    action GetUpNextLink returns WebTextStyle
+        return upNextLink
+    end
+
+    action GetUpNextDescription returns WebTextStyle
+        return upNextDescription
+    end
+
+    action GetCourseLine returns WebTextStyle
+        return courseLine
+    end
+
+    // A lesson's standards, for teachers.
+    action GetStandardsLabel returns WebTextStyle
+        return standardsLabel
+    end
+
+    action GetStandardsGrid returns WebGridLayout
+        return standardsGrid
+    end
+
+    action GetStandardCard returns WebBoxStyle
+        return standardCard
+    end
+
+    // A part of a page set apart as a card, such as one release in the
+    // release notes.
+    action GetCard returns WebBoxStyle
+        return card
+    end
+
+    action GetStandardCode returns WebTextStyle
+        return standardCode
+    end
+
+    action GetStandardDetails returns WebTextStyle
+        return standardDetails
+    end
+
+    action GetStandardWords returns WebTextStyle
+        return standardWords
+    end
+
+    action GetStandardsLink returns WebTextStyle
+        return standardsLink
+    end
+
+    action GetStandardsReport returns StandardsReportLooks
+        return standardsReport
+    end
+
+    // The site's colors, for the frame's looks.
+    action GetBlack returns WebColor
+        return black
+    end
+
+    action GetWhite returns WebColor
+        return white
+    end
+
+    action GetGrey25 returns WebColor
+        return grey25
+    end
+
+    action GetGrey40 returns WebColor
+        return grey40
+    end
+
+    action GetGrey50 returns WebColor
+        return grey50
+    end
+
+    action GetGrey65 returns WebColor
+        return grey65
+    end
+
+    action GetGrey95 returns WebColor
+        return grey95
+    end
+
+    action GetQuorumBlue25 returns WebColor
+        return quorumBlue25
+    end
+
+    action GetQuorumBlue50 returns WebColor
+        return quorumBlue50
+    end
+
+    action GetQuorumBlue100 returns WebColor
+        return quorumBlue100
+    end
+
+    // The block editor's parts.
+    action GetBlockEditor returns BlockEditorLooks
+        return blockEditor
+    end
+
+    // Forms' and quizzes' parts.
+    action GetForms returns FormLooks
+        return forms
+    end
+
+    action GetSteps returns WebBoxStyle
+        return steps
+    end
+
+    action GetStepsWide returns WebBoxStyle
+        return stepsWide
+    end
+
+    action GetStepsRow returns WebRowLayout
+        return stepsRow
+    end
+
+    action GetStepItem returns WebRowLayout
+        return stepItem
+    end
+
+    action GetStep returns WebBoxStyle
+        return step
+    end
+
+    action GetStepLayout returns WebRowLayout
+        return stepLayout
+    end
+
+    action GetStepCurrent returns WebBoxStyle
+        return stepCurrent
+    end
+
+    action GetProblemButtons returns WebRowLayout
+        return problemButtons
+    end
+
+    action GetProblemButtonsBox returns WebBoxStyle
+        return problemButtonsBox
+    end
+
+    action GetProblemButton returns WebBoxStyle
+        return problemButton
+    end
+
+    action GetProblemButtonUnavailable returns WebBoxStyle
+        return problemButtonUnavailable
+    end
+
+    action GetColorBanner returns WebBoxStyle
+        return colorBanner
+    end
+
+    action GetColorBannerWide returns WebBoxStyle
+        return colorBannerWide
+    end
+
+    action GetColorBannerStack returns WebStackLayout
+        return colorBannerStack
+    end
+
+    action GetColorBannerRow returns WebRowLayout
+        return colorBannerRow
+    end
+
+    action GetColorBannerTitle returns WebTextStyle
+        return colorBannerTitle
+    end
+
+    action GetColorBannerTitleWide returns WebTextStyle
+        return colorBannerTitleWide
+    end
+
+    action GetColorBannerWordsWide returns WebTextStyle
+        return colorBannerWordsWide
+    end
+
+    action GetColorBannerRowSmall returns WebRowLayout
+        return colorBannerRowSmall
+    end
+
+    action GetColorBannerColumn returns WebBoxStyle
+        return colorBannerColumn
+    end
+
+    action GetColorBannerColumnWide returns WebBoxStyle
+        return colorBannerColumnWide
+    end
+
+    action GetColorBannerWords returns WebTextStyle
+        return colorBannerWords
+    end
+
+    action GetColorBannerPicture returns WebBoxStyle
+        return colorBannerPicture
+    end
+
+    action GetColorBannerPictureWide returns WebBoxStyle
+        return colorBannerPictureWide
+    end
+
+    action GetProjectsCount returns WebTextStyle
+        return projectsCount
+    end
+
+    action GetProjectsTableBox returns WebBoxStyle
+        return projectsTableBox
+    end
+
+    action GetProjectsTable returns WebTableStyle
+        return projectsTable
+    end
+
+    action GetProjectsHeader returns WebBoxStyle
+        return projectsHeader
+    end
+
+    action GetProjectsCell returns WebBoxStyle
+        return projectsCell
+    end
+
+    action GetProjectsNameCell returns WebBoxStyle
+        return projectsNameCell
+    end
+
+    action GetProjectsDelete returns WebBoxStyle
+        return projectsDelete
+    end
+
+    action GetProjectsCaption returns WebBoxStyle
+        return projectsCaption
+    end
+
+    action GetProjectsTitleRow returns WebRowLayout
+        return projectsTitleRow
+    end
+
+    action GetProjectsHeaderEnd returns WebBoxStyle
+        return projectsHeaderEnd
+    end
+
+    action GetProjectsActions returns WebRowLayout
+        return projectsActions
+    end
+
+    action GetSwitchInput returns WebBoxStyle
+        return switchInput
+    end
+
+    action GetSwitchTrack returns WebBoxStyle
+        return switchTrack
+    end
+
+    action GetSwitchTrackOn returns WebBoxStyle
+        return switchTrackOn
+    end
+
+    action GetSwitchTrackFocus returns WebBoxStyle
+        return switchTrackFocus
+    end
+
+    action GetSwitchKnob returns WebBoxStyle
+        return switchKnob
+    end
+
+    action GetSwitchKnobOn returns WebBoxStyle
+        return switchKnobOn
+    end
+
+    action GetNumberedRows returns WebBoxStyle
+        return numberedRows
+    end
+
+    action GetNumberedRow returns WebBoxStyle
+        return numberedRow
+    end
+
+    action GetNumberedRowFirst returns WebBoxStyle
+        return numberedRowFirst
+    end
+
+    action GetNumberedRowLayout returns WebRowLayout
+        return numberedRowLayout
+    end
+
+    action GetNumberedRowTitle returns WebBoxStyle
+        return numberedRowTitleBox
+    end
+
+    action GetNumberedRowLink returns WebBoxStyle
+        return numberedRowLink
+    end
+
+    action GetNumberedRowLinkHover returns WebBoxStyle
+        return numberedRowLinkHover
+    end
+
+    action GetHintHeading returns WebBoxStyle
+        return hintHeading
+    end
+
+    action GetHintBody returns WebBoxStyle
+        return hintBody
+    end
+
+    action GetQuorumBlue150 returns WebColor
+        return quorumBlue150
+    end
+
+    private action SetHeading(integer level, number fontSize, number lineHeight)
+        WebTextStyle heading = GetHeading(level)
+        heading:SetFontSize(fontSize)
+        heading:SetLineHeight(lineHeight)
+        heading:SetBold(true)
+    end
+end

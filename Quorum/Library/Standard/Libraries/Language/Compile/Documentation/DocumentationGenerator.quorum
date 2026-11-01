@@ -36,6 +36,8 @@ use Libraries.Web.Page.Section
 use Libraries.Web.Page.Heading
 use Libraries.Web.Page.Paragraph
 use Libraries.Web.Page.Image
+use Libraries.Web.Quorum.QuorumSite
+use Libraries.Web.Quorum.QuorumSiteOptions
 
 class DocumentationGenerator 
     File runFolder = undefined
@@ -45,6 +47,37 @@ class DocumentationGenerator
     Section packageIndex = undefined
     Section mobilePackageIndex = undefined
 
+    // The standard library's pages in the website's look (Write(Library)):
+    // the index, a page for each package and each class, framed as the
+    // website frames its pages (QuorumSite), with a stylesheet of their
+    // own, so the website's isn't replaced when they are copied into it.
+    constant text LIBRARY_STYLE_SHEET = "style/library.css"
+    // Where the frame's icons are read from, from the folder this runs in
+    // (SetIconFolder). With none, the frame uses the icons below, the
+    // website's own, written out here so the pages need no files.
+    text iconFolder = ""
+    // The navigation bar's menu button (hamburger.svg).
+    constant text HAMBURGER_ICON_FILE = "hamburger.svg"
+    constant text HAMBURGER_ICON = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><g clip-path='url(#clip0_739_1636)'><path d='M4 18H20C20.55 18 21 17.55 21 17C21 16.45 20.55 16 20 16H4C3.45 16 3 16.45 3 17C3 17.55 3.45 18 4 18ZM4 13H20C20.55 13 21 12.55 21 12C21 11.45 20.55 11 20 11H4C3.45 11 3 11.45 3 12C3 12.55 3.45 13 4 13ZM3 7C3 7.55 3.45 8 4 8H20C20.55 8 21 7.55 21 7C21 6.45 20.55 6 20 6H4C3.45 6 3 6.45 3 7Z' fill='#F6F6F7'/></g><defs><clipPath id='clip0_739_1636'><rect width='24' height='24' fill='white'/></clipPath></defs></svg>"
+    // Its search button (SearchIcon.svg).
+    constant text SEARCH_ICON_FILE = "SearchIcon.svg"
+    constant text SEARCH_ICON = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M18.9 20.3L13.3 14.7C12.8 15.1 12.225 15.4167 11.575 15.65C10.925 15.8833 10.2333 16 9.5 16C7.68333 16 6.146 15.371 4.888 14.113C3.62933 12.8543 3 11.3167 3 9.5C3 7.68333 3.62933 6.14567 4.888 4.887C6.146 3.629 7.68333 3 9.5 3C11.3167 3 12.8543 3.629 14.113 4.887C15.371 6.14567 16 7.68333 16 9.5C16 10.2333 15.8833 10.925 15.65 11.575C15.4167 12.225 15.1 12.8 14.7 13.3L20.325 18.925C20.5083 19.1083 20.6 19.3333 20.6 19.6C20.6 19.8667 20.5 20.1 20.3 20.3C20.1167 20.4833 19.8833 20.575 19.6 20.575C19.3167 20.575 19.0833 20.4833 18.9 20.3ZM9.5 14C10.75 14 11.8127 13.5627 12.688 12.688C13.5627 11.8127 14 10.75 14 9.5C14 8.25 13.5627 7.18733 12.688 6.312C11.8127 5.43733 10.75 5 9.5 5C8.25 5 7.18733 5.43733 6.312 6.312C5.43733 7.18733 5 8.25 5 9.5C5 10.75 5.43733 11.8127 6.312 12.688C7.18733 13.5627 8.25 14 9.5 14Z' fill='#F6F6F7'/></svg>"
+    // Its Discord link (DiscordIcon.svg).
+    constant text DISCORD_ICON_FILE = "DiscordIcon.svg"
+    constant text DISCORD_ICON = "<svg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M20.3303 4.22781C18.7767 3.50093 17.1156 2.97267 15.3789 2.67188C15.1656 3.05749 14.9164 3.57614 14.7446 3.98873C12.8985 3.71109 11.0693 3.71109 9.25716 3.98873C9.08539 3.57614 8.83055 3.05749 8.61536 2.67188C6.87681 2.97267 5.21376 3.50287 3.66019 4.23166C0.526643 8.96686 -0.322811 13.5845 0.101917 18.1365C2.18025 19.6885 4.19441 20.6313 6.17457 21.2483C6.66349 20.5754 7.09953 19.8601 7.47518 19.1063C6.75975 18.8344 6.07453 18.499 5.42707 18.1095C5.59884 17.9822 5.76686 17.8492 5.92918 17.7123C9.87819 19.5594 14.1689 19.5594 18.0707 17.7123C18.235 17.8492 18.403 17.9822 18.5728 18.1095C17.9235 18.5009 17.2364 18.8363 16.521 19.1082C16.8966 19.8601 17.3308 20.5774 17.8216 21.2502C19.8036 20.6333 21.8197 19.6905 23.898 18.1365C24.3964 12.8595 23.0467 8.28434 20.3303 4.22781ZM8.01318 15.337C6.82772 15.337 5.85555 14.2303 5.85555 12.8826C5.85555 11.535 6.80696 10.4264 8.01318 10.4264C9.21942 10.4264 10.1916 11.533 10.1708 12.8826C10.1727 14.2303 9.21942 15.337 8.01318 15.337ZM15.9867 15.337C14.8013 15.337 13.8291 14.2303 13.8291 12.8826C13.8291 11.535 14.7805 10.4264 15.9867 10.4264C17.193 10.4264 18.1651 11.533 18.1444 12.8826C18.1444 14.2303 17.193 15.337 15.9867 15.337Z' fill='#F6F6F7'/></svg>"
+    // The sign-in dialog's close button (exit-cross.svg).
+    constant text CROSS_ICON_FILE = "exit-cross.svg"
+    constant text CROSS_ICON = "<svg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M16.0001 17.8667L9.46673 24.4001C9.22229 24.6445 8.91118 24.7667 8.5334 24.7667C8.15562 24.7667 7.84451 24.6445 7.60006 24.4001C7.35562 24.1556 7.2334 23.8445 7.2334 23.4667C7.2334 23.089 7.35562 22.7778 7.60006 22.5334L14.1334 16.0001L7.60006 9.46673C7.35562 9.22229 7.2334 8.91118 7.2334 8.5334C7.2334 8.15562 7.35562 7.84451 7.60006 7.60006C7.84451 7.35562 8.15562 7.2334 8.5334 7.2334C8.91118 7.2334 9.22229 7.35562 9.46673 7.60006L16.0001 14.1334L22.5334 7.60006C22.7778 7.35562 23.089 7.2334 23.4667 7.2334C23.8445 7.2334 24.1556 7.35562 24.4001 7.60006C24.6445 7.84451 24.7667 8.15562 24.7667 8.5334C24.7667 8.91118 24.6445 9.22229 24.4001 9.46673L17.8667 16.0001L24.4001 22.5334C24.6445 22.7778 24.7667 23.089 24.7667 23.4667C24.7667 23.8445 24.6445 24.1556 24.4001 24.4001C24.1556 24.6445 23.8445 24.7667 23.4667 24.7667C23.089 24.7667 22.7778 24.6445 22.5334 24.4001L16.0001 17.8667Z' fill='#202020'/></svg>"
+    // Its success message (success-check.svg).
+    constant text SUCCESS_ICON_FILE = "success-check.svg"
+    constant text SUCCESS_ICON = "<svg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'><g clip-path='url(#clip0_2003_11229)'><ellipse cx='16' cy='19' rx='9' ry='11' fill='white'/><path d='M14.1332 18.4001L11.2665 15.5334C11.0221 15.289 10.7109 15.1667 10.3332 15.1667C9.95539 15.1667 9.64428 15.289 9.39984 15.5334C9.15539 15.7779 9.03317 16.089 9.03317 16.4667C9.03317 16.8445 9.15539 17.1556 9.39984 17.4001L13.1998 21.2001C13.4665 21.4667 13.7776 21.6001 14.1332 21.6001C14.4887 21.6001 14.7998 21.4667 15.0665 21.2001L22.5998 13.6667C22.8443 13.4223 22.9665 13.1112 22.9665 12.7334C22.9665 12.3556 22.8443 12.0445 22.5998 11.8001C22.3554 11.5556 22.0443 11.4334 21.6665 11.4334C21.2887 11.4334 20.9776 11.5556 20.7332 11.8001L14.1332 18.4001ZM15.9998 29.3334C14.1554 29.3334 12.4221 28.9834 10.7998 28.2834C9.17761 27.5834 7.7665 26.6334 6.5665 25.4334C5.3665 24.2334 4.4165 22.8223 3.7165 21.2001C3.0165 19.5779 2.6665 17.8445 2.6665 16.0001C2.6665 14.1556 3.0165 12.4223 3.7165 10.8001C4.4165 9.17786 5.3665 7.76675 6.5665 6.56675C7.7665 5.36675 9.17761 4.41675 10.7998 3.71675C12.4221 3.01675 14.1554 2.66675 15.9998 2.66675C17.8443 2.66675 19.5776 3.01675 21.1998 3.71675C22.8221 4.41675 24.2332 5.36675 25.4332 6.56675C26.6332 7.76675 27.5832 9.17786 28.2832 10.8001C28.9832 12.4223 29.3332 14.1556 29.3332 16.0001C29.3332 17.8445 28.9832 19.5779 28.2832 21.2001C27.5832 22.8223 26.6332 24.2334 25.4332 25.4334C24.2332 26.6334 22.8221 27.5834 21.1998 28.2834C19.5776 28.9834 17.8443 29.3334 15.9998 29.3334Z' fill='#05862D'/></g><defs><clipPath id='clip0_2003_11229'><rect width='32' height='32' fill='white'/></clipPath></defs></svg>"
+    // Its error message (error-cross.svg).
+    constant text ALERT_ICON_FILE = "error-cross.svg"
+    constant text ALERT_ICON = "<svg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'><circle cx='16.5' cy='16.5' r='12.5' fill='white'/><path d='M15.9998 17.8667L19.8665 21.7334C20.1109 21.9779 20.4221 22.1001 20.7998 22.1001C21.1776 22.1001 21.4887 21.9779 21.7332 21.7334C21.9776 21.489 22.0998 21.1779 22.0998 20.8001C22.0998 20.4223 21.9776 20.1112 21.7332 19.8667L17.8665 16.0001L21.7332 12.1334C21.9776 11.889 22.0998 11.5779 22.0998 11.2001C22.0998 10.8223 21.9776 10.5112 21.7332 10.2667C21.4887 10.0223 21.1776 9.90008 20.7998 9.90008C20.4221 9.90008 20.1109 10.0223 19.8665 10.2667L15.9998 14.1334L12.1332 10.2667C11.8887 10.0223 11.5776 9.90008 11.1998 9.90008C10.8221 9.90008 10.5109 10.0223 10.2665 10.2667C10.0221 10.5112 9.89984 10.8223 9.89984 11.2001C9.89984 11.5779 10.0221 11.889 10.2665 12.1334L14.1332 16.0001L10.2665 19.8667C10.0221 20.1112 9.89984 20.4223 9.89984 20.8001C9.89984 21.1779 10.0221 21.489 10.2665 21.7334C10.5109 21.9779 10.8221 22.1001 11.1998 22.1001C11.5776 22.1001 11.8887 21.9779 12.1332 21.7334L15.9998 17.8667ZM15.9998 29.3334C14.1554 29.3334 12.4221 28.9834 10.7998 28.2834C9.17761 27.5834 7.7665 26.6334 6.5665 25.4334C5.3665 24.2334 4.4165 22.8223 3.7165 21.2001C3.0165 19.5779 2.6665 17.8445 2.6665 16.0001C2.6665 14.1556 3.0165 12.4223 3.7165 10.8001C4.4165 9.17786 5.3665 7.76675 6.5665 6.56675C7.7665 5.36675 9.17761 4.41675 10.7998 3.71675C12.4221 3.01675 14.1554 2.66675 15.9998 2.66675C17.8443 2.66675 19.5776 3.01675 21.1998 3.71675C22.8221 4.41675 24.2332 5.36675 25.4332 6.56675C26.6332 7.76675 27.5832 9.17786 28.2832 10.8001C28.9832 12.4223 29.3332 14.1556 29.3332 16.0001C29.3332 17.8445 28.9832 19.5779 28.2832 21.2001C27.5832 22.8223 26.6332 24.2334 25.4332 25.4334C24.2332 26.6334 22.8221 27.5834 21.1998 28.2834C19.5776 28.9834 17.8443 29.3334 15.9998 29.3334Z' fill='#940901'/></svg>"
+    // Its information message (info-icon.svg).
+    constant text FEEDBACK_ICON_FILE = "info-icon.svg"
+    constant text FEEDBACK_ICON = "<svg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'><g clip-path='url(#clip0_2003_11145)'><path d='M15.9998 22.6665C16.3776 22.6665 16.6943 22.5387 16.9498 22.2832C17.2054 22.0276 17.3332 21.7109 17.3332 21.3332V15.9998C17.3332 15.6221 17.2054 15.3054 16.9498 15.0498C16.6943 14.7943 16.3776 14.6665 15.9998 14.6665C15.6221 14.6665 15.3054 14.7943 15.0498 15.0498C14.7943 15.3054 14.6665 15.6221 14.6665 15.9998V21.3332C14.6665 21.7109 14.7943 22.0276 15.0498 22.2832C15.3054 22.5387 15.6221 22.6665 15.9998 22.6665ZM15.9998 11.9998C16.3776 11.9998 16.6943 11.8721 16.9498 11.6165C17.2054 11.3609 17.3332 11.0443 17.3332 10.6665C17.3332 10.2887 17.2054 9.97206 16.9498 9.7165C16.6943 9.46095 16.3776 9.33317 15.9998 9.33317C15.6221 9.33317 15.3054 9.46095 15.0498 9.7165C14.7943 9.97206 14.6665 10.2887 14.6665 10.6665C14.6665 11.0443 14.7943 11.3609 15.0498 11.6165C15.3054 11.8721 15.6221 11.9998 15.9998 11.9998ZM15.9998 29.3332C14.1554 29.3332 12.4221 28.9832 10.7998 28.2832C9.17761 27.5832 7.7665 26.6332 6.5665 25.4332C5.3665 24.2332 4.4165 22.8221 3.7165 21.1998C3.0165 19.5776 2.6665 17.8443 2.6665 15.9998C2.6665 14.1554 3.0165 12.4221 3.7165 10.7998C4.4165 9.17761 5.3665 7.7665 6.5665 6.5665C7.7665 5.3665 9.17761 4.4165 10.7998 3.7165C12.4221 3.0165 14.1554 2.6665 15.9998 2.6665C17.8443 2.6665 19.5776 3.0165 21.1998 3.7165C22.8221 4.4165 24.2332 5.3665 25.4332 6.5665C26.6332 7.7665 27.5832 9.17761 28.2832 10.7998C28.9832 12.4221 29.3332 14.1554 29.3332 15.9998C29.3332 17.8443 28.9832 19.5776 28.2832 21.1998C27.5832 22.8221 26.6332 24.2332 25.4332 25.4332C24.2332 26.6332 22.8221 27.5832 21.1998 28.2832C19.5776 28.9832 17.8443 29.3332 15.9998 29.3332Z' fill='#0695D0'/></g><defs><clipPath id='clip0_2003_11145'><rect width='32' height='32' fill='white'/></clipPath></defs></svg>"
+
     action GetRunFolder returns File
         return runFolder
     end
@@ -53,177 +86,166 @@ class DocumentationGenerator
         runFolder = file
     end
 
-    action Write(Library library, HashTable<text, ClassOpcode> opcodeHash, boolean includeStandardLibrary)
-        NavigationBar navigation
-        //navigation:Setup()
-        Footer footer = GetFooter()
+    /*
+        Writes the documentation of a project's classes (the compiler's
+        -document flag) into the run folder's Documents folder, in the
+        same look as the standard library's: an index, a page for each
+        package and a page for each class. The standard library's classes
+        are left out unless asked for.
 
+        Attribute: Parameter library The standard library.
+        Attribute: Parameter opcodeHash The compiled classes, by key.
+        Attribute: Parameter includeStandardLibrary True to document the standard library's classes too.
+    */
+    action Write(Library library, HashTable<text, ClassOpcode> opcodeHash, boolean includeStandardLibrary)
         Iterator<ClassOpcode> opcodes = opcodeHash:GetValueIterator()
         SymbolTable standardLibrarySymbolTable = library:GetSymbolTable()
         SymbolTable finished
         repeat while opcodes:HasNext()
             ClassOpcode opcode = opcodes:Next()
             Class clazz = opcode:GetClass()
-
             boolean isInStandardLibrary = standardLibrarySymbolTable:HasClass(clazz:GetStaticKey())
-            if not isInStandardLibrary or (isInStandardLibrary and includeStandardLibrary)
+            if not isInStandardLibrary or includeStandardLibrary
                 finished:Add(clazz)
-                WebPage page = opcode:WriteToWebPage(me)
-                text web = page:Generate()
-                text key = clazz:GetStaticKey()
-                text parentKey = ""
-                Array<text> split = key:Split("\.")
-                i = 0
-                repeat split:GetSize() - 1 times
-                    parentKey = parentKey + split:Get(i) + "/"
+            end
+        end
+        isBuildingStandardLibrary = false
+        WriteLibrarySite(finished)
+    end
+
+    /*
+        Writes the standard library's documentation into the run folder's
+        Documents folder, in the website's look: the index
+        (libraries.html), a page for each package
+        (Libraries/Containers/index.html) and a page for each class
+        (Libraries/Containers/Array.html), and their stylesheet
+        (style/library.css).
+
+        Attribute: Parameter library The scanned standard library.
+    */
+    action Write(Library library)
+        isBuildingStandardLibrary = true
+        WriteLibrarySite(library:GetSymbolTable())
+    end
+
+    /*
+        Sets the folder the frame's icons are read from, from the folder
+        the generator runs in.
+
+        Attribute: Parameter folder The folder, ending in a slash.
+    */
+    action SetIconFolder(text folder)
+        iconFolder = folder
+    end
+
+    action GetIconFolder returns text
+        return iconFolder
+    end
+
+    // Every documented class's page, its package's page, and the index,
+    // as one site, written into the Documents folder.
+    private action WriteLibrarySite(SymbolTable table)
+        Compiler compiler
+        text version = compiler:GetVersion()
+        QuorumSiteOptions options
+        LibraryPageLooks looks
+        QuorumSite site
+        site:SetFolder(GetSiteFolder())
+        site:SetStyleSheetLocation(LIBRARY_STYLE_SHEET)
+        site:SetRelativeFolder("")
+        if iconFolder:IsEmpty()
+            site:SetIcon(HAMBURGER_ICON_FILE, HAMBURGER_ICON)
+            site:SetIcon(SEARCH_ICON_FILE, SEARCH_ICON)
+            site:SetIcon(DISCORD_ICON_FILE, DISCORD_ICON)
+            site:SetIcon(CROSS_ICON_FILE, CROSS_ICON)
+            site:SetIcon(SUCCESS_ICON_FILE, SUCCESS_ICON)
+            site:SetIcon(ALERT_ICON_FILE, ALERT_ICON)
+            site:SetIcon(FEEDBACK_ICON_FILE, FEEDBACK_ICON)
+        else
+            site:SetIconFolder(iconFolder)
+        end
+        site:SetStyleOptions(options)
+
+        LibraryIndexPage index
+        index:SetContents(table, "", version, looks)
+        index:SetStandardLibrary(isBuildingStandardLibrary)
+        index:SetStyleOptions(options)
+        site:AddPage(index)
+        site:UseFullWidth(index)
+
+        Iterator<text> packages = table:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+            Array<Class> classes = table:GetClassesSortedInPackage(key)
+            if classes not= undefined and not classes:IsEmpty()
+                if not key:IsEmpty()
+                    LibraryIndexPage packagePage
+                    packagePage:SetContents(table, key, version, looks)
+                    packagePage:SetStyleOptions(options)
+                    site:AddPage(packagePage)
+                    site:UseFullWidth(packagePage)
+                end
+                integer i = 0
+                repeat while i < classes:GetSize()
+                    LibraryClassPage classPage
+                    classPage:SetClass(classes:Get(i), table, looks)
+                    classPage:SetStyleOptions(options)
+                    site:AddPage(classPage)
+                    site:SetOnThisPageOnLeft(classPage)
                     i = i + 1
                 end
-                key = "/" + key:Replace(".", "/") + ".html"
-
-
-                runFolder:CreateDirectories()
-                File mom
-                mom:SetWorkingDirectory(runFolder:GetAbsolutePath())
-                mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-                mom:CreateDirectories()
-
-                File documentationFile
-                documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
-                documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-                documentationFile:Write(web)
             end
         end
-
-       WriteIndexPage(finished)
+        site:Write()
     end
 
-    action Write(Library library)
-        NavigationBar navigation
-        //navigation:Setup()
-        Footer footer = GetFooter()
-
-        Iterator<ClassOpcode> opcodes = library:GetOpcodes()
-        SymbolTable table = library:GetSymbolTable()
-        
-        packageIndex = CreatePackageIndex(table)
-        mobilePackageIndex = CreateMobilePackageIndex(table)
-        UnorderedList navigationList = navigation:GetList()
-        navigationList:AddNestedTag(mobilePackageIndex)
-        repeat while opcodes:HasNext()
-            ClassOpcode opcode = opcodes:Next()
-            Class clazz = opcode:GetClass()
-            WebPage page = opcode:WriteToWebPage(me)//navigation, footer)
-            text web = page:Generate()//code:WriteToWeb()
-            text key = clazz:GetStaticKey()
-            text parentKey = ""
-            Array<text> split = key:Split("\.")
-            i = 0
-            repeat split:GetSize() - 1 times
-                parentKey = parentKey + split:Get(i) + "/"
-                i = i + 1
-            end
-            key = "/" + key:Replace(".", "/") + ".html"
-
-
-            runFolder:CreateDirectories()
-            File mom
-            mom:SetWorkingDirectory(runFolder:GetAbsolutePath())
-            mom:SetPath(DOCUMENTATION_FOLDER + "/" + parentKey)
-            mom:CreateDirectories()
-
-            File documentationFile
-            documentationFile:SetWorkingDirectory(runFolder:GetAbsolutePath())
-            documentationFile:SetPath(DOCUMENTATION_FOLDER + "/" + key)
-            documentationFile:Write(web)
+    /*
+        The Documents folder, as a path from the folder this runs in: the
+        site writes its files with paths from there. The run folder may be
+        anywhere, such as in a project's own folder.
+    */
+    private action GetSiteFolder returns text
+        File here
+        if runFolder:GetWorkingDirectory() = here:GetWorkingDirectory()
+            return runFolder:GetPath() + "/" + DOCUMENTATION_FOLDER
         end
-
-        WriteIndexPage(library:GetSymbolTable())
-    end
-
-    /*This action presumes that a navigation bar will place all the list items inside of a larger
-unordered list. */
-    action CreateMobilePackageIndex(SymbolTable symbolTable) returns Section
-        Section section
-        section:SetClassAttribute("sm:hidden")
-        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-        repeat while packages:HasNext()
-            text key = packages:Next()
-
-            Division listDivision
-
-            //put in the heading for the page
-            Heading packageHeading
-            packageHeading:SetClassAttribute("font-bold h-full py-3 block w-full group")
-            packageHeading:SetScale(3)
-            packageHeading:AddText(key)
-            //Add a little line
-            Division lineDivision
-
-            lineDivision:SetClassAttribute("flex items-center justify-center my-4 mx-2")
-            Division theLine
-            theLine:SetClassAttribute("w-full border-t border-neutral-grey-25")
-            lineDivision:Add(theLine)
-            listDivision:Add(lineDivision)
-            listDivision:Add(packageHeading)
-            //now put in all of the classes in this package
-            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-            i = 0
-            repeat while i < classes:GetSize()
-                Class clazz = classes:Get(i)
-                
-                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
-                classLink:SetClassAttribute("h-full py-3 block w-full group")
-                ListItem item
-                item:SetClassAttribute("h-full group flex items-center flex-row block rounded-2xl pl-3 hover:bg-neutral-grey-40 sm:px-4 sm:duration-150 sm:text-center sm:rounded-3xl sm:block sm:font-medium sm:text-sm sm:text-neutral-black sm:bg-quorum-blue-100 sm:inline relative")
-                item:Add(classLink)
-                listDivision:AddNestedTag(item)
-                i = i + 1
+        text separator = "/"
+        Array<text> from = here:GetWorkingDirectory():Replace("\", separator):Split(separator)
+        Array<text> target = runFolder:GetAbsolutePath():Replace("\", separator):Split(separator)
+        integer same = 0
+        repeat while same < from:GetSize() and same < target:GetSize()
+            if from:Get(same) not= target:Get(same)
+                return GetRelativePath(from, target, same)
             end
-
-            section:Add(listDivision)
+            same = same + 1
         end
-        return section
+        return GetRelativePath(from, target, same)
     end
 
-    action CreatePackageIndex(SymbolTable symbolTable) returns Section
-        Section section
-        section:SetClassAttribute("font-sans hidden md:min-w-1/8 md:flex flex-col w-1/5 gap-y-2 pt-6 sticky top-8 h-screen overflow-auto")
-        Iterator<text> packages = symbolTable:GetPackagesSortedIterator()
-        repeat while packages:HasNext()
-            text key = packages:Next()
-
-            Division listDivision
-            listDivision:SetClassAttribute("w-full")
-
-            //put in the heading for the page
-            Heading packageHeading
-            packageHeading:SetClassAttribute("font-bold break-words")
-            packageHeading:SetScale(3)
-            packageHeading:AddText(key)
-            
-            UnorderedList packageList
-            listDivision:Add(packageHeading)
-            listDivision:Add(packageList)
-            //now put in all of the classes in this package
-            Array<Class> classes = symbolTable:GetClassesSortedInPackage(key)
-            i = 0
-            repeat while i < classes:GetSize()
-                Class clazz = classes:Get(i)
-                
-                Link classLink = GetWebLinkForClassFromIndex(clazz, false)
-                classLink:SetClassAttribute("block w-full py-1 px-2 capitalize")
-                ListItem item
-                item:SetClassAttribute("w-full rounded-xl hover:bg-quorum-blue-25")
-                item:Add(classLink)
-                packageList:Add(item)
-                i = i + 1
+    // Up from the working folder to the part both share, then down to the
+    // run folder's Documents folder.
+    private action GetRelativePath(Array<text> from, Array<text> target, integer same) returns text
+        if same = 0
+            alert("The documentation's run folder, " + runFolder:GetAbsolutePath() + ", can't be reached from the folder the generator runs in.")
+        end
+        text path = ""
+        integer i = same
+        repeat while i < from:GetSize()
+            if not from:Get(i):IsEmpty()
+                path = path + "../"
             end
-
-            section:Add(listDivision)
+            i = i + 1
         end
-        return section
+        i = same
+        repeat while i < target:GetSize()
+            if not target:Get(i):IsEmpty()
+                path = path + target:Get(i) + "/"
+            end
+            i = i + 1
+        end
+        return path + DOCUMENTATION_FOLDER
     end
-    
+
     action GetSearchSection returns Section
         Section section
 

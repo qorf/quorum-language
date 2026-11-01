@@ -1,0 +1,407 @@
+package Libraries.Language.Compile.Documentation
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Web.WebTextEscaper
+use Libraries.Web.WebLocations
+use Libraries.Web.Quorum.QuorumSiteOptions
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.Details
+use Libraries.Web.Page.Summary
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.Span
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Label
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Script
+
+/*
+    LibraryIndexPage is a page of the standard library's index (design B):
+    the package tree on the left, then a filter and the classes, each with
+    its one-line summary. With no package chosen, it is the whole index
+    (libraries.html), every package in turn; with one, it is that
+    package's page, and the tree shows where it is. The generator makes
+    them (DocumentationGenerator), with the documentation's look
+    (LibraryPageLooks).
+*/
+class LibraryIndexPage is WebPage
+    SymbolTable table = undefined
+    LibraryPageLooks looks = undefined
+    QuorumSiteOptions quorumOptions
+    StyleSheetConstants constants
+    WebTextEscaper escaper
+    WebLocations locations
+    LibraryLinks links
+
+    // The package this page is for; empty for the whole index.
+    text chosenPackage = ""
+    text version = ""
+    // Whether this is the standard library's index, or a project's
+    // (the compiler's -document flag).
+    boolean standardLibrary = true
+
+    constant text INDEX_LOCATION = "libraries.html"
+    constant text FILTER_IDENTIFIER = "libraryFilter"
+    constant text FILTER_STATUS_IDENTIFIER = "libraryFilterStatus"
+    constant text FILTER_ATTRIBUTE = "data-filter"
+    constant text FILTER_GROUP_ATTRIBUTE = "data-filter-group"
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text CURRENT_ATTRIBUTE = "aria-current"
+    constant text CURRENT_PAGE = "page"
+    constant text ROLE_ATTRIBUTE = "role"
+    constant text TREE_NAME = "Packages"
+    constant text ALL_PACKAGES = "All packages"
+    constant text FILTER_LABEL = "Filter classes"
+
+    // As the old index said it (DocumentationGenerator.WriteIndexPage).
+    constant text INDEX_TITLE = "Quorum's Built-in Packages and Classes"
+    constant text INDEX_WORDS = "This page shows the full list of classes Quorum supports in the current version of the standard library. These classes are placed into packages organized by their subject area. For example, math related classes are in Libraries.Compute, general data structures are in Libraries.Containers, user interfaces (e.g., buttons, text boxes) are in Libraries.Interface. Besides these, there are many more packages that are used for a variety of purposes (e.g., networking, robots, games, graphics, sound, digital signal processing, mobile applications). The purpose of this index page is to help users find information about specific packages or classes. Thus, this page is structured as a reference and is not intended as a tutorial."
+    constant text INDEX_DESCRIPTION = "Read more about the Quorum programming language's standard library."
+    constant text PROJECT_TITLE = "Packages and Classes"
+    constant text PROJECT_WORDS = "This page lists the classes in this project, by package."
+
+    // Hides the classes whose names and summaries don't have the words
+    // typed, and any package left with none, and says how many match.
+    constant text FILTER_SCRIPT = "(function(){var box=document.getElementById('libraryFilter');var status=document.getElementById('libraryFilterStatus');if(!box){return;}var rows=document.querySelectorAll('[data-filter]');var groups=document.querySelectorAll('[data-filter-group]');box.addEventListener('input',function(){var words=box.value.trim().toLowerCase();var shown=0;rows.forEach(function(row){var match=row.getAttribute('data-filter').indexOf(words)>=0;row.hidden=!match;if(match){shown++;}});groups.forEach(function(group){group.hidden=group.querySelector('[data-filter]:not([hidden])')===null;});status.textContent=words.length===0?'':(shown===1?'1 class matches.':shown+' classes match.');});})();"
+
+    /*
+        Sets what the page lists: every package in the table, the chosen
+        one (empty for the whole index), and the library's version, for
+        the index's title.
+
+        Attribute: Parameter table The classes documented.
+        Attribute: Parameter packageKey The package, such as "Libraries.Containers", or empty for the whole index.
+        Attribute: Parameter version The library's version, such as "Quorum 14.0".
+        Attribute: Parameter looks The documentation's look.
+    */
+    action SetContents(SymbolTable table, text packageKey, text version, LibraryPageLooks looks)
+        me:table = table
+        me:chosenPackage = packageKey
+        me:version = version
+        me:looks = looks
+        if packageKey:IsEmpty()
+            SetLocation(INDEX_LOCATION)
+        else
+            SetLocation(links:GetPackageLocation(packageKey))
+        end
+    end
+
+    /*
+        Sets whether this is the standard library's index (the default), or
+        the index of a project's own classes, which says so instead.
+
+        Attribute: Parameter value True for the standard library.
+    */
+    action SetStandardLibrary(boolean value)
+        standardLibrary = value
+    end
+
+    action Setup
+        if table = undefined
+            return now
+        end
+        boolean whole = chosenPackage:IsEmpty()
+        if whole and standardLibrary
+            SetWebPageTitle("Standard Library Index - " + version)
+            SetDescription(INDEX_DESCRIPTION)
+            Title(INDEX_TITLE)
+            Paragraph(INDEX_WORDS)
+        elseif whole
+            SetDescription(PROJECT_WORDS)
+            Title(PROJECT_TITLE)
+            Paragraph(PROJECT_WORDS)
+        else
+            SetWebPageTitle(chosenPackage + " - Quorum Programming Language")
+            SetDescription("The classes in Quorum's " + chosenPackage + " package.")
+            Title(chosenPackage)
+            SetStyle(GetLastHeading(), looks:GetPageTitle())
+        end
+
+        // The tree beside the classes, both moved into one row.
+        Division columns
+        SetLayout(columns, looks:GetColumns())
+        SetLayoutFromWidth(columns, constants:MEDIUM_SCREEN_WIDTH, looks:GetColumnsWide())
+        columns:AddNestedTag(GetTree())
+
+        Division classes
+        SetStyle(classes, looks:GetMain())
+        SetLayout(classes, quorumOptions:GetStack())
+        classes:AddNestedTag(GetFilter())
+        if whole
+            Iterator<text> packages = table:GetPackagesSortedIterator()
+            repeat while packages:HasNext()
+                text key = packages:Next()
+                Array<Class> all = table:GetClassesSortedInPackage(key)
+                if all not= undefined and not all:IsEmpty()
+                    classes:AddNestedTag(GetPackageGroup(key, all, true))
+                end
+            end
+        else
+            Array<Class> chosen = table:GetClassesSortedInPackage(chosenPackage)
+            if chosen not= undefined
+                classes:AddNestedTag(GetPackageGroup(chosenPackage, chosen, false))
+            end
+        end
+        columns:AddNestedTag(classes)
+        Include(columns)
+
+        Script filter
+        filter:SetCode(FILTER_SCRIPT)
+        PlaceAtEnd(filter)
+    end
+
+    /*
+        The filter: a search box, with a label for screen readers, and a
+        line that says how many classes match.
+    */
+    private action GetFilter returns Division
+        Division search
+        search:AddAttribute(ROLE_ATTRIBUTE, "search")
+        Label name
+        name:SetElementId(FILTER_IDENTIFIER)
+        name:AddText(FILTER_LABEL)
+        SetStyle(name, quorumOptions:GetTopicSearchLabel())
+        search:AddNestedTag(name)
+        Division row
+        SetLayout(row, quorumOptions:GetTopicSearchRow())
+        Input box
+        box:SetType("search")
+        box:SetIdentifier(FILTER_IDENTIFIER)
+        box:SetPlaceHolder(FILTER_LABEL)
+        box:SetAutocomplete(false)
+        SetStyle(box, quorumOptions:GetTopicSearchBox())
+        row:AddNestedTag(box)
+        search:AddNestedTag(row)
+        Paragraph status
+        status:SetIdentifier(FILTER_STATUS_IDENTIFIER)
+        status:AddAttribute("aria-live", "polite")
+        SetStyle(status, quorumOptions:GetTopicStatus())
+        search:AddNestedTag(status)
+        return search
+    end
+
+    /*
+        One package's classes: on the whole index, a heading with the
+        package's name (a link to its page) and how many classes it has;
+        then the white card of rows, each the class's name and summary.
+    */
+    private action GetPackageGroup(text key, Array<Class> all, boolean withHeading) returns Division
+        Division group
+        group:AddAttribute(FILTER_GROUP_ATTRIBUTE, "")
+        SetLayout(group, quorumOptions:GetStack())
+        text shownName = links:GetPackageName(key)
+        if withHeading
+            Heading heading
+            heading:SetScale(2)
+            SetStyle(heading, looks:GetPackageHeading())
+            heading:SetIdentifier(escaper:EscapeAttribute(shownName))
+            Link packageLink
+            packageLink:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(links:GetPackageLocation(key))))
+            packageLink:AddText(escaper:Escape(shownName))
+            SetStyle(packageLink, looks:GetPackageLink())
+            SetStyleOnHover(packageLink, looks:GetClassLinkHover())
+            heading:AddNestedTag(packageLink)
+            group:AddNestedTag(heading)
+        end
+        Paragraph howMany
+        if all:GetSize() = 1
+            howMany:AddText("1 class")
+        else
+            howMany:AddText("" + all:GetSize() + " classes")
+        end
+        SetStyle(howMany, looks:GetCount())
+        group:AddNestedTag(howMany)
+
+        UnorderedList list
+        list:AddAttribute(LABEL_ATTRIBUTE, escaper:EscapeAttribute("Classes in " + shownName))
+        SetStyle(list, quorumOptions:GetNumberedRows())
+        integer i = 0
+        repeat while i < all:GetSize()
+            list:AddNestedTag(GetClassRow(all:Get(i)))
+            i = i + 1
+        end
+        group:AddNestedTag(list)
+        return group
+    end
+
+    // A class's row: its name, a link to its page, and its summary.
+    private action GetClassRow(Class clazz) returns ListItem
+        text summary = links:GetSummary(clazz:GetDocumentation())
+        ListItem item
+        text filterWords = clazz:GetName() + " " + summary
+        item:AddAttribute(FILTER_ATTRIBUTE, escaper:EscapeAttribute(filterWords:ToLowerCase()))
+        SetStyle(item, quorumOptions:GetNumberedRow())
+        SetStyleWhenFirst(item, quorumOptions:GetNumberedRowFirst())
+        SetLayout(item, looks:GetClassRow())
+        // Side by side only when there's room beside the tree for both.
+        SetLayoutFromWidth(item, constants:LARGE_SCREEN_WIDTH, looks:GetClassRowWide())
+
+        Division nameBox
+        SetStyle(nameBox, looks:GetClassName())
+        SetStyleFromWidth(nameBox, constants:LARGE_SCREEN_WIDTH, looks:GetClassNameWide())
+        Link link
+        link:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(links:GetClassLocation(clazz:GetStaticKey()))))
+        link:AddText(escaper:Escape(clazz:GetName()))
+        SetStyle(link, looks:GetClassLink())
+        SetStyleOnHover(link, looks:GetClassLinkHover())
+        nameBox:AddNestedTag(link)
+        item:AddNestedTag(nameBox)
+
+        Span words
+        words:AddText(escaper:Escape(summary))
+        SetStyle(words, looks:GetClassSummary())
+        item:AddNestedTag(words)
+        return item
+    end
+
+    /*
+        The package tree: "All packages" (the whole index), then every
+        package by its parts, Libraries.Interface.Controls under Interface
+        and then Controls. A part that is itself a package links to its
+        page first. The branches leading to this page's package are open,
+        and its link is marked as the current page.
+    */
+    private action GetTree returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, TREE_NAME)
+        SetStyle(navigation, looks:GetTree())
+        SetStyleFromWidth(navigation, constants:MEDIUM_SCREEN_WIDTH, looks:GetTreeWide())
+        Paragraph name
+        name:AddText(TREE_NAME)
+        SetStyle(name, looks:GetTreeHeading())
+        navigation:AddNestedTag(name)
+
+        // Every package with classes, and every part leading to one.
+        HashTable<text, boolean> packagesWithClasses
+        HashTable<text, Array<text>> children
+        Array<text> roots
+        Iterator<text> packages = table:GetPackagesSortedIterator()
+        repeat while packages:HasNext()
+            text key = packages:Next()
+            Array<Class> all = table:GetClassesSortedInPackage(key)
+            if all not= undefined and not all:IsEmpty()
+                packagesWithClasses:Set(key, true)
+                AddBranch(key, children, roots)
+            end
+        end
+
+        UnorderedList list
+        SetStyle(list, looks:GetTreeList())
+        ListItem allItem
+        allItem:AddNestedTag(GetTreeLink(ALL_PACKAGES, INDEX_LOCATION, chosenPackage:IsEmpty()))
+        list:AddNestedTag(allItem)
+
+        // Libraries, the one root of the standard library, holds no
+        // classes, so its parts start the tree.
+        Array<text> top = roots
+        if roots:GetSize() = 1
+            text root = roots:Get(0)
+            if not packagesWithClasses:HasKey(root)
+                top = children:GetValue(root)
+            end
+        end
+        integer i = 0
+        repeat while i < top:GetSize()
+            list:AddNestedTag(GetTreeItem(top:Get(i), children, packagesWithClasses))
+            i = i + 1
+        end
+        navigation:AddNestedTag(list)
+        return navigation
+    end
+
+    // Records a package and every part leading to it in the tree.
+    private action AddBranch(text key, HashTable<text, Array<text>> children, Array<text> roots)
+        if children:HasKey(key) or roots:Has(key)
+            return now
+        end
+        integer last = LastDot(key)
+        if last < 0
+            roots:Add(key)
+            children:Set(key, NewList())
+            return now
+        end
+        text parentKey = key:GetSubtext(0, last)
+        AddBranch(parentKey, children, roots)
+        Array<text> siblings = children:GetValue(parentKey)
+        siblings:Add(key)
+        children:Set(key, NewList())
+    end
+
+    private action NewList returns Array<text>
+        Array<text> list
+        return list
+    end
+
+    private action LastDot(text key) returns integer
+        integer i = key:GetSize() - 1
+        repeat while i >= 0
+            if key:GetCharacter(i) = "."
+                return i
+            end
+            i = i - 1
+        end
+        return -1
+    end
+
+    // One part of the tree: a link, for a package with nothing under it;
+    // otherwise a branch that opens to show the package (if it has
+    // classes) and the parts under it.
+    private action GetTreeItem(text key, HashTable<text, Array<text>> children, HashTable<text, boolean> packagesWithClasses) returns ListItem
+        ListItem item
+        text partName = key:GetSubtext(LastDot(key) + 1)
+        Array<text> under = children:GetValue(key)
+        boolean hasClasses = packagesWithClasses:HasKey(key)
+        if under:IsEmpty()
+            item:AddNestedTag(GetTreeLink(partName, links:GetPackageLocation(key), key = chosenPackage))
+            return item
+        end
+
+        Details branch
+        branch:SetOpen(chosenPackage = key or chosenPackage:StartsWith(key + "."))
+        Summary branchName
+        branchName:AddText(escaper:Escape(partName))
+        SetStyle(branchName, looks:GetTreeSummary())
+        branch:AddNestedTag(branchName)
+        UnorderedList list
+        SetStyle(list, looks:GetTreeNestedList())
+        if hasClasses
+            ListItem own
+            own:AddNestedTag(GetTreeLink(partName, links:GetPackageLocation(key), key = chosenPackage))
+            list:AddNestedTag(own)
+        end
+        // Sorted, as the packages were.
+        under:Sort()
+        integer i = 0
+        repeat while i < under:GetSize()
+            list:AddNestedTag(GetTreeItem(under:Get(i), children, packagesWithClasses))
+            i = i + 1
+        end
+        branch:AddNestedTag(list)
+        item:AddNestedTag(branch)
+        return item
+    end
+
+    private action GetTreeLink(text words, text location, boolean current) returns Link
+        Link link
+        link:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(location)))
+        link:AddText(escaper:Escape(words))
+        if current
+            link:AddAttribute(CURRENT_ATTRIBUTE, CURRENT_PAGE)
+            SetStyle(link, looks:GetTreeLinkCurrent())
+        else
+            SetStyle(link, looks:GetTreeLink())
+            SetStyleOnHover(link, looks:GetTreeLinkHover())
+        end
+        return link
+    end
+end
