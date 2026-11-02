@@ -306,6 +306,14 @@ shared class QuorumSiteOptions is StyleOptions
     // green-600 (3.3 to 1, too low) and red-600.
     FormLooks forms
 
+    // A topic browser (the reference page's tutorials, 2026-11-02, design
+    // "A + tree 2"): the tree a white box with a grey edge, its groups
+    // black and bold with grey counts, their topics dark blue under a light
+    // blue line, the current one on light blue; topics as white tiles with
+    // a grey edge (dark blue on hover, a thicker dark blue edge when shown),
+    // each with its icon in dark blue on light blue.
+    TopicBrowserLooks topicBrowser
+
     // Steps (phase 6, the practice problems' row of numbered problems): a
     // white box with a grey edge and a medium shadow; each step a small
     // circle with a blue edge, the current one black with white numbers;
@@ -1120,8 +1128,60 @@ shared class QuorumSiteOptions is StyleOptions
 
         SetBlockEditorLooks()
         SetFormLooks()
+        SetTopicBrowserLooks()
         SetProblemLooks()
         SetProjectsLooks()
+    end
+
+    // The topic browser's colors, edges and words, on the structure
+    // TopicBrowserLooks sets.
+    private action SetTopicBrowserLooks
+        topicBrowser:GetTree():SetBackground(white)
+        topicBrowser:GetTree():SetBorder(constants:SPACING_PIXEL, grey25)
+        topicBrowser:GetTree():SetRoundedCorners(constants:SPACING_3)
+        topicBrowser:GetTreeTopics():SetLeftBorder(constants:SPACING_0_5, quorumBlue50)
+
+        WebTextStyle groupWords
+        groupWords:SetBold(true)
+        groupWords:SetColor(textColor)
+        groupWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        topicBrowser:GetGroupButton():SetTextStyle(groupWords)
+        topicBrowser:GetGroupButtonHover():SetBackground(quorumBlue10)
+
+        WebTextStyle count = topicBrowser:GetCount()
+        count:SetColor(grey65)
+        count:SetFontSize(constants:EXTRA_SMALL_FONT_SIZE)
+        count:SetBold(false)
+
+        WebTextStyle topicWords
+        topicWords:SetColor(quorumBlue150)
+        topicWords:SetUnderline(false)
+        topicWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        topicBrowser:GetTopicLink():SetTextStyle(topicWords)
+        topicBrowser:GetTopicLinkHover():SetBackground(quorumBlue10)
+        WebTextStyle currentWords
+        currentWords:SetColor(quorumBlue150)
+        currentWords:SetBold(true)
+        currentWords:SetUnderline(false)
+        topicBrowser:GetTopicLinkCurrent():SetBackground(quorumBlue10)
+        topicBrowser:GetTopicLinkCurrent():SetTextStyle(currentWords)
+
+        WebTextStyle tileWords
+        tileWords:SetColor(textColor)
+        tileWords:SetUnderline(false)
+        WebBoxStyle tile = topicBrowser:GetTile()
+        tile:SetBackground(white)
+        tile:SetBorder(constants:SPACING_PIXEL, grey25)
+        tile:SetTextStyle(tileWords)
+        topicBrowser:GetTileHover():SetBorder(constants:SPACING_PIXEL, quorumBlue150)
+        topicBrowser:GetTileCurrent():SetBorder(constants:SPACING_0_5, quorumBlue150)
+        WebTextStyle iconColor
+        iconColor:SetColor(quorumBlue150)
+        topicBrowser:GetTileIcon():SetBackground(quorumBlue10)
+        topicBrowser:GetTileIcon():SetTextStyle(iconColor)
+        topicBrowser:GetTileName():SetBold(true)
+        topicBrowser:GetTileName():SetFontSize(constants:SMALL_FONT_SIZE)
+        topicBrowser:GetTreeName():SetBold(true)
     end
 
     // A reader's projects table (ProfilePage).
@@ -2145,6 +2205,10 @@ shared class QuorumSiteOptions is StyleOptions
     // Forms' and quizzes' parts.
     action GetForms returns FormLooks
         return forms
+    end
+
+    action GetTopicBrowser returns TopicBrowserLooks
+        return topicBrowser
     end
 
     action GetSteps returns WebBoxStyle

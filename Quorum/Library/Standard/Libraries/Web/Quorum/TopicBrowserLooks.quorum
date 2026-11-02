@@ -1,0 +1,236 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.WebListStyle
+use Libraries.Web.Layouts.WebGridLayout
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    TopicBrowserLooks holds the look of a topic browser on a QuorumPage
+    (QuorumPage:TopicBrowser, as the reference page lists its tutorials):
+    the tree of topic groups on the left, the chosen group's topics as
+    tiles, the chosen topic's lessons, and the search results. What it needs
+    to work is set here: its layouts, sizes and what stays in view. The
+    site's colors, edges and words are set in QuorumSiteOptions.
+*/
+class TopicBrowserLooks
+    StyleSheetConstants constants
+
+    // The tree and the topics: one above the other on phones and tablets,
+    // side by side from a large screen up.
+    WebStackLayout columns
+    WebRowLayout columnsWide
+    WebBoxStyle content
+
+    // The tree: a box; from a large screen up, a column of its own that
+    // stays in view and scrolls by itself. Its groups are buttons that
+    // open to their topics (links), the current one marked.
+    WebBoxStyle tree
+    WebBoxStyle treeWide
+    WebTextStyle treeName
+    WebListStyle treeList
+    WebBoxStyle treeTopics
+    WebListStyle treeTopicList
+    WebBoxStyle groupButton
+    WebRowLayout groupButtonLayout
+    WebBoxStyle groupButtonHover
+    WebTextStyle count
+    WebBoxStyle topicLink
+    WebRowLayout topicLinkLayout
+    WebBoxStyle topicLinkHover
+    WebBoxStyle topicLinkCurrent
+
+    // A group: its heading and words, its topics as tiles (icon, name,
+    // count), the tile being shown marked.
+    WebStackLayout group
+    WebGridLayout tiles
+    WebBoxStyle tile
+    WebRowLayout tileLayout
+    WebBoxStyle tileHover
+    WebBoxStyle tileCurrent
+    WebBoxStyle tileIcon
+    WebRowLayout tileIconLayout
+    WebTextStyle tileName
+    WebStackLayout tileWords
+
+    // A topic: its heading, its words and its lessons (numbered rows).
+    WebStackLayout topic
+    WebTextStyle topicWords
+
+    // The search results: rows of a lesson and its topic.
+    WebRowLayout resultRow
+
+    on create
+        columns:SetGap(constants:SPACING_6)
+        columnsWide:SetGap(constants:SPACING_8)
+        columnsWide:SetAlignedTop(true)
+        content:SetGrow(true)
+        content:SetShrinkBelowContent(true)
+
+        tree:SetPadding(constants:SPACING_3, constants:SPACING_3)
+        treeWide:SetWidth(constants:SPACING_64)
+        treeWide:SetShrink(false)
+        treeWide:SetStickyTop(constants:SPACING_4)
+        treeWide:SetMaximumHeightBelowWindow(constants:SPACING_8)
+        treeWide:SetScrollable(true)
+        treeList:UseNoMarker()
+        treeList:SetLeftPadding(constants:SPACING_0)
+        treeTopics:SetLeftMargin(constants:SPACING_2)
+        treeTopics:SetLeftPadding(constants:SPACING_2)
+        treeTopicList:UseNoMarker()
+        treeTopicList:SetLeftPadding(constants:SPACING_0)
+        groupButton:SetWidthPercent(100)
+        groupButton:SetPadding(constants:SPACING_1, constants:SPACING_2)
+        groupButton:SetRoundedCorners(constants:SPACING_1_5)
+        groupButtonLayout:SetSpreadOut(true)
+        groupButtonLayout:SetCenteredVertically(true)
+        groupButtonLayout:SetGap(constants:SPACING_2)
+        topicLink:SetPadding(constants:SPACING_0_5, constants:SPACING_2)
+        topicLink:SetRoundedCorners(constants:SPACING_1_5)
+        topicLinkLayout:SetSpreadOut(true)
+        topicLinkLayout:SetGap(constants:SPACING_2)
+
+        group:SetGap(constants:SPACING_4)
+        tiles:SetGap(constants:SPACING_2)
+        tiles:SetSmallestColumnWidth(constants:SPACING_48)
+        tile:SetPadding(constants:SPACING_2_5, constants:SPACING_3)
+        tile:SetRoundedCorners(constants:SPACING_3)
+        tileLayout:SetGap(constants:SPACING_2_5)
+        tileLayout:SetCenteredVertically(true)
+        tileIcon:SetWidth(constants:SPACING_9)
+        tileIcon:SetHeight(constants:SPACING_9)
+        tileIcon:SetShrink(false)
+        tileIcon:SetRoundedCorners(constants:SPACING_2)
+        tileIconLayout:SetCenteredHorizontally(true)
+        tileIconLayout:SetCenteredVertically(true)
+        tileWords:SetGap(constants:SPACING_0)
+
+        topic:SetGap(constants:SPACING_3)
+        resultRow:SetSpreadOut(true)
+        resultRow:SetGap(constants:SPACING_3)
+        resultRow:SetWrap(true)
+    end
+
+    action GetColumns returns WebStackLayout
+        return columns
+    end
+
+    action GetColumnsWide returns WebRowLayout
+        return columnsWide
+    end
+
+    action GetContent returns WebBoxStyle
+        return content
+    end
+
+    action GetTree returns WebBoxStyle
+        return tree
+    end
+
+    action GetTreeWide returns WebBoxStyle
+        return treeWide
+    end
+
+    action GetTreeName returns WebTextStyle
+        return treeName
+    end
+
+    action GetTreeList returns WebListStyle
+        return treeList
+    end
+
+    action GetTreeTopics returns WebBoxStyle
+        return treeTopics
+    end
+
+    action GetTreeTopicList returns WebListStyle
+        return treeTopicList
+    end
+
+    action GetGroupButton returns WebBoxStyle
+        return groupButton
+    end
+
+    action GetGroupButtonLayout returns WebRowLayout
+        return groupButtonLayout
+    end
+
+    action GetGroupButtonHover returns WebBoxStyle
+        return groupButtonHover
+    end
+
+    action GetCount returns WebTextStyle
+        return count
+    end
+
+    action GetTopicLink returns WebBoxStyle
+        return topicLink
+    end
+
+    action GetTopicLinkLayout returns WebRowLayout
+        return topicLinkLayout
+    end
+
+    action GetTopicLinkHover returns WebBoxStyle
+        return topicLinkHover
+    end
+
+    action GetTopicLinkCurrent returns WebBoxStyle
+        return topicLinkCurrent
+    end
+
+    action GetGroup returns WebStackLayout
+        return group
+    end
+
+    action GetTiles returns WebGridLayout
+        return tiles
+    end
+
+    action GetTile returns WebBoxStyle
+        return tile
+    end
+
+    action GetTileLayout returns WebRowLayout
+        return tileLayout
+    end
+
+    action GetTileHover returns WebBoxStyle
+        return tileHover
+    end
+
+    action GetTileCurrent returns WebBoxStyle
+        return tileCurrent
+    end
+
+    action GetTileIcon returns WebBoxStyle
+        return tileIcon
+    end
+
+    action GetTileIconLayout returns WebRowLayout
+        return tileIconLayout
+    end
+
+    action GetTileName returns WebTextStyle
+        return tileName
+    end
+
+    action GetTileWords returns WebStackLayout
+        return tileWords
+    end
+
+    action GetTopic returns WebStackLayout
+        return topic
+    end
+
+    action GetTopicWords returns WebTextStyle
+        return topicWords
+    end
+
+    action GetResultRow returns WebRowLayout
+        return resultRow
+    end
+end
