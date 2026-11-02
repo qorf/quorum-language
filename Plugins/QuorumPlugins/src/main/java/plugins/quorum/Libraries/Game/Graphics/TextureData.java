@@ -24,15 +24,15 @@ import quorum.Libraries.Game.Graphics.PixelMap_;
 
 public interface TextureData {
 
-	public int GetWidth ();
-
- //test for preparedness
-	public boolean IsPrepared ();
- //prepares texturedata for consume pixmap
-	public int GetHeight ();
- public PixelMap_ ConsumePixmap();
- public boolean DisposePixmap();
- public boolean UseMipMaps ();
+//	public int GetWidth ();
+//
+// //test for preparedness
+//	public boolean IsPrepared ();
+// //prepares texturedata for consume pixmap
+//	public int GetHeight ();
+// public PixelMap_ ConsumePixmap();
+// public boolean DisposePixmap();
+// public boolean UseMipMaps ();
 
  // Beginning of new work, 1/13/15:
  

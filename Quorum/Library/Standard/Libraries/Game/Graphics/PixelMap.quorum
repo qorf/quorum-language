@@ -21,6 +21,9 @@ class PixelMap is Disposable
     
     Color color
     Format format
+    
+    // Whether or not this PixelMap should be automatically disposed of after texture loading.
+    boolean disposeAfterTextureLoad = true
 
     /*
     This action takes a different PixelMap and draws it on top of this PixelMap
@@ -444,4 +447,21 @@ class PixelMap is Disposable
     /*This action writes a PixelMap to disk in either png, jpg, jpeg, gif, bmp, or 
 dib format. This action works only on Desktop platforms. */
     system action Save(File file)
+    
+    /*This action returns whether or not this PixelMap should be automatically disposed of after
+being loaded into a Texture. Disposing of the PixelMap frees up the memory it stores, but
+makes it unusable without loading it again. By default, this value is true. If this value
+is false, the user must manually call Dispose on the PixelMap when it is no longer needed.*/
+    action DisposeAfterTextureLoad returns boolean
+        return disposeAfterTextureLoad
+    end
+
+    /*This action sets whether or not this PixelMap should be automatically disposed of after
+being loaded into a Texture. Disposing of the PixelMap frees up the memory it stores, but
+makes it unusable without loading it again. By default, this value is true. If this value
+is false, the user must manually call Dispose on the PixelMap when it is no longer needed.*/
+    action SetDisposeAfterTextureLoad(boolean disposeAfterTextureLoad)
+        me:disposeAfterTextureLoad = disposeAfterTextureLoad
+    end
+
 end

@@ -21,6 +21,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanImageView
 use Libraries.Game.Graphics.Vulkan.VulkanSampler
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
+use Libraries.Game.Graphics.OpenGL.AndroidOpenGL
 
 /*
 The Texture class represents an image that can be drawn on the screen. Once
@@ -56,16 +57,32 @@ Attribute: Example
 */
 class Texture is Disposable
 
-    TextureData data = undefined
-
     // Whether this texture holds packed normals: normals in red, green and
     // blue, with ambient occlusion in their length, as a texture set's
     // normal-roughness texture does (Item 24). Its mipmaps then average
     // the normals' directions and lengths separately (Item 25).
     boolean packedNormalMipMaps = false
+    
+    // Whether or not this texture should support mip mapping. Mip mapping is used for performance when rendering textures far from the camera.
+    boolean useMipMaps = false
 
     GameStateManager manager
     OpenGLConstants constants
+    
+    integer width = 0
+    integer height = 0
+    
+    /*If this texture is layered (that is, there are multiple images stored as an array inside this texture),
+then these arrays are defined and contain the dimensions of the Nth image at the Nth index.*/
+    Array<integer> layerWidths = undefined
+    Array<integer> layerHeights = undefined
+    
+    // How many images back this Texture. Most textures only use a single image, but some (e.g. cubemaps) will have multiple.
+    integer layerCount = 0
+    
+    // This value is set if the Texture is loaded using a LoadCubemap call.
+    // It can't be set otherwise, so this is defined only at load time.
+    boolean isCubemap = false
 
     TextureFilter minimizeFilter
     TextureFilter magnifyFilter
@@ -73,6 +90,10 @@ class Texture is Disposable
     TextureWrap verticalWrap
 
     text source = undefined
+    // When using OpenGL with Android, textures may need to be reloaded due to context loss (e.g. due to app minimizing).
+    // If a Texture is loaded with a raw pixel map and not a file, the PixelMap will be retained on this platform, even
+    // if the PixelMap is intended to be disposed after load. It will only be released if the Texture is disposed.
+    PixelMap reloadablePixelMap = undefined
 
     boolean isLoadingAsync = false
 
@@ -91,7 +112,7 @@ class Texture is Disposable
     // textures are sorted into sub-arrays. This represents which sub-array (the group index) and the location within that sub-array (local index).
     integer vulkanTextureGroupIndex = -1
     integer vulkanTextureLocalIndex = -1
-
+    
     on create
         minimizeFilter:ConstructTextureFilter(minimizeFilter:NEAREST)
         magnifyFilter:ConstructTextureFilter(magnifyFilter:NEAREST)
@@ -182,10 +203,7 @@ class Texture is Disposable
     Attribute: Returns True if the texture uses mipmaps.
     */
     action UsesMipMaps returns boolean
-        if data = undefined
-            return false
-        end
-        return data:UseMipMaps()
+        return useMipMaps
     end
 
     /*
@@ -307,9 +325,7 @@ class Texture is Disposable
     Attribute: Parameter drawable A drawable that will be loaded with this Texture after the Texture has finished loading.
     */
     action FinishLoadingAsynchronously(File file, PixelMap pixelMap, Format format, boolean useMipMaps, Drawable drawable)
-        FileTextureData data
-        data:InitializeFileTextureData(file, pixelMap, format, useMipMaps)
-        LoadFromTextureData(data)
+        LoadFromTextureData(file, pixelMap, useMipMaps)
 
         TextureLoadEvent event
         event:SetTexture(me)
@@ -408,9 +424,7 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap)
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixelMap, pixelMap:GetFormat(), false)
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixelMap, false)
     end
 
     /*
@@ -469,10 +483,23 @@ class Texture is Disposable
     end
     */
     action LoadFromPixelMap(PixelMap pixelMap, Format format, boolean useMipMaps)
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixelMap, format, useMipMaps)
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixelMap, useMipMaps)
     end
+    
+    action LoadFromFiles(Array<File> files)
+    end
+    
+    action LoadFromPixelMaps(Array<PixelMap> pixelMaps)
+        layerCount = pixelMaps:GetSize()
+    end
+    
+    action LoadCubemapFromFiles(Array<File> files)
+    end
+    
+    action LoadCubemapFromPixelMaps(Array<PixelMap> pixelMaps)
+        isCubemap = true
+    end
+    
 
     /*
     This action will load a matrix into the Texture to create a monochrome
@@ -589,7 +616,9 @@ class Texture is Disposable
             return now
         end
 
-        LoadFromTextureData(CreateTextureData(file, format, useMipMaps))
+        PixelMap pixelMap
+        pixelMap:LoadPixelMap(file)
+        LoadFromTextureData(file, pixelMap, useMipMaps)
     end
 
     /*
@@ -689,33 +718,28 @@ class Texture is Disposable
     This action loads a Texture from TextureData. This is primarily for internal
     use, and most users will never need to use this action. 
     */
-    private action LoadFromTextureData(TextureData data)
+    private action LoadFromTextureData(File file, PixelMap pixelMap, boolean useMipMaps)
+        width = pixelMap:GetWidth()
+        height = pixelMap:GetHeight()
+        layerCount = 1
+        me:useMipMaps = useMipMaps
+        
         if manager:GetGameGraphics() is VulkanGraphics
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanTextureManager textureManager = graphics:GetTextureManager()
-            
-            me:data = data
-
-            if data:IsPrepared() not= true
-                data:Prepare()
-            end
-
-            // Pixels this texture read from a file itself are disposed once
-            // copied (Item 34). Pixels the caller passed in (LoadFromPixelMap)
-            // are kept: under Vulkan, callers such as texture updates and
-            // terrain splat maps reuse them, even though OpenGL disposes them.
-            boolean disposeAfter = false
-            if data is FileTextureData
-                FileTextureData fileData = cast(FileTextureData, data)
-                disposeAfter = fileData:GetFile() not= undefined and fileData:DisposePixelMap()
-            end
-            textureManager:RequestLoad(me, data:ConsumePixelMap(), disposeAfter)
+            textureManager:RequestLoad(me, pixelMap, pixelMap:DisposeAfterTextureLoad())
 
             return now
         end
 
         SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
-        Load(data)
+        Bind()
+
+        UploadImageDataOpenGL(constants:GL_TEXTURE_2D, pixelMap)
+        SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
+        SetWrap(GetHorizontalWrap(), GetVerticalWrap())
+        
+        BindToDefault()
         AddReloadableTexture()
     end
 
@@ -723,33 +747,19 @@ class Texture is Disposable
     This action loads a Texture's data so it can be drawn to the screen. This is
     primarily for internal use, and most users will never need to use this action. 
     */
-    private action Load(TextureData loadingData)
-        if data not= undefined
-            if loadingData:IsManaged() not= data:IsManaged()
-                Error error
-                error:SetErrorMessage("Newly loaded data must have the same type of data management as the old data.")
-                alert(error)
-            end
-        end
-
-        data = loadingData
-
-        if data:IsPrepared() not= true
-            data:Prepare()
-        end
-
-        Bind()
-
-        UploadImageData(constants:GL_TEXTURE_2D, data)
-        SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
-        SetWrap(GetHorizontalWrap(), GetVerticalWrap())
-        
-        BindToDefault()
-
-        //parent:Item:width = data:GetWidth()
-        //parent:Item:height = data:GetHeight()
-
-    end
+    //private action Load(TextureData loadingData)
+        //Bind()
+//
+        //UploadImageData(constants:GL_TEXTURE_2D, data)
+        //SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
+        //SetWrap(GetHorizontalWrap(), GetVerticalWrap())
+        //
+        //BindToDefault()
+//
+        ////parent:Item:width = data:GetWidth()
+        ////parent:Item:height = data:GetHeight()
+//
+    //end
 
     /*
     Used to reload a Texture that's already been loaded. This is used internally
@@ -758,9 +768,12 @@ class Texture is Disposable
     Users will most likely never need to call this action directly.
     */
     action Reload
-        if data not= undefined
+        if source not= undefined
             SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
-            Load(data)
+            LoadFromFile(source, useMipMaps)
+        elseif reloadablePixelMap not= undefined
+            SetGraphicsInfo(constants:GL_TEXTURE_2D, CreateGLHandle())
+            LoadFromPixelMap(reloadablePixelMap, reloadablePixelMap:GetFormat(), useMipMaps)
         else
             alert("I couldn't reload this Texture because it had never been loaded before.")
         end
@@ -790,10 +803,7 @@ class Texture is Disposable
         end
     */
     action GetWidth returns integer
-        if data not= undefined
-            return data:GetWidth()
-        end
-        return 0
+        return width
     end
 
     /*
@@ -820,10 +830,7 @@ class Texture is Disposable
         end
     */
     action GetHeight returns integer
-        if data not= undefined
-            return data:GetHeight()
-        end
-        return 0
+        return height
     end
 
     /*
@@ -857,71 +864,50 @@ class Texture is Disposable
 
     // All actions placed below are originally from GLTexture.
 
-    private action CreateTextureData(File file, boolean useMipMaps) returns TextureData
-        return CreateTextureData(file, undefined, useMipMaps)
+    //private action CreateTextureData(File file, boolean useMipMaps) returns TextureData
+        //return CreateTextureData(file, undefined, useMipMaps)
+    //end
+//
+    //private action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
+        //if file = undefined
+            //return undefined
+        //end
+        //
+        //text filePath = file:GetPath()
+//
+        //if filePath:EndsWith(".cim") 
+            ////return new FileTextureData(file, PixmapIO.readCIM(file), format, useMipMaps);
+        //elseif filePath:EndsWith(".etc1") 
+            ////return new ETC1TextureData(file, useMipMaps);
+        //elseif filePath:EndsWith(".ktx") 
+            ////return new KTXTextureData(file, useMipMaps);
+        //end
+//
+        //FileTextureData data
+        //PixelMap temp
+        //temp:LoadPixelMap(file)
+        //data:InitializeFileTextureData(file, temp, format, useMipMaps)
+        //return data
+    //end
+
+    private action UploadImageDataOpenGL(integer target, PixelMap pixelMap)
+        UploadImageDataOpenGL(target, pixelMap, 0)
     end
 
-    private action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
-        if file = undefined
-            return undefined
-        end
-        
-        text filePath = file:GetPath()
-
-        if filePath:EndsWith(".cim") 
-            //return new FileTextureData(file, PixmapIO.readCIM(file), format, useMipMaps);
-        elseif filePath:EndsWith(".etc1") 
-            //return new ETC1TextureData(file, useMipMaps);
-        elseif filePath:EndsWith(".ktx") 
-            //return new KTXTextureData(file, useMipMaps);
-        end
-
-        FileTextureData data
-        PixelMap temp
-        temp:LoadPixelMap(file)
-        data:InitializeFileTextureData(file, temp, format, useMipMaps)
-        return data
-    end
-
-    private action UploadImageData(integer target, TextureData data)
-        UploadImageData(target, data, 0)
-    end
-
-    private action UploadImageData(integer target, TextureData data, integer mipLevel)
-
-        if data = undefined
-            Error error
-            error:SetErrorMessage("Can not upload undefined image data!")
-            alert(error)
-        end
-
-        if data:IsPrepared() not= true
-            data:Prepare()
-        end
-
-
-        // If custom data types are allowed in the future, they will have to
-        // be handled here. Otherwise, we use the standard.
-
-        PixelMap pixelMap = data:ConsumePixelMap()
-        boolean disposePixelMap = data:DisposePixelMap()
-
-        Format pixelFormat = pixelMap:GetFormat()
-        Format dataFormat = data:GetFormat()
-
+    private action UploadImageDataOpenGL(integer target, PixelMap pixelMap, integer mipLevel)
         OpenGLManager openGL = GetOpenGL()
         if openGL not= undefined
             openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
         end
 
-        if data:UseMipMaps()
-            // Generate MipMaps - only used for 3D textures. Java code below.
-            // MipMapGenerator.generateMipMap(target, pixmap, pixmap.getWidth(), pixmap.getHeight());
-        else
-            pixelMap:Define2DImage(target, mipLevel, 0)
-        end
-
-        if disposePixelMap = true
+        pixelMap:Define2DImage(target, mipLevel, 0)
+        
+        GameStateManager manager
+        // If this was loaded from a raw pixel map and we're using OpenGL on Android, we don't want to dispose
+        // the PixelMap. It needs to be retained so it can be reloaded after context loss.
+        if manager:GetGameGraphics() is AndroidOpenGL and source = undefined
+            reloadablePixelMap = pixelMap
+        elseif pixelMap:DisposeAfterTextureLoad()
             pixelMap:Dispose()
         end
 
@@ -1010,7 +996,12 @@ class Texture is Disposable
             VulkanTextureManager textureManager = graphics:GetTextureManager()
             textureManager:ReleaseTexture(me)
         end
+        
         DisposeNative()
+        
+        if reloadablePixelMap not= undefined and reloadablePixelMap:DisposeAfterTextureLoad()
+            reloadablePixelMap:Dispose()
+        end
     end
 
     private system action DisposeNative
@@ -1091,10 +1082,7 @@ class Texture is Disposable
 
         pixmap:DrawLine(0, 0, x, y, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
@@ -1166,10 +1154,7 @@ class Texture is Disposable
 
         pixmap:DrawRectangle(0, 0, width, height, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
@@ -1241,10 +1226,7 @@ class Texture is Disposable
 
         pixmap:FillRectangle(0, 0, width, height, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
@@ -1315,10 +1297,7 @@ class Texture is Disposable
 
         pixmap:DrawCircle(radius + 1, radius + 1, radius, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
@@ -1397,10 +1376,7 @@ class Texture is Disposable
         
         pixmap:FillCircle(radius, radius, radius, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
@@ -1493,10 +1469,7 @@ class Texture is Disposable
 
         pixmap:FillTriangle(x1, t1, x2, t2, x3, t3, color)
         
-        FileTextureData data
-        data:InitializeFileTextureData(undefined, pixmap, format, false)
-        
-        LoadFromTextureData(data)
+        LoadFromTextureData(undefined, pixmap, false)
     end
 
     /*
