@@ -1,0 +1,38 @@
+package Libraries.Web.Page
+
+use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.Attributes
+
+/*
+    The DefinedTerm class represents HTML's (Hypertext Markup Language)
+    dfn tag, which marks a term at the place it is introduced or defined.
+    Screen readers and search engines can tell a defined term from words
+    that are only important or stressed.
+    You can find more information about this tag at:
+    <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn">The dfn element</a>.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main
+        action Main
+            Paragraph paragraph
+            paragraph:AddText("The point (0, 0, 0) is called the ")
+            DefinedTerm term
+            term:AddText("origin")
+            paragraph:AddNestedTag(term)
+            output paragraph:Generate()
+        end
+    end
+*/
+class DefinedTerm is WebTag, FlowContent
+    action Generate returns text
+        text result = "<dfn "
+        Attributes attributes = parent:WebTag:GetAttributes()
+        text attributeText = attributes:Generate()
+        result = result + attributeText + ">"
+        result = result + me:GenerateNestedTags()
+        result = result + "</dfn>"
+        return result
+    end
+end

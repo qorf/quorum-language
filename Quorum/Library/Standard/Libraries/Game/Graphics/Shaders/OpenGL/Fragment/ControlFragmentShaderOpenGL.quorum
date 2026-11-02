@@ -74,29 +74,15 @@ void main()
     vec2 dimensions = vec2(aspectRatio, 1.0);
 
     // One screen pixel in these units, from how fast point changes across the
-    // screen. Right at any zoom, interface scale or rotation. (Taken before the
-    // branch below, which goes the same way for the whole control.)
+    // screen. Right at any zoom, interface scale or rotation.
     float pixel = max(length(vec2(dFdx(point.y), dFdy(point.y))), 0.000001);
     float halfPixel = 0.5 * pixel;
-    highp vec2 unitsPerPixel = vec2(dFdx(point.x), dFdy(point.y));
-    bool axisAligned = abs(dFdy(point.x)) < 0.001 * abs(unitsPerPixel.x)
-                    && abs(dFdx(point.y)) < 0.001 * abs(unitsPerPixel.y);
 
-    // The GPU draws only the pixels whose centers are inside the control, so what's
-    // drawn always ends on pixel boundaries. Measure from those boundaries, not from
-    // edges that may fall partway into a pixel; otherwise a side whose edge is
-    // mid-pixel spreads its border over two rows, thinner looking than the others.
-    // (Rotated controls skip this.)
-    if (axisAligned)
-    {
-        highp vec2 edgeA = gl_FragCoord.xy + (-dimensions - point) / unitsPerPixel;
-        highp vec2 edgeB = gl_FragCoord.xy + (dimensions - point) / unitsPerPixel;
-        highp vec2 snappedA = floor(edgeA + 0.5);
-        highp vec2 snappedB = floor(edgeB + 0.5);
-        point = (gl_FragCoord.xy - 0.5 * (snappedA + snappedB)) * unitsPerPixel;
-        dimensions = 0.5 * abs(snappedB - snappedA) * abs(unitsPerPixel);
-    }
-
+    // Edges are measured as they are. DrawableShape puts every interface
+    // control's corners on whole pixels, so the drawn pixels end at the
+    // edges. (Estimating each edge from derivatives here, as before, was
+    // off by fractions of a pixel across a large control, and made left
+    // and right edges ragged.)
     float distance = signedDistanceFunction(point, dimensions, rounding);
 
     // Each side's border, in the same units. The mapping gives each as half the
@@ -106,7 +92,11 @@ void main()
     // same rows and none falls between rows when zoomed out. A side without one
     // stays zero.
     vec4 hasBorder = step(vec4(0.000001), v_borderThickness);
-    vec4 borderThickness = max(floor(v_borderThickness / halfPixel + 0.5), vec4(1.0)) * halfPixel * hasBorder;
+    // The small bias settles a border that's exactly a half pixel past a
+    // whole one (1.5 points at scale 1) the same way on every row; without it,
+    // tiny differences from row to row made the left and right sides flicker
+    // between one and two pixels.
+    vec4 borderThickness = max(floor(v_borderThickness / halfPixel + 0.5 + 1.0 / 64.0), vec4(1.0)) * halfPixel * hasBorder;
     float borderSides = dot(hasBorder, vec4(1.0));
 
     vec4 textureColor = texture(u_texture, v_texCoords);

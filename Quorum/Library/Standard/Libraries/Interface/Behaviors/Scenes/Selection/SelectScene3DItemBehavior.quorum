@@ -122,6 +122,11 @@ class SelectScene3DItemBehavior is Behavior
             if result:Get(0) is TerrainItem and nearestTerrainHit not= undefined
                 EditorCursor3D cursor = cast(EditorCursor3D, layer:GetCursor())
                 cursor:SetPosition(nearestTerrainHit:GetX(), nearestTerrainHit:GetY(), nearestTerrainHit:GetZ())
+                // The terrain cursor starts where the click landed.
+                if result:Get(0) is EditorTerrain
+                    EditorTerrain clickedTerrain = cast(EditorTerrain, result:Get(0))
+                    clickedTerrain:SetBrushPosition(nearestTerrainHit:GetX(), nearestTerrainHit:GetZ())
+                end
             end
             editor:SetFilteredItems(result, true)
         end

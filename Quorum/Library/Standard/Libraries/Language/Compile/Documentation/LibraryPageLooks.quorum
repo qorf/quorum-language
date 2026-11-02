@@ -1,0 +1,335 @@
+package Libraries.Language.Compile.Documentation
+
+use Libraries.Web.Quorum.QuorumSiteOptions
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.WebListStyle
+use Libraries.Web.Styles.WebColor
+use Libraries.Web.Layouts.WebGridLayout
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    LibraryPageLooks is the look of the standard library's documentation
+    pages (LibraryIndexPage, LibraryClassPage), in the Quorum website's
+    colors (QuorumSiteOptions): the package tree on the left of the index,
+    the rows of classes with their summaries, and the class pages' action
+    cards and folded inherited actions. The generator makes one and hands
+    it to every page, so every page shares the same looks.
+*/
+class LibraryPageLooks
+    QuorumSiteOptions quorumOptions
+    StyleSheetConstants constants
+
+    // The site's lightest blue (quorum-blue-10), which QuorumSiteOptions
+    // has no action for.
+    WebColor lightBlue
+
+    // The index and package pages: the tree above the classes on phones,
+    // beside them on wider screens.
+    WebStackLayout columns
+    WebRowLayout columnsWide
+    WebBoxStyle main
+
+    // The package tree: a white box; on wider screens a column of its own
+    // that stays in view and scrolls by itself.
+    WebBoxStyle tree
+    WebBoxStyle treeWide
+    WebTextStyle treeHeading
+    WebListStyle treeList
+    WebListStyle treeNestedList
+    WebBoxStyle treeSummary
+    WebTextStyle treeLink
+    WebTextStyle treeLinkHover
+    WebBoxStyle treeLinkCurrent
+
+    // A package's classes: the white card of rows, each the class's name
+    // (a link) and its one-line summary, side by side on wider screens.
+    WebStackLayout classRow
+    WebRowLayout classRowWide
+    WebBoxStyle className
+    WebBoxStyle classNameWide
+    WebTextStyle classLink
+    WebTextStyle classLinkHover
+    WebTextStyle classSummary
+    WebTextStyle count
+    WebTextStyle packageHeading
+    WebTextStyle packageLink
+
+    // The class pages: the package and parents line, an action's labels
+    // (Parameters, Returns, Example), its parameter list, links to types,
+    // and the folded inherited actions.
+    WebTextStyle packageLine
+    WebTextStyle label
+    WebStackLayout parameterList
+    WebTextStyle parameterName
+    WebTextStyle typeLink
+    WebBoxStyle inherited
+    WebBoxStyle inheritedSummary
+    WebGridLayout inheritedList
+    WebTextStyle inheritedLink
+    WebStackLayout card
+    // An action's heading: long names, such as
+    // Libraries.Containers.Support.Comparison, break to fit a phone.
+    WebTextStyle signature
+    // A page's title, as the site's titles look, and the documentation's
+    // words: both break long names, such as Libraries.Interface.Controls,
+    // to fit a phone.
+    WebTextStyle pageTitle
+    // The breadcrumbs, as the site's, but breaking long package names,
+    // such as Libraries.Game.Graphics.Shaders.Vulkan.Vertex.
+    WebTextStyle crumbLink
+    WebTextStyle crumbCurrent
+    // Each breadcrumb may be narrower than its longest name, so the name
+    // can break (in a row, breaking alone doesn't narrow it).
+    WebBoxStyle crumb
+    WebTextStyle words
+
+    on create
+        lightBlue:SetColor(238, 250, 254)
+
+        columns:SetGap(constants:SPACING_6)
+        columnsWide:SetGap(constants:SPACING_8)
+        columnsWide:SetAlignedTop(true)
+        main:SetGrow(true)
+        main:SetShrinkBelowContent(true)
+
+        tree:SetBackground(quorumOptions:GetWhite())
+        tree:SetBorder(constants:SPACING_PIXEL, quorumOptions:GetGrey25())
+        tree:SetRoundedCorners(constants:SPACING_3)
+        tree:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        treeWide:SetWidth(constants:SPACING_64)
+        treeWide:SetShrink(false)
+        treeWide:SetStickyTop(constants:SPACING_4)
+        treeWide:SetMaximumHeightBelowWindow(constants:SPACING_8)
+        treeWide:SetScrollable(true)
+        treeHeading:SetBold(true)
+        treeList:UseNoMarker()
+        treeList:SetLeftPadding(constants:SPACING_0)
+        treeNestedList:UseNoMarker()
+        treeNestedList:SetLeftPadding(constants:SPACING_4)
+        WebTextStyle summaryWords
+        summaryWords:SetSemibold(true)
+        treeSummary:SetTextStyle(summaryWords)
+        treeSummary:SetPadding(constants:SPACING_0_5, constants:SPACING_0)
+        treeLink:SetColor(quorumOptions:GetQuorumBlue150())
+        treeLink:SetUnderline(false)
+        treeLinkHover:SetUnderline(true)
+        WebTextStyle currentWords
+        currentWords:SetBold(true)
+        currentWords:SetColor(quorumOptions:GetQuorumBlue150())
+        treeLinkCurrent:SetTextStyle(currentWords)
+        treeLinkCurrent:SetBackground(lightBlue)
+        treeLinkCurrent:SetRoundedCorners(constants:SPACING_1_5)
+        treeLinkCurrent:SetPadding(constants:SPACING_0_5, constants:SPACING_1_5)
+
+        classRow:SetGap(constants:SPACING_1)
+        classRowWide:SetGap(constants:SPACING_4)
+        classRowWide:SetAlignedTop(true)
+        className:SetShrinkBelowContent(true)
+        classNameWide:SetWidth(constants:SPACING_72)
+        classNameWide:SetShrink(false)
+        classLink:SetBold(true)
+        classLink:SetColor(quorumOptions:GetQuorumBlue150())
+        classLink:SetBreakLongWords(true)
+        classLinkHover:SetUnderline(true)
+        count:SetColor(quorumOptions:GetGrey65())
+        packageHeading:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        packageHeading:SetBold(true)
+        packageLink:SetColor(quorumOptions:GetQuorumBlue150())
+        packageLink:SetBreakLongWords(true)
+
+        packageLine:SetColor(quorumOptions:GetGrey65())
+        packageLine:SetFontSize(constants:SMALL_FONT_SIZE)
+        label:SetBold(true)
+        parameterList:SetGap(constants:SPACING_1)
+        parameterName:UseCodeFont(true)
+        parameterName:SetBold(true)
+        typeLink:SetColor(quorumOptions:GetQuorumBlue150())
+        typeLink:SetUnderline(true)
+        typeLink:SetBreakLongWords(true)
+        inherited:SetBackground(lightBlue)
+        inherited:SetBorder(constants:SPACING_PIXEL, quorumOptions:GetQuorumBlue50())
+        inherited:SetRoundedCorners(constants:SPACING_3)
+        inherited:SetPadding(constants:SPACING_3, constants:SPACING_4)
+        WebTextStyle inheritedWords
+        inheritedWords:SetBold(true)
+        inheritedWords:SetColor(quorumOptions:GetQuorumBlue150())
+        inheritedWords:SetBreakLongWords(true)
+        inheritedSummary:SetTextStyle(inheritedWords)
+        inheritedList:SetSmallestColumnWidth(constants:SPACING_60)
+        inheritedList:SetGap(constants:SPACING_2)
+        inheritedLink:SetColor(quorumOptions:GetQuorumBlue150())
+        inheritedLink:SetUnderline(true)
+        inheritedLink:SetBreakLongWords(true)
+        card:SetGap(constants:SPACING_3)
+        signature:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        signature:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        signature:SetBold(true)
+        signature:SetBreakLongWords(true)
+        pageTitle:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        pageTitle:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        pageTitle:SetBold(true)
+        pageTitle:SetBreakLongWords(true)
+        words:SetBreakLongWords(true)
+        crumbLink:SetUnderline(false)
+        crumbLink:SetColor(quorumOptions:GetQuorumBlue150())
+        crumbLink:SetBreakLongWords(true)
+        crumbCurrent:SetBold(true)
+        crumbCurrent:SetBreakLongWords(true)
+        crumb:SetShrinkBelowContent(true)
+    end
+
+    action GetColumns returns WebStackLayout
+        return columns
+    end
+
+    action GetColumnsWide returns WebRowLayout
+        return columnsWide
+    end
+
+    action GetMain returns WebBoxStyle
+        return main
+    end
+
+    action GetTree returns WebBoxStyle
+        return tree
+    end
+
+    action GetTreeWide returns WebBoxStyle
+        return treeWide
+    end
+
+    action GetTreeHeading returns WebTextStyle
+        return treeHeading
+    end
+
+    action GetTreeList returns WebListStyle
+        return treeList
+    end
+
+    action GetTreeNestedList returns WebListStyle
+        return treeNestedList
+    end
+
+    action GetTreeSummary returns WebBoxStyle
+        return treeSummary
+    end
+
+    action GetTreeLink returns WebTextStyle
+        return treeLink
+    end
+
+    action GetTreeLinkHover returns WebTextStyle
+        return treeLinkHover
+    end
+
+    action GetTreeLinkCurrent returns WebBoxStyle
+        return treeLinkCurrent
+    end
+
+    action GetClassRow returns WebStackLayout
+        return classRow
+    end
+
+    action GetClassRowWide returns WebRowLayout
+        return classRowWide
+    end
+
+    action GetClassName returns WebBoxStyle
+        return className
+    end
+
+    action GetClassNameWide returns WebBoxStyle
+        return classNameWide
+    end
+
+    action GetClassLink returns WebTextStyle
+        return classLink
+    end
+
+    action GetClassLinkHover returns WebTextStyle
+        return classLinkHover
+    end
+
+    action GetClassSummary returns WebTextStyle
+        return classSummary
+    end
+
+    action GetCount returns WebTextStyle
+        return count
+    end
+
+    action GetPackageHeading returns WebTextStyle
+        return packageHeading
+    end
+
+    action GetPackageLink returns WebTextStyle
+        return packageLink
+    end
+
+    action GetPackageLine returns WebTextStyle
+        return packageLine
+    end
+
+    action GetLabel returns WebTextStyle
+        return label
+    end
+
+    action GetParameterList returns WebStackLayout
+        return parameterList
+    end
+
+    action GetParameterName returns WebTextStyle
+        return parameterName
+    end
+
+    action GetTypeLink returns WebTextStyle
+        return typeLink
+    end
+
+    action GetInherited returns WebBoxStyle
+        return inherited
+    end
+
+    action GetInheritedSummary returns WebBoxStyle
+        return inheritedSummary
+    end
+
+    action GetInheritedList returns WebGridLayout
+        return inheritedList
+    end
+
+    action GetInheritedLink returns WebTextStyle
+        return inheritedLink
+    end
+
+    action GetCard returns WebStackLayout
+        return card
+    end
+
+    action GetSignature returns WebTextStyle
+        return signature
+    end
+
+    action GetPageTitle returns WebTextStyle
+        return pageTitle
+    end
+
+    action GetWords returns WebTextStyle
+        return words
+    end
+
+    action GetCrumbLink returns WebTextStyle
+        return crumbLink
+    end
+
+    action GetCrumbCurrent returns WebTextStyle
+        return crumbCurrent
+    end
+
+    action GetCrumb returns WebBoxStyle
+        return crumb
+    end
+end

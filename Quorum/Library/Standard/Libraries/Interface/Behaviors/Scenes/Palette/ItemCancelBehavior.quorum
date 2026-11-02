@@ -19,7 +19,12 @@ class ItemCancelBehavior is Behavior
             SceneEditor controller = preview:GetSceneEditor()
 
             // Moving focus away from the NewItemPreview automatically cancels its placement.
-            controller:Focus()
+            // A new item that started at the terrain cursor goes back to that
+            // cursor (Items on terrain, phase 1); otherwise the scene editor
+            // gets the focus.
+            if not controller:ReturnToPlacementTerrain()
+                controller:Focus()
+            end
             controller:NotifyAccessibility(controller, "Cancelled placement")
         end
     end

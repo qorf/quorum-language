@@ -388,7 +388,7 @@ GameStateManager manager
         integer maxDescent = font:GetMaximumDescent()
 
         // The layout scales the padding, so the text sits on the scaled amount.
-        number bottomPadding = GetBottomPadding() * GetInterfaceScale()
+        number bottomPadding = cast(integer, GetBottomPadding() * GetInterfaceScale() + 0.5)
 
         integer characterCounter = 0
         number x = leftCharacterPadding + horizontalOffset
@@ -492,7 +492,7 @@ GameStateManager manager
             counter = counter + 1
         end
 
-        caret:SetPosition(x + leftCharacterPadding, GetBottomPadding() * GetInterfaceScale())
+        caret:SetPosition(x + leftCharacterPadding, cast(integer, GetBottomPadding() * GetInterfaceScale() + 0.5))
         return x + leftCharacterPadding
     end
 
@@ -1903,7 +1903,7 @@ TextChangeEvent changeEvent
             integer styleStart = style:GetIndex()
             integer styleEnd = styleStart + style:GetSize()
 
-            number targetY = GetBottomPadding() * GetInterfaceScale()
+            number targetY = cast(integer, GetBottomPadding() * GetInterfaceScale() + 0.5)
             number highlightHeight = font:GetLineHeight()
 
             Drawable draw = undefined

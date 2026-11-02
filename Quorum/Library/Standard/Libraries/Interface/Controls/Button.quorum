@@ -484,7 +484,9 @@ class Button is Control, TextureLoadListener
     */
     action LoadGraphics(LayoutProperties properties)
         if icon not= undefined
-            icon:Dispose()
+            // Not disposed: its texture is the one in properties:GetIcon(),
+            // which the new icon below loads again (a font's glyph, or a
+            // picture the program keeps). Disposing it left that icon blank.
             Remove(icon)
             icon = undefined
         end

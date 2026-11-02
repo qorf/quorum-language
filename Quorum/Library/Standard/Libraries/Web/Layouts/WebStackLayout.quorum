@@ -1,0 +1,178 @@
+package Libraries.Web.Layouts
+
+use Libraries.Web.Styles.StyleSheetConstants
+
+/*
+    WebStackLayout places the items inside an element one under another,
+    from top to bottom. The gap is the space between items, in pixels. By
+    default, items stretch to the element's full width; they can instead be
+    lined up on the left, in the center or on the right.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Layouts.WebStackLayout
+
+    class Main is WebPage
+        action Main
+            WebStackLayout stack
+            stack:SetGap(8)
+            stack:AlignCenter()
+
+            Section section
+            SetLayout(section, stack)
+            section:AddParagraph("First")
+            section:AddParagraph("Second")
+            Add(section)
+        end
+    end
+*/
+class WebStackLayout is WebLayout
+    // The shared constants and unit conversion. A shared class: one copy.
+    StyleSheetConstants constants
+    number gap = 0
+
+    integer alignment = constants:STRETCH_ALIGN
+    boolean centeredVertically = false
+
+    /*
+        Sets the space between items, in pixels.
+
+        Attribute: Parameter pixels The space between items. It can't be negative.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:SetGap(8)
+    */
+    action SetGap(number pixels)
+        if pixels < 0
+            alert("A stack's gap can't be negative, but it was set to " + pixels + ".")
+        end
+        gap = pixels
+    end
+
+    /*
+        Returns the space between items, in pixels.
+
+        Attribute: Returns The gap, in pixels.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:SetGap(8)
+        output stack:GetGap()
+    */
+    action GetGap returns number
+        return gap
+    end
+
+    /*
+        Stretches every item to the full width of the element. This is the
+        default.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:Stretch()
+    */
+    action Stretch
+        alignment = constants:STRETCH_ALIGN
+    end
+
+    /*
+        Lines every item up on the left, at its own width.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:AlignLeft()
+    */
+    action AlignLeft
+        alignment = constants:LEFT_ALIGN
+    end
+
+    /*
+        Centers every item, at its own width.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:AlignCenter()
+    */
+    action AlignCenter
+        alignment = constants:CENTER_ALIGN
+    end
+
+    /*
+        Lines every item up on the right, at its own width.
+
+        Attribute: Example
+        use Libraries.Web.Layouts.WebStackLayout
+
+        WebStackLayout stack
+        stack:AlignRight()
+    */
+    action AlignRight
+        alignment = constants:RIGHT_ALIGN
+    end
+
+    /*
+        Gathers the items in the middle of the stack, top to bottom, when
+        the stack is taller than they need, as for a dialog in the middle
+        of the window.
+
+        Attribute: Parameter value True to center the items vertically.
+    */
+    action SetCenteredVertically(boolean value)
+        centeredVertically = value
+    end
+
+    action IsStretched returns boolean
+        return alignment = constants:STRETCH_ALIGN
+    end
+
+    action IsAlignedLeft returns boolean
+        return alignment = constants:LEFT_ALIGN
+    end
+
+    action IsAlignedCenter returns boolean
+        return alignment = constants:CENTER_ALIGN
+    end
+
+    action IsAlignedRight returns boolean
+        return alignment = constants:RIGHT_ALIGN
+    end
+
+    /*
+        Returns the stylesheet declarations for this stack. WebSite calls
+        this when it writes the stylesheet; people making pages don't.
+
+        Attribute: Returns The declarations for this stack.
+    */
+    action Generate returns text
+        text result = "display:flex;flex-direction:column;"
+
+        // A gap of 0 writes nothing, which is what "flex flex-col" alone does.
+        if gap > 0
+            result = result + "row-gap:" + constants:ToWidthOfM(gap) + ";"
+        end
+
+        // Stretch is the browser's default, so it writes nothing.
+        if alignment = constants:LEFT_ALIGN
+            result = result + "align-items:flex-start;"
+        elseif alignment = constants:CENTER_ALIGN
+            result = result + "align-items:center;"
+        elseif alignment = constants:RIGHT_ALIGN
+            result = result + "align-items:flex-end;"
+        end
+        if centeredVertically
+            result = result + "justify-content:center;"
+        end
+        return result
+    end
+end

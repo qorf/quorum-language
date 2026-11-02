@@ -63,6 +63,10 @@ class EditorTerrain is TerrainItem
     number rampEndZ = 0
     number rampEndHeight = 0
     integer toolNumber = 0
+    // The tool that was chosen when the user last left this terrain, so it
+    // comes back when they return (Round 2), or 0. It isn't saved with the
+    // scene.
+    integer savedToolNumber = 0
 
     // The Stamp tool's settings (step 10), set in the Generate section: its
     // shape, as TerrainGenerator's STAMP_HILL and the others; how it meets
@@ -432,6 +436,26 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Remembers the tool that was chosen when the user left this terrain,
+        so the scene editor can choose it again when they return (Round 2).
+
+        Attribute: Parameter tool The tool's number, from 0 to 12
+    */
+    action SetSavedToolNumber(integer tool)
+        savedToolNumber = tool
+    end
+
+    /*
+        Returns the tool that was chosen when the user last left this
+        terrain, or 0.
+
+        Attribute: Returns The tool's number, from 0 to 12
+    */
+    action GetSavedToolNumber returns integer
+        return savedToolNumber
+    end
+
+    /*
         Returns a tool's name, by its number.
 
         Attribute: Parameter number The tool's number, from 0 to 12
@@ -596,6 +620,43 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Returns true once the brush, which is also the terrain cursor, has
+        been put somewhere on this terrain.
+
+        Attribute: Returns True if the brush has a place
+    */
+    action IsBrushPlaced returns boolean
+        return brushPlaced
+    end
+
+    /*
+        Describes the terrain cursor for a screen reader, with or without a
+        tool, for the focus, a key's release and the report key (Round 2):
+        where it is, the ground's height there, the brush's size, and the
+        tool if one is chosen, such as "Terrain cursor at 12, 30, height
+        7.4. Size 5. Raise tool." There is no slope: under a big brush there
+        is no one slope.
+
+        Attribute: Returns The description
+    */
+    action DescribeCursor returns text
+        text result = "Terrain cursor at " + Round(brushX) + ", " + Round(brushZ)
+        if brushOnGround
+            result = result + ", height " + Round(GetWorldTerrain():GetData():GetSurfaceHeight(brushX, brushZ))
+        elseif toolNumber = 8 and IsBrushOnGround()
+            // Add region works past the edge of the ground.
+            result = result + ", region " + DescribeBrushRegion() + ", no ground yet"
+        else
+            result = result + ", off the ground"
+        end
+        result = result + ". Size " + Round(brush:GetSize()) + "."
+        if HasTool()
+            result = result + " " + GetToolName(toolNumber) + " tool."
+        end
+        return result
+    end
+
+    /*
         Returns true if the brush's middle is inside the grid of places a
         region can be, from -16 to 15 regions along each side.
 
@@ -693,8 +754,7 @@ class EditorTerrain is TerrainItem
         end
         TerrainData data = GetWorldTerrain():GetData()
         number height = data:GetSurfaceHeight(brushX, brushZ)
-        text result = name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", ground height " + Round(height) +
-            ", slope " + cast(integer, data:GetSlope(brushX, brushZ) + 0.5) + " degrees"
+        text result = name + " brush at " + Round(brushX) + ", " + Round(brushZ) + ", ground height " + Round(height)
         if GetLayerCount() > 0
             integer code = data:GetSampleSplat(data:GetSampleX(brushX), data:GetSampleZ(brushZ))
             result = result + ", " + GetLayerLabel(GetMainLayer(code))
@@ -852,9 +912,31 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Says how the ground's height changed with an arrow key step, such
+        as "Up 1.4, height 5.6", "Down 2.3, height 5.1" or "Level, height
+        7.4" (Round 2).
+
+        Attribute: Parameter before The ground's height where the step began
+        Attribute: Returns The description
+    */
+    action DescribeHeightChange(number before) returns text
+        if not brushOnGround
+            return DescribeBrushHeight()
+        end
+        number height = GetWorldTerrain():GetData():GetSurfaceHeight(brushX, brushZ)
+        number change = Round(height - before)
+        if change > 0
+            return "Up " + change + ", height " + Round(height)
+        elseif change < 0
+            return "Down " + (-change) + ", height " + Round(height)
+        end
+        return "Level, height " + Round(height)
+    end
+
+    /*
         Describes the ground under the whole brush: its lowest and highest
-        heights, its steepest slope, and how much of it each layer covers
-        (step 12).
+        heights, their average, and how much of it each layer covers
+        (step 12). There is no slope (Round 2).
 
         Attribute: Returns The description
     */
@@ -874,7 +956,6 @@ class EditorTerrain is TerrainItem
         number lowest = 0
         number highest = 0
         number total = 0
-        number steepest = 0
         integer samples = 0
         Integer32BitArray counts
         counts:SetSize(4)
@@ -900,10 +981,6 @@ class EditorTerrain is TerrainItem
                     found = true
                     total = total + height
                     samples = samples + 1
-                    number slope = data:GetSlope(x * spacing, z * spacing)
-                    if slope > steepest
-                        steepest = slope
-                    end
                     integer mainLayer = GetMainLayer(data:GetSampleSplat(x, z))
                     counts:Set(mainLayer, counts:Get(mainLayer) + 1)
                 end
@@ -915,7 +992,7 @@ class EditorTerrain is TerrainItem
             return "There is no ground under the brush."
         end
         text result = "Under the brush: heights from " + Round(lowest) + " to " + Round(highest) + ", average " +
-            Round(total / samples) + ", steepest slope " + cast(integer, steepest + 0.5) + " degrees."
+            Round(total / samples) + "."
         if GetLayerCount() > 0
             layer = 0
             repeat while layer < GetLayerCount()

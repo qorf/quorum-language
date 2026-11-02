@@ -1,0 +1,241 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    FormLooks holds the look of forms on a QuorumPage (QuorumPage:Form and
+    the parts after it, and QuorumPage:Quiz): the form's stack of fields,
+    a field's label, the box readers type in or choose from, its focus
+    ring, its look while marked wrong or (in a quiz) right, the buttons,
+    the messages a script shows, and a quiz's questions and result. What a
+    form needs to work is set here: its layouts and what hides. The site's
+    colors, edges and words are set in QuorumSiteOptions.
+*/
+class FormLooks
+    // The shared constants: Tailwind's sizes and spacing. One copy.
+    StyleSheetConstants constants
+
+    // The form: its fields in a stack, each field its label above its box.
+    WebStackLayout form
+    WebStackLayout field
+    WebTextStyle label
+    // A label is a box holding its words' style (a label takes no text
+    // style of its own).
+    WebBoxStyle labelBox
+
+    // The box a reader types in or chooses from, its ring while it has
+    // keyboard focus, and its edge while marked wrong (aria-invalid, or a
+    // quiz's data-state="incorrect") or right (data-state="correct").
+    WebBoxStyle entry
+    WebBoxStyle entryFocus
+    WebBoxStyle entryWrong
+    WebBoxStyle entryRight
+
+    // The buttons, in a row: the main one, its look under the pointer, and
+    // its focus ring.
+    WebRowLayout buttons
+    WebBoxStyle button
+    WebBoxStyle buttonHover
+    WebBoxStyle buttonFocus
+
+    // A button while it can't be used (disabled), and a checkbox beside
+    // its label.
+    WebBoxStyle buttonDisabled
+    // A button that looks like a link, as a table's Load and Delete.
+    WebBoxStyle linkButton
+    WebRowLayout checkboxRow
+
+    // A dialog a script opens (hidden until then): a shaded backdrop over
+    // the window, the white box in its middle (three quarters of the
+    // width, 750 pixels from a large screen up), its title, and the close
+    // button in its corner.
+    WebBoxStyle backdrop
+    WebStackLayout backdropLayout
+    WebBoxStyle dialog
+    WebBoxStyle dialogWide
+    WebStackLayout dialogLayout
+    WebTextStyle dialogTitle
+    WebBoxStyle close
+    WebBoxStyle closeHover
+
+    // Messages a script shows (hidden until then): an error, information
+    // and success, each a heading over its words.
+    WebBoxStyle problem
+    WebBoxStyle feedback
+    WebBoxStyle success
+    WebStackLayout message
+    WebTextStyle messageHeading
+    WebTextStyle messageWords
+
+    // A quiz: each question's words, the line under it that says right or
+    // wrong, and the result after the button. The words' colors for right
+    // and wrong are script classes, since the quiz's script adds them.
+    WebTextStyle question
+    WebTextStyle answerLine
+    WebBoxStyle result
+    WebTextStyle right
+    WebTextStyle wrong
+
+    on create
+        form:SetGap(constants:SPACING_4)
+        field:SetGap(constants:SPACING_1)
+        buttons:SetGap(constants:SPACING_4)
+        buttons:SetCenteredVertically(true)
+        buttons:SetWrap(true)
+        message:SetGap(constants:SPACING_1)
+        entry:SetWidthPercent(100)
+        checkboxRow:SetCenteredVertically(true)
+        checkboxRow:SetGap(constants:SPACING_2)
+        backdrop:SetCoverWindow(true)
+        backdrop:SetLayer(backdrop:DIALOG_LAYER)
+        backdropLayout:AlignCenter()
+        backdropLayout:SetCenteredVertically(true)
+        dialog:SetAnchor(true)
+        dialog:SetWidthPercent(75)
+        dialog:SetMaximumHeightBelowWindow(constants:SPACING_10)
+        dialogWide:SetWidth(750)
+        close:SetFloating(true)
+        close:SetTopOffset(constants:SPACING_4)
+        close:SetRightOffset(constants:SPACING_4)
+    end
+
+    action GetForm returns WebStackLayout
+        return form
+    end
+
+    action GetField returns WebStackLayout
+        return field
+    end
+
+    action GetLabel returns WebTextStyle
+        return label
+    end
+
+    action GetLabelBox returns WebBoxStyle
+        return labelBox
+    end
+
+    action GetEntry returns WebBoxStyle
+        return entry
+    end
+
+    action GetEntryFocus returns WebBoxStyle
+        return entryFocus
+    end
+
+    action GetEntryWrong returns WebBoxStyle
+        return entryWrong
+    end
+
+    action GetEntryRight returns WebBoxStyle
+        return entryRight
+    end
+
+    action GetButtons returns WebRowLayout
+        return buttons
+    end
+
+    action GetButton returns WebBoxStyle
+        return button
+    end
+
+    action GetButtonHover returns WebBoxStyle
+        return buttonHover
+    end
+
+    action GetButtonFocus returns WebBoxStyle
+        return buttonFocus
+    end
+
+    action GetLinkButton returns WebBoxStyle
+        return linkButton
+    end
+
+    action GetButtonDisabled returns WebBoxStyle
+        return buttonDisabled
+    end
+
+    action GetCheckboxRow returns WebRowLayout
+        return checkboxRow
+    end
+
+    action GetBackdrop returns WebBoxStyle
+        return backdrop
+    end
+
+    action GetBackdropLayout returns WebStackLayout
+        return backdropLayout
+    end
+
+    action GetDialog returns WebBoxStyle
+        return dialog
+    end
+
+    action GetDialogWide returns WebBoxStyle
+        return dialogWide
+    end
+
+    action GetDialogLayout returns WebStackLayout
+        return dialogLayout
+    end
+
+    action GetDialogTitle returns WebTextStyle
+        return dialogTitle
+    end
+
+    action GetClose returns WebBoxStyle
+        return close
+    end
+
+    action GetCloseHover returns WebBoxStyle
+        return closeHover
+    end
+
+    action GetProblem returns WebBoxStyle
+        return problem
+    end
+
+    action GetFeedback returns WebBoxStyle
+        return feedback
+    end
+
+    action GetSuccess returns WebBoxStyle
+        return success
+    end
+
+    action GetMessage returns WebStackLayout
+        return message
+    end
+
+    action GetMessageHeading returns WebTextStyle
+        return messageHeading
+    end
+
+    action GetMessageWords returns WebTextStyle
+        return messageWords
+    end
+
+    action GetQuestion returns WebTextStyle
+        return question
+    end
+
+    action GetAnswerLine returns WebTextStyle
+        return answerLine
+    end
+
+    action GetResult returns WebBoxStyle
+        return result
+    end
+
+    action GetRight returns WebTextStyle
+        return right
+    end
+
+    action GetWrong returns WebTextStyle
+        return wrong
+    end
+end

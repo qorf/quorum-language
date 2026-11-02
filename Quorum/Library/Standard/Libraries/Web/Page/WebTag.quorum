@@ -32,6 +32,26 @@ output page:Generate()
 class WebTag is GlobalAttributeAccepter
     List<WebTag> tags
 
+    // This tag's own number, its hash code (see WebTagNumbers), so two
+    // different tags are never equal, and tables of tags keep them apart.
+    WebTagNumbers numbers
+    integer tagNumber = 0
+
+    on create
+        tagNumber = numbers:Next()
+    end
+
+    /*
+        Returns the tag's hash code: a number no other tag has, so two
+        different tags are never equal (Object's Equals and Compare go by
+        hash codes), however many there are.
+
+        Attribute: Returns The tag's hash code.
+    */
+    action GetHashCode returns integer
+        return tagNumber
+    end
+
     /*
         This action adds a WebTag to the list of WebTags contained within the 
         current WebTag.

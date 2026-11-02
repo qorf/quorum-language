@@ -21,6 +21,7 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Item2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Options.InterfaceOptions
 
 /*
     The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
@@ -100,6 +101,21 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         panel:SetBorderColor(color:Black())
         panel:SetBorderThickness(1)
         panel:SetView2D(view)
+
+        // The panel takes the menus' background and edge where the theme has
+        // them, so the properties match the menus and the rest of the chrome.
+        GameStateManager themeState
+        InterfaceOptions themeOptions = themeState:GetInterfaceOptions()
+        if themeOptions not= undefined
+            ColorGroup panelColor = themeOptions:GetBackgroundColor("MenuPanel")
+            if panelColor not= undefined
+                panel:SetBackgroundColor(panelColor)
+            end
+            ColorGroup edgeColor = themeOptions:GetBorderColor("MenuPanel")
+            if edgeColor not= undefined
+                panel:SetBorderColor(edgeColor)
+            end
+        end
 
         // The dialog's controls go in a body under the header (step 15).
         // Hidden controls in it take no room, such as the heading while the

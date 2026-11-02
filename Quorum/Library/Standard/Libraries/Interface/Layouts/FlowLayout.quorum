@@ -461,7 +461,9 @@ class FlowLayout is Layout
     private action FitFontHeight(Control control, Font font, number interfaceScale) returns number
         number height = font:GetLineHeight()
         if control is TextField
-            height = height + (control:GetTopPadding() + control:GetBottomPadding()) * interfaceScale
+            // Whole pixels, so the field is the same height on screen as it
+            // is laid out, at any interface scale.
+            height = height + cast(integer, (control:GetTopPadding() + control:GetBottomPadding()) * interfaceScale + 0.5)
         end
         return height
     end

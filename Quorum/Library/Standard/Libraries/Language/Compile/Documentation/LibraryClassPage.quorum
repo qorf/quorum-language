@@ -1,0 +1,428 @@
+package Libraries.Language.Compile.Documentation
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Type
+use Libraries.Language.Compile.Symbol.Documentation
+use Libraries.Web.WebTextEscaper
+use Libraries.Web.WebLocations
+use Libraries.Web.Quorum.QuorumSiteOptions
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Section
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.OrderedList
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.Span
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.CodeBlock
+use Libraries.Web.Page.Details
+use Libraries.Web.Page.Summary
+
+/*
+    LibraryClassPage is a class's page in the standard library's
+    documentation (design B): breadcrumbs back to the index and the
+    class's package, the class's name, package and parents, its
+    description and example, its variables, then a card for each of its
+    own actions, with the action's parameters, what it returns and its
+    example. The actions it inherits are folded away under each parent.
+    It shows what the old page (ClassOpcode's WriteToWebPage) showed, from
+    the same compiler data, which it only reads.
+*/
+class LibraryClassPage is WebPage
+    Class clazz = undefined
+    SymbolTable table = undefined
+    LibraryPageLooks looks = undefined
+    QuorumSiteOptions quorumOptions
+    WebTextEscaper escaper
+    WebLocations locations
+    LibraryLinks links
+
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text CURRENT_ATTRIBUTE = "aria-current"
+    constant text CURRENT_PAGE = "page"
+    constant text HIDDEN_FROM_READERS = "aria-hidden"
+    constant text BREADCRUMB_LABEL = "Breadcrumb"
+    constant text BREADCRUMB_SEPARATOR = "›"
+    constant text LIBRARY_NAME = "Library"
+    constant text INDEX_LOCATION = "libraries.html"
+    constant text TITLE_ENDING = " - Quorum Programming Language"
+    constant text DEFAULT_DESCRIPTION = "This page includes documentation for part of the Quorum programming language."
+
+    /*
+        Sets the class the page is for, the classes documented with it
+        (its links go only to their pages), and the documentation's look.
+
+        Attribute: Parameter clazz The class.
+        Attribute: Parameter table The classes documented.
+        Attribute: Parameter looks The documentation's look.
+    */
+    action SetClass(Class clazz, SymbolTable table, LibraryPageLooks looks)
+        me:clazz = clazz
+        me:table = table
+        me:looks = looks
+        SetLocation(links:GetClassLocation(clazz:GetStaticKey()))
+    end
+
+    action Setup
+        if clazz = undefined
+            return now
+        end
+        Documentation documentation = clazz:GetDocumentation()
+        SetWebPageTitle(clazz:GetStaticKey() + TITLE_ENDING)
+        text summary = links:GetSummary(documentation)
+        if summary:IsEmpty()
+            SetDescription(DEFAULT_DESCRIPTION)
+        else
+            SetDescription(summary)
+        end
+
+        Include(GetBreadcrumbs())
+        Title(clazz:GetName())
+        SetStyle(GetLastHeading(), looks:GetPageTitle())
+        Include(GetPackageLine())
+        if documentation not= undefined
+            AddWords(documentation:GetDescription())
+            AddExample(documentation:GetExample(), "Example Code")
+        end
+
+        AddVariables()
+
+        // The actions it has: its own, each a card, then those it
+        // inherits, by the parent they come from.
+        Array<Action> own
+        HashTable<text, Array<Action>> inheritedByParent
+        Array<text> parentKeys
+        Iterator<Action> actions = clazz:GetVirtualTable()
+        repeat while actions:HasNext()
+            Action next = actions:Next()
+            if next:IsPublic()
+                Class from = next:GetParentClass()
+                text fromKey = clazz:GetStaticKey()
+                if from not= undefined
+                    fromKey = from:GetStaticKey()
+                end
+                if fromKey = clazz:GetStaticKey()
+                    own:Add(next)
+                else
+                    if not inheritedByParent:HasKey(fromKey)
+                        Array<Action> list
+                        inheritedByParent:Set(fromKey, list)
+                        parentKeys:Add(fromKey)
+                    end
+                    inheritedByParent:GetValue(fromKey):Add(next)
+                end
+            end
+        end
+        own:Sort()
+        if not own:IsEmpty()
+            Section("Actions")
+            integer i = 0
+            repeat while i < own:GetSize()
+                AddAction(own:Get(i))
+                i = i + 1
+            end
+        end
+        if not parentKeys:IsEmpty()
+            Section("Inherited Actions")
+            parentKeys:Sort()
+            integer j = 0
+            repeat while j < parentKeys:GetSize()
+                text key = parentKeys:Get(j)
+                Include(GetInherited(key, inheritedByParent:GetValue(key)))
+                j = j + 1
+            end
+        end
+    end
+
+    // Library › the package › the class.
+    private action GetBreadcrumbs returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, BREADCRUMB_LABEL)
+        OrderedList list
+        SetStyle(list, quorumOptions:GetBreadcrumbList())
+        SetLayout(list, quorumOptions:GetBreadcrumbs())
+        list:AddNestedTag(GetCrumb(LIBRARY_NAME, INDEX_LOCATION))
+        list:AddNestedTag(GetSeparator())
+        text packageKey = clazz:GetPackageKey()
+        list:AddNestedTag(GetCrumb(links:GetPackageName(packageKey), links:GetPackageLocation(packageKey)))
+        list:AddNestedTag(GetSeparator())
+        ListItem current
+        SetStyle(current, looks:GetCrumb())
+        Span words
+        words:AddAttribute(CURRENT_ATTRIBUTE, CURRENT_PAGE)
+        words:AddText(escaper:Escape(clazz:GetName()))
+        SetStyle(words, looks:GetCrumbCurrent())
+        current:AddNestedTag(words)
+        list:AddNestedTag(current)
+        navigation:AddNestedTag(list)
+        return navigation
+    end
+
+    private action GetCrumb(text words, text location) returns ListItem
+        ListItem item
+        SetStyle(item, looks:GetCrumb())
+        Link link
+        link:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(location)))
+        link:AddText(escaper:Escape(words))
+        SetStyle(link, looks:GetCrumbLink())
+        item:AddNestedTag(link)
+        return item
+    end
+
+    private action GetSeparator returns ListItem
+        ListItem item
+        item:AddAttribute(HIDDEN_FROM_READERS, "true")
+        item:AddText(BREADCRUMB_SEPARATOR)
+        SetStyle(item, quorumOptions:GetBreadcrumbSeparator())
+        return item
+    end
+
+    // The class's package, and the classes it inherits from, as the old
+    // page's "Inherits from:" listed them.
+    private action GetPackageLine returns Paragraph
+        Paragraph line
+        SetStyle(line, looks:GetPackageLine())
+        text packageKey = clazz:GetPackageKey()
+        line:AddText("Package: ")
+        line:AddNestedTag(GetTypeLink(links:GetPackageName(packageKey), links:GetPackageLocation(packageKey)))
+        Iterator<Class> parents = clazz:GetParentClasses()
+        if parents:HasNext()
+            line:AddText(" · Inherits from: ")
+            repeat while parents:HasNext()
+                Class next = parents:Next()
+                line:AddNestedTag(GetClassLink(next:GetStaticKey(), next:GetStaticKey()))
+                if parents:HasNext()
+                    line:AddText(", ")
+                end
+            end
+        end
+        return line
+    end
+
+    // Words from the documentation, written as they are: some hold markup,
+    // such as a link, as the old pages wrote them.
+    private action AddWords(text words)
+        if words = undefined or words:IsEmpty()
+            return now
+        end
+        Paragraph paragraph
+        paragraph:AddText(words)
+        SetStyle(paragraph, looks:GetWords())
+        Include(paragraph)
+    end
+
+    // An example, under its label, if there is one.
+    private action AddExample(text example, text label)
+        if example = undefined or example:IsEmpty()
+            return now
+        end
+        Paragraph name
+        name:AddText(escaper:Escape(label))
+        SetStyle(name, looks:GetLabel())
+        Include(name)
+        CodeExample(example)
+    end
+
+    // The class's public variables, by name: each one's type and name,
+    // and its description.
+    private action AddVariables
+        Array<Variable> variables
+        Iterator<Variable> all = clazz:GetVariables()
+        repeat while all:HasNext()
+            Variable next = all:Next()
+            if next:IsPublic()
+                variables:Add(next)
+            end
+        end
+        if variables:IsEmpty()
+            return now
+        end
+        variables:Sort()
+        Section("Variables")
+        UnorderedList list
+        SetLayout(list, looks:GetParameterList())
+        integer i = 0
+        repeat while i < variables:GetSize()
+            Variable variable = variables:Get(i)
+            ListItem item
+            SetStyle(item, looks:GetWords())
+            Type variableType = variable:GetType()
+            item:AddNestedTag(GetCode(variableType:GetDisplayName() + " " + variable:GetName()))
+            Documentation documentation = variable:GetDocumentation()
+            if documentation not= undefined
+                item:AddText(": " + documentation:GetDescription())
+            end
+            list:AddNestedTag(item)
+            i = i + 1
+        end
+        Include(list)
+    end
+
+    /*
+        An action's card: its name and parameters as the heading (with the
+        old page's address for it, its key, so links to it still work),
+        its description, its parameters, what it returns and its example.
+    */
+    private action AddAction(Action act)
+        Subsection(GetSignature(act))
+        Heading heading = GetLastHeading()
+        heading:SetIdentifier(escaper:EscapeAttribute(act:GetStaticKey()))
+        SetStyle(heading, looks:GetSignature())
+        Section card = GetCurrentPart()
+        SetStyle(card, quorumOptions:GetCard())
+        SetLayout(card, looks:GetCard())
+
+        Documentation documentation = act:GetDocumentation()
+        if documentation not= undefined
+            AddWords(documentation:GetDescription())
+        end
+
+        Iterator<Variable> parameters = act:GetParameterIterator()
+        if parameters:HasNext()
+            AddLabel("Parameters")
+            UnorderedList list
+            SetLayout(list, looks:GetParameterList())
+            repeat while parameters:HasNext()
+                Variable parameter = parameters:Next()
+                ListItem item
+                SetStyle(item, looks:GetWords())
+                item:AddNestedTag(GetCode(parameter:GetName()))
+                item:AddText(" ")
+                item:AddNestedTag(GetTypeOf(parameter:GetType()))
+                if documentation not= undefined
+                    text words = documentation:GetParameterDescription(parameter:GetName())
+                    if words not= undefined
+                        item:AddText(": " + words)
+                    end
+                end
+                list:AddNestedTag(item)
+            end
+            Include(list)
+        end
+
+        Type returnType = act:GetReturnType()
+        if returnType not= undefined and not returnType:IsVoid()
+            AddLabel("Returns")
+            Paragraph returnLine
+            SetStyle(returnLine, looks:GetWords())
+            returnLine:AddNestedTag(GetTypeOf(returnType))
+            if documentation not= undefined
+                text words = documentation:GetReturns()
+                if words not= undefined and not words:IsEmpty()
+                    returnLine:AddText(": " + words)
+                end
+            end
+            Include(returnLine)
+        end
+
+        if documentation not= undefined
+            AddExample(documentation:GetExample(), "Example")
+        end
+    end
+
+    // The action's name and parameters, as the old page's heading wrote
+    // them: Add(integer location, Libraries.Language.Object value).
+    private action GetSignature(Action act) returns text
+        text result = act:GetName() + "("
+        Iterator<Variable> parameters = act:GetParameterIterator()
+        repeat while parameters:HasNext()
+            Variable parameter = parameters:Next()
+            Type parameterType = parameter:GetType()
+            result = result + parameterType:GetStaticKeyWithMappedGenerics() + " " + parameter:GetName()
+            if parameters:HasNext()
+                result = result + ", "
+            end
+        end
+        return result + ")"
+    end
+
+    private action AddLabel(text words)
+        Paragraph name
+        name:AddText(escaper:Escape(words))
+        SetStyle(name, looks:GetLabel())
+        Include(name)
+    end
+
+    // A type: a link to its class's page when it is documented here, or
+    // its name, such as integer.
+    private action GetTypeOf(Type value) returns Span
+        Span result
+        text shown = value:GetStaticKeyWithMappedGenerics()
+        if not value:IsPrimitive() and table:HasClass(value:GetStaticKey())
+            result:AddNestedTag(GetClassLink(shown, value:GetStaticKey()))
+        else
+            result:AddNestedTag(GetCode(shown))
+        end
+        return result
+    end
+
+    private action GetClassLink(text words, text classKey) returns Link
+        if table:HasClass(classKey)
+            return GetTypeLink(words, links:GetClassLocation(classKey))
+        end
+        Link plain
+        plain:AddText(escaper:Escape(words))
+        return plain
+    end
+
+    private action GetTypeLink(text words, text location) returns Link
+        Link link
+        link:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(location)))
+        link:AddText(escaper:Escape(words))
+        SetStyle(link, looks:GetTypeLink())
+        return link
+    end
+
+    private action GetCode(text words) returns CodeBlock
+        CodeBlock code
+        code:AddText(escaper:Escape(words))
+        SetStyle(code, looks:GetParameterName())
+        return code
+    end
+
+    /*
+        The actions a class inherits from one parent, folded away: "12
+        actions from Libraries.Language.Object", which opens to links to
+        each on the parent's page.
+    */
+    private action GetInherited(text parentKey, Array<Action> actions) returns Details
+        actions:Sort()
+        Details fold
+        SetStyle(fold, looks:GetInherited())
+        Summary name
+        if actions:GetSize() = 1
+            name:AddText(escaper:Escape("1 action from " + parentKey))
+        else
+            name:AddText(escaper:Escape("" + actions:GetSize() + " actions from " + parentKey))
+        end
+        SetStyle(name, looks:GetInheritedSummary())
+        fold:AddNestedTag(name)
+        UnorderedList list
+        SetLayout(list, looks:GetInheritedList())
+        integer i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            ListItem item
+            Link link
+            text words = GetSignature(act)
+            if table:HasClass(parentKey)
+                link:SetAddress(escaper:EscapeAttribute(locations:FromSiteTop(links:GetClassLocation(parentKey)) + "#" + act:GetStaticKey()))
+            end
+            link:AddText(escaper:Escape(words))
+            SetStyle(link, looks:GetInheritedLink())
+            item:AddNestedTag(link)
+            list:AddNestedTag(item)
+            i = i + 1
+        end
+        fold:AddNestedTag(list)
+        return fold
+    end
+end

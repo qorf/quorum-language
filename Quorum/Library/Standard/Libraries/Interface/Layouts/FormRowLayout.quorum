@@ -327,7 +327,7 @@ class FormRowLayout is Layout
                                 height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
                             end
         
-                            height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
+                            height = height * control:GetLayoutRows() + cast(integer, (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale() + 0.5)
 
                             // As a special case, if the grouping contains only 1 item per row, allow controls to set themselves to use a percentage of the width, if they request it.
                             if numberOfRowItems = 1 and control:GetPercentageWidth() > 0 and control:GetHorizontalLayoutMode() not= control:MAINTAIN_ASPECT_RATIO
@@ -614,7 +614,7 @@ class FormRowLayout is Layout
                         height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
                     end
 
-                    height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
+                    height = height * control:GetLayoutRows() + cast(integer, (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale() + 0.5)
     
                     if control:GetHorizontalLayoutMode() = control:MAINTAIN_ASPECT_RATIO
                         width = height * control:GetPercentageWidth()
@@ -989,7 +989,7 @@ class FormRowLayout is Layout
             // Pixel heights are in points, like FieldWidth's pixel widths.
             height = control:GetPixelHeight() * control:GetInterfaceScale() + containerHeight * control:GetPercentageHeight()
         end
-        height = height * control:GetLayoutRows() + (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale()
+        height = height * control:GetLayoutRows() + cast(integer, (control:GetTopPadding() + control:GetBottomPadding()) * control:GetInterfaceScale() + 0.5)
         if control is Label
             Label label = cast(Label, control)
             label:SetMaximumWidth(width)

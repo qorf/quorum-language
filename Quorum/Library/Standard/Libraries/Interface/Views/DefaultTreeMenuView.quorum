@@ -4,6 +4,7 @@ use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Compute.Math
 
 /*
@@ -37,8 +38,13 @@ class DefaultTreeMenuView is Drawable, ToggleView
     */
     private action LoadChevron(integer size)
         number angle = GetRotation()
+        // Loading a texture makes a Drawable white; keep the tree's tint.
+        ColorGroup tint = GetColorGroup()
         Load(chevrons:GetTexture(size))
         SetRotation(angle)
+        if tint not= undefined
+            SetColor(tint)
+        end
         drawnSize = size
     end
 

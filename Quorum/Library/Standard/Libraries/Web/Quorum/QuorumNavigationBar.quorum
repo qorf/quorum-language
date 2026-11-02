@@ -1,0 +1,460 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Page.Button
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Form
+use Libraries.Web.Page.Image
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Label
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.Script
+use Libraries.Web.Page.Span
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.WebTag
+
+use Libraries.Web.Page.all
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+use Libraries.Web.WebTextEscaper
+
+/*
+    QuorumNavigationBar is the Quorum website's navigation bar, as
+    NavigationBar builds it for the main site, with its looks from the
+    site's styles instead of Tailwind's classes. Its elements keep
+    NavigationBar's identifiers, since the site's scripts find them by
+    those (to show "Logout" and the Projects link once a reader signs in).
+
+    On phones and tablets, the bar is the logo and a menu button; the
+    button opens the menu below it. From LARGE_SCREEN_WIDTH, the menu is a
+    row beside the logo, and Download is a blue button. (The old site
+    switched at SMALL_SCREEN_WIDTH, but the row needs about 1000 pixels,
+    so it ran off the page on tablets.) The search button swaps the menu
+    for a search field.
+
+    Attribute: Example
+    QuorumNavigationBar navigation
+    page:PlaceAtEnd(navigation:Build(page))
+*/
+class QuorumNavigationBar
+    StyleSheetConstants constants
+    QuorumSiteOptions options
+    WebTextEscaper escaper
+
+    // Where its pages are, and the files its icons are read from.
+    constant text EXTENSION = ".html"
+    // The folder the icons are read from (SetIconFolder), and the icons'
+    // files in it.
+    text iconFolder = ""
+    // Icons given as their SVG, by file name (SetIcons), used instead of
+    // the files.
+    HashTable<text, text> icons = undefined
+    constant text HAMBURGER_ICON = "hamburger.svg"
+    constant text SEARCH_ICON = "SearchIcon.svg"
+    constant text DISCORD_ICON = "DiscordIcon.svg"
+    constant text LOGO = "/media/userInterface/SVG/Quorum Logo.svg"
+    constant text LOGO_SIZE = "30"
+    constant text TEST_ATTRIBUTE = "data-test"
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text EXPANDED_ATTRIBUTE = "aria-expanded"
+    constant text CONTROLS_ATTRIBUTE = "aria-controls"
+    constant text HIDDEN_FROM_READERS = "aria-hidden"
+    constant text HIDDEN_CLASS = "hidden"
+
+    // The bar: dark, a column on phones, a row from LARGE_SCREEN_WIDTH
+    // ("bg-neutral-grey-95 text-neutral-white flex flex-col items-center
+    // sm:flex-row sm:text-sm").
+    WebStackLayout bar
+    WebRowLayout barSmall
+    WebBoxStyle barBox
+    WebTextStyle barSmallWords
+
+    // The logo's row ("flex items-center w-full justify-between
+    // min-h-[100px] pl-2 py-3 sm:block sm:min-h-[70px] sm:pl-4 sm:py-5").
+    WebRowLayout inner
+    WebBoxStyle innerBox
+    WebBoxStyle innerSmall
+    WebRowLayout homeLink
+    WebBoxStyle title
+
+    // Phones only: search and the menu button ("flex gap-x-5 sm:hidden").
+    WebRowLayout mobile
+    WebBoxStyle mobileSmall
+
+    // The menu: hidden on phones and tablets until opened, below the bar;
+    // a row from LARGE_SCREEN_WIDTH.
+    WebBoxStyle menu
+    WebBoxStyle menuSmall
+    WebBoxStyle items
+    WebRowLayout itemsSmall
+    WebBoxStyle itemsSmallBox
+    WebRowLayout item
+    WebBoxStyle itemBox
+    WebBoxStyle itemHover
+    WebBoxStyle itemLink
+    WebBoxStyle download
+    WebBoxStyle downloadLink
+    WebBoxStyle downloadLinkSmall
+
+    // Search: a field in a rounded box, hidden until the search button.
+    WebRowLayout searchBox
+    WebBoxStyle searchBoxLook
+    WebBoxStyle searchField
+    WebBoxStyle searchPart
+    WebBoxStyle searchLabel
+    WebRowLayout discordIcon
+
+    on create
+        bar:AlignCenter()
+        barSmall:SetSpreadOut(true)
+        barSmall:SetCenteredVertically(true)
+        WebTextStyle barWords
+        barWords:SetColor(options:GetWhite())
+        barBox:SetBackground(options:GetGrey95())
+        barBox:SetTextStyle(barWords)
+        barSmallWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        barSmallWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+
+        inner:SetSpreadOut(true)
+        inner:SetCenteredVertically(true)
+        innerBox:SetWidthPercent(100)
+        innerBox:SetMinimumHeight(100)
+        innerBox:SetPadding(constants:SPACING_3, constants:SPACING_2)
+        innerSmall:SetDisplayed(true)
+        innerSmall:SetMinimumHeight(70)
+        innerSmall:SetPadding(constants:SPACING_5, constants:SPACING_4)
+        homeLink:SetGap(constants:SPACING_3)
+        homeLink:SetCenteredVertically(true)
+
+        // "text-neutral-white font-bold text-lg block sm:hidden md:block"
+        WebTextStyle titleWords
+        titleWords:SetBold(true)
+        titleWords:SetFontSize(constants:LARGE_FONT_SIZE)
+        titleWords:SetLineHeight(constants:LARGE_LINE_HEIGHT)
+        title:SetDisplayed(true)
+        title:SetTextStyle(titleWords)
+
+        mobile:SetGap(constants:SPACING_5)
+        mobile:SetCenteredVertically(true)
+        mobileSmall:SetDisplayed(false)
+
+        // "hidden w-full bg-neutral-grey-65 flex-1 sm:block sm:w-full
+        // sm:bg-neutral-grey-95"; opened on phones with "menu-open".
+        menu:SetDisplayed(false)
+        menu:SetWidthPercent(100)
+        menu:SetBackground(options:GetGrey65())
+        menuSmall:SetDisplayed(true)
+        menuSmall:SetGrow(true)
+        menuSmall:SetBackground(options:GetGrey95())
+
+        // "w-4/5 pr-2 sm:flex sm:items-center sm:justify-center sm:space-x-6
+        // sm:w-full sm:pr-4 sm:font-medium"
+        items:SetWidthPercent(80)
+        itemsSmall:SetGap(constants:SPACING_6)
+        itemsSmall:SetCenteredVertically(true)
+        itemsSmall:SetCenteredHorizontally(true)
+        itemsSmallBox:SetWidthPercent(100)
+        itemsSmallBox:SetPadding(constants:SPACING_0, constants:SPACING_4)
+
+        // Each item: "flex items-center rounded-2xl pl-3
+        // hover:bg-neutral-grey-40"; its link "block py-3 text-base".
+        item:SetCenteredVertically(true)
+        itemBox:SetRoundedCorners(constants:SPACING_4)
+        itemBox:SetPadding(constants:SPACING_0, constants:SPACING_3)
+        itemHover:SetBackground(options:GetGrey40())
+        WebTextStyle itemWords
+        itemWords:SetFontSize(constants:BASE_FONT_SIZE)
+        itemWords:SetLineHeight(constants:BASE_LINE_HEIGHT)
+        itemWords:AlignLeft()
+        itemLink:SetDisplayed(true)
+        itemLink:SetPadding(constants:SPACING_3, constants:SPACING_0)
+        itemLink:SetTextStyle(itemWords)
+
+        // Download: from LARGE_SCREEN_WIDTH, a blue button with dark words
+        // ("sm:bg-quorum-blue-100 sm:text-neutral-black sm:rounded-3xl
+        // sm:px-4 sm:text-sm"; its link "py-2 sm:font-bold sm:px-2").
+        download:SetBackground(options:GetQuorumBlue100())
+        download:SetRoundedCorners(constants:SPACING_6)
+        download:SetPadding(constants:SPACING_0, constants:SPACING_4)
+        WebTextStyle downloadWords
+        downloadWords:SetColor(options:GetBlack())
+        downloadWords:SetBold(true)
+        downloadWords:SetFontSize(constants:SMALL_FONT_SIZE)
+        downloadWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        download:SetTextStyle(downloadWords)
+        downloadLink:SetDisplayed(true)
+        downloadLink:SetPadding(constants:SPACING_2, constants:SPACING_0)
+        downloadLinkSmall:SetPadding(constants:SPACING_2, constants:SPACING_2)
+
+        // Search: "items-center my-4 bg-neutral-grey-65 rounded-2xl w-64";
+        // the icon, the field and Close sit side by side in it.
+        searchBox:SetCenteredVertically(true)
+        searchBox:SetGap(constants:SPACING_2)
+        searchBoxLook:SetBackground(options:GetGrey65())
+        searchBoxLook:SetRoundedCorners(constants:SPACING_4)
+        searchBoxLook:SetMargin(constants:SPACING_4, constants:SPACING_0)
+        searchBoxLook:SetPadding(constants:SPACING_0, constants:SPACING_3)
+        searchBoxLook:SetWidth(constants:SPACING_64)
+        WebTextStyle fieldWords
+        fieldWords:SetColor(options:GetWhite())
+        searchField:SetBackground(options:GetGrey65())
+        searchField:SetPadding(constants:SPACING_2, constants:SPACING_1)
+        searchField:SetWidthPercent(100)
+        searchField:SetBorder(constants:SPACING_0, options:GetGrey65())
+        searchField:SetTextStyle(fieldWords)
+        searchPart:SetGrow(true)
+        searchLabel:SetVisuallyHidden(true)
+        discordIcon:SetCenteredVertically(true)
+    end
+
+    /*
+        Builds the bar for one page, with its looks set on that page.
+
+        Attribute: Parameter page The page the bar goes on.
+        Attribute: Returns The bar, ready to place at the top of the page.
+    */
+    action Build(WebPage page) returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, "Main")
+
+        Division barDivision
+        barDivision:SetIdentifier("navbar")
+        page:SetLayout(barDivision, bar)
+        page:SetLayoutFromWidth(barDivision, constants:LARGE_SCREEN_WIDTH, barSmall)
+        page:SetStyle(barDivision, barBox)
+        page:SetStyleFromWidth(barDivision, constants:LARGE_SCREEN_WIDTH, barSmallWords)
+        navigation:AddNestedTag(barDivision)
+
+        // The logo, and on phones the search and menu buttons.
+        Division innerDivision
+        innerDivision:SetIdentifier("inner-navbar")
+        page:SetLayout(innerDivision, inner)
+        page:SetStyle(innerDivision, innerBox)
+        page:SetStyleFromWidth(innerDivision, constants:LARGE_SCREEN_WIDTH, innerSmall)
+        barDivision:AddNestedTag(innerDivision)
+
+        Link home
+        home:SetAddress("/")
+        home:AddAttribute(TEST_ATTRIBUTE, "quorumHomeLink")
+        page:SetLayout(home, homeLink)
+        Image logo
+        logo:SetAlternate("Quorum home")
+        logo:SetAddress(LOGO)
+        logo:SetWidth(LOGO_SIZE)
+        logo:SetHeight(LOGO_SIZE)
+        home:AddNestedTag(logo)
+        Span quorumTitle
+        quorumTitle:SetIdentifier("quorum-nav-title")
+        quorumTitle:AddText("Quorum")
+        quorumTitle:AddAttribute(HIDDEN_FROM_READERS, "true")
+        page:SetStyle(quorumTitle, title)
+        home:AddNestedTag(quorumTitle)
+        innerDivision:AddNestedTag(home)
+
+        Division mobileDivision
+        mobileDivision:SetIdentifier("mobile-nav-container")
+        page:SetLayout(mobileDivision, mobile)
+        page:SetStyleFromWidth(mobileDivision, constants:LARGE_SCREEN_WIDTH, mobileSmall)
+        Button menuButton
+        menuButton:SetIdentifier("menu-button")
+        menuButton:AddAttribute(LABEL_ATTRIBUTE, "Menu")
+        menuButton:AddAttribute(EXPANDED_ATTRIBUTE, "false")
+        menuButton:AddAttribute(CONTROLS_ATTRIBUTE, "menu-list")
+        menuButton:AddText(ReadIcon(HAMBURGER_ICON))
+        mobileDivision:AddNestedTag(menuButton)
+        innerDivision:AddNestedTag(mobileDivision)
+
+        // The menu.
+        Division menuDivision
+        menuDivision:SetIdentifier("menu-list")
+        page:SetStyle(menuDivision, menu)
+        page:SetStyleFromWidth(menuDivision, constants:LARGE_SCREEN_WIDTH, menuSmall)
+        UnorderedList list
+        list:SetIdentifier("navigation-items")
+        page:SetStyle(list, items)
+        page:SetLayoutFromWidth(list, constants:LARGE_SCREEN_WIDTH, itemsSmall)
+        page:SetStyleFromWidth(list, constants:LARGE_SCREEN_WIDTH, itemsSmallBox)
+        menuDivision:AddNestedTag(list)
+
+        list:AddNestedTag(GetItem(page, GetLink(page, "Learn", "/learn" + EXTENSION, "learnNavLink")))
+        list:AddNestedTag(GetItem(page, GetLink(page, "Reference", "/reference" + EXTENSION, "refNavLink")))
+        list:AddNestedTag(GetItem(page, GetLink(page, "Libraries", "/libraries" + EXTENSION, "libNavLink")))
+        list:AddNestedTag(GetItem(page, GetLink(page, "Community", "/community" + EXTENSION, "communityNavLink")))
+
+        // Projects shows once a reader signs in: the site's script removes
+        // "hidden" from its item.
+        Link projects = GetLink(page, "Projects", "/Profile.quorum", "profileButton")
+        ListItem projectsItem = GetItem(page, projects)
+        projectsItem:AddClassAttribute(HIDDEN_CLASS)
+        list:AddNestedTag(projectsItem)
+
+        // Opens the sign-in dialog; the site's script changes its words to
+        // "Logout" once a reader signs in.
+        Button login
+        login:SetIdentifier("loginButton")
+        login:AddAttribute(TEST_ATTRIBUTE, "loginNavLink")
+        login:AddText("Login")
+        login:SetOnClick("loginButtonPressed()")
+        page:SetStyle(login, itemLink)
+        list:AddNestedTag(GetItem(page, login))
+
+        list:AddNestedTag(GetSearch(page))
+
+        Link discord
+        discord:SetIdentifier("discordNavLink")
+        discord:SetAddress("https://discord.gg/6yTVQq4")
+        discord:AddAttribute(LABEL_ATTRIBUTE, "Join the Discord Server")
+        discord:AddAttribute(TEST_ATTRIBUTE, "discordNavLink")
+        page:SetStyle(discord, itemLink)
+        Span discordSymbol
+        discordSymbol:AddText(ReadIcon(DISCORD_ICON))
+        page:SetLayout(discordSymbol, discordIcon)
+        discord:AddNestedTag(discordSymbol)
+        list:AddNestedTag(GetItem(page, discord))
+
+        Link downloadAnchor
+        downloadAnchor:SetIdentifier("downloadNavLink")
+        downloadAnchor:SetAddress("/download" + EXTENSION)
+        downloadAnchor:AddAttribute(TEST_ATTRIBUTE, "downloadNavLink")
+        downloadAnchor:AddText("Download")
+        page:SetStyle(downloadAnchor, downloadLink)
+        page:SetStyleFromWidth(downloadAnchor, constants:LARGE_SCREEN_WIDTH, downloadLinkSmall)
+        ListItem downloadItem = GetItem(page, downloadAnchor)
+        page:SetStyleFromWidth(downloadItem, constants:LARGE_SCREEN_WIDTH, download)
+        list:AddNestedTag(downloadItem)
+
+        barDivision:AddNestedTag(menuDivision)
+
+        Script script
+        script:SetCode(GetScript())
+        barDivision:AddNestedTag(script)
+        return navigation
+    end
+
+    // The search item: the search button, and the search field it shows.
+    private action GetSearch(WebPage page) returns ListItem
+        ListItem searchItem
+        searchItem:SetIdentifier("searchListItem")
+
+        Division container
+        container:SetIdentifier("search-container")
+        container:AddClassAttribute(HIDDEN_CLASS)
+        page:SetLayout(container, searchBox)
+        page:SetStyle(container, searchBoxLook)
+
+        text searchIcon = ReadIcon(SEARCH_ICON)
+        Span icon
+        icon:AddAttribute(HIDDEN_FROM_READERS, "true")
+        icon:AddText(searchIcon)
+        container:AddNestedTag(icon)
+
+        Form form
+        form:SetFormAction("/Search.quorum")
+        form:AddAttribute("role", "search")
+        form:SetPost(true)
+        page:SetStyle(form, searchPart)
+        Label searchWords
+        searchWords:SetIdentifier("search-label")
+        searchWords:AddText("Search Quorum Documentation")
+        searchWords:AddAttribute("for", "nav-search")
+        page:SetStyle(searchWords, searchLabel)
+        form:AddNestedTag(searchWords)
+        Input field
+        field:SetType("text")
+        field:SetIdentifier("nav-search")
+        field:SetPlaceHolder("Search `Hotkeys`")
+        field:SetName("search-query")
+        page:SetStyle(field, searchField)
+        form:AddNestedTag(field)
+        container:AddNestedTag(form)
+
+        Button close
+        close:SetIdentifier("close-button")
+        close:AddAttribute(LABEL_ATTRIBUTE, "Close Search Form")
+        close:AddText("X")
+        container:AddNestedTag(close)
+        searchItem:AddNestedTag(container)
+
+        Button open
+        open:SetIdentifier("search-button")
+        open:AddAttribute(TEST_ATTRIBUTE, "searchNavLink")
+        open:AddAttribute(LABEL_ATTRIBUTE, "Open Search Form")
+        open:AddText(searchIcon)
+        page:SetStyle(open, itemLink)
+        searchItem:AddNestedTag(open)
+        return searchItem
+    end
+
+    private action GetLink(WebPage page, text words, text address, text identifier) returns Link
+        Link link
+        link:SetIdentifier(identifier)
+        link:SetAddress(address)
+        link:AddAttribute(TEST_ATTRIBUTE, identifier)
+        link:AddText(escaper:Escape(words))
+        page:SetStyle(link, itemLink)
+        return link
+    end
+
+    // One menu item around a link or button.
+    private action GetItem(WebPage page, WebTag inside) returns ListItem
+        ListItem listItem
+        page:SetLayout(listItem, item)
+        page:SetStyle(listItem, itemBox)
+        page:SetStyleOnHover(listItem, itemHover)
+        listItem:AddNestedTag(inside)
+        return listItem
+    end
+
+    /*
+        Sets the folder the icons are read from, such as
+        "html/media/userInterface/SVG/" (QuorumSite passes its own, from
+        QuorumSite:SetIconFolder).
+
+        Attribute: Parameter folder The folder, ending with a slash.
+    */
+    action SetIconFolder(text folder)
+        iconFolder = folder
+    end
+
+    /*
+        Sets icons as their SVG, by their files' names (such as
+        "hamburger.svg"), used instead of reading the files (QuorumSite
+        passes its own, from QuorumSite:SetIcon).
+
+        Attribute: Parameter icons The icons' SVG, by file name.
+    */
+    action SetIcons(HashTable<text, text> icons)
+        me:icons = icons
+    end
+
+    // An icon given as text if there is one, or else its file's.
+    private action ReadIcon(text name) returns text
+        if icons not= undefined
+            if icons:HasKey(name)
+                return icons:GetValue(name)
+            end
+        end
+        File file
+        file:SetPath(iconFolder + name)
+        return file:Read()
+    end
+
+    /*
+        The bar's script, as NavigationBar's: the menu button opens and
+        closes the menu on phones, saying whether it is open; the search
+        button swaps the menu's links for the search field; and on phones,
+        search moves beside the menu button.
+    */
+    // "small" in the script is below LARGE_SCREEN_WIDTH (1024), where the
+    // bar is the phone layout.
+    private action GetScript returns text
+        return "document.addEventListener('DOMContentLoaded',function(){var menuButton=document.getElementById('menu-button');var menuList=document.getElementById('menu-list');var searchButton=document.getElementById('search-button');var searchContainer=document.getElementById('search-container');var closeButton=document.getElementById('close-button');var searchInput=document.getElementById('nav-search');var searchListItem=document.getElementById('searchListItem');var mobileContainer=document.getElementById('mobile-nav-container');var quorumTitle=document.getElementById('quorum-nav-title');var links=['learnNavLink','refNavLink','libNavLink','communityNavLink','loginButton'].map(function(id){return document.getElementById(id);});var downloadLink=document.getElementById('downloadNavLink');var small=window.matchMedia('(max-width: 1023px)');menuButton.addEventListener('click',function(){var open=menuList.classList.toggle('menu-open');menuButton.setAttribute('aria-expanded',open?'true':'false');});function toggleSearch(){var opening=searchContainer.classList.contains('hidden');searchContainer.classList.toggle('hidden',!opening);searchButton.classList.toggle('hidden',opening);links.forEach(function(link){link.classList.toggle('hidden',opening);});if(small.matches){quorumTitle.classList.toggle('hidden',opening);menuButton.classList.toggle('hidden',opening);downloadLink.classList.toggle('hidden',opening);}if(opening){searchInput.focus();}else{searchButton.focus();}}searchButton.addEventListener('click',toggleSearch);closeButton.addEventListener('click',function(event){event.preventDefault();toggleSearch();});function place(){if(small.matches){mobileContainer.insertBefore(searchContainer,menuButton);mobileContainer.insertBefore(searchButton,menuButton);}else{searchListItem.appendChild(searchContainer);searchListItem.appendChild(searchButton);}}place();window.addEventListener('resize',place);});"
+    end
+end

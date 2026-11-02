@@ -36,8 +36,12 @@ class TerrainBrushUseBehavior is Behavior
         if event:GetItem() is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
             EditorTerrain terrain = highlight:GetEditorTerrain()
-            if terrain not= undefined and terrain:HasTool() and highlight:GetSceneEditor() not= undefined
-                highlight:GetSceneEditor():BeginTerrainStroke(terrain, false, key)
+            if terrain not= undefined and highlight:GetSceneEditor() not= undefined
+                if terrain:HasTool()
+                    highlight:GetSceneEditor():BeginTerrainStroke(terrain, false, key)
+                else
+                    highlight:NotifyAccessibility("Choose a tool first, with Alt and a number, to place the brush.")
+                end
             end
         end
     end

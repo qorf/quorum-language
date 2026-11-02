@@ -1,0 +1,457 @@
+package Libraries.Web
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Web.Page.Attribute
+use Libraries.Web.Page.Attributes
+use Libraries.Web.Page.Button
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Image
+use Libraries.Web.Page.InlineFrame
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Label
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.OrderedList
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.PlainText
+use Libraries.Web.Page.Script
+use Libraries.Web.Page.Select
+use Libraries.Web.Page.TableHeaderCell
+use Libraries.Web.Page.TextArea
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.WebPage
+
+/*
+    WebAccessibilityChecker looks through a finished page for mistakes that
+    break the Web Content Accessibility Guidelines (WCAG 2.1, levels A and
+    AA) and that can be found from the page itself, before it is ever
+    shown. It doesn't change the page; it returns what it found, one
+    problem per item, each naming the guideline and the element.
+
+    It checks that:
+    - the page has a title and a language (2.4.2, 3.1.1);
+    - no two elements share an identifier (4.1.1);
+    - every picture has a description, even an empty one (1.1.1);
+    - every link and button has a name: words, a description of a picture
+      inside it, or a label (2.4.4, 4.1.2);
+    - every inline frame has a title (4.1.2);
+    - every form field has a label (1.3.1, 4.1.2);
+    - no heading is empty, the page has one level 1 heading, and the
+      page's own headings never skip a level (1.3.1, 2.4.6);
+    - only things a reader can use are in the order Tab follows (2.4.3);
+    - nothing hidden from screen readers can be reached with Tab (4.1.2);
+    - several navigation regions on a page have different names (1.3.1);
+    - every cell naming a column or row has words (1.3.1);
+    - bulleted and numbered lists hold only list items (1.3.1).
+
+    Parts hidden from everyone (the hidden attribute) or from screen
+    readers (aria-hidden) are skipped for names, since no one meets them
+    there; anything in them that can be reached with Tab is still a
+    problem. Some guidelines can only be checked by a person, or in a
+    browser once scripts run, such as whether a description is a good one,
+    or what a dialog does with focus; this checker doesn't try.
+
+    A WebSite runs it on every page when asked to, with
+    SetAccessibilityChecks.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Containers.Array
+
+    WebPage page
+    page:Title("Welcome")
+    WebAccessibilityChecker checker
+    Array<text> problems = checker:Check(page)
+*/
+class WebAccessibilityChecker
+    WebPage page = undefined
+    Array<text> problems
+    HashTable<text, integer> identifiers
+    HashTable<text, boolean> labeledFields
+    Array<text> navigationNames
+    integer unnamedNavigation = 0
+    WebTextEscaper escaper
+
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text LABELLED_BY_ATTRIBUTE = "aria-labelledby"
+    constant text HIDDEN_FROM_READERS = "aria-hidden"
+    constant text HIDDEN_ATTRIBUTE = "hidden"
+    constant text ROLE_ATTRIBUTE = "role"
+    constant text TAB_INDEX_ATTRIBUTE = "tabindex"
+    constant text TITLE_ATTRIBUTE = "title"
+    constant text ALTERNATE_ATTRIBUTE = "alt"
+    constant text ADDRESS_ATTRIBUTE = "href"
+    constant text FOR_ATTRIBUTE = "for"
+    constant text TYPE_ATTRIBUTE = "type"
+    constant text LANGUAGE_ATTRIBUTE = "lang"
+    constant text IDENTIFIER_ATTRIBUTE = "id"
+    constant text HIDDEN_FIELD = "hidden"
+    constant text NAVIGATION_ROLE = "navigation"
+    constant text BUTTON_ROLE = "button"
+    constant text NOT_IN_TAB_ORDER = "-1"
+    constant text TRUE = "true"
+    constant integer LONGEST_QUOTE = 40
+
+    /*
+        Checks one finished page, including anything its site added, such
+        as navigation. Returns the problems found, or none.
+
+        Attribute: Parameter target The page to check.
+        Attribute: Returns The problems, one per item, each starting with the guideline it breaks.
+    */
+    action Check(WebPage target) returns Array<text>
+        // Fresh records for each page.
+        page = target
+        Array<text> newProblems
+        problems = newProblems
+        HashTable<text, integer> newIdentifiers
+        identifiers = newIdentifiers
+        HashTable<text, boolean> newLabeledFields
+        labeledFields = newLabeledFields
+        Array<text> newNavigationNames
+        navigationNames = newNavigationNames
+        unnamedNavigation = 0
+
+        if not page:HasWebPageTitle()
+            Report("2.4.2", "The page has no title.")
+        end
+        if not page:GetAttributes():HasAttribute(LANGUAGE_ATTRIBUTE)
+            Report("3.1.1", "The page doesn't say what language it is in.")
+        end
+
+        // First pass: which fields a label names, so the second pass can
+        // tell whether each field has one.
+        CollectLabels(page:GetBody())
+        Visit(page:GetBody(), false)
+
+        CheckIdentifiers()
+        CheckNavigationNames()
+        CheckHeadingOrder()
+        return problems
+    end
+
+    // Looks at one element, then everything inside it. Inside a part
+    // hidden from screen readers, names aren't checked, but anything that
+    // can be reached with Tab is still a problem.
+    private action Visit(WebTag tag, boolean hidden)
+        boolean hiddenHere = hidden or HasValue(tag, HIDDEN_FROM_READERS, TRUE) or tag:GetAttributes():HasAttribute(HIDDEN_ATTRIBUTE)
+        RecordIdentifier(tag)
+
+        if IsFocusable(tag) and hiddenHere
+            Report("4.1.2", Describe(tag) + " can be reached with Tab, but is hidden from screen readers.")
+        end
+        if HasTabStop(tag) and not IsInteractive(tag) and not tag:GetAttributes():HasAttribute(ROLE_ATTRIBUTE)
+            Report("2.4.3", Describe(tag) + " is in the Tab order but isn't a link, button or field, and has no role.")
+        end
+
+        if not hiddenHere
+            CheckElement(tag)
+        end
+
+        integer i = 0
+        repeat while i < tag:GetNumberOfNestedTags()
+            Visit(tag:GetTag(i), hiddenHere)
+            i = i + 1
+        end
+    end
+
+    // The checks for one element a reader can meet.
+    private action CheckElement(WebTag tag)
+        if tag is Image
+            if not tag:GetAttributes():HasAttribute(ALTERNATE_ATTRIBUTE)
+                Report("1.1.1", Describe(tag) + " has no description (alt). Use an empty one only for decoration.")
+            end
+        elseif tag is Link
+            if tag:GetAttributes():HasAttribute(ADDRESS_ATTRIBUTE) and GetName(tag):IsEmpty()
+                Report("2.4.4", Describe(tag) + " has no words or label, so its purpose can't be told.")
+            end
+        elseif tag is Button or HasValue(tag, ROLE_ATTRIBUTE, BUTTON_ROLE)
+            if GetName(tag):IsEmpty()
+                Report("4.1.2", Describe(tag) + " has no words or label, so a screen reader can only say button.")
+            end
+        elseif tag is InlineFrame
+            if GetValue(tag, TITLE_ATTRIBUTE):IsEmpty()
+                Report("4.1.2", Describe(tag) + " has no title.")
+            end
+        elseif tag is Heading
+            if GetName(tag):IsEmpty()
+                Report("1.3.1", Describe(tag) + " is empty.")
+            end
+        elseif tag is TableHeaderCell
+            if GetName(tag):IsEmpty()
+                Report("1.3.1", "A cell naming a column or row has no words.")
+            end
+        elseif tag is UnorderedList or tag is OrderedList
+            integer i = 0
+            repeat while i < tag:GetNumberOfNestedTags()
+                WebTag child = tag:GetTag(i)
+                if not (child is ListItem or child is Script)
+                    Report("1.3.1", Describe(tag) + " holds " + Describe(child) + ", but a list holds only list items.")
+                end
+                i = i + 1
+            end
+        elseif tag is NavigationDivision or HasValue(tag, ROLE_ATTRIBUTE, NAVIGATION_ROLE)
+            text name = GetValue(tag, LABEL_ATTRIBUTE)
+            if name:IsEmpty()
+                unnamedNavigation = unnamedNavigation + 1
+            else
+                navigationNames:Add(name)
+            end
+        elseif IsField(tag)
+            text identifier = GetValue(tag, IDENTIFIER_ATTRIBUTE)
+            boolean labeled = labeledFields:HasKey(identifier) or tag:GetAttributes():HasAttribute(LABEL_ATTRIBUTE) or tag:GetAttributes():HasAttribute(LABELLED_BY_ATTRIBUTE) or tag:GetAttributes():HasAttribute(TITLE_ATTRIBUTE)
+            if not labeled
+                Report("1.3.1", Describe(tag) + " has no label.")
+            end
+        end
+    end
+
+    // Remembers which fields each label names, by the field's identifier.
+    private action CollectLabels(WebTag tag)
+        if tag is Label
+            text field = GetValue(tag, FOR_ATTRIBUTE)
+            if not field:IsEmpty()
+                labeledFields:Set(field, true)
+            end
+        end
+        integer i = 0
+        repeat while i < tag:GetNumberOfNestedTags()
+            CollectLabels(tag:GetTag(i))
+            i = i + 1
+        end
+    end
+
+    private action RecordIdentifier(WebTag tag)
+        text identifier = GetValue(tag, IDENTIFIER_ATTRIBUTE)
+        if identifier:IsEmpty()
+            return now
+        end
+        if identifiers:HasKey(identifier)
+            identifiers:Set(identifier, identifiers:GetValue(identifier) + 1)
+        else
+            identifiers:Set(identifier, 1)
+        end
+    end
+
+    private action CheckIdentifiers
+        Array<text> keys
+        Iterator<text> iterator = identifiers:GetKeyIterator()
+        repeat while iterator:HasNext()
+            keys:Add(iterator:Next())
+        end
+        keys:Sort()
+        integer i = 0
+        repeat while i < keys:GetSize()
+            integer count = identifiers:GetValue(keys:Get(i))
+            if count > 1
+                Report("4.1.1", "The identifier " + keys:Get(i) + " is used " + count + " times; each must be used once.")
+            end
+            i = i + 1
+        end
+    end
+
+    // With more than one navigation region, each needs its own name.
+    private action CheckNavigationNames
+        integer total = navigationNames:GetSize() + unnamedNavigation
+        if total < 2
+            return now
+        end
+        if unnamedNavigation > 1
+            Report("1.3.1", "" + unnamedNavigation + " navigation regions have no name.")
+        end
+        HashTable<text, boolean> seen
+        integer i = 0
+        repeat while i < navigationNames:GetSize()
+            text name = navigationNames:Get(i)
+            if seen:HasKey(name)
+                Report("1.3.1", "Two navigation regions are both named " + Quote(name) + ".")
+            end
+            seen:Set(name, true)
+            i = i + 1
+        end
+    end
+
+    // The page's own headings: one level 1, and no level skipped on the
+    // way down.
+    private action CheckHeadingOrder
+        Array<Heading> headings = page:GetHeadings()
+        integer firstLevel = 0
+        integer previous = 0
+        integer i = 0
+        repeat while i < headings:GetSize()
+            Heading heading = headings:Get(i)
+            integer level = heading:GetScale()
+            if level = 1
+                firstLevel = firstLevel + 1
+            end
+            if previous > 0 and level > previous + 1
+                Report("1.3.1", "A level " + level + " heading, " + Quote(GetName(heading)) + ", comes after a level " + previous + " heading, skipping a level.")
+            end
+            previous = level
+            i = i + 1
+        end
+        if headings:GetSize() > 0 and firstLevel not= 1
+            Report("1.3.1", "The page has " + firstLevel + " level 1 headings; it should have one.")
+        end
+    end
+
+    // The name a screen reader would give: a label if there is one,
+    // otherwise the words inside, including pictures' descriptions.
+    private action GetName(WebTag tag) returns text
+        text label = GetValue(tag, LABEL_ATTRIBUTE)
+        if not label:IsEmpty()
+            return label
+        end
+        if tag:GetAttributes():HasAttribute(LABELLED_BY_ATTRIBUTE)
+            return GetValue(tag, LABELLED_BY_ATTRIBUTE)
+        end
+        text words = GetWords(tag):Trim()
+        if words:IsEmpty()
+            return GetValue(tag, TITLE_ATTRIBUTE)
+        end
+        return words
+    end
+
+    // The words inside an element. Text added as markup, such as an icon,
+    // counts only for the words between its tags.
+    private action GetWords(WebTag tag) returns text
+        if tag is PlainText
+            return WithoutMarkup(tag:Generate())
+        end
+        if tag is Image
+            return GetValue(tag, ALTERNATE_ATTRIBUTE)
+        end
+        text result = ""
+        integer i = 0
+        repeat while i < tag:GetNumberOfNestedTags()
+            WebTag child = tag:GetTag(i)
+            if not HasValue(child, HIDDEN_FROM_READERS, TRUE)
+                result = result + " " + GetWords(child)
+            end
+            i = i + 1
+        end
+        return result
+    end
+
+    private action WithoutMarkup(text value) returns text
+        text result = ""
+        boolean inside = false
+        integer i = 0
+        repeat while i < value:GetSize()
+            text character = value:GetCharacter(i)
+            if character = "<"
+                inside = true
+            elseif character = ">"
+                inside = false
+                result = result + " "
+            elseif not inside
+                result = result + character
+            end
+            i = i + 1
+        end
+        return result:Trim()
+    end
+
+    // Links with an address, buttons and fields can be reached with Tab
+    // on their own; anything else only with a tab index of 0 or more.
+    private action IsFocusable(WebTag tag) returns boolean
+        if HasValue(tag, TAB_INDEX_ATTRIBUTE, NOT_IN_TAB_ORDER)
+            return false
+        end
+        if HasTabStop(tag)
+            return true
+        end
+        if tag is Link
+            return tag:GetAttributes():HasAttribute(ADDRESS_ATTRIBUTE)
+        end
+        return tag is Button or IsField(tag)
+    end
+
+    private action HasTabStop(WebTag tag) returns boolean
+        if not tag:GetAttributes():HasAttribute(TAB_INDEX_ATTRIBUTE)
+            return false
+        end
+        return not HasValue(tag, TAB_INDEX_ATTRIBUTE, NOT_IN_TAB_ORDER)
+    end
+
+    private action IsInteractive(WebTag tag) returns boolean
+        return tag is Link or tag is Button or IsField(tag)
+    end
+
+    private action IsField(WebTag tag) returns boolean
+        if tag is Input
+            return GetValue(tag, TYPE_ATTRIBUTE) not= HIDDEN_FIELD
+        end
+        return tag is Select or tag is TextArea
+    end
+
+    private action GetValue(WebTag tag, text name) returns text
+        Attribute attribute = tag:GetAttributes():GetAttribute(name)
+        if attribute = undefined
+            return ""
+        end
+        text value = attribute:GetValue()
+        if value = undefined
+            return ""
+        end
+        return value
+    end
+
+    private action HasValue(WebTag tag, text name, text value) returns boolean
+        return GetValue(tag, name) = value
+    end
+
+    // A short way to name an element in a problem: its kind, then its
+    // identifier or its first words.
+    private action Describe(WebTag tag) returns text
+        text kind = "An element"
+        if tag is Image
+            kind = "A picture"
+        elseif tag is Link
+            kind = "A link"
+        elseif tag is Button
+            kind = "A button"
+        elseif tag is Heading
+            kind = "A heading"
+        elseif tag is InlineFrame
+            kind = "An inline frame"
+        elseif tag is UnorderedList or tag is OrderedList
+            kind = "A list"
+        elseif IsField(tag)
+            kind = "A form field"
+        elseif tag is Paragraph
+            kind = "A paragraph"
+        elseif tag is Division
+            kind = "A division"
+        end
+        text identifier = GetValue(tag, IDENTIFIER_ATTRIBUTE)
+        if not identifier:IsEmpty()
+            return kind + " (" + identifier + ")"
+        end
+        if tag is Image
+            return kind + " (" + GetValue(tag, "src") + ")"
+        end
+        text words = GetWords(tag):Trim()
+        if not words:IsEmpty()
+            return kind + " " + Quote(words)
+        end
+        return kind
+    end
+
+    private action Quote(text words) returns text
+        text shortened = words
+        if shortened:GetSize() > LONGEST_QUOTE
+            shortened = shortened:GetSubtext(0, LONGEST_QUOTE) + "..."
+        end
+        return "'" + shortened + "'"
+    end
+
+    private action Report(text guideline, text problem)
+        problems:Add(page:GetLocation() + ": WCAG " + guideline + ": " + problem)
+    end
+end

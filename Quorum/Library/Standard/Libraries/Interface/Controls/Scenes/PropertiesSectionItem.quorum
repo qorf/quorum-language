@@ -6,6 +6,7 @@ use Libraries.Interface.Controls.TreeItemContent
 use Libraries.Interface.Events.TreeChangeEvent
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Item
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 
 /*
@@ -115,6 +116,43 @@ class PropertiesSectionItem is TreeItem
     */
     action GetSize returns integer
         return 1
+    end
+
+    /*
+        Down leaves the header for the next stop in the Tab order: the
+        section's first field when it is open, or the next section when it
+        is closed. The section's fields aren't tree items, so the tree's
+        own Down has nowhere to go.
+    */
+    action SelectionDown
+        Tree tree = GetTree()
+        if tree not= undefined
+            Item next = tree:GetNextFocus()
+            if next not= undefined
+                next:Focus()
+            end
+        end
+    end
+
+    /*
+        Up leaves the header for the previous stop in the Tab order: the
+        end of the section above.
+    */
+    action SelectionUp
+        Tree tree = GetTree()
+        if tree not= undefined
+            Item previous = tree:GetPreviousFocus()
+            if previous not= undefined
+                previous:Focus()
+            end
+        end
+    end
+
+    /*
+        The header is the last item of its own tree, open or closed.
+    */
+    action SelectLastElement
+        Select()
     end
 
     /*

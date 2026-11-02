@@ -1,0 +1,255 @@
+package Libraries.Web.Series
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Web.Page.WebPage
+use Libraries.Web.WebLocations
+
+/*
+    PageSeries is an ordered list of pages that belong together, such as
+    the lessons of a course. A page can be in any number of series. A
+    series has a name, a short key used in addresses (such as "scenes"),
+    a description, and the location of its overview page.
+
+    A series can also list pages the website doesn't build itself, by
+    title and location, so pages made in different ways can share one
+    series.
+
+    Attribute: Example
+    use Libraries.Web.Series.PageSeries
+
+    PageSeries scenes
+    scenes:SetName("Scene Editing")
+    scenes:SetKey("scenes")
+    scenes:SetOverviewLocation("tutorials/Scenes/index.html")
+    scenes:AddOutsidePage("Creating a scene project", "tutorials/Scenes/create.html")
+*/
+class PageSeries
+    text name = ""
+    text key = ""
+    text description = ""
+    text image = ""
+    text overviewLocation = ""
+    WebLocations locations
+
+    // The pages, in order, and each one's position by its location.
+    Array<PageSeriesEntry> entries
+    HashTable<text, integer> positions
+    // Pages that are part of an entry, not entries themselves (AddPart).
+    HashTable<text, boolean> parts
+
+    // A key goes in addresses, so it uses only these characters.
+    constant text KEY_CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789-"
+
+    /*
+        Sets the series' name, as readers see it.
+
+        Attribute: Parameter name The name, such as "Scene Editing".
+    */
+    action SetName(text name)
+        me:name = name
+    end
+
+    action GetName returns text
+        return name
+    end
+
+    /*
+        Sets the series' key: a short name used in addresses to say which
+        series a reader is following, such as "scenes". Lowercase
+        letters, digits and hyphens only.
+
+        Attribute: Parameter key The key.
+    */
+    action SetKey(text key)
+        if key:IsEmpty()
+            alert("A series needs a key.")
+        end
+        integer i = 0
+        repeat while i < key:GetSize()
+            if not KEY_CHARACTERS:Contains(key:GetCharacter(i))
+                alert("A series key uses only lowercase letters, digits and hyphens: " + key)
+            end
+            i = i + 1
+        end
+        me:key = key
+    end
+
+    action GetKey returns text
+        return key
+    end
+
+    /*
+        Sets a short description of the series, for its overview page and
+        for search engines.
+
+        Attribute: Parameter description The description.
+    */
+    action SetDescription(text description)
+        me:description = description
+    end
+
+    action GetDescription returns text
+        return description
+    end
+
+    /*
+        Sets a picture for the series, shown where the series is listed,
+        such as a card for each course.
+
+        Attribute: Parameter location The picture's address, as pages link to it.
+    */
+    action SetImage(text location)
+        image = location
+    end
+
+    action GetImage returns text
+        return image
+    end
+
+    /*
+        Sets where the series' overview page goes, on the site.
+
+        Attribute: Parameter location The location, with no leading slash.
+    */
+    action SetOverviewLocation(text location)
+        locations:Check(location)
+        overviewLocation = location
+    end
+
+    action GetOverviewLocation returns text
+        return overviewLocation
+    end
+
+    /*
+        Adds a page the website builds to the end of the series. Its title
+        and location come from the page.
+
+        Attribute: Parameter page The page.
+    */
+    action Add(WebPage page)
+        AddEntry(page:GetTitleText(), page:GetLocation(), page)
+    end
+
+    /*
+        Adds a page the website doesn't build to the end of the series, by
+        its title and location.
+
+        Attribute: Parameter title The page's title.
+        Attribute: Parameter location The page's location on the site, with no leading slash.
+    */
+    action AddOutsidePage(text title, text location)
+        locations:Check(location)
+        AddEntry(title, location, undefined)
+    end
+
+    /*
+        Adds a page the website doesn't build to the end of the series, by
+        its title, location and summary. The summary is shown where the
+        page is suggested next.
+
+        Attribute: Parameter title The page's title.
+        Attribute: Parameter location The page's location on the site, with no leading slash.
+        Attribute: Parameter summary One or two sentences on what the page teaches.
+    */
+    action AddOutsidePage(text title, text location, text summary)
+        AddOutsidePage(title, location)
+        entries:Get(entries:GetSize() - 1):SetDescription(summary)
+    end
+
+    /*
+        Adds a page as part of the entry added last, such as the second
+        problem in a set of problems whose entry is the set's first. The
+        page shows that entry as its place in the series (its navigation
+        marks it), but it isn't an entry itself, so the series' list and
+        its count don't change. The entry's own page may be added as a part
+        too, so it is treated like the entry's other parts (its breadcrumbs
+        name the entry, as theirs do).
+
+        Attribute: Parameter location The page's location on the site, with no leading slash.
+
+        Attribute: Example
+        use Libraries.Web.Series.PageSeries
+
+        PageSeries problems
+        problems:SetName("Practice Problems")
+        problems:AddOutsidePage("Output", "problems/output/start.html")
+        problems:AddPart("problems/output/change.html")
+    */
+    action AddPart(text location)
+        if entries:IsEmpty()
+            alert("A part belongs to an entry, but the series " + name + " has none yet.")
+        end
+        locations:Check(location)
+        integer last = entries:GetSize() - 1
+        if positions:HasKey(location) and location not= entries:Get(last):GetLocation()
+            alert("The series " + name + " already has the page " + location + ".")
+        end
+        positions:Set(location, last)
+        parts:Set(location, true)
+    end
+
+    /*
+        Returns true if the page at a location is part of an entry (added
+        with AddPart), not an entry itself.
+
+        Attribute: Parameter location The page's location.
+        Attribute: Returns Whether it is a part.
+    */
+    action IsPart(text location) returns boolean
+        return parts:HasKey(location)
+    end
+
+    /*
+        Returns how many pages are in the series.
+
+        Attribute: Returns The number of pages.
+    */
+    action GetSize returns integer
+        return entries:GetSize()
+    end
+
+    /*
+        Returns the page at a position in the series, from 0.
+
+        Attribute: Parameter position The position.
+        Attribute: Returns The entry at that position.
+    */
+    action GetEntry(integer position) returns PageSeriesEntry
+        return entries:Get(position)
+    end
+
+    /*
+        Returns a page's position in the series, from 0, or -1 if it isn't
+        in the series. A part (AddPart) has its entry's position.
+
+        Attribute: Parameter location The page's location.
+        Attribute: Returns The position, or -1.
+    */
+    action GetPosition(text location) returns integer
+        if positions:HasKey(location)
+            return positions:GetValue(location)
+        end
+        return -1
+    end
+
+    /*
+        Returns true if the series has a page at a location.
+
+        Attribute: Parameter location The page's location.
+        Attribute: Returns Whether the page is in the series.
+    */
+    action Contains(text location) returns boolean
+        return positions:HasKey(location)
+    end
+
+    private action AddEntry(text title, text location, WebPage page)
+        if positions:HasKey(location)
+            alert("The series " + name + " already has the page " + location + ".")
+        end
+        PageSeriesEntry entry
+        entry:Setup(title, location, page)
+        positions:Set(location, entries:GetSize())
+        entries:Add(entry)
+    end
+end
