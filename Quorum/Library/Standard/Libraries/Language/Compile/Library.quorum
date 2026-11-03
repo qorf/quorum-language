@@ -324,7 +324,9 @@ pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
 
 
         gameNative:Copy(nativeFolder, true)
-        interfaceNative:Copy(nativeFolder, true)
+        if interfaceNative:Exists()
+            interfaceNative:Copy(nativeFolder, true)
+        end
         if mobileNative:Exists()
             mobileNative:Copy(nativeFolder, true)
         end

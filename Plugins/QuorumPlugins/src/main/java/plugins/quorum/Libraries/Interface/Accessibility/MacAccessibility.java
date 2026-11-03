@@ -1,18 +1,17 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.function.Consumer;
 
-import dev.accesskit.*;
-import dev.accesskit.Tree;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Tree;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
-import plugins.quorum.Libraries.Interface.AccessibilityManager;
+import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
 import quorum.Libraries.Interface.Events.FocusEvent_;
@@ -24,9 +23,9 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
-import quorum.Libraries.Interface.Selections.Selection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
@@ -44,6 +43,11 @@ public class MacAccessibility {
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
 
+    // True until a whole tree has reached AccessKit. If building the first
+    // tree fails, AccessKit keeps an empty placeholder and won't ask again,
+    // and it ends the program unless the next update carries the whole tree.
+    private boolean needsFullTree = true;
+
     public MacAccessibility() {
         items.put(root.GetNodeID(), root);
         DummyKit dummy1 = new DummyKit();
@@ -56,33 +60,30 @@ public class MacAccessibility {
         items.put(dummy2.GetNodeID(), dummy2);
         root.AddChild(dummy1);
         root.AddChild(dummy2);
-        try
-        {
-            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
-            System.load(nativeFile);
 
-            long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-
-            adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
-                @Override
-                public TreeUpdate get() {
-                    return BuildFullTree();
-                }
-            });
-        }
-        catch (URISyntaxException ex)
-        {
-            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        // AccessKit's natives are in Mac.so, which Game.java loads before
+        // DesktopApplication makes this, so there is nothing to load here.
+        long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+        adapter = MacosSubclassingAdapter.forWindow(handle, new ActivationHandler() {
+            @Override
+            public TreeUpdate requestInitialTree() {
+                TreeUpdate update = BuildFullTree();
+                needsFullTree = false;
+                return update;
+            }
+        });
     }
 
-    private static void Traverse(ItemKit itemKit, TreeUpdate update) {
+    private static void Traverse(ItemKit itemKit, final TreeUpdate update) {
         update.add(itemKit.GetNodeID(), itemKit.Build());
-        for (ItemKit child : itemKit.GetChildren()) {
-            Traverse(child, update);
-        }
+        itemKit.IterateChildren(new Consumer<Iterable<ItemKit>>() {
+            @Override
+            public void accept(Iterable<ItemKit> children) {
+                for (ItemKit child : children) {
+                    Traverse(child, update);
+                }
+            }
+        });
         for (NodeId child : itemKit.GetInternalChildren()) {
             update.add(child, itemKit.BuildInternalChild(child));
         }
@@ -121,7 +122,7 @@ public class MacAccessibility {
     }
 
     public void  NativeUpdate() {
-        if (!dirtyNodes.isEmpty() || isFocusDirty) {
+        if (needsFullTree || !dirtyNodes.isEmpty() || isFocusDirty) {
             if (!items.containsKey(focus)) {
                 // Try again on the next frame.
                 return;
@@ -129,6 +130,11 @@ public class MacAccessibility {
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
+                    if (needsFullTree) {
+                        TreeUpdate update = BuildFullTree();
+                        needsFullTree = false;
+                        return update;
+                    }
                     TreeUpdate update = TreeUpdate.withFocus(focus);
                     for (NodeId id : dirtyNodes) {
                         ItemKit kit = items.get(id);
@@ -316,7 +322,16 @@ public class MacAccessibility {
             return true;
         }
 
-        //second, if it's been added, accesskit seems to require parent hierarchies, at least in this design
+        //second, before we possibly recurse into the parent, see if the
+        //item even has an accessible representation
+        int code = item.GetAccessibilityCode();
+        Role role = null;
+        ItemKit itemKit = GetKitFromCode(item);
+        if (itemKit == null) {
+            return false;
+        }
+
+        //third, if it's been added, accesskit seems to require parent hierarchies, at least in this design
         //be ordered parent to child. That might be dangerous quorum side, because that's definitely a contract
         //someone could violate, but we'll give it a try for the end of the hackathon.
         //as such, try the parent next
@@ -337,21 +352,13 @@ public class MacAccessibility {
             parentKit = root;
         }
 
-        int code = item.GetAccessibilityCode();
-        Role role = null;
-        ItemKit itemKit = GetKitFromCode(item);
-
-        if(itemKit != null) {
-            itemKit.SetItem(item);
-            NodeId id = itemKit.GetNodeID();
-            items.put(id, itemKit);
-            dirtyNodes.add(id);
-            parentKit.AddChild(itemKit);
-            dirtyNodes.add(parentKit.GetNodeID());
-            return true;
-        }
-
-        return false;
+        itemKit.SetItem(item);
+        NodeId id = itemKit.GetNodeID();
+        items.put(id, itemKit);
+        dirtyNodes.add(id);
+        parentKit.AddChild(itemKit);
+        dirtyNodes.add(parentKit.GetNodeID());
+        return true;
     }
 
     public boolean NativeRemove(Item_ item)
@@ -490,6 +497,246 @@ public class MacAccessibility {
     }
 
     public void  Shutdown() {
-        adapter.close();
+        try { //I think this is ok. Just shut down.
+            adapter.close();
+        } catch(Exception e) {
+        }
+    }
+
+    public static int GetCellRowIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetCellColumnIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
+                if (spreadsheet != null)
+                    return spreadsheet.GetColumnIndex(column);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                TreeTable_ treeTable = cell.GetTreeTable();
+                if (treeTable != null)
+                    return treeTable.GetColumnIndex(column);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetTreeItemSetSize(TreeItem_ item)
+    {
+        TreeItem_ parent = item.GetParentTreeItem();
+        if (parent == null)
+        {
+            Tree_ tree = item.GetTree();
+            if (tree == null)
+                return 1;
+            else
+                return tree.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a TreeItem_ object, returns the 1-indexed
+    position of that TreeItem within its set.
+    */
+    public static int GetTreeItemSetPosition(TreeItem_ item)
+    {
+        Array_ treeItems;
+        TreeItem_ parent = item.GetParentTreeItem();
+
+        if (parent != null)
+            treeItems = parent.Get_Libraries_Interface_Controls_TreeItem__treeItems_();
+        else
+        {
+            Tree_ tree = item.GetTree();
+            if (tree != null)
+                treeItems = tree.Get_Libraries_Interface_Controls_Tree__treeItems_();
+            else
+                return 1;
+        }
+
+        for (int i = 0; i < treeItems.GetSize(); i++)
+        {
+            if (treeItems.Get(i) == item)
+                return i + 1;
+        }
+
+        return 1;
+    }
+
+    public static int GetTableColumnsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetColumnsSize();
+        }
+        else if (treeTable != null)
+        {
+            return treeTable.GetColumnsSize();
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    /*
+    Used by the native layer. Returns the total number of rows in a TreeTable
+    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    the table structure that contains that cell. If the value can't be retrieved,
+    this returns -1.
+    */
+    public static int GetTableRowsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetRowsSize();
+        }
+        else if (treeTable != null)
+        {
+            /*
+            TO-DO: The TreeTable doesn't currently have a way to calculate its number of rows.
+            It's not clear if this should be number of top-most rows, currently visible rows, or all total rows.
+            */
+            return 0;
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetMenuItemSetSize(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+        if (parent == null)
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root == null)
+                return 1;
+            else
+                return root.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a MenuItem_ object, returns the 1-indexed
+    position of that MenuItem within its set.
+    */
+    public static int GetMenuItemSetPosition(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+
+        if (parent != null)
+        {
+            Array_ menuItems = parent.Get_Libraries_Interface_Controls_MenuItem__menuItems_();
+            for (int i = 0; i < menuItems.GetSize(); i++)
+            {
+                if (menuItems.Get(i) == item)
+                    return i + 1;
+            }
+        }
+        else
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root != null)
+            {
+                Iterator_ iterator = root.GetIterator();
+                int i = 0;
+                while (iterator.HasNext())
+                {
+                    i = i + 1;
+                    if (iterator.Next() == item)
+                        return i;
+                }
+            }
+        }
+
+        return 1;
     }
 }

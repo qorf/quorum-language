@@ -1,10 +1,9 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 
-import dev.accesskit.Node;
-import dev.accesskit.NodeBuilder;
-import dev.accesskit.Rect;
-import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Node;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 import quorum.Libraries.Interface.Item_;
 
 public class ButtonKit extends ItemKit{
@@ -16,10 +15,11 @@ public class ButtonKit extends ItemKit{
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
-            return builder.build();
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
+            return builder;
         }
         return null;
     }

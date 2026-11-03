@@ -1,8 +1,11 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Layer3D_;
@@ -19,6 +22,7 @@ public class ItemKit {
     private ItemKit parent = null;
     private int indexInParent = -1;
     private ArrayList<ItemKit> children = new ArrayList<ItemKit>();
+    private ReentrantReadWriteLock childrenLock = new ReentrantReadWriteLock();
 
     public ItemKit() {
         SetRole(Role.UNKNOWN);
@@ -27,18 +31,21 @@ public class ItemKit {
         Needs to be replaced for general items.
      */
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
         if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(item.GetName() + ", " + item.GetDescription());
+            //temp in case I need to roll this back to accessibility weirdness on one platform or another.
+            //builder.setLabel(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
-        return builder.build();
+        return builder;
     }
 
-    protected void BuildChildren(NodeBuilder builder) {
+    protected void BuildChildren(Node builder) {
         for (NodeId child : GetInternalChildren()) {
             builder.addChild(child);
         }
@@ -79,26 +86,50 @@ public class ItemKit {
         return indexInParent;
     }
 
-    public final Iterable<ItemKit> GetChildren() {
-        return children;
+    public final void IterateChildren(Consumer<Iterable<ItemKit>> consumer) {
+        Lock lock = childrenLock.readLock();
+        if (!lock.tryLock()) {
+            throw new IllegalStateException("concurrent access to children on " + GetNodeID().toString());
+        }
+        try {
+            consumer.accept(children);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public final void AddChild(ItemKit child) {
-        int index = children.size();
-        children.add(child);
-        child.parent = this;
-        child.indexInParent = index;
+        Lock lock = childrenLock.writeLock();
+        if (!lock.tryLock()) {
+            throw new IllegalStateException("concurrent access to children on " + GetNodeID().toString());
+        }
+        try {
+            int index = children.size();
+            children.add(child);
+            child.parent = this;
+            child.indexInParent = index;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void RemoveFromParent() {
-        if (parent.children.get(indexInParent) != this) {
-            throw new RuntimeException("corrupt parent/child structure");
+        Lock lock = parent.childrenLock.writeLock();
+        if (!lock.tryLock()) {
+            throw new IllegalStateException("concurrent access to children on " + parent.GetNodeID().toString());
         }
-        parent.children.remove(indexInParent);
-        for (int i = indexInParent; i < parent.children.size(); i++) {
-            parent.children.get(i).indexInParent = i;
+        try {
+            if (parent.children.get(indexInParent) != this) {
+                throw new RuntimeException("corrupt parent/child structure");
+            }
+            parent.children.remove(indexInParent);
+            for (int i = indexInParent; i < parent.children.size(); i++) {
+                parent.children.get(i).indexInParent = i;
+            }
+            parent = null;
+        } finally {
+            lock.unlock();
         }
-        parent = null;
     }
 
     public Rect GetBoundingRectangle()

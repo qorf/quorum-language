@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 
 public class TreeKit extends ItemKit{
     public TreeKit() {

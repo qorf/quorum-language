@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import quorum.Libraries.Interface.Controls.TextField_;
@@ -23,9 +23,10 @@ public class TextFieldKit extends TextKitBase {
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof TextField_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextField_ field = (TextField_) item;
                 TextFieldSelection_ selection = field.GetSelection();
@@ -47,7 +48,7 @@ public class TextFieldKit extends TextKitBase {
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
             BuildChildren(builder);
-            return builder.build();
+            return builder;
         }
         return null;
     }
@@ -83,8 +84,8 @@ public class TextFieldKit extends TextKitBase {
         if(item != null && item instanceof TextField_) {
             TextField_ field = (TextField_) item;
             String s = field.GetText();
-            NodeBuilder builder = BuildLineBase(0, s);
-            return builder.build();
+            Node builder = BuildLineBase(0, s);
+            return builder;
         }
         return null;
     }

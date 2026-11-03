@@ -1,9 +1,8 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.Node;
-import dev.accesskit.NodeBuilder;
-import dev.accesskit.Rect;
-import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Node;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Item_;
@@ -17,7 +16,7 @@ public class ListItemKit extends ItemKit{
     }
 
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
         if(item != null && item instanceof ListItem_) { //technically not compiler guaranteed. You can set the code to anything.
             ListItem_ listItem = (ListItem_) item;
@@ -30,14 +29,16 @@ public class ListItemKit extends ItemKit{
             //otherwise the row's text.
             String name = listItem.GetName();
             if (name != null && !name.isEmpty() && !name.equals(DEFAULT_LIST_ITEM_NAME)) {
-                builder.setName(name);
+                builder.setLabel(name);
             } else {
-                builder.setName(listItem.GetText());
+                builder.setLabel(listItem.GetText());
             }
+            builder.setDescription(listItem.GetDescription());
         } else {
-            builder.setName(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
-        return builder.build();
+        return builder;
     }
 }
