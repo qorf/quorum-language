@@ -4,18 +4,21 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.MenuBar
+use Libraries.Interface.Controls.TabBarScrollArrow
 use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Label
 
 class HorizontalTabBarFlowLayout is TabBarFlowLayout
     // A small space between tabs, in points before the interface scale.
     constant number TAB_GAP = 2
+    // The width of each scroll arrow, in points before the interface scale.
+    constant number SCROLL_ARROW_WIDTH = 18
 
     action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
 
-        // This is the x position of the next item, unless it flows onto the
-        // next line (and resets to 0).
-        number x = -GetOffset()
+        // This is the x position of the next item. Tabs are placed as if the
+        // offset were 0; ApplyScrolling then moves them all by the offset.
+        number x = 0
 
         /* 
         Boolean used to ensure we don't perform redundant resizing on items
@@ -75,7 +78,8 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                     repeat while i < items:GetSize()
                         Item2D item = items:Get(i)
 
-                        if item is Control
+                        // The scroll arrows sit over the tabs, so they add no width.
+                        if item is Control and IsScrollArrow(item) = false
                             Control control = cast(Control, item)
                             control:ResetLayoutFlag()
                             LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
@@ -112,7 +116,7 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
                                 // If width can't be determined from its properties, use its width instead.
                                 totalWidthOffset = totalWidthOffset + item:GetWidth()
                             end
-                        else
+                        elseif IsScrollArrow(item) = false
                             // If width can't be determined from its properties, use its width instead.
                             totalWidthOffset = totalWidthOffset + item:GetWidth()
                         end
@@ -135,7 +139,8 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
         repeat while i < items:GetSize()
             Item2D item = items:Get(i)
 
-            if item is Control
+            // The scroll arrows are placed by ApplyScrolling, not as tabs.
+            if item is Control and IsScrollArrow(item) = false
                 Control control = cast(Control, item)
                 LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
 
@@ -237,42 +242,154 @@ class HorizontalTabBarFlowLayout is TabBarFlowLayout
             items are placed at the right y positions.
             */
             integer counter = 0
-            x = -GetOffset()
+            // As above, tabs are placed from 0 and ApplyScrolling moves them.
+            x = 0
             containerHeight = container:GetHeight()
             currentY = containerHeight
             nextY = containerHeight
             repeat while counter < items:GetSize()
                 Item2D item = items:Get(counter)
 
-                number leftMargin = 0
-                number rightMargin = 0
-                number topMargin = 0
-                number bottomMargin = 0
-                number placedGap = 0
+                // The scroll arrows are placed by ApplyScrolling, not as tabs.
+                if IsScrollArrow(item) = false
+                    number leftMargin = 0
+                    number rightMargin = 0
+                    number topMargin = 0
+                    number bottomMargin = 0
+                    number placedGap = 0
 
-                if item is Control
-                    Control control = cast(Control, item)
-                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
-                    if properties not= undefined
-                        leftMargin = properties:GetLeftMargin()
-                        rightMargin = properties:GetRightMargin()
-                        topMargin = properties:GetTopMargin()
-                        bottomMargin = properties:GetBottomMargin()
-                        placedGap = TAB_GAP * properties:GetInterfaceScale()
+                    if item is Control
+                        Control control = cast(Control, item)
+                        LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                        if properties not= undefined
+                            leftMargin = properties:GetLeftMargin()
+                            rightMargin = properties:GetRightMargin()
+                            topMargin = properties:GetTopMargin()
+                            bottomMargin = properties:GetBottomMargin()
+                            placedGap = TAB_GAP * properties:GetInterfaceScale()
+                        end
                     end
+
+                    x = x + leftMargin
+
+                    if currentY - item:GetHeight() - topMargin - bottomMargin < nextY
+                        nextY = currentY - item:GetHeight() - topMargin - bottomMargin
+                    end
+
+                    item:SetPosition(x, currentY - item:GetHeight() - topMargin)
+                    x = x + item:GetWidth() + rightMargin + placedGap
                 end
-
-                x = x + leftMargin
-
-                if currentY - item:GetHeight() - topMargin - bottomMargin < nextY
-                    nextY = currentY - item:GetHeight() - topMargin - bottomMargin
-                end
-
-                item:SetPosition(x, currentY - item:GetHeight() - topMargin)
-                x = x + item:GetWidth() + rightMargin + placedGap
 
                 counter = counter + 1
             end
         end
+
+        ApplyScrolling(container, items, containerWidth)
+    end
+
+    /*
+    This action scrolls the tabs after they are placed. The tabs were placed
+    as if the offset were 0. If they are wider than the container, the offset
+    is kept between 0 and the largest useful offset, room is left at both
+    ends for the scroll arrows (if the container has them), and every tab is
+    moved by the offset. If the tabs all fit, the offset goes back to 0 and
+    the arrows hide. The result is recorded with SetOverflowing,
+    SetVisibleArea and SetMaximumOffset.
+    */
+    private action ApplyScrolling(Control container, Array<Item2D> items, number containerWidth)
+        number contentWidth = 0
+        boolean hasArrows = false
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if IsScrollArrow(item)
+                hasArrows = true
+            elseif item:GetX() + item:GetWidth() > contentWidth
+                contentWidth = item:GetX() + item:GetWidth()
+            end
+            counter = counter + 1
+        end
+
+        number scale = 1
+        number containerHeight = 0
+        if container not= undefined
+            scale = container:GetInterfaceScale()
+            containerHeight = container:GetHeight()
+        end
+
+        boolean overflow = contentWidth > containerWidth
+        number reserve = 0
+        if overflow and hasArrows
+            reserve = SCROLL_ARROW_WIDTH * scale
+            // A bar too narrow for both arrows and some tab gets no arrows.
+            if containerWidth - reserve * 2 < reserve
+                reserve = 0
+            end
+        end
+
+        number maximum = 0
+        if overflow
+            maximum = contentWidth - (containerWidth - reserve * 2)
+        end
+
+        number scroll = GetOffset()
+        if scroll > maximum
+            scroll = maximum
+        end
+        if scroll < 0
+            scroll = 0
+        end
+
+        SetOffset(scroll)
+        SetOverflowing(overflow)
+        SetMaximumOffset(maximum)
+        SetVisibleArea(reserve, containerWidth - reserve)
+
+        number shift = reserve - scroll
+        counter = 0
+        repeat while counter < items:GetSize()
+            Item2D item = items:Get(counter)
+            if IsScrollArrow(item)
+                TabBarScrollArrow arrow = cast(TabBarScrollArrow, item)
+                PlaceScrollArrow(arrow, reserve, scroll, maximum, containerWidth, containerHeight)
+            elseif shift not= 0
+                item:SetX(item:GetX() + shift)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action shows and places one scroll arrow at its end of the container,
+    or hides it when no room is reserved for arrows (the tabs all fit).
+    */
+    private action PlaceScrollArrow(TabBarScrollArrow arrow, number reserve, number scroll, number maximum, number containerWidth, number containerHeight)
+        if reserve <= 0
+            if arrow:IsShowing()
+                arrow:Hide()
+            end
+            return now
+        end
+
+        LayoutProperties properties = arrow:GetLayoutProperties(containerWidth, containerHeight)
+        if properties not= undefined and properties:NeedsRendering()
+            arrow:LoadGraphics(properties)
+        end
+
+        if arrow:IsTowardEnd()
+            arrow:PlaceArrow(containerWidth - reserve, 0, reserve, containerHeight)
+            arrow:SetScrollAvailable(scroll + 0.5 < maximum)
+        else
+            arrow:PlaceArrow(0, 0, reserve, containerHeight)
+            arrow:SetScrollAvailable(scroll > 0.5)
+        end
+
+        if arrow:IsShowing() = false
+            arrow:Show()
+        end
+    end
+
+    private action IsScrollArrow(Item2D item) returns boolean
+        return item is TabBarScrollArrow
     end
 end

@@ -2405,6 +2405,9 @@ action Update(number seconds)
     private action RedrawTerrain(EditorTerrain terrain)
         if terrain:RegionsMatchModels()
             terrain:GetWorldTerrain():Rebuild()
+            // The ground may now reach past the box the layer culls the
+            // terrain by; rebuilding the models below refreshes it too.
+            terrain:RefreshRenderBounds()
         else
             // Regions were added or removed (step 11), so the models are
             // made again, and the selection's border fits the new size.

@@ -249,9 +249,59 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     from the textBox */
     action PreviousFindSelection()
         if findIndices not= undefined and findIndices:GetSize() not= 0
-            integer previousSelection = findSelection 
+            integer previousSelection = findSelection
             findSelection = findSelection - 1
             UpdateCurrentFindSelection(previousSelection, true)
+        end
+    end
+
+    /*
+    This action makes find start from the caret, for use after FindText when
+    the code has changed since the matches were last found. With forward
+    true, the next NextFindSelection goes to the first match at or after the
+    caret. With forward false, the next PreviousFindSelection goes to the
+    last match before the caret, and Replace replaces the first match at or
+    after it. With no caret, or no matches, nothing changes.
+
+    Attribute: Parameter forward True if the next step will be NextFindSelection, false for PreviousFindSelection or Replace.
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Blocks.CodeEditor
+
+    CodeEditor editor
+    editor:FindText("con", false, false)
+    editor:StartFindSelectionAtCaret(true)
+    editor:NextFindSelection()
+    */
+    action StartFindSelectionAtCaret(boolean forward)
+        if findIndices = undefined or findIndices:GetSize() = 0
+            return now
+        end
+        integer caret = GetCaretPosition()
+        if caret < 0
+            return now
+        end
+
+        // The first match that starts at or after the caret, or the number
+        // of matches when there's none after it.
+        integer firstAfter = findIndices:GetSize()
+        integer index = 0
+        repeat while index < findIndices:GetSize()
+            if findIndices:Get(index):GetFirstValue() >= caret
+                firstAfter = index
+                index = findIndices:GetSize()
+            else
+                index = index + 1
+            end
+        end
+
+        // Next adds one and Previous takes one away before showing a match;
+        // both wrap around at the ends (UpdateCurrentFindSelection).
+        if forward
+            findSelection = firstAfter - 1
+        else
+            findSelection = firstAfter
         end
     end
 
@@ -349,6 +399,11 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     action Replace(text replaceWord) 
         //SetTextChangeListenerOn(false) *In the ReplaceBehavior
         if findSelection < 0
+            findSelection = 0
+        end
+        // Past the last match (fewer matches after finding again, or none
+        // after the caret): wrap to the first, as Next does.
+        if findSelection >= findIndices:GetSize()
             findSelection = 0
         end
         if findIndices:GetSize() not= 0
