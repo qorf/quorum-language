@@ -54,6 +54,16 @@ public final class Node {
         nativeSetKeyboardShortcut(ptr, Util.bytesFromString(value));
     }
 
+    /*
+        Any text the program likes. AccessKit's macOS adapter gives it to
+        VoiceOver as the element's identifier; Quorum puts the node id there
+        (see MacAccessibilityExtras).
+    */
+    public void setAuthorId(String value) {
+        checkActive();
+        nativeSetAuthorId(ptr, Util.bytesFromString(value));
+    }
+
     public void setBounds(Rect value) {
         checkActive();
         nativeSetBounds(ptr, value.x0, value.y0, value.x1, value.y1);
@@ -196,6 +206,8 @@ public final class Node {
     private static native void nativeSetAccessKey(long ptr, byte[] value);
 
     private static native void nativeSetKeyboardShortcut(long ptr, byte[] value);
+
+    private static native void nativeSetAuthorId(long ptr, byte[] value);
 
     private static native void nativeSetBounds(long ptr, double x0, double y0, double x1, double y1);
 

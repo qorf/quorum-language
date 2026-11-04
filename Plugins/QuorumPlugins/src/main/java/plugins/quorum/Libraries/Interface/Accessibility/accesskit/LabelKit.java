@@ -1,5 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.MacAccessibilityExtras;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Node;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
@@ -7,10 +8,7 @@ import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Graphics.Font_;
 import quorum.Libraries.Game.Graphics.Label_;
-import quorum.Libraries.Game.Layer3D_;
-import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Item2D_;
-import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 
 public class LabelKit extends ItemKit{
@@ -18,23 +16,56 @@ public class LabelKit extends ItemKit{
         SetRole(Role.LABEL);
     }
 
+    // The label's heading level (Label:SetHeadingLevel), or 0.
+    private int GetHeadingLevel() {
+        //This may need to go back in if we can figure out
+        //how to make the rotor respect it on mac.
+//        Item_ item = GetItem();
+//        if (item instanceof Label_) {
+//            return ((Label_) item).GetHeadingLevel();
+//        }
+        return 0;
+    }
+
     public Node Build() {
-        Node builder = new Node(GetRole());
         Item_ item = GetItem();
+        int headingLevel = GetHeadingLevel();
+        Node builder = new Node(headingLevel > 0 ? Role.HEADING : GetRole());
 
         if (item != null && item instanceof Label_) {
             Label_ label = (Label_) item;
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setValue(label.GetText());
+            if (headingLevel > 0) {
+                // A heading's text is its title, and its value is its level,
+                // as in WebKit (AccessKit gives a number value as an NSNumber).
+                builder.setLabel(label.GetText());
+
+                //This is experimental and currently
+                //does not work with the rotor
+                builder.setNumericValue(headingLevel);
+                builder.setLevel(headingLevel);
+            } else {
+                builder.setValue(label.GetText());
+            }
             builder.setDescription(label.GetDescription());
         } else {
-            //builder.setValue(item.GetName() + ", " + item.GetDescription());
             builder.setValue(item.GetName());
             builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
         return builder;
+    }
+
+    // A heading is listed in the window's Headings rotor (MacAccessibilityExtras).
+    @Override
+    public void SendExtras() {
+        int headingLevel = GetHeadingLevel();
+        if (headingLevel > 0) {
+            MacAccessibilityExtras.setInfo(GetNodeID(), MacAccessibilityExtras.HEADING, headingLevel, -1, -1, 0, null);
+        } else {
+            MacAccessibilityExtras.remove(GetNodeID());
+        }
     }
 
     public Rect GetBoundingRectangle()
@@ -46,10 +77,7 @@ public class LabelKit extends ItemKit{
         } else {
             return super.GetBoundingRectangle();
         }
-        // The order of values in the bounding box is left, top, width, height.
         Rect rect;
-        double[] bounds = new double[4];
-
         DesktopDisplay_ display = (DesktopDisplay_) GameStateManager.display;
 
         if (display == null)
@@ -57,9 +85,6 @@ public class LabelKit extends ItemKit{
             rect = new Rect(0,0,0,0);
             return rect;
         }
-
-        double windowX = display.GetDisplayX();
-        double windowY = display.GetDisplayY();
 
         /*
         We need to know the height to correct for the difference in y
@@ -73,17 +98,16 @@ public class LabelKit extends ItemKit{
             double itemX = ((Item2D_)item).GetScreenX();
             double itemY = (((Item2D_) item).GetScreenY());
 
-            if (itemX == Double.NaN) {
+            if (Double.isNaN(itemX)) {
                 itemX = 0;
             }
 
-            if (itemY == Double.NaN) {
+            if (Double.isNaN(itemY)) {
                 itemY = 0;
             }
 
             Font_ font = item.GetFont();
             int descent = font.GetMaximumDescent();
-            int ascent = font.GetMaximumDescent();
             //bounding boxes require a slightly different approach than UIA.
             double x1 = itemX;
             double x2 = ((Item2D_) item).GetWidth() + itemX;

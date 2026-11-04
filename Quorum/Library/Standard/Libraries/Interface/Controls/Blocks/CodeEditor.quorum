@@ -2609,6 +2609,19 @@ integer i = blocks:GetSize()
         return breakpoints
     end
 
+    /*
+    This action returns a few words that screen readers say about the text
+    line a block starts on, after the block's other details, such as
+    "Changed." for a line version control sees as changed. This editor
+    knows of nothing, so it returns ""; editors that know more override it.
+
+    Attribute: Parameter line The text line, from 0, as Block:GetStartLine gives it.
+    Attribute: Returns Words ending in a period, or "".
+    */
+    action GetLineStatus(integer line) returns text
+        return ""
+    end
+
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
         lineGutter:SetBreakpointManager(breakpoints)

@@ -17,9 +17,17 @@ public class TextboxKit extends TextKitBase {
     }
 
     private NodeId GetLineID(int lineIndex) {
-        long id = (long)(GetItem().GetHashCode()) << 32;
+        long id = GetNodeID().value << 32;
         id |= (long)lineIndex;
         return new NodeId(id);
+    }
+
+    // The line a text run's id names (GetLineID), or -1 if it isn't one of this box's runs.
+    private int GetLineIndex(NodeId lineID) {
+        if ((lineID.value >>> 32) != GetNodeID().value) {
+            return -1;
+        }
+        return (int)(lineID.value & 0xffffffffL);
     }
 
     public Node Build() {
@@ -119,10 +127,10 @@ public class TextboxKit extends TextKitBase {
 
     @Override
     public Node BuildInternalChild(NodeId id) {
-        if ((int)(id.value >>> 32) != GetItem().GetHashCode()) {
+        int lineIndex = GetLineIndex(id);
+        if (lineIndex < 0) {
             throw new IllegalArgumentException("unexpected child ID");
         }
-        int lineIndex = (int)(id.value & 0xffffffff);
         Item_ item = GetItem();
         if(item != null && item instanceof TextBox_) {
             TextBox_ box = (TextBox_) item;

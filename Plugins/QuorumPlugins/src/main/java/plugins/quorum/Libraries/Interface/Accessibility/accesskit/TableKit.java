@@ -3,7 +3,6 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Node;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
-import plugins.quorum.Libraries.Interface.Accessibility.MacAccessibility;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Item_;
 
@@ -20,12 +19,9 @@ public class TableKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int columnsSize = MacAccessibility.GetTableColumnsSize(control);
-            int rowsSize = MacAccessibility.GetTableRowsSize(control);
-
-
-            //this may need to change as access kit changes. It feels like this
-            //should be setValue, but that may be an incorrect assumption.
+            // Row and column counts (MacAccessibility.GetTableRowsSize and
+            // GetTableColumnsSize) aren't sent: AccessKit's macOS adapter
+            // has no table attributes yet.
             builder.setLabel(control.GetName());
             builder.setDescription(control.GetDescription());
         } else {

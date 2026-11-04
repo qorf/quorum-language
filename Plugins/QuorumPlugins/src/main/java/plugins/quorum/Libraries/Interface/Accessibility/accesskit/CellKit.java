@@ -3,7 +3,6 @@ package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Node;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
-import plugins.quorum.Libraries.Interface.Accessibility.MacAccessibility;
 import quorum.Libraries.Interface.Controls.Cell_;
 import quorum.Libraries.Interface.Item_;
 
@@ -20,11 +19,9 @@ public class CellKit extends ItemKit{
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
 
-            int rowIndex = MacAccessibility.GetCellRowIndex(control);
-            int columnIndex = MacAccessibility.GetCellColumnIndex(control);
-
-            //this may need to change as access kit changes. It feels like this
-            //should be setValue, but that may be an incorrect assumption.
+            // Row and column (MacAccessibility.GetCellRowIndex and
+            // GetCellColumnIndex) aren't sent: AccessKit's macOS adapter
+            // has no table attributes yet.
             builder.setLabel(control.GetName());
             builder.setDescription(control.GetDescription());
         } else {
