@@ -22,6 +22,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.TreeItemContent
 use Libraries.Interface.Controls.DefaultTreeItemContent
+use Libraries.Interface.Views.ControlShaderView
 
 class TreeItem is Control
 
@@ -37,6 +38,45 @@ class TreeItem is Control
     // The rounded band behind this row when it is selected or hovered. It
     // is not laid out by TreeItemLayout; PlaceRowHighlight sizes it.
     TreeRowHighlight rowHighlight
+
+    // A short text right after this row's content, on its line, such as a
+    // word for a file's version control state (SetTrailingText). Like the
+    // band, it is not laid out by TreeItemLayout; PlaceTrailingLabel places
+    // it. It is made the first time there is text, so most rows never have
+    // one.
+    ControlLabel trailingLabel = undefined
+    text trailingText = ""
+    // The color given to SetTrailingText. Left unset, the label takes the
+    // theme's text color for this item's interface options key.
+    ColorGroup trailingColor = undefined
+    // The font given to the label, so it is only set again when it changes.
+    Font trailingFont = undefined
+    // What the label was last placed with: the content's width, this row's
+    // height and the label's width. -1 means not placed.
+    number placedContentWidth = -1
+    number placedRowHeight = -1
+    number placedLabelWidth = -1
+    // In points before the interface scale: the gap between the row's
+    // content and its trailing text.
+    constant number TRAILING_GAP = 6
+
+    // A thin bar at the tree's left edge on this row's line, such as a mark
+    // for a file's version control state (SetLeadingBar). Like the band, it
+    // is not laid out by TreeItemLayout; PlaceLeadingBar places it. It is
+    // made the first time there is a bar, so most rows never have one.
+    Control leadingBar = undefined
+    // What the bar was last placed with: this row's indent, this row's
+    // height and the interface scale. -1 means not placed.
+    number barOffset = -1
+    number barRowHeight = -1
+    number barScale = -1
+    // In points before the interface scale: the bar's distance from the
+    // tree's left edge, its width, its distance from the row's top and
+    // bottom, and the outline's thickness for SetLeadingBar(color, true).
+    constant number BAR_INSET = 2
+    constant number BAR_WIDTH = 4
+    constant number BAR_VERTICAL_INSET = 3
+    constant number BAR_OUTLINE = 1
 
     Behavior activationBehavior = undefined
 
@@ -64,6 +104,9 @@ class TreeItem is Control
         rowHighlight:SetInterfaceOptionsKey(key)
         if contents not= undefined
             contents:SetInterfaceOptionsKey(key)
+        end
+        if trailingLabel not= undefined
+            trailingLabel:SetInterfaceOptionsKey(key)
         end
     end
 
@@ -130,6 +173,9 @@ class TreeItem is Control
         parent:Control:SetFontSize(size)
         if contents not= undefined
             contents:SetFontSize(size)
+        end
+        if trailingLabel not= undefined
+            trailingLabel:SetFontSize(size)
         end
         integer i = 0
         repeat while i < treeItems:GetSize()
@@ -423,6 +469,11 @@ class TreeItem is Control
         rowHighlight:GainedSelection()
         rowHighlight:SetShowsFocus(true)
         ShowRowHighlight()
+        // On the band, the trailing text takes the selection text color,
+        // as the name does. Rows without the band keep its own color.
+        if trailingLabel not= undefined and contents is DefaultTreeItemContent
+            trailingLabel:GainedSelection()
+        end
     end
 
     action LostSelection
@@ -432,6 +483,9 @@ class TreeItem is Control
         end
         rowHighlight:LostSelection()
         UpdateRowHighlightVisibility()
+        if trailingLabel not= undefined
+            trailingLabel:LostSelection()
+        end
     end
 
     action UnfocusedSelection
@@ -441,6 +495,9 @@ class TreeItem is Control
         rowHighlight:GainedSelection()
         rowHighlight:SetShowsFocus(false)
         ShowRowHighlight()
+        if trailingLabel not= undefined and contents is DefaultTreeItemContent
+            trailingLabel:UnfocusedSelection()
+        end
     end
 
     /*
@@ -489,11 +546,491 @@ class TreeItem is Control
     /*
     Each frame, while the row's highlight is showing, it is kept the width of
     the tree and the height of this row, since the tree's width and this row's
-    place in it change with layout and scrolling.
+    place in it change with layout and scrolling. The trailing text, if this
+    row has any, is kept right after the row's content, and the leading bar,
+    if it has one, at the tree's left edge; each is only moved when what it
+    is placed by changed.
     */
     action Update(number seconds)
         if rowHighlight:IsShowing()
             PlaceRowHighlight()
+        end
+        if trailingLabel not= undefined
+            if trailingLabel:IsShowing()
+                PlaceTrailingLabel()
+            end
+        end
+        if leadingBar not= undefined
+            if leadingBar:IsShowing()
+                PlaceLeadingBar()
+            end
+        end
+    end
+
+    /*
+    This action shows a short text right after this item's name, on its
+    row, such as a word for a file's version control state ("modified").
+    The text is drawn in the theme's text color for tree items. The row is
+    made wide enough for it, so it never covers the name, and it moves with
+    the name when the name changes. On a selected row it is drawn in the
+    selection text color, as the name is. The text is not read by screen
+    readers; to say the same thing to them, put it in the item's description
+    (SetDescription). An empty text removes it. The mouse goes through it to
+    the row, so clicking it selects the row.
+
+    Attribute: Parameter value The text to show, or "" for none.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.Tree
+        use Libraries.Interface.Controls.TreeItem
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Tree tree
+
+                TreeItem boss
+                boss:SetName("Boss.quorum")
+                boss:SetTrailingText("untracked")
+                boss:SetDescription("Untracked")
+                tree:Add(boss)
+
+                TreeItem player
+                player:SetName("Player.quorum")
+                tree:Add(player)
+
+                tree:SetPosition(50, 300)
+                Add(tree)
+            end
+        end
+    */
+    action SetTrailingText(text value)
+        // No color of its own: the label's layout properties fall back to
+        // the theme's font color for this item's interface options key
+        // (normally "TreeItem"), and follow the theme when it changes.
+        ApplyTrailingText(value, undefined)
+    end
+
+    /*
+    This action shows a short text right after this item's name, on its
+    row, in the given color, such as a word for a file's version control
+    state ("modified"). The row is made wide enough for it, so it never
+    covers the name, and it moves with the name when the name changes. On a
+    selected row it is drawn in the selection text color, as the name is.
+    The text is not read by screen readers; to say the same thing to them,
+    put it in the item's description (SetDescription). An empty text removes
+    it. The mouse goes through it to the row, so clicking it selects the
+    row. To use the theme's text color, use SetTrailingText(value).
+
+    Attribute: Parameter value The text to show, or "" for none.
+    Attribute: Parameter color The text's color when the row is not selected.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.Tree
+        use Libraries.Interface.Controls.TreeItem
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Tree tree
+
+                TreeItem hero
+                hero:SetName("Hero.quorum")
+                Color color
+                hero:SetTrailingText("modified", color:Gray())
+                hero:SetDescription("Modified")
+                tree:Add(hero)
+
+                TreeItem player
+                player:SetName("Player.quorum")
+                tree:Add(player)
+
+                tree:SetPosition(50, 300)
+                Add(tree)
+            end
+        end
+    */
+    action SetTrailingText(text value, ColorGroup color)
+        // A missing color falls back to the theme's, as SetTrailingText(value).
+        ApplyTrailingText(value, color)
+    end
+
+    // Shows, changes or removes the trailing text. A color of undefined is
+    // only passed by SetTrailingText(value): the theme's color.
+    private action ApplyTrailingText(text value, ColorGroup color)
+        if value = ""
+            trailingText = ""
+            trailingColor = color
+            if trailingLabel not= undefined
+                if trailingLabel:IsShowing()
+                    trailingLabel:Hide()
+                    // The row is only as wide as its content again.
+                    RequestLayout()
+                end
+            end
+            return now
+        end
+
+        if trailingLabel = undefined
+            MakeTrailingLabel()
+        end
+
+        boolean changed = false
+        if color not= trailingColor or trailingText = ""
+            trailingLabel:SetFontColor(color)
+            changed = true
+        end
+        if value not= trailingText
+            trailingLabel:SetText(value)
+            changed = true
+        end
+        trailingText = value
+        trailingColor = color
+
+        if not trailingLabel:IsShowing()
+            trailingLabel:Show()
+            changed = true
+        end
+        if changed
+            // Placed again on the next Update; laid out again, since the
+            // row's room depends on the text's width.
+            placedContentWidth = -1
+            RequestLayout()
+        end
+    end
+
+    /*
+    This action returns the text shown after this item's name on its row
+    (SetTrailingText), or "" if there is none.
+
+    Attribute: Returns The trailing text, or "" if there is none.
+    */
+    action GetTrailingText returns text
+        return trailingText
+    end
+
+    /*
+    This action returns the room, in pixels, kept after this row's content
+    for its trailing text: the text's width and a small gap. TreeItemLayout
+    adds it to the row's width, so the row is as wide as its name and its
+    text. It is 0 when the row has no trailing text. Most programs never use
+    this action directly.
+
+    Attribute: Returns The room after this row's content, in pixels.
+    */
+    action GetTrailingRoom returns number
+        // Neither the label nor the leading bar is laid out by a Layout, so
+        // their layout requests (from SetText or SetInterfaceScale) are
+        // answered here, where this row is laid out. Left set, they would
+        // make this row lay out again every frame.
+        if leadingBar not= undefined
+            if leadingBar:NeedsLayout()
+                leadingBar:ResetLayoutFlag()
+            end
+        end
+        if trailingLabel = undefined
+            return 0
+        end
+
+        if trailingLabel:NeedsLayout()
+            trailingLabel:ResetLayoutFlag()
+        end
+
+        if not trailingLabel:IsShowing()
+            return 0
+        end
+        SyncTrailingFont()
+        return trailingLabel:GetWidth() + TRAILING_GAP * GetInterfaceScale()
+    end
+
+    // Makes the trailing label the first time this row has trailing text.
+    private action MakeTrailingLabel
+        ControlLabel newLabel
+        trailingLabel = newLabel
+        // Set before it is added, so it never reaches the accessibility
+        // tree. Screen readers read the item's name, then its description.
+        trailingLabel:SetAccessibilityCode(trailingLabel:parent:Item:NOT_ACCESSIBLE)
+        // Clicks and hovers go through it to the row (Contains counts the
+        // tree's whole width as the row), so it acts like the row.
+        trailingLabel:SetAcceptsMouseInput(false)
+        trailingLabel:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
+        trailingLabel:SetInterfaceScale(GetInterfaceScale())
+        trailingLabel:SetFontSize(GetFontSize())
+
+        // The band shows the selection, so the label only changes its text
+        // color and draws no box of its own, as the name's label does.
+        Color clear
+        trailingLabel:SetSelectionColor(clear:CustomColor(0, 0, 0, 0))
+        trailingLabel:SetUnfocusedSelectionColor(clear:CustomColor(0, 0, 0, 0))
+
+        trailingLabel:Hide()
+        // Added after the content and the band, so it is drawn on top of
+        // the band. TreeItemLayout doesn't lay it out.
+        parent:Item2D:Add(trailingLabel)
+
+        // A row that is already selected shows it at once.
+        if contents is DefaultTreeItemContent and rowHighlight:IsRenderingSelection()
+            if rowHighlight:IsRenderingFocus()
+                trailingLabel:GainedSelection()
+            else
+                trailingLabel:UnfocusedSelection()
+            end
+        end
+    end
+
+    // The label uses the row's font, at the row's size.
+    private action SyncTrailingFont
+        Font font = GetFont()
+        if font = undefined or font = trailingFont
+            return now
+        end
+        trailingFont = font
+        trailingLabel:SetFont(font)
+        // SetFont takes the shared font's current size, which may already
+        // be scaled, so the row's own size is set again, as
+        // DefaultTreeItemContent does for the name.
+        trailingLabel:SetFontSize(GetFontSize())
+    end
+
+    /*
+    Places the trailing label right after this row's content, after a small
+    gap, centered on this row's line, in this item's coordinates
+    (the content is at 0, 0, as TreeItemLayout puts it). It reads three
+    numbers and returns at once if none changed since the last time, so it
+    is cheap to call each frame.
+    */
+    private action PlaceTrailingLabel
+        if contents = undefined
+            return now
+        end
+
+        if trailingLabel:GetInterfaceScale() not= GetInterfaceScale()
+            trailingLabel:SetInterfaceScale(GetInterfaceScale())
+        end
+        SyncTrailingFont()
+        LayoutProperties properties = trailingLabel:GetDefaultLayoutProperties()
+        if properties:NeedsRendering()
+            trailingLabel:LoadGraphics(properties)
+        end
+
+        number contentWidth = contents:GetWidth()
+        number rowHeight = contents:GetHeight()
+        number labelWidth = trailingLabel:GetWidth()
+
+        boolean moved = contentWidth not= placedContentWidth or rowHeight not= placedRowHeight
+        if not moved
+            moved = labelWidth not= placedLabelWidth
+        end
+        if not moved
+            return now
+        end
+
+        placedContentWidth = contentWidth
+        placedRowHeight = rowHeight
+        placedLabelWidth = labelWidth
+
+        number x = contentWidth + TRAILING_GAP * GetInterfaceScale()
+        number y = (rowHeight - trailingLabel:GetHeight()) / 2
+        trailingLabel:SetPosition(x, y)
+    end
+
+    /*
+    This action shows a thin bar at the left edge of the tree, on this
+    item's row, in the given color, such as a mark for a file's version
+    control state. The bar is a few points wide with rounded ends, a little
+    shorter than the row, and is drawn over the row's highlight, so it shows
+    on a selected row too. Filled, it is the given color; outlined, only its
+    edge is, and its inside is clear, which can tell two states apart that
+    share a color. Calling it again changes the bar; RemoveLeadingBar takes
+    it away. The bar is not read by screen readers; to say the same thing
+    to them, put it in the item's description (SetDescription). The mouse
+    goes through it to the row, so clicking it selects the row.
+
+    Attribute: Parameter color The bar's color.
+    Attribute: Parameter outlined True to draw only the bar's edge, false to fill it.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.Tree
+        use Libraries.Interface.Controls.TreeItem
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Tree tree
+                Color color
+
+                TreeItem hero
+                hero:SetName("Hero.quorum")
+                hero:SetLeadingBar(color:Blue(), false)
+                hero:SetDescription("Modified")
+                tree:Add(hero)
+
+                TreeItem boss
+                boss:SetName("Boss.quorum")
+                boss:SetLeadingBar(color:Green(), true)
+                boss:SetDescription("Untracked")
+                tree:Add(boss)
+
+                tree:SetPosition(50, 300)
+                Add(tree)
+            end
+        end
+    */
+    action SetLeadingBar(ColorGroup color, boolean outlined)
+        if color = undefined
+            RemoveLeadingBar()
+            return now
+        end
+        if leadingBar = undefined
+            MakeLeadingBar()
+        end
+
+        leadingBar:SetBorderColor(color)
+        if outlined
+            Color clear
+            leadingBar:SetBackgroundColor(clear:CustomColor(0, 0, 0, 0))
+            leadingBar:SetBorderThickness(BAR_OUTLINE)
+        else
+            leadingBar:SetBackgroundColor(color)
+            leadingBar:SetBorderThickness(0)
+        end
+        leadingBar:RequestVerticesUpdate()
+
+        if not leadingBar:IsShowing()
+            leadingBar:Show()
+        end
+        // Placed again on the next Update.
+        barOffset = -1
+    end
+
+    /*
+    This action takes away the bar shown at the left edge of the tree on
+    this item's row (SetLeadingBar). It does nothing if there is none.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TreeItem
+        use Libraries.Game.Graphics.Color
+
+        TreeItem hero
+        hero:SetName("Hero.quorum")
+        Color color
+        hero:SetLeadingBar(color:Blue(), false)
+        hero:RemoveLeadingBar()
+    */
+    action RemoveLeadingBar
+        if leadingBar = undefined
+            return now
+        end
+        if leadingBar:IsShowing()
+            leadingBar:Hide()
+        end
+    end
+
+    /*
+    This action returns whether this item's row shows a bar at the left edge
+    of the tree (SetLeadingBar).
+
+    Attribute: Returns True if the row shows a leading bar.
+    */
+    action HasLeadingBar returns boolean
+        if leadingBar = undefined
+            return false
+        end
+        return leadingBar:IsShowing()
+    end
+
+    // Makes the leading bar the first time this row has one.
+    private action MakeLeadingBar
+        Control newBar
+        leadingBar = newBar
+        // Set before it is added, so it never reaches the accessibility
+        // tree. Screen readers read the item's name, then its description.
+        leadingBar:SetAccessibilityCode(leadingBar:parent:Item:NOT_ACCESSIBLE)
+        leadingBar:SetFocusable(false)
+        // Clicks and hovers go through it to the row (Contains counts the
+        // tree's whole width as the row), so it acts like the row.
+        leadingBar:SetAcceptsMouseInput(false)
+        leadingBar:SetInterfaceScale(GetInterfaceScale())
+        // Fully rounded ends: a rounding of 1 is half the bar's width.
+        leadingBar:SetCornerRounding(1, 1, 1, 1)
+
+        // Drawn as a box with a border, as the band is.
+        ControlShaderView view
+        view:Initialize()
+        leadingBar:SetView2D(view)
+
+        leadingBar:Hide()
+        // Added after the content and the band, so it is drawn on top of
+        // the band. TreeItemLayout doesn't lay it out.
+        parent:Item2D:Add(leadingBar)
+    end
+
+    /*
+    Places the leading bar at the tree's left edge, plus a small inset, a
+    little shorter than this row, in this item's coordinates (its left edge
+    is moved back by this row's indent, as PlaceRowHighlight does). It reads
+    three numbers and returns at once if none changed since the last time,
+    so it is cheap to call each frame.
+    */
+    private action PlaceLeadingBar
+        Tree tree = GetTree()
+        if tree = undefined or contents = undefined
+            return now
+        end
+
+        number scale = GetInterfaceScale()
+        number offset = tree:GetGlobalX() - GetGlobalX()
+        number rowHeight = contents:GetHeight()
+
+        boolean moved = offset not= barOffset or rowHeight not= barRowHeight
+        if not moved
+            moved = scale not= barScale
+        end
+        if not moved
+            return now
+        end
+
+        barOffset = offset
+        barRowHeight = rowHeight
+        barScale = scale
+
+        if leadingBar:GetInterfaceScale() not= scale
+            leadingBar:SetInterfaceScale(scale)
+        end
+
+        number height = rowHeight - BAR_VERTICAL_INSET * scale * 2
+        if height < 0
+            height = 0
+        end
+        leadingBar:SetPosition(offset + BAR_INSET * scale, BAR_VERTICAL_INSET * scale)
+        leadingBar:SetSize(BAR_WIDTH * scale, height)
+
+        LayoutProperties properties = leadingBar:GetDefaultLayoutProperties()
+        if properties:NeedsRendering()
+            leadingBar:LoadGraphics(properties)
+        end
+        // SetInterfaceScale asks for a layout no Layout answers (see
+        // GetTrailingRoom).
+        if leadingBar:NeedsLayout()
+            leadingBar:ResetLayoutFlag()
         end
     end
 
