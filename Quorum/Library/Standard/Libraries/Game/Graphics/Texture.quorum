@@ -262,6 +262,114 @@ then these arrays are defined and contain the dimensions of the Nth image at the
     action LoadFromFile(File file)
         LoadFromFile(file, undefined, false)
     end
+    
+    action LoadFromFilePaths(Array<text> filePaths)
+        Array<File> files
+        integer i = 0
+        repeat while i < filePaths:GetSize()
+            File file = MakeFile(filePaths:Get(i))
+            files:Add(file)
+            i = i + 1
+        end
+        
+        LoadFromFiles(filePaths)
+    end
+    
+    action LoadFromFiles(Array<File> files)
+        GameStateManager gameState
+        if gameState:GetApplication() is WebApplication
+            if not IsCubemap()
+                alert("In WebGL mode, I cannot support layered textures except for cubemaps. Load this as a cubemap instead.")
+            elseif files:GetSize() not= 6
+                alert("Cubemaps must have exactly six faces, but I was asked to load " + files:GetSize() + " instead.")
+            end
+            
+            Array<PixelMap> returnArray
+            LoadAsynchronously(files, returnArray)
+            return now
+        end
+        
+        Array<PixelMap> pixelMaps
+        integer i = 0
+        repeat while i < files:GetSize()
+            PixelMap pixelMap
+            pixelMap:LoadPixelMap(files:Get(i))
+            pixelMaps:Add(pixelMap)
+            i = i + 1
+        end
+        
+        LoadFromPixelMaps(pixelMaps)
+    end
+    
+    // For use on the web specifically, loads an array of files into an array of PixelMaps that will be loaded into this texture.
+    // Once all PixelMaps are loaded, the return array will be sent as the parameter for LoadFromPixelMaps.
+    private system action LoadAsynchronously(Array<File> files, Array<PixelMap> returnArray)
+    
+    action LoadFromPixelMaps(Array<PixelMap> pixelMaps)
+        layerCount = pixelMaps:GetSize()
+        width = pixelMaps:Get(0):GetWidth()
+        height = pixelMaps:Get(0):GetHeight()
+        me:useMipMaps = useMipMaps
+        
+        Array<integer> widths
+        Array<integer> heights
+        layerWidths = widths
+        layerHeights = heights
+        
+        // If this is a cubemap, all sides must be equal. If they're not, it's invalid.
+        integer dimension = pixelMaps:Get(0):GetWidth()
+        integer i = 0
+        repeat while i < pixelMaps:GetSize()
+            PixelMap map = pixelMaps:Get(i)
+            layerWidths:Add(map:GetWidth())
+            layerHeights:Add(map:GetHeight())
+            // Don't alert an error if the initial dimension was 0 -- in that case, the PixelMap isn't loaded (likely due to async loading on the web)
+            // and so it's not possible for us to determine if the pixel maps are correct here or not.
+            if isCubemap and dimension not= 0
+                if map:GetWidth() not= dimension or map:GetHeight() not= dimension
+                alert("I can't load this cubemap because not all of the sides are of equal length. I expected sides of length " + dimension
++ ", but the image at index " + i + " had dimensions " + map:GetWidth() + "x" + map:GetHeight())
+            end
+            end
+            
+            i = i + 1
+        end
+        
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            textureManager:RequestLoad(me, pixelMaps)
+        else
+            if isCubemap
+                SetGraphicsInfo(constants:GL_TEXTURE_CUBE_MAP, CreateGLHandle())
+            else
+                alert("OpenGL mode does not support layered textures with arbitrary layers. It only supports single images and cubemaps.")
+            end
+            
+        Bind()
+            
+            OpenGLManager openGL = GetOpenGL()
+            openGL:PixelStorageMode(constants:GL_UNPACK_ALIGNMENT,1)
+
+            integer side = constants:GL_TEXTURE_CUBE_MAP_POSITIVE_X
+            i = 0
+            repeat while i < 6
+                PixelMap pixelMap = pixelMaps:Get(i)
+                pixelMap:Define2DImage(side + i, 0, 0)
+                
+                if pixelMap:DisposeAfterTextureLoad()
+                    pixelMap:Dispose()
+                end
+                
+                i = i + 1
+            end
+            
+        SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
+        SetWrap(GetHorizontalWrap(), GetVerticalWrap())
+        
+        BindToDefault()
+        end
+    end
 
     /*
     This action will load a texture asynchronously (that is, the texture is
@@ -486,20 +594,31 @@ then these arrays are defined and contain the dimensions of the Nth image at the
         LoadFromTextureData(undefined, pixelMap, useMipMaps)
     end
     
-    action LoadFromFiles(Array<File> files)
-    end
-    
-    action LoadFromPixelMaps(Array<PixelMap> pixelMaps)
-        layerCount = pixelMaps:GetSize()
-    end
-    
+    /*This action loads a cubemap from an Array of six image files. The images should be ordered
+right, left, up, down, front, back.
+
+Attribute: Parameter files An array of six files, storing the images of a cubemap.*/
     action LoadCubemapFromFiles(Array<File> files)
-    end
-    
-    action LoadCubemapFromPixelMaps(Array<PixelMap> pixelMaps)
+        if files:GetSize() not= 6
+            alert("Cubemaps must have exactly 6 texture files, but I was provided with " + files:GetSize() + " files.")
+        end
+        
         isCubemap = true
+        LoadFromFiles(files)
     end
     
+    /*This action loads a cubemap from an Array of six PixelMaps. The images should be ordered
+right, left, up, down, front, back.
+
+Attribute: Parameter files An array of six PixelMaps, storing the images of a cubemap.*/
+    action LoadCubemapFromPixelMaps(Array<PixelMap> pixelMaps)
+        if pixelMaps:GetSize() not= 6
+            alert("Cubemaps must have exactly 6 texture files, but I was provided with " + pixelMaps:GetSize() + " files.")
+        end
+        
+        isCubemap = true
+        LoadFromPixelMaps(pixelMaps)
+    end
 
     /*
     This action will load a matrix into the Texture to create a monochrome
@@ -727,7 +846,7 @@ then these arrays are defined and contain the dimensions of the Nth image at the
         if manager:GetGameGraphics() is VulkanGraphics
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanTextureManager textureManager = graphics:GetTextureManager()
-            textureManager:RequestLoad(me, pixelMap, pixelMap:DisposeAfterTextureLoad())
+            textureManager:RequestLoad(me, pixelMap)
 
             return now
         end
@@ -742,24 +861,6 @@ then these arrays are defined and contain the dimensions of the Nth image at the
         BindToDefault()
         AddReloadableTexture()
     end
-
-    /*
-    This action loads a Texture's data so it can be drawn to the screen. This is
-    primarily for internal use, and most users will never need to use this action. 
-    */
-    //private action Load(TextureData loadingData)
-        //Bind()
-//
-        //UploadImageData(constants:GL_TEXTURE_2D, data)
-        //SetFilter(GetMinimizeFilter(), GetMagnifyFilter())
-        //SetWrap(GetHorizontalWrap(), GetVerticalWrap())
-        //
-        //BindToDefault()
-//
-        ////parent:Item:width = data:GetWidth()
-        ////parent:Item:height = data:GetHeight()
-//
-    //end
 
     /*
     Used to reload a Texture that's already been loaded. This is used internally
@@ -832,6 +933,98 @@ then these arrays are defined and contain the dimensions of the Nth image at the
     action GetHeight returns integer
         return height
     end
+    
+    /*
+    This action returns the width of one of the images in a layered Texture.
+    The index selects which of the layered images will be used to report the width.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This will store the file paths of two images from a directory called "Images".
+                Array<text> files
+                files:Add("Images/Sample1.png")
+                files:Add("Images/Sample2.png")
+
+                // This call will load all of the stored file paths into a layered texture.
+                myTexture:LoadFromFilePaths(files)
+                // This will store the width of the second texture image.
+                number width = myTexture:GetWidth(1)
+            end
+        end
+    */
+    action GetWidth(integer index) returns integer
+        if layerCount = 0
+            alert("I can't return a width from this Texture because it hasn't been loaded yet.")
+        end
+        if layerWidths = undefined
+            if index = 0
+                return width
+            else
+                alert("I can't return the width at layer " + index + " because this image isn't layered (it only has one layer at index 0).")
+            end
+        end
+        
+        return layerWidths:Get(index)
+    end
+
+    /*
+    This action returns the height of one of the images in a layered Texture.
+    The index selects which of the layered images will be used to report the height.
+
+    Attribute: Example
+
+        use Libraries.Game.Texture
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+
+        class Main is Game
+
+            Texture myTexture
+
+            action Main
+                StartGame()
+            end
+        
+            action CreateGame
+                // This will store the file paths of two images from a directory called "Images".
+                Array<text> files
+                files:Add("Images/Sample1.png")
+                files:Add("Images/Sample2.png")
+
+                // This call will load all of the stored file paths into a layered texture.
+                myTexture:LoadFromFilePaths(files)
+                // This will store the height of the second texture image.
+                number width = myTexture:GetHeight(1)
+            end
+        end
+    */
+    action GetHeight(integer index) returns integer
+        if layerCount = 0
+            alert("I can't return a height from this Texture because it hasn't been loaded yet.")
+        end
+        if layerHeights = undefined
+            if index = 0
+                return height
+            else
+                alert("I can't return the height at layer " + index + " because this image isn't layered (it only has one layer at index 0).")
+            end
+        end
+        
+        return layerHeights:Get(index)
+    end
 
     /*
     This action indicates that the texture should be reloaded after a context
@@ -861,34 +1054,6 @@ then these arrays are defined and contain the dimensions of the Nth image at the
     public system action GetGLTarget returns integer
 
     public system action GetGLHandle returns integer
-
-    // All actions placed below are originally from GLTexture.
-
-    //private action CreateTextureData(File file, boolean useMipMaps) returns TextureData
-        //return CreateTextureData(file, undefined, useMipMaps)
-    //end
-//
-    //private action CreateTextureData(File file, Format format, boolean useMipMaps) returns TextureData
-        //if file = undefined
-            //return undefined
-        //end
-        //
-        //text filePath = file:GetPath()
-//
-        //if filePath:EndsWith(".cim") 
-            ////return new FileTextureData(file, PixmapIO.readCIM(file), format, useMipMaps);
-        //elseif filePath:EndsWith(".etc1") 
-            ////return new ETC1TextureData(file, useMipMaps);
-        //elseif filePath:EndsWith(".ktx") 
-            ////return new KTXTextureData(file, useMipMaps);
-        //end
-//
-        //FileTextureData data
-        //PixelMap temp
-        //temp:LoadPixelMap(file)
-        //data:InitializeFileTextureData(file, temp, format, useMipMaps)
-        //return data
-    //end
 
     private action UploadImageDataOpenGL(integer target, PixelMap pixelMap)
         UploadImageDataOpenGL(target, pixelMap, 0)
@@ -946,6 +1111,9 @@ then these arrays are defined and contain the dimensions of the Nth image at the
         if openGL not= undefined
             openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_S, hWrap:GetValue())
             openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_T, vWrap:GetValue())
+            if isCubemap
+                openGL:SetTextureParameter(GetGLTarget(), constants:GL_TEXTURE_WRAP_R, vWrap:GetValue())
+            end
         end
     end
 
@@ -1658,6 +1826,18 @@ The manager may divide textures into multiple groups if there are more textures 
 array as a shader input.*/
     action GetVulkanTextureLocalIndex returns integer
         return vulkanTextureLocalIndex
+    end
+
+    /*This action returns how many images are stored in this texture. Most textures store only a single image, so the layer count
+is 1. Some specialized textures may have multiple (e.g. cubemaps have 6). If the texture hasn't been loaded yet, this will be 0.*/
+    action GetLayerCount returns integer
+        return layerCount
+    end
+    
+    /*This action returns whether or not this texture is a cubemap. This is true if the texture was loaded using
+one of the LoadCubemap actions, or false otherwise.*/
+    action IsCubemap returns boolean
+        return isCubemap
     end
 
 end

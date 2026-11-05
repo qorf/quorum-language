@@ -6,7 +6,6 @@ use Libraries.Game.Graphics.Models.OpenGL.Attributes.IntegerAttribute
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.DepthTestAttribute
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.TextureDescriptor
-use Libraries.Game.Graphics.Shaders.SkyboxShader
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
@@ -24,8 +23,6 @@ class OpenGLPainter3D is Painter3D, Disposable
     Camera camera = undefined
     EnvironmentOpenGL environment = undefined
     Skybox skybox = undefined
-    // The web's own skybox shader, made only on the web (Item 26).
-    SkyboxShader webSkyboxShader = undefined
 
     ShaderProgram defaultProgram = undefined
     boolean isRendering = false

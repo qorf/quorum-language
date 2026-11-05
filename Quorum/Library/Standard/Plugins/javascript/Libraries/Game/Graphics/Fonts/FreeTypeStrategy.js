@@ -136,7 +136,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			// Create File texture data
 			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
 			texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
-			//texData.SetDisposalState(false);
 
 			// Create texture
 			var texture = new quorum_Libraries_Game_Graphics_Texture_();
@@ -241,7 +240,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
     			// Create File texture data
     			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
     			texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
-    			//texData.SetDisposalState(false);
 
     			// Create texture
     			var texture = new quorum_Libraries_Game_Graphics_Texture_();
@@ -536,7 +534,6 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		// Create File texture data
 		var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
 		texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
-		//texData.SetDisposalState(false);
 
 		// Create texture
 		var texture = new quorum_Libraries_Game_Graphics_Texture_();

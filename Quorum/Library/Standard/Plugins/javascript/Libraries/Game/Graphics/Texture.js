@@ -108,4 +108,36 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
     {
         // Do nothing, this isn't necessary on the web.
     };
+
+    this.LoadAsynchronously$quorum_Libraries_Containers_Array$quorum_Libraries_Containers_Array = function(array, pixelMapArray)
+    {
+        console.log("Loading async...");
+        let totalFiles = array.GetSize();
+        let filesLoaded = 0;
+
+        pixelMapArray.SetSize$quorum_integer(totalFiles);
+
+        for (let i = 0; i < array.GetSize(); i++)
+        {
+            let file = array.Get$quorum_integer(i);
+
+            var loadImage = new Image();
+            loadImage.timedLoadIndex = i;
+            loadImage.onload = function()
+            {
+                let pixelMap = new quorum_Libraries_Game_Graphics_PixelMap_();
+                let pixelMapPlugin = pixelMap.plugin_;
+                pixelMapArray.Set$quorum_integer$quorum_Libraries_Language_Object(this.timedLoadIndex, pixelMap);
+
+                pixelMapPlugin.FinishLoadingCubemapSide(this);
+                filesLoaded++;
+
+                if (filesLoaded === totalFiles)
+                {
+                    me_.LoadFromPixelMaps$quorum_Libraries_Containers_Array(pixelMapArray);
+                }
+            };
+            loadImage.src = file.GetAbsolutePath();
+        }
+    };
 }

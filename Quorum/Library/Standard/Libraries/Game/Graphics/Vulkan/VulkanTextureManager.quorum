@@ -18,12 +18,9 @@ class VulkanTextureManager
     // The pending pixel maps are the sets of pixel data associated with the load commands.
     Array<Texture> pendingTextures
     Array<PixelMap> pendingPixelMaps
-    // For each waiting texture, whether its PixelMap is disposed once
-    // copied (Item 34).
-    Array<boolean> pendingDisposeFlags
-    // Cube textures waiting to be made (Item 26), each with its six sides.
-    Array<Texture> pendingCubeTextures
-    Array<Array<PixelMap>> pendingCubeSides
+    // Arrays for layered textures (textures with multiple images stored together, such as cubemaps). These are processed and stored separately.
+    Array<Texture> pendingLayeredTextures
+    Array<Array<PixelMap>> pendingLayeredPixelMaps
 
 
     // Staging buffers for textures loaded again after their first load: for
@@ -124,10 +121,6 @@ class VulkanTextureManager
         return globalTextureDescriptorSets:Get(groupID)
     end
 
-    action RequestLoad(Texture texture, PixelMap pixelMap)
-        RequestLoad(texture, pixelMap, false)
-    end
-
     /*
     This action asks for a texture to be loaded from a PixelMap during the
     next frame.
@@ -136,38 +129,32 @@ class VulkanTextureManager
     Attribute: Parameter pixelMap Its pixels.
     Attribute: Parameter disposeAfter True to dispose the PixelMap once it has been copied.
     */
-    action RequestLoad(Texture texture, PixelMap pixelMap, boolean disposeAfter)
+    action RequestLoad(Texture texture, PixelMap pixelMap)
         pendingTextures:Add(texture)
         pendingPixelMaps:Add(pixelMap)
-        pendingDisposeFlags:Add(disposeAfter)
     end
 
     /*
-    This action asks for a cube texture to be made from six square images of
-    the same size, in the order right, left, up, down, front, back (the
-    +x, -x, +y, -y, +z, -z layers). It is made during the next frame. The
-    texture gets its own image view and no place in the global texture
-    array; a shader reads it through its own descriptor set.
+    This action loads a layered texture, using multiple images with matching width/height. 
+    It is made during the next frame. The texture gets its own image view and no place in 
+    the global texture array; a shader reads it through its own descriptor set.
 
     Attribute: Parameter texture The texture to hold the cube.
     Attribute: Parameter sides The six images.
     */
-    action RequestCubeLoad(Texture texture, Array<PixelMap> sides)
-        if sides:GetSize() not= 6
-            alert("A cube texture needs 6 images, but was given " + sides:GetSize() + ".")
-        end
+    action RequestLoad(Texture texture, Array<PixelMap> pixelMaps)
         Array<PixelMap> copy
         integer i = 0
-        repeat while i < 6
-            copy:Add(sides:Get(i))
+        repeat while i < pixelMaps:GetSize()
+            copy:Add(pixelMaps:Get(i))
             i = i + 1
         end
-        pendingCubeTextures:Add(texture)
-        pendingCubeSides:Add(copy)
+        pendingLayeredTextures:Add(texture)
+        pendingLayeredPixelMaps:Add(copy)
     end
 
     action ProcessPendingTextures
-        if pendingTextures:IsEmpty() and pendingCubeTextures:IsEmpty()
+        if pendingTextures:IsEmpty() and pendingLayeredTextures:IsEmpty()
             return now
         end
         GameStateManager manager
@@ -190,8 +177,9 @@ class VulkanTextureManager
             else
                 LoadNewTexture(texture, pixelMap, commandBuffer, graphics)
             end
-            // The pixels are in a staging buffer now (Item 34).
-            if pendingDisposeFlags:Get(i)
+            // The pixels have been staged for loading in the system.
+            // If the PixelMap doesn't want to retain its info, release the resources.
+            if pixelMap:DisposeAfterTextureLoad()
                 pixelMap:Dispose()
             end
             i = i + 1
@@ -199,15 +187,14 @@ class VulkanTextureManager
 
         pendingTextures:Empty()
         pendingPixelMaps:Empty()
-        pendingDisposeFlags:Empty()
 
         i = 0
-        repeat while i < pendingCubeTextures:GetSize()
-            LoadCubeTexture(pendingCubeTextures:Get(i), pendingCubeSides:Get(i), commandBuffer, graphics)
+        repeat while i < pendingLayeredTextures:GetSize()
+            LoadLayeredTexture(pendingLayeredTextures:Get(i), pendingLayeredPixelMaps:Get(i), commandBuffer, graphics)
             i = i + 1
         end
-        pendingCubeTextures:Empty()
-        pendingCubeSides:Empty()
+        pendingLayeredTextures:Empty()
+        pendingLayeredPixelMaps:Empty()
     end
 
     /*
@@ -242,9 +229,6 @@ class VulkanTextureManager
         integer height = pixelMap:GetHeight()
 
         integer pixelSize = 4
-        // With the Vulkan system, we now convert all textures to RGBA8888.
-        //Format format = pixelMap:GetFormat()
-        //integer formatValue = format:GetValue()
         integer levels = GetMipLevelCount(texture, width, height)
 
         VulkanBuffer buffer
@@ -576,25 +560,26 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     Attribute: Parameter commandBuffer The frame's command buffer, recording.
     Attribute: Parameter graphics The Vulkan graphics.
     */
-    private action LoadCubeTexture(Texture texture, Array<PixelMap> sides, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
+    private action LoadLayeredTexture(Texture texture, Array<PixelMap> pixelMaps, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
         VulkanDevice device = graphics:GetDevice()
         VulkanConstants constants
         BitwiseOperations bits
 
         // A cube made again replaces the old one, which earlier frames may
         // still draw (Item 34).
-        VulkanImageView oldCube = texture:GetVulkanImageView()
-        if oldCube not= undefined
-            graphics:Retire(oldCube)
-            graphics:Retire(oldCube:GetImage())
+        VulkanImageView oldView = texture:GetVulkanImageView()
+        if oldView not= undefined
+            graphics:Retire(oldView)
+            graphics:Retire(oldView:GetImage())
         end
 
-        integer size = sides:Get(0):GetWidth()
+        integer width = pixelMaps:Get(0):GetWidth()
+        integer height = pixelMaps:Get(0):GetHeight()
         integer i = 0
-        repeat while i < 6
-            PixelMap side = sides:Get(i)
-            if side:GetWidth() not= size or side:GetHeight() not= size
-                alert("A skybox's six images must be square and the same size. The first is " + size + " by " + size +
+        repeat while i < pixelMaps:GetSize()
+            PixelMap side = pixelMaps:Get(i)
+            if side:GetWidth() not= width or side:GetHeight() not= height
+                alert("I cannot load this texture because not all images were the same size. The first is " + width + " by " + height +
                     ", but image " + (i + 1) + " is " + side:GetWidth() + " by " + side:GetHeight() + ".")
             end
             i = i + 1
@@ -602,12 +587,14 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
 
         VulkanImage image
         VulkanImageInfo imageInfo
-        imageInfo:SetWidth(size)
-        imageInfo:SetHeight(size)
-        imageInfo:SetArrayLayers(6)
-        imageInfo:SetFlags(constants:IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+        imageInfo:SetWidth(width)
+        imageInfo:SetHeight(height)
+        imageInfo:SetArrayLayers(pixelMaps:GetSize())
         imageInfo:SetUsage(bits:Or(constants:IMAGE_USAGE_TRANSFER_DESTINATION_BIT, constants:IMAGE_USAGE_SAMPLED_BIT))
         imageInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
+        if texture:IsCubemap()
+            imageInfo:SetFlags(constants:IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+        end
         image:Create(device, imageInfo)
 
         VulkanImageMemoryBarrier toTransfer
@@ -617,7 +604,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         toTransfer:SetSourceStageMask(constants:PIPELINE_STAGE_TOP_OF_PIPE_BIT)
         toTransfer:SetDestinationStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
         toTransfer:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-        toTransfer:SetLayerCount(6)
+        toTransfer:SetLayerCount(pixelMaps:GetSize())
         toTransfer:SetImage(image)
         PipelineBarrierCommand toTransferCommand
         toTransferCommand:SetMemoryBarrier(toTransfer)
@@ -625,29 +612,29 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
 
         // One staging buffer and copy per side, into its layer.
         i = 0
-        repeat while i < 6
+        repeat while i < pixelMaps:GetSize()
+            PixelMap pixelMap = pixelMaps:Get(i)
+            
             VulkanBuffer buffer
-            buffer:CreateTransferSourceBuffer(device, size * size * 4)
+            buffer:CreateTransferSourceBuffer(device, width * height * 4)
             buffer:BeginMapping()
-            TransferPixelData(sides:Get(i), buffer)
+            TransferPixelData(pixelMap, buffer)
             graphics:Retire(buffer)
+            
+            // If the pixel map is marked for disposal after loading, dispose them now.
+            if pixelMap:DisposeAfterTextureLoad()
+                pixelMap:Dispose()
+            end
 
             CopyBufferToImageCommand copyCommand
-            copyCommand:SetImageWidth(size)
-            copyCommand:SetImageHeight(size)
+            copyCommand:SetImageWidth(width)
+            copyCommand:SetImageHeight(height)
             copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
             copyCommand:SetBaseArrayLayer(i)
             copyCommand:SetLayerCount(1)
             copyCommand:SetSourceBuffer(buffer)
             copyCommand:SetDestinationImage(image)
             commandBuffer:Record(copyCommand)
-            i = i + 1
-        end
-
-        // The sides' pixels are copied, and nothing else keeps them (Item 34).
-        i = 0
-        repeat while i < 6
-            sides:Get(i):Dispose()
             i = i + 1
         end
 
@@ -659,7 +646,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         toRead:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
         toRead:SetDestinationStageMask(constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
         toRead:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-        toRead:SetLayerCount(6)
+        toRead:SetLayerCount(pixelMaps:GetSize())
         toRead:SetImage(image)
         PipelineBarrierCommand toReadCommand
         toReadCommand:SetMemoryBarrier(toRead)
@@ -668,9 +655,13 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         VulkanImageView view
         VulkanImageViewInfo viewInfo
         viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
-        viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_CUBE)
-        viewInfo:SetLayerCount(6)
+        viewInfo:SetLayerCount(pixelMaps:GetSize())
         view:Create(device, image, viewInfo)
+        if texture:IsCubemap()
+            viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_CUBE)
+        else
+            viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
+        end
         texture:SetVulkanImageView(view)
     end
 
@@ -685,26 +676,25 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         integer i = pendingTextures:GetSize() - 1
         repeat while i >= 0
             if pendingTextures:Get(i) = texture
-                if pendingDisposeFlags:Get(i)
-                    pendingPixelMaps:Get(i):Dispose()
+                PixelMap pendingMap = pendingPixelMaps:RemoveAt(i)
+                if pendingMap:DisposeAfterTextureLoad()
+                    pendingMap:Dispose()
                 end
                 pendingTextures:RemoveAt(i)
-                pendingPixelMaps:RemoveAt(i)
-                pendingDisposeFlags:RemoveAt(i)
             end
             i = i - 1
         end
-        i = pendingCubeTextures:GetSize() - 1
+        i = pendingLayeredTextures:GetSize() - 1
         repeat while i >= 0
-            if pendingCubeTextures:Get(i) = texture
-                Array<PixelMap> sides = pendingCubeSides:Get(i)
+            if pendingLayeredTextures:Get(i) = texture
+                Array<PixelMap> sides = pendingLayeredPixelMaps:Get(i)
                 integer side = 0
                 repeat while side < sides:GetSize()
                     sides:Get(side):Dispose()
                     side = side + 1
                 end
-                pendingCubeTextures:RemoveAt(i)
-                pendingCubeSides:RemoveAt(i)
+                pendingLayeredTextures:RemoveAt(i)
+                pendingLayeredPixelMaps:RemoveAt(i)
             end
             i = i - 1
         end
