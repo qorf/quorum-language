@@ -74,6 +74,9 @@ class Label is Control
     boolean descendingLines = true
 
     integer lineCount = 0
+
+    // 0, or the heading level screen readers announce (1 to 6).
+    integer headingLevel = 0
     
     // A box used to indicate focus, if this Label is made focusable.
     Control focusBox = undefined
@@ -310,6 +313,58 @@ class Label is Control
 
             RequestLayout()
         end
+    end
+
+    /*
+    This action makes the Label a heading for screen readers, such as the
+    title of a section, at the given level: 1 for the most important, up to
+    6. Screen readers announce it as a heading and can list or jump between
+    headings. A level of 0 makes it plain text again, which is the default.
+
+    Attribute: Parameter level The heading level, from 1 to 6, or 0 for none.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Label
+        use Libraries.Game.Game
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Label title
+                title:SetText("Settings")
+                title:SetHeadingLevel(1)
+                title:SetPosition(200, 200)
+                Add(title)
+            end
+        end
+    */
+    action SetHeadingLevel(integer level)
+        if level < 0
+            level = 0
+        elseif level > 6
+            level = 6
+        end
+        if headingLevel not= level
+            headingLevel = level
+            Accessibility accessibility = manager:GetAccessibility()
+            if accessibility not= undefined
+                accessibility:NameChanged(me)
+            end
+        end
+    end
+
+    /*
+    This action returns the Label's heading level for screen readers, or 0
+    if it isn't a heading (see SetHeadingLevel).
+
+    Attribute: Returns The heading level, from 1 to 6, or 0.
+    */
+    action GetHeadingLevel returns integer
+        return headingLevel
     end
 
     /*

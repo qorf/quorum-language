@@ -18,7 +18,15 @@ class TreeItemLayout is Layout
                 content:Resize()
                 content:SetPosition(0, 0)
 
-                container:SetSize(content:GetWidth(), content:GetHeight())
+                // The row is its content plus the room for its trailing
+                // text, right after the name (TreeItem:GetTrailingRoom), 0
+                // for a row with none.
+                number trailingRoom = 0
+                if container is TreeItem
+                    TreeItem row = cast(TreeItem, container)
+                    trailingRoom = row:GetTrailingRoom()
+                end
+                container:SetSize(content:GetWidth() + trailingRoom, content:GetHeight())
             elseif items:Get(counter) is TreePanel
                 TreePanel panel = cast(TreePanel, items:Get(counter))
                 panel:Resize()

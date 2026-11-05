@@ -213,6 +213,41 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return activationBehavior
     end
 
+    /*
+    This action returns how deep this row sits when a List is drawn as a
+    tree: 0 for a top row, 1 for a row under it, and so on. Screen readers
+    use it to give a row's place among the rows at its own depth ("1 of
+    3") rather than in the whole list. Rows of an ordinary list are all
+    0. Classes that draw rows as a tree override it.
+
+    Attribute: Returns The row's depth, from 0.
+    */
+    action GetAccessibilityLevel returns integer
+        return 0
+    end
+
+    /*
+    This action returns true if the row opens and closes to show rows under
+    it, in a List treated as a tree (List:SetTreeAccessibility). Screen
+    readers then say "expanded" or "collapsed" (IsAccessibilityExpanded).
+    It is false unless a class overrides it.
+
+    Attribute: Returns True if the row opens and closes.
+    */
+    action IsAccessibilityExpandable returns boolean
+        return false
+    end
+
+    /*
+    This action returns true if the row is open, showing the rows under it
+    (see IsAccessibilityExpandable). It is false unless a class overrides it.
+
+    Attribute: Returns True if the row is open.
+    */
+    action IsAccessibilityExpanded returns boolean
+        return false
+    end
+
     action SetActivationBehavior(Behavior behavior)
         activationBehavior = behavior
     end

@@ -5,6 +5,9 @@ use Libraries.System.Logging.SharedLogger
 use Libraries.Interface.Item3D
 use Libraries.System.File
 use Libraries.Game.Layer3D
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Trees.RenderTree3D
 
 /*
 A TerrainItem is a terrain as an item: it holds a WorldTerrain loaded from a
@@ -73,6 +76,11 @@ class TerrainItem is Item3D
     // terrain material file's path, as the scene names it.
     TerrainMaterial material = undefined
     text materialFile = ""
+
+    // How far above the highest ground and below the lowest the box the
+    // layer culls the terrain by reaches, in world units, so small edits
+    // stay inside it before it is refreshed.
+    constant number BOUNDS_PADDING = 8
 
     /*
     This action loads a terrain from its terrain.json file, and makes its
@@ -512,6 +520,72 @@ class TerrainItem is Item3D
             terrain:GetRegionModel(i):SetAcceptsMouseInput(IsAcceptingMouseInput())
             Add(terrain:GetRegionModel(i))
             i = i + 1
+        end
+        // The box the layer culls the terrain by covers the new regions.
+        RefreshRenderBounds()
+    end
+
+    /*
+    This action fills in the box around every region the terrain has, in its
+    own coordinates. The layer's render tree uses it to decide whether the
+    terrain is in view, and the region models are the item's children, so
+    they show or hide with it. Without it, a terrain has no size, and the
+    layer treats it as a point at its position, hiding the whole terrain
+    whenever that point is out of view.
+
+    Attribute: Parameter local The box to fill in.
+    Attribute: Returns True, or false if the terrain has no regions.
+    */
+    action GetRenderBounds(BoundingBox local) returns boolean
+        TerrainData data = terrain:GetData()
+        if data:GetRegionCount() = 0
+            return false
+        end
+        TerrainRegion first = data:GetRegionAtIndex(0)
+        integer lowX = first:GetLocationX()
+        integer highX = lowX
+        integer lowZ = first:GetLocationZ()
+        integer highZ = lowZ
+        integer i = 1
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            if region:GetLocationX() < lowX
+                lowX = region:GetLocationX()
+            end
+            if region:GetLocationX() > highX
+                highX = region:GetLocationX()
+            end
+            if region:GetLocationZ() < lowZ
+                lowZ = region:GetLocationZ()
+            end
+            if region:GetLocationZ() > highZ
+                highZ = region:GetLocationZ()
+            end
+            i = i + 1
+        end
+        number regionWidth = data:GetRegionSize() * data:GetVertexSpacing()
+        Vector3 minimum
+        minimum:Set(lowX * regionWidth, data:GetLowestHeight() - BOUNDS_PADDING, lowZ * regionWidth)
+        Vector3 maximum
+        maximum:Set((highX + 1) * regionWidth, data:GetHighestHeight() + BOUNDS_PADDING, (highZ + 1) * regionWidth)
+        local:Set(minimum, maximum)
+        return true
+    end
+
+    /*
+    This action gives the layer's render tree the terrain's box again, after
+    regions were added or removed or the ground was raised or lowered. A
+    terrain not in a layer has nothing to tell.
+    */
+    action RefreshRenderBounds
+        Layer3D layer = GetLayer()
+        if layer = undefined
+            return now
+        end
+        RenderTree3D tree = layer:GetRenderTree()
+        BoundingBox local
+        if tree not= undefined and tree:Has(me) and GetRenderBounds(local)
+            tree:SetLocalBounds(me, local)
         end
     end
 

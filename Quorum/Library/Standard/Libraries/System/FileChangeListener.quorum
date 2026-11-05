@@ -1,0 +1,49 @@
+package Libraries.System
+
+/*
+A FileChangeListener is told about changes on disk found by a
+FileWatcher. Add it with FileWatcher:AddListener. FileChanged is called
+from FileWatcher:DispatchChanges, on the thread that calls it. In a Game
+that adds the watcher with AddFileWatcher, that is the main thread, so it
+is safe to change the interface here.
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.System.File
+use Libraries.System.FileWatcher
+use Libraries.System.FileChangeEvent
+use Libraries.System.FileChangeListener
+use Libraries.Game.Game
+
+class Main is Game, FileChangeListener
+    FileWatcher watcher
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        File folder
+        folder:SetAbsolutePath("/Users/me/Documents/Notes")
+        watcher:AddListener(me)
+        watcher:Watch(folder, true)
+        AddFileWatcher(watcher)
+    end
+
+    action FileChanged(FileChangeEvent event)
+        File changed = event:GetFile()
+        output "Something changed: " + changed:GetAbsolutePath()
+    end
+end
+*/
+class FileChangeListener
+    /*
+        Called once for each change.
+
+        Attribute: Parameter event the change.
+    */
+    action FileChanged(FileChangeEvent event)
+    end
+end

@@ -1,0 +1,321 @@
+package Libraries.System
+
+use Libraries.Containers.Array
+
+/*
+The FileWatcher class notices when files and folders change on disk, for
+example when another program saves a file. Give it a folder with Watch.
+Changes are kept until the program asks for them, so they never arrive in
+the middle of other work. There are three ways to get them.
+DispatchChanges sends each change to every FileChangeListener. GetChanges
+returns the changes without waiting. WaitForChanges waits for a change, up
+to a time limit. A Game can also call DispatchChanges by itself every
+frame, through Game:AddFileWatcher.
+
+Several quick changes to one file are merged into one change. For
+example, a file that is created and then written to is reported once, as
+CREATED. A file that is created and deleted again before it settles is not
+reported at all. See SetSettleTime.
+
+Changes can arrive late. On Mac computers they can take about 2 seconds,
+and watching many folders there costs more time, so skip the folders you
+do not need with ExcludeFolderName. Changes can also be lost when very
+many happen at once. Then an OVERFLOW event is sent, and the program
+should look at the folder again. If a watched folder itself is deleted, a
+DELETED event is sent for it, and it is no longer watched, even if it is
+made again. File watching works on Windows, Mac and Linux. It does not
+work on the web or on iOS. Use IsSupported to find out.
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.System.File
+use Libraries.System.FileWatcher
+use Libraries.System.FileChangeEvent
+use Libraries.Containers.Array
+
+File folder
+folder:SetAbsolutePath("/Users/me/Documents/Notes")
+
+FileWatcher watcher
+watcher:Watch(folder, true)
+
+integer counter = 0
+repeat while counter < 10
+    Array<FileChangeEvent> changes = watcher:WaitForChanges(5000)
+    integer i = 0
+    repeat while i < changes:GetSize()
+        FileChangeEvent change = changes:Get(i)
+        File changed = change:GetFile()
+        output changed:GetAbsolutePath()
+        i = i + 1
+    end
+    counter = counter + 1
+end
+watcher:Stop()
+*/
+class FileWatcher
+    Array<FileChangeListener> listeners
+    Array<File> watchedFolders
+
+    /*
+        NextChangeNative and WaitForChangeNative move one waiting change
+        into the plugin. The GetChange actions then read it.
+    */
+    private system action NextChangeNative returns boolean
+    private system action WaitForChangeNative(integer milliseconds) returns boolean
+    private system action GetChangePathNative returns text
+    private system action GetChangeKindNative returns integer
+    private system action GetChangeRootNative returns text
+
+    private system action WatchNative(text path, boolean recursive)
+    private system action UnwatchNative(text path)
+    private system action StopNative
+    private system action IsSupportedNative returns boolean
+    private system action ExcludeFolderNameNative(text name)
+    private system action IgnoreChangesToNative(text path, integer milliseconds)
+    private system action SetSettleTimeNative(integer milliseconds)
+    private system action GetSettleTimeNative returns integer
+
+    /*
+        Starts watching a folder, but not the folders inside it.
+
+        Attribute: Parameter folder the folder to watch.
+    */
+    action Watch(File folder)
+        Watch(folder, false)
+    end
+
+    /*
+        Starts watching a folder. If recursive is true, every folder inside
+        it is watched too, including folders made later. Watching a folder
+        that is already watched starts it again with the new choice. If
+        the folder does not exist, a FileNotFoundError is raised. If file
+        watching does not work on this platform, an Error is raised.
+
+        Attribute: Parameter folder the folder to watch.
+        Attribute: Parameter recursive true to also watch the folders inside it.
+    */
+    action Watch(File folder, boolean recursive)
+        if not IsSupportedNative()
+            alert("File watching is not supported on this platform.")
+        end
+        text path = folder:GetAbsolutePath()
+        WatchNative(path, recursive)
+        RemoveWatchedFolder(path)
+        watchedFolders:Add(folder)
+    end
+
+    /*
+        Stops watching a folder that was passed to Watch. Changes from it
+        that were not taken yet are dropped.
+
+        Attribute: Parameter folder the folder to stop watching.
+    */
+    action Unwatch(File folder)
+        text path = folder:GetAbsolutePath()
+        UnwatchNative(path)
+        RemoveWatchedFolder(path)
+    end
+
+    /*
+        Stops watching every folder and forgets changes not yet taken.
+        Listeners, excluded folder names and the settle time are kept. The
+        watcher can be used again with Watch. Calling Stop twice is safe.
+    */
+    action Stop
+        StopNative()
+        watchedFolders:Empty()
+    end
+
+    /*
+        Returns true if at least one folder is watched.
+
+        Attribute: Returns true if watching.
+    */
+    action IsWatching returns boolean
+        return not watchedFolders:IsEmpty()
+    end
+
+    /*
+        Returns the folders passed to Watch that are still watched.
+
+        Attribute: Returns a copy of the list of watched folders.
+    */
+    action GetWatchedFolders returns Array<File>
+        Array<File> result
+        integer i = 0
+        repeat while i < watchedFolders:GetSize()
+            result:Add(watchedFolders:Get(i))
+            i = i + 1
+        end
+        return result
+    end
+
+    /*
+        Returns true if file watching works on this platform.
+
+        Attribute: Returns true on Windows, Mac and Linux.
+    */
+    action IsSupported returns boolean
+        return IsSupportedNative()
+    end
+
+    /*
+        Skips every file and folder with this name, and everything inside
+        such a folder, for example ".git" or "Build". Call it before Watch.
+        A watched folder itself is never skipped.
+
+        Attribute: Parameter name the folder name to skip.
+    */
+    action ExcludeFolderName(text name)
+        ExcludeFolderNameNative(name)
+    end
+
+    /*
+        Ignores changes to one file for a short time. Use it just before a
+        program writes the file itself. On Mac computers changes can arrive
+        about 2 seconds late, so use 3000 or more there. A change made by
+        another program during that time is lost too.
+
+        Attribute: Parameter file the file to ignore.
+        Attribute: Parameter milliseconds how long to ignore it.
+    */
+    action IgnoreChangesTo(File file, integer milliseconds)
+        IgnoreChangesToNative(file:GetAbsolutePath(), milliseconds)
+    end
+
+    /*
+        Sets how long a file must stay unchanged before its change is
+        reported. Several quick changes to one file become one event.
+        The default is 200.
+
+        Attribute: Parameter milliseconds the time to wait.
+    */
+    action SetSettleTime(integer milliseconds)
+        SetSettleTimeNative(milliseconds)
+    end
+
+    /*
+        Returns the settle time. See SetSettleTime.
+
+        Attribute: Returns the settle time in milliseconds.
+    */
+    action GetSettleTime returns integer
+        return GetSettleTimeNative()
+    end
+
+    /*
+        Adds a listener. It is told about changes when DispatchChanges runs.
+
+        Attribute: Parameter listener the listener to add.
+    */
+    action AddListener(FileChangeListener listener)
+        listeners:Add(listener)
+    end
+
+    /*
+        Removes a listener.
+
+        Attribute: Parameter listener the listener to remove.
+    */
+    action RemoveListener(FileChangeListener listener)
+        listeners:Remove(listener)
+    end
+
+    /*
+        Sends every waiting change to every listener, then returns how
+        many changes there were. It never waits. The listeners run on the
+        thread that calls this action.
+
+        Attribute: Returns the number of changes sent.
+    */
+    action DispatchChanges returns integer
+        integer count = 0
+        repeat while NextChangeNative()
+            FileChangeEvent event = MakeEvent()
+            integer i = 0
+            repeat while i < listeners:GetSize()
+                FileChangeListener listener = listeners:Get(i)
+                listener:FileChanged(event)
+                i = i + 1
+            end
+            count = count + 1
+        end
+        return count
+    end
+
+    /*
+        Returns every waiting change. It never waits. Listeners are not told.
+
+        Attribute: Returns the changes, maybe none.
+    */
+    action GetChanges returns Array<FileChangeEvent>
+        Array<FileChangeEvent> changes
+        repeat while NextChangeNative()
+            changes:Add(MakeEvent())
+        end
+        return changes
+    end
+
+    /*
+        Waits until there is a change or the time is up, then returns every
+        waiting change. Listeners are not told.
+
+        Attribute: Parameter milliseconds the longest time to wait.
+        Attribute: Returns the changes, maybe none.
+    */
+    action WaitForChanges(integer milliseconds) returns Array<FileChangeEvent>
+        Array<FileChangeEvent> changes
+        if WaitForChangeNative(milliseconds)
+            changes:Add(MakeEvent())
+            repeat while NextChangeNative()
+                changes:Add(MakeEvent())
+            end
+        end
+        return changes
+    end
+
+    /* Builds an event from the change the plugin is holding. */
+    private action MakeEvent returns FileChangeEvent
+        FileChangeEvent event
+        File file
+        file:SetAbsolutePath(GetChangePathNative())
+        event:SetFile(file)
+        event:SetWatchedFolder(FindWatchedFolder(GetChangeRootNative()))
+        event:SetKind(GetChangeKindNative())
+        return event
+    end
+
+    /*
+        Returns the File that was passed to Watch for this path, or a new
+        File for the path if it is no longer in the list.
+    */
+    private action FindWatchedFolder(text path) returns File
+        integer i = 0
+        repeat while i < watchedFolders:GetSize()
+            File watched = watchedFolders:Get(i)
+            if watched:GetAbsolutePath() = path
+                return watched
+            end
+            i = i + 1
+        end
+        File folder
+        folder:SetAbsolutePath(path)
+        return folder
+    end
+
+    /* Removes every watched folder with this absolute path from the list. */
+    private action RemoveWatchedFolder(text path)
+        integer i = 0
+        repeat while i < watchedFolders:GetSize()
+            File watched = watchedFolders:Get(i)
+            if watched:GetAbsolutePath() = path
+                watchedFolders:RemoveAt(i)
+            else
+                i = i + 1
+            end
+        end
+    end
+end

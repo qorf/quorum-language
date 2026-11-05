@@ -19,6 +19,7 @@ use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Views.ControlShaderView
@@ -330,6 +331,20 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
             if pane not= undefined
                 pane:UpdateSelection(undefined)
             end
+        end
+    end
+
+    /*
+    This action is fired when the Tab gains the focus. If the Tab is entirely
+    out of view in its TabBar (for example, when the focus moves to it from
+    the keyboard), the bar scrolls to show it.
+
+    Attribute: Parameter event The FocusEvent describing the change of focus.
+    */
+    action GainedFocus(FocusEvent event)
+        parent:Button:GainedFocus(event)
+        if bar not= undefined
+            bar:FitHiddenTab(me)
         end
     end
 

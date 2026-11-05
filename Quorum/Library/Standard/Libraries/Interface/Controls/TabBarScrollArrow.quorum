@@ -1,0 +1,215 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.View2D
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+
+/*
+The TabBarScrollArrow class is one of the two small arrows at the ends of a
+horizontal TabBar. The arrows show only when the tabs are wider than the bar.
+Clicking one scrolls the bar to show the next hidden Tab in its direction. The
+arrow toward an end the bar has already reached is drawn faded.
+
+The arrows are mouse helpers. They never take the focus, and screen readers
+skip them. Keyboard and screen reader users move between tabs with the usual
+keys, and the selected or focused Tab scrolls into view.
+
+Each TabBar makes its own two arrows, so most users won't need this class.
+*/
+class TabBarScrollArrow is Control, MouseListener
+
+    TabBar bar = undefined
+
+    // True for the arrow at the end of the bar (pointing right), false for
+    // the arrow at the start (pointing left).
+    boolean towardEnd = false
+
+    // False when the bar can't scroll further this way. The triangle is then faded.
+    boolean scrollAvailable = true
+
+    // The triangle, drawn in the bar's font color.
+    Icon arrow
+    Color arrowColor = undefined
+
+    // How tall the triangle is, as a part of the arrow's height.
+    constant number TRIANGLE_HEIGHT_RATIO = 0.36
+    // The width of the triangle for each unit of its height (an equilateral triangle).
+    constant number TRIANGLE_ASPECT_RATIO = 0.865
+    // How opaque the triangle is when the bar can't scroll further this way.
+    constant number FADED_ALPHA = 0.35
+
+    on create
+        SetName("Scroll Tabs")
+        SetFocusable(false)
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+        SetInterfaceOptionsKey("TabBar")
+        SetBorderThickness(0)
+
+        arrow:SetName("Scroll Tabs Arrow")
+        arrow:SetAccessibilityCode(arrow:parent:Item:NOT_ACCESSIBLE)
+        Add(arrow)
+
+        AddMouseListener(me)
+        Hide()
+    end
+
+    /*
+    This action connects the arrow to its TabBar and says which end of the bar
+    it is at. The TabBar calls it when it is made, so most users won't need it.
+
+    Attribute: Parameter tabBar The TabBar this arrow scrolls.
+    Attribute: Parameter atEnd True for the arrow at the end of the bar, which shows later tabs, or false for the arrow at the start, which shows earlier tabs.
+    */
+    action Setup(TabBar tabBar, boolean atEnd)
+        bar = tabBar
+        towardEnd = atEnd
+        if atEnd
+            SetName("Scroll Tabs Toward End")
+        else
+            SetName("Scroll Tabs Toward Start")
+        end
+    end
+
+    /*
+    This action returns whether this is the arrow at the end of the bar.
+
+    Attribute: Returns True for the arrow at the end of the bar, or false for the arrow at the start.
+    */
+    action IsTowardEnd returns boolean
+        return towardEnd
+    end
+
+    /*
+    This action places the arrow in its TabBar and centers the triangle in it.
+    The TabBar's layout calls it, so most users won't need it.
+
+    Attribute: Parameter x The x position of the arrow inside the TabBar.
+    Attribute: Parameter y The y position of the arrow inside the TabBar.
+    Attribute: Parameter width The width of the arrow.
+    Attribute: Parameter height The height of the arrow.
+    */
+    action PlaceArrow(number x, number y, number width, number height)
+        SetPosition(x, y)
+        if GetWidth() not= width or GetHeight() not= height
+            SetSize(width, height)
+        end
+
+        number triangleHeight = height * TRIANGLE_HEIGHT_RATIO
+        number triangleWidth = triangleHeight * TRIANGLE_ASPECT_RATIO
+        if triangleWidth > width
+            triangleWidth = width
+        end
+        arrow:SetSize(triangleWidth, triangleHeight)
+        arrow:SetPosition((width - triangleWidth) / 2, (height - triangleHeight) / 2)
+    end
+
+    /*
+    This action sets whether the bar can scroll further in this arrow's
+    direction. If it can't, the triangle is drawn faded. The TabBar's layout
+    calls it, so most users won't need it.
+
+    Attribute: Parameter available True if the bar can scroll further this way, or false if it is at that end.
+    */
+    action SetScrollAvailable(boolean available)
+        if scrollAvailable = available
+            return now
+        end
+
+        scrollAvailable = available
+        UpdateArrowColor()
+    end
+
+    /*
+    This action returns whether the bar can scroll further in this arrow's direction.
+
+    Attribute: Returns True if the bar can scroll further this way, or false if it is at that end.
+    */
+    action IsScrollAvailable returns boolean
+        return scrollAvailable
+    end
+
+    /*
+    This action scrolls the TabBar when the arrow is clicked with the left
+    mouse button. The start arrow shows the previous hidden Tab, and the end
+    arrow shows the next one.
+
+    Attribute: Parameter event The MouseEvent describing the click.
+    */
+    action ClickedMouse(MouseEvent event)
+        if bar = undefined or event:IsLeftButtonEvent() = false
+            return now
+        end
+
+        if towardEnd
+            bar:ScrollTabsTowardEnd()
+        else
+            bar:ScrollTabsTowardStart()
+        end
+    end
+
+    /*
+    The arrows never take the focus. Clicking one leaves the focus where it
+    was, for example in the code editor.
+    */
+    action Focus
+    end
+
+    /*
+    This action is used to load the graphical components of the Control. This is
+    handled automatically by the Game engine as needed, and most users shouldn't
+    need to use this action directly.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        View2D view = properties:GetView2D()
+        if view = undefined
+            if GetView2D() = undefined
+                ControlShaderView content
+                content:SetName("TabBar Scroll Arrow View")
+                content:Initialize()
+                view = content
+            end
+        end
+
+        if view not= undefined
+            SetView2D(view)
+        end
+
+        if arrow:IsLoaded() = false
+            if towardEnd
+                arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100)
+            else
+                arrow:LoadFilledTriangle(173, 0, 173, 200, 0, 100)
+            end
+        end
+
+        ColorGroup fontColor = properties:GetFontColor()
+        if fontColor not= undefined
+            arrowColor = fontColor:GetBottomLeft()
+        end
+        UpdateArrowColor()
+
+        parent:Control:LoadGraphics(properties)
+    end
+
+    private action UpdateArrowColor
+        if arrowColor = undefined or arrow:IsLoaded() = false
+            return now
+        end
+
+        if scrollAvailable
+            arrow:SetColor(arrowColor)
+        else
+            Color faded
+            faded:SetColor(arrowColor:GetRed(), arrowColor:GetGreen(), arrowColor:GetBlue(), arrowColor:GetAlpha() * FADED_ALPHA)
+            arrow:SetColor(faded)
+        end
+    end
+end

@@ -23,6 +23,9 @@ class List is ScrollableLineControl, FirstLetterNavigator
 
     ListRenderer renderer
 
+    // True if screen readers should treat the list as a tree (SetTreeAccessibility).
+    boolean treeAccessibility = false
+
     // A thick accent line along the list's left edge while it has the
     // focus (LS5), like a focused text field's (FD).
     Control focusLine = undefined
@@ -207,6 +210,37 @@ class List is ScrollableLineControl, FirstLetterNavigator
 
     action GetSelection returns ListSelection
         return selection
+    end
+
+    /*
+    This action tells screen readers to treat the list as a tree: its rows
+    are nested by ListItem:GetAccessibilityLevel, each says its place among
+    the rows at its depth ("2 of 5"), and rows that open and close say so
+    (ListItem:IsAccessibilityExpandable). Use it for a list drawn as a
+    tree. Set it before adding the list to the screen; it is false by
+    default.
+
+    Attribute: Parameter tree True to treat the list as a tree.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.List
+
+        List results
+        results:SetTreeAccessibility(true)
+    */
+    action SetTreeAccessibility(boolean tree)
+        treeAccessibility = tree
+    end
+
+    /*
+    This action returns true if screen readers treat the list as a tree
+    (see SetTreeAccessibility).
+
+    Attribute: Returns True if the list is treated as a tree.
+    */
+    action HasTreeAccessibility returns boolean
+        return treeAccessibility
     end
 
     action GetIndexOf(ListItem item) returns integer

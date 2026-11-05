@@ -11,6 +11,8 @@ use Libraries.Interface.Layouts.TabBarFlowLayout
 use Libraries.Interface.Layouts.HorizontalTabBarFlowLayout
 use Libraries.Interface.Events.TabChangeEvent
 use Libraries.Interface.Events.TabChangeListener
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
@@ -22,7 +24,7 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LargeTabLayout
 use Libraries.Interface.Layouts.AlignedTabFlowLayout
 
-class TabBar is Control
+class TabBar is Control, MouseWheelListener
     
     Array<Tab> tabs
     TabBarFlowLayout layout = undefined
@@ -35,7 +37,26 @@ class TabBar is Control
     // Only used if Tabs don't have their own margin values during layout.
     number tabSpacing = 0
 
+    // The two arrows at the ends of a horizontal bar, shown when the tabs
+    // don't all fit. They are the bar's last two children while horizontal.
+    TabBarScrollArrow startArrow
+    TabBarScrollArrow endArrow
+    boolean scrollArrowsAdded = false
+
+    // A Tab to bring into view once the bar has a size (FitTab was called first).
+    Tab pendingFitTab = undefined
+    // How many Resize calls on this bar are running, so the pending fit waits for the outermost.
+    integer resizeDepth = 0
+
+    // How far one notch of the mouse wheel scrolls the tabs, in points before the interface scale.
+    constant number WHEEL_SCROLL_DISTANCE = 40
+    // The most notches one wheel event counts, so a fast flick doesn't skip far past tabs.
+    constant number MAXIMUM_WHEEL_NOTCHES = 3
+
     on create
+        startArrow:Setup(me, false)
+        endArrow:Setup(me, true)
+
         SetToHorizontal()
 
         SetClipping(true)
@@ -53,6 +74,11 @@ HorizontalTabBarFlowLayout horizontalLayout
         layoutProperties:SetPercentageWidth(1.0)
 
         SetLayout(layout)
+
+        // Horizontal bars scroll with the mouse wheel and the arrows.
+        AddScrollArrows()
+        RemoveMouseWheelListener(me)
+        AddMouseWheelListener(me)
     end
     
     action SetToVertical
@@ -66,6 +92,33 @@ VerticalTabBarFlowLayout verticalLayout
         layoutProperties:SetPercentageHeight(1.0)
 
         SetLayout(layout)
+
+        // Vertical bars keep their own scrolling (FitTab), with no arrows or wheel.
+        RemoveScrollArrows()
+        RemoveMouseWheelListener(me)
+        pendingFitTab = undefined
+    end
+
+    private action AddScrollArrows
+        if scrollArrowsAdded
+            return now
+        end
+
+        scrollArrowsAdded = true
+        parent:Item2D:Add(startArrow)
+        parent:Item2D:Add(endArrow)
+    end
+
+    private action RemoveScrollArrows
+        if scrollArrowsAdded = false
+            return now
+        end
+
+        scrollArrowsAdded = false
+        startArrow:Hide()
+        endArrow:Hide()
+        parent:Item2D:Remove(startArrow)
+        parent:Item2D:Remove(endArrow)
     end
     
     action IsHorizontal returns boolean
@@ -98,7 +151,13 @@ Tab firstTab = tabs:GetFromFront()
         SetTabProperties(tab)
         
         tabs:Add(tab)
-        parent:Item2D:Add(tab)
+        if scrollArrowsAdded
+            // The scroll arrows stay the last two children, so they draw over
+            // the tabs and get the mouse first.
+            parent:Item2D:Add(GetChildren():GetSize() - 2, tab)
+        else
+            parent:Item2D:Add(tab)
+        end
         tab:SetTabBar(me)
         
         Resize()
@@ -186,6 +245,13 @@ this is false. */
         tabs:Remove(tab)
         parent:Item2D:Remove(tab)
         tab:SetTabBar(undefined)
+        if pendingFitTab = tab
+            pendingFitTab = undefined
+        end
+
+        // Lay out the remaining tabs before a Tab is selected again, so the
+        // selected Tab is scrolled into view from where the tabs now are.
+        Resize()
 
         if reselect
             if tabs:GetSize() > 0
@@ -203,8 +269,6 @@ this is false. */
         end
 
         tab:Dispose()
-
-        Resize()
 
         TabChangeEvent event
         event:Set(tab, pane, event:CLOSED)
@@ -230,18 +294,49 @@ this is false. */
         return pane
     end
 
+    /*
+    This action scrolls the TabBar, if needed, so the given Tab is in full
+    view. A Tab calls it when it is selected. In a horizontal bar, the Tab is
+    brought just inside the edge it was past, and a Tab wider than the
+    visible area shows its start. If the horizontal bar has no size yet, the
+    Tab is brought into view after the next layout. A vertical bar scrolls as
+    it always has.
+
+    Attribute: Parameter tab The Tab to bring into view.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        use Libraries.Interface.Controls.Tab
+        TabPane pane
+        Tab tab
+        pane:Add(tab)
+        TabBar bar = pane:GetTabBar()
+        bar:FitTab(tab)
+    */
     action FitTab(Tab tab)
-        integer index = GetChildren():GetFirstLocation(tab)
-        if index = -1 or GetWidth() <= 0 or GetHeight() <= 0
+        integer index = tabs:GetFirstLocation(tab)
+        if tab = undefined or index = -1
+            return now
+        end
+
+        if GetWidth() <= 0 or GetHeight() <= 0
+            // Not laid out yet. Resize brings it into view once the bar has a size.
+            if IsHorizontal()
+                pendingFitTab = tab
+            end
             return now
         end
 
         if IsHorizontal()
-if tab:GetX() <= 0
-            LeftFitTab(index - 1.15)
-        elseif tab:GetX() + tab:GetWidth() >= GetWidth()
-            RightFitTab(index + 1.15)
-        end
+            pendingFitTab = undefined
+            if layout:IsOverflowing()
+                number distance = GetDistanceToShow(tab)
+                if distance > 0.01 or distance < -0.01
+                    ScrollTabs(distance)
+                end
+            end
         else
             if tab:GetY() <= 0
                 BottomFitTab(index + 1.15)
@@ -249,11 +344,223 @@ if tab:GetX() <= 0
                 TopFitTab(index - 1.15)
             end
         end
-        
+    end
+
+    /*
+    This action scrolls a horizontal TabBar to show the given Tab, but only if
+    the Tab is entirely out of view. A Tab calls it when it gains the focus.
+    A Tab that is partly in view is left where it is, so a mouse press never
+    moves a Tab out from under the pointer; the Tab then comes fully into view
+    when it is selected. A vertical bar is not changed.
+
+    Attribute: Parameter tab The Tab to show.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        use Libraries.Interface.Controls.Tab
+        TabPane pane
+        Tab tab
+        pane:Add(tab)
+        TabBar bar = pane:GetTabBar()
+        bar:FitHiddenTab(tab)
+    */
+    action FitHiddenTab(Tab tab)
+        if tab = undefined or tabs:Has(tab) = false or IsHorizontal() = false
+            return now
+        end
+
+        if GetWidth() <= 0 or GetHeight() <= 0
+            pendingFitTab = tab
+            return now
+        end
+
+        if layout:IsOverflowing() = false
+            return now
+        end
+
+        if tab:GetX() + tab:GetWidth() <= layout:GetVisibleStart() or tab:GetX() >= layout:GetVisibleEnd()
+            FitTab(tab)
+        end
+    end
+
+    /*
+    This action scrolls the tabs of a horizontal TabBar by the given distance.
+    A positive distance shows tabs further toward the end of the bar, and a
+    negative distance shows tabs toward the start. The scrolling stops at
+    either end. It does nothing if all of the tabs fit, or if the bar is
+    vertical.
+
+    Attribute: Parameter distance How far to scroll, in pixels.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        TabPane pane
+        TabBar bar = pane:GetTabBar()
+        bar:ScrollTabs(100)
+    */
+    action ScrollTabs(number distance)
+        if IsHorizontal() = false or layout:IsOverflowing() = false
+            return now
+        end
+
+        // The layout keeps the offset between 0 and its largest useful value.
+        layout:SetOffset(layout:GetOffset() + distance)
+        Resize()
+    end
+
+    /*
+    This action scrolls a horizontal TabBar toward its end, far enough to show
+    the next Tab that is hidden or cut off at the end. The arrow at the end of
+    the bar calls it. It does nothing if all of the tabs fit.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        TabPane pane
+        TabBar bar = pane:GetTabBar()
+        bar:ScrollTabsTowardEnd()
+    */
+    action ScrollTabsTowardEnd
+        if IsHorizontal() = false or layout:IsOverflowing() = false
+            return now
+        end
+
+        number visibleFinish = layout:GetVisibleEnd()
+        integer counter = 0
+        repeat while counter < tabs:GetSize()
+            Tab tab = tabs:Get(counter)
+            if tab:GetX() + tab:GetWidth() > visibleFinish + 0.5
+                number distance = GetDistanceToShow(tab)
+                if distance < 0.5
+                    // A Tab wider than the visible area: move half a view instead.
+                    distance = (visibleFinish - layout:GetVisibleStart()) / 2
+                end
+                ScrollTabs(distance)
+                return now
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action scrolls a horizontal TabBar toward its start, far enough to
+    show the previous Tab that is hidden or cut off at the start. The arrow at
+    the start of the bar calls it. It does nothing if all of the tabs fit.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        TabPane pane
+        TabBar bar = pane:GetTabBar()
+        bar:ScrollTabsTowardStart()
+    */
+    action ScrollTabsTowardStart
+        if IsHorizontal() = false or layout:IsOverflowing() = false
+            return now
+        end
+
+        number visibleStart = layout:GetVisibleStart()
+        integer counter = tabs:GetSize() - 1
+        repeat while counter >= 0
+            Tab tab = tabs:Get(counter)
+            if tab:GetX() < visibleStart - 0.5
+                number distance = GetDistanceToShow(tab)
+                if distance > -0.5
+                    // A Tab wider than the visible area: move half a view instead.
+                    distance = (visibleStart - layout:GetVisibleEnd()) / 2
+                end
+                ScrollTabs(distance)
+                return now
+            end
+            counter = counter - 1
+        end
+    end
+
+    /*
+    Returns how far a horizontal bar must scroll to show the Tab in full,
+    from the Tab's real position after the last layout (so the gaps and
+    margins between tabs count). Positive scrolls toward the end. A Tab wider
+    than the visible area is lined up with the start of the area.
+    */
+    private action GetDistanceToShow(Tab tab) returns number
+        number visibleStart = layout:GetVisibleStart()
+        number visibleFinish = layout:GetVisibleEnd()
+        number left = tab:GetX()
+        number right = left + tab:GetWidth()
+
+        number distance = 0
+        if right > visibleFinish
+            distance = right - visibleFinish
+        end
+        if left - distance < visibleStart
+            distance = left - visibleStart
+        end
+        return distance
+    end
+
+    /*
+    This action scrolls a horizontal TabBar when the mouse wheel turns over it,
+    if the tabs don't all fit. Turning the wheel up shows tabs toward the
+    start, and turning it down shows tabs toward the end. Otherwise, the event
+    goes on to the bar's parent, as it would without this listener.
+
+    Attribute: Parameter event The MouseEvent describing the wheel movement.
+    */
+    action ScrolledMouse(MouseEvent event)
+        if IsHorizontal() and layout:IsOverflowing()
+            number notches = event:scrollAmount
+            if notches > MAXIMUM_WHEEL_NOTCHES
+                notches = MAXIMUM_WHEEL_NOTCHES
+            elseif notches < MAXIMUM_WHEEL_NOTCHES * -1
+                notches = MAXIMUM_WHEEL_NOTCHES * -1
+            end
+            ScrollTabs(notches * -1 * WHEEL_SCROLL_DISTANCE * GetInterfaceScale())
+        else
+            Item2D holder = GetParent()
+            if holder not= undefined
+                holder:ProcessMouseEvent(event)
+            end
+        end
+    end
+
+    /*
+    The Resize action lays out the tabs again. After the outermost Resize, a
+    Tab that asked to be brought into view before the bar had a size is
+    brought into view.
+    */
+    action Resize
+        resizeDepth = resizeDepth + 1
+        parent:Control:Resize()
+        resizeDepth = resizeDepth - 1
+
+        if resizeDepth = 0 and pendingFitTab not= undefined and GetWidth() > 0 and GetHeight() > 0
+            Tab target = pendingFitTab
+            pendingFitTab = undefined
+            FitTab(target)
+        end
+    end
+
+    /*
+    This action sets the key used to find this TabBar's colors and other
+    properties in the InterfaceOptions. The scroll arrows use the same key,
+    so they match the bar.
+
+    Attribute: Parameter key The interface options key.
+    */
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey(key)
+        startArrow:SetInterfaceOptionsKey(key)
+        endArrow:SetInterfaceOptionsKey(key)
     end
 
     action LeftFitTab(number index)
-        Array<Item2D> children = GetChildren()
+        Array<Tab> children = tabs
         if index < 0
             index = 0
         elseif index >= children:GetSize()
@@ -282,7 +589,7 @@ if tab:GetX() <= 0
     end
 
     action RightFitTab(number index)
-        Array<Item2D> children = GetChildren()
+        Array<Tab> children = tabs
         if index < 0
             index = 0
         elseif index >= children:GetSize()
@@ -311,7 +618,7 @@ if tab:GetX() <= 0
     end
     
 action TopFitTab(number index)
-        Array<Item2D> children = GetChildren()
+        Array<Tab> children = tabs
         if index < 0
             index = 0
         elseif index >= children:GetSize()
@@ -340,7 +647,7 @@ action TopFitTab(number index)
     end
 
     action BottomFitTab(number index)
-        Array<Item2D> children = GetChildren()
+        Array<Tab> children = tabs
         if index < 0
             index = 0
         elseif index >= children:GetSize()
