@@ -1,5 +1,6 @@
 package Libraries.Interface
 
+use Libraries.Containers.Array
 use Libraries.Game.GameInput
 use Libraries.Game.InputSet
 use Libraries.Interface.Events.KeyboardEvent
@@ -2216,6 +2217,114 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         propertiesDialogTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
         propertiesDialogTable:Add(focusCameraSet, focusCameraBehavior)
+
+        // game camera preview and setting the game camera, in the editor and while an item is selected
+        ToggleGamePreviewBehavior toggleGamePreviewBehavior
+        SetGameCameraBehavior setGameCameraBehavior
+        InputSet toggleGamePreviewSet
+        toggleGamePreviewSet:SetKeyboardInput(keys:V)
+        toggleGamePreviewSet:AddModifier(toggleGamePreviewSet:SHIFT)
+        NextCameraPerspectiveBehavior nextPerspectiveBehavior
+        InputSet nextPerspectiveSet
+        nextPerspectiveSet:SetKeyboardInput(keys:C)
+        nextPerspectiveSet:AddModifier(nextPerspectiveSet:ALT)
+        MoveGamePreviewBehavior moveGamePreviewBehavior
+        InputSet moveGamePreviewSet
+        moveGamePreviewSet:SetKeyboardInput(keys:V)
+        moveGamePreviewSet:AddModifier(moveGamePreviewSet:ALT)
+        InputSet setGameCameraSet
+        setGameCameraSet:SetKeyboardInput(keys:M)
+        setGameCameraSet:AddModifier(setGameCameraSet:SHIFT)
+        if ShouldUseMacKeys()
+            toggleGamePreviewSet = AddMetaModifier(toggleGamePreviewSet)
+            moveGamePreviewSet = AddMetaModifier(moveGamePreviewSet)
+            nextPerspectiveSet = AddMetaModifier(nextPerspectiveSet)
+            setGameCameraSet = AddMetaModifier(setGameCameraSet)
+        else
+            toggleGamePreviewSet = AddControlModifier(toggleGamePreviewSet)
+            moveGamePreviewSet = AddControlModifier(moveGamePreviewSet)
+            nextPerspectiveSet = AddControlModifier(nextPerspectiveSet)
+            setGameCameraSet = AddControlModifier(setGameCameraSet)
+        end
+        table:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        table:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        table:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        table:Add(setGameCameraSet, setGameCameraBehavior)
+        selectionTable:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        selectionTable:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        selectionTable:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        selectionTable:Add(setGameCameraSet, setGameCameraBehavior)
+        cameraItemTable3D:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        cameraItemTable3D:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        cameraItemTable3D:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        cameraItemTable3D:Add(setGameCameraSet, setGameCameraBehavior)
+
+        // camera perspective: arrow keys move the camera while held, and Escape leaves
+        InputTable perspectiveTable
+        perspectiveTable:SetIdentifier("CameraPerspective")
+        integer perspectiveKeyIndex = 0
+        repeat 4 times
+            InputSet pressSet
+            InputSet releaseSet
+            CameraPerspectivePanBehavior startPan
+            CameraPerspectivePanBehavior stopPan
+            if perspectiveKeyIndex = 0
+                pressSet = GetLeftArrowKey()
+                releaseSet = GetLeftArrowKey()
+                startPan:SetDirection(true, -1)
+                stopPan:SetDirection(true, 0)
+            elseif perspectiveKeyIndex = 1
+                pressSet = GetRightArrowKey()
+                releaseSet = GetRightArrowKey()
+                startPan:SetDirection(true, 1)
+                stopPan:SetDirection(true, 0)
+            elseif perspectiveKeyIndex = 2
+                pressSet = GetUpArrowKey()
+                releaseSet = GetUpArrowKey()
+                startPan:SetDirection(false, 1)
+                stopPan:SetDirection(false, 0)
+            else
+                pressSet = GetDownArrowKey()
+                releaseSet = GetDownArrowKey()
+                startPan:SetDirection(false, -1)
+                stopPan:SetDirection(false, 0)
+            end
+            releaseSet:SetInputTrigger(releaseSet:FINISH)
+            perspectiveTable:Add(pressSet, startPan)
+            perspectiveTable:Add(releaseSet, stopPan)
+            perspectiveKeyIndex = perspectiveKeyIndex + 1
+        end
+        // = and numpad plus zoom in, and - and numpad minus zoom out, while held.
+        Array<integer> zoomKeys
+        zoomKeys:Add(keys:EQUALS)
+        zoomKeys:Add(keys:NUMPAD_PLUS)
+        zoomKeys:Add(keys:MINUS)
+        zoomKeys:Add(keys:NUMPAD_MINUS)
+        integer zoomKeyIndex = 0
+        repeat while zoomKeyIndex < zoomKeys:GetSize()
+            InputSet zoomPress
+            zoomPress:SetKeyboardInput(zoomKeys:Get(zoomKeyIndex))
+            InputSet zoomRelease
+            zoomRelease:SetKeyboardInput(zoomKeys:Get(zoomKeyIndex))
+            zoomRelease:SetInputTrigger(zoomRelease:FINISH)
+            CameraPerspectiveZoomBehavior startZoom
+            CameraPerspectiveZoomBehavior stopZoom
+            if zoomKeyIndex < 2
+                startZoom:SetDirection(1)
+            else
+                startZoom:SetDirection(-1)
+            end
+            stopZoom:SetDirection(0)
+            perspectiveTable:Add(zoomPress, startZoom)
+            perspectiveTable:Add(zoomRelease, stopZoom)
+            zoomKeyIndex = zoomKeyIndex + 1
+        end
+
+        InputSet exitPerspectiveSet
+        exitPerspectiveSet:SetKeyboardInput(keys:ESCAPE)
+        ExitCameraPerspectiveBehavior exitPerspectiveBehavior
+        perspectiveTable:Add(exitPerspectiveSet, exitPerspectiveBehavior)
+        gameInput:AddInputTable(perspectiveTable)
 
         // find dialog
         InputSet closeVisualEditorFindDialogSet1

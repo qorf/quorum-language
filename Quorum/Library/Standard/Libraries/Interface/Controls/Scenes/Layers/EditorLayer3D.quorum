@@ -11,12 +11,28 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+use Libraries.Game.Graphics.PerspectiveCamera
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.OpenGL.OpenGLManager
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Label
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer2D
+use Libraries.Containers.Iterator
+use Libraries.Compute.Vector3
 
 /*
     The EditorLayer3D class is used to show and manage objects in a 3D scene. EditorLayer3D 
     provides a 3D grid, a cursor, and a camera preview for a 3D scene. The cursor goes along
     the grid and allows the user to select objects and edit them in the scene. For a 3D scene
-    moving the editor camera affects where the camera starts when running a 3D scene.
+    moving the editor camera does not change where the game starts: the game camera is separate,
+    and is set from the editor view with SetGameCameraToEditorView. The layer can also draw a
+    preview of what the game camera sees in a corner of the editor.
 */
 class EditorLayer3D is Layer3D, EditorLayer
 
@@ -26,6 +42,31 @@ class EditorLayer3D is Layer3D, EditorLayer
     EditorCursor3D cursor
     
     SceneConstants constants
+
+    // The camera the game starts with when the scene runs. It is separate from the editor camera, so
+    // the editor view can move freely. Until it is loaded or set, it copies the editor camera the
+    // first time it is needed.
+    PerspectiveCamera gameCamera
+    boolean gameCameraReady = false
+
+    // The game camera preview, drawn in a corner of the editor. It starts in the top right, and
+    // MoveGamePreviewToNextCorner moves it clockwise around the corners.
+    boolean gamePreviewShowing = false
+    public constant integer TOP_RIGHT = 0
+    public constant integer BOTTOM_RIGHT = 1
+    public constant integer BOTTOM_LEFT = 2
+    public constant integer TOP_LEFT = 3
+    integer gamePreviewCorner = TOP_RIGHT
+    Layer2D previewFrame
+    Drawable previewBorder
+    Drawable previewBackground
+    Label previewTitle
+    boolean previewFrameReady = false
+    integer previewFrameWidth = 0
+    integer previewFrameHeight = 0
+    constant integer PREVIEW_BORDER = 2
+    constant integer PREVIEW_TITLE_HEIGHT = 22
+    constant integer PREVIEW_MARGIN = 10
 
     on create
         Add(grid)
@@ -208,6 +249,199 @@ class EditorLayer3D is Layer3D, EditorLayer
     */
     action GetEditorCamera returns EditorCamera3D
         return cast(EditorCamera3D, GetCamera())
+    end
+
+    /*
+        This action returns the camera the game starts with when the scene runs. If it hasn't been
+        loaded or set yet, it starts as a copy of the editor camera.
+
+        Attribute: Returns The game camera.
+    */
+    action GetGameCamera returns PerspectiveCamera
+        if not gameCameraReady
+            CopyCamera(GetEditorCamera(), gameCamera)
+            gameCameraReady = true
+        end
+        return gameCamera
+    end
+
+    /*
+        This action sets the game camera to match the editor camera, so the game starts with the
+        current editor view.
+    */
+    action SetGameCameraToEditorView
+        CopyCamera(GetEditorCamera(), gameCamera)
+        gameCameraReady = true
+    end
+
+    private action CopyCamera(PerspectiveCamera source, PerspectiveCamera target)
+        Vector3 position = source:GetPosition()
+        Vector3 direction = source:GetDirection()
+        Vector3 up = source:GetUp()
+        target:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+        target:SetDirection(direction:GetX(), direction:GetY(), direction:GetZ())
+        target:SetUp(up:GetX(), up:GetY(), up:GetZ())
+        target:SetFieldOfView(source:GetFieldOfView())
+        target:SetNear(source:GetNear())
+        target:SetFar(source:GetFar())
+    end
+
+    /*
+        This action returns true if the game camera preview is showing.
+    */
+    action IsGamePreviewShowing returns boolean
+        return gamePreviewShowing
+    end
+
+    /*
+        This action shows or hides the game camera preview in the corner of the editor.
+    */
+    action SetGamePreviewShowing(boolean showing)
+        gamePreviewShowing = showing
+    end
+
+    /*
+        This action returns the corner the game camera preview is in: TOP_RIGHT, BOTTOM_RIGHT,
+        BOTTOM_LEFT, or TOP_LEFT.
+    */
+    action GetGamePreviewCorner returns integer
+        return gamePreviewCorner
+    end
+
+    /*
+        This action moves the game camera preview to the next corner, going clockwise: top right,
+        bottom right, bottom left, then top left.
+    */
+    action MoveGamePreviewToNextCorner
+        gamePreviewCorner = (gamePreviewCorner + 1) mod 4
+    end
+
+    /*
+        This action returns the name of the corner the game camera preview is in, such as "top right".
+    */
+    action GetGamePreviewCornerName returns text
+        if gamePreviewCorner = TOP_RIGHT
+            return "top right"
+        elseif gamePreviewCorner = BOTTOM_RIGHT
+            return "bottom right"
+        elseif gamePreviewCorner = BOTTOM_LEFT
+            return "bottom left"
+        end
+        return "top left"
+    end
+
+    /*
+        This action draws the layer, then the game camera preview on top if it is showing.
+    */
+    action Draw
+        parent:Layer3D:Draw()
+
+        if gamePreviewShowing and IsShowing()
+            DrawGamePreview()
+        end
+    end
+
+    /*
+        Draws the scene a second time, from the game camera, into a framed box in a corner of the
+        editor. Editor-only items such as the grid, cursor, and selection highlights are
+        left out, as are the markers for lights and sounds, so the box shows what the game will show.
+        The preview needs OpenGL, so it is skipped with other renderers.
+    */
+    private action DrawGamePreview
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if not (graphics is OpenGLManager)
+            return now
+        end
+        OpenGLManager openGL = cast(OpenGLManager, graphics)
+
+        integer viewX = GetViewportX()
+        integer viewY = GetViewportY()
+        integer viewWidth = GetViewportWidth()
+        integer viewHeight = GetViewportHeight()
+        if viewWidth < 200 or viewHeight < 150
+            return now
+        end
+
+        // The box is 30% of the editor's width, and its 3D area has the same shape as the editor.
+        integer width = cast(integer, viewWidth * 0.3)
+        integer innerWidth = width - 2 * PREVIEW_BORDER
+        integer innerHeight = cast(integer, innerWidth * viewHeight / viewWidth)
+        integer height = innerHeight + PREVIEW_TITLE_HEIGHT + 2 * PREVIEW_BORDER
+        if height + 2 * PREVIEW_MARGIN > viewHeight
+            return now
+        end
+        // Screen coordinates start at the bottom left.
+        integer x = viewX + viewWidth - width - PREVIEW_MARGIN
+        if gamePreviewCorner = BOTTOM_LEFT or gamePreviewCorner = TOP_LEFT
+            x = viewX + PREVIEW_MARGIN
+        end
+        integer y = viewY + viewHeight - height - PREVIEW_MARGIN
+        if gamePreviewCorner = BOTTOM_RIGHT or gamePreviewCorner = BOTTOM_LEFT
+            y = viewY + PREVIEW_MARGIN
+        end
+
+        DrawPreviewFrame(x, y, width, height)
+
+        // Clear the depth left by the main view, so the preview isn't hidden behind it.
+        openGL:ClearScreen(256)
+
+        Camera editorCamera = GetCamera()
+        PerspectiveCamera preview = GetGameCamera()
+        preview:SetSize(innerWidth, innerHeight)
+        SetViewport(x + PREVIEW_BORDER, y + PREVIEW_BORDER, innerWidth, innerHeight)
+        SetCamera(preview)
+        preview:Update()
+        openGL:SetViewport(GetViewportX(), GetViewportY(), GetViewportWidth(), GetViewportHeight())
+
+        Painter3D painter = GetPainter()
+        painter:Begin()
+        Iterator<Item3D> iterator = GetIterator()
+        repeat while iterator:HasNext()
+            Item3D item = iterator:Next()
+            if not item:HasProperty(constants:EDITOR_TAG) and not (item is EditorPointLight) and not (item is EditorAudio3D)
+                item:Draw(painter)
+            end
+        end
+        painter:End()
+
+        // Put the editor camera and viewport back, so picking and the next frame use them.
+        SetCamera(editorCamera)
+        SetViewport(viewX, viewY, viewWidth, viewHeight)
+    end
+
+    /*
+        Draws the preview's border, background, and title with a 2D layer of its own. The layer is
+        never added to the Game, so it is only drawn here.
+    */
+    private action DrawPreviewFrame(integer x, integer y, integer width, integer height)
+        if not previewFrameReady
+            previewFrame:Add(previewBorder)
+            previewFrame:Add(previewBackground)
+            previewTitle:SetText("Game Camera")
+            previewTitle:SetSize(14)
+            Color white
+            previewTitle:SetColor(white:White())
+            previewFrame:Add(previewTitle)
+            previewFrameReady = true
+        end
+
+        if width not= previewFrameWidth or height not= previewFrameHeight
+            Color borderColor
+            borderColor:SetColor(0.35, 0.6, 0.9, 1.0)
+            Color backgroundColor
+            backgroundColor:SetColor(0.12, 0.12, 0.12, 1.0)
+            previewBorder:LoadFilledRectangle(width, height, borderColor)
+            previewBorder:SetPosition(0, 0)
+            previewBackground:LoadFilledRectangle(width - 2 * PREVIEW_BORDER, height - 2 * PREVIEW_BORDER, backgroundColor)
+            previewBackground:SetPosition(PREVIEW_BORDER, PREVIEW_BORDER)
+            previewTitle:SetPosition(PREVIEW_BORDER + 6, height - PREVIEW_BORDER - PREVIEW_TITLE_HEIGHT + 5)
+            previewFrameWidth = width
+            previewFrameHeight = height
+        end
+
+        previewFrame:SetViewportAndCamera(x, y, width, height)
+        previewFrame:Draw()
     end
     
     

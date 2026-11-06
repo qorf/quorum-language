@@ -5,6 +5,7 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Layer3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
@@ -64,6 +65,8 @@ use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
 use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Interface.Controls.Scenes.Items.CameraPerspectiveItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
@@ -152,6 +155,39 @@ class SceneEditor is Control, DefaultSceneManager
     Vector3 workVector3
 
     Accessibility accessibility = undefined
+
+    // The camera perspectives that NextCameraPerspective cycles through, in order.
+    public constant integer ORIGIN_PERSPECTIVE = 0
+    public constant integer HORIZON_PERSPECTIVE = 1
+    public constant integer TOP_DOWN_PERSPECTIVE = 2
+    integer cameraPerspective = -1
+
+    /*
+        While a perspective is on, focus is on perspectiveItem, which uses the arrow keys to move the
+        camera and Escape to leave. The camera looks at perspectiveCenter, a point that is never added
+        to a layer. The camera and focus from before the perspective are kept so Escape can put them back.
+    */
+    boolean inCameraPerspective = false
+    CameraPerspectiveItem perspectiveItem = undefined
+    Item3D perspectiveCenter
+    integer perspectivePanX = 0
+    integer perspectivePanZ = 0
+    // 1 while zooming in, -1 while zooming out, and 0 otherwise.
+    integer perspectiveZoom = 0
+    Item3D savedCameraTarget = undefined
+    number savedCameraDistance = 0
+    number savedCameraYaw = 0
+    number savedCameraPitch = 0
+    number savedCameraRoll = 0
+    Vector3 savedCameraPosition
+    Item savedFocus = undefined
+    CameraItem3D perspectiveCameraItem = undefined
+
+    // A message for screen readers that waits until a focus change has been announced, because a
+    // focus announcement replaces any message sent just before it.
+    text pendingAnnouncement = ""
+    number pendingAnnouncementDelay = 0
+
     Math math
     Color color
 
@@ -547,8 +583,28 @@ class SceneEditor is Control, DefaultSceneManager
     end
 
 action Update(number seconds)
+        if pendingAnnouncement not= ""
+            pendingAnnouncementDelay = pendingAnnouncementDelay - seconds
+            if pendingAnnouncementDelay <= 0
+                Item focused = manager:GetFocus()
+                if focused = undefined
+                    focused = me
+                end
+                NotifyAccessibility(focused, pendingAnnouncement)
+                pendingAnnouncement = ""
+            end
+        end
+
         if layers:IsEmpty() or GetSelectedLayer() = undefined
             return now
+        end
+
+        if inCameraPerspective and (perspectivePanX not= 0 or perspectivePanZ not= 0)
+            PanCameraPerspective(seconds)
+        end
+
+        if inCameraPerspective and perspectiveZoom not= 0
+            ZoomCameraPerspective(seconds)
         end
 
         Camera camera = GetSelectedLayer():GetCamera()
@@ -2247,6 +2303,348 @@ action Update(number seconds)
         return GetSelectionYawDirection() not= 0 or GetSelectionPitchDirection() not= 0 or GetSelectionRollDirection() not= 0
     end
 
+    /*
+        Shows or hides the preview of what the game camera sees, in the corner of a 3D scene.
+    */
+    action ToggleGamePreview
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera preview is only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        boolean showing = not layer3D:IsGamePreviewShowing()
+        layer3D:SetGamePreviewShowing(showing)
+        if showing
+            NotifyAccessibility(me, "Game camera preview on")
+        else
+            NotifyAccessibility(me, "Game camera preview off")
+        end
+    end
+
+    /*
+        Moves the editor camera to the next perspective: origin, then horizon, then top-down, then
+        back to origin.
+    */
+    action NextCameraPerspective
+        SetCameraPerspective((cameraPerspective + 1) mod 3)
+    end
+
+    /*
+        Moves the editor camera to one of the perspectives. The game camera is not changed.
+
+        The origin perspective is the editor's starting view: looking at the origin from above at a
+        45 degree angle. The horizon perspective is level with the ground, and the top-down perspective
+        looks straight down. Those two keep looking at the same point and facing the same way, and only
+        tilt the camera.
+
+        While a perspective is on, the arrow keys move the camera along the ground, relative to the way
+        it faces, and Escape puts the camera and focus back the way they were before.
+
+        Attribute: Parameter perspective ORIGIN_PERSPECTIVE, HORIZON_PERSPECTIVE, or TOP_DOWN_PERSPECTIVE.
+    */
+    action SetCameraPerspective(integer perspective)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "Camera perspectives are only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        if not inCameraPerspective
+            // Remember the camera and focus, so Escape can put them back.
+            savedCameraTarget = camera:GetTarget()
+            savedCameraDistance = camera:GetDistance()
+            savedCameraYaw = camera:GetYaw()
+            savedCameraPitch = camera:GetPitch()
+            savedCameraRoll = camera:GetRoll()
+            savedCameraPosition:Set(camera:GetPosition())
+            // Only focus inside the scene editor is put back. From a menu, Escape focuses the editor.
+            savedFocus = undefined
+            Item focus = manager:GetFocus()
+            if focus is EditorItem or IsFocused()
+                savedFocus = focus
+            end
+
+            perspectiveCameraItem = undefined
+            EditorItem selected = GetSelectedItem()
+            if selected is CameraItem3D
+                perspectiveCameraItem = cast(CameraItem3D, selected)
+            end
+
+            // The camera keeps looking at the same point, or the origin if it had no target.
+            if savedCameraTarget not= undefined
+                perspectiveCenter:SetPosition(savedCameraTarget:GetGlobalX(), savedCameraTarget:GetGlobalY(), savedCameraTarget:GetGlobalZ())
+            else
+                perspectiveCenter:SetPosition(0, 0, 0)
+            end
+            inCameraPerspective = true
+        end
+
+        number yaw = camera:GetYaw()
+        number pitch = 0
+        text name = "Horizon view"
+        if perspective = ORIGIN_PERSPECTIVE
+            perspectiveCenter:SetPosition(0, 0, 0)
+            camera:SetDistance(10)
+            yaw = 0
+            pitch = 45
+            name = "Origin view"
+        elseif perspective = TOP_DOWN_PERSPECTIVE
+            pitch = 90
+            name = "Top-down view"
+        end
+
+        camera:SetTarget(perspectiveCenter)
+        camera:SetRotation(yaw, pitch, 0)
+        SyncPerspectiveCameraItem(camera)
+        cameraPerspective = perspective
+        perspectivePanX = 0
+        perspectivePanZ = 0
+
+        if perspectiveItem = undefined
+            CameraPerspectiveItem item
+            item:SetSceneEditor(me)
+            item:SetProperty(constants:EDITOR_TAG, undefined)
+            Add(item)
+            perspectiveItem = item
+        end
+
+        perspectiveItem:SetName(name)
+        perspectiveItem:SetDescription("Camera perspective. Arrow keys move the camera. Plus and minus zoom in and out. Escape returns to the previous view.")
+        if perspectiveItem:IsFocused()
+            NotifyAccessibility(perspectiveItem, name)
+        else
+            // Focusing the item announces its name and description.
+            perspectiveItem:Focus()
+        end
+    end
+
+    /*
+        Returns true while a camera perspective is on.
+    */
+    action IsInCameraPerspective returns boolean
+        return inCameraPerspective
+    end
+
+    /*
+        Sets which way the camera moves along the ground while a perspective is on. Each value is -1, 0,
+        or 1. X moves left and right, and Z moves forward and back, relative to the way the camera faces.
+    */
+    action SetCameraPerspectivePan(integer x, integer z)
+        if not inCameraPerspective
+            return now
+        end
+
+        boolean wasMoving = perspectivePanX not= 0 or perspectivePanZ not= 0
+        perspectivePanX = x
+        perspectivePanZ = z
+
+        // When the camera stops, say where it is looking.
+        if wasMoving and x = 0 and z = 0 and perspectiveItem not= undefined
+            number centerX = math:Round(perspectiveCenter:GetGlobalX(), 1)
+            number centerZ = math:Round(perspectiveCenter:GetGlobalZ(), 1)
+            NotifyAccessibility(perspectiveItem, "Looking at " + centerX + ", " + centerZ)
+        end
+    end
+
+    /*
+        Starts or stops zooming while a perspective is on: 1 zooms in, -1 zooms out, and 0 stops.
+        Zooming moves the camera closer to or farther from the point it looks at.
+    */
+    action SetCameraPerspectiveZoom(integer direction)
+        if not inCameraPerspective
+            return now
+        end
+
+        boolean wasZooming = perspectiveZoom not= 0
+        perspectiveZoom = direction
+
+        // When zooming stops, say how far away the camera is.
+        if wasZooming and direction = 0 and perspectiveItem not= undefined
+            EditorLayer layer = GetSelectedLayer()
+            if layer is EditorLayer3D
+                EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+                number distance = math:Round(layer3D:GetEditorCamera():GetDistance(), 1)
+                NotifyAccessibility(perspectiveItem, "Distance " + distance)
+            end
+        end
+    end
+
+    /*
+        Changes the camera's distance while a zoom key is held. The distance changes by the same share
+        each second, so zooming feels the same up close and far away.
+    */
+    private action ZoomCameraPerspective(number seconds)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        number distance = camera:GetDistance()
+        if perspectiveZoom > 0
+            distance = distance / (1 + 1.5 * seconds)
+        else
+            distance = distance * (1 + 1.5 * seconds)
+        end
+
+        if distance < 1
+            distance = 1
+        elseif distance > 1000
+            distance = 1000
+        end
+
+        camera:SetDistance(distance)
+        SyncPerspectiveCameraItem(camera)
+    end
+
+    action GetCameraPerspectivePanX returns integer
+        return perspectivePanX
+    end
+
+    action GetCameraPerspectivePanZ returns integer
+        return perspectivePanZ
+    end
+
+    /*
+        Leaves the camera perspective and puts the camera and focus back the way they were before it.
+    */
+    action ExitCameraPerspective
+        if not inCameraPerspective
+            return now
+        end
+
+        inCameraPerspective = false
+        perspectivePanX = 0
+        perspectivePanZ = 0
+        perspectiveZoom = 0
+        cameraPerspective = -1
+
+        EditorLayer layer = GetSelectedLayer()
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            EditorCamera3D camera = layer3D:GetEditorCamera()
+            camera:SetTarget(savedCameraTarget)
+            camera:SetDistance(savedCameraDistance)
+            camera:SetRotation(savedCameraYaw, savedCameraPitch, savedCameraRoll)
+            if savedCameraTarget = undefined
+                camera:SetPosition(savedCameraPosition:GetX(), savedCameraPosition:GetY(), savedCameraPosition:GetZ())
+            end
+            SyncPerspectiveCameraItem(camera)
+        end
+
+        if savedFocus not= undefined
+            savedFocus:Focus()
+        else
+            Focus()
+        end
+        AnnounceAfterFocus("Left camera perspective")
+    end
+
+    /*
+        Called when focus leaves the perspective some other way than Escape, such as a click. The camera
+        stays where it is, and the perspective is over.
+    */
+    action CameraPerspectiveLostFocus
+        if not inCameraPerspective
+            return now
+        end
+        inCameraPerspective = false
+        perspectivePanX = 0
+        perspectivePanZ = 0
+        perspectiveZoom = 0
+        cameraPerspective = -1
+    end
+
+    /*
+        Moves the camera's center point along the ground while an arrow key is held in a perspective.
+        Forward is the way the camera faces, flattened onto the ground, so in the top-down perspective
+        it is up on the screen. The speed grows with the camera's distance, so far views move faster.
+    */
+    private action PanCameraPerspective(number seconds)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        number yaw = math:DegreesToRadians(camera:GetYaw())
+        number forwardX = math:Sine(yaw)
+        number forwardZ = math:Cosine(yaw)
+        number rightX = math:Cosine(yaw)
+        number rightZ = -math:Sine(yaw)
+
+        number distance = camera:GetDistance()
+        if distance < 1
+            distance = 1
+        end
+        number step = distance * seconds
+
+        number moveX = (rightX * perspectivePanX + forwardX * perspectivePanZ) * step
+        number moveZ = (rightZ * perspectivePanX + forwardZ * perspectivePanZ) * step
+        perspectiveCenter:SetPosition(perspectiveCenter:GetGlobalX() + moveX, perspectiveCenter:GetGlobalY(), perspectiveCenter:GetGlobalZ() + moveZ)
+
+        camera:UpdateCameraPosition()
+        SyncPerspectiveCameraItem(camera)
+    end
+
+    /*
+        If the camera's item was selected when the perspective started, keeps it where the camera is.
+    */
+    private action SyncPerspectiveCameraItem(EditorCamera3D camera)
+        if perspectiveCameraItem not= undefined
+            perspectiveCameraItem:SetPosition(camera:GetPosition())
+        end
+    end
+
+    /*
+        Sends a message to screen readers after the current focus change has been announced. Quorum
+        announces focus changes on the next frame, and screen readers replace a message with any
+        announcement that comes right after it, so a message sent right away would not be heard.
+    */
+    private action AnnounceAfterFocus(text message)
+        pendingAnnouncement = message
+        pendingAnnouncementDelay = 0.3
+    end
+
+    /*
+        Moves the game camera preview to the next corner of the editor, going clockwise. If the
+        preview is hidden, it is shown, so the move can be seen.
+    */
+    action MoveGamePreview
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera preview is only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        layer3D:MoveGamePreviewToNextCorner()
+        layer3D:SetGamePreviewShowing(true)
+        NotifyAccessibility(me, "Game camera preview moved to the " + layer3D:GetGamePreviewCornerName())
+    end
+
+    /*
+        Sets the game camera, which the scene starts with when it runs, to the current editor view.
+    */
+    action SetGameCameraToCurrentView
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera can only be set in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        layer3D:SetGameCameraToEditorView()
+        NotifyAccessibility(me, "Game camera set to the current view")
+    end
+
     action NotifyAccessibility(Item item, text message)
         if accessibility not= undefined
             accessibility:Notify(item, message)
@@ -2481,9 +2879,67 @@ action Update(number seconds)
                 camera:SetZoom(json:GetNumber(key))
                 return true
             end
+        elseif layer is EditorLayer3D
+            return LoadCamera3DProperty(cast(EditorLayer3D, layer), camera, key, json)
         end
 
         return false
+    end
+
+    /*
+        Loads one camera value for a 3D layer. The plain values belong to the game camera, and the
+        values starting with "EDITOR_" belong to the editor camera. Scenes saved before the two
+        cameras were separate only have the plain values, so the editor camera starts there too.
+    */
+    private action LoadCamera3DProperty(EditorLayer3D layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        text prefix = "EDITOR_"
+        if key:StartsWith(prefix)
+            text property = key:GetSubtext(prefix:GetSize())
+            if IsSeparateCameraProperty(property)
+                ApplyCameraProperty(camera, property, key, json)
+                return true
+            end
+            return false
+        end
+
+        if not IsSeparateCameraProperty(key)
+            return false
+        end
+
+        ApplyCameraProperty(layer:GetGameCamera(), key, key, json)
+        if not json:HasValue(prefix + key)
+            ApplyCameraProperty(camera, key, key, json)
+        end
+        return true
+    end
+
+    /*
+        Returns true for the camera values that the game camera and editor camera each have their
+        own copy of in a 3D scene.
+    */
+    private action IsSeparateCameraProperty(text property) returns boolean
+        return property = properties:POSITION or property = properties:DIRECTION or property = properties:UP or
+            property = properties:FIELD_OF_VIEW or property = properties:NEAR or property = properties:FAR
+    end
+
+    private action ApplyCameraProperty(Camera camera, text property, text key, JavaScriptObjectNotation json)
+        if property = properties:POSITION
+            Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+        elseif property = properties:DIRECTION
+            Number32BitArray direction = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetDirection(direction:Get(0), direction:Get(1), direction:Get(2))
+        elseif property = properties:UP
+            Number32BitArray up = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetUp(up:Get(0), up:Get(1), up:Get(2))
+        elseif property = properties:NEAR
+            camera:SetNear(json:GetNumber(key))
+        elseif property = properties:FAR
+            camera:SetFar(json:GetNumber(key))
+        elseif property = properties:FIELD_OF_VIEW and camera is PerspectiveCamera
+            PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+            perspective:SetFieldOfView(json:GetNumber(key))
+        end
     end
 
     private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
@@ -2508,9 +2964,36 @@ action Update(number seconds)
 
                 return true
             end
+        elseif layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            if IsSeparateCameraProperty(key)
+                SaveCameraProperty(layer3D:GetGameCamera(), key, key, json)
+                SaveCameraProperty(camera, key, "EDITOR_" + key, json)
+                return true
+            end
         end
 
         return false
+    end
+
+    private action SaveCameraProperty(Camera camera, text property, text key, JavaScriptObjectNotation json)
+        if property = properties:POSITION
+            Vector3 vector = camera:GetPosition()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:DIRECTION
+            Vector3 vector = camera:GetDirection()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:UP
+            Vector3 vector = camera:GetUp()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:NEAR
+            json:Add(key, camera:GetNear())
+        elseif property = properties:FAR
+            json:Add(key, camera:GetFar())
+        elseif property = properties:FIELD_OF_VIEW and camera is PerspectiveCamera
+            PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+            json:Add(key, perspective:GetFieldOfView())
+        end
     end
 
     action Save
