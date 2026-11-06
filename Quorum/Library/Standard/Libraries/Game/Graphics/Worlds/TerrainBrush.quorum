@@ -1,0 +1,526 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Number32BitArray
+use Libraries.Compute.Math
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.PixelMap
+
+/*
+A TerrainBrush holds the settings for changing a terrain by hand: which
+tool and operation to use (see TerrainTool), how big the brush is, how
+strong it is, and how its effect fades from the center to the edge. A
+TerrainStroke uses a brush to change a TerrainData, one press of the mouse
+or key at a time.
+
+The settings:
+- **Size:** the brush's radius, in world units.
+- **Strength:** how fast the brush works. For raising and lowering, it is
+  how many world units per second the center moves. For everything else
+  (smoothing, flattening, ramps and painting) it is a rate: in one second
+  at strength 1, the center moves about 63% of the way to its goal, and in
+  a quarter second about 22%. Either way, a stroke does the same thing at
+  any frame rate.
+- **Falloff:** how the effect fades out. By default it fades smoothly from
+  full at the center to nothing at the edge. Gamma changes how sharp that
+  is: more than 1 keeps the effect closer to the center, less than 1 spreads
+  it out toward the edge.
+- **Shape:** optionally, a square of numbers from 0 to 1, such as one made
+  from a gray image, used in place of the round falloff. It can be turned
+  with SetRotation.
+- **Slope range:** optionally, only ground between two steepnesses is
+  changed, such as painting rock only on slopes.
+- **Target height:** the height flattening moves toward. With
+  SetFlattenToStart, the stroke uses the ground's height where it starts.
+- **Layer:** the ground texture painting adds: 0 red, 1 green, 2 blue,
+  3 alpha.
+- **Gradient:** for ramps, the two points and their heights.
+
+These follow Terrain3D's brush settings.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.TerrainTool
+
+TerrainTool tools
+TerrainBrush brush
+brush:SetTool(tools:SCULPT, tools:ADD)
+brush:SetSize(8)
+brush:SetStrength(2)
+output brush:GetDescription()
+*/
+class TerrainBrush
+    TerrainTool tools
+
+    integer tool = 0
+    integer operation = 0
+    number size = 5
+    number strength = 1
+    number gamma = 1
+
+    // An optional shape, shapeWidth by shapeWidth numbers from 0 to 1, one
+    // row after another, and how far it is turned, in degrees.
+    Number32BitArray shape = undefined
+    integer shapeWidth = 0
+    number rotation = 0
+
+    // An optional range of steepness, in degrees from flat.
+    boolean usesSlopeRange = false
+    number lowestSlope = 0
+    number highestSlope = 90
+
+    number targetHeight = 0
+    boolean flattenToStart = false
+
+    integer layer = 0
+
+    boolean hasGradient = false
+    number gradientStartX = 0
+    number gradientStartZ = 0
+    number gradientStartHeight = 0
+    number gradientEndX = 0
+    number gradientEndZ = 0
+    number gradientEndHeight = 0
+
+    Math math
+    BitwiseOperations bits
+
+    /*
+    This action sets the brush's tool and operation, such as SCULPT and ADD
+    for raising the ground. The pair must make sense together (see
+    TerrainTool's IsValid).
+
+    Attribute: Parameter tool The tool, from TerrainTool.
+    Attribute: Parameter operation The operation, from TerrainTool.
+    */
+    action SetTool(integer tool, integer operation)
+        if not tools:IsValid(tool, operation)
+            alert("A terrain brush can't use tool " + tool + " with operation " + operation + ".")
+        end
+        me:tool = tool
+        me:operation = operation
+    end
+
+    /*
+    This action returns the brush's tool.
+
+    Attribute: Returns The tool, from TerrainTool.
+    */
+    action GetTool returns integer
+        return tool
+    end
+
+    /*
+    This action returns the brush's operation.
+
+    Attribute: Returns The operation, from TerrainTool.
+    */
+    action GetOperation returns integer
+        return operation
+    end
+
+    /*
+    This action returns a short name for what the brush does, such as
+    "raise" or "paint".
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return tools:GetName(tool, operation)
+    end
+
+    /*
+    This action returns a sentence describing the brush's main settings,
+    for showing or speaking, such as "raise, size 8, strength 2".
+
+    Attribute: Returns The description.
+    */
+    action GetDescription returns text
+        text description = GetName() + ", size " + math:Round(size, 2) + ", strength " + math:Round(strength, 2)
+        if gamma not= 1
+            description = description + ", falloff " + math:Round(gamma, 2)
+        end
+        if tool = tools:TEXTURE and operation = tools:ADD
+            description = description + ", layer " + (layer + 1)
+        end
+        if tool = tools:HEIGHT
+            if flattenToStart
+                description = description + ", to the height where it starts"
+            else
+                description = description + ", to height " + math:Round(targetHeight, 2)
+            end
+        end
+        if usesSlopeRange
+            description = description + ", only on slopes from " + math:Round(lowestSlope, 1) + " to " + math:Round(highestSlope, 1) + " degrees"
+        end
+        if shape not= undefined
+            description = description + ", shaped"
+        end
+        return description
+    end
+
+    /*
+    This action sets the brush's radius.
+
+    Attribute: Parameter radius The radius in world units. It must be more than 0.
+    */
+    action SetSize(number radius)
+        if radius <= 0
+            alert("A terrain brush's size must be more than 0, but was given " + radius + ".")
+        end
+        size = radius
+    end
+
+    /*
+    This action returns the brush's radius.
+
+    Attribute: Returns The radius in world units.
+    */
+    action GetSize returns number
+        return size
+    end
+
+    /*
+    This action sets how fast the brush works (see the class description).
+
+    Attribute: Parameter strength The strength. It can't be less than 0.
+    */
+    action SetStrength(number strength)
+        if strength < 0
+            alert("A terrain brush's strength can't be less than 0, but was given " + strength + ".")
+        end
+        me:strength = strength
+    end
+
+    /*
+    This action returns how fast the brush works.
+
+    Attribute: Returns The strength.
+    */
+    action GetStrength returns number
+        return strength
+    end
+
+    /*
+    This action sets how sharply the brush's effect fades from its center.
+    1 is the plain smooth fade; more than 1 keeps the effect nearer the
+    center, and less than 1 spreads it toward the edge.
+
+    Attribute: Parameter gamma The power the fade is raised to. It must be more than 0.
+    */
+    action SetGamma(number gamma)
+        if gamma <= 0
+            alert("A terrain brush's gamma must be more than 0, but was given " + gamma + ".")
+        end
+        me:gamma = gamma
+    end
+
+    /*
+    This action returns how sharply the brush's effect fades.
+
+    Attribute: Returns The gamma.
+    */
+    action GetGamma returns number
+        return gamma
+    end
+
+    /*
+    This action gives the brush a shape in place of its round fade: a
+    square of numbers from 0 to 1, one row after another, covering the
+    square around the brush from one edge to the other. The numbers are
+    copied, so changing the array afterward doesn't change the brush.
+
+    Attribute: Parameter values The shape, width times width numbers.
+    Attribute: Parameter width How many numbers along each side. It must be at least 2.
+    */
+    action SetShape(Number32BitArray values, integer width)
+        if width < 2
+            alert("A terrain brush shape must be at least 2 by 2, but was given a width of " + width + ".")
+        end
+        if values:GetSize() not= width * width
+            alert("A terrain brush shape " + width + " wide needs " + (width * width) + " values, but was given " + values:GetSize() + ".")
+        end
+        Number32BitArray copy
+        copy:SetSize(width * width)
+        integer i = 0
+        repeat while i < width * width
+            copy:Set(i, math:Clamp(values:Get(i), 0, 1))
+            i = i + 1
+        end
+        shape = copy
+        shapeWidth = width
+    end
+
+    /*
+    This action gives the brush a shape from a square gray image: white is
+    full strength and black is none. Only the red part of each pixel is
+    read. Like PixelMap itself, this needs a running game.
+
+    Attribute: Parameter map The image. It must be square, and at least 2 by 2.
+    */
+    action SetShapeFromImage(PixelMap map)
+        integer width = map:GetWidth()
+        if map:GetHeight() not= width
+            alert("A terrain brush image must be square, but this one is " + width + " by " + map:GetHeight() + ".")
+        end
+        Number32BitArray values
+        values:SetSize(width * width)
+        integer row = 0
+        repeat while row < width
+            integer column = 0
+            repeat while column < width
+                integer red = bits:And(bits:ShiftRight(map:GetPixel(column, row), 24), 255)
+                values:Set(row * width + column, red / 255.0)
+                column = column + 1
+            end
+            row = row + 1
+        end
+        SetShape(values, width)
+    end
+
+    /*
+    This action takes away the brush's shape, so it uses its round fade
+    again.
+    */
+    action ClearShape
+        shape = undefined
+        shapeWidth = 0
+    end
+
+    /*
+    This action returns true if the brush has a shape.
+
+    Attribute: Returns True if a shape is used in place of the round fade.
+    */
+    action HasShape returns boolean
+        return shape not= undefined
+    end
+
+    /*
+    This action sets how far the brush's shape is turned, in degrees around
+    the vertical axis. It has no effect on the round fade.
+
+    Attribute: Parameter degrees The angle in degrees.
+    */
+    action SetRotation(number degrees)
+        rotation = degrees
+    end
+
+    /*
+    This action returns how far the brush's shape is turned.
+
+    Attribute: Returns The angle in degrees.
+    */
+    action GetRotation returns number
+        return rotation
+    end
+
+    /*
+    This action limits the brush to ground with a steepness in a range, in
+    degrees from flat.
+
+    Attribute: Parameter lowest The least steep ground the brush changes, in degrees.
+    Attribute: Parameter highest The steepest ground the brush changes, in degrees.
+    */
+    action SetSlopeRange(number lowest, number highest)
+        if highest < lowest
+            alert("The steepest slope, " + highest + ", can't be less than the least steep, " + lowest + ".")
+        end
+        lowestSlope = lowest
+        highestSlope = highest
+        usesSlopeRange = true
+    end
+
+    /*
+    This action lets the brush change ground of any steepness again.
+    */
+    action ClearSlopeRange
+        usesSlopeRange = false
+    end
+
+    /*
+    This action returns true if the brush only changes ground in a range of
+    steepness.
+
+    Attribute: Returns True if there is a slope range.
+    */
+    action UsesSlopeRange returns boolean
+        return usesSlopeRange
+    end
+
+    /*
+    This action returns true if a steepness is inside the brush's slope
+    range, or if the brush has no slope range.
+
+    Attribute: Parameter degrees A steepness, in degrees from flat.
+    Attribute: Returns True if the brush may change ground this steep.
+    */
+    action IsSlopeAllowed(number degrees) returns boolean
+        if not usesSlopeRange
+            return true
+        end
+        return degrees >= lowestSlope and degrees <= highestSlope
+    end
+
+    /*
+    This action sets the height flattening moves toward.
+
+    Attribute: Parameter height The height in world units.
+    */
+    action SetTargetHeight(number height)
+        targetHeight = height
+    end
+
+    /*
+    This action returns the height flattening moves toward.
+
+    Attribute: Returns The height in world units.
+    */
+    action GetTargetHeight returns number
+        return targetHeight
+    end
+
+    /*
+    This action sets whether flattening uses the ground's height where each
+    stroke starts, instead of the target height. The stroke sets the target
+    height when it starts.
+
+    Attribute: Parameter toStart True to flatten to the height where the stroke starts.
+    */
+    action SetFlattenToStart(boolean toStart)
+        flattenToStart = toStart
+    end
+
+    /*
+    This action returns true if flattening uses the height where each stroke
+    starts.
+
+    Attribute: Returns True if flattening uses the starting height.
+    */
+    action FlattensToStart returns boolean
+        return flattenToStart
+    end
+
+    /*
+    This action sets which ground texture painting adds.
+
+    Attribute: Parameter channel 0 for red, 1 green, 2 blue, 3 alpha.
+    */
+    action SetLayer(integer channel)
+        if channel < 0 or channel > 3
+            alert("A terrain brush's layer must be from 0 to 3, but was given " + channel + ".")
+        end
+        layer = channel
+    end
+
+    /*
+    This action returns which ground texture painting adds.
+
+    Attribute: Returns 0 for red, 1 green, 2 blue, 3 alpha.
+    */
+    action GetLayer returns integer
+        return layer
+    end
+
+    /*
+    This action sets the ramp a GRADIENT brush pulls the ground toward: a
+    straight slope from one point and height to another. Past either end,
+    the ramp stays at that end's height.
+
+    Attribute: Parameter startX Where the ramp starts along x, in world units.
+    Attribute: Parameter startZ Where the ramp starts along z, in world units.
+    Attribute: Parameter startHeight The ramp's height at its start.
+    Attribute: Parameter endX Where the ramp ends along x, in world units.
+    Attribute: Parameter endZ Where the ramp ends along z, in world units.
+    Attribute: Parameter endHeight The ramp's height at its end.
+    */
+    action SetGradient(number startX, number startZ, number startHeight, number endX, number endZ, number endHeight)
+        gradientStartX = startX
+        gradientStartZ = startZ
+        gradientStartHeight = startHeight
+        gradientEndX = endX
+        gradientEndZ = endZ
+        gradientEndHeight = endHeight
+        hasGradient = true
+    end
+
+    /*
+    This action returns true if the brush has a ramp set.
+
+    Attribute: Returns True if SetGradient has been called.
+    */
+    action HasGradient returns boolean
+        return hasGradient
+    end
+
+    /*
+    This action returns the ramp's height at a world position: the height
+    at the nearest point along the line from the ramp's start to its end.
+
+    Attribute: Parameter worldX A position along x, in world units.
+    Attribute: Parameter worldZ A position along z, in world units.
+    Attribute: Returns The ramp's height there.
+    */
+    action GetGradientHeight(number worldX, number worldZ) returns number
+        number lineX = gradientEndX - gradientStartX
+        number lineZ = gradientEndZ - gradientStartZ
+        number lengthSquared = lineX * lineX + lineZ * lineZ
+        if lengthSquared = 0
+            return gradientStartHeight
+        end
+        number t = ((worldX - gradientStartX) * lineX + (worldZ - gradientStartZ) * lineZ) / lengthSquared
+        t = math:Clamp(t, 0, 1)
+        return gradientStartHeight + (gradientEndHeight - gradientStartHeight) * t
+    end
+
+    /*
+    This action returns how far apart, in world units, a stroke applies the
+    brush when it moves a long way at once: a quarter of the brush's size,
+    so fast strokes leave no gaps.
+
+    Attribute: Returns The spacing.
+    */
+    action GetSpacing returns number
+        return size / 4
+    end
+
+    /*
+    This action returns how strongly the brush acts at an offset from its
+    center, from 1 (full) to 0 (none). With no shape, it is a smooth fade
+    from the center to the edge of the circle. With a shape, it is the
+    shape's value there, across the square around the circle. Either way,
+    gamma is applied.
+
+    Attribute: Parameter offsetX The offset from the brush's center along x, in world units.
+    Attribute: Parameter offsetZ The offset from the brush's center along z, in world units.
+    Attribute: Returns The weight, from 0 to 1.
+    */
+    action GetWeight(number offsetX, number offsetZ) returns number
+        number weight = 0
+        if shape = undefined
+            number distance = math:SquareRoot(offsetX * offsetX + offsetZ * offsetZ)
+            if distance >= size
+                return 0
+            end
+            number t = distance / size
+            weight = 1 - t * t * (3 - 2 * t)
+        else
+            // Turn the offset back by the rotation, so the shape turns
+            // forward.
+            number radians = math:DegreesToRadians(rotation)
+            number cosine = math:Cosine(radians)
+            number sine = math:Sine(radians)
+            number turnedX = offsetX * cosine + offsetZ * sine
+            number turnedZ = offsetZ * cosine - offsetX * sine
+            if turnedX <= -size or turnedX >= size or turnedZ <= -size or turnedZ >= size
+                return 0
+            end
+            integer column = cast(integer, math:Round((turnedX / size + 1) / 2 * (shapeWidth - 1)))
+            integer row = cast(integer, math:Round((turnedZ / size + 1) / 2 * (shapeWidth - 1)))
+            weight = shape:Get(row * shapeWidth + column)
+        end
+        if gamma not= 1 and weight > 0
+            weight = math:RaiseToPower(weight, gamma)
+        end
+        return weight
+    end
+end

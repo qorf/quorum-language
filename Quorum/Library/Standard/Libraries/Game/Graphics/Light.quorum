@@ -1,6 +1,9 @@
 package Libraries.Game.Graphics
 
 use Libraries.Game.Graphics.Color
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 /*
 This class represents the basic foundation of a light used in 3D space. Users
@@ -14,6 +17,7 @@ class Light
     */
     Color color
     Environment environment = undefined
+    Array<CascadeShadowData> shadowData
     
     /*
     This action will set the color of the light using number values for the red,
@@ -53,6 +57,26 @@ class Light
 is added to an environment, so users should never need to use this action directly.*/
     action SetEnvironment(Environment environment)
         me:environment = environment
+    end
+
+    action GetShadowData(integer index) returns CascadeShadowData
+        if index >= shadowData:GetSize()
+            return undefined
+        end
+        
+        return shadowData:Get(index)
+    end
+
+    action SetShadowData(integer index, CascadeShadowData data)
+        if index >= shadowData:GetSize()
+            shadowData:SetSize(index + 1)
+        end
+        
+        if data not= shadowData:Get(index) and environment not= undefined
+            environment:LightChanged(me)
+        end
+        
+        shadowData:Set(index, data)
     end
 
 end

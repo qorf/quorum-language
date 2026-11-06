@@ -133,7 +133,7 @@ class OpenGLPainter2D is Painter2D
     Camera camera = undefined
 
     // Projection matrix, taken from the Camera. Allows us to translate world coordinates to screen coordinates.
-    Matrix4 projectionMatrix
+    CameraMatrix4 projectionMatrix
 
     // If this boolean is true, we can safely batch together Drawables to be rendered together for performance.
     // Otherwise, each Drawable has to be rendered separately, because a custom shader program/mapping might need different values on a per-Drawable basis.
@@ -381,7 +381,7 @@ class OpenGLPainter2D is Painter2D
             alert("I couldn't create the Painter2D because the display hasn't been initialized!")
         end
 
-        projectionMatrix:SetToOrthographic2D(0, 0, display:GetWidth(), display:GetHeight())
+        projectionMatrix:OrthographicProjection(0, display:GetWidth(), 0, display:GetHeight(), 0, 1)
 
         defaultProgram = GetDefaultShaders()
     end

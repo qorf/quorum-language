@@ -1,0 +1,49 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.PropertiesPanel
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    The PropertiesSectionKeyBehavior closes or opens the section of a scene
+    editor's Properties panel that the focus is in (step 15). Closing moves
+    the focus to the section's header; opening moves it to the section's
+    first control. The scene editor's input tables give it Alt+Shift+Up to
+    close and Alt+Shift+Down to open by default
+    (SceneEditorKeys:GetPropertiesSectionCloseKey and
+    GetPropertiesSectionOpenKey). It does nothing when the panel shows one
+    section.
+*/
+class PropertiesSectionKeyBehavior is Behavior
+    boolean opening = false
+
+    /*
+        Sets whether this behavior opens sections or closes them.
+
+        Attribute: Parameter value True to open, false to close
+    */
+    action SetOpening(boolean value)
+        opening = value
+    end
+
+    /*
+        Returns whether this behavior opens sections or closes them.
+
+        Attribute: Returns True if it opens
+    */
+    action IsOpening returns boolean
+        return opening
+    end
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is PropertiesPanel)
+            return now
+        end
+        PropertiesPanel panel = cast(PropertiesPanel, event:GetItem())
+        if opening
+            panel:OpenFocusedSection()
+        else
+            panel:CloseFocusedSection()
+        end
+    end
+end

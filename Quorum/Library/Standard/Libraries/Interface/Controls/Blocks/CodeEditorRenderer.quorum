@@ -816,7 +816,7 @@ end
         integer i = 0
         
         repeat while i < placeholderBlocks:GetSize()
-            toInsert = toInsert + placeholderBlocks:Get(i):GetPlaceholderText()
+            toInsert = toInsert + placeholderBlocks:Get(i):GetPlaceholderText() + lineFeed
             i = i + 1
         end
         
@@ -827,7 +827,6 @@ end
         if placeholderBlocks:IsEmpty()
             return now
         end
-
         CodeEditor editor = GetEditor()
         integer destination = placeholderBlocks:GetFromFront():GetStartIndex()
         integer line = editor:GetLineIndex(destination)

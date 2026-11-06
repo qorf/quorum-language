@@ -804,8 +804,10 @@ initialized = true
         end
         glyphTable:Empty()
 
-        // Reset the FontImageSheet as well.
-        imageSheet:Dispose()
+        // Reset the FontImageSheet as well, if one was made.
+        if imageSheet not= undefined
+            imageSheet:Dispose()
+        end
         imageSheet = undefined
         loadedImageSheet = false
     end

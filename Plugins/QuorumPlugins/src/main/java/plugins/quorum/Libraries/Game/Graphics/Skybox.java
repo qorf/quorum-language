@@ -51,26 +51,8 @@ public class Skybox
         map.Define2DImage(side, 0, 0);
         map.Dispose();
         
-        switch(side)
-        {
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).rightSource = file;
-                break;
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).leftSource = file;
-                break;
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).upSource = file;
-                break;
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).downSource = file;
-                break;
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).backSource = file;
-                break;
-            case OpenGLManager.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-                ((quorum.Libraries.Game.Graphics.Skybox)me_).frontSource = file;
-                break;
-        }
+        // Which file each side came from is recorded in Skybox.quorum
+        // (RecordSource), by the side the game asked for, since the
+        // desktop now swaps the front and back faces (Item 26).
     }
 }

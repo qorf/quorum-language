@@ -10,7 +10,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateRenderPass;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class VulkanRenderPass
 {
@@ -21,8 +21,8 @@ public class VulkanRenderPass
     public boolean CreateNative(VulkanDevice_ quorumDevice, Array_ quorumDescriptions,
             Array_ quorumSubpasses, Array_ quorumDependencies)
     {
-        if (quorumDescriptions == null || quorumSubpasses == null || quorumSubpasses == null
-                || quorumDescriptions.IsEmpty() || quorumSubpasses.IsEmpty() || quorumSubpasses.IsEmpty())
+        if (quorumDescriptions == null || quorumSubpasses == null || quorumDependencies == null
+                || quorumDescriptions.IsEmpty() || quorumSubpasses.IsEmpty())
         {
             return false;
         }
@@ -52,9 +52,9 @@ public class VulkanRenderPass
                 if (description.GetFinalLayout() >= 0)
                     vkDescription.finalLayout(description.GetFinalLayout());
                 if (description.GetStencilLoadOp() >= 0)
-                    vkDescription.finalLayout(description.GetStencilLoadOp());
+                    vkDescription.stencilLoadOp(description.GetStencilLoadOp());
                 if (description.GetStencilStoreOp() >= 0)
-                    vkDescription.finalLayout(description.GetStencilStoreOp());
+                    vkDescription.stencilStoreOp(description.GetStencilStoreOp());
             }
 
 
@@ -188,5 +188,14 @@ public class VulkanRenderPass
     public long GetRenderPassHandle()
     {
         return vulkanRenderPassHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (vulkanRenderPassHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyRenderPass(pluginDevice.GetDevice(), vulkanRenderPassHandle, null);
+        vulkanRenderPassHandle = 0L;
     }
 }

@@ -1,0 +1,189 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+/*
+    A PropertiesSectionItem is the header of a section in a scene editor's
+    Properties panel, such as "Materials" or "Physics", when the panel shows
+    two or more sections (step 15). It is a tree item, alone in its own
+    tree, so it looks, reads and works like the scene tree's items: the
+    tree's arrow, Right to open, Left to close, Enter to switch, and screen
+    readers hear it as a tree item that is expanded or collapsed.
+
+    It has no tree items under it. Opening and closing it opens and closes
+    its section's controls instead.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.PropertiesSectionItem
+
+    PropertiesSectionItem header
+    header:SetName("Materials")
+*/
+class PropertiesSectionItem is TreeItem
+    PropertiesDialog dialog = undefined
+    boolean sectionOpen = true
+
+    /*
+        Sets the section this header opens and closes.
+
+        Attribute: Parameter dialog The section
+    */
+    action SetDialog(PropertiesDialog dialog)
+        me:dialog = dialog
+    end
+
+    /*
+        Returns the section this header opens and closes.
+
+        Attribute: Returns The section
+    */
+    action GetDialog returns PropertiesDialog
+        return dialog
+    end
+
+    /*
+        Opens the section, showing its controls.
+    */
+    action Open
+        if not sectionOpen
+            ShowOpen(true)
+            if dialog not= undefined
+                dialog:SetOpen(true)
+            end
+            Announce()
+        end
+    end
+
+    /*
+        Closes the section, leaving only this header.
+    */
+    action Close
+        if sectionOpen
+            ShowOpen(false)
+            if dialog not= undefined
+                dialog:SetOpen(false)
+            end
+            Announce()
+        end
+    end
+
+    /*
+        Returns true if the section is open.
+
+        Attribute: Returns True if open
+    */
+    action IsOpen returns boolean
+        return sectionOpen
+    end
+
+    /*
+        Shows the header as open or closed, without opening or closing the
+        section. The section calls it when it opens or closes by itself,
+        such as from a saved setting or a key.
+
+        Attribute: Parameter open True for open
+    */
+    action ShowOpen(boolean open)
+        sectionOpen = open
+        TreeItemContent content = GetTreeItemContent()
+        if content not= undefined
+            content:SetExpandState(open)
+        end
+    end
+
+    /*
+        A header always has a section under it, so it is always one that
+        opens and closes, as a tree item with items under it is.
+
+        Attribute: Returns True
+    */
+    action IsSubtree returns boolean
+        return true
+    end
+
+    /*
+        Counts the section as the one thing under the header, so the tree
+        draws the arrow.
+
+        Attribute: Returns 1
+    */
+    action GetSize returns integer
+        return 1
+    end
+
+    /*
+        Clicking the header's name opens or closes it, as clicking the arrow
+        does.
+    */
+    action ClickedMouse
+        parent:TreeItem:ClickedMouse()
+        Switch()
+    end
+
+    /*
+        A double click is two clicks, and each click already opens or closes
+        the header, so a double click does nothing more.
+
+        Attribute: Parameter event The event
+    */
+    action OnDoubleClick(BehaviorEvent event)
+    end
+
+    /*
+        Enter on the header opens or closes it.
+
+        Attribute: Parameter event The event
+    */
+    action Activate(BehaviorEvent event)
+        Switch()
+    end
+
+    /*
+        Opens a closed section, or closes an open one.
+    */
+    action Switch
+        if sectionOpen
+            Close()
+        else
+            Open()
+        end
+    end
+
+    /*
+        Draws the header, with its arrow showing whether it is open.
+
+        Attribute: Parameter properties The layout properties
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:TreeItem:LoadGraphics(properties)
+        TreeItemContent content = GetTreeItemContent()
+        if content not= undefined
+            content:ShowExpandButton()
+            content:SetExpandState(sectionOpen)
+        end
+    end
+
+    /*
+        Tells the tree, and so screen readers, that the header opened or
+        closed, as a tree item does.
+    */
+    private action Announce
+        Tree tree = GetTree()
+        if tree not= undefined
+            tree:RequestLayout()
+            TreeChangeEvent event
+            if sectionOpen
+                event:Set(tree, me, event:OPENED)
+            else
+                event:Set(tree, me, event:CLOSED)
+            end
+            tree:NotifyTreeChangeListeners(event)
+        end
+    end
+end

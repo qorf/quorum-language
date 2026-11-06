@@ -402,7 +402,11 @@ class ModelReader
                     schematic3:SetTextureCoordinates(textures:Get(newPoint:GetTexture() - 1):GetVector():GetX(), textures:Get(newPoint:GetTexture() - 1):GetVector():GetY())
                 end
 
-                meshBuilder:AddTriangle(schematic1, schematic2, schematic3)
+                // Flipping z on load leaves the file's front faces winding
+                // counterclockwise on screen. Swapping the second and third
+                // corners makes them clockwise, the front in the left-handed
+                // world.
+                meshBuilder:AddTriangle(schematic1, schematic3, schematic2)
 
                 facePartCounter = facePartCounter + 1
             end

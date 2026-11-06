@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls.Scenes
 
+use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Interface.Controls.Tree
 use Libraries.Containers.Array
 use Libraries.Game.Layer
@@ -192,9 +193,14 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         treeItem:SetName(item:GetName())
         treeItem:SetSceneItem(item)
         treeItem:SetSceneLayer(layer)
-        Iterator<Item3D> children = item:GetItems()
-        repeat while children:HasNext()
-            treeItem:Add(cast(TreeItem, ItemToTreeItems(children:Next(), layer)))
+
+        // A terrain's region models come from its files, and aren't
+        // separate items in the scene.
+        if not (item is TerrainItem)
+            Iterator<Item3D> children = item:GetItems()
+            repeat while children:HasNext()
+                treeItem:Add(cast(TreeItem, ItemToTreeItems(children:Next(), layer)))
+            end
         end
 
         treeItem:SetBehavior(itemActivationBehavior)

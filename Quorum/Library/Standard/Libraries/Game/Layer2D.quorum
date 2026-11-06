@@ -126,6 +126,7 @@ class Layer2D is Layer
     boolean warmStarting = true
     boolean continuousPhysics = false
     boolean subStepping = false
+    integer maxSubSteps = 1
     boolean stepComplete = true
 
     boolean newItemAdded = false
@@ -3160,6 +3161,10 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
     action SetPainter(Painter2D painter)
         painterInitialized = true
         me:painter = painter
+    end
+
+    action GetSubStepping returns boolean
+        return subStepping
     end
 
 end

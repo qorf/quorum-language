@@ -5,6 +5,8 @@ use Libraries.Game.Graphics.Shaders.Programs.ShaderProgramStrategy
 
 class GraphicsManager
     
+    DeviceCoordinates deviceCoordinates
+    
     /*This action sets the background color of the window. This is the color used to clear
 the screen between each frame of animation. 
 Attribute: Parameter red The red component of the color, as a number between 0.0 (no red) and 1.0 (full red).
@@ -273,4 +275,8 @@ blueprint action CreateShaderProgram(ShaderProgramStrategy program) returns inte
     */
 //    blueprint action SetVertexInputInformation(integer inputID, integer size, integer type, boolean normalize, integer stride, Number32BitBuffer buffer)
     
+    action GetDeviceCoordinates returns DeviceCoordinates
+        return deviceCoordinates
+    end
+
 end

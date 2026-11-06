@@ -106,10 +106,13 @@ class FileFilter
     */
     action AddMultipleFilter(Array<text> multiple)
         text result = ""
-        i = 0
-        repeat while i < multiple:GetSize()
-            text filter = multiple:Get(i)
-            result = result + "," + filter
+        integer index = 0
+        repeat while index < multiple:GetSize()
+            if index > 0
+                result = result + ","
+            end
+            result = result + multiple:Get(index)
+            index = index + 1
         end
         filters:Add(result)
     end
@@ -252,16 +255,20 @@ class FileFilter
         output filter:GetCombinedFilter()
     */
     action GetCombinedFilter returns text
-        text result = ""
-        i = 0
-        repeat while i < filters:GetSize()
-            text filter = filters:Get(i)
-            result = result + ";" + filter
-            i = i + 1
+        // The native dialog takes one list of extensions separated by
+        // commas, such as "png,jpg", and allows only those. With the
+        // wildcard, every file is allowed, which it shows by having no list.
+        if HasAcceptAll() or filters:GetSize() = 0
+            return ""
         end
-
-        if HasAcceptAll()
-            result = result + ";" + "*"
+        text result = ""
+        integer index = 0
+        repeat while index < filters:GetSize()
+            if index > 0
+                result = result + ","
+            end
+            result = result + filters:Get(index)
+            index = index + 1
         end
         return result
     end

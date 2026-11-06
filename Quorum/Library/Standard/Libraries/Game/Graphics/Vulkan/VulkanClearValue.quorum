@@ -12,6 +12,8 @@ class VulkanClearValue
     
     boolean isColorValue = true
     boolean isDirty = true
+    
+    integer colorComponents = 4
 
     action SetColor(number red, number green, number blue)
         SetColor(red, green, blue, 1.0)
@@ -107,6 +109,14 @@ class VulkanClearValue
     
     action IsDepthStencilClearValue returns boolean
         return not isColorValue
+    end
+
+    action GetColorComponents returns integer
+        return colorComponents
+    end
+
+    action SetColorComponents(integer colorComponents)
+        me:colorComponents = colorComponents
     end
 
 end

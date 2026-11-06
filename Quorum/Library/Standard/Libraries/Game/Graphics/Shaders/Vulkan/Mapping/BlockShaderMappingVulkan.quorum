@@ -99,6 +99,11 @@ notchPositionsIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
         creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         VulkanDescriptorSetLayout descriptorLayout = creator:FinishDescriptorSetLayout()
         
+        // Made the first time only. A new pipeline (a 2D sample count
+        // change) uses the same buffer and set: the set's layout is
+        // defined the same way, so the set works with the new pipeline
+        // (Item 32).
+        if notchHeightDescriptorSet = undefined
         // Also initialize resources for the notch height descriptor.
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
@@ -111,6 +116,7 @@ VulkanDescriptorResourcesInfo notchResourcesInfo
                 notchResourcesInfo:AddBufferInfo(notchHeightBuffer, 0, notchHeightBuffer:GetSize())
 
         notchHeightDescriptorSet = descriptorManager:CreateDescriptorSet(descriptorLayout, notchResourcesInfo)
+        end
         
 VulkanPipelineInfo info = creator:Finish()
         pipelineLayout = info:GetLayout()

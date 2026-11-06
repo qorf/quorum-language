@@ -1,0 +1,56 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Undo.Edit
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+use Libraries.Compute.Vector3
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    SceneEditorMoveEdit records items in the scene editor being moved, so the move can be undone
+    and redone. It stores where each item was before the move and where it was after. Undoing
+    puts every item back where it started, and redoing moves every item back to where it ended.
+*/
+class SceneEditorMoveEdit is Edit
+
+    SceneEditor controller = undefined
+    Array<Item3D> items = undefined
+    Array<Vector3> startPositions = undefined
+    Array<Vector3> endPositions = undefined
+
+    /*
+    This action sets up the edit. The three arrays must be the same size, where the positions
+    at each index belong to the item at the same index.
+    */
+    action Create(SceneEditor controller, Array<Item3D> items, Array<Vector3> startPositions, Array<Vector3> endPositions)
+        me:controller = controller
+        me:items = items
+        me:startPositions = startPositions
+        me:endPositions = endPositions
+    end
+
+    action Undo
+        MoveItems(startPositions)
+    end
+
+    action Redo
+        MoveItems(endPositions)
+    end
+
+    private action MoveItems(Array<Vector3> positions)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Vector3 position = positions:Get(counter)
+            controller:MoveItemTo(items:Get(counter), position:GetX(), position:GetY(), position:GetZ())
+            counter = counter + 1
+        end
+    end
+
+    action GetUndoName returns text
+        return "Undo Move"
+    end
+
+    action GetRedoName returns text
+        return "Redo Move"
+    end
+end

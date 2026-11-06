@@ -1,0 +1,39 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    The CameraPerspectiveItem class has focus while a camera perspective is on in the 3D scene editor.
+    It is never drawn. Its name is the perspective, such as "Top-down view", so screen readers say it
+    when it gets focus. Its "CameraPerspective" input group uses the arrow keys to move the camera and
+    Escape to leave the perspective. Other keys go on to the scene editor.
+*/
+class CameraPerspectiveItem is Item2D
+    SceneEditor editor = undefined
+
+    on create
+        SetInputGroup("CameraPerspective")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:ITEM)
+    end
+
+    action SetSceneEditor(SceneEditor controller)
+        editor = controller
+    end
+
+    action GetSceneEditor returns SceneEditor
+        return editor
+    end
+
+    /*
+        If focus leaves some other way than Escape, the perspective ends where it is.
+    */
+    action LostFocus(FocusEvent event)
+        parent:Item2D:LostFocus(event)
+        if editor not= undefined
+            editor:CameraPerspectiveLostFocus()
+        end
+    end
+end

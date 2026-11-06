@@ -494,10 +494,8 @@ public class SpeechBridge implements TextToSpeech{
             engines.add(TextToSpeechEngine.SPEECH_DISPATCHER);
         }
         else {
-            // Windows.
+            // Windows: always SAPI (JAWS and NVDA were removed in 2026).
             engines.add(TextToSpeechEngine.MICROSOFT_SAPI);
-            engines.add(TextToSpeechEngine.JAWS);
-            engines.add(TextToSpeechEngine.NVDA);
         }
         
         return engines.iterator();

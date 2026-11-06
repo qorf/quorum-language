@@ -1,0 +1,45 @@
+package Libraries.Game.Graphics.Trees
+
+/*
+DynamicVolumeRenderTree3D is a render tree made of boxes that fit around the
+items, like the tree physics uses to find what might collide. It is a good
+choice for most scenes, and especially for scenes whose items are bunched
+together unevenly or move a lot, since the tree shapes itself around them
+and needs no region set ahead of time.
+
+Its two parts are RenderBoundingVolumeTree3D trees. Boxes in the static part
+fit their items exactly. Boxes in the dynamic part are DYNAMIC_MARGIN bigger
+on every side, so small moves do not change the tree.
+
+Everything else, the actions every render tree has, comes from
+StaticDynamicRenderTree3D.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+
+DynamicVolumeRenderTree3D tree
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+Array<Item3D> found
+tree:CollectInSphere(0, 0, 0, 5, found)
+output found:GetSize()
+*/
+class DynamicVolumeRenderTree3D is StaticDynamicRenderTree3D
+    // How much bigger than its item a dynamic leaf's box is, on every side.
+    // A bigger margin means fewer changes to the tree as items move, but
+    // more items drawn just outside the view.
+    constant number DYNAMIC_MARGIN = 0.25
+
+    RenderBoundingVolumeTree3D staticTree
+    RenderBoundingVolumeTree3D dynamicTree
+
+    on create
+        staticTree:SetMargin(0)
+        dynamicTree:SetMargin(DYNAMIC_MARGIN)
+        SetParts(staticTree, dynamicTree)
+    end
+end

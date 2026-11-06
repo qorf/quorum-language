@@ -1,0 +1,72 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanSampler
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+
+class DefaultShadowShaderMappingVulkan is VulkanShaderMapping
+    
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
+        VulkanConstants constants
+        
+        // We don't need to consider transparency for the shadow mapping.
+        creator:AddOpaqueColorBlendAttachmentState()
+
+            // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
+        creator:AddDynamicViewport()
+        creator:AddDynamicScissor()
+
+        // Create a binding for the first set. Set = 0, Binding = 0 will be an array of Matrix4s representing the different projection matrices for the cascading shadow maps.
+        VulkanDescriptorSetLayoutBinding projectionsBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        
+        // Set = 0, Binding = 1 will be the immutable sampler for textures.
+        VulkanDescriptorSetLayoutBinding samplerBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
+        Array<VulkanSampler> immutableSamplers
+        VulkanSampler immutableSampler = textureManager:GetDefaultSampler()
+        immutableSamplers:Add(immutableSampler)
+        samplerBinding:SetImmutableSamplers(immutableSamplers)
+        creator:FinishDescriptorSetLayout()
+        
+        // We also need the descriptor set layout for the global textures. The texture manager holds onto that layout, so go fetch it.
+        // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
+        creator:AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+        
+        VulkanPushConstantRange pushConstants
+        pushConstants:SetSize(16)
+        pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+        //pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+        pushConstants:Create()
+        creator:SetPushConstantRange(pushConstants)
+        
+        VulkanPipelineInfo info = creator:Finish()
+        return info
+    end
+    
+action Begin(ShaderProgram program, Camera camera)
+end
+    
+    action Begin(ShaderProgram program, Camera camera, VulkanCommandBuffer commandBuffer, integer swapchainIndex)
+    end
+
+    action End(ShaderProgram program)
+    end
+    
+end

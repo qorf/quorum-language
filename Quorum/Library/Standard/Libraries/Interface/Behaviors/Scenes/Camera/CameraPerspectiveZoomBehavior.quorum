@@ -1,0 +1,28 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.CameraPerspectiveItem
+
+/*
+    This behavior starts or stops zooming while a camera perspective is on. Pressing a zoom key starts
+    zooming in or out, and releasing it stops.
+*/
+class CameraPerspectiveZoomBehavior is Behavior
+    integer direction = 0
+
+    action SetDirection(integer value)
+        direction = value
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is CameraPerspectiveItem
+            CameraPerspectiveItem item = cast(CameraPerspectiveItem, event:GetItem())
+            SceneEditor editor = item:GetSceneEditor()
+            if editor not= undefined
+                editor:SetCameraPerspectiveZoom(direction)
+            end
+        end
+    end
+end

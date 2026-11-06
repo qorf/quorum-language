@@ -2,7 +2,7 @@ package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Containers.Array
 
-class VulkanFramebuffer
+class VulkanFramebuffer is VulkanRetirable
 
     VulkanDevice device = undefined
     Array<VulkanImageView> imageViews = undefined
@@ -32,6 +32,15 @@ class VulkanFramebuffer
 
     action GetRenderPass returns VulkanRenderPass
         return renderPass
+    end
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
     end
 
 end

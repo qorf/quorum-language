@@ -1,0 +1,23 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+
+/*
+    The TerrainNextLayerBehavior moves a selected terrain's paint layer to
+    the next one with a material, when its tool is chosen (step 9). Alt+L
+    by default.
+*/
+class TerrainNextLayerBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            EditorTerrain terrain = highlight:GetEditorTerrain()
+            if terrain not= undefined and terrain:HasTool() and highlight:GetSceneEditor() not= undefined
+                highlight:GetSceneEditor():NextTerrainPaintLayer(terrain)
+            end
+        end
+    end
+end

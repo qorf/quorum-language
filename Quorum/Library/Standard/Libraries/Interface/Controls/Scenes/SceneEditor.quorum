@@ -5,6 +5,7 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Layer3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
@@ -21,6 +22,7 @@ use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 use Libraries.Game.Game
 use Libraries.System.File
 use Libraries.Interface.Controls.Button
@@ -47,11 +49,17 @@ use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
 use Libraries.Interface.Undo.SceneEditorDeleteEdit
 use Libraries.Interface.Events.SceneEditorChangeEvent
 use Libraries.Interface.Undo.SceneEditorInsertEdit
+use Libraries.Interface.Undo.SceneEditorMoveEdit
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview2D
 use Libraries.Interface.Controls.Scenes.Items.Previews.ItemPreview3D
 use Libraries.Interface.Controls.Scenes.Items.Previews.ModelPreview
 use Libraries.Interface.Controls.Scenes.Items.Previews.PointLightPreview
 use Libraries.Interface.Controls.Scenes.Blueprints.PointLightBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.SpotLightBlueprint
+use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
+use Libraries.Interface.Controls.Scenes.Items.Previews.SpotLightPreview
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SpotLightSelectionHighlight
+use Libraries.Interface.Controls.Scenes.Dialogs.SpotLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Items.Previews.Audio3DPreview
 use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.Custom3DPrimitivePreview
@@ -62,6 +70,8 @@ use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
 use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Interface.Controls.Scenes.Items.CameraPerspectiveItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
@@ -80,7 +90,38 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Camera3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainStampPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
+use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
+use Libraries.Game.Graphics.Worlds.TerrainRampPreview
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Compute.Ray
 use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Compute.Ray
+use Libraries.Containers.Iterator
+use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Worlds.TerrainStroke
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+use Libraries.Game.InputMonitor
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Undo.SceneEditorTerrainEdit
+use Libraries.Interface.Undo.SceneEditorTerrainMaterialEdit
+use Libraries.Interface.Undo.SceneEditorMaterialEdit
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Worlds.TerrainGenerator
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainGeneratePropertiesDialog
+use Libraries.Containers.Number32BitArray
 
 
 /*
@@ -147,6 +188,39 @@ class SceneEditor is Control, DefaultSceneManager
     Vector3 workVector3
 
     Accessibility accessibility = undefined
+
+    // The camera perspectives that NextCameraPerspective cycles through, in order.
+    public constant integer ORIGIN_PERSPECTIVE = 0
+    public constant integer HORIZON_PERSPECTIVE = 1
+    public constant integer TOP_DOWN_PERSPECTIVE = 2
+    integer cameraPerspective = -1
+
+    /*
+        While a perspective is on, focus is on perspectiveItem, which uses the arrow keys to move the
+        camera and Escape to leave. The camera looks at perspectiveCenter, a point that is never added
+        to a layer. The camera and focus from before the perspective are kept so Escape can put them back.
+    */
+    boolean inCameraPerspective = false
+    CameraPerspectiveItem perspectiveItem = undefined
+    Item3D perspectiveCenter
+    integer perspectivePanX = 0
+    integer perspectivePanZ = 0
+    // 1 while zooming in, -1 while zooming out, and 0 otherwise.
+    integer perspectiveZoom = 0
+    Item3D savedCameraTarget = undefined
+    number savedCameraDistance = 0
+    number savedCameraYaw = 0
+    number savedCameraPitch = 0
+    number savedCameraRoll = 0
+    Vector3 savedCameraPosition
+    Item savedFocus = undefined
+    CameraItem3D perspectiveCameraItem = undefined
+
+    // A message for screen readers that waits until a focus change has been announced, because a
+    // focus announcement replaces any message sent just before it.
+    text pendingAnnouncement = ""
+    number pendingAnnouncementDelay = 0
+
     Math math
     Color color
 
@@ -156,6 +230,58 @@ class SceneEditor is Control, DefaultSceneManager
     modify the elements.
     */
     Array<Item> filteredItems = undefined
+
+    /*
+    True while a selection is being built from the keyboard with Shift+Enter on the cursor. Focus
+    stays on the cursor until Enter confirms the selection. Any other change to the selection ends it.
+    */
+    boolean keyboardSelectionPending = false
+
+    // The last items copied with CopyItems, stored as JSON so they can be pasted with PasteCopiedItem.
+    Array<JavaScriptObjectNotation> copiedItemsJson
+
+    // The items that copiedItemsJson was made from, in the same order. When several items are pasted,
+    // each copy is placed where its original is at the time of pasting.
+    Array<Item3D> copiedOriginals
+
+    // The 3D item grabbed with the mouse, or undefined if the mouse is not dragging an item.
+    Item3D mouseDragItem = undefined
+
+    /*
+    When the mouse is pressed on an item that is part of a group selection, the group stays
+    selected so it can be dragged together. If the mouse is released without dragging, only
+    this item is selected, as most editors do.
+    */
+    Item3D mouseDragCollapseItem = undefined
+
+    // The distance from the point under the mouse to the grabbed item, so the item does not jump to the mouse.
+    number mouseDragOffsetX = 0
+    number mouseDragOffsetY = 0
+    number mouseDragOffsetZ = 0
+
+    /*
+    Whether the current drag moves items up and down (Alt and drag) instead of along the ground.
+    When this changes during a drag, the drag is anchored again so the items do not jump.
+    */
+    boolean mouseDragVertical = false
+
+    // False until the drag knows where the mouse is relative to the grabbed item.
+    boolean mouseDragAnchored = false
+
+    /*
+    For up and down dragging, items move along an upright plane through the grabbed item that
+    faces the camera. This is the direction the plane faces, along the ground.
+    */
+    number mouseDragNormalX = 0
+    number mouseDragNormalZ = 0
+
+    /*
+    The selected 3D items and where they were when the current move started, by keyboard or mouse.
+    When the move finishes, these are recorded as one SceneEditorMoveEdit so the move can be undone.
+    Both arrays are empty when no move is in progress.
+    */
+    Array<Item3D> moveEditItems
+    Array<Vector3> moveEditStartPositions
 
     /*
     "Highlight" drawables used to show which items have been filtered.
@@ -178,10 +304,80 @@ class SceneEditor is Control, DefaultSceneManager
     Camera2DPropertiesDialog camera2dPropertiesDialog
     Camera3DPropertiesDialog camera3dPropertiesDialog
     PointLightPropertiesDialog pointLightPropertiesDialog
+    SpotLightPropertiesDialog spotLightPropertiesDialog
     Audio3DPropertiesDialog audio3DPropertiesDialog
+
+    // A terrain's properties (step 5). They are added only with a
+    // Properties panel, since two floating dialogs would cover each other.
+    TerrainPropertiesDialog terrainPropertiesDialog
+    TerrainPhysicsPropertiesDialog terrainPhysicsPropertiesDialog
+    TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
+    TerrainMaterialsPropertiesDialog terrainMaterialsPropertiesDialog
+    TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
+    // The Stamp tool's settings, shown only while it is chosen (step 17).
+    TerrainStampPropertiesDialog terrainStampPropertiesDialog
+
+    // Makes and changes terrain in bulk: presets, stamps, erosion and auto
+    // paint (step 10).
+    TerrainGenerator generator
+
+    // What finding a new texture set's maps by name found, said when the
+    // layer is added (step 14).
+    text layerMaterialNote = ""
+
+    // A terrain's brush (step 7): the terrain whose tool is chosen, and the
+    // ring that shows the brush on its ground. The ring is placed again only
+    // when the brush moves or changes size.
+    EditorTerrain brushTerrain = undefined
+    TerrainBrushPreview brushPreview = undefined
+    boolean brushPreviewShown = false
+    number previewX = 0
+    number previewZ = 0
+    number previewSize = 0
+    TerrainBrushMouseListener brushMouseListener
+
+    // A ramp being marked (step 8): a green ring at its start, and a green
+    // outline from there to the brush, which turns red as the ramp's end.
+    TerrainBrushPreview rampStartMarker = undefined
+    TerrainRampPreview rampOutline = undefined
+    boolean rampShown = false
+
+    // A stroke with a terrain's brush (step 8): it goes on while the key
+    // that started it, or the left mouse button, is held.
+    TerrainStroke terrainStroke
+    boolean stroking = false
+    boolean strokeByMouse = false
+    // True when a click took the focus from the terrain's highlight while
+    // its tool was chosen, so the next update gives it back.
+    boolean refocusBrushHighlight = false
+    // Painting is shown a few times a second during a stroke, since each
+    // showing loads the splat texture again (step 9).
+    number paintShownSeconds = 0
+    constant number PAINT_SHOW_INTERVAL = 0.2
+    integer strokeKey = 0
+    InputMonitor strokeMonitor
+    MouseEvent mouseButtons
+
+    // How much each strength key strengthens or weakens the brush, and its
+    // limits.
+    constant number BRUSH_STRENGTH_STEP = 1.25
+    constant number BRUSH_WEAKEST = 0.1
+    constant number BRUSH_STRONGEST = 50
+
+    // How fast the arrow keys move a terrain's brush, compared with how fast
+    // they move a selection.
+    constant number BRUSH_KEY_SPEED = 2
+    // How much each size key grows or shrinks the brush, and its limits.
+    constant number BRUSH_SIZE_STEP = 1.15
+    constant number BRUSH_SMALLEST = 0.5
+    constant number BRUSH_LARGEST = 64
 
     // An array containing the different property dialogs.
     Array<PropertiesDialog> propertiesDialogs
+
+    // The panel the properties dialogs are docked in, or undefined to show
+    // them as floating dialogs (step 4).
+    PropertiesPanel propertiesPanel = undefined
 
     // A reference to the find dialog for this controller.
     SceneEditorFindDialog findDialog
@@ -201,7 +397,7 @@ class SceneEditor is Control, DefaultSceneManager
         SetView2D(view)
 
         SetInputGroup("SceneEditor")
-        SetName("Scene Editor")
+        SetName("Scene Editor TEST")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CUSTOM)
 
@@ -210,11 +406,16 @@ class SceneEditor is Control, DefaultSceneManager
         selection:Initialize(me)
         findDialog:Initialize(me)
 
+        // A terrain's brush follows the pointer while a tool is chosen.
+        brushMouseListener:SetSceneEditor(me)
+        AddMouseMovementListener(brushMouseListener)
+
         propertiesDialogs:Add(item2dPropertiesDialog)
         propertiesDialogs:Add(item3dPropertiesDialog)
         propertiesDialogs:Add(camera2dPropertiesDialog)
         propertiesDialogs:Add(camera3dPropertiesDialog)
         propertiesDialogs:Add(pointLightPropertiesDialog)
+        propertiesDialogs:Add(spotLightPropertiesDialog)
         propertiesDialogs:Add(audio3DPropertiesDialog)
 
         integer counter = 0
@@ -376,10 +577,74 @@ class SceneEditor is Control, DefaultSceneManager
         This action takes every dialog added to this Scene Editor and hides all of them.
     */
     action HideDialogs
+        // A docked panel is part of the editor's own view, so it keeps
+        // showing the selection, for example when switching tabs.
+        if propertiesPanel not= undefined
+            return now
+        end
         integer counter = 0
         repeat while counter < propertiesDialogs:GetSize()
             propertiesDialogs:Get(counter):Hide()
             counter = counter + 1
+        end
+    end
+
+    /*
+        Shows the properties of the selected item in a panel, instead of in
+        floating dialogs. Every properties dialog, including any added later
+        with AddPropertiesDialog, docks in the panel. Set it once, before the
+        scene is loaded.
+
+        Attribute: Parameter panel The panel
+    */
+    action SetPropertiesPanel(PropertiesPanel panel)
+        boolean firstPanel = false
+        if propertiesPanel = undefined
+            firstPanel = true
+        end
+        propertiesPanel = panel
+        panel:SetSceneEditor(me)
+        integer counter = 0
+        repeat while counter < propertiesDialogs:GetSize()
+            propertiesDialogs:Get(counter):DockIn(panel)
+            counter = counter + 1
+        end
+
+        // A terrain's sections, after the built-in dialogs (step 5): its
+        // facts, its materials (step 9), its brush (step 7), the Stamp
+        // tool's settings (step 17), its generate tools (step 10) and its
+        // physics. The panel shows them in this order.
+        if firstPanel
+            AddPropertiesDialog(terrainPropertiesDialog)
+            AddPropertiesDialog(terrainMaterialsPropertiesDialog)
+            AddPropertiesDialog(terrainBrushPropertiesDialog)
+            AddPropertiesDialog(terrainStampPropertiesDialog)
+            AddPropertiesDialog(terrainGeneratePropertiesDialog)
+            AddPropertiesDialog(terrainPhysicsPropertiesDialog)
+        end
+    end
+
+    /*
+        Returns the panel showing the selected item's properties.
+
+        Attribute: Returns The panel, or undefined if the editor uses floating dialogs
+    */
+    action GetPropertiesPanel returns PropertiesPanel
+        return propertiesPanel
+    end
+
+    /*
+        Adds a properties dialog for another kind of item. It is set up as
+        the built-in ones are: it listens to the selection, and docks in the
+        panel if there is one. Step 5 adds a terrain's dialog this way.
+
+        Attribute: Parameter dialog The dialog
+    */
+    action AddPropertiesDialog(PropertiesDialog dialog)
+        dialog:Initialize(me)
+        propertiesDialogs:Add(dialog)
+        if propertiesPanel not= undefined
+            dialog:DockIn(propertiesPanel)
         end
     end
 
@@ -465,8 +730,21 @@ class SceneEditor is Control, DefaultSceneManager
 
         EditorLayer3D layer3D = cast(EditorLayer3D, layer)
 
+        // A terrain is too big to center on: going to its middle would fly
+        // the camera away from where the user was looking, so selecting one
+        // keeps the camera where it is.
+        if item is TerrainSelectionHighlight
+            return now
+        end
+
         if item = undefined and IsFocused()
-            item = layer3D:GetCursor()
+            // The cursor becomes the target without the camera jumping to
+            // it, such as after a click in the view; moving the cursor with
+            // the keys then moves the camera with it. The cursor is held as
+            // an Item, since it can only be cast to an Item3D from there.
+            Item cursorItem = layer3D:GetCursor()
+            layer3D:GetEditorCamera():SetTargetWithoutMoving(cast(Item3D, cursorItem))
+            return now
         end
         
         layer3D:GetEditorCamera():SetTarget(cast(Item3D, item))
@@ -497,9 +775,38 @@ class SceneEditor is Control, DefaultSceneManager
     end
 
 action Update(number seconds)
+        if pendingAnnouncement not= ""
+            pendingAnnouncementDelay = pendingAnnouncementDelay - seconds
+            if pendingAnnouncementDelay <= 0
+                Item focused = manager:GetFocus()
+                if focused = undefined
+                    focused = me
+                end
+                NotifyAccessibility(focused, pendingAnnouncement)
+                pendingAnnouncement = ""
+            end
+        end
+
         if layers:IsEmpty() or GetSelectedLayer() = undefined
             return now
         end
+
+        if inCameraPerspective and (perspectivePanX not= 0 or perspectivePanZ not= 0)
+            PanCameraPerspective(seconds)
+        end
+
+        if inCameraPerspective and perspectiveZoom not= 0
+            ZoomCameraPerspective(seconds)
+        end
+        UpdateTerrains()
+        if refocusBrushHighlight
+            refocusBrushHighlight = false
+            if IsTerrainBrushActive() and GetSelectedItem() is TerrainSelectionHighlight and IsFocused()
+                GetSelectedItem():Focus()
+            end
+        end
+        UpdateTerrainStroke(seconds)
+        UpdateBrushPreview()
 
         Camera camera = GetSelectedLayer():GetCamera()
         boolean moved = false
@@ -573,7 +880,9 @@ action Update(number seconds)
                     end
     
                     if moved
+                        BeginMoveEdit(focus)
                         focus:Move(workVector3)
+                        MoveOtherSelectedItems(focus, workVector3:GetX(), workVector3:GetY(), workVector3:GetZ())
                     end
                 else
                     if selectionXDirection not= 0 or selectionYDirection not= 0 or selectionZDirection not= 0
@@ -617,7 +926,12 @@ action Update(number seconds)
                                     z = layer:GetNextGridCoordinate(z)
                                 end
         
-                                focus:Move(x - focus:GetGlobalX(), y - focus:GetGlobalY(), z - focus:GetGlobalZ())
+                                number deltaX = x - focus:GetGlobalX()
+                                number deltaY = y - focus:GetGlobalY()
+                                number deltaZ = z - focus:GetGlobalZ()
+                                BeginMoveEdit(focus)
+                                focus:Move(deltaX, deltaY, deltaZ)
+                                MoveOtherSelectedItems(focus, deltaX, deltaY, deltaZ)
                                 Grid3D grid = layer:GetGrid()
                                 grid:SetPosition(grid:GetNearestGridCoordinate(focus:GetGlobalX()),
                                     0,
@@ -639,6 +953,7 @@ action Update(number seconds)
                     workVector3:Set(focus:GetYaw(), focus:GetPitch(), focus:GetRoll())
                     workVector3:Add(seconds * selectionYawDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionPitchDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_3D)
                     focus:SetRotation(workVector3)
+                    RotateOtherSelectedItems3D(focus, seconds * selectionYawDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionPitchDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_3D)
                 end
             end
 
@@ -696,6 +1011,7 @@ action Update(number seconds)
     
                     if moved
                         target:Move(workVector2)
+                        MoveOtherSelectedItems2D(target, workVector2:GetX(), workVector2:GetY())
                     end
                 else
                     if selectionXDirection not= 0 or selectionYDirection not= 0
@@ -717,7 +1033,10 @@ action Update(number seconds)
                                 y = layer:GetNextGridCoordinate(y)
                             end
     
-                            target:Move(x - target:GetGlobalX(), y - target:GetGlobalY())
+                            number deltaX2D = x - target:GetGlobalX()
+                            number deltaY2D = y - target:GetGlobalY()
+                            target:Move(deltaX2D, deltaY2D)
+                            MoveOtherSelectedItems2D(target, deltaX2D, deltaY2D)
                             moved = true
                         else
                             gridMoveTimer = gridMoveTimer - seconds
@@ -735,6 +1054,7 @@ action Update(number seconds)
                     number angle = target:GetRotation()
                     angle = angle + (seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_2D)
                     target:SetRotation(angle)
+                    RotateOtherSelectedItems2D(target, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_2D)
                 end
             end
         end
@@ -766,7 +1086,474 @@ action Update(number seconds)
         end
     end
 
+    /*
+    This action moves every selected 3D item other than the focused one by the same amount the
+    focused one moved, so a group of selected items moves together and keeps its layout. Nothing
+    happens if the focused item is not one of the selection highlights, such as the cursor.
+    */
+    /*
+    This action returns the selection highlights other than the focused one, when the focused item
+    is part of the selection. Otherwise, such as when the cursor has focus, it returns an empty array.
+    It is used so that rotating and scaling the focused item also applies to the rest of a group.
+    */
+    private action GetOtherSelectedHighlights(Item focus) returns Array<SelectionHighlight>
+        Array<SelectionHighlight> others
+        if focus = undefined or not (focus is SelectionHighlight)
+            return others
+        end
+
+        SelectionHighlight focusHighlight = cast(SelectionHighlight, focus)
+        if GetSelectionHighlight(focusHighlight:GetItem()) = undefined
+            return others
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight not= focusHighlight
+                others:Add(highlight)
+            end
+            counter = counter + 1
+        end
+        return others
+    end
+
+    /*
+    This action rotates every other selected 3D item by the same amounts as the focused one. Each
+    item turns around its own center.
+    */
+    private action RotateOtherSelectedItems3D(Item focus, number yaw, number pitch, number roll)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, others:Get(counter))
+                highlight3D:SetRotation(highlight3D:GetYaw() + yaw, highlight3D:GetPitch() + pitch, highlight3D:GetRoll() + roll)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action rotates every other selected 2D item by the same angle as the focused one. Each
+    item turns around its own center.
+    */
+    private action RotateOtherSelectedItems2D(Item focus, number angle)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, others:Get(counter))
+                highlight2D:SetRotation(highlight2D:GetRotation() + angle)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action scales every other selected item by the same amounts as the focused one, which has
+    already been scaled. 2D items use only the X and Y amounts. It is used by the scale shortcuts.
+    */
+    action ScaleOtherSelectedItems(Item focus, number x, number y, number z)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, others:Get(counter))
+                Vector3 amount
+                amount:Set(x, y, z)
+                highlight3D:Scale(amount)
+            elseif others:Get(counter) is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, others:Get(counter))
+                highlight2D:Scale(x, y)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action resets the scale of every other selected item, after the focused one has been reset.
+    */
+    action ResetScaleOfOtherSelectedItems(Item focus)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            others:Get(counter):ResetScale()
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action deselects every selected item, including a selection still being built with
+    Shift+Enter. If moveFocus is true, focus moves to the scene editor. It is used by Escape.
+    */
+    action ClearSelection(boolean moveFocus)
+        boolean hadSelection = filteredItems not= undefined and filteredItems:IsEmpty() = false
+        Array<Item> empty
+        SetFilteredItems(empty, moveFocus)
+        if hadSelection
+            AnnounceAfterFocus("Selection cleared")
+        end
+    end
+
+    /*
+    This action moves every other selected 2D item by the same amount as the focused one, so a
+    group selection moves together with the arrow keys. Nothing happens if the focused item is
+    not one of the selection highlights, such as the cursor.
+    */
+    private action MoveOtherSelectedItems2D(Item2D focus, number x, number y)
+        if not (focus is SelectionHighlight2D)
+            return now
+        end
+
+        SelectionHighlight2D focusHighlight = cast(SelectionHighlight2D, focus)
+        if GetSelectionHighlight(focusHighlight:GetItem()) = undefined
+            return now
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, highlight)
+                if highlight2D not= focusHighlight
+                    highlight2D:Move(x, y)
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    private action MoveOtherSelectedItems(EditorItem3D focus, number x, number y, number z)
+        if not (focus is SelectionHighlight3D)
+            return now
+        end
+
+        SelectionHighlight3D focusHighlight = cast(SelectionHighlight3D, focus)
+        if GetSelectionHighlight(focusHighlight:GetItem()) = undefined
+            return now
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+                if highlight3D not= focusHighlight
+                    highlight3D:Move(x, y, z)
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action is called when the mouse is pressed on a 3D item, with the ray that was used to
+    find it. The item is selected and grabbed so it can be dragged. If the item is already part of
+    a group selection, the group stays selected and the item is focused, so the group can be dragged.
+    The drag starts along the ground. If Alt is held while dragging, ContinueMouseDrag anchors it
+    again for moving up and down.
+    */
+    action BeginMouseDrag(Item3D item, Ray ray)
+        CancelMouseDrag()
+
+        SelectionHighlight highlight = GetSelectionHighlight(item)
+        if highlight not= undefined and filteredItems:GetSize() > 1
+            highlight:Focus()
+            mouseDragCollapseItem = item
+        else
+            Array<Item> items
+            items:Add(item)
+            SetFilteredItems(items, true)
+        end
+
+        mouseDragItem = item
+        AnchorMouseDrag(ray, false)
+    end
+
+    /*
+    This action moves the grabbed item, and every other selected item with it, to follow the mouse.
+    Normally items move along a flat plane at the grabbed item's height, so their X and Z positions
+    change but not their height. If vertical is true, items move only up and down instead. If grid
+    snapping is on, the grabbed item snaps to the grid.
+    */
+    action ContinueMouseDrag(MouseEvent mouse, boolean vertical)
+        if mouseDragItem = undefined or GetSelectedLayer() is EditorLayer3D = false
+            return now
+        end
+
+        SelectionHighlight highlight = GetSelectionHighlight(mouseDragItem)
+        if highlight = undefined or not (highlight is SelectionHighlight3D)
+            return now
+        end
+        SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        Ray ray = camera:GetPickRay(mouse:GetX(), mouse:GetY(), GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+
+        // When Alt is pressed or released during a drag, start measuring from the mouse again so nothing jumps.
+        if mouseDragAnchored = false or vertical not= mouseDragVertical
+            AnchorMouseDrag(ray, vertical)
+            return now
+        end
+
+        number deltaX = 0
+        number deltaY = 0
+        number deltaZ = 0
+
+        if vertical
+            Vector3 point = GetVerticalMouseDragPoint(ray)
+            if point = undefined
+                return now
+            end
+
+            number targetY = point:GetY() + mouseDragOffsetY
+            if IsGridSnapping()
+                targetY = layer:GetNearestGridCoordinate(targetY)
+            end
+            deltaY = targetY - mouseDragItem:GetGlobalY()
+        else
+            Vector3 point = GetMouseDragPoint(ray, mouseDragItem:GetGlobalY())
+            if point = undefined
+                return now
+            end
+
+            number targetX = point:GetX() + mouseDragOffsetX
+            number targetZ = point:GetZ() + mouseDragOffsetZ
+            if IsGridSnapping()
+                targetX = layer:GetNearestGridCoordinate(targetX)
+                targetZ = layer:GetNearestGridCoordinate(targetZ)
+            end
+            deltaX = targetX - mouseDragItem:GetGlobalX()
+            deltaZ = targetZ - mouseDragItem:GetGlobalZ()
+        end
+
+        if deltaX = 0 and deltaY = 0 and deltaZ = 0
+            return now
+        end
+
+        // Once the group has been dragged, releasing the mouse should keep the whole group selected.
+        mouseDragCollapseItem = undefined
+
+        BeginMoveEdit(highlight3D)
+        highlight3D:Move(deltaX, deltaY, deltaZ)
+        MoveOtherSelectedItems(highlight3D, deltaX, deltaY, deltaZ)
+
+        if IsGridSnapping() and vertical = false
+            Grid3D grid = layer:GetGrid()
+            grid:SetPosition(grid:GetNearestGridCoordinate(highlight3D:GetGlobalX()), 0, grid:GetNearestGridCoordinate(highlight3D:GetGlobalZ()))
+        end
+
+        UpdateActivePropertiesDialog(highlight3D)
+    end
+
+    /*
+    This action records where the mouse is relative to the grabbed item, for either kind of drag,
+    so later mouse movement moves the item by the same amount the mouse moves. If the mouse ray
+    does not cross the plane the drag uses, the drag stays unanchored and tries again on the next
+    mouse movement.
+    */
+    private action AnchorMouseDrag(Ray ray, boolean vertical)
+        mouseDragVertical = vertical
+        mouseDragAnchored = false
+        if mouseDragItem = undefined
+            return now
+        end
+
+        if vertical
+            // Face the plane toward the camera, along the ground, so it stays upright.
+            Vector3 direction = ray:GetDirection()
+            number length = math:SquareRoot(direction:GetX() * direction:GetX() + direction:GetZ() * direction:GetZ())
+            if length < 0.0001
+                return now
+            end
+            mouseDragNormalX = direction:GetX() / length
+            mouseDragNormalZ = direction:GetZ() / length
+
+            Vector3 point = GetVerticalMouseDragPoint(ray)
+            if point = undefined
+                return now
+            end
+            mouseDragOffsetY = mouseDragItem:GetGlobalY() - point:GetY()
+        else
+            Vector3 point = GetMouseDragPoint(ray, mouseDragItem:GetGlobalY())
+            if point = undefined
+                return now
+            end
+            mouseDragOffsetX = mouseDragItem:GetGlobalX() - point:GetX()
+            mouseDragOffsetZ = mouseDragItem:GetGlobalZ() - point:GetZ()
+        end
+
+        mouseDragAnchored = true
+    end
+
+    /*
+    This action returns where the ray crosses the upright plane through the grabbed item that is
+    used for up and down dragging, or undefined if the ray runs alongside the plane or points away from it.
+    */
+    private action GetVerticalMouseDragPoint(Ray ray) returns Vector3
+        Vector3 origin = ray:GetOrigin()
+        Vector3 direction = ray:GetDirection()
+        number facing = direction:GetX() * mouseDragNormalX + direction:GetZ() * mouseDragNormalZ
+        if math:AbsoluteValue(facing) < 0.0001
+            return undefined
+        end
+
+        number toItem = (mouseDragItem:GetGlobalX() - origin:GetX()) * mouseDragNormalX + (mouseDragItem:GetGlobalZ() - origin:GetZ()) * mouseDragNormalZ
+        number distance = toItem / facing
+        if distance < 0
+            return undefined
+        end
+
+        Vector3 point
+        point:Set(origin:GetX() + direction:GetX() * distance, origin:GetY() + direction:GetY() * distance, origin:GetZ() + direction:GetZ() * distance)
+        return point
+    end
+
+    /*
+    This action is called when the mouse is released. If the mouse was pressed on an item in a
+    group selection and not dragged, only that item stays selected.
+    */
+    action FinishMouseDrag
+        Item3D collapseItem = mouseDragCollapseItem
+        CancelMouseDrag()
+
+        if collapseItem not= undefined
+            Array<Item> items
+            items:Add(collapseItem)
+            SetFilteredItems(items, true)
+        end
+    end
+
+    /*
+    This action stops any mouse drag without changing the selection.
+    */
+    action CancelMouseDrag
+        mouseDragItem = undefined
+        mouseDragCollapseItem = undefined
+        mouseDragAnchored = false
+
+        // Any movement that already happened during the drag is kept, so it is recorded for undo.
+        FinishMoveEdit()
+    end
+
+    /*
+    This action is called just before the selected 3D items move. If no move is in progress, it
+    remembers where each selected item is, so the move can be undone once it finishes. If a move
+    is already in progress, nothing changes, so a held key or a mouse drag is recorded as one move.
+    Nothing happens if the focused item is not one of the selection highlights, such as the cursor.
+    */
+    private action BeginMoveEdit(EditorItem3D focus)
+        if moveEditItems:IsEmpty() = false or not (focus is SelectionHighlight3D)
+            return now
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight is SelectionHighlight3D and highlight:GetItem() is Item3D
+                Item3D item = cast(Item3D, highlight:GetItem())
+                Vector3 start
+                start:Set(item:GetX(), item:GetY(), item:GetZ())
+                moveEditItems:Add(item)
+                moveEditStartPositions:Add(start)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action ends the move in progress, if there is one, and records it as a single edit so it
+    can be undone. If none of the items ended up somewhere new, nothing is recorded.
+    */
+    private action FinishMoveEdit
+        if moveEditItems:IsEmpty()
+            return now
+        end
+
+        Array<Item3D> items = moveEditItems
+        Array<Vector3> startPositions = moveEditStartPositions
+        Array<Item3D> newItems
+        Array<Vector3> newStartPositions
+        moveEditItems = newItems
+        moveEditStartPositions = newStartPositions
+
+        Array<Vector3> endPositions
+        boolean changed = false
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item3D item = items:Get(counter)
+            Vector3 start = startPositions:Get(counter)
+            Vector3 finish
+            finish:Set(item:GetX(), item:GetY(), item:GetZ())
+            endPositions:Add(finish)
+            if start:GetX() not= finish:GetX() or start:GetY() not= finish:GetY() or start:GetZ() not= finish:GetZ()
+                changed = true
+            end
+            counter = counter + 1
+        end
+
+        if changed
+            SceneEditorMoveEdit edit
+            edit:Create(me, items, startPositions, endPositions)
+            editManager:Add(edit)
+        end
+    end
+
+    /*
+    This action finishes a keyboard move once every movement key has been released, so holding
+    keys in more than one direction is still recorded as one move. A mouse drag in progress is
+    left alone, since it finishes when the mouse is released.
+    */
+    private action FinishKeyboardMoveEdit
+        if selectionXDirection = 0 and selectionYDirection = 0 and selectionZDirection = 0 and mouseDragItem = undefined
+            FinishMoveEdit()
+        end
+    end
+
+    /*
+    This action moves a 3D item so its position is the given values. If the item is selected,
+    its selection highlight moves with it. This is used to undo and redo moves.
+    */
+    action MoveItemTo(Item3D item, number x, number y, number z)
+        number deltaX = x - item:GetX()
+        number deltaY = y - item:GetY()
+        number deltaZ = z - item:GetZ()
+
+        SelectionHighlight highlight = GetSelectionHighlight(item)
+        if highlight is SelectionHighlight3D
+            SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, highlight)
+            highlight3D:Move(deltaX, deltaY, deltaZ)
+            UpdateActivePropertiesDialog(highlight3D)
+        else
+            item:Move(deltaX, deltaY, deltaZ)
+        end
+    end
+
+    /*
+    This action returns where the ray crosses the flat plane at the given height, or undefined if
+    the ray runs alongside the plane or points away from it.
+    */
+    private action GetMouseDragPoint(Ray ray, number height) returns Vector3
+        Vector3 origin = ray:GetOrigin()
+        Vector3 direction = ray:GetDirection()
+        if math:AbsoluteValue(direction:GetY()) < 0.0001
+            return undefined
+        end
+
+        number distance = (height - origin:GetY()) / direction:GetY()
+        if distance < 0
+            return undefined
+        end
+
+        Vector3 point
+        point:Set(origin:GetX() + direction:GetX() * distance, height, origin:GetZ() + direction:GetZ() * distance)
+        return point
+    end
+
     action SetFilteredItems(Array<Item> items, boolean moveFocus)
+        keyboardSelectionPending = false
         filteredItems = items
 
         // Remove previous highlights.
@@ -791,17 +1578,27 @@ action Update(number seconds)
             repeat while counter < filteredItems:GetSize()
                 Item3D item = cast(Item3D, filteredItems:Get(counter))
                 SelectionHighlight3D highlight = undefined
-                if item is EditorPointLight
-                    PointLightSelectionHighlight light
-                    highlight = light
-                elseif item is EditorAudio3D
-                    Audio3DSelectionHighlight light
-                    highlight = light
+                if item is EditorTerrain
+                    // A terrain isn't a model, so it has its own highlight.
+                    TerrainSelectionHighlight terrainHighlight
+                    terrainHighlight:LoadTerrain(cast(EditorTerrain, item), me)
+                    highlight = terrainHighlight
                 else
-                    ModelSelectionHighlight model
-                    highlight = model
+                    if item is EditorPointLight
+                        PointLightSelectionHighlight light
+                        highlight = light
+                    elseif item is EditorSpotLight
+                        SpotLightSelectionHighlight spot
+                        highlight = spot
+                    elseif item is EditorAudio3D
+                        Audio3DSelectionHighlight light
+                        highlight = light
+                    else
+                        ModelSelectionHighlight model
+                        highlight = model
+                    end
+                    highlight:Load(cast(EditorModel, item), me)
                 end
-                highlight:Load(cast(EditorModel, item), me)
                 filterHighlights:Add(highlight)
                 layer:Add(highlight)
     
@@ -836,6 +1633,225 @@ action Update(number seconds)
                 SetSelectedItem(filterHighlights:Get(0))
             end
         end
+    end
+
+    /*
+    This action returns the items that are currently selected, or undefined if nothing is selected.
+    */
+    action GetFilteredItems returns Array<Item>
+        return filteredItems
+    end
+
+    /*
+    This action adds an item to the current selection, or removes it if it is already selected.
+    The other selected items stay selected. If the item was added, focus moves to its highlight.
+    */
+    action ToggleFilteredItem(Item item)
+        Array<Item> items
+        boolean found = false
+        if filteredItems not= undefined
+            integer counter = 0
+            repeat while counter < filteredItems:GetSize()
+                Item current = filteredItems:Get(counter)
+                if current = item
+                    found = true
+                else
+                    items:Add(current)
+                end
+                counter = counter + 1
+            end
+        end
+
+        if not found
+            items:Add(item)
+        end
+
+        SetFilteredItems(items, true)
+
+        if not found
+            SelectionHighlight highlight = GetSelectionHighlight(item)
+            if highlight not= undefined
+                highlight:Focus()
+            end
+        end
+    end
+
+    /*
+    This action adds the given items to the current selection, keeping the items that are already
+    selected. Items that are already selected stay selected; this never removes anything. Focus is
+    not moved, so the cursor keeps focus and more items can be added from other places in the
+    scene. Pressing Enter afterward confirms the selection and moves focus to it, so the selected
+    items can be moved with the keyboard. It is used by Shift+Enter on the cursor, and the change
+    is announced to screen readers.
+    */
+    action AddSelectedItems(Array<Item> items)
+        if items = undefined or items:IsEmpty()
+            AnnounceToFocusedItem("There is nothing at the cursor to select")
+            return now
+        end
+
+        Array<Item> result
+        // A selection left over from a layer of the other kind (2D or 3D) is dropped rather than mixed in.
+        boolean sameKind = true
+        if filteredItems not= undefined and filteredItems:IsEmpty() = false
+            sameKind = (filteredItems:Get(0) is Item3D) = (items:Get(0) is Item3D)
+        end
+        if filteredItems not= undefined and sameKind
+            integer index = 0
+            repeat while index < filteredItems:GetSize()
+                result:Add(filteredItems:Get(index))
+                index = index + 1
+            end
+        end
+
+        integer added = 0
+        text addedName = ""
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            if ContainsItem(result, items:Get(counter)) = false
+                result:Add(items:Get(counter))
+                addedName = items:Get(counter):GetName()
+                added = added + 1
+            end
+            counter = counter + 1
+        end
+
+        boolean wasPending = keyboardSelectionPending
+        // Changing the editor's selected item moves the cursor onto that item, so the cursor's
+        // position is saved here and put back afterward. The cursor stays where the user left it.
+        Item cursorItem = cast(Item, cast(Object, GetCursor()))
+        number cursorX = 0
+        number cursorY = 0
+        number cursorZ = 0
+        if cursorItem is Item3D
+            Item3D cursor3D = cast(Item3D, cursorItem)
+            cursorX = cursor3D:GetX()
+            cursorY = cursor3D:GetY()
+            cursorZ = cursor3D:GetZ()
+        elseif cursorItem is Item2D
+            Item2D cursor2D = cast(Item2D, cursorItem)
+            cursorX = cursor2D:GetX()
+            cursorY = cursor2D:GetY()
+        end
+
+        if added > 0
+            SetFilteredItems(result, false)
+        end
+        // Focus stays on the cursor until Enter confirms the selection. The editor's selected item
+        // is cleared as well: while an item is the selected item, the editor hides the cube cursor
+        // and points the camera at that item, which would look like focus had left the cursor.
+        SetSelectedItem(undefined)
+
+        if cursorItem is Item3D
+            Item3D restore3D = cast(Item3D, cursorItem)
+            restore3D:SetPosition(cursorX, cursorY, cursorZ)
+        elseif cursorItem is Item2D
+            Item2D restore2D = cast(Item2D, cursorItem)
+            restore2D:SetPosition(cursorX, cursorY)
+        end
+        UpdateEditorCameraTarget()
+        keyboardSelectionPending = true
+
+        text hint = ""
+        if wasPending = false
+            hint = ". Press Enter to confirm"
+        end
+        if added = 0
+            if items:GetSize() = 1
+                AnnounceToFocusedItem(items:Get(0):GetName() + " is already selected, " + GetSelectedCountText(result:GetSize()) + hint)
+            else
+                AnnounceToFocusedItem("Already selected, " + GetSelectedCountText(result:GetSize()) + hint)
+            end
+        elseif added = 1
+            AnnounceToFocusedItem("Selected " + addedName + ", " + GetSelectedCountText(result:GetSize()) + hint)
+        else
+            AnnounceToFocusedItem("Selected " + added + " items, " + GetSelectedCountText(result:GetSize()) + hint)
+        end
+    end
+
+    /*
+    This action returns true while a selection is being built from the keyboard with Shift+Enter
+    and has not been confirmed with Enter yet.
+    */
+    action IsKeyboardSelectionPending returns boolean
+        return keyboardSelectionPending
+    end
+
+    /*
+    This action confirms a selection built with Shift+Enter. Every selected item stays selected and
+    focus moves from the cursor to the first one, so the arrow keys move all of the selected items
+    together and Tab moves through them. It is used by Enter on the cursor.
+    */
+    action ConfirmKeyboardSelection
+        keyboardSelectionPending = false
+        if filterHighlights:IsEmpty()
+            return now
+        end
+        SetSelectedItem(filterHighlights:Get(0))
+        filterHighlights:Get(0):Focus()
+        UpdateEditorCameraTarget()
+        AnnounceAfterFocus("Selection confirmed, " + GetSelectedCountText(filterHighlights:GetSize()))
+    end
+
+    /*
+    This action selects every item in the selected layer and moves focus to the first one, so the
+    items can be moved through with Tab like any other selection. It is used by Ctrl+A.
+    */
+    action SelectAllItems
+        EditorLayer layer = GetSelectedLayer()
+        SceneConstants constants
+        Array<Item> items
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Iterator<Item3D> iterator3D = layer3D:GetIterator()
+            repeat while iterator3D:HasNext()
+                Item3D item3D = iterator3D:Next()
+                if item3D:HasProperty(constants:EDITOR_TAG) = false
+                    items:Add(item3D)
+                end
+            end
+        elseif layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Iterator<Item2D> iterator2D = layer2D:GetIterator()
+            repeat while iterator2D:HasNext()
+                Item2D item2D = iterator2D:Next()
+                if item2D:HasProperty(constants:EDITOR_TAG) = false
+                    items:Add(item2D)
+                end
+            end
+        end
+
+        if items:IsEmpty()
+            AnnounceToFocusedItem("There are no items to select")
+            return now
+        end
+
+        SetFilteredItems(items, true)
+        AnnounceAfterFocus("Selected all, " + GetSelectedCountText(items:GetSize()))
+    end
+
+    /*
+    This action returns true if the exact item is in the array.
+    */
+    private action ContainsItem(Array<Item> items, Item item) returns boolean
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            if items:Get(counter) = item
+                return true
+            end
+            counter = counter + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns text such as "1 item selected" or "3 items selected".
+    */
+    private action GetSelectedCountText(integer count) returns text
+        if count = 1
+            return "1 item selected"
+        end
+        return count + " items selected"
     end
 
     private action EmptyFilteredItems(boolean moveFocus)
@@ -1005,11 +2021,319 @@ action Update(number seconds)
         NotifySceneEditorChangeListeners(event)
     end
 
+    /*
+    This action creates a copy of an item that has been added to the scene. The copy is
+    placed in the same layer, offset along the X axis by the width of the original so the
+    two do not overlap. The copy is then selected so it can be moved right away. The copy is
+    recorded as an insert edit, so it can be undone.
+    */
+    action Duplicate(Item item)
+        EditorLayer layer = undefined
+        Item copy = undefined
+
+        if item is Item3D
+            Item3D original = cast(Item3D, item)
+            layer = cast(EditorLayer3D, original:GetLayer())
+            JavaScriptObjectNotation json = WrapArrayProperties(SaveItem3D(original))
+            if layer = undefined or json = undefined
+                return now
+            end
+
+            Item3D copy3D = LoadItem3D(json)
+            copy3D:SetName(GetCopyName(layer, original:GetName()))
+            copy3D:SetPosition(original:GetX() + original:GetWidth(), original:GetY(), original:GetZ())
+            copy = copy3D
+        elseif item is Item2D
+            Item2D original = cast(Item2D, item)
+            layer = cast(EditorLayer2D, original:GetLayer())
+            JavaScriptObjectNotation json = SaveItem2D(original)
+            if layer = undefined or json = undefined
+                return now
+            end
+
+            Item2D copy2D = parent:DefaultSceneManager:LoadItem2D(json)
+            copy2D:SetName(GetCopyName(layer, original:GetName()))
+            copy2D:SetPosition(original:GetX() + original:GetWidth(), original:GetY())
+            copy = copy2D
+        else
+            return now
+        end
+
+        Add(layer, copy)
+        NotifyAccessibility(copy, "Duplicated " + copy:GetName())
+
+        if GetSelectedLayer() not= layer
+            SetSelectedLayer(layer)
+        end
+
+        Array<Item> selected
+        selected:Add(copy)
+        SetFilteredItems(selected, true)
+    end
+
+    /*
+    The scene loader reads position, size, scale, rotation, and color arrays through an outer
+    array, but SaveItem3D writes them without it. This action wraps those values so a saved item
+    can be loaded back with LoadItem3D, as CopyItem and Duplicate do.
+    */
+    private action WrapArrayProperties(JavaScriptObjectNotation json) returns JavaScriptObjectNotation
+        // Build a new object rather than adding to json, since Add would keep the unwrapped entry too.
+        JavaScriptObjectNotation wrapped
+        Iterator<JavaScriptObjectNotation> iterator = json:GetIterator()
+        repeat while iterator:HasNext()
+            JavaScriptObjectNotation child = iterator:Next()
+            text key = child:GetKey()
+            if key = properties:POSITION or key = properties:SIZE or key = properties:SCALE or key = properties:ROTATION or key = properties:COLOR
+                JavaScriptObjectNotation outer
+                outer:SetArray()
+                outer:Add(child)
+                outer:SetKey(key)
+                wrapped:Add(outer)
+            else
+                wrapped:Add(child)
+            end
+        end
+        return wrapped
+    end
+
+    /*
+    This action returns the name for a new copy of an item. Any " Copy" suffix is removed from the
+    original name first, so copying "Coin Copy 2" also produces "Coin Copy 3" rather than "Coin Copy 2 Copy 1".
+    The number is the first one not already used by an item in the layer.
+    */
+    private action GetCopyName(EditorLayer layer, text originalName) returns text
+        text baseName = originalName
+        Array<text> parts = originalName:Split(" Copy")
+        if parts:Get(0):IsEmpty() = false
+            baseName = parts:Get(0)
+        end
+
+        integer copyNumber = 1
+        repeat while NameExistsInLayer(layer, baseName + " Copy " + copyNumber)
+            copyNumber = copyNumber + 1
+        end
+        return baseName + " Copy " + copyNumber
+    end
+
+    /*
+    This action returns true if an item in the layer has the given name. Editor items are skipped,
+    since the selection highlights share the names of the items they highlight.
+    */
+    private action NameExistsInLayer(EditorLayer layer, text name) returns boolean
+        return NameExistsInLayer(layer, name, undefined)
+    end
+
+    /*
+    This action returns true if an item in the layer other than the skipped one has the given name.
+    Editor items are skipped, since the selection highlights share the names of the items they highlight.
+    */
+    private action NameExistsInLayer(EditorLayer layer, text name, Item skip) returns boolean
+        SceneConstants constants
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Iterator<Item3D> items = layer3D:GetIterator()
+            repeat while items:HasNext()
+                Item3D item = items:Next()
+                if item:HasProperty(constants:EDITOR_TAG) = false and item:GetName() = name
+                    if skip = undefined or item:Equals(skip) = false
+                        return true
+                    end
+                end
+            end
+        elseif layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Iterator<Item2D> items2D = layer2D:GetIterator()
+            repeat while items2D:HasNext()
+                Item2D item2D = items2D:Next()
+                if item2D:HasProperty(constants:EDITOR_TAG) = false and item2D:GetName() = name
+                    if skip = undefined or item2D:Equals(skip) = false
+                        return true
+                    end
+                end
+            end
+        end
+        return false
+    end
+
+    /*
+    This action stores a copy of the given item so it can be pasted into the scene later with
+    PasteCopiedItem. It is the same as calling CopyItems with only this item.
+    */
+    action CopyItem(Item item)
+        Array<Item> items
+        items:Add(item)
+        CopyItems(items)
+    end
+
+    /*
+    This action stores copies of the given items so they can be pasted into the scene later with
+    PasteCopiedItem. Only 3D items can be copied, and other items are skipped. Each item is saved
+    to JSON, the same way the scene is saved, so pasting creates new items and leaves the originals
+    untouched. If none of the items are 3D, the previously copied items are kept.
+    */
+    action CopyItems(Array<Item> items)
+        if items = undefined
+            return now
+        end
+
+        Array<JavaScriptObjectNotation> copies
+        Array<Item3D> originals
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            Item item = items:Get(counter)
+            if item is Item3D
+                Item3D original = cast(Item3D, item)
+                copies:Add(WrapArrayProperties(SaveItem3D(original)))
+                originals:Add(original)
+            end
+            counter = counter + 1
+        end
+
+        if copies:IsEmpty() = false
+            copiedItemsJson = copies
+            copiedOriginals = originals
+        end
+    end
+
+    /*
+    This action pastes the last copied items into the selected 3D layer. A single pasted item is
+    placed at the selected item, or at the cursor if no item is selected. When several items are
+    pasted, each copy is placed where its original is now, so the copies sit on top of the items
+    they were copied from. If an original has been deleted since it was copied, its copy goes where
+    the original was when it was copied. The selection and focus stay on whatever was selected
+    before pasting. The pasted items are recorded as a single insert edit so one undo removes all
+    of them. Nothing happens if no items have been copied or the selected layer is not 3D.
+    */
+    action PasteCopiedItem
+        EditorLayer layer = GetSelectedLayer()
+        if copiedItemsJson:IsEmpty() or layer is EditorLayer3D = false
+            return now
+        end
+
+        Item3D target = GetPasteTarget(cast(EditorLayer3D, layer))
+
+        // Load every copy first so the center of the group is known before anything is moved.
+        Array<Item3D> copies
+        number minX = 0
+        number maxX = 0
+        number minY = 0
+        number maxY = 0
+        number minZ = 0
+        number maxZ = 0
+        integer counter = 0
+        repeat while counter < copiedItemsJson:GetSize()
+            Item3D copy3D = LoadItem3D(copiedItemsJson:Get(counter))
+            if counter = 0 or copy3D:GetX() < minX
+                minX = copy3D:GetX()
+            end
+            if counter = 0 or copy3D:GetX() > maxX
+                maxX = copy3D:GetX()
+            end
+            if counter = 0 or copy3D:GetY() < minY
+                minY = copy3D:GetY()
+            end
+            if counter = 0 or copy3D:GetY() > maxY
+                maxY = copy3D:GetY()
+            end
+            if counter = 0 or copy3D:GetZ() < minZ
+                minZ = copy3D:GetZ()
+            end
+            if counter = 0 or copy3D:GetZ() > maxZ
+                maxZ = copy3D:GetZ()
+            end
+            copies:Add(copy3D)
+            counter = counter + 1
+        end
+
+        number shiftX = 0
+        number shiftY = 0
+        number shiftZ = 0
+        if target not= undefined and copies:GetSize() = 1
+            shiftX = target:GetGlobalX() - (minX + maxX) * 0.5
+            shiftY = target:GetGlobalY() - (minY + maxY) * 0.5
+            shiftZ = target:GetGlobalZ() - (minZ + maxZ) * 0.5
+        end
+
+        Array<Item> pasted
+        counter = 0
+        repeat while counter < copies:GetSize()
+            Item3D copy3D = copies:Get(counter)
+            // Each pasted item is added before the next is named, so items pasted together get different numbers.
+            copy3D:SetName(GetCopyName(layer, copy3D:GetName()))
+            if copies:GetSize() > 1
+                // Several items: each copy goes on its original. A deleted original has no layer, so its
+                // copy keeps the position saved when it was copied.
+                if counter < copiedOriginals:GetSize() and copiedOriginals:Get(counter):GetLayer() not= undefined
+                    Item3D original = copiedOriginals:Get(counter)
+                    copy3D:SetPosition(original:GetX(), original:GetY(), original:GetZ())
+                end
+            else
+                copy3D:SetPosition(copy3D:GetX() + shiftX, copy3D:GetY() + shiftY, copy3D:GetZ() + shiftZ)
+            end
+            AddToLayer(layer, copy3D)
+            pasted:Add(copy3D)
+            counter = counter + 1
+        end
+
+        SceneEditorInsertEdit edit
+        edit:Create(me, layer, pasted)
+        editManager:Add(edit)
+
+        // The selection and focus are left alone, so the announcement comes from the item that has focus.
+        if pasted:GetSize() = 1
+            AnnounceToFocusedItem("Pasted " + pasted:Get(0):GetName())
+        else
+            AnnounceToFocusedItem("Pasted " + pasted:GetSize() + " items")
+        end
+    end
+
+    /*
+    This action returns where pasted items should go: the selected 3D item, or the layer's cursor
+    if no 3D item is selected. A selection highlight counts as the item it highlights. The camera
+    item is skipped, so pasting while it is selected uses the cursor.
+    */
+    private action GetPasteTarget(EditorLayer3D layer) returns Item3D
+        Object selected = GetSelectedItem()
+        if selected is SelectionHighlight
+            SelectionHighlight highlight = cast(SelectionHighlight, selected)
+            selected = highlight:GetItem()
+        end
+
+        if selected not= undefined and selected is Item3D and (selected is CameraItem) = false
+            return cast(Item3D, selected)
+        end
+
+        Object cursor = layer:GetCursor()
+        if cursor is Item3D
+            return cast(Item3D, cursor)
+        end
+        return undefined
+    end
+
+    /*
+        Sends a message to the screen reader using the currently focused item, or the Scene Editor
+        itself if nothing is focused.
+    */
+    private action AnnounceToFocusedItem(text message)
+        Item focusedItem = manager:GetFocus()
+        if focusedItem = undefined
+            focusedItem = me
+        end
+        NotifyAccessibility(focusedItem, message)
+    end
+
     action CreateItemPreview(ItemBlueprint schematic) returns ItemPreview
         return CreateItemPreview(schematic, undefined)
     end
 
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
+        // A terrain has no preview to place: it is added flat, at the
+        // origin, at once.
+        if schematic is TerrainBlueprint
+            AddTerrain(cast(TerrainBlueprint, schematic))
+            return undefined
+        end
+
         if schematic is DrawableBlueprint
             DrawableBlueprint drawableBlueprint = cast(DrawableBlueprint, schematic)
             if not (GetSelectedLayer() is EditorLayer2D)
@@ -1045,7 +2369,7 @@ action Update(number seconds)
             layer:Add(preview)
             preview:Focus()
             return preview
-        elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is Audio3DBlueprint
+        elseif schematic is ModelBlueprint or schematic is PointLightBlueprint or schematic is SpotLightBlueprint or schematic is Audio3DBlueprint
             
             if not (GetSelectedLayer() is EditorLayer3D)
                 integer counter = 0
@@ -1081,6 +2405,11 @@ action Update(number seconds)
                     preview = lightPreview
                     PointLightBlueprint lightBlueprint = cast(PointLightBlueprint, schematic)
                     lightPreview:Load(me, lightBlueprint)
+                elseif schematic is SpotLightBlueprint
+                    SpotLightPreview spotPreview
+                    preview = spotPreview
+                    SpotLightBlueprint spotBlueprint = cast(SpotLightBlueprint, schematic)
+                    spotPreview:Load(me, spotBlueprint)
                 else
                     Audio3DPreview audioPreview
                     preview = audioPreview
@@ -1118,6 +2447,2169 @@ action Update(number seconds)
             ItemPreview2D preview2D = cast(ItemPreview2D, preview)
             EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
             layer:Remove(preview2D)
+        end
+    end
+
+    /*
+    This action adds a new, flat terrain to the scene's 3D layer. Its files
+    are saved at once into the project, in a new folder under the project's
+    Scenes folder, Scenes/Terrains/Terrain1 (then Terrain2, and so on), and
+    the scene refers to its terrain.json. It
+    is then selected and announced. Adding it can be undone. A terrain needs
+    Vulkan, and a scene that is in a project.
+
+    Attribute: Parameter schematic The terrain's blueprint, from the palette.
+    Attribute: Returns The terrain, or undefined if it couldn't be added.
+    */
+    action AddTerrain(TerrainBlueprint schematic) returns EditorTerrain
+        if not (manager:GetGameGraphics() is VulkanGraphics)
+            NotifyAccessibility(me, "A terrain needs Vulkan, so it can't be added here.")
+            return undefined
+        end
+        if projectLocation = undefined
+            NotifyAccessibility(me, "A terrain is saved in the scene's project, but this scene isn't in a project.")
+            return undefined
+        end
+        EditorLayer3D layer = FindLayer3D()
+        if layer = undefined
+            NotifyAccessibility(me, "A terrain needs a 3D layer, and this scene has none.")
+            return undefined
+        end
+
+        // The first free folder: Scenes/Terrains/Terrain1, then Terrain2, ...
+        // A scene's own files go under the project's Scenes folder.
+        text terrainsPath = properties:SCENES_FOLDER + "/" + properties:TERRAINS_FOLDER + "/Terrain"
+        text folderPath = ""
+        integer count = 1
+        repeat while folderPath = ""
+            File candidateFolder
+            candidateFolder:SetWorkingDirectory(projectLocation:GetAbsolutePath())
+            candidateFolder:SetPath(terrainsPath + count)
+            if not candidateFolder:Exists()
+                folderPath = terrainsPath + count
+            end
+            count = count + 1
+        end
+        File terrainFile
+        terrainFile:SetWorkingDirectory(projectLocation:GetAbsolutePath())
+        terrainFile:SetPath(folderPath + "/terrain.json")
+
+        EditorTerrain terrain
+        terrain:SetSceneEditor(me)
+        text name = schematic:GetName()
+        terrain:SetName(name + GetNextNamePostfix(name))
+        IncrementNameCount(name)
+        terrain:SetDescription(schematic:GetDescription())
+        terrain:CreateFlat(terrainFile, schematic:GetRegionsAcross(), schematic:GetRegionSize(), schematic:GetVertexSpacing())
+
+        Add(layer, terrain)
+        Array<Item> selected
+        selected:Add(terrain)
+        SetFilteredItems(selected, true)
+
+        number width = schematic:GetRegionsAcross() * schematic:GetRegionSize() * schematic:GetVertexSpacing()
+        NotifyAccessibility(terrain, "Placed " + terrain:GetName() + ", flat, " + width + " by " + width +
+            " units, saved in " + folderPath + ".")
+        return terrain
+    end
+
+    /*
+    This action makes a 3D layer the selected layer, if it isn't already,
+    and returns it.
+
+    Attribute: Returns The 3D layer, or undefined if the scene has none.
+    */
+    private action FindLayer3D returns EditorLayer3D
+        if GetSelectedLayer() is EditorLayer3D
+            return cast(EditorLayer3D, GetSelectedLayer())
+        end
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer layer = layers:Get(counter)
+            if layer is EditorLayer3D
+                SetSelectedLayer(layer)
+                return cast(EditorLayer3D, layer)
+            end
+            counter = counter + 1
+        end
+        return undefined
+    end
+
+    /*
+    This action chooses a terrain's tool, by its number (1 raise, 2 lower,
+    3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
+    9 remove region, 10 stamp, 11 erode, 12 auto paint), or 0 to leave the
+    tool (step 7). With a tool chosen, a
+    ring shows the brush on the ground; the arrow keys and the pointer move
+    it, and the size keys size it. A stroke going on is finished first. It is
+    announced, and the Brush section of the Properties panel follows.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter tool The tool's number, from 0 to 12
+    */
+    action SetTerrainTool(EditorTerrain terrain, integer tool)
+        if terrain = undefined
+            return now
+        end
+        // A stroke going on is finished first, so it can be undone.
+        if stroking
+            EndTerrainStroke()
+        end
+        if brushTerrain not= undefined and brushTerrain not= terrain
+            brushTerrain:SetToolNumber(0)
+        end
+        terrain:SetToolNumber(tool)
+        if tool > 0
+            brushTerrain = terrain
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
+        else
+            brushTerrain = undefined
+            NotifyAccessibility(terrain, "No tool. The arrow keys move the selection again.")
+        end
+        UpdateBrushPreview()
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action returns the terrain whose tool is chosen, or undefined.
+
+    Attribute: Returns The terrain with a tool chosen
+    */
+    action GetBrushTerrain returns EditorTerrain
+        return brushTerrain
+    end
+
+    /*
+    This action returns true while a terrain's tool is chosen, so the arrow
+    keys, the pointer and clicks act on its brush.
+
+    Attribute: Returns True while a terrain's brush is in use
+    */
+    action IsTerrainBrushActive returns boolean
+        return brushTerrain not= undefined and brushTerrain:HasTool()
+    end
+
+    /*
+    This action moves a terrain's brush by a selection move: right along the
+    camera's right, and forward along the way the camera faces, flat on the
+    ground (step 7).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter right How far to the camera's right, as the selection would move along x
+    Attribute: Parameter forward How far forward, as the selection would move along -z
+    */
+    action MoveTerrainBrush(EditorTerrain terrain, number right, number forward)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        Camera camera = layer:GetCamera()
+        Vector3 direction = camera:GetDirection()
+        number forwardX = direction:GetX()
+        number forwardZ = direction:GetZ()
+        number flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+        if flat < 0.0001
+            // Looking straight down: forward is the camera's up.
+            Vector3 up = camera:GetUp()
+            forwardX = up:GetX()
+            forwardZ = up:GetZ()
+            flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+            if flat < 0.0001
+                return now
+            end
+        end
+        forwardX = forwardX / flat
+        forwardZ = forwardZ / flat
+        // In Quorum's left-handed world, the right of forward (x, z) is (z, -x).
+        number rightX = forwardZ
+        number rightZ = -forwardX
+        number speed = BRUSH_KEY_SPEED
+        number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
+        number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
+        terrain:SetBrushPosition(x, z)
+        // Each arrow key move says the height in a few words; the report
+        // location key says everything (step 12).
+        NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
+    end
+
+    action Add(EditorLayer layer, Item item)
+        AddToLayer(layer, item)
+
+        SceneEditorInsertEdit edit
+        edit:Create(me, layer, item)
+        editManager:Add(edit)
+    end
+
+    /*
+    This action adds an item to a layer and notifies the change listeners, but does not record
+    an insert edit. It is used when several items are added together under one edit.
+    */
+    private action AddToLayer(EditorLayer layer, Item item)
+        if layer is EditorLayer2D and item is Item2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Item2D item2D = cast(Item2D, item)
+            layer2D:Add(item2D)
+        elseif layer is EditorLayer3D and item is Item3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Item3D item3D = cast(Item3D, item)
+            layer3D:Add(item3D)    
+    /*
+    This action makes a terrain's brush larger or smaller, by one step, and
+    says its new size (step 7).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter larger True to grow the brush, false to shrink it
+    */
+    action ResizeTerrainBrush(EditorTerrain terrain, boolean larger)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        number size = brush:GetSize()
+        if larger
+            size = size * BRUSH_SIZE_STEP
+        else
+            size = size / BRUSH_SIZE_STEP
+        end
+
+        // It's not clear if we should notify accessibility here, or allow a change in selection to handle that for us.
+        //NotifyAccessibility(newItem, "Placed " + result:GetName())
+        
+        SceneEditorChangeEvent event
+        event:Set(me, item, undefined, layer, event:ADDED)
+        NotifySceneEditorChangeListeners(event)
+    end
+
+    action AddLayer(EditorLayer layer)
+        selection:SetSelection(layer)
+        layer:SetSceneEditor(me)
+        layers:Add(layer)
+        if size < BRUSH_SMALLEST
+            size = BRUSH_SMALLEST
+        elseif size > BRUSH_LARGEST
+            size = BRUSH_LARGEST
+        end
+        brush:SetSize(size)
+        NotifyAccessibility(terrain, "Brush size " + (cast(integer, size * 10 + 0.5) / 10.0))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action moves the brush of the terrain whose tool is chosen to the
+    ground under the pointer, given in the same screen coordinates as mouse
+    events. Off the ground, the brush is hidden. The pointer listener calls
+    it (step 7).
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action MoveTerrainBrushToPointer(number x, number y)
+        if not IsTerrainBrushActive()
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // The same pick ray the selection click uses.
+        // GetPickRay mirrors x across the view (the world is left-handed),
+        // so the pointer's x is mirrored first, as the in-game terrain
+        // editor does; otherwise the brush moves opposite the pointer.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        Vector3 hit = brushTerrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
+        if hit = undefined and brushTerrain:GetToolNumber() = 8
+            // Add region works past the edge of the ground, so the pointer
+            // finds where it meets the level of the ground's base, height 0
+            // (step 11).
+            Vector3 direction = ray:GetDirection()
+            Vector3 origin = ray:GetOrigin()
+            if direction:GetY() < -0.0001
+                number distance = -origin:GetY() / direction:GetY()
+                brushTerrain:SetBrushPosition(origin:GetX() + direction:GetX() * distance, origin:GetZ() + direction:GetZ() * distance)
+                return now
+            end
+        end
+        if hit = undefined
+            brushTerrain:SetBrushOffGround()
+        else
+            brushTerrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+        end
+    end
+
+    /*
+    This action returns true if a tool's strokes are ready in the scene
+    editor for a terrain: raise, lower, smooth, flatten and ramp (step 8),
+    paint, once the terrain has two or more materials (step 9), and add and
+    remove region (step 11), and stamp, erode and auto paint. Paint and
+    blend paint need two or more materials.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter tool The tool's number, from 1 to 12
+    Attribute: Returns True if the tool can make strokes
+    */
+    action CanStrokeWithTool(EditorTerrain terrain, integer tool) returns boolean
+        if tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 5 or tool = 8 or tool = 9
+            return true
+        end
+        // Stamp, erode and auto paint (EditorTerrain's STAMP_TOOL to
+        // AUTO_PAINT_TOOL).
+        if tool >= 10 and tool <= 12
+            return true
+        end
+        // Paint and blend paint need two materials to paint between.
+        return (tool = 6 or tool = 7) and terrain not= undefined and terrain:GetLayerCount() >= 2
+    end
+
+    /*
+    This action starts a stroke with the brush of the terrain whose tool is
+    chosen (step 8). The stroke goes on, once a frame, while the key that
+    started it is held, or the left mouse button for a stroke started with
+    a click, and ends when it is let go. Nothing starts if the brush is off
+    the ground, if a stroke is already going, or if the tool's strokes
+    aren't ready yet.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter byMouse True if the left mouse button started the stroke
+    Attribute: Parameter key The key that started it, for a stroke started with a key
+    */
+    action BeginTerrainStroke(EditorTerrain terrain, boolean byMouse, integer key)
+        if stroking or terrain = undefined or terrain not= brushTerrain or not terrain:HasTool()
+            return now
+        end
+        integer tool = terrain:GetToolNumber()
+        if (tool = 6 or tool = 7) and terrain:GetLayerCount() < 2
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " needs two or more materials. Add them in the Materials section.")
+            return now
+        end
+        if not CanStrokeWithTool(terrain, tool)
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " strokes aren't ready yet. The other tools are.")
+            return now
+        end
+        if tool = 5
+            // The ramp isn't a stroke: the first click (or Space) marks its
+            // start, and the second makes the whole ramp to where the brush
+            // is (step 8).
+            SetNextTerrainRampPoint(terrain)
+            return now
+        end
+        if tool = 6 and terrain:GetBrush():GetLayer() >= terrain:GetLayerCount()
+            NotifyAccessibility(terrain, "Layer " + (terrain:GetBrush():GetLayer() + 1) + " has no material. Choose another layer to paint.")
+            return now
+        end
+        if not terrain:IsBrushOnGround()
+            if tool = 8
+                NotifyAccessibility(terrain, "A region can't go there: the grid of regions runs from -16 to 15 along each side.")
+            else
+                NotifyAccessibility(terrain, "The brush is off the ground")
+            end
+            return now
+        end
+        if tool = terrain:STAMP_TOOL or tool = terrain:ERODE_TOOL or tool = terrain:AUTO_PAINT_TOOL
+            // These aren't strokes: each click (or Space) does it once at
+            // the brush, as one undoable change.
+            UseOperationTool(terrain, tool)
+            return now
+        end
+        terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
+        paintShownSeconds = 0
+        stroking = true
+        strokeByMouse = byMouse
+        strokeKey = key
+    end
+
+    /*
+    This action uses the Stamp, Erode or Auto paint tool once, at the brush:
+    a stamp with the terrain's stamp settings from the Generate section, or
+    erosion or auto paint as wide as the brush.
+    */
+    private action UseOperationTool(EditorTerrain terrain, integer tool)
+        if tool = terrain:STAMP_TOOL
+            integer mode = terrain:GetStampMode()
+            if mode < 0
+                mode = generator:GetStampMode(terrain:GetStampShape())
+            end
+            StampTerrain(terrain, terrain:GetStampShape(), mode, terrain:GetStampHeight(), terrain:GetStampTurn())
+        elseif tool = terrain:ERODE_TOOL
+            ErodeTerrainAtBrush(terrain)
+        else
+            AutoPaintTerrainAtBrush(terrain)
+        end
+    end
+
+    /*
+    This action returns true while a stroke with a terrain's brush is going.
+
+    Attribute: Returns True during a stroke
+    */
+    action IsTerrainStroking returns boolean
+        return stroking
+    end
+
+    /*
+    This action keeps a stroke going while its key or button is held, and
+    ends it when it is let go. The ground is redrawn each frame.
+    */
+    private action UpdateTerrainStroke(number seconds)
+        if not stroking
+            return now
+        end
+        boolean held = false
+        if strokeByMouse
+            held = strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+        else
+            held = strokeMonitor:IsKeyPressed(strokeKey)
+        end
+        if not held
+            EndTerrainStroke()
+            return now
+        end
+        if brushTerrain = undefined
+            terrainStroke:Cancel()
+            stroking = false
+            return now
+        end
+        if brushTerrain:IsBrushOnGround()
+            terrainStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), seconds)
+            integer toolNumber = brushTerrain:GetToolNumber()
+            if toolNumber = 8 or toolNumber = 9
+                // A region tool adds or removes only the region under the
+                // ring where it was clicked: the stroke ends at once, so
+                // the pointer drifting while the button is held doesn't
+                // add or remove others. Ending it redraws the terrain and
+                // says the new size.
+                EndTerrainStroke()
+                return now
+            elseif toolNumber = 6 or toolNumber = 7
+                // Painting and blending load the splat texture again to show, so it is
+                // shown a few times a second, and fully at the end.
+                paintShownSeconds = paintShownSeconds + seconds
+                if paintShownSeconds >= PAINT_SHOW_INTERVAL
+                    paintShownSeconds = 0
+                    RedrawTerrain(brushTerrain)
+                end
+            else
+                RedrawTerrain(brushTerrain)
+            end
+        end
+    end
+
+    /*
+    This action finishes a stroke: it goes into the undo list, the terrain
+    is marked changed for the next save, and what happened is announced.
+    */
+    action EndTerrainStroke
+        if not stroking
+            return now
+        end
+        stroking = false
+        TerrainStrokeEdit strokeEdit = terrainStroke:End()
+        if brushTerrain = undefined
+            return now
+        end
+        if strokeEdit = undefined
+            NotifyAccessibility(brushTerrain, "Nothing changed")
+            return now
+        end
+        SceneEditorTerrainEdit edit
+        edit:Create(me, brushTerrain, strokeEdit)
+        editManager:Add(edit)
+        brushTerrain:SetChanged(true)
+        RedrawTerrain(brushTerrain)
+        TerrainFactsChanged(brushTerrain)
+        NotifyAccessibility(brushTerrain, DescribeStroke(brushTerrain, strokeEdit))
+    end
+
+    /*
+    This action says what a finished stroke did (step 12): "Raised by up to
+    2.4" for raise and lower, the layer for paint, and the size for the
+    region tools, then the ground under the brush.
+    */
+    private action DescribeStroke(EditorTerrain terrain, TerrainStrokeEdit strokeEdit) returns text
+        integer tool = terrain:GetToolNumber()
+        if tool = 1 or tool = 2
+            number change = strokeEdit:GetLargestHeightChange()
+            text verb = "Raised"
+            if change < 0
+                verb = "Lowered"
+                change = -change
+            end
+            return verb + " by up to " + RoundTenth(change) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 4 or tool = 5
+            number shaped = strokeEdit:GetLargestHeightChange()
+            if shaped < 0
+                shaped = -shaped
+            end
+            text shapedVerb = "Flattened"
+            if tool = 5
+                shapedVerb = "Shaped the ramp"
+            end
+            return shapedVerb + ", changing heights by up to " + RoundTenth(shaped) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 3
+            number smoothed = strokeEdit:GetLargestHeightChange()
+            if smoothed < 0
+                smoothed = -smoothed
+            end
+            return "Smoothed, changing heights by up to " + RoundTenth(smoothed) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 6
+            return "Painted " + terrain:GetLayerLabel(terrain:GetBrush():GetLayer()) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = 7
+            return "Blended the paint. " + terrain:DescribeBrush()
+        elseif tool = 8 or tool = 9
+            return terrain:GetToolName(tool) + " done. The terrain is now " + terrain:DescribeSize()
+        end
+        return terrain:GetToolName(tool) + " done. " + terrain:DescribeBrush()
+    end
+
+    /*
+    This action stops a stroke and puts the ground back as it was before
+    it. Escape calls it.
+
+    Attribute: Returns True if a stroke was going and was canceled
+    */
+    action CancelTerrainStroke returns boolean
+        if not stroking
+            return false
+        end
+        terrainStroke:Cancel()
+        stroking = false
+        if brushTerrain not= undefined
+            RedrawTerrain(brushTerrain)
+            TerrainFactsChanged(brushTerrain)
+            NotifyAccessibility(brushTerrain, "Stroke canceled")
+        end
+        return true
+    end
+
+    /*
+    This action redraws a terrain after its ground changed, and places the
+    brush's ring on the new ground.
+
+    Attribute: Parameter terrain The terrain
+    */
+    private action RedrawTerrain(EditorTerrain terrain)
+        if terrain:RegionsMatchModels()
+            terrain:GetWorldTerrain():Rebuild()
+        else
+            // Regions were added or removed (step 11), so the models are
+            // made again, and the selection's border fits the new size.
+            terrain:RebuildRegionModels()
+            RefreshTerrainHighlight(terrain)
+        end
+        if terrain = brushTerrain
+            // The ring follows the ground, so it is placed again.
+            previewSize = -1
+        end
+    end
+
+    /*
+    This action is called after a terrain stroke is undone or redone: the
+    terrain is redrawn, marked changed for the next save, and what happened
+    is announced.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter message What happened, such as "Undid raise"
+    */
+    action TerrainEdited(EditorTerrain terrain, text message)
+        if terrain = undefined
+            return now
+        end
+        if stroking
+            CancelTerrainStroke()
+        end
+        RedrawTerrain(terrain)
+        terrain:SetChanged(true)
+        TerrainFactsChanged(terrain)
+        NotifyAccessibility(terrain, message)
+    end
+
+    /*
+    This action shows a terrain's new ground heights in the Terrain section
+    of the Properties panel, after a stroke or an undo.
+
+    Attribute: Parameter terrain The terrain
+    */
+    private action TerrainFactsChanged(EditorTerrain terrain)
+        if terrainPropertiesDialog:IsShowing()
+            terrainPropertiesDialog:SetTerrain(terrain)
+        end
+    end
+
+    /*
+    This action fits the selection's border to a terrain again, after its
+    size changed, if the terrain is selected.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action RefreshTerrainHighlight(EditorTerrain terrain)
+        EditorItem selected = GetSelectedItem()
+        if selected is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selected)
+            if highlight:GetEditorTerrain() = terrain
+                highlight:LoadTerrain(terrain, me)
+            end
+        end
+    end
+
+    /*
+    This action returns the TerrainGenerator the scene editor uses for
+    presets, stamps, erosion and auto paint (step 10).
+
+    Attribute: Returns The generator
+    */
+    action GetTerrainGenerator returns TerrainGenerator
+        return generator
+    end
+
+    /*
+    This action remakes a terrain's whole ground with a preset (step 10):
+    rolling hills, mountains, plateaus, canyons or flat. The same seed gives
+    the same ground. With auto paint, the layers are painted by height and
+    slope afterward, if the terrain has two or more materials. It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter preset The preset, such as TerrainGenerator's PRESET_MOUNTAINS
+    Attribute: Parameter seed The seed
+    Attribute: Parameter height The tallest the ground can be, in world units
+    Attribute: Parameter autoPaint True to auto paint afterward
+    */
+    action GenerateTerrain(EditorTerrain terrain, integer preset, number seed, number height, boolean autoPaint)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        boolean painting = autoPaint and terrain:GetLayerCount() >= 2
+        text presetName = generator:GetPresetName(preset)
+        NotifyAccessibility(terrain, "Generating " + presetName + "...")
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation = BeginTerrainOperation(terrain, "generate " + presetName, true, painting, minimumX, minimumZ, maximumX, maximumZ)
+        generator:SetSeed(seed)
+        generator:GeneratePreset(data, preset, minimumX, minimumZ, maximumX - minimumX + 1, maximumZ - minimumZ + 1, height)
+        if painting
+            PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        end
+        text message = "Generated " + presetName + ", seed " + cast(integer, seed) + ", heights " +
+            RoundTenth(data:GetLowestHeight()) + " to " + RoundTenth(data:GetHighestHeight()) + "."
+        if autoPaint and not painting
+            message = message + " Auto paint needs two or more materials, so the ground wasn't painted."
+        end
+        FinishTerrainOperation(terrain, operation, message)
+    end
+
+    /*
+    This action wears a terrain's whole ground as weather would, with one
+    drop of rain for every eight samples (step 10). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ErodeTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        NotifyAccessibility(terrain, "Eroding the whole terrain...")
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainStroke operation = BeginTerrainOperation(terrain, "erode", true, false, minimumX, minimumZ, maximumX, maximumZ)
+        integer drops = (maximumX - minimumX + 1) * (maximumZ - minimumZ + 1) / 8
+        generator:Erode(terrain:GetWorldTerrain():GetData(), minimumX, minimumZ, maximumX, maximumZ, drops)
+        FinishTerrainOperation(terrain, operation, "Eroded the whole terrain, " + drops + " drops of rain.")
+    end
+
+    /*
+    This action paints a terrain's whole ground by rules (step 10): layer 1
+    on flat ground, layer 2 on slopes, layer 3 in hollows and layer 4 low
+    down. Rules for layers the terrain doesn't have go to layer 1. It needs
+    two or more materials, and can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action AutoPaintTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not CanAutoPaint(terrain)
+            return now
+        end
+        integer minimumX = terrain:GetSampleEdge(true, true)
+        integer minimumZ = terrain:GetSampleEdge(false, true)
+        integer maximumX = terrain:GetSampleEdge(true, false)
+        integer maximumZ = terrain:GetSampleEdge(false, false)
+        TerrainStroke operation = BeginTerrainOperation(terrain, "auto paint", false, true, minimumX, minimumZ, maximumX, maximumZ)
+        PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        FinishTerrainOperation(terrain, operation, "Auto painted the whole terrain.")
+    end
+
+    /*
+    This action presses a stamp into the ground at a terrain's brush, as big
+    as the brush (step 10). The Stamp tool calls it. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter stamp The shape, such as TerrainGenerator's STAMP_HILL
+    Attribute: Parameter mode STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE
+    Attribute: Parameter height The height of the shape's top, in world units
+    Attribute: Parameter turn How far to turn the shape, in degrees
+    */
+    action StampTerrain(EditorTerrain terrain, integer stamp, integer mode, number height, number turn)
+        if not CanOperateOn(terrain) or not BrushReady(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number size = terrain:GetBrush():GetSize()
+        number reach = size * 1.4143
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        text name = "stamp a " + generator:GetStampName(stamp)
+        TerrainStroke operation = BeginTerrainOperation(terrain, name, true, false, data:GetSampleX(x - reach) - 1, data:GetSampleZ(z - reach) - 1,
+            data:GetSampleX(x + reach) + 2, data:GetSampleZ(z + reach) + 2)
+        integer width = 129
+        Number32BitArray shape = generator:MakeStampShape(stamp, width)
+        generator:Stamp(data, shape, width, x, z, size, turn, height, mode)
+        FinishTerrainOperation(terrain, operation, "Stamped a " + generator:GetStampName(stamp) + ". " + terrain:DescribeBrush())
+    end
+
+    /*
+    This action erodes the ground under a terrain's brush (step 10). Drops
+    of rain start under it and may run on one brush size past it. It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ErodeTerrainAtBrush(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not BrushReady(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number radius = terrain:GetBrush():GetSize()
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        integer minimumX = data:GetSampleX(x - radius)
+        integer minimumZ = data:GetSampleZ(z - radius)
+        integer maximumX = data:GetSampleX(x + radius) + 1
+        integer maximumZ = data:GetSampleZ(z + radius) + 1
+        integer runOn = cast(integer, math:Ceiling(radius / data:GetVertexSpacing()))
+        TerrainStroke operation = BeginTerrainOperation(terrain, "erode", true, false, minimumX - runOn - 1, minimumZ - runOn - 1,
+            maximumX + runOn + 1, maximumZ + runOn + 1)
+        integer drops = (maximumX - minimumX + 1) * (maximumZ - minimumZ + 1)
+        generator:Erode(data, minimumX, minimumZ, maximumX, maximumZ, minimumX - runOn, minimumZ - runOn, maximumX + runOn, maximumZ + runOn, drops)
+        FinishTerrainOperation(terrain, operation, "Eroded under the brush, " + drops + " drops of rain. " + terrain:DescribeBrush())
+    end
+
+    /*
+    This action auto paints the ground under a terrain's brush (step 10).
+    It needs two or more materials, and can be undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action AutoPaintTerrainAtBrush(EditorTerrain terrain)
+        if not CanOperateOn(terrain) or not BrushReady(terrain) or not CanAutoPaint(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number radius = terrain:GetBrush():GetSize()
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        integer minimumX = data:GetSampleX(x - radius)
+        integer minimumZ = data:GetSampleZ(z - radius)
+        integer maximumX = data:GetSampleX(x + radius) + 1
+        integer maximumZ = data:GetSampleZ(z + radius) + 1
+        TerrainStroke operation = BeginTerrainOperation(terrain, "auto paint", false, true, minimumX, minimumZ, maximumX, maximumZ)
+        PaintArea(terrain, minimumX, minimumZ, maximumX, maximumZ)
+        FinishTerrainOperation(terrain, operation, "Auto painted under the brush.")
+    end
+
+    /*
+    This action makes a terrain one region bigger on every side, with flat
+    new regions, as far as the grid of regions allows (step 11). It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action GrowTerrain(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer size = data:GetRegionSize()
+        integer firstX = data:GetRegionLocation(terrain:GetSampleEdge(true, true)) - 1
+        integer firstZ = data:GetRegionLocation(terrain:GetSampleEdge(false, true)) - 1
+        integer lastX = data:GetRegionLocation(terrain:GetSampleEdge(true, false)) + 1
+        integer lastZ = data:GetRegionLocation(terrain:GetSampleEdge(false, false)) + 1
+        TerrainStroke operation
+        operation:BeginOperation(data, "grow", true, true)
+        operation:CopyAreaIncludingEmpty(firstX * size, firstZ * size, lastX * size + size - 1, lastZ * size + size - 1)
+        integer added = 0
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                if data:IsInRegionMap(locationX, locationZ) and not data:HasRegion(locationX, locationZ)
+                    data:AddRegion(locationX, locationZ)
+                    added = added + 1
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        if added = 0
+            operation:Cancel()
+            NotifyAccessibility(terrain, "The terrain can't grow: it reaches the edge of the grid of regions on every side.")
+            return now
+        end
+        FinishTerrainOperation(terrain, operation, "Added " + added + " regions. The terrain is now " + terrain:DescribeSize())
+    end
+
+    /*
+    This action returns true if a terrain can be changed by an operation,
+    and says why not otherwise. A stroke going on is finished first.
+    */
+    private action CanOperateOn(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so it can't be changed.")
+            return false
+        end
+        if terrain:GetWorldTerrain():GetData():GetRegionCount() = 0
+            NotifyAccessibility(terrain, "This terrain has no regions.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action returns true if a terrain's brush is chosen and on the
+    ground, and says what to do otherwise.
+    */
+    private action BrushReady(EditorTerrain terrain) returns boolean
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool in the Brush section first, to place the brush.")
+            return false
+        end
+        if not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "The brush is off the ground")
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action returns true if a terrain has the two or more materials auto
+    paint needs, and says so otherwise.
+    */
+    private action CanAutoPaint(EditorTerrain terrain) returns boolean
+        if terrain:GetLayerCount() < 2
+            NotifyAccessibility(terrain, "Auto paint needs two or more materials. Add them in the Materials section.")
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action auto paints a rectangle of samples, then gives rules for
+    layers the terrain doesn't have to its first layer.
+    */
+    private action PaintArea(EditorTerrain terrain, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        generator:AutoPaint(data, minimumX, minimumZ, maximumX, maximumZ)
+        data:FoldSplatLayers(terrain:GetLayerCount(), minimumX, minimumZ, maximumX, maximumZ)
+    end
+
+    /*
+    This action starts an operation on a terrain, copying a rectangle of
+    samples so it can be undone.
+    */
+    private action BeginTerrainOperation(EditorTerrain terrain, text name, boolean changesShape, boolean changesSplat,
+            integer minimumX, integer minimumZ, integer maximumX, integer maximumZ) returns TerrainStroke
+        TerrainStroke operation
+        operation:BeginOperation(terrain:GetWorldTerrain():GetData(), name, changesShape, changesSplat)
+        operation:CopyArea(minimumX, minimumZ, maximumX, maximumZ)
+        return operation
+    end
+
+    /*
+    This action finishes an operation: it goes into the undo list, the
+    terrain is redrawn and marked changed, the Properties panel follows, and
+    the message is announced.
+    */
+    private action FinishTerrainOperation(EditorTerrain terrain, TerrainStroke operation, text message)
+        TerrainStrokeEdit strokeEdit = operation:End()
+        if strokeEdit not= undefined
+            SceneEditorTerrainEdit edit
+            edit:Create(me, terrain, strokeEdit)
+            editManager:Add(edit)
+        end
+        terrain:SetChanged(true)
+        RedrawTerrain(terrain)
+        TerrainFactsChanged(terrain)
+        NotifyAccessibility(terrain, message)
+    end
+
+    /*
+    This action rounds a number to one place after the point, for speaking.
+    */
+    private action RoundTenth(number value) returns number
+        return math:Round(value, 1)
+    end
+
+    /*
+    This action returns every terrain in the scene's 3D layers.
+
+    Attribute: Returns The terrains
+    */
+    action GetEditorTerrains returns Array<EditorTerrain>
+        Array<EditorTerrain> result
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        result:Add(cast(EditorTerrain, item))
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns how many terrains in the scene use a terrain
+    material (step 9).
+
+    Attribute: Parameter material The terrain material
+    Attribute: Returns How many terrains use it
+    */
+    action CountTerrainsUsing(TerrainMaterial material) returns integer
+        if material = undefined
+            return 0
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer count = 0
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            if terrains:Get(i):GetMaterial() = material
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action adds a material to a terrain as its next ground layer
+    (step 9). The file can be a material file, a texture set's color map,
+    such as Ground037_1K-PNG_Color.png, or another image, used as a plain
+    texture; for an image, a material file is written beside it. The first
+    layer makes the terrain's terrain material file, in the project's
+    Scenes/Materials folder, and covers the whole ground. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter chosen The file chosen
+    */
+    action AddTerrainLayer(EditorTerrain terrain, File chosen)
+        if not CanChangeMaterials(terrain)
+            return now
+        end
+        if terrain:GetLayerCount() >= 4
+            NotifyAccessibility(terrain, "This terrain has four materials, which is the most it can have.")
+            return now
+        end
+        Material material = MakeTerrainLayerMaterial(terrain, chosen)
+        if material = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        text beforeFile = terrain:GetMaterialFile()
+        text layerName = material:GetName()
+        SceneEditorTerrainMaterialEdit edit
+        if current = undefined
+            TerrainMaterial created = CreateTerrainMaterial(terrain)
+            created:AddLayer(layerName, material)
+            created:Save(created:GetFile())
+            terrain:SetMaterialFile(created:GetFile():GetPath())
+            terrain:SetMaterial(created)
+            edit:Create(me, terrain, "add " + layerName, undefined, beforeFile, created, terrain:GetMaterialFile())
+        else
+            TerrainMaterial before = current:Copy()
+            current:AddLayer(layerName, material)
+            edit:Create(me, terrain, "add " + layerName, current, beforeFile, current, beforeFile)
+            edit:SetChangedLayers(current, before, current:Copy())
+            terrain:RefreshMaterial()
+        end
+        editManager:Add(edit)
+        integer count = terrain:GetLayerCount()
+        // The new layer is the one painted next.
+        terrain:GetBrush():SetLayer(count - 1)
+        text message = "Added " + layerName + " as layer " + count + ", tiles " + RoundTenth(material:GetTextureScale()) + " units."
+        if count = 1
+            message = message + " It covers the whole ground. Add another material to paint with."
+        else
+            message = message + " Paint it with the Paint tool."
+        end
+        if layerMaterialNote not= ""
+            message = message + " " + layerMaterialNote
+        end
+        TerrainMaterialEdited(terrain, current, message)
+    end
+
+    /*
+    This action gives one of a terrain's ground layers a different
+    material. Its painted places stay the same. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter chosen The file chosen, as for AddTerrainLayer
+    */
+    action ChooseTerrainLayer(EditorTerrain terrain, integer layer, File chosen)
+        if not CanChangeMaterials(terrain) or layer < 0 or layer >= terrain:GetLayerCount()
+            return now
+        end
+        Material material = MakeTerrainLayerMaterial(terrain, chosen)
+        if material = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        TerrainMaterial before = current:Copy()
+        current:SetLayer(layer, material:GetName(), material)
+        SceneEditorTerrainMaterialEdit edit
+        edit:Create(me, terrain, "choose " + material:GetName(), current, terrain:GetMaterialFile(), current, terrain:GetMaterialFile())
+        edit:SetChangedLayers(current, before, current:Copy())
+        editManager:Add(edit)
+        terrain:RefreshMaterial()
+        text chosenMessage = "Layer " + (layer + 1) + " is now " + material:GetName() + "."
+        if layerMaterialNote not= ""
+            chosenMessage = chosenMessage + " " + layerMaterialNote
+        end
+        TerrainMaterialEdited(terrain, current, chosenMessage)
+    end
+
+    /*
+    This action removes one of a terrain's ground layers. Its painted
+    weight goes to the first layer, and the layers after it move down one,
+    on every terrain sharing the terrain material. Removing the last layer
+    makes the ground plain again: the painting is cleared, its files are
+    deleted on the next save, and the scene stops naming a material. It can
+    be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action RemoveTerrainLayer(EditorTerrain terrain, integer layer)
+        if not CanChangeMaterials(terrain) or layer < 0 or layer >= terrain:GetLayerCount()
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        text layerName = current:GetLayerName(layer)
+        text beforeFile = terrain:GetMaterialFile()
+        SceneEditorTerrainMaterialEdit edit
+        if current:GetLayerCount() = 1
+            edit:Create(me, terrain, "remove " + layerName, current, beforeFile, undefined, "")
+            edit:AddPaintingEdit(ClearTerrainPainting(terrain))
+            terrain:SetMaterialFile("")
+            terrain:SetMaterial(undefined)
+            editManager:Add(edit)
+            terrain:GetBrush():SetLayer(0)
+            TerrainMaterialEdited(terrain, undefined, layerName + " removed. The ground is plain.")
+            return now
+        end
+
+        TerrainMaterial before = current:Copy()
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain sharing = terrains:Get(i)
+            if sharing:GetMaterial() = current
+                edit:AddPaintingEdit(RemoveTerrainPaintingLayer(sharing, layer))
+            end
+            i = i + 1
+        end
+        current:RemoveLayer(layer)
+        edit:Create(me, terrain, "remove " + layerName, current, beforeFile, current, beforeFile)
+        edit:SetChangedLayers(current, before, current:Copy())
+        editManager:Add(edit)
+        terrain:RefreshMaterial()
+        if terrain:GetBrush():GetLayer() >= current:GetLayerCount()
+            terrain:GetBrush():SetLayer(current:GetLayerCount() - 1)
+        end
+        TerrainMaterialEdited(terrain, current, layerName + " removed. Where it was painted, " + current:GetLayerName(0) + " shows.")
+    end
+
+    /*
+    This action sets how many world units one tile of a ground layer's
+    material covers. It is saved into the material's file with the scene.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter size The tile size, more than 0
+    */
+    action SetTerrainLayerTileSize(EditorTerrain terrain, integer layer, number size)
+        if terrain = undefined or layer < 0 or layer >= terrain:GetLayerCount() or size <= 0
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        current:GetLayerMaterial(layer):SetTextureScale(size)
+        terrain:RefreshMaterial()
+        TerrainMaterialEdited(terrain, current, "")
+    end
+
+    /*
+    This action sets how softly a terrain's texture set layers blend where
+    they meet, from 0.01 to 1. It is saved into the terrain material file
+    with the scene.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter softness The softness
+    */
+    action SetTerrainBlendSoftness(EditorTerrain terrain, number softness)
+        if terrain = undefined or terrain:GetMaterial() = undefined
+            return now
+        end
+        TerrainMaterial current = terrain:GetMaterial()
+        current:SetBlendSoftness(softness)
+        terrain:RefreshMaterial()
+        TerrainMaterialEdited(terrain, current, "")
+    end
+
+    /*
+    This action returns a terrain layer's material, or undefined, for the
+    Material details (step 14).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Returns The layer's Material
+    */
+    action GetTerrainLayerMaterial(EditorTerrain terrain, integer layer) returns Material
+        if terrain = undefined or layer < 0 or layer >= terrain:GetLayerCount()
+            return undefined
+        end
+        return terrain:GetMaterial():GetLayerMaterial(layer)
+    end
+
+    /*
+    This action returns how many layers in the scene's terrains use a
+    material, counting each layer once (step 14).
+
+    Attribute: Parameter material The material
+    Attribute: Returns How many layers use it
+    */
+    action CountLayersUsing(Material material) returns integer
+        if material = undefined
+            return 0
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        Array<TerrainMaterial> counted
+        integer count = 0
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            TerrainMaterial terrainMaterial = terrains:Get(i):GetMaterial()
+            if terrainMaterial not= undefined and not counted:Has(terrainMaterial)
+                counted:Add(terrainMaterial)
+                integer layer = 0
+                repeat while layer < terrainMaterial:GetLayerCount()
+                    if terrainMaterial:GetLayerMaterial(layer) = material
+                        count = count + 1
+                    end
+                    layer = layer + 1
+                end
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action gives a terrain layer's material a different image for one
+    of its maps (step 14). The image must be the same size as the color map,
+    or it is refused. Choosing a color map for a plain texture makes it a
+    texture set. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter kind The map, such as Material's NORMAL_MAP
+    Attribute: Parameter chosen The image
+    */
+    action SetTerrainLayerMap(EditorTerrain terrain, integer layer, integer kind, File chosen)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or chosen = undefined or not chosen:Exists()
+            return now
+        end
+        text path = chosen:GetAbsolutePath()
+        text lower = chosen:GetFileName():ToLowerCase()
+        if not (lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg"))
+            NotifyAccessibility(terrain, "A map is an image, a .png or .jpg file.")
+            return now
+        end
+        // Every map in a set must be the size of its color map.
+        text problem = ""
+        if kind = material:COLOR_MAP
+            Material trial = material:Copy()
+            trial:SetMapPath(material:COLOR_MAP, path)
+            integer other = material:NORMAL_MAP
+            repeat while other <= material:HEIGHT_MAP and problem = ""
+                if trial:GetMapPath(other) not= ""
+                    problem = trial:GetMapSizeProblem(trial:GetMapPath(other))
+                end
+                other = other + 1
+            end
+        elseif kind not= material:TEXTURE
+            problem = material:GetMapSizeProblem(path)
+        end
+        if problem not= ""
+            NotifyAccessibility(terrain, problem)
+            return now
+        end
+
+        Material before = material:Copy()
+        if kind = material:COLOR_MAP and not material:UsesTextureSet()
+            // A plain texture becomes a texture set with this color map.
+            material:SetTexturePath("")
+        end
+        material:SetMapPath(kind, path)
+        text message = material:GetMapName(kind) + " is now " + chosen:GetFileName() + "."
+        message = message:GetSubtext(0, 1):ToUpperCase() + message:GetSubtext(1)
+        if not IsInProject(chosen)
+            message = message + " This map is outside the project, so it won't be copied with it."
+        end
+        RecordMaterialChange(material, before, material:GetMapName(kind), true, message)
+    end
+
+    /*
+    This action clears one of a terrain layer's maps (step 14). A texture
+    set's color map, and a plain texture's image, can't be cleared. It can
+    be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter kind The map, such as Material's NORMAL_MAP
+    */
+    action ClearTerrainLayerMap(EditorTerrain terrain, integer layer, integer kind)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or material:GetMapPath(kind) = ""
+            return now
+        end
+        if kind = material:COLOR_MAP
+            NotifyAccessibility(terrain, "A texture set needs its color map. Choose another, or use Make plain.")
+            return now
+        end
+        if kind = material:TEXTURE
+            NotifyAccessibility(terrain, "A plain texture needs its image. Choose another, or remove the layer.")
+            return now
+        end
+        Material before = material:Copy()
+        material:SetMapPath(kind, "")
+        text message = "Cleared the " + material:GetMapName(kind) + "."
+        RecordMaterialChange(material, before, "clear " + material:GetMapName(kind), true, message)
+    end
+
+    /*
+    This action sets whether a terrain layer's normal map uses the DirectX
+    convention, rather than OpenGL's (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter directX True for DirectX
+    */
+    action SetTerrainLayerNormalConvention(EditorTerrain terrain, integer layer, boolean directX)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or material:IsNormalMapDirectX() = directX
+            return now
+        end
+        Material before = material:Copy()
+        material:SetNormalMapDirectX(directX)
+        text convention = "OpenGL"
+        if directX
+            convention = "DirectX"
+        end
+        RecordMaterialChange(material, before, "normal map convention", true, "The normal map is now " + convention + ".")
+    end
+
+    /*
+    This action sets a terrain layer's roughness (0) or metallic (1) value,
+    from 0 to 1 (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter valueKind 0 for roughness, 1 for metallic
+    Attribute: Parameter value The value, from 0 to 1
+    */
+    action SetTerrainLayerValue(EditorTerrain terrain, integer layer, integer valueKind, number value)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or value < 0 or value > 1
+            return now
+        end
+        Material before = material:Copy()
+        text valueName = "roughness"
+        if valueKind = 0
+            if material:GetRoughness() = value
+                return now
+            end
+            material:SetRoughness(value)
+        else
+            valueName = "metallic"
+            if material:GetMetallic() = value
+                return now
+            end
+            material:SetMetallic(value)
+        end
+        text message = valueName:GetSubtext(0, 1):ToUpperCase() + valueName:GetSubtext(1) + " " + RoundTenth(value) + "."
+        if valueKind = 0 and material:GetRoughnessMapPath() not= ""
+            message = message + " Not used: the roughness map sets it."
+        end
+        RecordMaterialChange(material, before, valueName, true, message)
+    end
+
+    /*
+    This action renames a terrain layer's material (step 14). The layer's
+    name in its terrain material follows. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    Attribute: Parameter newName The new name
+    */
+    action RenameTerrainLayerMaterial(EditorTerrain terrain, integer layer, text newName)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or newName = "" or newName = material:GetName()
+            return now
+        end
+        Material before = material:Copy()
+        material:SetName(newName)
+        terrain:GetMaterial():SetLayer(layer, newName, material)
+        RecordMaterialChange(material, before, "name", false, "")
+    end
+
+    /*
+    This action fills in a terrain layer's empty maps from its color map's
+    folder, by name, and says what it found (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action FindTerrainLayerMaps(EditorTerrain terrain, integer layer)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined
+            return now
+        end
+        if not material:UsesTextureSet()
+            NotifyAccessibility(terrain, "This is a plain texture. Choose a color map first to make it a texture set.")
+            return now
+        end
+        Material before = material:Copy()
+        // The color map's path is a full path, which File's SetPath
+        // doesn't take.
+        File colorMap = material:MakeFile(material:GetColorMapPath())
+        text found = material:FindTextureSetMaps(colorMap, false)
+        // A map found by name must still be the size of the color map.
+        integer kind = material:NORMAL_MAP
+        repeat while kind <= material:HEIGHT_MAP
+            if material:GetMapPath(kind) not= "" and before:GetMapPath(kind) = ""
+                text problem = material:GetMapSizeProblem(material:GetMapPath(kind))
+                if problem not= ""
+                    material:SetMapPath(kind, "")
+                    found = found + " " + problem + " It was left out."
+                end
+            end
+            kind = kind + 1
+        end
+        RecordMaterialChange(material, before, "find maps", true, found)
+    end
+
+    /*
+    This action makes a terrain layer's texture set a plain texture, with
+    its color map as its one image (step 14). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter layer The layer, from 0
+    */
+    action MakeTerrainLayerPlain(EditorTerrain terrain, integer layer)
+        Material material = GetTerrainLayerMaterial(terrain, layer)
+        if material = undefined or not material:UsesTextureSet()
+            return now
+        end
+        Material before = material:Copy()
+        material:MakePlain()
+        RecordMaterialChange(material, before, "make plain", true, "Now a plain texture, with its color map.")
+    end
+
+    /*
+    This action is called after a material changed, or the change was
+    undone or redone (step 14): every terrain layer using it is given its
+    new look, each terrain's materials are marked changed for the next
+    save, the Properties panel follows, and the message is said.
+
+    Attribute: Parameter material The material that changed
+    Attribute: Parameter reload True if the layers must be given to the renderer again, false for a name
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action MaterialEdited(Material material, boolean reload, text message)
+        if stroking
+            EndTerrainStroke()
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        EditorTerrain shown = undefined
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain terrain = terrains:Get(i)
+            TerrainMaterial terrainMaterial = terrain:GetMaterial()
+            if terrainMaterial not= undefined
+                boolean uses = false
+                integer layer = 0
+                repeat while layer < terrainMaterial:GetLayerCount()
+                    if terrainMaterial:GetLayerMaterial(layer) = material
+                        uses = true
+                        // The layer's name follows the material's.
+                        terrainMaterial:SetLayer(layer, material:GetName(), material)
+                        if reload
+                            terrain:RefreshMaterialLayer(layer)
+                        end
+                    end
+                    layer = layer + 1
+                end
+                if uses
+                    terrain:SetMaterialChanged(true)
+                    shown = terrain
+                end
+            end
+            i = i + 1
+        end
+        previewSize = -1
+        if terrainMaterialsPropertiesDialog:IsShowing()
+            terrainMaterialsPropertiesDialog:Refresh()
+        end
+        if shown not= undefined
+            TerrainBrushChanged(shown)
+            if message not= ""
+                text said = message
+                if reload
+                    said = "Packing the texture set... " + message
+                end
+                NotifyAccessibility(shown, said)
+            end
+        end
+    end
+
+    /*
+    This action adds a material change to the undo list and gives every
+    layer using the material its new look.
+    */
+    private action RecordMaterialChange(Material material, Material before, text name, boolean reload, text message)
+        SceneEditorMaterialEdit edit
+        edit:Create(me, material, before, name, reload)
+        editManager:Add(edit)
+        MaterialEdited(material, reload, message)
+    end
+
+    /*
+    This action returns true if a file is inside the scene's project.
+    */
+    private action IsInProject(File file) returns boolean
+        if projectLocation = undefined
+            return true
+        end
+        return file:GetAbsolutePath():StartsWith(projectLocation:GetAbsolutePath())
+    end
+
+    /*
+    This action is called after a terrain's materials changed, or the
+    change was undone or redone (step 9). The terrain was given its new
+    look already; other terrains sharing the terrain material that changed
+    are given theirs. Each is marked changed for the next save, the
+    Properties panel follows, and the message is announced.
+
+    Attribute: Parameter terrain The terrain whose materials changed
+    Attribute: Parameter changed The terrain material whose layers changed, or undefined
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action TerrainMaterialEdited(EditorTerrain terrain, TerrainMaterial changed, text message)
+        if stroking
+            CancelTerrainStroke()
+        end
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            EditorTerrain other = terrains:Get(i)
+            if other not= terrain and changed not= undefined and other:GetMaterial() = changed
+                other:RefreshMaterial()
+                other:SetMaterialChanged(true)
+                other:SetChanged(true)
+            end
+            i = i + 1
+        end
+        terrain:SetMaterialChanged(true)
+        terrain:SetChanged(true)
+        if terrain:GetBrush():GetLayer() >= terrain:GetLayerCount() and terrain:GetLayerCount() > 0
+            terrain:GetBrush():SetLayer(terrain:GetLayerCount() - 1)
+        end
+        // The region models were made again, so the brush's ring is placed
+        // again over them.
+        previewSize = -1
+        if terrainMaterialsPropertiesDialog:IsShowing()
+            terrainMaterialsPropertiesDialog:SetTerrain(terrain)
+        end
+        TerrainBrushChanged(terrain)
+        if message not= ""
+            NotifyAccessibility(terrain, message)
+        end
+    end
+
+    /*
+    This action returns true if a terrain's materials can be changed, and
+    says why not otherwise.
+    */
+    private action CanChangeMaterials(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so its materials can't be changed.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action makes a ground layer's material from a chosen file: a
+    material file is loaded; a texture set's color map, such as
+    Ground037_1K-PNG_Color.png, or another image makes a new material,
+    written beside it as a .json file named after it, unless that file is
+    there already. It returns undefined, and says why, for other files.
+    */
+    private action MakeTerrainLayerMaterial(EditorTerrain terrain, File chosen) returns Material
+        layerMaterialNote = ""
+        if chosen = undefined or not chosen:Exists()
+            return undefined
+        end
+        HashTable<text, Material> materials = GetLoadedMaterials()
+        text fileName = chosen:GetFileName()
+        text lower = fileName:ToLowerCase()
+        if lower:EndsWith(".json")
+            text jsonKey = chosen:GetAbsolutePath()
+            if materials:HasKey(jsonKey)
+                return materials:GetValue(jsonKey)
+            end
+            Material material
+            boolean loaded = true
+            check
+                material:Load(chosen)
+            detect e is Error
+                loaded = false
+            end
+            if not loaded
+                NotifyAccessibility(terrain, fileName + " isn't a material file.")
+                return undefined
+            end
+            if material:GetName() = ""
+                material:SetName(fileName:GetSubtext(0, fileName:GetSize() - 5))
+            end
+            materials:Add(jsonKey, material)
+            return material
+        end
+        if not (lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg"))
+            NotifyAccessibility(terrain, "Choose a material file, or an image: a texture set's color map, such as Ground037_1K-PNG_Color.png or rock_wall_diff_1k.png, or a plain texture.")
+            return undefined
+        end
+
+        // An image with a color ending, such as _Color or _diff, is a texture
+        // set, and its other maps are found by name (step 14). Others are
+        // plain textures.
+        Material made
+        text folder = chosen:GetParentDirectory():GetAbsolutePath()
+        text materialName = made:GetSetName(fileName)
+        if made:IsColorMapName(fileName)
+            layerMaterialNote = made:FindTextureSetMaps(chosen, true)
+            made:SetTextureScale(3)
+            // AmbientCG's sets end in a size and format, such as _1K-PNG,
+            // which the material's name leaves out.
+            text lowerName = materialName:ToLowerCase()
+            if lowerName:EndsWith("-png") or lowerName:EndsWith("-jpg")
+                integer last = -1
+                integer i = 0
+                repeat while i < materialName:GetSize()
+                    if materialName:GetSubtext(i, i + 1) = "_"
+                        last = i
+                    end
+                    i = i + 1
+                end
+                if last > 0
+                    materialName = materialName:GetSubtext(0, last)
+                end
+            end
+        else
+            made:SetTexturePath(chosen:GetAbsolutePath())
+            made:SetTextureScale(4)
+        end
+        made:SetName(materialName)
+
+        // The folder is a full path, which File's SetPath doesn't take.
+        File materialFile
+        materialFile:SetAbsolutePath(folder + "/" + materialName + ".json")
+        text key = materialFile:GetAbsolutePath()
+        if materials:HasKey(key)
+            layerMaterialNote = ""
+            return materials:GetValue(key)
+        end
+        if materialFile:Exists()
+            Material existing
+            existing:Load(materialFile)
+            materials:Add(key, existing)
+            layerMaterialNote = ""
+            return existing
+        end
+        made:Save(materialFile)
+        materials:Add(key, made)
+        return made
+    end
+
+    /*
+    This action makes a terrain's terrain material, with its file in the
+    project's Scenes/Materials folder, named after the terrain's folder,
+    such as Scenes/Materials/Terrain1.json. The folder is made if needed.
+    The file isn't written yet.
+    */
+    private action CreateTerrainMaterial(EditorTerrain terrain) returns TerrainMaterial
+        SceneProperties sceneProperties
+        text folderPath = sceneProperties:SCENES_FOLDER + "/" + sceneProperties:MATERIALS_FOLDER
+        File folder = ConvertToProjectFile(folderPath)
+        if not folder:Exists()
+            boolean made = folder:CreateDirectories()
+        end
+
+        // The terrain's folder name, from "Scenes/Terrains/Terrain1/terrain.json".
+        text baseName = "Terrain"
+        text terrainPath = terrain:GetTerrainFile()
+        Array<text> parts = terrainPath:Split("/")
+        if parts:GetSize() >= 2
+            baseName = parts:Get(parts:GetSize() - 2)
+        end
+
+        text candidate = baseName
+        integer count = 2
+        File file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        repeat while file:Exists()
+            candidate = baseName + " " + count
+            count = count + 1
+            file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        end
+
+        TerrainMaterial material
+        material:SetName(candidate)
+        material:Save(file)
+        return material
+    end
+
+    /*
+    This action takes one ground layer out of a terrain's painting, keeping
+    a copy for undo, and returns the edit that puts it back.
+    */
+    private action RemoveTerrainPaintingLayer(EditorTerrain terrain, integer layer) returns TerrainStrokeEdit
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation
+        operation:BeginOperation(data, "remove layer", false, true)
+        terrain:CopyAllRegions(operation)
+        data:RemoveSplatLayer(layer)
+        terrain:SetChanged(true)
+        return operation:End()
+    end
+
+    /*
+    This action clears a terrain's painting, keeping a copy for undo, and
+    returns the edit that puts it back.
+    */
+    private action ClearTerrainPainting(EditorTerrain terrain) returns TerrainStrokeEdit
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation
+        operation:BeginOperation(data, "clear painting", false, true)
+        terrain:CopyAllRegions(operation)
+        data:ClearSplat()
+        terrain:SetChanged(true)
+        return operation:End()
+    end
+
+    /*
+    This action moves a terrain's paint layer to the next layer that has a
+    material, going back to the first after the last, and says which it is
+    (step 9).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action NextTerrainPaintLayer(EditorTerrain terrain)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        integer count = terrain:GetLayerCount()
+        if count = 0
+            NotifyAccessibility(terrain, "No materials to paint. Add them in the Materials section.")
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        integer layer = brush:GetLayer() + 1
+        if layer >= count
+            layer = 0
+        end
+        brush:SetLayer(layer)
+        NotifyAccessibility(terrain, "Paint layer " + (layer + 1) + ", " + terrain:GetMaterial():GetLayerName(layer))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action sets one end of a terrain's ramp at its brush, and says it
+    (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter isEnd True for the ramp's end, false for its start
+    */
+    action SetTerrainRampPoint(EditorTerrain terrain, boolean isEnd)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool first, with Alt and a number, to place the brush.")
+            return now
+        end
+        if isEnd
+            // The end makes the ramp, if its start is set.
+            if terrain:HasRampStart()
+                ApplyTerrainRamp(terrain)
+            else
+                NotifyAccessibility(terrain, "Set the ramp's start first.")
+            end
+            return now
+        end
+        NotifyAccessibility(terrain, terrain:SetRampPoint(false))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action sets the next end of a terrain's ramp at its brush, for its
+    key (step 8): the start, then the end; after both, a new start.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action SetNextTerrainRampPoint(EditorTerrain terrain)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        if not terrain:HasRampStart()
+            text started = terrain:SetRampPoint(false)
+            if terrain:HasRampStart()
+                started = "Ramp start at " + RoundTenth(terrain:GetRampStartX()) + ", " + RoundTenth(terrain:GetRampStartZ()) +
+                    ", height " + RoundTenth(terrain:GetRampStartHeight()) + ". Move to where it ends, and click or press Alt+G again."
+            end
+            NotifyAccessibility(terrain, started)
+            TerrainBrushChanged(terrain)
+            return now
+        end
+        ApplyTerrainRamp(terrain)
+    end
+
+    /*
+    This action makes a whole ramp at once (step 8): a straight slope from
+    the ramp's start, at its height, to the brush, at the ground's height
+    there, as wide as the brush. The ground across the ramp is set to the
+    slope, fading back to the ground over the brush's outer edge. It can be
+    undone, and the ramp is cleared for the next one.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ApplyTerrainRamp(EditorTerrain terrain)
+        if not CanOperateOn(terrain)
+            return now
+        end
+        if not terrain:HasRampStart()
+            return now
+        end
+        if not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "The brush is off the ground, so the ramp can't end there.")
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number startX = terrain:GetRampStartX()
+        number startZ = terrain:GetRampStartZ()
+        number startHeight = terrain:GetRampStartHeight()
+        number endX = terrain:GetBrushX()
+        number endZ = terrain:GetBrushZ()
+        number endHeight = data:GetSurfaceHeight(endX, endZ)
+        number halfWidth = terrain:GetBrush():GetSize()
+
+        number lineX = endX - startX
+        number lineZ = endZ - startZ
+        number length = math:SquareRoot(lineX * lineX + lineZ * lineZ)
+        if length < data:GetVertexSpacing()
+            NotifyAccessibility(terrain, "The ramp's end is too close to its start. Move further away.")
+            return now
+        end
+        number alongX = lineX / length
+        number alongZ = lineZ / length
+
+        number reach = halfWidth + 1
+        integer minimumX = data:GetSampleX(math:MinimumOf(startX, endX) - reach)
+        integer minimumZ = data:GetSampleZ(math:MinimumOf(startZ, endZ) - reach)
+        integer maximumX = data:GetSampleX(math:MaximumOf(startX, endX) + reach) + 1
+        integer maximumZ = data:GetSampleZ(math:MaximumOf(startZ, endZ) + reach) + 1
+        TerrainStroke operation = BeginTerrainOperation(terrain, "ramp", true, false, minimumX, minimumZ, maximumX, maximumZ)
+
+        number spacing = data:GetVertexSpacing()
+        // Full strength across the middle of the ramp, fading to nothing at
+        // its sides.
+        number solid = halfWidth * 0.7
+        integer z = minimumZ
+        repeat while z <= maximumZ
+            integer x = minimumX
+            repeat while x <= maximumX
+                if data:HasSample(x, z)
+                    number offsetX = x * spacing - startX
+                    number offsetZ = z * spacing - startZ
+                    number along = offsetX * alongX + offsetZ * alongZ
+                    number across = math:AbsoluteValue(offsetZ * alongX - offsetX * alongZ)
+                    if along >= 0 and along <= length and across <= halfWidth
+                        number weight = 1
+                        if across > solid
+                            number fade = (halfWidth - across) / (halfWidth - solid)
+                            weight = fade * fade * (3 - 2 * fade)
+                        end
+                        number goal = startHeight + (endHeight - startHeight) * along / length
+                        number height = data:GetSampleHeight(x, z)
+                        data:SetSampleHeight(x, z, height + (goal - height) * weight)
+                    end
+                end
+                x = x + 1
+            end
+            z = z + 1
+        end
+
+        terrain:ClearRamp()
+        FinishTerrainOperation(terrain, operation, "Made a ramp from height " + RoundTenth(startHeight) + " to " + RoundTenth(endHeight) +
+            ", " + RoundTenth(length) + " units long. Click again to start another.")
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action clears a terrain's ramp, so the next two clicks (or Alt+G
+    presses) set a new start and end (step 8).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action ClearTerrainRamp(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        terrain:ClearRamp()
+        NotifyAccessibility(terrain, "Ramp cleared. With the Ramp tool, click where the next one starts.")
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action sets what flatten evens the ground to: the height where each
+    stroke starts, or a set height (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter toStart True for the height where each stroke starts
+    */
+    action SetTerrainFlattenToStart(EditorTerrain terrain, boolean toStart)
+        if terrain = undefined
+            return now
+        end
+        terrain:GetBrush():SetFlattenToStart(toStart)
+        if toStart
+            NotifyAccessibility(terrain, "Flatten to the height where each stroke starts")
+        else
+            NotifyAccessibility(terrain, "Flatten to height " + RoundTenth(terrain:GetBrush():GetTargetHeight()))
+        end
+    end
+
+    /*
+    This action sets the height flatten evens the ground to, and makes it
+    flatten to that height rather than where each stroke starts (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter height The height
+    */
+    action SetTerrainFlattenHeight(EditorTerrain terrain, number height)
+        if terrain = undefined
+            return now
+        end
+        terrain:GetBrush():SetTargetHeight(height)
+        terrain:GetBrush():SetFlattenToStart(false)
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action takes the ground's height under a terrain's brush as the
+    height flatten evens to (step 8).
+
+    Attribute: Parameter terrain The terrain
+    */
+    action TakeTerrainFlattenHeight(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool() or not terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, "Place the brush on the ground first, with a tool chosen.")
+            return now
+        end
+        number height = terrain:GetWorldTerrain():GetData():GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ())
+        terrain:GetBrush():SetTargetHeight(height)
+        terrain:GetBrush():SetFlattenToStart(false)
+        NotifyAccessibility(terrain, "Flatten to height " + RoundTenth(height))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action says what the ground under a terrain's whole brush is like:
+    its heights, its steepest slope, and how much of it each layer covers
+    (step 12). The Brush section's "Describe the area" button calls it.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action DescribeTerrainArea(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        if not terrain:HasTool()
+            NotifyAccessibility(terrain, "Choose a tool first, with Alt and a number, to place the brush.")
+            return now
+        end
+        NotifyAccessibility(terrain, terrain:DescribeArea())
+    end
+
+    /*
+    This action makes a terrain's brush stronger or weaker, by one step, and
+    says its new strength (step 8).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter stronger True to strengthen the brush, false to weaken it
+    */
+    action ChangeTerrainStrength(EditorTerrain terrain, boolean stronger)
+        if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        TerrainBrush brush = terrain:GetBrush()
+        number strength = brush:GetStrength()
+        if stronger
+            strength = strength * BRUSH_STRENGTH_STEP
+        else
+            strength = strength / BRUSH_STRENGTH_STEP
+        end
+        if strength < BRUSH_WEAKEST
+            strength = BRUSH_WEAKEST
+        elseif strength > BRUSH_STRONGEST
+            strength = BRUSH_STRONGEST
+        end
+        brush:SetStrength(strength)
+        NotifyAccessibility(terrain, "Brush strength " + (cast(integer, strength * 100 + 0.5) / 100.0))
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
+    This action keeps the Brush section of the Properties panel in step with
+    a terrain's brush, after a key or the pointer changed it (step 7).
+
+    Attribute: Parameter terrain The terrain whose brush changed
+    */
+    action TerrainBrushChanged(EditorTerrain terrain)
+        if terrainBrushPropertiesDialog:IsShowing()
+            terrainBrushPropertiesDialog:SetTerrain(terrain)
+            // The Stamp section shows only with the Stamp tool (step 17).
+            terrainStampPropertiesDialog:ToolChanged(terrain)
+        end
+    end
+
+    /*
+    This action shows the ring for the terrain whose tool is chosen, placed
+    again only when the brush moved or changed size, and hides it otherwise
+    (step 7). The ring is one of the editor's own items: it isn't saved,
+    listed or picked.
+    */
+    private action UpdateBrushPreview
+        boolean show = IsTerrainBrushActive() and brushTerrain:IsBrushOnGround()
+        if not show
+            if brushPreviewShown
+                brushPreview:Hide()
+                brushPreviewShown = false
+            end
+            HideRampPreview()
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        number size = brushTerrain:GetBrush():GetSize()
+        boolean moved = brushTerrain:GetBrushX() not= previewX or brushTerrain:GetBrushZ() not= previewZ or size not= previewSize
+        UpdateRampPreview(cast(EditorLayer3D, layer))
+        if brushPreview = undefined
+            TerrainBrushPreview preview
+            preview:SetName("Terrain Brush")
+            preview:SetProperty(constants:EDITOR_TAG, undefined)
+            // The ring lets clicks through to the scene editor.
+            preview:SetAcceptsMouseInput(false)
+            preview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+            brushPreview = preview
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(preview)
+            moved = false
+        end
+        if moved
+            brushPreview:Place(brushTerrain:GetWorldTerrain():GetData(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), size)
+        end
+        // The brush turns red while it marks a ramp's end.
+        if brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+            brushPreview:SetRingColor(0.95, 0.15, 0.1)
+        else
+            brushPreview:SetRingColor(1, 0.85, 0.1)
+        end
+        if not brushPreviewShown
+            brushPreview:Show()
+            brushPreviewShown = true
+        end
+        previewX = brushTerrain:GetBrushX()
+        previewZ = brushTerrain:GetBrushZ()
+        previewSize = size
+    end
+
+    /*
+    This action shows a ramp being marked (step 8): a green ring at its
+    start, and a green outline from the start, at its height, to the brush,
+    at the ground's height there, as wide as the brush. They are the
+    editor's own items, so they aren't saved, listed or picked.
+
+    Attribute: Parameter layer The 3D layer the terrain is in
+    */
+    private action UpdateRampPreview(EditorLayer3D layer)
+        boolean marking = brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
+        if not marking
+            HideRampPreview()
+            return now
+        end
+        TerrainData data = brushTerrain:GetWorldTerrain():GetData()
+        number size = brushTerrain:GetBrush():GetSize()
+        number startX = brushTerrain:GetRampStartX()
+        number startZ = brushTerrain:GetRampStartZ()
+        if rampStartMarker = undefined
+            TerrainBrushPreview marker
+            marker:SetName("Ramp Start")
+            marker:SetProperty(constants:EDITOR_TAG, undefined)
+            marker:SetAcceptsMouseInput(false)
+            marker:SetRingColor(0.15, 0.85, 0.25)
+            marker:Place(data, startX, startZ, size)
+            rampStartMarker = marker
+            layer:Add(marker)
+
+            TerrainRampPreview outline
+            outline:SetName("Ramp")
+            outline:SetProperty(constants:EDITOR_TAG, undefined)
+            outline:SetAcceptsMouseInput(false)
+            rampOutline = outline
+            layer:Add(outline)
+        end
+        rampStartMarker:Place(data, startX, startZ, size)
+        number endHeight = data:GetSurfaceHeight(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ())
+        rampOutline:Place(startX, startZ, brushTerrain:GetRampStartHeight(), brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(),
+            endHeight, size)
+        if not rampShown
+            rampStartMarker:Show()
+            rampOutline:Show()
+            rampShown = true
+        end
+    end
+
+    /*
+    This action hides a ramp's start ring and outline.
+    */
+    private action HideRampPreview
+        if rampShown
+            rampStartMarker:Hide()
+            rampOutline:Hide()
+            rampShown = false
+        end
+    end
+
+    /*
+    This action gives back what each terrain in the 3D layers holds in the
+    renderer, such as its block of texture places. Call it when the scene is
+    closed, after HideLayers, so reopening scenes doesn't use up places.
+    */
+    action ReleaseTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        item:Dispose()
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action keeps each terrain in the 3D layers up to date, once a frame,
+    with the editor camera's place. Painted ground textures only show once
+    the renderer has them ready, which this checks.
+    */
+    private action UpdateTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Camera camera = layer:GetCamera()
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        EditorTerrain terrain = cast(EditorTerrain, item)
+                        terrain:Update(layer, camera:GetPosition():GetX(), camera:GetPosition():GetZ())
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action saves the files of each terrain whose ground has changed
+    since it was last saved. Saving the scene calls it.
+    */
+    private action SaveChangedTerrains
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        EditorTerrain terrain = cast(EditorTerrain, item)
+                        terrain:SaveIfChanged()
+                    end
+                end
+            end
+            counter = counter + 1
         end
     end
 
@@ -1383,6 +4875,11 @@ action Update(number seconds)
         if item is CameraItem
             return now
         end
+        // A terrain's middle may be far from where it was clicked, so the
+        // cursor stays where it is when a terrain is selected.
+        if item is TerrainSelectionHighlight
+            return now
+        end
 
         if item is EditorItem2D
             EditorCursor2D cursor = cast(EditorCursor2D, GetCursor())
@@ -1407,6 +4904,16 @@ action Update(number seconds)
     // Used when moving an InteractableItem into a grid space to give information about what's under the item.
     // Doesn't include the item itself in the description.
     private action GetDescriptionAtItemPosition(EditorItem item) returns text
+        // With a terrain tool chosen, the arrows move its brush: say where
+        // the brush is and the ground's height there (step 7).
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight terrainHighlight = cast(TerrainSelectionHighlight, item)
+            EditorTerrain highlighted = terrainHighlight:GetEditorTerrain()
+            if highlighted not= undefined and highlighted:HasTool()
+                return highlighted:DescribeBrush()
+            end
+        end
+
         SetCursorToItem(item)
 
         Item ignoredItem = undefined
@@ -1505,6 +5012,7 @@ action Update(number seconds)
         selectionXDirection = direction
 
         if direction = 0
+            FinishKeyboardMoveEdit()
             if manager:GetFocus() is EditorItem
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
@@ -1520,6 +5028,7 @@ action Update(number seconds)
         selectionYDirection = direction
 
         if direction = 0
+            FinishKeyboardMoveEdit()
             if manager:GetFocus() is EditorItem
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
@@ -1535,6 +5044,7 @@ action Update(number seconds)
         selectionZDirection = direction
 
         if direction = 0
+            FinishKeyboardMoveEdit()
             if manager:GetFocus() is EditorItem
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
@@ -1604,6 +5114,348 @@ action Update(number seconds)
 
     action IsSelectionRotating returns boolean
         return GetSelectionYawDirection() not= 0 or GetSelectionPitchDirection() not= 0 or GetSelectionRollDirection() not= 0
+    end
+
+    /*
+        Shows or hides the preview of what the game camera sees, in the corner of a 3D scene.
+    */
+    action ToggleGamePreview
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera preview is only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        boolean showing = not layer3D:IsGamePreviewShowing()
+        layer3D:SetGamePreviewShowing(showing)
+        if showing
+            NotifyAccessibility(me, "Game camera preview on")
+        else
+            NotifyAccessibility(me, "Game camera preview off")
+        end
+    end
+
+    /*
+        Moves the editor camera to the next perspective: origin, then horizon, then top-down, then
+        back to origin.
+    */
+    action NextCameraPerspective
+        SetCameraPerspective((cameraPerspective + 1) mod 3)
+    end
+
+    /*
+        Moves the editor camera to one of the perspectives. The game camera is not changed.
+
+        The origin perspective is the editor's starting view: looking at the origin from above at a
+        45 degree angle. The horizon perspective is level with the ground, and the top-down perspective
+        looks straight down. Those two keep looking at the same point and facing the same way, and only
+        tilt the camera.
+
+        While a perspective is on, the arrow keys move the camera along the ground, relative to the way
+        it faces, and Escape puts the camera and focus back the way they were before.
+
+        Attribute: Parameter perspective ORIGIN_PERSPECTIVE, HORIZON_PERSPECTIVE, or TOP_DOWN_PERSPECTIVE.
+    */
+    action SetCameraPerspective(integer perspective)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "Camera perspectives are only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        if not inCameraPerspective
+            // Remember the camera and focus, so Escape can put them back.
+            savedCameraTarget = camera:GetTarget()
+            savedCameraDistance = camera:GetDistance()
+            savedCameraYaw = camera:GetYaw()
+            savedCameraPitch = camera:GetPitch()
+            savedCameraRoll = camera:GetRoll()
+            savedCameraPosition:Set(camera:GetPosition())
+            // Only focus inside the scene editor is put back. From a menu, Escape focuses the editor.
+            savedFocus = undefined
+            Item focus = manager:GetFocus()
+            if focus is EditorItem or IsFocused()
+                savedFocus = focus
+            end
+
+            perspectiveCameraItem = undefined
+            EditorItem selected = GetSelectedItem()
+            if selected is CameraItem3D
+                perspectiveCameraItem = cast(CameraItem3D, selected)
+            end
+
+            // The camera keeps looking at the same point, or the origin if it had no target.
+            if savedCameraTarget not= undefined
+                perspectiveCenter:SetPosition(savedCameraTarget:GetGlobalX(), savedCameraTarget:GetGlobalY(), savedCameraTarget:GetGlobalZ())
+            else
+                perspectiveCenter:SetPosition(0, 0, 0)
+            end
+            inCameraPerspective = true
+        end
+
+        number yaw = camera:GetYaw()
+        number pitch = 0
+        text name = "Horizon view"
+        if perspective = ORIGIN_PERSPECTIVE
+            perspectiveCenter:SetPosition(0, 0, 0)
+            camera:SetDistance(10)
+            yaw = 0
+            pitch = 45
+            name = "Origin view"
+        elseif perspective = TOP_DOWN_PERSPECTIVE
+            pitch = 90
+            name = "Top-down view"
+        end
+
+        camera:SetTarget(perspectiveCenter)
+        camera:SetRotation(yaw, pitch, 0)
+        SyncPerspectiveCameraItem(camera)
+        cameraPerspective = perspective
+        perspectivePanX = 0
+        perspectivePanZ = 0
+
+        if perspectiveItem = undefined
+            CameraPerspectiveItem item
+            item:SetSceneEditor(me)
+            item:SetProperty(constants:EDITOR_TAG, undefined)
+            Add(item)
+            perspectiveItem = item
+        end
+
+        perspectiveItem:SetName(name)
+        perspectiveItem:SetDescription("Camera perspective. Arrow keys move the camera. Plus and minus zoom in and out. Escape returns to the previous view.")
+        if perspectiveItem:IsFocused()
+            NotifyAccessibility(perspectiveItem, name)
+        else
+            // Focusing the item announces its name and description.
+            perspectiveItem:Focus()
+        end
+    end
+
+    /*
+        Returns true while a camera perspective is on.
+    */
+    action IsInCameraPerspective returns boolean
+        return inCameraPerspective
+    end
+
+    /*
+        Sets which way the camera moves along the ground while a perspective is on. Each value is -1, 0,
+        or 1. X moves left and right, and Z moves forward and back, relative to the way the camera faces.
+    */
+    action SetCameraPerspectivePan(integer x, integer z)
+        if not inCameraPerspective
+            return now
+        end
+
+        boolean wasMoving = perspectivePanX not= 0 or perspectivePanZ not= 0
+        perspectivePanX = x
+        perspectivePanZ = z
+
+        // When the camera stops, say where it is looking.
+        if wasMoving and x = 0 and z = 0 and perspectiveItem not= undefined
+            number centerX = math:Round(perspectiveCenter:GetGlobalX(), 1)
+            number centerZ = math:Round(perspectiveCenter:GetGlobalZ(), 1)
+            NotifyAccessibility(perspectiveItem, "Looking at " + centerX + ", " + centerZ)
+        end
+    end
+
+    /*
+        Starts or stops zooming while a perspective is on: 1 zooms in, -1 zooms out, and 0 stops.
+        Zooming moves the camera closer to or farther from the point it looks at.
+    */
+    action SetCameraPerspectiveZoom(integer direction)
+        if not inCameraPerspective
+            return now
+        end
+
+        boolean wasZooming = perspectiveZoom not= 0
+        perspectiveZoom = direction
+
+        // When zooming stops, say how far away the camera is.
+        if wasZooming and direction = 0 and perspectiveItem not= undefined
+            EditorLayer layer = GetSelectedLayer()
+            if layer is EditorLayer3D
+                EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+                number distance = math:Round(layer3D:GetEditorCamera():GetDistance(), 1)
+                NotifyAccessibility(perspectiveItem, "Distance " + distance)
+            end
+        end
+    end
+
+    /*
+        Changes the camera's distance while a zoom key is held. The distance changes by the same share
+        each second, so zooming feels the same up close and far away.
+    */
+    private action ZoomCameraPerspective(number seconds)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        number distance = camera:GetDistance()
+        if perspectiveZoom > 0
+            distance = distance / (1 + 1.5 * seconds)
+        else
+            distance = distance * (1 + 1.5 * seconds)
+        end
+
+        if distance < 1
+            distance = 1
+        elseif distance > 1000
+            distance = 1000
+        end
+
+        camera:SetDistance(distance)
+        SyncPerspectiveCameraItem(camera)
+    end
+
+    action GetCameraPerspectivePanX returns integer
+        return perspectivePanX
+    end
+
+    action GetCameraPerspectivePanZ returns integer
+        return perspectivePanZ
+    end
+
+    /*
+        Leaves the camera perspective and puts the camera and focus back the way they were before it.
+    */
+    action ExitCameraPerspective
+        if not inCameraPerspective
+            return now
+        end
+
+        inCameraPerspective = false
+        perspectivePanX = 0
+        perspectivePanZ = 0
+        perspectiveZoom = 0
+        cameraPerspective = -1
+
+        EditorLayer layer = GetSelectedLayer()
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            EditorCamera3D camera = layer3D:GetEditorCamera()
+            camera:SetTarget(savedCameraTarget)
+            camera:SetDistance(savedCameraDistance)
+            camera:SetRotation(savedCameraYaw, savedCameraPitch, savedCameraRoll)
+            if savedCameraTarget = undefined
+                camera:SetPosition(savedCameraPosition:GetX(), savedCameraPosition:GetY(), savedCameraPosition:GetZ())
+            end
+            SyncPerspectiveCameraItem(camera)
+        end
+
+        if savedFocus not= undefined
+            savedFocus:Focus()
+        else
+            Focus()
+        end
+        AnnounceAfterFocus("Left camera perspective")
+    end
+
+    /*
+        Called when focus leaves the perspective some other way than Escape, such as a click. The camera
+        stays where it is, and the perspective is over.
+    */
+    action CameraPerspectiveLostFocus
+        if not inCameraPerspective
+            return now
+        end
+        inCameraPerspective = false
+        perspectivePanX = 0
+        perspectivePanZ = 0
+        perspectiveZoom = 0
+        cameraPerspective = -1
+    end
+
+    /*
+        Moves the camera's center point along the ground while an arrow key is held in a perspective.
+        Forward is the way the camera faces, flattened onto the ground, so in the top-down perspective
+        it is up on the screen. The speed grows with the camera's distance, so far views move faster.
+    */
+    private action PanCameraPerspective(number seconds)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+
+        number yaw = math:DegreesToRadians(camera:GetYaw())
+        number forwardX = math:Sine(yaw)
+        number forwardZ = math:Cosine(yaw)
+        number rightX = math:Cosine(yaw)
+        number rightZ = -math:Sine(yaw)
+
+        number distance = camera:GetDistance()
+        if distance < 1
+            distance = 1
+        end
+        number step = distance * seconds
+
+        number moveX = (rightX * perspectivePanX + forwardX * perspectivePanZ) * step
+        number moveZ = (rightZ * perspectivePanX + forwardZ * perspectivePanZ) * step
+        perspectiveCenter:SetPosition(perspectiveCenter:GetGlobalX() + moveX, perspectiveCenter:GetGlobalY(), perspectiveCenter:GetGlobalZ() + moveZ)
+
+        camera:UpdateCameraPosition()
+        SyncPerspectiveCameraItem(camera)
+    end
+
+    /*
+        If the camera's item was selected when the perspective started, keeps it where the camera is.
+    */
+    private action SyncPerspectiveCameraItem(EditorCamera3D camera)
+        if perspectiveCameraItem not= undefined
+            perspectiveCameraItem:SetPosition(camera:GetPosition())
+        end
+    end
+
+    /*
+        Sends a message to screen readers after the current focus change has been announced. Quorum
+        announces focus changes on the next frame, and screen readers replace a message with any
+        announcement that comes right after it, so a message sent right away would not be heard.
+    */
+    private action AnnounceAfterFocus(text message)
+        pendingAnnouncement = message
+        pendingAnnouncementDelay = 0.3
+    end
+
+    /*
+        Moves the game camera preview to the next corner of the editor, going clockwise. If the
+        preview is hidden, it is shown, so the move can be seen.
+    */
+    action MoveGamePreview
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera preview is only available in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        layer3D:MoveGamePreviewToNextCorner()
+        layer3D:SetGamePreviewShowing(true)
+        NotifyAccessibility(me, "Game camera preview moved to the " + layer3D:GetGamePreviewCornerName())
+    end
+
+    /*
+        Sets the game camera, which the scene starts with when it runs, to the current editor view.
+    */
+    action SetGameCameraToCurrentView
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            NotifyAccessibility(me, "The game camera can only be set in 3D scenes")
+            return now
+        end
+
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        layer3D:SetGameCameraToEditorView()
+        NotifyAccessibility(me, "Game camera set to the current view")
     end
 
     action NotifyAccessibility(Item item, text message)
@@ -1694,6 +5546,14 @@ action Update(number seconds)
     end
 
     action GainedFocus(FocusEvent event)
+        // A click in the view with a terrain's tool chosen is a stroke
+        // (step 8), so the terrain stays selected, and its highlight gets
+        // the focus back on the next update, for the brush's keys.
+        if IsTerrainBrushActive() and GetSelectedItem() is TerrainSelectionHighlight
+            refocusBrushHighlight = true
+            parent:Control:GainedFocus(event)
+            return now
+        end
         SetSelectedItem(undefined)
         UpdateCursorVisibility()
 
@@ -1840,9 +5700,67 @@ action Update(number seconds)
                 camera:SetZoom(json:GetNumber(key))
                 return true
             end
+        elseif layer is EditorLayer3D
+            return LoadCamera3DProperty(cast(EditorLayer3D, layer), camera, key, json)
         end
 
         return false
+    end
+
+    /*
+        Loads one camera value for a 3D layer. The plain values belong to the game camera, and the
+        values starting with "EDITOR_" belong to the editor camera. Scenes saved before the two
+        cameras were separate only have the plain values, so the editor camera starts there too.
+    */
+    private action LoadCamera3DProperty(EditorLayer3D layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        text prefix = "EDITOR_"
+        if key:StartsWith(prefix)
+            text property = key:GetSubtext(prefix:GetSize())
+            if IsSeparateCameraProperty(property)
+                ApplyCameraProperty(camera, property, key, json)
+                return true
+            end
+            return false
+        end
+
+        if not IsSeparateCameraProperty(key)
+            return false
+        end
+
+        ApplyCameraProperty(layer:GetGameCamera(), key, key, json)
+        if not json:HasValue(prefix + key)
+            ApplyCameraProperty(camera, key, key, json)
+        end
+        return true
+    end
+
+    /*
+        Returns true for the camera values that the game camera and editor camera each have their
+        own copy of in a 3D scene.
+    */
+    private action IsSeparateCameraProperty(text property) returns boolean
+        return property = properties:POSITION or property = properties:DIRECTION or property = properties:UP or
+            property = properties:FIELD_OF_VIEW or property = properties:NEAR or property = properties:FAR
+    end
+
+    private action ApplyCameraProperty(Camera camera, text property, text key, JavaScriptObjectNotation json)
+        if property = properties:POSITION
+            Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+        elseif property = properties:DIRECTION
+            Number32BitArray direction = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetDirection(direction:Get(0), direction:Get(1), direction:Get(2))
+        elseif property = properties:UP
+            Number32BitArray up = ConvertToNumber32BitArray(json:GetObject(key))
+            camera:SetUp(up:Get(0), up:Get(1), up:Get(2))
+        elseif property = properties:NEAR
+            camera:SetNear(json:GetNumber(key))
+        elseif property = properties:FAR
+            camera:SetFar(json:GetNumber(key))
+        elseif property = properties:FIELD_OF_VIEW and camera is PerspectiveCamera
+            PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+            perspective:SetFieldOfView(json:GetNumber(key))
+        end
     end
 
     private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
@@ -1867,12 +5785,42 @@ action Update(number seconds)
 
                 return true
             end
+        elseif layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            if IsSeparateCameraProperty(key)
+                SaveCameraProperty(layer3D:GetGameCamera(), key, key, json)
+                SaveCameraProperty(camera, key, "EDITOR_" + key, json)
+                return true
+            end
         end
 
         return false
     end
 
+    private action SaveCameraProperty(Camera camera, text property, text key, JavaScriptObjectNotation json)
+        if property = properties:POSITION
+            Vector3 vector = camera:GetPosition()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:DIRECTION
+            Vector3 vector = camera:GetDirection()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:UP
+            Vector3 vector = camera:GetUp()
+            json:Add(key, NewJsonArray(vector:GetX(), vector:GetY(), vector:GetZ()))
+        elseif property = properties:NEAR
+            json:Add(key, camera:GetNear())
+        elseif property = properties:FAR
+            json:Add(key, camera:GetFar())
+        elseif property = properties:FIELD_OF_VIEW and camera is PerspectiveCamera
+            PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+            json:Add(key, perspective:GetFieldOfView())
+        end
+    end
+
     action Save
+        // A terrain's heights and painting live in its own files.
+        SaveChangedTerrains()
+
         Array<EditorLayer> layers = GetSceneLayers()
         Scene scene = Save(layers)
         scene:GetData():SetPrettyPrint(true)
@@ -1929,6 +5877,13 @@ action Update(number seconds)
         elseif type = "PointLight"
             EditorPointLight light
             return light
+        elseif type = "SpotLight"
+            EditorSpotLight spot
+            return spot
+        elseif type = "Terrain"
+            EditorTerrain terrain
+            terrain:SetSceneEditor(me)
+            return terrain
         end
 
         return parent:DefaultSceneManager:CreateItem3D(type)
@@ -2047,6 +6002,9 @@ action Update(number seconds)
         if key = properties:CLASS
             if item is EditorPointLight
                 json:Add(key, "PointLight")
+                return true
+            elseif item is EditorSpotLight
+                json:Add(key, "SpotLight")
                 return true
             else
                 return false

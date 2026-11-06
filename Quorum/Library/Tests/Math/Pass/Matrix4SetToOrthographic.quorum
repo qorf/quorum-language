@@ -1,10 +1,12 @@
-use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.CameraMatrix4
+use Libraries.Game.Graphics.DeviceCoordinates
 
 class Matrix4SetToOrthographic 
     action Main
-        Matrix4 matrix
+        CameraMatrix4 matrix
+        DeviceCoordinates ndc
 
-        matrix:SetToOrthographic2D(0, 0, 100, 100)
+        matrix:OrthographicProjection(0, 100, 0, 100, 0, 1, ndc:RIGHT_HANDED, ndc:DEPTH_NEGATIVE_ONE_TO_ONE)
 
         number row0column0 = matrix:row0column0
         number row0column1 = matrix:row0column1
@@ -29,7 +31,7 @@ class Matrix4SetToOrthographic
         output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
         output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
-        matrix:SetToOrthographic2D(0, 0, 100, 100, 0, 1)
+        matrix:OrthographicProjection(0, 100, 0, 100, 0, 1, ndc:RIGHT_HANDED, ndc:DEPTH_NEGATIVE_ONE_TO_ONE)
 
         row0column0 = matrix:row0column0
         row0column1 = matrix:row0column1
@@ -54,7 +56,7 @@ class Matrix4SetToOrthographic
         output "|" + row2column0 + ", " + row2column1 + ", " + row2column2 + ", " + row2column3 + "|"
         output "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + ", " + row3column3 + "|"
 
-        matrix:SetToOrthographic(0, 1, 0, 1, 0, 1)
+        matrix:OrthographicProjection(0, 1, 0, 1, 0, 1, ndc:RIGHT_HANDED, ndc:DEPTH_NEGATIVE_ONE_TO_ONE)
 
         row0column0 = matrix:row0column0
         row0column1 = matrix:row0column1

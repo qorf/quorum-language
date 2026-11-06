@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
@@ -9,6 +10,7 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 use Libraries.Game.Graphics.Models.Data.AnimationState
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 
 class VulkanPainter3DBatch
     
@@ -20,17 +22,46 @@ class VulkanPainter3DBatch
     
     boolean isTransparent = false
     
+    // The shader program this batch's models are drawn with, or undefined
+    // for the default program.
+    ShaderProgram program = undefined
+    
     // How many frames have passed without using this batch. Can be used to determine if a batch hasn't been used in a long time and can be disposed.
     integer age = 0
     
     boolean isPending = false
     
-    // This action tracks how many meshes have been sent to each draw queue this frame.
-    Array<integer> drawQueueUses
+    // How many meshes have been sent to each draw queue (by texture group)
+    // this frame. An Integer32BitArray, not Array<integer>, so counting
+    // doesn't box an Integer object on every Set, which made garbage every
+    // frame. Its size is its capacity, grown by doubling as higher texture
+    // groups appear (see EnsureUsesCapacity); drawQueueUseCount is how many
+    // entries are in use, one past the highest group seen.
+    Integer32BitArray drawQueueUses
+    integer drawQueueUseCount = 0
+
+    on create
+        // Integer32BitArray has no storage until SetSize. A few texture
+        // groups is the usual most, and it grows if more are needed.
+        drawQueueUses:SetSize(4)
+    end
     
     action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
+        Create(schematic, isTransparent, undefined)
+    end
+    
+    /*
+    This action sets up the batch for one blueprint, drawn with the given
+    shader program.
+
+    Attribute: Parameter schematic The blueprint whose models this batch draws.
+    Attribute: Parameter isTransparent True if the models have transparency.
+    Attribute: Parameter program The shader program to draw with, or undefined for the default.
+    */
+    action Create(ModelBlueprintVulkan schematic, boolean isTransparent, ShaderProgram program)
         me:schematic = schematic
         me:isTransparent = isTransparent
+        me:program = program
         
         Array<MeshVulkan> meshes = schematic:GetMeshes()
         meshesPerModel = meshes:GetSize()
@@ -40,6 +71,15 @@ class VulkanPainter3DBatch
             totalVertices = totalVertices + meshes:Get(i):GetVertexCount()
             i = i + 1
         end
+    end
+    
+    /*
+    This action returns the shader program the batch is drawn with.
+
+    Attribute: Returns The program, or undefined for the default program.
+    */
+    action GetProgram returns ShaderProgram
+        return program
     end
     
     action IsTransparent returns boolean
@@ -60,7 +100,7 @@ class VulkanPainter3DBatch
         age = age + 1
         
         integer i = 0
-        repeat while i < drawQueueUses:GetSize()
+        repeat while i < drawQueueUseCount
             drawQueueUses:Set(i, 0)
             i = i + 1
         end
@@ -120,14 +160,14 @@ class VulkanPainter3DBatch
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined
-                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                        queue = painter:GetCurrentDrawQueue(program, textureOverride:GetVulkanTextureGroupIndex())
                     else
-                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                        queue = painter:GetCurrentDrawQueue(program, baseTextureGroup)
                     end
                     
                     // Each animated model potentially uses a different vertex buffer and must be drawn separately.
                     queue:AddInstanceData(vertexBuffer, indexBuffer, material, textureOverride, diffuseOverride, model:GetTransform())
-                    queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1)
+                    queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1, model:CastsShadows())
                     
                     j = j + 1
                 end
@@ -136,6 +176,7 @@ class VulkanPainter3DBatch
             end
             
             else
+            boolean castsShadows = true
             integer i = 0
             repeat while i < meshesPerModel
                 MeshVulkan mesh = schematic:GetMeshes():Get(i)
@@ -147,13 +188,14 @@ class VulkanPainter3DBatch
                     ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
                     Color diffuseOverride = resources:GetColor(i)
                     Texture textureOverride = resources:GetTexture(i)
+                    castsShadows = model:CastsShadows()
                     
                     VulkanDrawQueue3D queue = undefined
                     if textureOverride not= undefined
-                        queue = painter:GetCurrentDrawQueue(textureOverride:GetVulkanTextureGroupIndex())
+                        queue = painter:GetCurrentDrawQueue(program, textureOverride:GetVulkanTextureGroupIndex())
                         IncrementUses(textureOverride:GetVulkanTextureGroupIndex())
                     else
-                        queue = painter:GetCurrentDrawQueue(baseTextureGroup)
+                        queue = painter:GetCurrentDrawQueue(program, baseTextureGroup)
                         IncrementUses(baseTextureGroup)
                     end
                     
@@ -163,10 +205,14 @@ class VulkanPainter3DBatch
                 end
                 
                 j = 0
-                repeat while j < drawQueueUses:GetSize()
-                    VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(j)
-                    if drawQueueUses:Get(j) > 0
-                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), drawQueueUses:Get(j))
+                repeat while j < drawQueueUseCount
+                    integer uses = drawQueueUses:Get(j)
+                    if uses > 0
+                        // The queue is only looked up for groups that were
+                        // used, since looking one up makes it if it doesn't
+                        // exist yet.
+                        VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, j)
+                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), uses, castsShadows)
                         drawQueueUses:Set(j, 0)
                     end
                     j = j + 1
@@ -178,11 +224,44 @@ class VulkanPainter3DBatch
     end
     
     private action IncrementUses(integer index)
-        // Make sure there's an array entry at the requested index.
-        repeat until drawQueueUses:GetSize() > index
-            drawQueueUses:Add(0)
+        EnsureUsesCapacity(index)
+        if index >= drawQueueUseCount
+            drawQueueUseCount = index + 1
         end
         drawQueueUses:Set(index, drawQueueUses:Get(index) + 1)
+    end
+
+    /*
+    This action makes sure drawQueueUses has room for a texture group. When
+    it doesn't, a larger array is made (doubling until it fits), the counts
+    are copied over, and it replaces the old one. That only happens when a
+    higher texture group than any before appears, so after the first frames
+    nothing more is made.
+
+    Attribute: Parameter index The texture group, 0 or more.
+    */
+    private action EnsureUsesCapacity(integer index)
+        integer capacity = drawQueueUses:GetSize()
+        if index < capacity
+            return now
+        end
+        integer newCapacity = capacity
+        if newCapacity < 1
+            newCapacity = 1
+        end
+        repeat while newCapacity <= index
+            newCapacity = newCapacity * 2
+        end
+        Integer32BitArray grown
+        grown:SetSize(newCapacity)
+        integer i = 0
+        repeat while i < capacity
+            grown:Set(i, drawQueueUses:Get(i))
+            i = i + 1
+        end
+        // The new array starts at zero past the old capacity (Java's int
+        // array is filled with 0).
+        drawQueueUses = grown
     end
 
 end

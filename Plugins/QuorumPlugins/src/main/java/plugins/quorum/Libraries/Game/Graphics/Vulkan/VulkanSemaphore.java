@@ -44,8 +44,12 @@ public class VulkanSemaphore
 
     public void Dispose()
     {
+        if (semaphoreHandle == 0L)
+            return;
+
         VulkanDevice_ quorumDevice = ((VulkanSemaphore_)me_).Get_Libraries_Game_Graphics_Vulkan_VulkanSemaphore__device_();
         VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
         vkDestroySemaphore(pluginDevice.GetDevice(), semaphoreHandle, null);
+        semaphoreHandle = 0L;
     }
 }

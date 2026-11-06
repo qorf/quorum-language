@@ -1,0 +1,28 @@
+package Libraries.Game.Graphics.Shaders.Programs
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.TwoStageShadowShaderMappingVulkan
+
+/*The two-stage shadow shader program produces identical shadow maps to the default shadow shader program.
+It only uses the vertex and fragment shader stages, unlike the default program which also uses the geometry stage.
+This makes it a viable alternative for environments that don't support geometry shaders (like Mac), but it
+requires separate draw calls for each cascade in the cascading shadow maps.*/
+class TwoStageShadowShaderProgram is ShaderProgram
+    
+    on create
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(manager:TWO_STAGE_SHADOW_SHADER_PROGRAM)
+
+        Shader vertex = manager:GetTwoStageShadowVertexShader()
+        Shader fragment = manager:GetTwoStageShadowFragmentShader()
+
+        Add(vertex)
+        Add(fragment)
+        
+        TwoStageShadowShaderMappingVulkan mapping
+        SetShaderMapping(mapping)
+    end
+    
+end

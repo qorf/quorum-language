@@ -1,0 +1,352 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainStreamingBehavior
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Selections.ButtonGroupSelection
+
+/*
+    The TerrainPhysicsPropertiesDialog sets how a selected terrain behaves in
+    a game: how things collide with it (every region, only near moving
+    bodies, or not at all), its friction, and whether it streams its regions
+    around the camera, with a draw radius (step 13). They are saved in the
+    scene. The scene editor itself never collides with a terrain, and always
+    loads every region.
+
+    It shows in the scene editor's Properties panel, after the terrain's
+    name and facts (TerrainPropertiesDialog).
+*/
+class TerrainPhysicsPropertiesDialog is PropertiesDialog
+
+    ButtonGroup collisionGroup = undefined
+
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up, as in the other terrain sections.
+    constant number FIELD_LABEL_WIDTH = 110
+    TextField frictionField = undefined
+    Checkbox streamingCheckbox = undefined
+    TextField radiusField = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as the user choosing.
+    boolean updating = false
+
+    // The terrain whose physics are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Physics")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Physics")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
+
+        FlowLayout collisionLayout
+        Control collisionContainer
+        collisionContainer:SetLayout(collisionLayout)
+        collisionContainer:SetPercentageWidth(1.0)
+        collisionContainer:SetVerticalLayoutMode(collisionContainer:FIT_CONTENTS)
+        collisionContainer:SetLeftMargin(20)
+        collisionContainer:SetTopMargin(10)
+        collisionContainer:SetRightMargin(30)
+        collisionContainer:SetBottomMargin(10)
+
+        // The label is on its own line, with the choices under it.
+        FlowLayout collisionLabelLayout
+        Control collisionLabelLine
+        collisionLabelLine:SetLayout(collisionLabelLayout)
+        collisionLabelLine:SetPercentageWidth(1.0)
+        collisionLabelLine:SetVerticalLayoutMode(collisionLabelLine:FIT_CONTENTS)
+        collisionLabelLine:SetLeftMargin(20)
+        collisionLabelLine:SetTopMargin(10)
+        collisionLabelLine:SetRightMargin(30)
+        Label collisionLabel
+        collisionLabel:SetText("Collision in games:")
+        collisionLabelLine:Add(collisionLabel)
+        panel:Add(collisionLabelLine)
+        collisionContainer:SetTopMargin(4)
+
+        ButtonGroup group
+        collisionGroup = group
+        collisionGroup:SetName("Collision in games")
+        collisionGroup:SetHorizontalLayoutMode(collisionContainer:FILL)
+        collisionGroup:SetVerticalLayoutMode(collisionContainer:FIT_CONTENTS)
+        FlowLayout groupLayout
+        collisionGroup:SetLayout(groupLayout)
+        // The buttons go from the most collision to none: 0 every region
+        // (WorldTerrain's COLLISION_FULL, 2), 1 near moving bodies
+        // (COLLISION_DYNAMIC, 1), 2 none (COLLISION_DISABLED, 0).
+        AddCollisionButton("Every region", "Every region has collision")
+        AddCollisionButton("Near bodies", "Only regions near moving bodies have collision, for large worlds")
+        AddCollisionButton("None", "No region has collision")
+        collisionGroup:AddSelectionListener(me)
+        collisionContainer:Add(collisionGroup)
+        focusArray:Add(collisionGroup)
+        panel:Add(collisionContainer)
+
+        FlowLayout frictionLayout
+        Control frictionContainer
+        frictionContainer:SetLayout(frictionLayout)
+        frictionContainer:SetPercentageWidth(1.0)
+        frictionContainer:SetVerticalLayoutMode(frictionContainer:FIT_CONTENTS)
+        frictionContainer:SetLeftMargin(20)
+        frictionContainer:SetTopMargin(10)
+        frictionContainer:SetRightMargin(30)
+        frictionContainer:SetBottomMargin(10)
+
+        frictionContainer:Add(MakeFieldLabel("Friction:"))
+
+        TextField field
+        frictionField = field
+        frictionField:SetName("Friction")
+        frictionField:SetText("")
+        frictionField:SetFocusable(true)
+        frictionField:AddTextChangeListener(me)
+        frictionField:SetRightMargin(8)
+        frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
+        frictionContainer:Add(frictionField)
+        focusArray:Add(frictionField)
+        panel:Add(frictionContainer)
+
+        FlowLayout streamingLayout
+        Control streamingContainer
+        streamingContainer:SetLayout(streamingLayout)
+        streamingContainer:SetPercentageWidth(1.0)
+        streamingContainer:SetVerticalLayoutMode(streamingContainer:FIT_CONTENTS)
+        streamingContainer:SetLeftMargin(20)
+        streamingContainer:SetTopMargin(10)
+        streamingContainer:SetRightMargin(30)
+        streamingContainer:SetBottomMargin(4)
+        Checkbox checkbox
+        streamingCheckbox = checkbox
+        streamingCheckbox:SetName("Stream Regions")
+        streamingCheckbox:SetDescription("In games, load only the regions near the camera, for large worlds")
+        TerrainStreamingBehavior streamingBehavior
+        streamingBehavior:SetDialog(me)
+        streamingCheckbox:SetBehavior(streamingBehavior)
+        streamingContainer:Add(streamingCheckbox)
+        focusArray:Add(streamingCheckbox)
+        panel:Add(streamingContainer)
+
+        FlowLayout radiusLayout
+        Control radiusContainer
+        radiusContainer:SetLayout(radiusLayout)
+        radiusContainer:SetPercentageWidth(1.0)
+        radiusContainer:SetVerticalLayoutMode(radiusContainer:FIT_CONTENTS)
+        radiusContainer:SetLeftMargin(20)
+        radiusContainer:SetTopMargin(4)
+        radiusContainer:SetRightMargin(30)
+        radiusContainer:SetBottomMargin(10)
+        radiusContainer:Add(MakeFieldLabel("Draw radius:"))
+        TextField radius
+        radiusField = radius
+        radiusField:SetName("Draw radius when streaming, in world units")
+        radiusField:SetText("")
+        radiusField:SetFocusable(true)
+        radiusField:AddTextChangeListener(me)
+        radiusField:SetRightMargin(8)
+        radiusField:SetHorizontalLayoutMode(radiusContainer:FILL)
+        radiusContainer:Add(radiusField)
+        focusArray:Add(radiusField)
+        panel:Add(radiusContainer)
+    end
+
+    /*
+        Makes a field's label, in a box of one width, so the fields line up
+        as in the other terrain sections.
+    */
+    private action MakeFieldLabel(text value) returns Control
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText(value)
+        labelBox:Add(fieldLabel)
+        return labelBox
+    end
+
+    /*
+        Adds one collision choice's radio button. A radio button is one line
+        tall, so its name is kept short: a longer one wraps over the next
+        button. The description says it in full.
+    */
+    private action AddCollisionButton(text name, text description)
+        Control layoutValues
+        RadioButton button
+        button:SetName(name)
+        button:SetDescription(description)
+        button:SetHorizontalLayoutMode(layoutValues:FILL)
+        collisionGroup:AddToGrouping(button)
+        collisionGroup:Add(button)
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is ButtonGroupSelection
+            if updating or terrain = undefined
+                return now
+            end
+            ButtonGroupSelection choice = cast(ButtonGroupSelection, event:GetSelection())
+            integer index = choice:GetIndex()
+            if index >= 0 and index <= 2
+                // Button 0 is every region, WorldTerrain's mode 2.
+                terrain:SetCollisionMode(2 - index)
+            end
+            return now
+        end
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's physics settings.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        collisionGroup:GetButtonAt(2 - terrain:GetCollisionMode()):SetToggleState(true)
+        streamingCheckbox:SetToggleState(terrain:IsStreaming())
+        frictionField:RemoveTextChangeListener(me)
+        frictionField:SetText("" + terrain:GetFriction())
+        frictionField:AddTextChangeListener(me)
+        radiusField:RemoveTextChangeListener(me)
+        radiusField:SetText("" + terrain:GetDrawRadius())
+        radiusField:AddTextChangeListener(me)
+        updating = false
+    end
+
+    /*
+        This action sets whether the terrain collides in games: every region,
+        or not at all. The collision choices replaced the checkbox that used
+        it (step 13); TerrainCollisionBehavior still calls it.
+
+        Attribute: Parameter enabled True for collision
+    */
+    action SetCollision(boolean enabled)
+        if terrain not= undefined
+            terrain:SetCollision(enabled)
+        end
+    end
+
+    /*
+        This action sets whether the terrain streams in games. The streaming
+        checkbox calls it.
+
+        Attribute: Parameter stream True to stream
+    */
+    action SetStreaming(boolean stream)
+        if terrain not= undefined and not updating
+            terrain:SetStreaming(stream, terrain:GetDrawRadius())
+        end
+    end
+
+    /*
+        This action sets the terrain's friction as it is typed. Text that
+        isn't a number, or is below 0, is ignored.
+    */
+    action TextChanged(TextChangeEvent event)
+        if terrain = undefined
+            return now
+        end
+        if event:GetControl():Equals(radiusField)
+            number radiusValue = ReadNumber(radiusField)
+            if radiusValue > 0 and radiusValue not= terrain:GetDrawRadius()
+                terrain:SetStreaming(terrain:IsStreaming(), radiusValue)
+            end
+            return now
+        end
+        if event:GetControl():Equals(frictionField)
+            check
+                number value = frictionField:GetText():ParseNumber()
+                if value >= 0 and value not= terrain:GetFriction()
+                    terrain:SetFriction(value)
+                end
+            detect e is Error
+                // Not a number yet; do nothing.
+            end
+        end
+    end
+
+    /*
+        Returns the number in a field, or -1 if it doesn't hold one yet.
+    */
+    private action ReadNumber(TextField field) returns number
+        number value = -1
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = -1
+        end
+        return value
+    end
+
+    /*
+        Moves the focus to the collision choices.
+    */
+    action FocusField
+        collisionGroup:Focus()
+    end
+end

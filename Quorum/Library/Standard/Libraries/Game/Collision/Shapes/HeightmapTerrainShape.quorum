@@ -1,0 +1,462 @@
+package Libraries.Game.Collision.Shapes
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Worlds.Terrain
+use Libraries.Game.BoundingBox
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Containers.Array
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Math
+use Libraries.Compute.Matrix4
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.Narrowphase.SharedNarrowSolver
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPoint3D
+use Libraries.Game.Collision.RayCastResult3D
+
+class HeightmapTerrainShape is Box, ConcaveShape3D
+    Terrain terrain = undefined
+    Math math
+    Array<Vector3> tempVertices
+    BoundingBox tempTerrainBox
+    BoundingBox tempShapeBox
+    BoundingBox tempTriangleBox
+    // The same shared solver CollisionEvent3D uses. Each triangle the shape
+    // might touch is handed to it.
+    SharedNarrowSolver narrowSolver
+    
+    
+    Triangle triangle
+    PhysicsPosition3D triangleTransform
+    Vector3 worldVertex0
+    Vector3 worldVertex1
+    Vector3 worldVertex2
+    Vector3 triangleNormal
+    Vector3 supportDirection
+    Vector3 supportPoint
+    
+    // The corners of the box around the current triangle, in world space.
+    Vector3 triangleMinimum
+    Vector3 triangleMaximum
+
+    // How far the shape may be from a triangle's plane and still need the full
+    // collision test. Set by ProcessAllTriangles for the shape being tested.
+    number triangleRejectDistance = 0
+    
+    on create
+        SetType(parent:CollisionShape3D:TERRAIN)
+        
+        //Setup some vertices for temporary storage
+        Vector3 v1
+        Vector3 v2
+        Vector3 v3
+        tempVertices:Add(v1)
+        tempVertices:Add(v2)
+        tempVertices:Add(v3)
+    end
+    
+    
+    /*
+    This action checks whether a straight line segment, called a ray, touches
+    this terrain. The ray starts at "from" and ends at "to," both in world
+    space. The terrain's surface is made of two triangles for each square
+    cell of its height map, and the ray hits the first of those triangles it
+    reaches.
+
+    Where the terrain sits in the world comes from the terrain's own
+    transform, which includes its position, rotation, and scale. That is the
+    same transform used to draw it and to collide with it. The "transform"
+    parameter is accepted so that terrain can be used like any other shape,
+    but it is not used.
+
+    Rather than testing every triangle, this action walks across the height
+    map one cell at a time, in the order the ray passes over them, and tests
+    only the two triangles in each cell. It stops as soon as the cells left
+    to visit are all farther along the ray than the closest hit found so
+    far. A straight down ray, like the one a vehicle's suspension uses, only
+    visits one cell.
+
+    Either side of the terrain's surface can be hit, so a ray coming up from
+    underneath hits it as well. The hit normal is the normal of the triangle
+    that was hit, turned to face the ray. A ray that passes beyond the edges
+    of the height map does not hit anything out there.
+
+    The result works as both an input and an output. Its fraction is the
+    farthest point along the ray that still counts as a hit, where 0 is
+    "from" and 1 is "to." This action only reports a hit that is closer than
+    the result's current fraction. When it finds one, it sets the result's
+    hit flag to true, and sets its fraction, its hit point in world space,
+    and its surface normal in world space. When there is no closer hit, the
+    result is left unchanged. Call SetToDefault on the result before the
+    first shape so that any hit along the whole ray counts.
+
+    This action does not set the result's hit body, because a shape does not
+    know which item it belongs to. The caller should set the hit body when
+    this action returns true.
+
+    Attribute: Parameter from The world-space point where the ray starts.
+    Attribute: Parameter to The world-space point where the ray ends.
+    Attribute: Parameter transform Not used. The terrain's own transform places it in the world.
+    Attribute: Parameter result Holds the closest hit found so far. It is updated if this terrain is hit closer than the result's current fraction.
+    Attribute: Returns true if this terrain was hit closer than the result's previous fraction, and false otherwise.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Worlds.Terrain
+        use Libraries.Game.Collision.RayCastResult3D
+        use Libraries.Compute.Vector3
+        Terrain terrain
+        terrain:LoadHeightMap("Assets/HeightMap.png")
+        // A ray straight down from high above the terrain.
+        Vector3 from
+        from:Set(10, 100, 10)
+        Vector3 to
+        to:Set(10, -100, 10)
+        RayCastResult3D result
+        result:SetToDefault()
+        if terrain:GetShape():RayCast(from, to, terrain:GetCollisionTransform(), result)
+            output "The ground under (10, 10) is at a height of " + result:GetHitPointWorldSpace():GetY()
+        end
+    */
+    action RayCast(Vector3 from, Vector3 to, PhysicsPosition3D transform, RayCastResult3D result) returns boolean
+        if terrain = undefined
+            return false
+        end
+
+        // A height map with W by H points has W - 1 by H - 1 cells.
+        integer cellCountX = terrain:GetPixelWidth() - 1
+        integer cellCountZ = terrain:GetPixelHeight() - 1
+        if cellCountX < 1 or cellCountZ < 1
+            return false
+        end
+
+        // The terrain's matrix takes a point on the height map grid, written
+        // as (column, height, row), to the world. Its inverse brings the ray
+        // onto the grid, where each cell is one unit wide in x and z. It is
+        // copied first, because Inverse changes the matrix it is called on.
+        Matrix4 gridToWorld = terrain:GetTransform()
+        Matrix4 worldToGrid
+        worldToGrid:Set(gridToWorld)
+        worldToGrid:Inverse()
+
+        Vector3 gridFrom
+        worldToGrid:TransformWorldCoordinate(from, gridFrom)
+        Vector3 gridTo
+        worldToGrid:TransformWorldCoordinate(to, gridTo)
+
+        // The triangles are tested in world space, so they need no transform
+        // of their own. A new PhysicsPosition3D is the identity.
+        PhysicsPosition3D identity
+
+        // Set up a walk across the grid's cells in the order the ray passes
+        // over them, looking only at x and z. For each axis, "cross" is the
+        // fraction along the ray where it next moves into a new column or
+        // row, and "span" is how much farther along the ray the one after
+        // that is. An axis the ray does not move along never crosses, which
+        // is shown by a cross of 2, past the end of the ray.
+        integer cellX = cast(integer, math:Floor(gridFrom:GetX()))
+        integer cellZ = cast(integer, math:Floor(gridFrom:GetZ()))
+        number deltaX = gridTo:GetX() - gridFrom:GetX()
+        number deltaZ = gridTo:GetZ() - gridFrom:GetZ()
+
+        integer stepX = 0
+        number spanX = 0
+        number crossX = 2
+        if deltaX > 0.0000001
+            stepX = 1
+            spanX = 1 / deltaX
+            crossX = (cellX + 1 - gridFrom:GetX()) * spanX
+        elseif deltaX < -0.0000001
+            stepX = -1
+            spanX = -1 / deltaX
+            crossX = (gridFrom:GetX() - cellX) * spanX
+        end
+
+        integer stepZ = 0
+        number spanZ = 0
+        number crossZ = 2
+        if deltaZ > 0.0000001
+            stepZ = 1
+            spanZ = 1 / deltaZ
+            crossZ = (cellZ + 1 - gridFrom:GetZ()) * spanZ
+        elseif deltaZ < -0.0000001
+            stepZ = -1
+            spanZ = -1 / deltaZ
+            crossZ = (gridFrom:GetZ() - cellZ) * spanZ
+        end
+
+        boolean hitAnything = false
+        boolean walking = true
+        repeat while walking
+            // Cells beyond the edges of the height map have no triangles.
+            if cellX >= 0 and cellX < cellCountX and cellZ >= 0 and cellZ < cellCountZ
+                if RayCastCell(from, to, gridToWorld, identity, cellX, cellZ, true, result)
+                    hitAnything = true
+                end
+                if RayCastCell(from, to, gridToWorld, identity, cellX, cellZ, false, result)
+                    hitAnything = true
+                end
+            end
+
+            // Every point in the next cell is at least nextCross along the
+            // ray. Once that is no closer than the best hit so far, which is
+            // 1 if there is no hit, nothing left can be closer. This also
+            // stops a ray that does not move in x or z after its one cell.
+            number nextCross = crossX
+            if crossZ < nextCross
+                nextCross = crossZ
+            end
+
+            if nextCross >= result:GetFraction()
+                walking = false
+            elseif crossX < crossZ
+                cellX = cellX + stepX
+                crossX = crossX + spanX
+            else
+                cellZ = cellZ + stepZ
+                crossZ = crossZ + spanZ
+            end
+        end
+
+        return hitAnything
+    end
+
+    /*
+    This action is used by "action RayCast." It tests the ray against one of
+    the two triangles in the height map cell at x, z. The triangle's corners
+    are moved into world space first, so the triangle's hit point and normal
+    are already in world space, even if the terrain is rotated or scaled.
+    */
+    private action RayCastCell(Vector3 from, Vector3 to, Matrix4 gridToWorld, PhysicsPosition3D identity,
+            integer x, integer z, boolean leftTriangle, RayCastResult3D result) returns boolean
+        terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
+        gridToWorld:TransformWorldCoordinate(tempVertices:Get(2), worldVertex2)
+        triangle:Set(worldVertex0, worldVertex1, worldVertex2)
+        return triangle:RayCast(from, to, identity, result)
+    end
+    
+    
+    action ComputeBoundingBox(BoundingBox boundingBox, PhysicsPosition3D transform)
+        //The height map's vertices run from the origin out to its width, height and depth
+        //instead of being centred on it, so the box that bounds them has to be anchored at
+        //the origin the same way. A centred box covers only the quarter of the map nearest
+        //the origin and only the lower half of the height range.
+        number margin = GetMargin()
+        Vector3 origin = transform:GetOrigin()
+        //Expressed the same way ProcessAllTriangles maps world positions back to cells, so
+        //the bounding box and the cell search always agree on where the map is.
+        number spanX = terrain:GetPixelWidth() * terrain:GetScaleX()
+        number spanY = terrain:GetHeight() * terrain:GetScaleY()
+        number spanZ = terrain:GetPixelHeight() * terrain:GetScaleZ()
+        Vector3 minimum
+        minimum:Set(origin:GetX() - margin, origin:GetY() - margin, origin:GetZ() - margin)
+        Vector3 maximum
+        maximum:Set(origin:GetX() + spanX + margin,
+                    origin:GetY() + spanY + margin,
+                    origin:GetZ() + spanZ + margin)
+        boundingBox:Set(minimum, maximum)
+        boundingBox:CalculateDimensions()
+ end
+    
+    action ProcessAllTriangles(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D terrainTransform, 
+PhysicsPosition3D shapeTransform, CollisionPointsResult3D result)
+        me:ComputeBoundingBox(tempTerrainBox, terrainTransform)
+        shape:ComputeBoundingBox(tempShapeBox, shapeTransform)
+        //tempShapeBox:Clamp(tempTerrainBox)
+        number extraMargin = GetMargin() + collisionPoints:GetCollisionBreakingThreshold()
+        triangleRejectDistance = extraMargin
+        tempShapeBox:GetMinimum():Add(-extraMargin)
+        tempShapeBox:GetMaximum():Add(extraMargin)
+        tempShapeBox:CalculateDimensions()
+        
+        result:SetCollisionPoints(collisionPoints)
+
+        // Gather the contacts from all the triangles, and store the best four
+        // at the end, instead of storing each triangle's contacts one by one.
+        result:BeginGathering()
+        
+        //Get where the bounding box is on the map.
+        Vector3 terrainDimensions = tempTerrainBox:GetDimensions()
+        number scaleX = terrain:GetScaleX()
+        number scaleZ = terrain:GetScaleZ()
+        
+        Vector3 terrainOrigin = terrainTransform:GetOrigin()
+        number originX = terrainOrigin:GetX()
+        number originZ = terrainOrigin:GetZ()
+        
+        number xLocalMin = (tempShapeBox:GetMinimum():GetX() - originX) / scaleX
+        number xLocalMax = (tempShapeBox:GetMaximum():GetX() - originX) / scaleX
+        number zLocalMin = (tempShapeBox:GetMinimum():GetZ() - originZ) / scaleZ
+        number zLocalMax = (tempShapeBox:GetMaximum():GetZ() - originZ) / scaleZ
+
+        // Cell i covers the grid from i to i + 1, so the cells from
+        // floor(min) to floor(max) cover the shape's box. The box has already
+        // been grown by the margin and the contact threshold, so nothing
+        // within reach lies outside these cells. Bullet widens its range by a
+        // cell each way because it rounds the box's corners to the nearest
+        // grid point instead of flooring them, and stops one short of its end.
+        integer xmin = cast(integer, math:Floor(xLocalMin))
+        integer xmax = cast(integer, math:Floor(xLocalMax))
+        integer zmin = cast(integer, math:Floor(zLocalMin))
+        integer zmax = cast(integer, math:Floor(zLocalMax))
+
+        if xmin < 0
+            xmin = 0
+        end
+
+        if zmin < 0
+            zmin = 0
+        end
+
+        if xmax > terrain:GetPixelWidth() - 2
+            xmax = terrain:GetPixelWidth() - 2
+        end
+
+        if zmax > terrain:GetPixelHeight() - 2
+            zmax = terrain:GetPixelHeight() - 2
+        end
+        
+        Matrix4 terrainNormalTransform = terrain:GetTransform()
+
+        // The shape is the same for every triangle, so its fixed values are
+        // read once for the whole loop.
+        narrowSolver:PrepareShape(shape)
+        i = xmin
+        j = zmin
+        repeat while i <= xmax
+            repeat while j <= zmax
+                ProcessTriangle(collisionPoints, shape, shapeTransform, result, terrainNormalTransform, i, j, false)
+                ProcessTriangle(collisionPoints, shape, shapeTransform, result, terrainNormalTransform, i, j, true)
+                j = j + 1
+            end
+            
+            j = zmin
+            i = i + 1
+        end
+        narrowSolver:ReleaseShape()
+        
+        result:FinishGathering()
+        result:RefreshCollisionPoints()
+        
+        integer p = 0
+            repeat while p < collisionPoints:GetPointCount()
+                CollisionPoint3D point = collisionPoints:GetCollisionPoint(p)
+                Vector3 n = point:GetWorldNormalOnB()
+                p = p + 1
+            end
+ end
+    
+    /*Processes a single triangle from the x,y coordinates on the height map for either the left or right triangle. */
+    action ProcessTriangle(LocalCollisionPoints3D collisionPoints, CollisionShape3D shape, PhysicsPosition3D shapeTransform, 
+CollisionPointsResult3D result, Matrix4 terrainNormalTransform, integer x, integer z, boolean leftTriangle)
+        terrain:FillAtPixel(x, z, tempVertices, tempTriangleBox, leftTriangle)
+
+        // Move the corners into the world first, then build the box around the
+        // triangle from them. This needs no new objects, and stays correct when
+        // the terrain is rotated.
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(0), worldVertex0)
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(1), worldVertex1)
+        terrainNormalTransform:TransformWorldCoordinate(tempVertices:Get(2), worldVertex2)
+        SetTriangleBox(GetMargin())
+        if not tempTriangleBox:Intersects(tempShapeBox)
+            return now
+        end
+
+        triangle:Set(worldVertex0, worldVertex1, worldVertex2)
+        triangle:SetMargin(GetMargin())
+        triangle:CalculateNormal(triangleNormal)
+
+        // A shape near a cell usually touches only one or two of its
+        // triangles. Checking which side of the triangle's plane the shape is
+        // on costs two support points, and skips the full collision test for
+        // the triangles it cannot reach.
+        if IsSeparatedFromTriangle(shape, shapeTransform, triangleRejectDistance)
+            return now
+        end
+
+        result:SetFaceNormal(triangleNormal)
+        narrowSolver:CollideTriangle(collisionPoints, triangle, triangleTransform, shape, shapeTransform, result)
+        result:ClearFaceNormal()
+    end
+
+    /*
+    Sets tempTriangleBox to the box around the three world corners of the
+    current triangle, grown by the given margin on every side.
+    */
+    private action SetTriangleBox(number margin)
+        triangleMinimum:Set(
+            math:MinimumOf(worldVertex0:GetX(), math:MinimumOf(worldVertex1:GetX(), worldVertex2:GetX())) - margin,
+            math:MinimumOf(worldVertex0:GetY(), math:MinimumOf(worldVertex1:GetY(), worldVertex2:GetY())) - margin,
+            math:MinimumOf(worldVertex0:GetZ(), math:MinimumOf(worldVertex1:GetZ(), worldVertex2:GetZ())) - margin)
+        triangleMaximum:Set(
+            math:MaximumOf(worldVertex0:GetX(), math:MaximumOf(worldVertex1:GetX(), worldVertex2:GetX())) + margin,
+            math:MaximumOf(worldVertex0:GetY(), math:MaximumOf(worldVertex1:GetY(), worldVertex2:GetY())) + margin,
+            math:MaximumOf(worldVertex0:GetZ(), math:MaximumOf(worldVertex1:GetZ(), worldVertex2:GetZ())) + margin)
+        tempTriangleBox:Set(triangleMinimum, triangleMaximum)
+    end
+    
+    
+    /*
+    This action checks whether the object is entirely off one face of the triangle's
+    plane, far enough away that no contact could reach it. Both facings have to be
+    checked, because the object may be on either side of the triangle.
+    triangleNormal must already hold the triangle's normal, and holds it again
+    when this action returns.
+    */
+    private action IsSeparatedFromTriangle(CollisionShape3D shape, PhysicsPosition3D shapeTransform, number contactThreshold) returns boolean
+        if IsBeyondPlane(shape, shapeTransform, contactThreshold)
+            return true
+        end
+        triangleNormal:Scale(-1)
+        boolean beyond = IsBeyondPlane(shape, shapeTransform, contactThreshold)
+        triangleNormal:Scale(-1)
+        return beyond
+    end
+    
+    /*
+    This action is used by "action IsSeparatedFromTriangle." It finds the point on
+    the object that reaches furthest along the current triangle normal, and reports
+    whether even that point falls short of the triangle's plane.
+    */
+    private action IsBeyondPlane(CollisionShape3D shape, PhysicsPosition3D shapeTransform, number contactThreshold) returns boolean
+        supportDirection:Set(triangleNormal)
+        supportDirection:MultiplyByTranspose(shapeTransform:GetBasis())
+        supportPoint:Set(shape:LocalGetSupportingVertex(supportDirection))
+        shapeTransform:Transform(supportPoint)
+        number planeDistance = triangleNormal:DotProduct(triangle:GetVertex(0))
+        number pointDistance = triangleNormal:DotProduct(supportPoint)
+        return planeDistance - pointDistance > contactThreshold
+    end
+    
+    action Copy returns CollisionShape3D
+        HeightmapTerrainShape copy
+        copy:Set(parent:CollisionShape3D:implicitShapeDimensions)
+        copy:parent:CollisionShape3D:localScaling:Set(parent:CollisionShape3D:localScaling)
+        copy:SetTerrain(terrain)
+        return copy
+    end
+    
+    
+    private action Set(Vector3 halfExtents)
+        Vector3 margin
+        margin:Set(GetMargin(), GetMargin(), GetMargin())
+        parent:CollisionShape3D:implicitShapeDimensions:Set(halfExtents:GetX() * parent:CollisionShape3D:localScaling:GetX(), 
+                                                            halfExtents:GetY() * parent:CollisionShape3D:localScaling:GetY(), 
+                                                            halfExtents:GetZ() * parent:CollisionShape3D:localScaling:GetZ())
+        parent:CollisionShape3D:implicitShapeDimensions:Subtract(margin)
+    end
+    
+    action GetChildCount returns integer
+        return 1
+    end
+    
+    action GetTerrain returns Terrain
+        return terrain
+    end
+
+    action SetTerrain(Terrain terrain)
+        me:terrain = terrain
+    end
+end

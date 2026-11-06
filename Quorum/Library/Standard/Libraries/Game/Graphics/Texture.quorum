@@ -58,6 +58,12 @@ class Texture is Disposable
 
     TextureData data = undefined
 
+    // Whether this texture holds packed normals: normals in red, green and
+    // blue, with ambient occlusion in their length, as a texture set's
+    // normal-roughness texture does (Item 24). Its mipmaps then average
+    // the normals' directions and lengths separately (Item 25).
+    boolean packedNormalMipMaps = false
+
     GameStateManager manager
     OpenGLConstants constants
 
@@ -127,9 +133,82 @@ class Texture is Disposable
         end
     */
     action LoadFromFile(text filePath)
+        LoadFromFile(MakeFile(filePath))
+    end
+
+    /*
+    This action loads a Texture from a file path, and makes mipmaps for it
+    if asked: smaller copies the renderer uses when the texture is far away
+    or seen at an angle, so it doesn't shimmer. Mipmaps suit textures on 3D
+    models and ground. They cost a third more memory, and are not needed
+    for 2D images drawn at their own size.
+
+    Attribute: Parameter filePath The image file's path.
+    Attribute: Parameter useMipMaps True to make mipmaps.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Texture
+    Texture ground
+    ground:LoadFromFile("Textures/grass.png", true)
+    */
+    action LoadFromFile(text filePath, boolean useMipMaps)
+        LoadFromFile(MakeFile(filePath), undefined, useMipMaps)
+    end
+
+    /*
+    This action returns a File for a path, which may be a full path or
+    relative to the working directory. File's SetPath puts the working
+    directory in front of any path, even a full one, so a full path is
+    given with SetAbsolutePath instead.
+    */
+    private action MakeFile(text path) returns File
         File file
-        file:SetPath(filePath)
-        LoadFromFile(file)
+        boolean full = path:StartsWith("/") or path:StartsWith("\")
+        if not full and path:GetSize() >= 3
+            text afterDrive = path:GetSubtext(1, 3)
+            full = afterDrive = ":\" or afterDrive = ":/"
+        end
+        if full
+            file:SetAbsolutePath(path)
+        else
+            file:SetPath(path)
+        end
+        return file
+    end
+
+    /*
+    This action returns true if the texture was loaded asking for mipmaps.
+
+    Attribute: Returns True if the texture uses mipmaps.
+    */
+    action UsesMipMaps returns boolean
+        if data = undefined
+            return false
+        end
+        return data:UseMipMaps()
+    end
+
+    /*
+    This action says whether the texture holds packed normals, as a texture
+    set's normal-roughness texture does. If it does, its mipmaps keep each
+    normal a real direction, and keep the ambient occlusion carried in the
+    normals' length. Set it before loading. Only the Vulkan renderer uses
+    it.
+
+    Attribute: Parameter packed True for packed normals.
+    */
+    action SetPackedNormalMipMaps(boolean packed)
+        packedNormalMipMaps = packed
+    end
+
+    /*
+    This action returns true if the texture holds packed normals (see
+    SetPackedNormalMipMaps).
+
+    Attribute: Returns True for packed normals.
+    */
+    action HasPackedNormalMipMaps returns boolean
+        return packedNormalMipMaps
     end
 
     /*
@@ -621,7 +700,16 @@ class Texture is Disposable
                 data:Prepare()
             end
 
-            textureManager:RequestLoad(me, data:ConsumePixelMap())
+            // Pixels this texture read from a file itself are disposed once
+            // copied (Item 34). Pixels the caller passed in (LoadFromPixelMap)
+            // are kept: under Vulkan, callers such as texture updates and
+            // terrain splat maps reuse them, even though OpenGL disposes them.
+            boolean disposeAfter = false
+            if data is FileTextureData
+                FileTextureData fileData = cast(FileTextureData, data)
+                disposeAfter = fileData:GetFile() not= undefined and fileData:DisposePixelMap()
+            end
+            textureManager:RequestLoad(me, data:ConsumePixelMap(), disposeAfter)
 
             return now
         end
@@ -914,7 +1002,18 @@ class Texture is Disposable
     Use this when you are completely finished with a Texture and no longer intend
     to use it.
     */
-    system action Dispose
+    action Dispose
+        // Under Vulkan, the texture manager frees the image once no frame
+        // on the GPU still draws with it (Item 34).
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+            VulkanTextureManager textureManager = graphics:GetTextureManager()
+            textureManager:ReleaseTexture(me)
+        end
+        DisposeNative()
+    end
+
+    private system action DisposeNative
 
     /*
     This action will create a new Texture with a white line that connects an
@@ -1558,6 +1657,12 @@ class Texture is Disposable
     */
     action SetVulkanTextureIndex(integer vulkanTextureIndex)
         me:vulkanTextureIndex = vulkanTextureIndex
+        // A texture with no place has no group either (Item 34).
+        if vulkanTextureIndex < 0
+            vulkanTextureGroupIndex = -1
+            vulkanTextureLocalIndex = -1
+            return now
+        end
         
         if manager:GetGameGraphics() is VulkanGraphics
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())

@@ -1,0 +1,19 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This behavior is used by the selection system in the scene editor to copy an item in a scene.
+    This behavior duplicates the selected item that is shown by the selection highlight. The copy
+    is placed beside the original, becomes the new selection, and can be moved right away.
+*/
+class SelectionDuplicateBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SelectionHighlight
+            SelectionHighlight highlight = cast(SelectionHighlight, event:GetItem())
+            highlight:GetSceneEditor():Duplicate(highlight:GetItem())
+        end
+    end
+end

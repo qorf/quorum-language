@@ -1,0 +1,986 @@
+package Libraries.Interface.Behaviors.Games
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Item3D
+use Libraries.Game.InputMonitor
+use Libraries.Game.Layer3D
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.WorldTerrain
+use Libraries.Game.Collision.RayCastResult3D
+use Libraries.Game.Physics.PhysicsProperties3D
+use Libraries.Compute.Math
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+
+/*
+A MovementBehavior3D moves a 3D item, such as a character, with the keyboard.
+Add it to an item with AddBehavior, and the item moves at once:
+
+1. In the default mode, TURN_AND_MOVE, W and S (or the up and down arrows)
+   move the item forward and back, and A and D (or the left and right
+   arrows) turn it. Forward is the way the item faces, its local z axis,
+   which is also the way Camera:Follow treats as forward.
+2. In CAMERA_RELATIVE mode, the same keys move the item away from, toward,
+   left of and right of the camera, and the item turns to face the way it
+   moves.
+3. In FLY mode, the keys work as in TURN_AND_MOVE, and E and Q (or Page Up
+   and Page Down) move the item up and down.
+
+The space bar jumps. Every key can be changed, and each command can have
+more than one key.
+
+The behavior works out how to move the item from its physics settings, so
+the same code works for any item:
+
+1. An item without physics is moved directly. Nothing stops it, so it
+   passes through walls.
+2. A Nonresponsive item is given a velocity. It pushes other items, and
+   they don't push it back.
+3. A Responsive item is given a level velocity, and keeps its up and down
+   velocity, so gravity still pulls it and it can fall. It jumps only when
+   it is standing on something.
+4. An Unmovable item can't be moved. The behavior says so once, on the
+   console.
+
+By default, the behavior keeps the item upright: it turns the item only
+around its y axis, and stops it from tipping over when it bumps into
+things. Turn this off with SetKeepUpright(false).
+
+To move the item some other way, such as from a computer-controlled
+player, turn the keyboard off with SetUseKeyboard(false) and set the
+commands with SetForward, SetTurn, SetStrafe, SetRise, and Jump.
+
+Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Item3D
+    use Libraries.Interface.Behaviors.Games.MovementBehavior3D
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            LoadScene("Scenes/Scene.qs")
+            EnablePhysics3D(true)
+            SetGravity3D(0, -10, 0)
+
+            Item3D player = FindItem3DByName("Player")
+            MovementBehavior3D movement
+            player:AddBehavior(movement)
+            GetCamera3D():Follow(player)
+        end
+    end
+*/
+class MovementBehavior3D is Behavior
+    /* The item turns with left and right, and moves forward and back. */
+    public constant integer TURN_AND_MOVE = 0
+    /* The item moves relative to the camera, and faces the way it moves. */
+    public constant integer CAMERA_RELATIVE = 1
+    /* As TURN_AND_MOVE, and the item can also move up and down. */
+    public constant integer FLY = 2
+
+    Math math
+    KeyboardEvent keys
+    InputMonitor monitor
+    PhysicsProperties3D physicsKinds
+
+    Item3D item = undefined
+    TerrainItem ground = undefined
+
+    integer mode = TURN_AND_MOVE
+    number speed = 4
+    number turnSpeed = 120
+    number jumpHeight = 1
+    number acceleration = 0
+    boolean keepUpright = true
+
+    // The commands, each from -1 to 1. Positive forward is forward,
+    // positive turn and strafe are to the right, and positive rise is up.
+    number forward = 0
+    number turn = 0
+    number strafe = 0
+    number rise = 0
+    boolean jumpRequested = false
+
+    // The movement actually used, which moves toward the commands at the
+    // acceleration rate.
+    number currentForward = 0
+    number currentStrafe = 0
+    number currentRise = 0
+
+    // The way the item faces, in degrees around the y axis.
+    number heading = 0
+    boolean headingSet = false
+    // 1 if a positive yaw turns forward toward +x (to the right), or -1.
+    number yawSign = 1
+    boolean warnedUnmovable = false
+
+    Array<integer> forwardKeys
+    Array<integer> backKeys
+    Array<integer> leftKeys
+    Array<integer> rightKeys
+    Array<integer> jumpKeys
+    Array<integer> upKeys
+    Array<integer> downKeys
+
+    boolean useKeyboard = true
+    boolean jumpKeyWasDown = false
+    boolean active = true
+    boolean finished = false
+
+    on create
+        forwardKeys:Add(keys:W)
+        forwardKeys:Add(keys:UP)
+        backKeys:Add(keys:S)
+        backKeys:Add(keys:DOWN)
+        leftKeys:Add(keys:A)
+        leftKeys:Add(keys:LEFT)
+        rightKeys:Add(keys:D)
+        rightKeys:Add(keys:RIGHT)
+        jumpKeys:Add(keys:SPACE)
+        upKeys:Add(keys:E)
+        upKeys:Add(keys:PAGE_UP)
+        downKeys:Add(keys:Q)
+        downKeys:Add(keys:PAGE_DOWN)
+
+        // Find which way a positive yaw turns, from the same rotation an
+        // item uses, so turning right always turns to the right.
+        Quaternion angles
+        angles:SetEulerAngles(90, 0, 0)
+        Matrix4 rotation
+        rotation:Set(angles)
+        if rotation:row0column2 < 0
+            yawSign = -1
+        end
+    end
+
+    /*
+    This action is called when the behavior is added to an item with
+    AddBehavior. It remembers the item, so the behavior knows what to move.
+    Most users never need to call it.
+
+    Attribute: Parameter event The event, which holds the item.
+    */
+    action Run(BehaviorEvent event)
+        Item target = event:GetItem()
+        if target is Item3D
+            SetItem(cast(Item3D, target))
+        end
+    end
+
+    /*
+    This action is called once per frame when the behavior has been added
+    to an item with AddBehavior, before the physics runs. It reads the
+    keyboard, if the keyboard is turned on, and then moves the item.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action Update(number seconds)
+        if item = undefined or seconds <= 0
+            return now
+        end
+
+        if not headingSet
+            heading = item:GetYaw()
+            headingSet = true
+        end
+
+        if not active
+            forward = 0
+            turn = 0
+            strafe = 0
+            rise = 0
+            jumpRequested = false
+        elseif useKeyboard
+            ReadKeyboard()
+        end
+
+        number step = acceleration * seconds
+        currentForward = MoveToward(currentForward, forward, step)
+        currentStrafe = MoveToward(currentStrafe, strafe, step)
+        currentRise = MoveToward(currentRise, rise, step)
+
+        // The level directions to move in: forward (forwardX, forwardZ) and
+        // right (forwardZ, -forwardX). The world is left-handed, so facing
+        // +z, the right is +x.
+        number forwardX = 0
+        number forwardZ = 1
+        number moveX = 0
+        number moveZ = 0
+
+        if mode = CAMERA_RELATIVE
+            Layer3D layer = item:GetLayer()
+            if layer not= undefined and layer:GetCamera() not= undefined
+                Vector3 look = layer:GetCamera():GetDirection()
+                number flat = math:SquareRoot(look:GetX() * look:GetX() + look:GetZ() * look:GetZ())
+                if flat > 0.0001
+                    forwardX = look:GetX() / flat
+                    forwardZ = look:GetZ() / flat
+                end
+            end
+            moveX = forwardX * currentForward + forwardZ * currentStrafe
+            moveZ = forwardZ * currentForward - forwardX * currentStrafe
+
+            number length = math:SquareRoot(moveX * moveX + moveZ * moveZ)
+            if length > 1
+                moveX = moveX / length
+                moveZ = moveZ / length
+            end
+            if length > 0.0001
+                heading = HeadingOf(moveX, moveZ)
+            end
+            TurnTo(heading, 0)
+        else
+            number degrees = yawSign * turn * turnSpeed * seconds
+            heading = heading + degrees
+            TurnTo(heading, degrees)
+
+            Matrix4 rotation = item:GetRotationTransform()
+            number x = rotation:row0column2
+            number z = rotation:row2column2
+            number flat = math:SquareRoot(x * x + z * z)
+            if flat > 0.0001
+                forwardX = x / flat
+                forwardZ = z / flat
+            end
+            moveX = forwardX * currentForward + forwardZ * currentStrafe
+            moveZ = forwardZ * currentForward - forwardX * currentStrafe
+        end
+
+        number velocityX = moveX * speed
+        number velocityY = 0
+        number velocityZ = moveZ * speed
+        if mode = FLY
+            velocityY = currentRise * speed
+        end
+
+        if not item:IsPhysicsEnabled()
+            item:Move(velocityX * seconds, velocityY * seconds, velocityZ * seconds)
+            if ground not= undefined and mode not= FLY
+                StandOnGround()
+            end
+            jumpRequested = false
+            return now
+        end
+
+        integer kind = item:GetResponsiveness()
+        if kind = physicsKinds:UNMOVABLE
+            if not warnedUnmovable and (velocityX not= 0 or velocityY not= 0 or velocityZ not= 0)
+                output "The item " + item:GetName() + " is Unmovable, so it can't be moved. Set its Responsiveness to Responsive or Nonresponsive."
+                warnedUnmovable = true
+            end
+            jumpRequested = false
+            return now
+        end
+
+        item:SetLinearVelocityX(velocityX)
+        item:SetLinearVelocityZ(velocityZ)
+
+        if kind = physicsKinds:NON_RESPONSIVE
+            item:SetLinearVelocityY(velocityY)
+        else
+            if mode = FLY
+                item:SetLinearVelocityY(velocityY)
+            elseif jumpRequested and jumpHeight > 0 and IsOnGround()
+                number gravity = GetGravityStrength()
+                if gravity > 0
+                    item:SetLinearVelocityY(math:SquareRoot(2 * gravity * jumpHeight))
+                end
+            end
+            if keepUpright
+                Vector3 still
+                still:Set(0, 0, 0)
+                item:SetAngularVelocity(still)
+            end
+        end
+        jumpRequested = false
+
+        if velocityX not= 0 or velocityY not= 0 or velocityZ not= 0 or item:GetLinearVelocity():GetY() not= 0
+            item:Simulate(true)
+        end
+    end
+
+    /*
+    This action returns whether the item is standing on something. An item
+    with physics is on the ground when there is something just under it. An
+    item without physics is on the ground when it has a ground set with
+    SetGround.
+
+    Attribute: Returns true if the item is standing on something, and false otherwise.
+    */
+    action IsOnGround returns boolean
+        if item = undefined
+            return false
+        end
+        if not item:IsPhysicsEnabled()
+            return ground not= undefined
+        end
+
+        Layer3D layer = item:GetLayer()
+        if layer = undefined
+            return false
+        end
+
+        Vector3 center = item:GetGlobalPosition()
+        number halfHeight = item:GetHeight() * item:GetScaleY() / 2
+        Vector3 from
+        from:Set(center:GetX(), center:GetY(), center:GetZ())
+        Vector3 to
+        to:Set(center:GetX(), center:GetY() - halfHeight - 0.1, center:GetZ())
+
+        RayCastResult3D result
+        return layer:RayCastPhysics(from, to, item, result)
+    end
+
+    /*
+    This action returns whether the behavior is finished. A behavior
+    added with AddBehavior keeps running until Stop is called.
+
+    Attribute: Returns true if Stop has been called, and false otherwise.
+    */
+    action IsFinished returns boolean
+        return finished
+    end
+
+    /*
+    This action stops the behavior. If it was added to an item with
+    AddBehavior, the item removes it at the start of the next frame, and an
+    item with physics stops moving on its own.
+    */
+    action Stop
+        finished = true
+        Release()
+    end
+
+    /*
+    This action is called when the behavior is removed from an item. It
+    stops an item with physics from moving on its own.
+    */
+    action Dispose
+        Release()
+    end
+
+    /*
+    Sets the commands from the keyboard. Holding both keys of a pair, such as
+    up and down, cancels them out. In CAMERA_RELATIVE mode, left and right
+    move the item sideways instead of turning it.
+    */
+    private action ReadKeyboard
+        forward = 0
+        if AnyPressed(forwardKeys)
+            forward = forward + 1
+        end
+        if AnyPressed(backKeys)
+            forward = forward - 1
+        end
+
+        number sideways = 0
+        if AnyPressed(rightKeys)
+            sideways = sideways + 1
+        end
+        if AnyPressed(leftKeys)
+            sideways = sideways - 1
+        end
+
+        if mode = CAMERA_RELATIVE
+            strafe = sideways
+            turn = 0
+        else
+            turn = sideways
+            strafe = 0
+        end
+
+        rise = 0
+        if mode = FLY
+            if AnyPressed(upKeys)
+                rise = rise + 1
+            end
+            if AnyPressed(downKeys)
+                rise = rise - 1
+            end
+        end
+
+        // Jump once each time the key goes down, not on every frame it is held.
+        boolean jumpDown = AnyPressed(jumpKeys)
+        if jumpDown and not jumpKeyWasDown
+            jumpRequested = true
+        end
+        jumpKeyWasDown = jumpDown
+    end
+
+    private action AnyPressed(Array<integer> keyCodes) returns boolean
+        integer i = 0
+        repeat while i < keyCodes:GetSize()
+            if monitor:IsKeyPressed(keyCodes:Get(i))
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    Turns the item to face the given heading. When the item is kept upright,
+    only its yaw is set, so it can't tip over. Otherwise it is turned by the
+    given number of degrees around its y axis.
+    */
+    private action TurnTo(number degreesHeading, number degreesTurned)
+        if keepUpright
+            item:SetYawPitchRoll(degreesHeading, 0, 0)
+        elseif degreesTurned not= 0
+            item:Rotate(0, 1, 0, degreesTurned)
+        end
+    end
+
+    /*
+    Returns the heading, in degrees, that faces along the level direction
+    (x, z), using the same yaw direction as the item's rotation.
+    */
+    private action HeadingOf(number x, number z) returns number
+        number signedX = x * yawSign
+        if z > 0
+            return math:RadiansToDegrees(math:InverseTangent(signedX / z))
+        elseif z < 0
+            return math:RadiansToDegrees(math:InverseTangent(signedX / z)) + 180
+        elseif signedX > 0
+            return 90
+        elseif signedX < 0
+            return -90
+        end
+        return heading
+    end
+
+    /*
+    Places an item without physics on its ground terrain, so its bottom
+    rests on the terrain's surface.
+    */
+    private action StandOnGround
+        WorldTerrain world = ground:GetWorldTerrain()
+        if world = undefined or world:GetData() = undefined
+            return now
+        end
+        Vector3 center = item:GetGlobalPosition()
+        number surface = world:GetData():GetHeight(center:GetX(), center:GetZ())
+        number halfHeight = item:GetHeight() * item:GetScaleY() / 2
+        item:Move(0, surface + halfHeight - center:GetY(), 0)
+    end
+
+    /*
+    Returns how strongly gravity pulls down in the item's layer, as a
+    positive number, or 0 if it doesn't pull down.
+    */
+    private action GetGravityStrength returns number
+        Layer3D layer = item:GetLayer()
+        if layer = undefined
+            return 0
+        end
+        number down = -layer:GetGravity():GetY()
+        if down < 0
+            return 0
+        end
+        return down
+    end
+
+    /*
+    Sets the commands to 0, and stops an item with physics from moving on
+    its own.
+    */
+    private action Release
+        forward = 0
+        turn = 0
+        strafe = 0
+        rise = 0
+        currentForward = 0
+        currentStrafe = 0
+        currentRise = 0
+        jumpRequested = false
+
+        if item = undefined or not item:IsPhysicsEnabled()
+            return now
+        end
+        if item:GetResponsiveness() = physicsKinds:UNMOVABLE
+            return now
+        end
+        item:SetLinearVelocityX(0)
+        item:SetLinearVelocityZ(0)
+        if item:GetResponsiveness() = physicsKinds:NON_RESPONSIVE or mode = FLY
+            item:SetLinearVelocityY(0)
+        end
+    end
+
+    /*
+    Moves a value toward a target by at most the given step. A step of 0 or
+    less moves straight to the target.
+    */
+    private action MoveToward(number value, number target, number step) returns number
+        if step <= 0
+            return target
+        end
+        if value < target
+            return math:MinimumOf(value + step, target)
+        end
+        return math:MaximumOf(value - step, target)
+    end
+
+    /*
+    This action returns the item this behavior moves.
+
+    Attribute: Returns The item, or undefined if none has been set.
+    */
+    action GetItem returns Item3D
+        return item
+    end
+
+    /*
+    This action sets the item this behavior moves. AddBehavior sets it
+    automatically, so most users never need to call it.
+
+    Attribute: Parameter item The item to move.
+    */
+    action SetItem(Item3D item)
+        me:item = item
+        headingSet = false
+        warnedUnmovable = false
+    end
+
+    /*
+    This action returns how the keys move the item: TURN_AND_MOVE,
+    CAMERA_RELATIVE, or FLY.
+
+    Attribute: Returns The mode.
+    */
+    action GetMode returns integer
+        return mode
+    end
+
+    /*
+    This action sets how the keys move the item. TURN_AND_MOVE, the
+    default, turns with left and right and moves forward and back.
+    CAMERA_RELATIVE moves relative to the camera, and turns the item to face
+    the way it moves. FLY works like TURN_AND_MOVE, with up and down keys
+    as well, and no jumping.
+
+    Attribute: Parameter mode The mode, such as movement:CAMERA_RELATIVE.
+
+    Attribute: Example
+
+        use Libraries.Interface.Behaviors.Games.MovementBehavior3D
+
+        MovementBehavior3D movement
+        movement:SetMode(movement:CAMERA_RELATIVE)
+    */
+    action SetMode(integer mode)
+        me:mode = mode
+    end
+
+    /*
+    This action returns the top speed, in meters per second.
+
+    Attribute: Returns The speed.
+    */
+    action GetSpeed returns number
+        return speed
+    end
+
+    /*
+    This action sets the top speed, in meters per second. The default is 4,
+    about a quick walk.
+
+    Attribute: Parameter speed The speed.
+    */
+    action SetSpeed(number speed)
+        me:speed = speed
+    end
+
+    /*
+    This action returns how fast the item turns, in degrees per second.
+
+    Attribute: Returns The turning speed.
+    */
+    action GetTurnSpeed returns number
+        return turnSpeed
+    end
+
+    /*
+    This action sets how fast the item turns, in degrees per second. The
+    default is 120, so a full turn takes three seconds.
+
+    Attribute: Parameter speed The turning speed.
+    */
+    action SetTurnSpeed(number speed)
+        turnSpeed = speed
+    end
+
+    /*
+    This action returns how high the item jumps, in meters.
+
+    Attribute: Returns The jump height.
+    */
+    action GetJumpHeight returns number
+        return jumpHeight
+    end
+
+    /*
+    This action sets how high the item jumps, in meters. The default is 1. A
+    height of 0 turns jumping off. Only a Responsive item with physics can
+    jump, and only while it is standing on something, and gravity must be
+    pulling down.
+
+    Attribute: Parameter height The jump height.
+    */
+    action SetJumpHeight(number height)
+        jumpHeight = height
+    end
+
+    /*
+    This action returns how quickly the item reaches full speed.
+
+    Attribute: Returns The acceleration.
+    */
+    action GetAcceleration returns number
+        return acceleration
+    end
+
+    /*
+    This action sets how quickly the item speeds up and slows down, as the
+    share of full speed it can gain or lose each second. For example, 4
+    reaches full speed in a quarter of a second. The default is 0, which
+    changes speed at once.
+
+    Attribute: Parameter acceleration The acceleration.
+    */
+    action SetAcceleration(number acceleration)
+        me:acceleration = acceleration
+    end
+
+    /*
+    This action returns whether the behavior keeps the item upright.
+
+    Attribute: Returns true if the item is kept upright.
+    */
+    action IsKeepingUpright returns boolean
+        return keepUpright
+    end
+
+    /*
+    This action sets whether the behavior keeps the item upright, turning it
+    only around its y axis and stopping it from tipping over when it bumps
+    into things. The default is true. When it is false, the item is turned
+    from wherever it points, and physics can tip it over.
+
+    Attribute: Parameter upright true to keep the item upright.
+    */
+    action SetKeepUpright(boolean upright)
+        keepUpright = upright
+    end
+
+    /*
+    This action returns the terrain an item without physics walks on.
+
+    Attribute: Returns The terrain, or undefined if none has been set.
+    */
+    action GetGround returns TerrainItem
+        return ground
+    end
+
+    /*
+    This action sets a terrain for an item without physics to walk on. Each
+    frame, the item is placed so its bottom rests on the terrain's surface,
+    so it walks up and down hills. It has no effect on an item with physics,
+    which stands on the terrain through collisions instead, or in FLY mode.
+
+    Attribute: Parameter terrain The terrain to walk on, or undefined for none.
+    */
+    action SetGround(TerrainItem terrain)
+        ground = terrain
+    end
+
+    /*
+    This action returns the forward command, from -1 for full speed back to
+    1 for full speed forward.
+
+    Attribute: Returns The forward command.
+    */
+    action GetForward returns number
+        return forward
+    end
+
+    /*
+    This action sets the forward command, from -1 for full speed back to 1
+    for full speed forward. While the keyboard is turned on, the keyboard
+    replaces it every frame, so turn it off first with SetUseKeyboard(false).
+
+    Attribute: Parameter value The forward command.
+    */
+    action SetForward(number value)
+        forward = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action returns the turn command, from -1 for turning left at full
+    speed to 1 for turning right at full speed.
+
+    Attribute: Returns The turn command.
+    */
+    action GetTurn returns number
+        return turn
+    end
+
+    /*
+    This action sets the turn command, from -1 for turning left at full
+    speed to 1 for turning right at full speed. It is used in TURN_AND_MOVE
+    and FLY modes. While the keyboard is turned on, the keyboard replaces it
+    every frame, so turn it off first with SetUseKeyboard(false).
+
+    Attribute: Parameter value The turn command.
+    */
+    action SetTurn(number value)
+        turn = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action returns the strafe command, from -1 for moving left at full
+    speed to 1 for moving right at full speed.
+
+    Attribute: Returns The strafe command.
+    */
+    action GetStrafe returns number
+        return strafe
+    end
+
+    /*
+    This action sets the strafe command, from -1 for moving left at full
+    speed to 1 for moving right at full speed, without turning. While the
+    keyboard is turned on, the keyboard replaces it every frame, so turn it
+    off first with SetUseKeyboard(false).
+
+    Attribute: Parameter value The strafe command.
+    */
+    action SetStrafe(number value)
+        strafe = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action returns the rise command, from -1 for moving down at full
+    speed to 1 for moving up at full speed.
+
+    Attribute: Returns The rise command.
+    */
+    action GetRise returns number
+        return rise
+    end
+
+    /*
+    This action sets the rise command, from -1 for moving down at full speed
+    to 1 for moving up at full speed. It is used only in FLY mode. While the
+    keyboard is turned on, the keyboard replaces it every frame, so turn it
+    off first with SetUseKeyboard(false).
+
+    Attribute: Parameter value The rise command.
+    */
+    action SetRise(number value)
+        rise = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action asks the item to jump on the next frame. It jumps only if it
+    can: see SetJumpHeight.
+    */
+    action Jump
+        jumpRequested = true
+    end
+
+    /*
+    This action returns whether the behavior moves the item.
+
+    Attribute: Returns true if the behavior is active.
+    */
+    action IsActive returns boolean
+        return active
+    end
+
+    /*
+    This action sets whether the behavior moves the item. While it is not
+    active, the commands are 0 and the item stops, but the behavior stays on
+    the item and can be made active again.
+
+    Attribute: Parameter active true to move the item, or false to stop.
+    */
+    action SetActive(boolean active)
+        me:active = active
+        if not active
+            Release()
+        end
+    end
+
+    /*
+    This action returns whether the commands come from the keyboard.
+
+    Attribute: Returns true if the keyboard is used.
+    */
+    action IsUsingKeyboard returns boolean
+        return useKeyboard
+    end
+
+    /*
+    This action sets whether the commands come from the keyboard. Turn it
+    off to move the item from code, with SetForward, SetTurn, SetStrafe,
+    SetRise, and Jump.
+
+    Attribute: Parameter useKeyboard true to use the keyboard.
+    */
+    action SetUseKeyboard(boolean useKeyboard)
+        me:useKeyboard = useKeyboard
+    end
+
+    /*
+    This action sets the one key that moves the item forward, in place of
+    any others. Use AddForwardKey to add a key instead.
+
+    Attribute: Parameter key The key code, such as keys:W from a KeyboardEvent.
+    */
+    action SetForwardKey(integer key)
+        forwardKeys:Empty()
+        forwardKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item forward.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddForwardKey(integer key)
+        forwardKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item back, in place of any
+    others. Use AddBackKey to add a key instead.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetBackKey(integer key)
+        backKeys:Empty()
+        backKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item back.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddBackKey(integer key)
+        backKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that turns the item left (or, in
+    CAMERA_RELATIVE mode, moves it left), in place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetLeftKey(integer key)
+        leftKeys:Empty()
+        leftKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that turns the item left (or, in
+    CAMERA_RELATIVE mode, moves it left).
+
+    Attribute: Parameter key The key code.
+    */
+    action AddLeftKey(integer key)
+        leftKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that turns the item right (or, in
+    CAMERA_RELATIVE mode, moves it right), in place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetRightKey(integer key)
+        rightKeys:Empty()
+        rightKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that turns the item right (or, in
+    CAMERA_RELATIVE mode, moves it right).
+
+    Attribute: Parameter key The key code.
+    */
+    action AddRightKey(integer key)
+        rightKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that makes the item jump, in place of any
+    others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetJumpKey(integer key)
+        jumpKeys:Empty()
+        jumpKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that makes the item jump.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddJumpKey(integer key)
+        jumpKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item up in FLY mode, in
+    place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetUpKey(integer key)
+        upKeys:Empty()
+        upKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item up in FLY mode.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddUpKey(integer key)
+        upKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item down in FLY mode, in
+    place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetDownKey(integer key)
+        downKeys:Empty()
+        downKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item down in FLY mode.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddDownKey(integer key)
+        downKeys:Add(key)
+    end
+end
