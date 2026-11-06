@@ -5,6 +5,7 @@ use Libraries.Game.Graphics.Light
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.SpotLight
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Containers.Iterator
 use Libraries.Game.Graphics.Vulkan.VulkanDevice
@@ -24,21 +25,39 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorBufferInfo
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.CascadeShadowData
+use Libraries.Game.Graphics.Vulkan.VulkanFramebuffer
+use Libraries.Game.Graphics.Vulkan.VulkanImageView
+use Libraries.Game.Graphics.Vulkan.VulkanImageInfo
+use Libraries.Game.Graphics.Vulkan.VulkanImage
+use Libraries.Game.Graphics.Vulkan.VulkanImageViewInfo
+use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
+use Libraries.Game.Graphics.Vulkan.VulkanSampler
+use Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo
+use Libraries.Game.Graphics.CameraMatrix4
 
 class EnvironmentVulkan is Environment
-    
-    public constant integer DEFAULT_MAX_LIGHTS = 16
     
     VulkanDevice device = undefined
     
     Array<PointLight> pointLights
     Array<DirectionalLight> directionalLights
+    Array<SpotLight> spotLights
+
+    // For working out a spotlight's cone (Item 37).
+    Math lightMath
     AmbientLight ambientLight = undefined
     
     Camera camera = undefined
     
     Array<boolean> lightsDirty
     Array<boolean> sceneDataDirty
+    Array<boolean> shadowsDirty
     
     // Arrays of buffers and associated resources for data specific to individual lights.
     // One buffer per frame of flight rendered in Vulkan.
@@ -52,55 +71,128 @@ class EnvironmentVulkan is Environment
     Array<VulkanNumber32BitMappedMemory> sceneDataMemories
     Number32BitArray sceneDataMappingArray
     
-    /*Lights store these components in the buffer:
-* Position/Direction (Vec3, 3 * 4 bytes)
-* IsDirectional (uint, 4 byte)
-* Intensity (float, 4 bytes)
-* RGB Color (Vec3, 3 * 4 bytes)*/
-    integer LIGHTS_WORD_SIZE = 8
-    integer LIGHTS_BYTE_SIZE = LIGHTS_WORD_SIZE * 4
+    // Buffers for storing the projection matrices for each light source, used to cast shadows.
+    Array<VulkanBuffer> cascadeShadowBuffers
+    Array<VulkanNumber32BitMappedMemory> cascadeShadowMemories
+    Number32BitArray cascadeShadowTransferArray
     
+    /*Lights store these components in the buffer, 16 words each (Item 37):
+* Position (a point or spotlight) or direction (a directional light) (Vec3)
+* Type (uint): 0 point, 1 directional, 2 spot
+* Intensity (float)
+* RGB Color (Vec3)
+* Spot direction, in world space (Vec3)
+* Range (float): where the light fades to nothing; 0 for directional
+* Cosine of the inner and outer cone angles (2 floats)
+* Two spare words*/
+    constant integer LIGHTS_WORD_SIZE = 16
+    constant integer LIGHTS_BYTE_SIZE = LIGHTS_WORD_SIZE * 4
+
     constant integer POSITION_DIRECTION_INDEX = 0
-    constant integer IS_DIRECTIONAL_INDEX = 3
+    constant integer TYPE_INDEX = 3
     constant integer INTENSITY_INDEX = 4
     constant integer COLOR_INDEX = 5
+    constant integer SPOT_DIRECTION_INDEX = 8
+    constant integer RANGE_INDEX = 11
+    constant integer COS_INNER_INDEX = 12
+    constant integer COS_OUTER_INDEX = 13
+
+    constant integer POINT_LIGHT_TYPE = 0
+    constant integer DIRECTIONAL_LIGHT_TYPE = 1
+    constant integer SPOT_LIGHT_TYPE = 2
     
-    integer SCENE_DATA_WORD_SIZE = 8
-    integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
+    constant integer SCENE_DATA_WORD_SIZE = 24
+    constant integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
     
     constant integer CAMERA_POSITION_INDEX = 0
     constant integer AMBIENT_LIGHT_INTENSITY_INDEX = 3
     constant integer AMBIENT_LIGHT_COLOR_INDEX = 4
     constant integer LIGHT_COUNT_INDEX = 7
+    constant integer CAMERA_VIEW_MATRIX_INDEX = 8
     
-    integer maxLights = DEFAULT_MAX_LIGHTS
+    /*Cascade shadow data is made of 6 Matrix4s for shadow projection transforms, followed by one Vector4 for split distance values.*/
+    constant integer SHADOW_PROJECTION_WORD_SIZE = 16
+    constant integer SHADOW_PROJECTION_BYTE_SIZE = SHADOW_PROJECTION_WORD_SIZE * 4
+    constant integer SHADOW_PROJECTION_CUBE_WORD_SIZE = SHADOW_PROJECTION_WORD_SIZE * 6
+    constant integer SHADOW_PROJECTION_CUBE_BYTE_SIZE = SHADOW_PROJECTION_CUBE_WORD_SIZE * 4
+    constant integer SHADOW_SPLIT_DISTANCE_WORD_SIZE = 4
+    constant integer SHADOW_SPLIT_DISTANCE_BYTE_SIZE = SHADOW_SPLIT_DISTANCE_WORD_SIZE * 4
+    constant integer SHADOW_DATA_WORD_SIZE = SHADOW_PROJECTION_CUBE_WORD_SIZE + SHADOW_SPLIT_DISTANCE_WORD_SIZE
+    constant integer SHADOW_DATA_BYTE_SIZE = SHADOW_DATA_WORD_SIZE * 4
     
-    Array<VulkanDescriptorSet> descriptorSets
-    VulkanDescriptorSetLayout descriptorSetLayout = undefined
+    constant integer PROJECTION_MATRIX_INDEX = 0
+    constant integer SPLIT_DISTANCE_INDEX = PROJECTION_MATRIX_INDEX + SHADOW_PROJECTION_CUBE_WORD_SIZE
+    
+    integer maxLights = -1
+    VulkanLightingProperties lightingProperties = undefined
+    
+    Array<VulkanDescriptorSet> lightDataDescriptorSets
+    VulkanDescriptorSetLayout lightDataDescriptorSetLayout = undefined
+    
+    // Used to check if the camera has changed since the previous update. If so, we need to update shadows.
+    Matrix4 previousCameraTransform
     
     action Create(VulkanDevice device, VulkanGraphics graphics)
         me:device = device
+        lightingProperties = graphics:GetLightingProperties()
+        
+        if maxLights <= 0
+            VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+            maxLights = lightProperties:GetMaximumLights()
+        end
         
         integer resourceCount = graphics:GetSwapchain():GetImageCount()
         // Initialize values. All frames are dirty and all resources begin undefined (they'll be lazy loaded later).
         repeat resourceCount times
             lightsDirty:Add(true)
             sceneDataDirty:Add(true)
+            shadowsDirty:Add(true)
             lightsBuffers:Add(undefined)
             sceneDataBuffers:Add(undefined)
+            cascadeShadowBuffers:Add(undefined)
             lightsMemories:Add(undefined)
             sceneDataMemories:Add(undefined)
-            descriptorSets:Add(undefined)
+            cascadeShadowMemories:Add(undefined)
+            lightDataDescriptorSets:Add(undefined)
         end
         
         lightMappingArray:SetSize(maxLights * LIGHTS_WORD_SIZE)
         sceneDataMappingArray:SetSize(SCENE_DATA_WORD_SIZE)
+        // Every light has one entry per cascade (Item 35).
+        cascadeShadowTransferArray:SetSize(SHADOW_DATA_WORD_SIZE * maxLights * lightingProperties:GetShadowMapCascadeCount())
+    end
+    
+    action Update
+        Matrix4 cameraTransform = camera:GetCombinedMatrix()
+        Matrix4 a = previousCameraTransform
+        Matrix4 b = cameraTransform
+        // If the current camera matrix doesn't match the one we've cached, the camera has changed and scene data and shadow maps must be recalculated.
+        if a:row0column0 not= b:row0column0 or a:row0column1 not= b:row0column1 or a:row0column2 not= b:row0column2 or a:row0column3 not= b:row0column3
+or a:row1column0 not= b:row1column0 or a:row1column1 not= b:row1column1 or a:row1column2 not= b:row1column2 or a:row1column3 not= b:row1column3
+or a:row2column0 not= b:row2column0 or a:row2column1 not= b:row2column1 or a:row2column2 not= b:row2column2 or a:row2column3 not= b:row2column3
+or a:row3column0 not= b:row3column0 or a:row3column1 not= b:row3column1 or a:row3column2 not= b:row3column2 or a:row3column3 not= b:row3column3
+            previousCameraTransform:Set(cameraTransform)
+            SetSceneDataDirty()
+        end
+
+        // A point light or spotlight may belong to a model that moves or
+        // turns without telling the environment, such as a headlight on a
+        // car. Re-pack the lights every frame while there are any; their
+        // shadow projections are left as they are (Item 37).
+        if not pointLights:IsEmpty() or not spotLights:IsEmpty()
+            integer slot = 0
+            repeat while slot < lightsDirty:GetSize()
+                lightsDirty:Set(slot, true)
+                slot = slot + 1
+            end
+        end
     end
     
     private action SetLightsDirty
         integer i = 0
         repeat while i < lightsDirty:GetSize()
             lightsDirty:Set(i, true)
+            shadowsDirty:Set(i, true)
             i = i + 1
         end
     end
@@ -109,6 +201,7 @@ class EnvironmentVulkan is Environment
         integer i = 0
         repeat while i < sceneDataDirty:GetSize()
             sceneDataDirty:Set(i, true)
+            shadowsDirty:Set(i, true)
             i = i + 1
         end
     end
@@ -118,6 +211,7 @@ class EnvironmentVulkan is Environment
         repeat while i < sceneDataDirty:GetSize()
             sceneDataDirty:Set(i, true)
             lightsDirty:Set(i, true)
+            shadowsDirty:Set(i, true)
             i = i + 1
         end
     end
@@ -133,10 +227,12 @@ class EnvironmentVulkan is Environment
             Add(cast(PointLight, light))
         elseif light is DirectionalLight
             Add(cast(DirectionalLight, light))
+        elseif light is SpotLight
+            Add(cast(SpotLight, light))
         elseif light is AmbientLight
             SetAmbientLight(cast(AmbientLight, light))
         else
-            alert("I can only add PointLights or DirectionalLights.")
+            alert("I can only add PointLights, DirectionalLights or SpotLights.")
         end
     end
 
@@ -182,6 +278,8 @@ end
             Remove(cast(PointLight, light))
         elseif light is DirectionalLight
             Remove(cast(DirectionalLight, light))
+        elseif light is SpotLight
+            Remove(cast(SpotLight, light))
         end
 end
 
@@ -222,6 +320,26 @@ end
 end
 
     /*
+    Adds a SpotLight to this environment.
+    */
+    action Add(SpotLight light)
+        spotLights:Add(light)
+        light:SetEnvironment(me)
+        SetDirty()
+    end
+
+    /*
+    This action will remove the given SpotLight from the Environment. If
+    the light was not present in the Environment before using this action,
+    it will have no effect.
+    */
+    action Remove(SpotLight light)
+        spotLights:Remove(light)
+        light:SetEnvironment(undefined)
+        SetDirty()
+    end
+
+    /*
     This action will add ambient lighting to the Environment.
     */
     action SetAmbientLight(AmbientLight light)
@@ -253,7 +371,7 @@ end
     be ignored during rendering. 
     */
     action ContainsLighting returns boolean
-        return (not pointLights:IsEmpty()) or (not directionalLights:IsEmpty()) or ambientLight not= undefined
+        return (not pointLights:IsEmpty()) or (not directionalLights:IsEmpty()) or (not spotLights:IsEmpty()) or ambientLight not= undefined
 end
 
     /*
@@ -283,6 +401,18 @@ end
     action GetPointLight(integer index) returns PointLight
         return pointLights:Get(index)
 end
+
+    action GetSpotLightIterator returns Iterator<SpotLight>
+        return spotLights:GetIterator()
+    end
+
+    action GetSpotLightCount returns integer
+        return spotLights:GetSize()
+    end
+
+    action GetSpotLight(integer index) returns SpotLight
+        return spotLights:Get(index)
+    end
     
     action GetDevice returns VulkanDevice
         return device
@@ -292,11 +422,42 @@ end
         return sceneDataDirty:Get(resourceIndex) = true or lightsDirty:Get(resourceIndex) = true
     end
     
+    /*
+    This action sets one light record in the transfer array to zeros, so no
+    value from a light that was there before is left behind (Item 37).
+
+    Attribute: Parameter index Where the record starts.
+    */
+    private action ClearLightRecord(integer index)
+        integer word = 0
+        repeat while word < LIGHTS_WORD_SIZE
+            lightMappingArray:Set(index + word, 0)
+            word = word + 1
+        end
+    end
+
+    /*
+    This action writes a light's intensity and color into its record
+    (Item 37).
+
+    Attribute: Parameter index Where the record starts.
+    Attribute: Parameter intensity The light's intensity.
+    Attribute: Parameter color The light's color.
+    */
+    private action WriteIntensityAndColor(integer index, number intensity, Color color)
+        lightMappingArray:Set(index + INTENSITY_INDEX, intensity)
+        lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
+        lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
+        lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
+    end
+
     action UpdateBuffers(integer resourceIndex)
         VulkanBuffer lightsBuffer = lightsBuffers:Get(resourceIndex)
         VulkanBuffer sceneDataBuffer = sceneDataBuffers:Get(resourceIndex)
+        VulkanBuffer shadowBuffer = cascadeShadowBuffers:Get(resourceIndex)
         VulkanNumber32BitMappedMemory lightsMemory = lightsMemories:Get(resourceIndex)
         VulkanNumber32BitMappedMemory sceneDataMemory = sceneDataMemories:Get(resourceIndex)
+        VulkanNumber32BitMappedMemory shadowMemory = cascadeShadowMemories:Get(resourceIndex)
         if lightsBuffer = undefined
             VulkanConstants constants
             
@@ -321,50 +482,98 @@ end
             sceneDataBuffers:Set(resourceIndex, sceneDataBuffer)
             sceneDataMemories:Set(resourceIndex, sceneDataMemory)
         end
+        if shadowBuffer = undefined
+            VulkanConstants constants
+            GameStateManager gameState
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+            
+            VulkanBuffer newBuffer
+            shadowBuffer = newBuffer
+            
+            shadowBuffer:CreateMappableBuffer(device, SHADOW_DATA_BYTE_SIZE * maxLights * lightProperties:GetShadowMapCascadeCount(), constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+            shadowMemory = shadowBuffer:MapToNumber32BitMemory()
+            
+            cascadeShadowBuffers:Set(resourceIndex, shadowBuffer)
+            cascadeShadowMemories:Set(resourceIndex, shadowMemory)
+        end
         
         if lightsDirty:Get(resourceIndex)
             NumberUtilities utility
             
-            integer index = 0
-        integer i = 0
-        repeat while i < directionalLights:GetSize()
-            DirectionalLight light = directionalLights:Get(i)
-            Vector3 direction = light:GetDirection()
-            Color color = light:GetColor()
-            
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, direction:GetX())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
-            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(1))
-            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
-            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
-            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
-            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
-            
-            index = index + LIGHTS_WORD_SIZE
-            i = i + 1
-        end
-        
-        i = 0
-        repeat while i < pointLights:GetSize()
-            PointLight light = pointLights:Get(i)
-            Color color = light:GetColor()
-            
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, light:GetX())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, light:GetY())
-            lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, light:GetZ())
-            lightMappingArray:Set(index + IS_DIRECTIONAL_INDEX, utility:EncodeIntegerAsNumber(0))
-            lightMappingArray:Set(index + INTENSITY_INDEX, light:GetIntensity())
-            lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
-            lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
-            lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
-            
-            index = index + LIGHTS_WORD_SIZE
-            i = i + 1
-        end
-        
-        lightsMemory:Set(lightMappingArray)
-        lightsDirty:Set(resourceIndex, false)
+            // Directional lights first, then point lights, then
+            // spotlights. Shadows count lights in the same order, so
+            // directional and point lights keep their places (Item 37).
+            integer written = 0
+            integer i = 0
+            repeat while i < directionalLights:GetSize() and written < maxLights
+                DirectionalLight light = directionalLights:Get(i)
+                Vector3 direction = light:GetDirection()
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, direction:GetX())
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(DIRECTIONAL_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                written = written + 1
+                i = i + 1
+            end
+
+            i = 0
+            repeat while i < pointLights:GetSize() and written < maxLights
+                PointLight light = pointLights:Get(i)
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                // The world position, so a light that belongs to another
+                // item is placed correctly (Item 37).
+                Matrix4 transform = light:GetTransform()
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, transform:row0column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(POINT_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
+                written = written + 1
+                i = i + 1
+            end
+
+            i = 0
+            repeat while i < spotLights:GetSize() and written < maxLights
+                SpotLight light = spotLights:Get(i)
+                integer index = written * LIGHTS_WORD_SIZE
+                ClearLightRecord(index)
+                Matrix4 transform = light:GetTransform()
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX, transform:row0column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
+                lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
+                lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(SPOT_LIGHT_TYPE))
+                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+
+                // The cone's direction turned by the light's world rotation,
+                // then made length 1 again (the transform may be scaled).
+                Vector3 localDirection = light:GetDirection()
+                number x = transform:row0column0 * localDirection:GetX() + transform:row0column1 * localDirection:GetY() + transform:row0column2 * localDirection:GetZ()
+                number y = transform:row1column0 * localDirection:GetX() + transform:row1column1 * localDirection:GetY() + transform:row1column2 * localDirection:GetZ()
+                number z = transform:row2column0 * localDirection:GetX() + transform:row2column1 * localDirection:GetY() + transform:row2column2 * localDirection:GetZ()
+                number length = lightMath:SquareRoot(x * x + y * y + z * z)
+                if length > 0.000001
+                    x = x / length
+                    y = y / length
+                    z = z / length
+                end
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX, x)
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX + 1, y)
+                lightMappingArray:Set(index + SPOT_DIRECTION_INDEX + 2, z)
+                lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
+                lightMappingArray:Set(index + COS_INNER_INDEX, lightMath:Cosine(lightMath:DegreesToRadians(light:GetInnerAngle())))
+                lightMappingArray:Set(index + COS_OUTER_INDEX, lightMath:Cosine(lightMath:DegreesToRadians(light:GetOuterAngle())))
+                written = written + 1
+                i = i + 1
+            end
+
+            lightsMemory:Set(lightMappingArray)
+            lightsDirty:Set(resourceIndex, false)
         end
         
         if sceneDataDirty:Get(resourceIndex)
@@ -387,21 +596,369 @@ end
                 sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, color:GetBlue())
             else
                 // If there's no lighting at all, set ambient light to full white (all pixels receive full color)
-                if pointLights:IsEmpty() and directionalLights:IsEmpty()
+                if pointLights:IsEmpty() and directionalLights:IsEmpty() and spotLights:IsEmpty()
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 1.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, 1.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, 1.0)
                 else
                     sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, 0.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, 0.0)
+                    sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, 0.0)
                 end
             end
             sceneDataMappingArray:Set(AMBIENT_LIGHT_INTENSITY_INDEX, 1.0)
-            sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(pointLights:GetSize() + directionalLights:GetSize()))
+            integer shaderLightCount = pointLights:GetSize() + directionalLights:GetSize() + spotLights:GetSize()
+            if shaderLightCount > maxLights
+                shaderLightCount = maxLights
+            end
+            sceneDataMappingArray:Set(LIGHT_COUNT_INDEX, utility:EncodeIntegerAsNumber(shaderLightCount))
+            
+            Matrix4 matrix = camera:GetViewMatrix()
+                    sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX, matrix:row0column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 1, matrix:row1column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 2, matrix:row2column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 3, matrix:row3column0)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 4, matrix:row0column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 5, matrix:row1column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 6, matrix:row2column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 7, matrix:row3column1)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 8, matrix:row0column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 9, matrix:row1column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 10, matrix:row2column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 11, matrix:row3column2)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 12, matrix:row0column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 13, matrix:row1column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 14, matrix:row2column3)
+            sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 15, matrix:row3column3)
             
             sceneDataMemory:Set(sceneDataMappingArray)
             sceneDataDirty:Set(resourceIndex, false)
+        end
+        
+        if shadowsDirty:Get(resourceIndex)
+            CalculateShadowProjections()
+            
+            integer index = 0
+        integer i = 0
+        // At most maxLights fit in the shadow data (Item 35).
+        integer shadowLightCount = directionalLights:GetSize() + pointLights:GetSize()
+        if shadowLightCount > maxLights
+            shadowLightCount = maxLights
+        end
+        repeat while i < shadowLightCount
+                Light light = undefined
+                if i < directionalLights:GetSize()
+                    light = directionalLights:Get(i)
+                else
+                    light = pointLights:Get(i - directionalLights:GetSize())
+                end
+                
+                integer cascadeIndex = 0
+                GameStateManager gameState
+            VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+            VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+                repeat while cascadeIndex < lightProperties:GetShadowMapCascadeCount()
+                    CascadeShadowData shadowData = light:GetShadowData(cascadeIndex)
+                    integer j = 0
+                repeat while j < 6
+                    Matrix4 matrix = shadowData:GetProjectionMatrix(j)
+                    cascadeShadowTransferArray:Set(index, matrix:row0column0)
+            cascadeShadowTransferArray:Set(index + 1, matrix:row1column0)
+            cascadeShadowTransferArray:Set(index + 2, matrix:row2column0)
+            cascadeShadowTransferArray:Set(index + 3, matrix:row3column0)
+            cascadeShadowTransferArray:Set(index + 4, matrix:row0column1)
+            cascadeShadowTransferArray:Set(index + 5, matrix:row1column1)
+            cascadeShadowTransferArray:Set(index + 6, matrix:row2column1)
+            cascadeShadowTransferArray:Set(index + 7, matrix:row3column1)
+            cascadeShadowTransferArray:Set(index + 8, matrix:row0column2)
+            cascadeShadowTransferArray:Set(index + 9, matrix:row1column2)
+            cascadeShadowTransferArray:Set(index + 10, matrix:row2column2)
+            cascadeShadowTransferArray:Set(index + 11, matrix:row3column2)
+            cascadeShadowTransferArray:Set(index + 12, matrix:row0column3)
+            cascadeShadowTransferArray:Set(index + 13, matrix:row1column3)
+            cascadeShadowTransferArray:Set(index + 14, matrix:row2column3)
+            cascadeShadowTransferArray:Set(index + 15, matrix:row3column3)
+                    
+                    index = index + SHADOW_PROJECTION_WORD_SIZE
+                    j = j + 1
+                end
+                number splitDistance = shadowData:GetSplitDistance()
+                cascadeShadowTransferArray:Set(index, splitDistance)
+                cascadeShadowTransferArray:Set(index + 1, splitDistance)
+                cascadeShadowTransferArray:Set(index + 2, splitDistance)
+                cascadeShadowTransferArray:Set(index + 3, splitDistance)
+            index = index + SHADOW_SPLIT_DISTANCE_WORD_SIZE
+                    
+                    cascadeIndex = cascadeIndex + 1
+                end
+                
+            i = i + 1
+        end
+        
+        shadowMemory:Set(cascadeShadowTransferArray)
+        shadowsDirty:Set(resourceIndex, false)
+        end
+        
+    end
+    
+    private action CalculateShadowProjections
+        Matrix4 cameraView = camera:GetViewMatrix()
+        Matrix4 cameraProjection = camera:GetProjectionMatrix()
+        Matrix4 inverseCamera
+        inverseCamera:Set(cameraProjection):Multiply(cameraView):Inverse()
+        
+        integer directionalCount = GetDirectionalLightCount()
+        integer pointCount = GetPointLightCount()
+        
+        Math math
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
+        constant integer CASCADE_COUNT = lightProperties:GetShadowMapCascadeCount()
+        constant integer SHADOW_MAP_SIZE = lightProperties:GetShadowMapSize()
+        constant integer MATRIX_SIZE = 16
+        constant integer LIGHT_DATA_SIZE = 6 * MATRIX_SIZE + 1
+        
+        Array<number> cascadeSplits
+        number nearClip = camera:GetNear()
+            number farClip = camera:GetFar()
+            number clipRange = farClip - nearClip
+            number ratio = farClip / nearClip
+        
+        // Calculate split depths based on view camera frustum
+        // Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+        integer i = 0
+        repeat while i < CASCADE_COUNT
+            number power = (i + 1.0) / CASCADE_COUNT
+            number log = nearClip * math:RaiseToPower(ratio, power)
+            number uniform = nearClip + clipRange * power
+number d = 0.95 * (log - uniform) + uniform
+cascadeSplits:Add((d - nearClip) / clipRange)
+            i = i + 1
+        end
+        
+        integer lightCounter = 0
+        i = 0
+        repeat while i < directionalCount
+            DirectionalLight light = GetDirectionalLight(i)
+            Vector3 direction
+            direction:Set(light:GetDirection())
+            direction:Normalize()
+            
+            number lastSplitDistance = 0
+            integer j = 0
+            repeat while j < CASCADE_COUNT
+                number splitDistance = cascadeSplits:Get(j)
+                
+                CascadeShadowData shadowData = light:GetShadowData(j)
+            if shadowData = undefined
+                CascadeShadowData newData
+                light:SetShadowData(j, newData)
+                shadowData = newData
+            end
+                
+                // Create an orthographic projection matrix for each cascade. Begin by initializing values.
+        Array<Vector3> frustumCorners
+        integer k = 0
+        repeat while k < 8
+            number x = 1
+            number y = 1
+            number z = 0
+            integer kMod4 = k mod 4
+            if kMod4 = 0 or kMod4 = 3
+                x = -1
+            end
+            if kMod4 >= 2
+                y = -1
+            end
+            if k >= 4
+                z = 1
+            end
+            
+            Vector3 vector
+            vector:Set(x, y, z)
+            frustumCorners:Add(vector)
+            k = k + 1
+        end
+        
+        // Project the frustum corners into world space.
+        k = 0
+        repeat while k < 8
+            Vector3 corner = frustumCorners:Get(k)
+            Vector4 inverseCorner
+            inverseCorner:Set(corner, 1.0):Multiply(inverseCamera)
+            corner:Set(inverseCorner:GetX(), inverseCorner:GetY(), inverseCorner:GetZ()):Scale(1.0 / inverseCorner:GetW())
+            k = k + 1
+        end
+                
+                Vector3 frustumCenter
+                frustumCenter:Set(0, 0, 0)
+        k = 0
+        repeat while k < 4
+            Vector3 distance
+                    Vector3 farResult
+                    Vector3 nearResult
+                    Vector3 calc
+                    
+                    distance:Set(frustumCorners:Get(k + 4)):Subtract(frustumCorners:Get(k))
+                    
+                    calc:Set(distance):Scale(splitDistance)
+                    farResult:Set(frustumCorners:Get(k)):Add(calc)
+                    
+                    calc:Set(distance):Scale(lastSplitDistance)
+                    nearResult:Set(frustumCorners:Get(k)):Add(calc)
+                    
+                    frustumCorners:Set(k + 4, farResult)
+                    frustumCorners:Set(k, nearResult)
+                    frustumCenter:Add(farResult):Add(nearResult)
+            k = k + 1
+        end
+                
+                // Having added together the value of all points, divide by their total to get the average -- this results in the center of the frustum.
+                frustumCenter:Scale(1.0 / 8.0)
+                
+                Vector3 up
+                up:Set(0, 1, 0)
+                number sphereRadius = 0
+                k = 0
+                repeat while k < 8
+                    Vector3 calc
+                    calc:Set(frustumCorners:Get(k)):Subtract(frustumCenter)
+                    number distance = calc:Length()
+                    if distance > sphereRadius
+                        sphereRadius = distance
+                    end
+                    k = k + 1
+                end
+                
+                sphereRadius = math:Ceiling(sphereRadius * 16.0) / 16
+                
+                Vector3 maxExtents
+                maxExtents:Set(sphereRadius, sphereRadius, sphereRadius)
+                Vector3 minExtents
+                minExtents:Set(maxExtents):Scale(-1)
+                
+                Vector3 calc
+                calc:Set(direction):Scale(minExtents:GetZ())
+                Vector3 shadowCameraPosition
+                shadowCameraPosition:Set(frustumCenter):Add(calc)
+                
+                number dot = math:AbsoluteValue(direction:DotProduct(up))
+                if dot = 1.0
+                    up:Set(0, 0, 1)
+                end
+                
+                CameraMatrix4 lightViewMatrix
+                lightViewMatrix:SetToLookAt(shadowCameraPosition, frustumCenter, up)
+                CameraMatrix4 lightOrthoMatrix
+                lightOrthoMatrix:OrthographicProjection(minExtents:GetX(), maxExtents:GetX(), minExtents:GetY(), maxExtents:GetY(), 0.0, maxExtents:GetZ() - minExtents:GetZ())
+                
+                integer shadowMapSize = lightProperties:GetShadowMapSize()
+                Vector4 shadowOrigin
+                shadowOrigin:Set(0, 0, 0, 1)
+                shadowOrigin:Multiply(lightViewMatrix)
+                shadowOrigin:Scale(shadowMapSize / 2.0)
+                
+                Vector4 roundedOrigin
+                roundedOrigin:Set(math:Round(shadowOrigin:GetX()), math:Round(shadowOrigin:GetY()), math:Round(shadowOrigin:GetZ()), math:Round(shadowOrigin:GetW()))
+                Vector4 roundOffset
+                roundOffset:Set(roundedOrigin):Subtract(shadowOrigin)
+                roundOffset:Scale(2.0 / shadowMapSize)
+                roundOffset:SetZ(0)
+                roundOffset:SetW(0)
+                
+                // Due to a compiler bug in accessing fields of parents, downcasting is necessary to change the fields.
+                Matrix4 lightOrtho = lightOrthoMatrix
+                lightOrtho:row3column0 = lightOrtho:row3column0 + roundOffset:GetX()
+                lightOrtho:row3column1 = lightOrtho:row3column0 + roundOffset:GetY()
+                
+                // For directional lights, only set the first matrix in each cubemap.
+                Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(0)
+                shadowDataMatrix:Set(lightOrthoMatrix):Multiply(lightViewMatrix)
+                shadowData:SetSplitDistance(nearClip + splitDistance * clipRange)
+                
+                j = j + 1
+            end
+            
+            lightCounter = lightCounter + 1
+            i = i + 1
+        end
+        
+        i = 0
+        repeat while i < pointCount
+            PointLight light = GetPointLight(i)
+            Vector3 lightPosition = light:GetPosition()
+
+            number maxDistance = light:GetRange()
+            // Begin with a very small start distance. This will be the first "near" clip value, so we want it to be very close to the point light's source, but it can't be zero.
+            number minDistance = 0.001
+            
+            number distanceRange = maxDistance - minDistance
+            number distanceRatio = maxDistance / minDistance
+            
+            number lastSplitDistance = minDistance
+            integer j = 0
+            repeat while j < CASCADE_COUNT
+                number power = (j + 1.0) / CASCADE_COUNT
+            number log = minDistance * math:RaiseToPower(distanceRatio, power)
+            number uniform = minDistance + distanceRange * power
+number d = 0.95 * (log - uniform) + uniform
+                number splitDistance = (d - minDistance) / distanceRange
+                
+                CascadeShadowData shadowData = light:GetShadowData(j)
+            if shadowData = undefined
+                CascadeShadowData newData
+                light:SetShadowData(j, newData)
+                shadowData = newData
+            end
+                
+                CameraMatrix4 shadowProjection
+                shadowProjection:PerspectiveProjection(minDistance * maxDistance, splitDistance * maxDistance, 90, 1)
+                
+                /*We need to set all six faces of our cubemap for point lights. To do this, we'll create a matrix that points to
+one of the six axis directions. In order, these will be: positive/negative x, positive/negative y, positive/negative z.*/
+                integer k = 0
+                repeat while k < 6
+                    Vector3 direction
+                    Vector3 up
+                    if k = 0
+                        direction:Set(1, 0, 0)
+                        up:Set(0, 1, 0)
+                    elseif k = 1
+                        direction:Set(-1, 0, 0)
+                        up:Set(0, 1, 0)
+                    elseif k = 2
+                        direction:Set(0, 1, 0)
+                        up:Set(0, 0, 1)
+                    elseif k = 3
+                        direction:Set(0, -1, 0)
+                        up:Set(0, 0, 1)
+                    elseif k = 4
+                        direction:Set(0, 0, 1)
+                        up:Set(0, 1, 0)
+                    else
+                        direction:Set(0, 0, -1)
+                        up:Set(0, 1, 0)
+                    end
+                    
+                    CameraMatrix4 shadowView
+                    Vector3 viewTarget
+                    viewTarget:Set(lightPosition):Add(direction)
+                    shadowView:SetToLookAt(lightPosition, viewTarget, up)
+                    
+                    Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(k)
+                shadowDataMatrix:Set(shadowProjection):Multiply(shadowView)
+                shadowData:SetSplitDistance((minDistance + splitDistance * distanceRange) * 1.0)
+                    
+                    k = k + 1
+                end
+                
+                lastSplitDistance = splitDistance
+                j = j + 1
+            end
+            
+            lightCounter = lightCounter + 1
+            i = i + 1
         end
         
     end
@@ -430,6 +987,14 @@ end
         
         return sceneDataBuffers:Get(resourceIndex)
     end
+    
+    action GetShadowProjectionBuffer(integer resourceIndex) returns VulkanBuffer
+        if shadowsDirty:Get(resourceIndex)
+            UpdateBuffers(resourceIndex)
+        end
+        
+        return cascadeShadowBuffers:Get(resourceIndex)
+    end
 
     action GetCamera returns Camera
         return camera
@@ -441,20 +1006,20 @@ end
     end
     
     action LightChanged(Light light)
-        if light is PointLight or light is DirectionalLight
+        if light is PointLight or light is DirectionalLight or light is SpotLight
             SetLightsDirty()
         elseif light is AmbientLight
             SetSceneDataDirty()
         end
     end
     
-    action GetDescriptorSet(integer resourceIndex) returns VulkanDescriptorSet
+    action GetLightDataDescriptorSet(integer resourceIndex) returns VulkanDescriptorSet
         // The buffers need to already exist so we can link the resources, so ensure they have been created.
         UpdateBuffers(resourceIndex)
         
-        if descriptorSetLayout = undefined
+        if lightDataDescriptorSetLayout = undefined
             VulkanDescriptorSetLayout layout
-            descriptorSetLayout = layout
+            lightDataDescriptorSetLayout = layout
             
             Array<VulkanDescriptorSetLayoutBinding> bindings
             VulkanConstants constants
@@ -474,11 +1039,11 @@ end
             sceneDataBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
             bindings:Add(sceneDataBinding)
             
-            descriptorSetLayout:Create(device, bindings)
+            lightDataDescriptorSetLayout:Create(device, bindings)
         end
         
         // Initialize the descriptor set if we haven't already.
-        if descriptorSets:Get(resourceIndex) = undefined
+        if lightDataDescriptorSets:Get(resourceIndex) = undefined
             GameStateManager manager
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
@@ -497,13 +1062,13 @@ end
             dataResources:SetDestinationBinding(1)
             dataResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             
-            VulkanDescriptorSet set = descriptorManager:CreateDescriptorSet(descriptorSetLayout)
+            VulkanDescriptorSet set = descriptorManager:CreateDescriptorSet(lightDataDescriptorSetLayout)
             set:LinkResources(lightResources)
             set:LinkResources(dataResources)
-            descriptorSets:Set(resourceIndex, set)
+            lightDataDescriptorSets:Set(resourceIndex, set)
         end
         
-        return descriptorSets:Get(resourceIndex)
+        return lightDataDescriptorSets:Get(resourceIndex)
     end
 
 end

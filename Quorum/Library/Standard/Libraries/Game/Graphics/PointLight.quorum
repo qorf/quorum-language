@@ -4,12 +4,77 @@ use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Light
 use Libraries.Interface.Item3D
 
+/*
+A PointLight lights a 3D scene from one point, the way a light bulb, a
+lamp or a campfire does. It shines out equally in every direction, and its
+light gets dimmer the farther it travels: twice as far away, an object gets
+a quarter of the light. A point light is an Item3D, so it can be placed
+anywhere with SetPosition, and it can be added to another item, such as a
+lantern carried by a character, so that it moves along with it.
+
+The intensity sets how bright the light is, and the color sets what color
+it adds to the scene. A brighter light reaches farther before it becomes
+too dim to notice.
+
+When shadows are drawn, a point light casts shadows in every direction
+around it. Its culling range, set with SetCullingRange, says how far from
+the light objects are drawn into its shadows. A smaller culling range is
+faster. Without one, the light's whole reach is used, which for a bright
+light can be very far. See GetRange and GetCullingRange.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Model box
+        box:LoadBox(2, 2, 2, color:Orange())
+        box:SetPosition(0, 0, 5)
+        Add(box)
+
+        // A warm lamp hanging just above the box.
+        PointLight lamp
+        lamp:SetColor(color:Yellow())
+        lamp:SetPosition(0, 3, 5)
+        lamp:SetIntensity(10)
+        lamp:SetCullingRange(15)
+        Add(lamp)
+    end
+
+    action Update(number seconds)
+    end
+end
+*/
 class PointLight is Light, Item3D
-    
+
     /*
     How bright the light is.
     */
     number intensity = 0
+
+    /*
+    How far from the light objects are drawn into its shadows, as set with
+    SetCullingRange, or 0 if it has not been set, in which case the light's
+    whole reach is used. See GetCullingRange.
+    */
+    number cullingRange = 0
+
+    /*
+    The light level below which a point light is treated as having no
+    effect. Anything dimmer is treated as no light. It decides how far the
+    light reaches, as returned by GetRange.
+    */
+    constant number MINIMUM_ILLUMINATION_THRESHOLD = 0.0003
 
     /*
     This action will set the intensity of this light, which indicates how bright
@@ -17,6 +82,10 @@ class PointLight is Light, Item3D
     */
     action SetIntensity(number newIntensity)
         intensity = newIntensity
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
     /*
@@ -28,6 +97,67 @@ class PointLight is Light, Item3D
     end
 
     /*
+    This action sets how far from the light objects are drawn into its
+    shadows when a layer culls what it draws. Only objects within this
+    distance of the light are drawn into its shadows, so a smaller culling
+    range is faster.
+
+    It does not change how far the light shines. Its brightness still falls
+    with the square of the distance, so surfaces past the culling range are
+    still lit a little, without shadows from objects past it. Choose a
+    distance where the light has become dim.
+
+    A culling range of 0 uses the light's whole reach, from GetRange.
+
+    Attribute: Parameter range How far from the light, in world units, or 0
+    to use the light's whole reach.
+    */
+    action SetCullingRange(number range)
+        if range < 0
+            cullingRange = 0
+        else
+            cullingRange = range
+        end
+    end
+
+    /*
+    This action returns how far from the light objects are drawn into its
+    shadows: the culling range set with SetCullingRange, or, if none was
+    set, the light's whole reach from GetRange.
+
+    Attribute: Returns The culling range.
+    */
+    action GetCullingRange returns number
+        if cullingRange > 0
+            return cullingRange
+        end
+        return GetRange()
+    end
+
+    /*
+    This action returns how far this light reaches. A point light's
+    brightness falls with the square of the distance, so it never reaches
+    zero. Instead, the light is treated as reaching as far as its brightest
+    color, at its intensity, stays above MINIMUM_ILLUMINATION_THRESHOLD.
+    That distance is the square root of the brightest color times the
+    intensity, divided by the threshold. Shadows from this light are only
+    made within this distance.
+
+    Attribute: Returns How far this light reaches.
+    */
+    action GetRange returns number
+        Color lightColor = GetColor()
+        number brightest = lightColor:GetRed()
+        if lightColor:GetGreen() > brightest
+            brightest = lightColor:GetGreen()
+        end
+        if lightColor:GetBlue() > brightest
+            brightest = lightColor:GetBlue()
+        end
+        return parent:Item3D:math:SquareRoot(brightest * intensity / MINIMUM_ILLUMINATION_THRESHOLD)
+    end
+
+    /*
     This action will create a copy of this PointLight that has the same color,
     position, intensity, and offsets as this light.
     */
@@ -35,6 +165,7 @@ class PointLight is Light, Item3D
         PointLight copy
         copy:SetLight(GetColor(), GetPosition(), intensity)
         copy:SetOffset(GetOffsetX(), GetOffsetY(), GetOffsetZ())
+        copy:SetCullingRange(cullingRange)
         return copy
     end
 
@@ -50,6 +181,70 @@ class PointLight is Light, Item3D
         SetPosition(newPosition)
 
         intensity = newIntensity
+    end
+    
+    action MoveX(number x)
+        parent:Item3D:MoveX(x)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action MoveY(number y)
+        parent:Item3D:MoveY(y)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action MoveZ(number z)
+        parent:Item3D:MoveZ(z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action Move(number x, number y, number z)
+        parent:Item3D:Move(x, y, z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetX(number x)
+        parent:Item3D:SetOffsetX(x)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetY(number y)
+        parent:Item3D:SetOffsetY(y)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffsetZ(number z)
+        parent:Item3D:SetOffsetZ(z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+    
+    action SetOffset(number x, number y, number z)
+        parent:Item3D:SetOffset(x, y, z)
+        
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
     end
 
 end

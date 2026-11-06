@@ -50,52 +50,10 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
     
     this.me_ = quorumPixelMap;
 
-    this.LoadPixelMap$quorum_Libraries_System_File = function(file) 
+    this.LoadPixelMap$quorum_Libraries_System_File = function(file)
     {
-        /*
-         
-         GameFile javaFile = GameStateManager.fileHandler.Convert(quorumFile);
-        
-            byte[] bytes = javaFile.ReadBytes();
-
-            pixelPointer = Load(nativeData, bytes, 0, bytes.length);
-            if (pixelPointer == null)
-                throw new GameRuntimeError("Error loading PixelMap: " + GetFailureReason());
-
-            basePointer = nativeData[0];
-            width = (int)nativeData[1];
-            height = (int)nativeData[2];
-            format = (int)nativeData[3];
-
-            final quorum.Libraries.Game.Graphics.PixelMap thisMap = (quorum.Libraries.Game.Graphics.PixelMap) me_;
-            quorum.Libraries.Game.Graphics.Format_ newFormat = new quorum.Libraries.Game.Graphics.Format();
-            newFormat.SetValue(format);
-            thisMap.format = newFormat;
-         
-         */
-        
-        // Proper code to go here to be determined.
-        
-//        pixels = new Uint8Array([0, 0, 255, 255]);
-//        width = 1;
-//        height = 1;
-//        format = 4;
-//        
-//        var image = new Image();
-//        image.onload = function() 
-//        {
-//            FinishFileLoading(image);
-//        };
-//        image.src = "Hues.png";
+        // This is a stub, the PixelMap should instead by loaded asynchronously with the appropriate function.
     };
-    
-//    function FinishFileLoading(loadedImage)
-//    {
-//        image = loadedImage;
-//        width = image.width;
-//        height = image.height;
-//        format = 4;
-//    }
 
     this.LoadAsynchronously$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_Format$quorum_boolean$quorum_Libraries_Game_Graphics_Drawable$quorum_Libraries_Game_Graphics_Texture 
         = function(file, format, useMipMaps, drawable, texture)
@@ -143,7 +101,7 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         height = newHeight;
         format = newFormat.GetValue();
         image = undefined;
-        
+
         this.me_.GetFormat().SetValue$quorum_integer(format);
         
         switch(format)
@@ -1228,8 +1186,6 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         tempCanvas.width = width;
         tempCanvas.height = height;
 
-        console.log("w = " + tempCanvas.width + ", h = " + tempCanvas.height);
-
         // Put the pixels into a Uint8ClampedArray, then construct image data we can insert into the canvas.
         var clampedPixels = new Uint8ClampedArray(pixels.buffer);
         var imageData = new ImageData(clampedPixels, width, height);
@@ -1243,4 +1199,23 @@ function plugins_quorum_Libraries_Game_Graphics_PixelMap_(quorumPixelMap)
         link.click();
         document.body.removeChild(link);
 	};
+
+    this.Save = function(file)
+    {
+        this.SaveToDownloads(file.GetNameNoExtension());
+    };
+
+    this.FinishLoadingCubemapSide = function(loadImage)
+    {
+        image = loadImage;
+        width = loadImage.width;
+        height = loadImage.height;
+        format = 4;
+
+        var pixelMap = this.me_;
+
+        var newFormat = new quorum_Libraries_Game_Graphics_Format_();
+        newFormat.SetValue$quorum_integer(4);
+        pixelMap.format = newFormat;
+    }
 }

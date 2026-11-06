@@ -35,13 +35,21 @@ class ProgressBar is Control
     number maximum = 100
     number value = 0
 
+    // The bar's height, and the space between its edge and the fill, in
+    // points before the interface scale (P3).
+    constant number BAR_HEIGHT = 20
+    constant number FILL_INSET = 4
+
     on create
         ManualLayout layout
         SetLayout(layout)
 
         LayoutProperties properties = GetDefaultLayoutProperties()
         properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetVerticalLayoutMode(properties:FIT_FONT)
+        // A slim pill, not the font's height.
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(BAR_HEIGHT)
         Font font
         if (font:IsFontAvailable("Arial"))
             font:LoadFont("Arial")
@@ -50,18 +58,20 @@ class ProgressBar is Control
         end
         properties:SetFont(font)
         properties:SetFontSize(16)
-        SetSize(150,25)
+        SetSize(150, BAR_HEIGHT)
 
         SetName("Progress Bar")
 
         LayoutProperties iconProperties = bar:GetDefaultLayoutProperties()
+        // The fill sits inside the edge, FILL_INSET from each side.
         iconProperties:SetPercentageHeight(1.0)
+        iconProperties:SetPixelHeight(-2 * FILL_INSET)
         iconProperties:SetPercentageWidth(0)
         bar:SetName("Bar Fill")
         Add(bar)
 
-        SetBorderThickness(2)
-        bar:SetBorderThickness(2)
+        SetBorderThickness(1)
+        bar:SetBorderThickness(0)
 
         SetInterfaceOptionsKey("ProgressBar")
         SetInputGroup("ProgressBar")
@@ -94,8 +104,16 @@ class ProgressBar is Control
         Color transparency
         transparency:SetColor(1, 1, 1, 0)
         bar:SetBorderColor(transparency)
-        bar:SetCornerPixelRounding(GetBottomLeftPixelRounding(), GetBottomRightPixelRounding(),
-                           GetTopLeftPixelRounding(), GetTopRightPixelRounding())
+        // Both ends fully round: half of each one's height.
+        number trackRounding = BAR_HEIGHT / 2.0
+        number fillRounding = (BAR_HEIGHT - 2 * FILL_INSET) / 2.0
+        SetCornerPixelRounding(trackRounding, trackRounding, trackRounding, trackRounding)
+        bar:SetCornerPixelRounding(fillRounding, fillRounding, fillRounding, fillRounding)
+        // ManualLayout scales sizes but not positions.
+        number inset = FILL_INSET * GetInterfaceScale()
+        bar:SetPixelX(inset)
+        bar:SetPixelY(inset)
+        UpdateFill()
         
 
         parent:Control:LoadGraphics(properties)
@@ -132,14 +150,31 @@ class ProgressBar is Control
             access:ProgressBarValueChanged(event)
         end
         me:value = value
-        if bar not= undefined
-            // not sure if this works for any given range but works fine for 0 to 100
-            number percentage = (value - minimum)/(maximum - minimum)
-            if percentage >= 0 and percentage <= 1
-                bar:SetPercentageWidth(percentage)
-                bar:RequestLayout()
-            end
+        UpdateFill()
+    end
+
+    /*
+    Sizes the fill to the value, inside the edge: a share of the width less
+    the two insets. Nothing shows at the minimum.
+    */
+    private action UpdateFill
+        if bar = undefined or maximum = minimum
+            return now
         end
+        number percentage = (value - minimum) / (maximum - minimum)
+        if percentage < 0
+            percentage = 0
+        elseif percentage > 1
+            percentage = 1
+        end
+        bar:SetPercentageWidth(percentage)
+        bar:SetPixelWidth(-2 * FILL_INSET * percentage)
+        if percentage = 0
+            bar:Hide()
+        else
+            bar:Show()
+        end
+        bar:RequestLayout()
     end
 
 end

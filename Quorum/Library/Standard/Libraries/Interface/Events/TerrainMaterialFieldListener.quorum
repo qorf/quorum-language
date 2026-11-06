@@ -1,0 +1,34 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
+
+/*
+    The TerrainMaterialFieldListener tells a terrain's Materials section when
+    the focus leaves one of the Material details' fields (step 14), so a
+    value is taken once it's typed, not on each key.
+*/
+class TerrainMaterialFieldListener is FocusListener
+    TerrainMaterialsPropertiesDialog dialog = undefined
+    TextField field = undefined
+
+    /*
+        Sets the section and the field this listens to.
+
+        Attribute: Parameter dialog The Materials section
+        Attribute: Parameter field The field
+    */
+    action Setup(TerrainMaterialsPropertiesDialog dialog, TextField field)
+        me:dialog = dialog
+        me:field = field
+    end
+
+    action GainedFocus(FocusEvent event)
+    end
+
+    action LostFocus(FocusEvent event)
+        if dialog not= undefined
+            dialog:FieldLeft(field)
+        end
+    end
+end

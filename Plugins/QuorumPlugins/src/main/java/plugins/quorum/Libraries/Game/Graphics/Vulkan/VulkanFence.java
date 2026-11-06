@@ -1,64 +1,48 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkFenceCreateInfo;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanFence;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanFence;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanFenceStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.*;
-
+/*
+The Java side of Quorum's VulkanFence. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanFence), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanFence, with quorum-natives' src/vulkan).
+*/
 public class VulkanFence
 {
     public Object me_;
 
-    private long fenceHandle = 0L;
+    private final VulkanFenceStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanFence(this) : new DesktopVulkanFence(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, boolean signaled)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-
-            VkFenceCreateInfo fenceCreateInfo = VkFenceCreateInfo.calloc(stack);
-            fenceCreateInfo.sType$Default();
-            fenceCreateInfo.flags(signaled ? VK_FENCE_CREATE_SIGNALED_BIT : 0);
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreateFence(pluginDevice.GetDevice(), fenceCreateInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            fenceHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, signaled);
     }
 
     public void DisposeNative()
     {
-        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkDestroyFence(pluginDevice.GetDevice(), fenceHandle, null);
+        strategy.DisposeNative();
     }
 
     public void Wait()
     {
-        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkWaitForFences(pluginDevice.GetDevice(), fenceHandle, true, Long.MAX_VALUE);
+        strategy.Wait();
     }
 
     public void Reset()
     {
-        VulkanDevice_ quorumDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanFence)me_).GetDevice();
-        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-        vkResetFences(pluginDevice.GetDevice(), fenceHandle);
+        strategy.Reset();
     }
 
     public long GetFenceHandle()
     {
-        return fenceHandle;
+        return strategy.GetFenceHandle();
     }
 
+    public VulkanFenceStrategy GetStrategy()
+    {
+        return strategy;
+    }
 }

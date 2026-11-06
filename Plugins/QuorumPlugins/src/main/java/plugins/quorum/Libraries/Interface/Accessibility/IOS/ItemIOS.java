@@ -1,16 +1,21 @@
 package plugins.quorum.Libraries.Interface.Accessibility.IOS;
 
+import org.robovm.apple.coregraphics.CGPoint;
 import org.robovm.apple.coregraphics.CGRect;
 import org.robovm.apple.foundation.NSArray;
 import org.robovm.apple.foundation.NSMutableArray;
 import org.robovm.apple.uikit.*;
 import org.robovm.objc.Selector;
 import org.robovm.objc.block.Block1;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Game.IOSApplication;
+import plugins.quorum.Libraries.Game.IOSInput;
+import plugins.quorum.Libraries.Interface.Accessibility.IOSAccessibility;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Interface.Controls.RadioButton_;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,16 +43,19 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     {
         UIAccessibilityCustomRotor rotor = new UIAccessibilityCustomRotor();
         rotor.setName("Quorum Navigation");
-        UIAccessibilityElement target = this;
         Block1<UIAccessibilityCustomRotorSearchPredicate, UIAccessibilityCustomRotorItemResult> block = uiAccessibilityCustomRotorSearchPredicate -> {
-            if (uiAccessibilityCustomRotorSearchPredicate.getSearchDirection() == UIAccessibilityCustomRotorDirection.Next) {
-                item.GetNextFocus().Focus();
-                System.out.println("Rotor Forward");
-            } else {
-                item.GetPreviousFocus().Focus();
-                System.out.println("Rotor Backward");
+            boolean next = uiAccessibilityCustomRotorSearchPredicate.getSearchDirection() == UIAccessibilityCustomRotorDirection.Next;
+            Item_ target = GetFocusNeighbor(item, next);
+            if (target == null) {
+                return null;
             }
-            return new UIAccessibilityCustomRotorItemResult(target, null);
+            target.Focus();
+
+            UIAccessibilityElement element = IOSAccessibility.GetVoiceOverTarget(target);
+            if (element == null) {
+                return null;
+            }
+            return new UIAccessibilityCustomRotorItemResult(element, null);
         };
         rotor.setItemSearchBlock(block);
         return rotor;
@@ -55,6 +63,36 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
 
     Item_ item;
     boolean focused = false;
+
+    // The element VoiceOver is on, or null.
+    static ItemIOS voiceOverFocus = null;
+
+    public static ItemIOS GetVoiceOverFocus() {
+        return voiceOverFocus;
+    }
+
+    public static void ClearVoiceOverFocus(ItemIOS element) {
+        if (voiceOverFocus == element) {
+            voiceOverFocus = null;
+        }
+    }
+
+    /*
+        The next or previous item in Quorum's focus order. Items that aren't
+        focusable themselves, such as tree and list items, have none, so their
+        parent's (the tree's or list's) is used.
+     */
+    static Item_ GetFocusNeighbor(Item_ start, boolean next) {
+        Item_ current = start;
+        while (current != null) {
+            Item_ neighbor = next ? current.GetNextFocus() : current.GetPreviousFocus();
+            if (neighbor != null) {
+                return neighbor;
+            }
+            current = current instanceof Item2D_ ? ((Item2D_) current).GetParent() : null;
+        }
+        return null;
+    }
 
     public Item_ GetItem() {
         return this.item;
@@ -72,12 +110,31 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         return accessibilityCustomRotors;
     }
 
+    /*
+        Subclasses set their traits before calling this, so it leaves the
+        traits alone (a new element has none).
+     */
     public void Initialize(Item_ item) {
         this.item = item;
-        UIAccessibilityTraits traits = UIAccessibilityTraits.None;
-        this.setAccessibilityTraits(traits);
         customActions = new NSArray<UIAccessibilityCustomAction>();
         assistiveTechnologyFocusedIdentifiers = new HashSet<String>();
+    }
+
+    /*
+        Sets what VoiceOver reads: the item's name, and its description as a
+        hint when it says something the name doesn't. Subclasses read other
+        text (a label's text, a list item's text).
+     */
+    public void RefreshText() {
+        String name = item.GetName();
+        String description = item.GetDescription();
+        setAccessibilityLabel(name);
+        setAccessibilityValue(null);
+        if (description != null && !description.isEmpty() && !description.equals(name)) {
+            setAccessibilityHint(description);
+        } else {
+            setAccessibilityHint(null);
+        }
     }
 
     @Override
@@ -184,28 +241,89 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
     }
 
     /*
+        VoiceOver's zoom action (iOS 17 and later). VoiceOver takes over the
+        pinch gesture, so an item that listens for gestures says it supports
+        zoom, and each zoom in or out reaches it as one pinch step (see
+        IOSInput.AddAccessibilityPinchEvents). 1.5 matches the pinch size
+        Android marks with isPinch.
+     */
+    static final double ZOOM_STEP = 1.5;
+
+    public boolean HasGestureListeners() {
+        return item != null && item.GetGestureListeners().HasNext();
+    }
+
+    @Override
+    public UIAccessibilityTraits getAccessibilityTraits() {
+        UIAccessibilityTraits traits = super.getAccessibilityTraits();
+        if (HasGestureListeners()) {
+            return new UIAccessibilityTraits(traits.value() | UIAccessibilityTraits.SupportsZoomValue.value());
+        }
+        return traits;
+    }
+
+    @Override
+    public boolean zoomInAtPoint(CGPoint point) {
+        return Zoom(point, ZOOM_STEP);
+    }
+
+    @Override
+    public boolean zoomOutAtPoint(CGPoint point) {
+        return Zoom(point, 1.0 / ZOOM_STEP);
+    }
+
+    /*
+        The pinch goes to whatever is under the point, so a point outside this
+        item (VoiceOver may give the element's center, or nothing) is moved to
+        the item's center. The game handles the pinch in its next frame, so
+        true means the item listens for it, not that it zoomed.
+     */
+    private boolean Zoom(CGPoint point, double scale) {
+        if (!HasGestureListeners()) {
+            return false;
+        }
+
+        CGRect frame = getAccessibilityFrame();
+        if (point == null || !frame.contains(point)) {
+            point = new CGPoint(frame.getMidX(), frame.getMidY());
+        }
+
+        IOSInput input = ((quorum.Libraries.Game.IOSInput) GameStateManager.input).plugin_;
+        input.AddAccessibilityPinchEvents(point, scale);
+        return true;
+    }
+
+    /*
         This function tells the item that it has the focus. By default, this does nothing. Subclasses may need
         to trigger iOS specific things when this happens.
      */
     public void Focus() {
-        System.out.println("Focus from ItemIOS to " + item.GetName());
     }
 
     public void FocusLost() {
-        System.out.println("Lost focus from " + item.GetName());
     }
 
     @Override
     public void didBecomeFocused() {
-        System.out.println(item.GetName() + " gained focus through IOS");
-        item.Focus();
         focused = true;
+        voiceOverFocus = this;
+        // Where VoiceOver went, to see where it jumps from and to.
+        if (IOSAccessibility.debug) {
+            System.out.println("VoiceOver moved to " + getClass().getSimpleName() + " \"" + getAccessibilityLabel() + "\"");
+        }
+        // A radio button takes the focus without being selected: a double
+        // tap selects it (RadioButtonIOS.activate).
+        if (item instanceof RadioButton_) {
+            ((RadioButton_) item).FocusWithoutSelecting();
+        } else {
+            item.Focus();
+        }
     }
 
     @Override
     public void didLoseFocus() {
-        System.out.println(item.GetName() + " lost focus from IOS");
         focused = false;
+        ClearVoiceOverFocus(this);
     }
 
     @Override

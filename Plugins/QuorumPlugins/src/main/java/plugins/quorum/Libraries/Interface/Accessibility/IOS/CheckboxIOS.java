@@ -23,24 +23,21 @@ public class CheckboxIOS extends ItemIOS {
 
     public void Initialize(Checkbox_ checkbox) {
         setCheckbox(checkbox);
-        UIAccessibilityTraits traits = UIAccessibilityTraits.None;
+        UIAccessibilityTraits traits = UIAccessibilityTraits.Button;
         this.setAccessibilityTraits(traits);
         super.Initialize(checkbox);
     }
 
     @Override
+    public String getAccessibilityValue() {
+        return checkbox.GetToggleState() ? "checked" : "not checked";
+    }
+
+    // Toggles once, as a click does, and tells iOS it was handled (false
+    // would make VoiceOver tap the checkbox as well, toggling it back).
+    @Override
     public boolean activate() {
-        boolean isToggled = checkbox.GetToggleState();
-        if (isToggled == true) {
-            checkbox.Activate();
-            checkbox.SetToggleState(false);
-            checkbox.ClickedMouse();
-            return false;
-        } else {
-            checkbox.Activate();
-            checkbox.SetToggleState(true);;
-            checkbox.ClickedMouse();
-            return true;
-        }
+        checkbox.Activate();
+        return true;
     }
 }

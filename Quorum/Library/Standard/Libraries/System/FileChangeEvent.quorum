@@ -1,0 +1,145 @@
+package Libraries.System
+
+/*
+This class describes one change on disk, reported by a FileWatcher. It
+says which file changed, what kind of change it was, and which watched
+folder it was found under. A rename is reported as two events: DELETED
+for the old name and CREATED for the new name.
+
+Attribute: Author Andreas Stefik
+
+Attribute: Example
+
+use Libraries.System.FileChangeEvent
+use Libraries.System.FileChangeListener
+use Libraries.System.File
+
+class ChangePrinter is FileChangeListener
+    action FileChanged(FileChangeEvent event)
+        File changed = event:GetFile()
+        if event:IsCreated()
+            output "Created: " + changed:GetAbsolutePath()
+        elseif event:IsModified()
+            output "Changed: " + changed:GetAbsolutePath()
+        elseif event:IsDeleted()
+            output "Deleted: " + changed:GetAbsolutePath()
+        elseif event:IsOverflow()
+            File folder = event:GetWatchedFolder()
+            output "Some changes were lost. Look again at " + folder:GetAbsolutePath()
+        end
+    end
+end
+*/
+class FileChangeEvent
+    /* The file or folder was created. */
+    public constant integer CREATED = 0
+
+    /* The file was changed. */
+    public constant integer MODIFIED = 1
+
+    /* The file or folder was deleted. */
+    public constant integer DELETED = 2
+
+    /*
+        Some changes were lost, for example because too many happened at
+        once. The file is the watched folder. Look at the folder again to
+        find out what changed.
+    */
+    public constant integer OVERFLOW = 3
+
+    File file = undefined
+    File watchedFolder = undefined
+    integer kind = MODIFIED
+
+    /*
+        Returns the file or folder that changed.
+
+        Attribute: Returns the changed file or folder.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+        Sets the file or folder that changed. Used by FileWatcher.
+
+        Attribute: Parameter file the changed file or folder.
+    */
+    action SetFile(File file)
+        me:file = file
+    end
+
+    /*
+        Returns the folder that was passed to Watch and that contains the
+        changed file.
+
+        Attribute: Returns the watched folder.
+    */
+    action GetWatchedFolder returns File
+        return watchedFolder
+    end
+
+    /*
+        Sets the watched folder. Used by FileWatcher.
+
+        Attribute: Parameter folder the watched folder.
+    */
+    action SetWatchedFolder(File folder)
+        watchedFolder = folder
+    end
+
+    /*
+        Returns the kind of change: CREATED, MODIFIED, DELETED or OVERFLOW.
+
+        Attribute: Returns the kind of change.
+    */
+    action GetKind returns integer
+        return kind
+    end
+
+    /*
+        Sets the kind of change. Used by FileWatcher.
+
+        Attribute: Parameter kind CREATED, MODIFIED, DELETED or OVERFLOW.
+    */
+    action SetKind(integer kind)
+        me:kind = kind
+    end
+
+    /*
+        Returns true if the file or folder was created.
+
+        Attribute: Returns true for a CREATED change.
+    */
+    action IsCreated returns boolean
+        return kind = CREATED
+    end
+
+    /*
+        Returns true if the file was changed.
+
+        Attribute: Returns true for a MODIFIED change.
+    */
+    action IsModified returns boolean
+        return kind = MODIFIED
+    end
+
+    /*
+        Returns true if the file or folder was deleted.
+
+        Attribute: Returns true for a DELETED change.
+    */
+    action IsDeleted returns boolean
+        return kind = DELETED
+    end
+
+    /*
+        Returns true if changes were lost and the watched folder should be
+        looked at again.
+
+        Attribute: Returns true for an OVERFLOW change.
+    */
+    action IsOverflow returns boolean
+        return kind = OVERFLOW
+    end
+end

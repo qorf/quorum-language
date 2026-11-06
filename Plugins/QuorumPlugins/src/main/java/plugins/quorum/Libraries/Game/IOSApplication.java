@@ -12,6 +12,7 @@ import quorum.Libraries.Game.IOSConfiguration_;
 import quorum.Libraries.Game.IOSDisplay_;
 import quorum.Libraries.Game.IOSDisplay;
 import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
 
 import org.robovm.apple.coregraphics.CGRect;
 
@@ -63,6 +64,23 @@ public class IOSApplication
         @Override
         public long indexOfAccessibilityElement(UIAccessibilityElement element) {
             return accessibilityElements.indexOf(element);
+        }
+
+        // The elements UI automation tools (XCUITest, Appium) see, iOS 17 and
+        // later. Unless something sets its own list, they see what VoiceOver
+        // sees, so a Quorum program can be tested by its items.
+        private NSArray<?> automationElements = null;
+
+        @Override
+        public NSArray<?> getAutomationElements() {
+            if (automationElements != null)
+                return automationElements;
+            return accessibilityElements;
+        }
+
+        @Override
+        public void setAutomationElements(NSArray<?> v) {
+            automationElements = v;
         }
     }
     static final String SIMULATOR_SEARCH = "CoreSimulator";
@@ -136,12 +154,10 @@ public class IOSApplication
         this.game = game;
         name = game.GetGameName();
 
-        // Make the default working directory more useful if we're not on a simulator.
-        if (IsSimulator())
-        {
-            plugins.quorum.Libraries.System.QuorumFile qFile = new plugins.quorum.Libraries.System.QuorumFile();
-            qFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
-        }
+        // Files are found relative to the app bundle, where the project's media
+        // is copied, on devices and the simulator alike. Java's user.dir is the
+        // app's data folder instead. The bundle is read-only.
+        plugins.quorum.Libraries.System.QuorumFile.defaultWorkingDirectory = NSBundle.getMainBundle().getBundlePath();
         System.out.println("IOSApplication: SetupNative: NSBundle.getMainBundle().getBundlePath() = " + NSBundle.getMainBundle().getBundlePath());
 
         delegate = new IOSDelegate();
@@ -201,21 +217,37 @@ public class IOSApplication
             }
         }
 
-        plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
-
         IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
-        input.Initialize(this);
-        ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
+        if (GameStateManager.graphics instanceof VulkanGraphics)
+        {
+            // Vulkan (IOSConfiguration's useVulkan) draws on a Metal layer.
+            input.Initialize(this);
+            ((IOSDisplay)display).plugin_.InitializeVulkan(scale, this, config, input);
+        }
+        else
+        {
+            plugins.quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL.init();
+            input.Initialize(this);
+            ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
+        }
 
-        this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
-        this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
+        // The window is made in CreateWindow, when iOS connects the scene.
+        return true;
+    }
+
+    /*
+    Makes the window that shows the game, in the scene iOS connected. Since iOS 27,
+    apps must use the scene life cycle (Apple's TN3187), so IOSSceneDelegate calls
+    this after DidFinishLaunching, instead of DidFinishLaunching making the window
+    for the whole screen.
+    */
+    final UIWindow CreateWindow(UIWindowScene scene)
+    {
+        this.uiWindow = new UIWindow(scene);
+        this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.GetViewController());
         this.uiWindow.makeKeyAndVisible();
         accessibilityContainer = new IOSAccessibilityContainer();
-        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
-        screenBounds = GetBounds();
-        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
-        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
-        accessibilityContainer.setFrame(UIScreen.getMainScreen().getBounds());
+        UpdateAccessibilityBounds();
         accessibilityContainer.setHidden(false);
 
         accessibilityContainer.setAccessibilityIdentifier(name);
@@ -223,11 +255,11 @@ public class IOSApplication
         this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
 
         //hidden text field for the keyboard
+        IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         UITextField field = input.getKeyboardTextField();
         this.uiWindow.getRootViewController().getView().addSubview(field);
 
-        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.32323");
-        return true;
+        return this.uiWindow;
     }
 
     private int GetIOSVersion()
@@ -235,6 +267,29 @@ public class IOSApplication
         String systemVersion = UIDevice.getCurrentDevice().getSystemVersion();
         int version = Integer.parseInt(systemVersion.split("\\.")[0]);
         return version;
+    }
+
+    /*
+    The accessibility container's size, and the pixels per point used to place
+    VoiceOver's frames (ItemIOS.getAccessibilityFrame). Set when the window is
+    made, and again when the display changes size (rotation), since the
+    screen's width and height then swap.
+    */
+    public void UpdateAccessibilityBounds()
+    {
+        accessibilityContainerBounds = UIScreen.getMainScreen().getBounds();
+        screenBounds = GetBounds();
+        containerScaleFactorWidth = (int)(screenBounds.getWidth() / accessibilityContainerBounds.getWidth());
+        containerScaleFactorHeight = (int)(screenBounds.getHeight() / accessibilityContainerBounds.getHeight());
+        if (accessibilityContainer != null)
+            accessibilityContainer.setFrame(accessibilityContainerBounds);
+    }
+
+    // True on this major iOS version or later.
+    public static boolean IsAtLeastIOS(int major)
+    {
+        String systemVersion = UIDevice.getCurrentDevice().getSystemVersion();
+        return Integer.parseInt(systemVersion.split("\\.")[0]) >= major;
     }
 
     public UIViewController GetUIViewController()
@@ -320,6 +375,15 @@ public class IOSApplication
             ((IOSOpenGL)GameStateManager.graphics).plugin_.glFlush();
         }
 
+    }
+
+    /*
+    Exit is declared in IOSApplication.quorum. iOS apps don't quit themselves:
+    Apple's guidelines treat that as a crash, so this does nothing, and the
+    person using the app leaves it the usual way.
+    */
+    public void Exit()
+    {
     }
 
     public void WillTerminate (UIApplication uiApp)

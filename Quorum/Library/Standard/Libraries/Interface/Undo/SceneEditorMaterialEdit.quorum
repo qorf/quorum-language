@@ -1,0 +1,56 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Game.Graphics.Models.Data.Material
+
+/*
+    The SceneEditorMaterialEdit is one change to a terrain layer's material
+    in the scene editor's Material details (step 14): a map, the normal
+    map's convention, a value, or its name. It keeps a copy of the material
+    from before and after. Undo and Redo copy one back, and the scene editor
+    gives every terrain layer using the material its new look.
+*/
+class SceneEditorMaterialEdit is Edit
+    SceneEditor controller = undefined
+    Material material = undefined
+    Material before = undefined
+    Material after = undefined
+    text name = ""
+    boolean reload = true
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter material The material that changed
+        Attribute: Parameter before A copy of it from before the change
+        Attribute: Parameter name What changed, such as "normal map"
+        Attribute: Parameter reload True if the change needs the layers given to the renderer again, false for a name
+    */
+    action Create(SceneEditor controller, Material material, Material before, text name, boolean reload)
+        me:controller = controller
+        me:material = material
+        me:before = before
+        me:after = material:Copy()
+        me:name = name
+        me:reload = reload
+    end
+
+    action Undo
+        material:CopyFrom(before)
+        controller:MaterialEdited(material, reload, "Undid " + name)
+    end
+
+    action Redo
+        material:CopyFrom(after)
+        controller:MaterialEdited(material, reload, "Redid " + name)
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+end

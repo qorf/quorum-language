@@ -3,6 +3,7 @@ package Libraries.Interface.Controls
 use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Label
@@ -18,6 +19,7 @@ use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.LabelBoxToggleView
 use Libraries.Interface.Behaviors.Controls.TabCloseBehavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Interface.Views.ControlShaderView
@@ -45,6 +47,8 @@ class Tab is Button
     CharacterIcon icon
     Label label
     Button closeButton
+    // The close button's X, a picture on top of its hover square (X1).
+    Icon closeX
 
     // The last colors used to generate the "X" texture for the default close button.
     Color closeForeground = undefined
@@ -73,6 +77,9 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         iconLayoutProperties:SetLeftMargin(4)
         
         defaultProperties = GetDefaultLayoutProperties()
+        // Only the top edge has a border: the selected tab's accent line
+        // (the Tab selection border in the interface options).
+        defaultProperties:SetBorderStyle(defaultProperties:TOP)
         defaultProperties:SetHorizontalLayoutMode(defaultProperties:FIT_CONTENTS)
         defaultProperties:SetVerticalLayoutMode(defaultProperties:FIT_FONT)
 
@@ -89,6 +96,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
         closeButton:SetFont(undefined)
+        // The close button draws a hover square (X1), with the X as a
+        // picture on top of it.
+        closeButton:SetInterfaceOptionsKey("TabClose")
+        ManualLayout closeLayout
+        closeButton:SetLayout(closeLayout)
+        LayoutProperties xLayout = closeX:GetDefaultLayoutProperties()
+        xLayout:SetPercentageWidth(1)
+        xLayout:SetPercentageHeight(1)
+        closeButton:Add(closeX)
         closeButton:SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
 
         TabCloseBehavior behavior
@@ -319,6 +335,20 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
     end
 
     /*
+    This action is fired when the Tab gains the focus. If the Tab is entirely
+    out of view in its TabBar (for example, when the focus moves to it from
+    the keyboard), the bar scrolls to show it.
+
+    Attribute: Parameter event The FocusEvent describing the change of focus.
+    */
+    action GainedFocus(FocusEvent event)
+        parent:Button:GainedFocus(event)
+        if bar not= undefined
+            bar:FitHiddenTab(me)
+        end
+    end
+
+    /*
     The OnClose action is called when this Tab is closed (or in other words,
     when the Tab is removed from a TabPane or TabBar). By default, this action
     does nothing, but classes inheriting from Tab can override this action to
@@ -478,10 +508,13 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
 
             closeForeground = foreground
             closeAccent = accent
-            Icon closeIcon
             Texture theX = GenerateX(100, 25, 10, closeForeground, closeAccent)
-            closeIcon:Load(theX)
-            closeButton:SetIcon(closeIcon)
+            closeX:Load(theX)
+            if closeButton:GetView2D() = undefined
+                ControlShaderView closeSurface
+                closeSurface:Initialize()
+                closeButton:SetView2D(closeSurface)
+            end
         end
         
         SetLabelRenderColor()

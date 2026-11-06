@@ -1,0 +1,2738 @@
+package Libraries.Game.Graphics.Vulkan
+
+class VulkanPhysicalDeviceFeatures
+    
+    boolean initialized = false
+    VulkanPhysicalDevice physicalDevice = undefined
+    
+    action Create
+        CreateNative()
+        initialized = true
+    end
+    
+    action Create(VulkanPhysicalDevice device)
+        Create()
+        GetSupportedDeviceFeatures(device)
+    end
+    
+    private system action CreateNative
+    
+    system action GetSupportedDeviceFeatures(VulkanPhysicalDevice device)
+    
+    action IsInitialized returns boolean
+        return initialized
+    end
+    
+    action GetPhysicalDevice returns VulkanPhysicalDevice
+        return physicalDevice
+    end
+    
+    action Dispose
+        DisposeNative()
+        initialized = false
+        physicalDevice = undefined
+    end
+    
+    private system action DisposeNative
+    
+    action HasRobustBufferAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasRobustBufferAccess()
+    end
+
+    private system action NativeHasRobustBufferAccess returns boolean
+
+    action SetRobustBufferAccess(boolean robustBufferAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetRobustBufferAccess(robustBufferAccess)
+    end
+
+    private system action NativeSetRobustBufferAccess(boolean robustBufferAccess)
+
+    action HasFullDrawIndexUint32 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasFullDrawIndexUint32()
+    end
+
+    private system action NativeHasFullDrawIndexUint32 returns boolean
+
+    action SetFullDrawIndexUint32(boolean fullDrawIndexUint32)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetFullDrawIndexUint32(fullDrawIndexUint32)
+    end
+
+    private system action NativeSetFullDrawIndexUint32(boolean fullDrawIndexUint32)
+
+    action HasImageCubeArray returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasImageCubeArray()
+    end
+
+    private system action NativeHasImageCubeArray returns boolean
+
+    action SetImageCubeArray(boolean imageCubeArray)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetImageCubeArray(imageCubeArray)
+    end
+
+    private system action NativeSetImageCubeArray(boolean imageCubeArray)
+
+    action HasIndependentBlend returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasIndependentBlend()
+    end
+
+    private system action NativeHasIndependentBlend returns boolean
+
+    action SetIndependentBlend(boolean independentBlend)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetIndependentBlend(independentBlend)
+    end
+
+    private system action NativeSetIndependentBlend(boolean independentBlend)
+
+    action HasGeometryShader returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasGeometryShader()
+    end
+
+    private system action NativeHasGeometryShader returns boolean
+
+    action SetGeometryShader(boolean geometryShader)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetGeometryShader(geometryShader)
+    end
+
+    private system action NativeSetGeometryShader(boolean geometryShader)
+
+    action HasTessellationShader returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTessellationShader()
+    end
+
+    private system action NativeHasTessellationShader returns boolean
+
+    action SetTessellationShader(boolean tessellationShader)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTessellationShader(tessellationShader)
+    end
+
+    private system action NativeSetTessellationShader(boolean tessellationShader)
+
+    action HasSampleRateShading returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSampleRateShading()
+    end
+
+    private system action NativeHasSampleRateShading returns boolean
+
+    action SetSampleRateShading(boolean sampleRateShading)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSampleRateShading(sampleRateShading)
+    end
+
+    private system action NativeSetSampleRateShading(boolean sampleRateShading)
+
+    action HasDualSrcBlend returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDualSrcBlend()
+    end
+
+    private system action NativeHasDualSrcBlend returns boolean
+
+    action SetDualSrcBlend(boolean dualSrcBlend)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDualSrcBlend(dualSrcBlend)
+    end
+
+    private system action NativeSetDualSrcBlend(boolean dualSrcBlend)
+
+    action HasLogicOp returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasLogicOp()
+    end
+
+    private system action NativeHasLogicOp returns boolean
+
+    action SetLogicOp(boolean logicOp)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetLogicOp(logicOp)
+    end
+
+    private system action NativeSetLogicOp(boolean logicOp)
+
+    action HasMultiDrawIndirect returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMultiDrawIndirect()
+    end
+
+    private system action NativeHasMultiDrawIndirect returns boolean
+
+    action SetMultiDrawIndirect(boolean multiDrawIndirect)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMultiDrawIndirect(multiDrawIndirect)
+    end
+
+    private system action NativeSetMultiDrawIndirect(boolean multiDrawIndirect)
+
+    action HasDrawIndirectFirstInstance returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDrawIndirectFirstInstance()
+    end
+
+    private system action NativeHasDrawIndirectFirstInstance returns boolean
+
+    action SetDrawIndirectFirstInstance(boolean drawIndirectFirstInstance)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDrawIndirectFirstInstance(drawIndirectFirstInstance)
+    end
+
+    private system action NativeSetDrawIndirectFirstInstance(boolean drawIndirectFirstInstance)
+
+    action HasDepthClamp returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDepthClamp()
+    end
+
+    private system action NativeHasDepthClamp returns boolean
+
+    action SetDepthClamp(boolean depthClamp)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDepthClamp(depthClamp)
+    end
+
+    private system action NativeSetDepthClamp(boolean depthClamp)
+
+    action HasDepthBiasClamp returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDepthBiasClamp()
+    end
+
+    private system action NativeHasDepthBiasClamp returns boolean
+
+    action SetDepthBiasClamp(boolean depthBiasClamp)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDepthBiasClamp(depthBiasClamp)
+    end
+
+    private system action NativeSetDepthBiasClamp(boolean depthBiasClamp)
+
+    action HasFillModeNonSolid returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasFillModeNonSolid()
+    end
+
+    private system action NativeHasFillModeNonSolid returns boolean
+
+    action SetFillModeNonSolid(boolean fillModeNonSolid)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetFillModeNonSolid(fillModeNonSolid)
+    end
+
+    private system action NativeSetFillModeNonSolid(boolean fillModeNonSolid)
+
+    action HasDepthBounds returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDepthBounds()
+    end
+
+    private system action NativeHasDepthBounds returns boolean
+
+    action SetDepthBounds(boolean depthBounds)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDepthBounds(depthBounds)
+    end
+
+    private system action NativeSetDepthBounds(boolean depthBounds)
+
+    action HasWideLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasWideLines()
+    end
+
+    private system action NativeHasWideLines returns boolean
+
+    action SetWideLines(boolean wideLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetWideLines(wideLines)
+    end
+
+    private system action NativeSetWideLines(boolean wideLines)
+
+    action HasLargePoints returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasLargePoints()
+    end
+
+    private system action NativeHasLargePoints returns boolean
+
+    action SetLargePoints(boolean largePoints)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetLargePoints(largePoints)
+    end
+
+    private system action NativeSetLargePoints(boolean largePoints)
+
+    action HasAlphaToOne returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasAlphaToOne()
+    end
+
+    private system action NativeHasAlphaToOne returns boolean
+
+    action SetAlphaToOne(boolean alphaToOne)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetAlphaToOne(alphaToOne)
+    end
+
+    private system action NativeSetAlphaToOne(boolean alphaToOne)
+
+    action HasMultiViewport returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMultiViewport()
+    end
+
+    private system action NativeHasMultiViewport returns boolean
+
+    action SetMultiViewport(boolean multiViewport)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMultiViewport(multiViewport)
+    end
+
+    private system action NativeSetMultiViewport(boolean multiViewport)
+
+    action HasSamplerAnisotropy returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSamplerAnisotropy()
+    end
+
+    private system action NativeHasSamplerAnisotropy returns boolean
+
+    action SetSamplerAnisotropy(boolean samplerAnisotropy)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSamplerAnisotropy(samplerAnisotropy)
+    end
+
+    private system action NativeSetSamplerAnisotropy(boolean samplerAnisotropy)
+
+    action HasTextureCompressionETC2 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTextureCompressionETC2()
+    end
+
+    private system action NativeHasTextureCompressionETC2 returns boolean
+
+    action SetTextureCompressionETC2(boolean textureCompressionETC2)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTextureCompressionETC2(textureCompressionETC2)
+    end
+
+    private system action NativeSetTextureCompressionETC2(boolean textureCompressionETC2)
+
+    action HasTextureCompressionASTC_LDR returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTextureCompressionASTC_LDR()
+    end
+
+    private system action NativeHasTextureCompressionASTC_LDR returns boolean
+
+    action SetTextureCompressionASTC_LDR(boolean textureCompressionASTC_LDR)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTextureCompressionASTC_LDR(textureCompressionASTC_LDR)
+    end
+
+    private system action NativeSetTextureCompressionASTC_LDR(boolean textureCompressionASTC_LDR)
+
+    action HasTextureCompressionBC returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTextureCompressionBC()
+    end
+
+    private system action NativeHasTextureCompressionBC returns boolean
+
+    action SetTextureCompressionBC(boolean textureCompressionBC)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTextureCompressionBC(textureCompressionBC)
+    end
+
+    private system action NativeSetTextureCompressionBC(boolean textureCompressionBC)
+
+    action HasOcclusionQueryPrecise returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasOcclusionQueryPrecise()
+    end
+
+    private system action NativeHasOcclusionQueryPrecise returns boolean
+
+    action SetOcclusionQueryPrecise(boolean occlusionQueryPrecise)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetOcclusionQueryPrecise(occlusionQueryPrecise)
+    end
+
+    private system action NativeSetOcclusionQueryPrecise(boolean occlusionQueryPrecise)
+
+    action HasPipelineStatisticsQuery returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPipelineStatisticsQuery()
+    end
+
+    private system action NativeHasPipelineStatisticsQuery returns boolean
+
+    action SetPipelineStatisticsQuery(boolean pipelineStatisticsQuery)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPipelineStatisticsQuery(pipelineStatisticsQuery)
+    end
+
+    private system action NativeSetPipelineStatisticsQuery(boolean pipelineStatisticsQuery)
+
+    action HasVertexPipelineStoresAndAtomics returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVertexPipelineStoresAndAtomics()
+    end
+
+    private system action NativeHasVertexPipelineStoresAndAtomics returns boolean
+
+    action SetVertexPipelineStoresAndAtomics(boolean vertexPipelineStoresAndAtomics)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVertexPipelineStoresAndAtomics(vertexPipelineStoresAndAtomics)
+    end
+
+    private system action NativeSetVertexPipelineStoresAndAtomics(boolean vertexPipelineStoresAndAtomics)
+
+    action HasFragmentStoresAndAtomics returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasFragmentStoresAndAtomics()
+    end
+
+    private system action NativeHasFragmentStoresAndAtomics returns boolean
+
+    action SetFragmentStoresAndAtomics(boolean fragmentStoresAndAtomics)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetFragmentStoresAndAtomics(fragmentStoresAndAtomics)
+    end
+
+    private system action NativeSetFragmentStoresAndAtomics(boolean fragmentStoresAndAtomics)
+
+    action HasShaderTessellationAndGeometryPointSize returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderTessellationAndGeometryPointSize()
+    end
+
+    private system action NativeHasShaderTessellationAndGeometryPointSize returns boolean
+
+    action SetShaderTessellationAndGeometryPointSize(boolean shaderTessellationAndGeometryPointSize)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderTessellationAndGeometryPointSize(shaderTessellationAndGeometryPointSize)
+    end
+
+    private system action NativeSetShaderTessellationAndGeometryPointSize(boolean shaderTessellationAndGeometryPointSize)
+
+    action HasShaderImageGatherExtended returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderImageGatherExtended()
+    end
+
+    private system action NativeHasShaderImageGatherExtended returns boolean
+
+    action SetShaderImageGatherExtended(boolean shaderImageGatherExtended)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderImageGatherExtended(shaderImageGatherExtended)
+    end
+
+    private system action NativeSetShaderImageGatherExtended(boolean shaderImageGatherExtended)
+
+    action HasShaderStorageImageExtendedFormats returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageExtendedFormats()
+    end
+
+    private system action NativeHasShaderStorageImageExtendedFormats returns boolean
+
+    action SetShaderStorageImageExtendedFormats(boolean shaderStorageImageExtendedFormats)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageExtendedFormats(shaderStorageImageExtendedFormats)
+    end
+
+    private system action NativeSetShaderStorageImageExtendedFormats(boolean shaderStorageImageExtendedFormats)
+
+    action HasShaderStorageImageMultisample returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageMultisample()
+    end
+
+    private system action NativeHasShaderStorageImageMultisample returns boolean
+
+    action SetShaderStorageImageMultisample(boolean shaderStorageImageMultisample)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageMultisample(shaderStorageImageMultisample)
+    end
+
+    private system action NativeSetShaderStorageImageMultisample(boolean shaderStorageImageMultisample)
+
+    action HasShaderStorageImageReadWithoutFormat returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageReadWithoutFormat()
+    end
+
+    private system action NativeHasShaderStorageImageReadWithoutFormat returns boolean
+
+    action SetShaderStorageImageReadWithoutFormat(boolean shaderStorageImageReadWithoutFormat)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageReadWithoutFormat(shaderStorageImageReadWithoutFormat)
+    end
+
+    private system action NativeSetShaderStorageImageReadWithoutFormat(boolean shaderStorageImageReadWithoutFormat)
+
+    action HasShaderStorageImageWriteWithoutFormat returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageWriteWithoutFormat()
+    end
+
+    private system action NativeHasShaderStorageImageWriteWithoutFormat returns boolean
+
+    action SetShaderStorageImageWriteWithoutFormat(boolean shaderStorageImageWriteWithoutFormat)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageWriteWithoutFormat(shaderStorageImageWriteWithoutFormat)
+    end
+
+    private system action NativeSetShaderStorageImageWriteWithoutFormat(boolean shaderStorageImageWriteWithoutFormat)
+
+    action HasShaderUniformBufferArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderUniformBufferArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderUniformBufferArrayDynamicIndexing returns boolean
+
+    action SetShaderUniformBufferArrayDynamicIndexing(boolean shaderUniformBufferArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderUniformBufferArrayDynamicIndexing(shaderUniformBufferArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderUniformBufferArrayDynamicIndexing(boolean shaderUniformBufferArrayDynamicIndexing)
+
+    action HasShaderSampledImageArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSampledImageArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderSampledImageArrayDynamicIndexing returns boolean
+
+    action SetShaderSampledImageArrayDynamicIndexing(boolean shaderSampledImageArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSampledImageArrayDynamicIndexing(shaderSampledImageArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderSampledImageArrayDynamicIndexing(boolean shaderSampledImageArrayDynamicIndexing)
+
+    action HasShaderStorageBufferArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageBufferArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderStorageBufferArrayDynamicIndexing returns boolean
+
+    action SetShaderStorageBufferArrayDynamicIndexing(boolean shaderStorageBufferArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageBufferArrayDynamicIndexing(shaderStorageBufferArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderStorageBufferArrayDynamicIndexing(boolean shaderStorageBufferArrayDynamicIndexing)
+
+    action HasShaderStorageImageArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderStorageImageArrayDynamicIndexing returns boolean
+
+    action SetShaderStorageImageArrayDynamicIndexing(boolean shaderStorageImageArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageArrayDynamicIndexing(shaderStorageImageArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderStorageImageArrayDynamicIndexing(boolean shaderStorageImageArrayDynamicIndexing)
+
+    action HasShaderClipDistance returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderClipDistance()
+    end
+
+    private system action NativeHasShaderClipDistance returns boolean
+
+    action SetShaderClipDistance(boolean shaderClipDistance)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderClipDistance(shaderClipDistance)
+    end
+
+    private system action NativeSetShaderClipDistance(boolean shaderClipDistance)
+
+    action HasShaderCullDistance returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderCullDistance()
+    end
+
+    private system action NativeHasShaderCullDistance returns boolean
+
+    action SetShaderCullDistance(boolean shaderCullDistance)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderCullDistance(shaderCullDistance)
+    end
+
+    private system action NativeSetShaderCullDistance(boolean shaderCullDistance)
+
+    action HasShaderFloat64 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderFloat64()
+    end
+
+    private system action NativeHasShaderFloat64 returns boolean
+
+    action SetShaderFloat64(boolean shaderFloat64)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderFloat64(shaderFloat64)
+    end
+
+    private system action NativeSetShaderFloat64(boolean shaderFloat64)
+
+    action HasShaderInt64 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderInt64()
+    end
+
+    private system action NativeHasShaderInt64 returns boolean
+
+    action SetShaderInt64(boolean shaderInt64)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderInt64(shaderInt64)
+    end
+
+    private system action NativeSetShaderInt64(boolean shaderInt64)
+
+    action HasShaderInt16 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderInt16()
+    end
+
+    private system action NativeHasShaderInt16 returns boolean
+
+    action SetShaderInt16(boolean shaderInt16)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderInt16(shaderInt16)
+    end
+
+    private system action NativeSetShaderInt16(boolean shaderInt16)
+
+    action HasShaderResourceResidency returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderResourceResidency()
+    end
+
+    private system action NativeHasShaderResourceResidency returns boolean
+
+    action SetShaderResourceResidency(boolean shaderResourceResidency)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderResourceResidency(shaderResourceResidency)
+    end
+
+    private system action NativeSetShaderResourceResidency(boolean shaderResourceResidency)
+
+    action HasShaderResourceMinLod returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderResourceMinLod()
+    end
+
+    private system action NativeHasShaderResourceMinLod returns boolean
+
+    action SetShaderResourceMinLod(boolean shaderResourceMinLod)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderResourceMinLod(shaderResourceMinLod)
+    end
+
+    private system action NativeSetShaderResourceMinLod(boolean shaderResourceMinLod)
+
+    action HasSparseBinding returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseBinding()
+    end
+
+    private system action NativeHasSparseBinding returns boolean
+
+    action SetSparseBinding(boolean sparseBinding)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseBinding(sparseBinding)
+    end
+
+    private system action NativeSetSparseBinding(boolean sparseBinding)
+
+    action HasSparseResidencyBuffer returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidencyBuffer()
+    end
+
+    private system action NativeHasSparseResidencyBuffer returns boolean
+
+    action SetSparseResidencyBuffer(boolean sparseResidencyBuffer)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidencyBuffer(sparseResidencyBuffer)
+    end
+
+    private system action NativeSetSparseResidencyBuffer(boolean sparseResidencyBuffer)
+
+    action HasSparseResidencyImage2D returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidencyImage2D()
+    end
+
+    private system action NativeHasSparseResidencyImage2D returns boolean
+
+    action SetSparseResidencyImage2D(boolean sparseResidencyImage2D)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidencyImage2D(sparseResidencyImage2D)
+    end
+
+    private system action NativeSetSparseResidencyImage2D(boolean sparseResidencyImage2D)
+
+    action HasSparseResidencyImage3D returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidencyImage3D()
+    end
+
+    private system action NativeHasSparseResidencyImage3D returns boolean
+
+    action SetSparseResidencyImage3D(boolean sparseResidencyImage3D)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidencyImage3D(sparseResidencyImage3D)
+    end
+
+    private system action NativeSetSparseResidencyImage3D(boolean sparseResidencyImage3D)
+
+    action HasSparseResidency2Samples returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidency2Samples()
+    end
+
+    private system action NativeHasSparseResidency2Samples returns boolean
+
+    action SetSparseResidency2Samples(boolean sparseResidency2Samples)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidency2Samples(sparseResidency2Samples)
+    end
+
+    private system action NativeSetSparseResidency2Samples(boolean sparseResidency2Samples)
+
+    action HasSparseResidency4Samples returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidency4Samples()
+    end
+
+    private system action NativeHasSparseResidency4Samples returns boolean
+
+    action SetSparseResidency4Samples(boolean sparseResidency4Samples)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidency4Samples(sparseResidency4Samples)
+    end
+
+    private system action NativeSetSparseResidency4Samples(boolean sparseResidency4Samples)
+
+    action HasSparseResidency8Samples returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidency8Samples()
+    end
+
+    private system action NativeHasSparseResidency8Samples returns boolean
+
+    action SetSparseResidency8Samples(boolean sparseResidency8Samples)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidency8Samples(sparseResidency8Samples)
+    end
+
+    private system action NativeSetSparseResidency8Samples(boolean sparseResidency8Samples)
+
+    action HasSparseResidency16Samples returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidency16Samples()
+    end
+
+    private system action NativeHasSparseResidency16Samples returns boolean
+
+    action SetSparseResidency16Samples(boolean sparseResidency16Samples)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidency16Samples(sparseResidency16Samples)
+    end
+
+    private system action NativeSetSparseResidency16Samples(boolean sparseResidency16Samples)
+
+    action HasSparseResidencyAliased returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSparseResidencyAliased()
+    end
+
+    private system action NativeHasSparseResidencyAliased returns boolean
+
+    action SetSparseResidencyAliased(boolean sparseResidencyAliased)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSparseResidencyAliased(sparseResidencyAliased)
+    end
+
+    private system action NativeSetSparseResidencyAliased(boolean sparseResidencyAliased)
+
+    action HasVariableMultisampleRate returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVariableMultisampleRate()
+    end
+
+    private system action NativeHasVariableMultisampleRate returns boolean
+
+    action SetVariableMultisampleRate(boolean variableMultisampleRate)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVariableMultisampleRate(variableMultisampleRate)
+    end
+
+    private system action NativeSetVariableMultisampleRate(boolean variableMultisampleRate)
+
+    action HasInheritedQueries returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasInheritedQueries()
+    end
+
+    private system action NativeHasInheritedQueries returns boolean
+
+    action SetInheritedQueries(boolean inheritedQueries)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetInheritedQueries(inheritedQueries)
+    end
+
+    private system action NativeSetInheritedQueries(boolean inheritedQueries)
+
+    action HasStorageBuffer16BitAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStorageBuffer16BitAccess()
+    end
+
+    private system action NativeHasStorageBuffer16BitAccess returns boolean
+
+    action SetStorageBuffer16BitAccess(boolean storageBuffer16BitAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStorageBuffer16BitAccess(storageBuffer16BitAccess)
+    end
+
+    private system action NativeSetStorageBuffer16BitAccess(boolean storageBuffer16BitAccess)
+
+    action HasUniformAndStorageBuffer16BitAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasUniformAndStorageBuffer16BitAccess()
+    end
+
+    private system action NativeHasUniformAndStorageBuffer16BitAccess returns boolean
+
+    action SetUniformAndStorageBuffer16BitAccess(boolean uniformAndStorageBuffer16BitAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetUniformAndStorageBuffer16BitAccess(uniformAndStorageBuffer16BitAccess)
+    end
+
+    private system action NativeSetUniformAndStorageBuffer16BitAccess(boolean uniformAndStorageBuffer16BitAccess)
+
+    action HasStoragePushConstant16 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStoragePushConstant16()
+    end
+
+    private system action NativeHasStoragePushConstant16 returns boolean
+
+    action SetStoragePushConstant16(boolean storagePushConstant16)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStoragePushConstant16(storagePushConstant16)
+    end
+
+    private system action NativeSetStoragePushConstant16(boolean storagePushConstant16)
+
+    action HasStorageInputOutput16 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStorageInputOutput16()
+    end
+
+    private system action NativeHasStorageInputOutput16 returns boolean
+
+    action SetStorageInputOutput16(boolean storageInputOutput16)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStorageInputOutput16(storageInputOutput16)
+    end
+
+    private system action NativeSetStorageInputOutput16(boolean storageInputOutput16)
+
+    action HasMultiview returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMultiview()
+    end
+
+    private system action NativeHasMultiview returns boolean
+
+    action SetMultiview(boolean multiview)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMultiview(multiview)
+    end
+
+    private system action NativeSetMultiview(boolean multiview)
+
+    action HasMultiviewGeometryShader returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMultiviewGeometryShader()
+    end
+
+    private system action NativeHasMultiviewGeometryShader returns boolean
+
+    action SetMultiviewGeometryShader(boolean multiviewGeometryShader)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMultiviewGeometryShader(multiviewGeometryShader)
+    end
+
+    private system action NativeSetMultiviewGeometryShader(boolean multiviewGeometryShader)
+
+    action HasMultiviewTessellationShader returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMultiviewTessellationShader()
+    end
+
+    private system action NativeHasMultiviewTessellationShader returns boolean
+
+    action SetMultiviewTessellationShader(boolean multiviewTessellationShader)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMultiviewTessellationShader(multiviewTessellationShader)
+    end
+
+    private system action NativeSetMultiviewTessellationShader(boolean multiviewTessellationShader)
+
+    action HasVariablePointersStorageBuffer returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVariablePointersStorageBuffer()
+    end
+
+    private system action NativeHasVariablePointersStorageBuffer returns boolean
+
+    action SetVariablePointersStorageBuffer(boolean variablePointersStorageBuffer)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVariablePointersStorageBuffer(variablePointersStorageBuffer)
+    end
+
+    private system action NativeSetVariablePointersStorageBuffer(boolean variablePointersStorageBuffer)
+
+    action HasVariablePointers returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVariablePointers()
+    end
+
+    private system action NativeHasVariablePointers returns boolean
+
+    action SetVariablePointers(boolean variablePointers)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVariablePointers(variablePointers)
+    end
+
+    private system action NativeSetVariablePointers(boolean variablePointers)
+
+    action HasProtectedMemory returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasProtectedMemory()
+    end
+
+    private system action NativeHasProtectedMemory returns boolean
+
+    action SetProtectedMemory(boolean protectedMemory)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetProtectedMemory(protectedMemory)
+    end
+
+    private system action NativeSetProtectedMemory(boolean protectedMemory)
+
+    action HasSamplerYcbcrConversion returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSamplerYcbcrConversion()
+    end
+
+    private system action NativeHasSamplerYcbcrConversion returns boolean
+
+    action SetSamplerYcbcrConversion(boolean samplerYcbcrConversion)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSamplerYcbcrConversion(samplerYcbcrConversion)
+    end
+
+    private system action NativeSetSamplerYcbcrConversion(boolean samplerYcbcrConversion)
+
+    action HasShaderDrawParameters returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderDrawParameters()
+    end
+
+    private system action NativeHasShaderDrawParameters returns boolean
+
+    action SetShaderDrawParameters(boolean shaderDrawParameters)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderDrawParameters(shaderDrawParameters)
+    end
+
+    private system action NativeSetShaderDrawParameters(boolean shaderDrawParameters)
+
+    action HasSamplerMirrorClampToEdge returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSamplerMirrorClampToEdge()
+    end
+
+    private system action NativeHasSamplerMirrorClampToEdge returns boolean
+
+    action SetSamplerMirrorClampToEdge(boolean samplerMirrorClampToEdge)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSamplerMirrorClampToEdge(samplerMirrorClampToEdge)
+    end
+
+    private system action NativeSetSamplerMirrorClampToEdge(boolean samplerMirrorClampToEdge)
+
+    action HasDrawIndirectCount returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDrawIndirectCount()
+    end
+
+    private system action NativeHasDrawIndirectCount returns boolean
+
+    action SetDrawIndirectCount(boolean drawIndirectCount)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDrawIndirectCount(drawIndirectCount)
+    end
+
+    private system action NativeSetDrawIndirectCount(boolean drawIndirectCount)
+
+    action HasStorageBuffer8BitAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStorageBuffer8BitAccess()
+    end
+
+    private system action NativeHasStorageBuffer8BitAccess returns boolean
+
+    action SetStorageBuffer8BitAccess(boolean storageBuffer8BitAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStorageBuffer8BitAccess(storageBuffer8BitAccess)
+    end
+
+    private system action NativeSetStorageBuffer8BitAccess(boolean storageBuffer8BitAccess)
+
+    action HasUniformAndStorageBuffer8BitAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasUniformAndStorageBuffer8BitAccess()
+    end
+
+    private system action NativeHasUniformAndStorageBuffer8BitAccess returns boolean
+
+    action SetUniformAndStorageBuffer8BitAccess(boolean uniformAndStorageBuffer8BitAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetUniformAndStorageBuffer8BitAccess(uniformAndStorageBuffer8BitAccess)
+    end
+
+    private system action NativeSetUniformAndStorageBuffer8BitAccess(boolean uniformAndStorageBuffer8BitAccess)
+
+    action HasStoragePushConstant8 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStoragePushConstant8()
+    end
+
+    private system action NativeHasStoragePushConstant8 returns boolean
+
+    action SetStoragePushConstant8(boolean storagePushConstant8)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStoragePushConstant8(storagePushConstant8)
+    end
+
+    private system action NativeSetStoragePushConstant8(boolean storagePushConstant8)
+
+    action HasShaderBufferInt64Atomics returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderBufferInt64Atomics()
+    end
+
+    private system action NativeHasShaderBufferInt64Atomics returns boolean
+
+    action SetShaderBufferInt64Atomics(boolean shaderBufferInt64Atomics)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderBufferInt64Atomics(shaderBufferInt64Atomics)
+    end
+
+    private system action NativeSetShaderBufferInt64Atomics(boolean shaderBufferInt64Atomics)
+
+    action HasShaderSharedInt64Atomics returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSharedInt64Atomics()
+    end
+
+    private system action NativeHasShaderSharedInt64Atomics returns boolean
+
+    action SetShaderSharedInt64Atomics(boolean shaderSharedInt64Atomics)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSharedInt64Atomics(shaderSharedInt64Atomics)
+    end
+
+    private system action NativeSetShaderSharedInt64Atomics(boolean shaderSharedInt64Atomics)
+
+    action HasShaderFloat16 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderFloat16()
+    end
+
+    private system action NativeHasShaderFloat16 returns boolean
+
+    action SetShaderFloat16(boolean shaderFloat16)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderFloat16(shaderFloat16)
+    end
+
+    private system action NativeSetShaderFloat16(boolean shaderFloat16)
+
+    action HasShaderInt8 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderInt8()
+    end
+
+    private system action NativeHasShaderInt8 returns boolean
+
+    action SetShaderInt8(boolean shaderInt8)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderInt8(shaderInt8)
+    end
+
+    private system action NativeSetShaderInt8(boolean shaderInt8)
+
+    action HasDescriptorIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorIndexing()
+    end
+
+    private system action NativeHasDescriptorIndexing returns boolean
+
+    action SetDescriptorIndexing(boolean descriptorIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorIndexing(descriptorIndexing)
+    end
+
+    private system action NativeSetDescriptorIndexing(boolean descriptorIndexing)
+
+    action HasShaderInputAttachmentArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderInputAttachmentArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderInputAttachmentArrayDynamicIndexing returns boolean
+
+    action SetShaderInputAttachmentArrayDynamicIndexing(boolean shaderInputAttachmentArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderInputAttachmentArrayDynamicIndexing(shaderInputAttachmentArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderInputAttachmentArrayDynamicIndexing(boolean shaderInputAttachmentArrayDynamicIndexing)
+
+    action HasShaderUniformTexelBufferArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderUniformTexelBufferArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderUniformTexelBufferArrayDynamicIndexing returns boolean
+
+    action SetShaderUniformTexelBufferArrayDynamicIndexing(boolean shaderUniformTexelBufferArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderUniformTexelBufferArrayDynamicIndexing(shaderUniformTexelBufferArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderUniformTexelBufferArrayDynamicIndexing(boolean shaderUniformTexelBufferArrayDynamicIndexing)
+
+    action HasShaderStorageTexelBufferArrayDynamicIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageTexelBufferArrayDynamicIndexing()
+    end
+
+    private system action NativeHasShaderStorageTexelBufferArrayDynamicIndexing returns boolean
+
+    action SetShaderStorageTexelBufferArrayDynamicIndexing(boolean shaderStorageTexelBufferArrayDynamicIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageTexelBufferArrayDynamicIndexing(shaderStorageTexelBufferArrayDynamicIndexing)
+    end
+
+    private system action NativeSetShaderStorageTexelBufferArrayDynamicIndexing(boolean shaderStorageTexelBufferArrayDynamicIndexing)
+
+    action HasShaderUniformBufferArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderUniformBufferArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderUniformBufferArrayNonUniformIndexing returns boolean
+
+    action SetShaderUniformBufferArrayNonUniformIndexing(boolean shaderUniformBufferArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderUniformBufferArrayNonUniformIndexing(shaderUniformBufferArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderUniformBufferArrayNonUniformIndexing(boolean shaderUniformBufferArrayNonUniformIndexing)
+
+    action HasShaderSampledImageArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSampledImageArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderSampledImageArrayNonUniformIndexing returns boolean
+
+    action SetShaderSampledImageArrayNonUniformIndexing(boolean shaderSampledImageArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSampledImageArrayNonUniformIndexing(shaderSampledImageArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderSampledImageArrayNonUniformIndexing(boolean shaderSampledImageArrayNonUniformIndexing)
+
+    action HasShaderStorageBufferArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageBufferArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderStorageBufferArrayNonUniformIndexing returns boolean
+
+    action SetShaderStorageBufferArrayNonUniformIndexing(boolean shaderStorageBufferArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageBufferArrayNonUniformIndexing(shaderStorageBufferArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderStorageBufferArrayNonUniformIndexing(boolean shaderStorageBufferArrayNonUniformIndexing)
+
+    action HasShaderStorageImageArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageImageArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderStorageImageArrayNonUniformIndexing returns boolean
+
+    action SetShaderStorageImageArrayNonUniformIndexing(boolean shaderStorageImageArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageImageArrayNonUniformIndexing(shaderStorageImageArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderStorageImageArrayNonUniformIndexing(boolean shaderStorageImageArrayNonUniformIndexing)
+
+    action HasShaderInputAttachmentArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderInputAttachmentArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderInputAttachmentArrayNonUniformIndexing returns boolean
+
+    action SetShaderInputAttachmentArrayNonUniformIndexing(boolean shaderInputAttachmentArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderInputAttachmentArrayNonUniformIndexing(shaderInputAttachmentArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderInputAttachmentArrayNonUniformIndexing(boolean shaderInputAttachmentArrayNonUniformIndexing)
+
+    action HasShaderUniformTexelBufferArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderUniformTexelBufferArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderUniformTexelBufferArrayNonUniformIndexing returns boolean
+
+    action SetShaderUniformTexelBufferArrayNonUniformIndexing(boolean shaderUniformTexelBufferArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderUniformTexelBufferArrayNonUniformIndexing(shaderUniformTexelBufferArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderUniformTexelBufferArrayNonUniformIndexing(boolean shaderUniformTexelBufferArrayNonUniformIndexing)
+
+    action HasShaderStorageTexelBufferArrayNonUniformIndexing returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderStorageTexelBufferArrayNonUniformIndexing()
+    end
+
+    private system action NativeHasShaderStorageTexelBufferArrayNonUniformIndexing returns boolean
+
+    action SetShaderStorageTexelBufferArrayNonUniformIndexing(boolean shaderStorageTexelBufferArrayNonUniformIndexing)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderStorageTexelBufferArrayNonUniformIndexing(shaderStorageTexelBufferArrayNonUniformIndexing)
+    end
+
+    private system action NativeSetShaderStorageTexelBufferArrayNonUniformIndexing(boolean shaderStorageTexelBufferArrayNonUniformIndexing)
+
+    action HasDescriptorBindingUniformBufferUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingUniformBufferUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingUniformBufferUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingUniformBufferUpdateAfterBind(boolean descriptorBindingUniformBufferUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingUniformBufferUpdateAfterBind(descriptorBindingUniformBufferUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingUniformBufferUpdateAfterBind(boolean descriptorBindingUniformBufferUpdateAfterBind)
+
+    action HasDescriptorBindingSampledImageUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingSampledImageUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingSampledImageUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingSampledImageUpdateAfterBind(boolean descriptorBindingSampledImageUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingSampledImageUpdateAfterBind(descriptorBindingSampledImageUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingSampledImageUpdateAfterBind(boolean descriptorBindingSampledImageUpdateAfterBind)
+
+    action HasDescriptorBindingStorageImageUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingStorageImageUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingStorageImageUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingStorageImageUpdateAfterBind(boolean descriptorBindingStorageImageUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingStorageImageUpdateAfterBind(descriptorBindingStorageImageUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingStorageImageUpdateAfterBind(boolean descriptorBindingStorageImageUpdateAfterBind)
+
+    action HasDescriptorBindingStorageBufferUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingStorageBufferUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingStorageBufferUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingStorageBufferUpdateAfterBind(boolean descriptorBindingStorageBufferUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingStorageBufferUpdateAfterBind(descriptorBindingStorageBufferUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingStorageBufferUpdateAfterBind(boolean descriptorBindingStorageBufferUpdateAfterBind)
+
+    action HasDescriptorBindingUniformTexelBufferUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingUniformTexelBufferUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingUniformTexelBufferUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingUniformTexelBufferUpdateAfterBind(boolean descriptorBindingUniformTexelBufferUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingUniformTexelBufferUpdateAfterBind(descriptorBindingUniformTexelBufferUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingUniformTexelBufferUpdateAfterBind(boolean descriptorBindingUniformTexelBufferUpdateAfterBind)
+
+    action HasDescriptorBindingStorageTexelBufferUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingStorageTexelBufferUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingStorageTexelBufferUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingStorageTexelBufferUpdateAfterBind(boolean descriptorBindingStorageTexelBufferUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingStorageTexelBufferUpdateAfterBind(descriptorBindingStorageTexelBufferUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingStorageTexelBufferUpdateAfterBind(boolean descriptorBindingStorageTexelBufferUpdateAfterBind)
+
+    action HasDescriptorBindingUpdateUnusedWhilePending returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingUpdateUnusedWhilePending()
+    end
+
+    private system action NativeHasDescriptorBindingUpdateUnusedWhilePending returns boolean
+
+    action SetDescriptorBindingUpdateUnusedWhilePending(boolean descriptorBindingUpdateUnusedWhilePending)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingUpdateUnusedWhilePending(descriptorBindingUpdateUnusedWhilePending)
+    end
+
+    private system action NativeSetDescriptorBindingUpdateUnusedWhilePending(boolean descriptorBindingUpdateUnusedWhilePending)
+
+    action HasDescriptorBindingPartiallyBound returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingPartiallyBound()
+    end
+
+    private system action NativeHasDescriptorBindingPartiallyBound returns boolean
+
+    action SetDescriptorBindingPartiallyBound(boolean descriptorBindingPartiallyBound)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingPartiallyBound(descriptorBindingPartiallyBound)
+    end
+
+    private system action NativeSetDescriptorBindingPartiallyBound(boolean descriptorBindingPartiallyBound)
+
+    action HasDescriptorBindingVariableDescriptorCount returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingVariableDescriptorCount()
+    end
+
+    private system action NativeHasDescriptorBindingVariableDescriptorCount returns boolean
+
+    action SetDescriptorBindingVariableDescriptorCount(boolean descriptorBindingVariableDescriptorCount)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingVariableDescriptorCount(descriptorBindingVariableDescriptorCount)
+    end
+
+    private system action NativeSetDescriptorBindingVariableDescriptorCount(boolean descriptorBindingVariableDescriptorCount)
+
+    action HasRuntimeDescriptorArray returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasRuntimeDescriptorArray()
+    end
+
+    private system action NativeHasRuntimeDescriptorArray returns boolean
+
+    action SetRuntimeDescriptorArray(boolean runtimeDescriptorArray)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetRuntimeDescriptorArray(runtimeDescriptorArray)
+    end
+
+    private system action NativeSetRuntimeDescriptorArray(boolean runtimeDescriptorArray)
+
+    action HasSamplerFilterMinmax returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSamplerFilterMinmax()
+    end
+
+    private system action NativeHasSamplerFilterMinmax returns boolean
+
+    action SetSamplerFilterMinmax(boolean samplerFilterMinmax)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSamplerFilterMinmax(samplerFilterMinmax)
+    end
+
+    private system action NativeSetSamplerFilterMinmax(boolean samplerFilterMinmax)
+
+    action HasScalarBlockLayout returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasScalarBlockLayout()
+    end
+
+    private system action NativeHasScalarBlockLayout returns boolean
+
+    action SetScalarBlockLayout(boolean scalarBlockLayout)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetScalarBlockLayout(scalarBlockLayout)
+    end
+
+    private system action NativeSetScalarBlockLayout(boolean scalarBlockLayout)
+
+    action HasImagelessFramebuffer returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasImagelessFramebuffer()
+    end
+
+    private system action NativeHasImagelessFramebuffer returns boolean
+
+    action SetImagelessFramebuffer(boolean imagelessFramebuffer)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetImagelessFramebuffer(imagelessFramebuffer)
+    end
+
+    private system action NativeSetImagelessFramebuffer(boolean imagelessFramebuffer)
+
+    action HasUniformBufferStandardLayout returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasUniformBufferStandardLayout()
+    end
+
+    private system action NativeHasUniformBufferStandardLayout returns boolean
+
+    action SetUniformBufferStandardLayout(boolean uniformBufferStandardLayout)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetUniformBufferStandardLayout(uniformBufferStandardLayout)
+    end
+
+    private system action NativeSetUniformBufferStandardLayout(boolean uniformBufferStandardLayout)
+
+    action HasShaderSubgroupExtendedTypes returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSubgroupExtendedTypes()
+    end
+
+    private system action NativeHasShaderSubgroupExtendedTypes returns boolean
+
+    action SetShaderSubgroupExtendedTypes(boolean shaderSubgroupExtendedTypes)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSubgroupExtendedTypes(shaderSubgroupExtendedTypes)
+    end
+
+    private system action NativeSetShaderSubgroupExtendedTypes(boolean shaderSubgroupExtendedTypes)
+
+    action HasSeparateDepthStencilLayouts returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSeparateDepthStencilLayouts()
+    end
+
+    private system action NativeHasSeparateDepthStencilLayouts returns boolean
+
+    action SetSeparateDepthStencilLayouts(boolean separateDepthStencilLayouts)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSeparateDepthStencilLayouts(separateDepthStencilLayouts)
+    end
+
+    private system action NativeSetSeparateDepthStencilLayouts(boolean separateDepthStencilLayouts)
+
+    action HasHostQueryReset returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasHostQueryReset()
+    end
+
+    private system action NativeHasHostQueryReset returns boolean
+
+    action SetHostQueryReset(boolean hostQueryReset)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetHostQueryReset(hostQueryReset)
+    end
+
+    private system action NativeSetHostQueryReset(boolean hostQueryReset)
+
+    action HasTimelineSemaphore returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTimelineSemaphore()
+    end
+
+    private system action NativeHasTimelineSemaphore returns boolean
+
+    action SetTimelineSemaphore(boolean timelineSemaphore)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTimelineSemaphore(timelineSemaphore)
+    end
+
+    private system action NativeSetTimelineSemaphore(boolean timelineSemaphore)
+
+    action HasBufferDeviceAddress returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasBufferDeviceAddress()
+    end
+
+    private system action NativeHasBufferDeviceAddress returns boolean
+
+    action SetBufferDeviceAddress(boolean bufferDeviceAddress)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetBufferDeviceAddress(bufferDeviceAddress)
+    end
+
+    private system action NativeSetBufferDeviceAddress(boolean bufferDeviceAddress)
+
+    action HasBufferDeviceAddressCaptureReplay returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasBufferDeviceAddressCaptureReplay()
+    end
+
+    private system action NativeHasBufferDeviceAddressCaptureReplay returns boolean
+
+    action SetBufferDeviceAddressCaptureReplay(boolean bufferDeviceAddressCaptureReplay)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetBufferDeviceAddressCaptureReplay(bufferDeviceAddressCaptureReplay)
+    end
+
+    private system action NativeSetBufferDeviceAddressCaptureReplay(boolean bufferDeviceAddressCaptureReplay)
+
+    action HasBufferDeviceAddressMultiDevice returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasBufferDeviceAddressMultiDevice()
+    end
+
+    private system action NativeHasBufferDeviceAddressMultiDevice returns boolean
+
+    action SetBufferDeviceAddressMultiDevice(boolean bufferDeviceAddressMultiDevice)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetBufferDeviceAddressMultiDevice(bufferDeviceAddressMultiDevice)
+    end
+
+    private system action NativeSetBufferDeviceAddressMultiDevice(boolean bufferDeviceAddressMultiDevice)
+
+    action HasVulkanMemoryModel returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVulkanMemoryModel()
+    end
+
+    private system action NativeHasVulkanMemoryModel returns boolean
+
+    action SetVulkanMemoryModel(boolean vulkanMemoryModel)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVulkanMemoryModel(vulkanMemoryModel)
+    end
+
+    private system action NativeSetVulkanMemoryModel(boolean vulkanMemoryModel)
+
+    action HasVulkanMemoryModelDeviceScope returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVulkanMemoryModelDeviceScope()
+    end
+
+    private system action NativeHasVulkanMemoryModelDeviceScope returns boolean
+
+    action SetVulkanMemoryModelDeviceScope(boolean vulkanMemoryModelDeviceScope)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVulkanMemoryModelDeviceScope(vulkanMemoryModelDeviceScope)
+    end
+
+    private system action NativeSetVulkanMemoryModelDeviceScope(boolean vulkanMemoryModelDeviceScope)
+
+    action HasVulkanMemoryModelAvailabilityVisibilityChains returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVulkanMemoryModelAvailabilityVisibilityChains()
+    end
+
+    private system action NativeHasVulkanMemoryModelAvailabilityVisibilityChains returns boolean
+
+    action SetVulkanMemoryModelAvailabilityVisibilityChains(boolean vulkanMemoryModelAvailabilityVisibilityChains)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVulkanMemoryModelAvailabilityVisibilityChains(vulkanMemoryModelAvailabilityVisibilityChains)
+    end
+
+    private system action NativeSetVulkanMemoryModelAvailabilityVisibilityChains(boolean vulkanMemoryModelAvailabilityVisibilityChains)
+
+    action HasShaderOutputViewportIndex returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderOutputViewportIndex()
+    end
+
+    private system action NativeHasShaderOutputViewportIndex returns boolean
+
+    action SetShaderOutputViewportIndex(boolean shaderOutputViewportIndex)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderOutputViewportIndex(shaderOutputViewportIndex)
+    end
+
+    private system action NativeSetShaderOutputViewportIndex(boolean shaderOutputViewportIndex)
+
+    action HasShaderOutputLayer returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderOutputLayer()
+    end
+
+    private system action NativeHasShaderOutputLayer returns boolean
+
+    action SetShaderOutputLayer(boolean shaderOutputLayer)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderOutputLayer(shaderOutputLayer)
+    end
+
+    private system action NativeSetShaderOutputLayer(boolean shaderOutputLayer)
+
+    action HasSubgroupBroadcastDynamicId returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSubgroupBroadcastDynamicId()
+    end
+
+    private system action NativeHasSubgroupBroadcastDynamicId returns boolean
+
+    action SetSubgroupBroadcastDynamicId(boolean subgroupBroadcastDynamicId)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSubgroupBroadcastDynamicId(subgroupBroadcastDynamicId)
+    end
+
+    private system action NativeSetSubgroupBroadcastDynamicId(boolean subgroupBroadcastDynamicId)
+
+    action HasRobustImageAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasRobustImageAccess()
+    end
+
+    private system action NativeHasRobustImageAccess returns boolean
+
+    action SetRobustImageAccess(boolean robustImageAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetRobustImageAccess(robustImageAccess)
+    end
+
+    private system action NativeSetRobustImageAccess(boolean robustImageAccess)
+
+    action HasInlineUniformBlock returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasInlineUniformBlock()
+    end
+
+    private system action NativeHasInlineUniformBlock returns boolean
+
+    action SetInlineUniformBlock(boolean inlineUniformBlock)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetInlineUniformBlock(inlineUniformBlock)
+    end
+
+    private system action NativeSetInlineUniformBlock(boolean inlineUniformBlock)
+
+    action HasDescriptorBindingInlineUniformBlockUpdateAfterBind returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDescriptorBindingInlineUniformBlockUpdateAfterBind()
+    end
+
+    private system action NativeHasDescriptorBindingInlineUniformBlockUpdateAfterBind returns boolean
+
+    action SetDescriptorBindingInlineUniformBlockUpdateAfterBind(boolean descriptorBindingInlineUniformBlockUpdateAfterBind)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDescriptorBindingInlineUniformBlockUpdateAfterBind(descriptorBindingInlineUniformBlockUpdateAfterBind)
+    end
+
+    private system action NativeSetDescriptorBindingInlineUniformBlockUpdateAfterBind(boolean descriptorBindingInlineUniformBlockUpdateAfterBind)
+
+    action HasPipelineCreationCacheControl returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPipelineCreationCacheControl()
+    end
+
+    private system action NativeHasPipelineCreationCacheControl returns boolean
+
+    action SetPipelineCreationCacheControl(boolean pipelineCreationCacheControl)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPipelineCreationCacheControl(pipelineCreationCacheControl)
+    end
+
+    private system action NativeSetPipelineCreationCacheControl(boolean pipelineCreationCacheControl)
+
+    action HasPrivateData returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPrivateData()
+    end
+
+    private system action NativeHasPrivateData returns boolean
+
+    action SetPrivateData(boolean privateData)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPrivateData(privateData)
+    end
+
+    private system action NativeSetPrivateData(boolean privateData)
+
+    action HasShaderDemoteToHelperInvocation returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderDemoteToHelperInvocation()
+    end
+
+    private system action NativeHasShaderDemoteToHelperInvocation returns boolean
+
+    action SetShaderDemoteToHelperInvocation(boolean shaderDemoteToHelperInvocation)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderDemoteToHelperInvocation(shaderDemoteToHelperInvocation)
+    end
+
+    private system action NativeSetShaderDemoteToHelperInvocation(boolean shaderDemoteToHelperInvocation)
+
+    action HasShaderTerminateInvocation returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderTerminateInvocation()
+    end
+
+    private system action NativeHasShaderTerminateInvocation returns boolean
+
+    action SetShaderTerminateInvocation(boolean shaderTerminateInvocation)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderTerminateInvocation(shaderTerminateInvocation)
+    end
+
+    private system action NativeSetShaderTerminateInvocation(boolean shaderTerminateInvocation)
+
+    action HasSubgroupSizeControl returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSubgroupSizeControl()
+    end
+
+    private system action NativeHasSubgroupSizeControl returns boolean
+
+    action SetSubgroupSizeControl(boolean subgroupSizeControl)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSubgroupSizeControl(subgroupSizeControl)
+    end
+
+    private system action NativeSetSubgroupSizeControl(boolean subgroupSizeControl)
+
+    action HasComputeFullSubgroups returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasComputeFullSubgroups()
+    end
+
+    private system action NativeHasComputeFullSubgroups returns boolean
+
+    action SetComputeFullSubgroups(boolean computeFullSubgroups)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetComputeFullSubgroups(computeFullSubgroups)
+    end
+
+    private system action NativeSetComputeFullSubgroups(boolean computeFullSubgroups)
+
+    action HasSynchronization2 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSynchronization2()
+    end
+
+    private system action NativeHasSynchronization2 returns boolean
+
+    action SetSynchronization2(boolean synchronization2)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSynchronization2(synchronization2)
+    end
+
+    private system action NativeSetSynchronization2(boolean synchronization2)
+
+    action HasTextureCompressionASTC_HDR returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasTextureCompressionASTC_HDR()
+    end
+
+    private system action NativeHasTextureCompressionASTC_HDR returns boolean
+
+    action SetTextureCompressionASTC_HDR(boolean textureCompressionASTC_HDR)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetTextureCompressionASTC_HDR(textureCompressionASTC_HDR)
+    end
+
+    private system action NativeSetTextureCompressionASTC_HDR(boolean textureCompressionASTC_HDR)
+
+    action HasShaderZeroInitializeWorkgroupMemory returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderZeroInitializeWorkgroupMemory()
+    end
+
+    private system action NativeHasShaderZeroInitializeWorkgroupMemory returns boolean
+
+    action SetShaderZeroInitializeWorkgroupMemory(boolean shaderZeroInitializeWorkgroupMemory)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderZeroInitializeWorkgroupMemory(shaderZeroInitializeWorkgroupMemory)
+    end
+
+    private system action NativeSetShaderZeroInitializeWorkgroupMemory(boolean shaderZeroInitializeWorkgroupMemory)
+
+    action HasDynamicRendering returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDynamicRendering()
+    end
+
+    private system action NativeHasDynamicRendering returns boolean
+
+    action SetDynamicRendering(boolean dynamicRendering)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDynamicRendering(dynamicRendering)
+    end
+
+    private system action NativeSetDynamicRendering(boolean dynamicRendering)
+
+    action HasShaderIntegerDotProduct returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderIntegerDotProduct()
+    end
+
+    private system action NativeHasShaderIntegerDotProduct returns boolean
+
+    action SetShaderIntegerDotProduct(boolean shaderIntegerDotProduct)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderIntegerDotProduct(shaderIntegerDotProduct)
+    end
+
+    private system action NativeSetShaderIntegerDotProduct(boolean shaderIntegerDotProduct)
+
+    action HasMaintenance4 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMaintenance4()
+    end
+
+    private system action NativeHasMaintenance4 returns boolean
+
+    action SetMaintenance4(boolean maintenance4)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMaintenance4(maintenance4)
+    end
+
+    private system action NativeSetMaintenance4(boolean maintenance4)
+
+    action HasGlobalPriorityQuery returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasGlobalPriorityQuery()
+    end
+
+    private system action NativeHasGlobalPriorityQuery returns boolean
+
+    action SetGlobalPriorityQuery(boolean globalPriorityQuery)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetGlobalPriorityQuery(globalPriorityQuery)
+    end
+
+    private system action NativeSetGlobalPriorityQuery(boolean globalPriorityQuery)
+
+    action HasShaderSubgroupRotate returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSubgroupRotate()
+    end
+
+    private system action NativeHasShaderSubgroupRotate returns boolean
+
+    action SetShaderSubgroupRotate(boolean shaderSubgroupRotate)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSubgroupRotate(shaderSubgroupRotate)
+    end
+
+    private system action NativeSetShaderSubgroupRotate(boolean shaderSubgroupRotate)
+
+    action HasShaderSubgroupRotateClustered returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderSubgroupRotateClustered()
+    end
+
+    private system action NativeHasShaderSubgroupRotateClustered returns boolean
+
+    action SetShaderSubgroupRotateClustered(boolean shaderSubgroupRotateClustered)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderSubgroupRotateClustered(shaderSubgroupRotateClustered)
+    end
+
+    private system action NativeSetShaderSubgroupRotateClustered(boolean shaderSubgroupRotateClustered)
+
+    action HasShaderFloatControls2 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderFloatControls2()
+    end
+
+    private system action NativeHasShaderFloatControls2 returns boolean
+
+    action SetShaderFloatControls2(boolean shaderFloatControls2)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderFloatControls2(shaderFloatControls2)
+    end
+
+    private system action NativeSetShaderFloatControls2(boolean shaderFloatControls2)
+
+    action HasShaderExpectAssume returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasShaderExpectAssume()
+    end
+
+    private system action NativeHasShaderExpectAssume returns boolean
+
+    action SetShaderExpectAssume(boolean shaderExpectAssume)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetShaderExpectAssume(shaderExpectAssume)
+    end
+
+    private system action NativeSetShaderExpectAssume(boolean shaderExpectAssume)
+
+    action HasRectangularLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasRectangularLines()
+    end
+
+    private system action NativeHasRectangularLines returns boolean
+
+    action SetRectangularLines(boolean rectangularLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetRectangularLines(rectangularLines)
+    end
+
+    private system action NativeSetRectangularLines(boolean rectangularLines)
+
+    action HasBresenhamLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasBresenhamLines()
+    end
+
+    private system action NativeHasBresenhamLines returns boolean
+
+    action SetBresenhamLines(boolean bresenhamLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetBresenhamLines(bresenhamLines)
+    end
+
+    private system action NativeSetBresenhamLines(boolean bresenhamLines)
+
+    action HasSmoothLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasSmoothLines()
+    end
+
+    private system action NativeHasSmoothLines returns boolean
+
+    action SetSmoothLines(boolean smoothLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetSmoothLines(smoothLines)
+    end
+
+    private system action NativeSetSmoothLines(boolean smoothLines)
+
+    action HasStippledRectangularLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStippledRectangularLines()
+    end
+
+    private system action NativeHasStippledRectangularLines returns boolean
+
+    action SetStippledRectangularLines(boolean stippledRectangularLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStippledRectangularLines(stippledRectangularLines)
+    end
+
+    private system action NativeSetStippledRectangularLines(boolean stippledRectangularLines)
+
+    action HasStippledBresenhamLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStippledBresenhamLines()
+    end
+
+    private system action NativeHasStippledBresenhamLines returns boolean
+
+    action SetStippledBresenhamLines(boolean stippledBresenhamLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStippledBresenhamLines(stippledBresenhamLines)
+    end
+
+    private system action NativeSetStippledBresenhamLines(boolean stippledBresenhamLines)
+
+    action HasStippledSmoothLines returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasStippledSmoothLines()
+    end
+
+    private system action NativeHasStippledSmoothLines returns boolean
+
+    action SetStippledSmoothLines(boolean stippledSmoothLines)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetStippledSmoothLines(stippledSmoothLines)
+    end
+
+    private system action NativeSetStippledSmoothLines(boolean stippledSmoothLines)
+
+    action HasVertexAttributeInstanceRateDivisor returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVertexAttributeInstanceRateDivisor()
+    end
+
+    private system action NativeHasVertexAttributeInstanceRateDivisor returns boolean
+
+    action SetVertexAttributeInstanceRateDivisor(boolean vertexAttributeInstanceRateDivisor)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVertexAttributeInstanceRateDivisor(vertexAttributeInstanceRateDivisor)
+    end
+
+    private system action NativeSetVertexAttributeInstanceRateDivisor(boolean vertexAttributeInstanceRateDivisor)
+
+    action HasVertexAttributeInstanceRateZeroDivisor returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasVertexAttributeInstanceRateZeroDivisor()
+    end
+
+    private system action NativeHasVertexAttributeInstanceRateZeroDivisor returns boolean
+
+    action SetVertexAttributeInstanceRateZeroDivisor(boolean vertexAttributeInstanceRateZeroDivisor)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetVertexAttributeInstanceRateZeroDivisor(vertexAttributeInstanceRateZeroDivisor)
+    end
+
+    private system action NativeSetVertexAttributeInstanceRateZeroDivisor(boolean vertexAttributeInstanceRateZeroDivisor)
+
+    action HasIndexTypeUint8 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasIndexTypeUint8()
+    end
+
+    private system action NativeHasIndexTypeUint8 returns boolean
+
+    action SetIndexTypeUint8(boolean indexTypeUint8)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetIndexTypeUint8(indexTypeUint8)
+    end
+
+    private system action NativeSetIndexTypeUint8(boolean indexTypeUint8)
+
+    action HasDynamicRenderingLocalRead returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasDynamicRenderingLocalRead()
+    end
+
+    private system action NativeHasDynamicRenderingLocalRead returns boolean
+
+    action SetDynamicRenderingLocalRead(boolean dynamicRenderingLocalRead)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetDynamicRenderingLocalRead(dynamicRenderingLocalRead)
+    end
+
+    private system action NativeSetDynamicRenderingLocalRead(boolean dynamicRenderingLocalRead)
+
+    action HasMaintenance5 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMaintenance5()
+    end
+
+    private system action NativeHasMaintenance5 returns boolean
+
+    action SetMaintenance5(boolean maintenance5)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMaintenance5(maintenance5)
+    end
+
+    private system action NativeSetMaintenance5(boolean maintenance5)
+
+    action HasMaintenance6 returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasMaintenance6()
+    end
+
+    private system action NativeHasMaintenance6 returns boolean
+
+    action SetMaintenance6(boolean maintenance6)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetMaintenance6(maintenance6)
+    end
+
+    private system action NativeSetMaintenance6(boolean maintenance6)
+
+    action HasPipelineProtectedAccess returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPipelineProtectedAccess()
+    end
+
+    private system action NativeHasPipelineProtectedAccess returns boolean
+
+    action SetPipelineProtectedAccess(boolean pipelineProtectedAccess)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPipelineProtectedAccess(pipelineProtectedAccess)
+    end
+
+    private system action NativeSetPipelineProtectedAccess(boolean pipelineProtectedAccess)
+
+    action HasPipelineRobustness returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPipelineRobustness()
+    end
+
+    private system action NativeHasPipelineRobustness returns boolean
+
+    action SetPipelineRobustness(boolean pipelineRobustness)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPipelineRobustness(pipelineRobustness)
+    end
+
+    private system action NativeSetPipelineRobustness(boolean pipelineRobustness)
+
+    action HasHostImageCopy returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasHostImageCopy()
+    end
+
+    private system action NativeHasHostImageCopy returns boolean
+
+    action SetHostImageCopy(boolean hostImageCopy)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetHostImageCopy(hostImageCopy)
+    end
+
+    private system action NativeSetHostImageCopy(boolean hostImageCopy)
+
+    action HasPushDescriptor returns boolean
+        if initialized = false
+            alert("I cannot return this value because the device features haven't been initialized yet. Call Create() first, or use Create(VulkanPhysicalDevice) to get a list of that device's available features.")
+        end
+        return NativeHasPushDescriptor()
+    end
+
+    private system action NativeHasPushDescriptor returns boolean
+
+    action SetPushDescriptor(boolean pushDescriptor)
+        if initialized = false
+            alert("I cannot set this value because the features haven't been initialized. Call Create() first.")
+        end
+        NativeSetPushDescriptor(pushDescriptor)
+    end
+
+    private system action NativeSetPushDescriptor(boolean pushDescriptor)
+    
+end

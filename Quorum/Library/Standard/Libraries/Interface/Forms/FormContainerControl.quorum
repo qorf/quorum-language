@@ -84,7 +84,7 @@ class FormContainerControl is Control
             label:SetFontSize(titleSize)
             label:SetName(GetName() + " Title Label")
             label:SetText(title)
-            label:SetFocusable(true)
+            label:SetFocusable(not skipLabelsInFocus)
             Add(0, label)
         end
     end
@@ -578,6 +578,23 @@ class FormContainerControl is Control
         return undefined
     end
 
+    // The last focusable item in a child: its own last one when the child
+    // is a container (GetFocusedItem gives a container's first).
+    private action GetLastFocusedItem(Item2D control) returns Item2D
+        if control not= undefined
+            if control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Item2D item = interface:GetLastFocusableItem()
+                if item not= undefined and item:IsFocusable()
+                    return item
+                end
+            elseif control:IsFocusable()
+                return control
+            end
+        end
+        return undefined
+    end
+
     private action GetFocusedItem(Item2D control) returns Item2D
         if control not= undefined 
             if control is FormContainerControl
@@ -604,7 +621,7 @@ class FormContainerControl is Control
         i = children:GetSize() - 1
         repeat while i >= 0
             Item2D control = children:Get(i)
-            Item2D item = GetFocusedItem(control)
+            Item2D item = GetLastFocusedItem(control)
             if item not= undefined and item:IsFocusable()
                 return item
             end
@@ -811,6 +828,9 @@ class FormContainerControl is Control
 
         icon:SetHorizontalLayoutMode(icon:parent:Control:MAINTAIN_ASPECT_RATIO)
         icon:SetToHugeFont()
+        // One line of the huge font is too small for most images, so an icon
+        // is three lines tall. A program can still set its own size.
+        icon:SetLayoutRows(3)
 
         Add(icon)
         return icon
@@ -1082,6 +1102,9 @@ class FormContainerControl is Control
         TextBox item
         item:SetName(name)
         item:SetToDefaultFontSize()
+        item:SetLayoutRows(4)
+        item:SetTopPadding(3)
+        item:SetBottomPadding(3)
         Add(item)
         return item
     end

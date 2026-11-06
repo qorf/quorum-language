@@ -31,6 +31,11 @@ class EditField is TextField, EditRegion
         SetInputGroup("EditField")
         SetAutomaticViewMovement(false)
         SetClipping(false)
+        // The block sets this field's height to one line of its font
+        // (UpdateLength), so it has no room above or below: its text sits
+        // on the same line as the block's labels.
+        SetTopPadding(0)
+        SetBottomPadding(0)
     end
 
     action Setup(text name, integer relativeStartIndex, integer relativeEndIndex)

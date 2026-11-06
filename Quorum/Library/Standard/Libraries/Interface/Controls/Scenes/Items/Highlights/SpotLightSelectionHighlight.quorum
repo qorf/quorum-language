@@ -1,0 +1,71 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
+
+/*
+    SpotLightSelectionHighlight is the SelectionHighlight3D used when an
+    EditorSpotLight is selected. Its box is a selection's usual one; it also
+    gives the spotlight's settings to its properties section.
+*/
+class SpotLightSelectionHighlight is SelectionHighlight3D
+
+    /*
+        Returns the item being selected as an EditorSpotLight.
+
+        Attribute: Returns The spotlight
+    */
+    action GetEditorSpotLight returns EditorSpotLight
+        return cast(EditorSpotLight, GetItem())
+    end
+
+    /*
+        Returns the spotlight's color.
+
+        Attribute: Returns The color, or undefined
+    */
+    action GetColor returns Color
+        EditorSpotLight item = GetEditorSpotLight()
+        if item not= undefined
+            return item:GetColor()
+        end
+        return undefined
+    end
+
+    /*
+        Sets the spotlight's color.
+
+        Attribute: Parameter color The color
+    */
+    action SetColor(Color color)
+        EditorSpotLight item = GetEditorSpotLight()
+        if item not= undefined
+            item:SetColor(color)
+        end
+    end
+
+    /*
+        Returns how bright the spotlight is.
+
+        Attribute: Returns The intensity
+    */
+    action GetIntensity returns number
+        EditorSpotLight item = GetEditorSpotLight()
+        if item = undefined
+            return 0
+        end
+        return item:GetIntensity()
+    end
+
+    /*
+        Sets how bright the spotlight is.
+
+        Attribute: Parameter intensity The intensity
+    */
+    action SetIntensity(number intensity)
+        EditorSpotLight item = GetEditorSpotLight()
+        if item not= undefined
+            item:SetIntensity(intensity)
+        end
+    end
+end

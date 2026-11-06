@@ -44,6 +44,12 @@ class VerticalMenuLayout is Layout
         MenuPanel panel = undefined
         if container is MenuPanel
             panel = cast(MenuPanel, container)
+            // The columns are measured fresh each time, so a menu whose
+            // items change doesn't keep old widths.
+            panel:SetIconRegionWidth(0)
+            panel:SetLabelRegionWidth(0)
+            panel:SetShortcutRegionWidth(0)
+            panel:SetArrowRegionWidth(0)
 
             repeat while i < items:GetSize()
                 Item2D item = items:Get(i)
@@ -85,6 +91,17 @@ class VerticalMenuLayout is Layout
             kid:SetPosition(leftBorder, y)
 
             y = y + kid:GetHeight()
+        end
+
+        // The items place their shortcuts by the columns, so the panel is
+        // at least as wide as all the columns together, even when the
+        // longest name and the longest shortcut are on different items.
+        if panel not= undefined
+            number columnsWidth = panel:GetIconRegionWidth() + panel:GetLabelRegionWidth()
+                + panel:GetShortcutRegionWidth() + panel:GetArrowRegionWidth()
+            if longestWidth < columnsWidth
+                longestWidth = columnsWidth
+            end
         end
 
         number oldHeight = container:GetHeight()

@@ -1,0 +1,38 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Forms.Grouping
+
+/*
+One row of a Forms card, or a label and its control on a page, while
+FormRowLayout lays it out: what kind of row it is, its items and their
+sizes, and for a grouping inside a card, that grouping's own rows.
+*/
+class FormRow
+    // One control across the row.
+    public constant integer SINGLE = 0
+    // A label at the left and its control at the right.
+    public constant integer PAIR = 1
+    // A label (as a caption) above its control.
+    public constant integer STACK = 2
+    // An untitled grouping's children side by side.
+    public constant integer INLINE = 3
+    // A titled grouping inside a card: its title, then its own rows.
+    public constant integer SUBSECTION = 4
+
+    public integer kind = SINGLE
+    public Array<Item2D> items
+    public Array<number> widths
+    public Array<number> heights
+    public number height = 0
+
+    // For INLINE and SUBSECTION rows, the grouping, and for SUBSECTION, its
+    // title and its rows.
+    public Grouping group = undefined
+    public Item2D groupTitle = undefined
+    public Array<FormRow> groupRows
+    // For an INLINE row of choices too wide to go side by side: they go top
+    // to bottom instead (SizeInline, PlaceInline).
+    public boolean stackedChoices = false
+end

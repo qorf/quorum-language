@@ -1,0 +1,44 @@
+package Libraries.Web.Styles
+
+/*
+    WebStyle is the parent of every kind of style for a web page. A style
+    says how an element looks: its text, its list markers, its spacing. It
+    never says where the items inside go; that is a layout's job, so a
+    style and a layout never set the same thing. A style is set on an
+    element through the page, with SetStyle, and only a kind of style that
+    fits that element is accepted. The website's build turns each style
+    into a stylesheet rule, so a style never needs any CSS from the person
+    using it.
+
+    WebStyle itself can't be used on its own. Use one of its children,
+    such as WebListStyle or WebTextStyle.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+    use Libraries.Web.Styles.WebListStyle
+
+    class Main is WebPage
+        action Main
+            WebListStyle bullets
+            bullets:UseDiscs()
+            bullets:SetLeftPadding(32)
+
+            UnorderedList list
+            SetStyle(list, bullets)
+            list:AddListItem("First")
+            list:AddListItem("Second")
+            Add(list)
+        end
+    end
+*/
+class WebStyle
+    /*
+        Returns the stylesheet declarations for this style: the settings
+        inside one rule, without the rule's name. Every kind of style
+        writes its own. WebSite calls this when it writes the stylesheet;
+        people making pages don't.
+
+        Attribute: Returns The declarations for this style, or nothing if it needs none.
+    */
+    blueprint action Generate returns text
+end

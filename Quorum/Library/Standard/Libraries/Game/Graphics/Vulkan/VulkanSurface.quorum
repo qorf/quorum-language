@@ -24,4 +24,17 @@ class VulkanSurface
         return instance
     end
 
+    /*
+    This action frees the surface. Anything made on it, such as a swapchain,
+    must be freed first.
+    */
+    action Dispose
+        if initialized
+            DisposeNative()
+            initialized = false
+        end
+    end
+
+    private system action DisposeNative
+
 end

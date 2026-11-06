@@ -159,7 +159,7 @@ class ChartLayout is Layout
                         repeat while i < chart:GetSubChartAreas():GetSize()
                             ChartLabel label = chart:GetSubChartAreas():Get(i):GetLabel()
                             if label not= undefined
-                                label:SetFontSize(cast(integer, labelArea*0.75))
+                                label:SetFontSize(cast(integer, labelArea*0.75 / chart:GetInterfaceScale()))
                                 if label:GetWidth() > width
                                     integer newSize = cast(integer, label:GetFontSize() * (width/label:GetWidth()))
                                     label:SetFontSize(newSize)

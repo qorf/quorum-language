@@ -1,46 +1,33 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkCommandPoolCreateInfo;
-import org.lwjgl.vulkan.VkDevice;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanCommandPool;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanCommandPool;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanCommandPoolStrategy;
 
-import java.nio.LongBuffer;
-
-import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateCommandPool;
-
+/*
+The Java side of Quorum's VulkanCommandPool. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanCommandPool), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanCommandPool, with quorum-natives' src/vulkan).
+*/
 public class VulkanCommandPool
 {
     public Object me_;
 
-    private long commandPoolHandle = 0L;
+    private final VulkanCommandPoolStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanCommandPool(this) : new DesktopVulkanCommandPool(this);
 
     public boolean CreateNative(VulkanDevice_ quorumDevice, int flags, int queueFamilyIndex)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
-            VkDevice vulkanDevice = pluginDevice.GetDevice();
-
-            VkCommandPoolCreateInfo createInfo = VkCommandPoolCreateInfo.calloc(stack);
-            createInfo.sType$Default();
-            createInfo.flags(flags);
-            createInfo.queueFamilyIndex(queueFamilyIndex);
-
-            LongBuffer handleBuffer = stack.mallocLong(1);
-            int vulkanResult = vkCreateCommandPool(vulkanDevice, createInfo, null, handleBuffer);
-            if (vulkanResult != VK_SUCCESS)
-                return false;
-
-            commandPoolHandle = handleBuffer.get(0);
-        }
-
-        return true;
+        return strategy.CreateNative(quorumDevice, flags, queueFamilyIndex);
     }
 
     public long GetCommandPoolHandle()
     {
-        return commandPoolHandle;
+        return strategy.GetCommandPoolHandle();
+    }
+
+    public VulkanCommandPoolStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

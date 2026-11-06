@@ -18,10 +18,18 @@ public class File {
     public java.lang.Object me_ = null;
     private QuorumFile inst;
     static boolean isAndroid = false;
+    static boolean isIOS = false;
     
     static
     {
         isAndroid = IsAndroid();
+        isIOS = IsIOS();
+    }
+
+    // MobiVM reports iOS (devices and the simulator) as "iOS".
+    public static boolean IsIOS() {
+        String os = System.getProperty("os.name");
+        return os != null && os.contains("iOS");
     }
     
     public static boolean IsAndroid() {
@@ -30,10 +38,12 @@ public class File {
     }
     
     public File() {
-        if(!isAndroid) {
-            inst = new QuorumFile();
-        } else {
+        if(isAndroid) {
             inst = new QuorumFileAndroid();
+        } else if(isIOS) {
+            inst = new QuorumFileIOS();
+        } else {
+            inst = new QuorumFile();
         }
     }
     
@@ -67,6 +77,10 @@ public class File {
     
     public String GetWorkingDirectoryNative() {
         return inst.GetWorkingDirectoryNative();
+    }
+
+    public String GetStorageDirectoryNative() {
+        return inst.GetStorageDirectoryNative();
     }
     
     /**

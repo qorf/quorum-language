@@ -10,6 +10,8 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.ColorGroup
 
 /*
 The ListItem class is used internally to represent an entry in a list. Users
@@ -20,6 +22,9 @@ actions in List to add and remove entries.
 class ListItem is Control
 
     Label label
+    // The label's color before the selection changed it.
+    ColorGroup restingColor = undefined
+    boolean restingColorSaved = false
     Icon icon
 
     // The Behavior to use when the item is activated (e.g. by double click).
@@ -99,18 +104,48 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action GainedSelection
         parent:Control:GainedSelection()
+        RefreshSelectionText()
+    end
 
-        if GetSelectionFontColor() not= undefined
-            label:SetColor(GetSelectionFontColor())
+    // A selected list item shows the focused wash while its List has the
+    // focus, and the plain gray otherwise (LS5).
+    action IsRenderingFocus returns boolean
+        GameStateManager focusState
+        if focusState:GetGame() = undefined
+            return false
+        end
+        List list = GetList()
+        if list = undefined
+            return false
+        end
+        return list:IsRenderingFocus()
+    end
+
+    // The selected text follows its List's focus (LS5).
+    action RefreshSelectionText
+        // The label's own color, so it comes back when the selection leaves.
+        if not restingColorSaved
+            restingColor = label:GetFontColor()
+            restingColorSaved = true
+        end
+        if IsRenderingFocus()
+            if GetSelectionFontColor() not= undefined
+                label:SetColor(GetSelectionFontColor())
+            end
+        elseif GetUnfocusedSelectionFontColor() not= undefined
+            label:SetColor(GetUnfocusedSelectionFontColor())
         end
     end
 
     action LostSelection
         parent:Control:LostSelection()
 
-        if GetFontColor() not= undefined
+        if restingColorSaved and restingColor not= undefined
+            label:SetColor(restingColor)
+        elseif GetFontColor() not= undefined
             label:SetColor(GetFontColor())
         end
+        restingColorSaved = false
     end
 
     action LoadGraphics(LayoutProperties properties)
@@ -176,6 +211,41 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action GetActivationBehavior returns Behavior
         return activationBehavior
+    end
+
+    /*
+    This action returns how deep this row sits when a List is drawn as a
+    tree: 0 for a top row, 1 for a row under it, and so on. Screen readers
+    use it to give a row's place among the rows at its own depth ("1 of
+    3") rather than in the whole list. Rows of an ordinary list are all
+    0. Classes that draw rows as a tree override it.
+
+    Attribute: Returns The row's depth, from 0.
+    */
+    action GetAccessibilityLevel returns integer
+        return 0
+    end
+
+    /*
+    This action returns true if the row opens and closes to show rows under
+    it, in a List treated as a tree (List:SetTreeAccessibility). Screen
+    readers then say "expanded" or "collapsed" (IsAccessibilityExpanded).
+    It is false unless a class overrides it.
+
+    Attribute: Returns True if the row opens and closes.
+    */
+    action IsAccessibilityExpandable returns boolean
+        return false
+    end
+
+    /*
+    This action returns true if the row is open, showing the rows under it
+    (see IsAccessibilityExpandable). It is false unless a class overrides it.
+
+    Attribute: Returns True if the row is open.
+    */
+    action IsAccessibilityExpanded returns boolean
+        return false
     end
 
     action SetActivationBehavior(Behavior behavior)

@@ -1,0 +1,105 @@
+package Libraries.Game.Graphics.Trees
+
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item3D
+use Libraries.Language.Compile.Symbol.Type
+
+/*
+RenderTreeIterator3D visits every item in a RenderTree3D once, in the tree's
+own order. It walks from leaf to leaf with the tree's GetFirstLeaf and
+GetNextLeaf actions, which follow the links between the tree's nodes, so
+each step takes a few moves however many items there are.
+
+The iterator always knows the leaf after the one it last returned. Removing
+the item it just returned is therefore safe. Removing other items, or adding
+items, can change the tree's shape, so the rest of the walk may miss some
+items or visit some twice.
+
+The order comes from how the tree is built, not from when items were added,
+and it can change as items move.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.DynamicVolumeRenderTree3D
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item3D
+
+DynamicVolumeRenderTree3D tree
+Item3D first
+first:SetDimensions(1, 1, 1)
+Item3D second
+second:SetDimensions(1, 1, 1)
+second:SetPosition(5, 0, 0)
+tree:Add(first)
+tree:Add(second)
+
+Iterator<Item3D> iterator = tree:GetIterator()
+repeat while iterator:HasNext()
+    Item3D item = iterator:Next()
+    output item:GetX()
+end
+*/
+class RenderTreeIterator3D<Item3D> is Iterator<Item3D>
+    RenderTree3D tree = undefined
+
+    // The leaf whose item Next last returned, and the leaf after it.
+    RenderTreeNode3D current = undefined
+    RenderTreeNode3D upcoming = undefined
+
+    /*
+    This action sets the tree to walk, and starts at its first item.
+
+    Attribute: Parameter value The tree.
+    */
+    action SetTree(RenderTree3D value)
+        tree = value
+        Rewind()
+    end
+
+    /*
+    This action returns the item Next last returned, without moving on.
+
+    Attribute: Returns The current item, or undefined before the first call
+    to Next.
+    */
+    action GetCurrent returns Item3D
+        if current = undefined
+            return undefined
+        end
+        return current:GetItem()
+    end
+
+    /*
+    This action returns true if there is another item to visit.
+
+    Attribute: Returns True if Next will return an item.
+    */
+    action HasNext returns boolean
+        return upcoming not= undefined
+    end
+
+    /*
+    This action moves to the next item and returns it.
+
+    Attribute: Returns The next item, or undefined if there are no more.
+    */
+    action Next returns Item3D
+        current = upcoming
+        if current = undefined
+            return undefined
+        end
+        upcoming = tree:GetNextLeaf(current)
+        return current:GetItem()
+    end
+
+    /*
+    This action starts the walk again from the tree's first item.
+    */
+    action Rewind
+        current = undefined
+        upcoming = undefined
+        if tree not= undefined
+            upcoming = tree:GetFirstLeaf()
+        end
+    end
+end

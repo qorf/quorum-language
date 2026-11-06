@@ -2,21 +2,49 @@ package Libraries.Interface.Behaviors.Controls
 
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Item
 use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Mobile.AndroidKeyboard
-use Libraries.Interface.Mobile.IOSKeyboard
 use Libraries.System.Properties
 
+/*
+The TextBoxOpenKeyboardBehavior runs when a touch begins on a text box or a
+text field. A touch doesn't move the focus by itself
+(Layer2D.ProcessTouchEvent), so the touched control takes it, and its caret
+goes to the character nearest the finger, starting a drag that selects
+(TextTouchDragBehavior). On iOS, focusing a text control shows the keyboard
+and sends typing to it; on Android the keyboard is shown here, with a return
+key that fits the control.
+*/
 class TextBoxOpenKeyboardBehavior is Behavior
     action Run(BehaviorEvent event)
-        if event:GetItem() is TextBox
-            Properties prop
-            if prop:IsAndroid()
-                AndroidKeyboard keyboard
+        Item item = event:GetItem()
+        TouchEvent touch = event:GetTouchEvent()
+        if item is TextBox
+            TextBox box = cast(TextBox, item)
+            box:Focus()
+            if touch not= undefined
+                box:TouchBegan(touch)
+            end
+        elseif item is TextField
+            TextField field = cast(TextField, item)
+            field:Focus()
+            if touch not= undefined
+                field:TouchBegan(touch)
+            end
+        else
+            return now
+        end
+
+        Properties prop
+        if prop:IsAndroid()
+            AndroidKeyboard keyboard
+            if item is TextBox
                 keyboard:DisplayKeyboard(keyboard:TEXT_NO_CORRECTIONS, keyboard:LINEFEED)
-            elseif prop:IsIos()
-                IOSKeyboard keyboard
-                keyboard:DisplayKeyboard()
+            else
+                keyboard:DisplayKeyboard(keyboard:TEXT_NO_CORRECTIONS, keyboard:DONE)
             end
         end
     end

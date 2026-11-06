@@ -31,6 +31,8 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL11;
 
 import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.ALC10.alcGetCurrentContext;
+
 import quorum.Libraries.Sound.AudioSamples_;
 
 /**
@@ -77,9 +79,9 @@ public abstract class StreamingData extends DesktopData
 
     public void Play () 
     {
-	if (MANAGER.noDevice)
+	    if (MANAGER.noDevice)
             return;
-	if (sourceID == -1) 
+	    if (sourceID == -1)
         {
             sourceID = MANAGER.ObtainSource(true);
             if (sourceID == -1)
@@ -89,10 +91,15 @@ public abstract class StreamingData extends DesktopData
 
             if (buffers == null) 
             {
-		buffers = BufferUtils.createIntBuffer(bufferCount);
-		alGenBuffers(buffers);
-		if (alGetError() != AL_NO_ERROR)
-                    throw new RuntimeException("Unable to allocate audio buffers.");
+                // If any errors have silently occurred before this point, flush them. We just want to ensure that
+                // the buffers are successfully created.
+                alGetError();
+
+		        buffers = BufferUtils.createIntBuffer(bufferCount);
+		        alGenBuffers(buffers);
+                int alError = alGetError();
+                if (alError != AL_NO_ERROR)
+                    throw new RuntimeException("Unable to allocate audio buffers! Error code = " + alError);
             }
 			
             alSourcei(sourceID, AL_LOOPING, AL_FALSE);
@@ -109,24 +116,24 @@ public abstract class StreamingData extends DesktopData
             boolean filled = false; // Check if there's anything to actually play.
             for (int i = 0; i < bufferCount; i++) 
             {
-		int bufferID = buffers.get(i);
-		if (!Fill(bufferID))
+                int bufferID = buffers.get(i);
+                if (!Fill(bufferID))
                     break;
-		filled = true;
-		alSourceQueueBuffers(sourceID, bufferID);
+                filled = true;
+                alSourceQueueBuffers(sourceID, bufferID);
             }
 			
             if (alGetError() != AL_NO_ERROR) 
             {
-		Stop();
-		return;
+                Stop();
+                return;
             }
-	}
-	if (!isPlaying) 
+	    }
+        if (!isPlaying)
         {
             alSourcePlay(sourceID);
             isPlaying = true;
-	}
+        }
     }
 
     @Override

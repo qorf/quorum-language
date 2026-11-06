@@ -1,0 +1,45 @@
+package Libraries.Interface.Forms
+
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
+
+/*
+The FormRowSeparator class is the thin line between two rows of a card in
+a Forms page (see FormRowLayout). It isn't focusable, and screen readers skip
+it. Most programs never use it directly.
+*/
+class FormRowSeparator is Control
+    on create
+        SetName("Row Separator")
+        SetFocusable(false)
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+        parent:Control:LoadGraphics(properties)
+    end
+
+    action GetBackgroundColor returns ColorGroup
+        if HasColorPropertyOverride("backgroundColor")
+            return parent:Control:GetBackgroundColor()
+        end
+        GameStateManager gameState
+        ColorGroup line = gameState:GetInterfaceOptions():GetBorderColor("FormCard")
+        if line not= undefined
+            return line
+        end
+        return parent:Control:GetBackgroundColor()
+    end
+
+    action GetBorderThickness returns number
+        return 0
+    end
+end

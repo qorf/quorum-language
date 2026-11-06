@@ -137,7 +137,7 @@ public class IOSOpenGL implements OpenGLManager
         glDepthRangef((float)near, (float)far);
     }
     
-    public int GetMaxTextureUnits()
+    public int GetMaximumTextureCount()
     {
         IntBuffer buffer = plugins.quorum.Libraries.Game.libGDX.BufferUtils.newIntBuffer(16);
         glGetIntegerv(OpenGLManager.GL_MAX_TEXTURE_IMAGE_UNITS, buffer);

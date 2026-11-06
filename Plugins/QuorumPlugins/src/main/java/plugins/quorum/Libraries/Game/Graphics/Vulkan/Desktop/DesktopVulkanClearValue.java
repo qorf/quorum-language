@@ -1,0 +1,58 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanClearValueStrategy;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkClearValue;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanClearValue_;
+
+public class DesktopVulkanClearValue implements VulkanClearValueStrategy
+{
+    private final VulkanClearValue peer;
+
+    public DesktopVulkanClearValue(VulkanClearValue peer)
+    {
+        this.peer = peer;
+    }
+
+    VkClearValue.Buffer clearValue = null;
+
+    public void SetNativeValues()
+    {
+        if (clearValue == null)
+        {
+            clearValue = VkClearValue.calloc(2);
+        }
+
+        VulkanClearValue_ quorumValue = (VulkanClearValue_)peer.me_;
+
+        if (quorumValue.GetRed() >= 0 || quorumValue.GetGreen() >= 0 || quorumValue.GetBlue() >= 0 || quorumValue.GetAlpha() >= 0)
+        {
+            clearValue.apply(0,
+                    v -> v.color().float32(0, (float) quorumValue.GetRed())
+                            .float32(1, (float) quorumValue.GetGreen())
+                            .float32(2, (float) quorumValue.GetBlue())
+                            .float32(3, (float) quorumValue.GetAlpha()));
+        }
+
+        if (true)
+        {
+            clearValue.apply(1, v -> v.depthStencil().depth((float) quorumValue.GetDepth()));
+            clearValue.apply(1, v -> v.depthStencil().stencil(quorumValue.GetStencil()));
+        }
+    }
+
+    public void DisposeNative()
+    {
+        if (clearValue != null)
+        {
+            clearValue.free();
+            clearValue = null;
+        }
+    }
+
+    public VkClearValue.Buffer GetClearValue()
+    {
+        return clearValue;
+    }
+}

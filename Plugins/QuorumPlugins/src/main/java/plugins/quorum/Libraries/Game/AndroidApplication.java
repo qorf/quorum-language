@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Game;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.graphics.Rect;
@@ -12,6 +13,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +22,6 @@ import java.io.InputStream;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.view.accessibility.AccessibilityNodeProvider;
 
 import quorum.Libraries.Game.AndroidDisplay;
 import quorum.Libraries.Game.Game_;
@@ -49,7 +51,9 @@ public class AndroidApplication
 {
     public java.lang.Object me_ = null;
     
-    static final int MINIMUM_SDK = 21;
+    // Android 14, Quorum's minimum. The natives need Android 13's Vulkan
+    // library; Vulkan itself is used only with a 1.3 driver.
+    static final int MINIMUM_SDK = 34;
     
     public static Activity androidActivity = null;
     private static boolean initialized = false;
@@ -76,9 +80,7 @@ public class AndroidApplication
     private boolean hasBeenOriented = false;
     public static AccessibilityManager accessibilityManager = null;
     public static AccessibilityEvent accessibilityEvent = null;
-    public static AccessibilityNodeProvider accessibilityNodeProvider = null;
     public static View viewRoot = null;
-    public static final Map<Integer, Item_> quorumItems = new HashMap<Integer, Item_>();;
     public static int screenHeight;
     public static int screenWidth;
 
@@ -159,92 +161,9 @@ public class AndroidApplication
         UseImmersiveMode(this.useImmersiveMode);
 
         viewRoot = androidActivity.getWindow().getDecorView();
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        androidActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenHeight = displayMetrics.heightPixels;
-        screenWidth = displayMetrics.widthPixels;
-        accessibilityNodeProvider = new AccessibilityNodeProvider() {
-            @Override
-            public AccessibilityNodeInfo createAccessibilityNodeInfo(int virtualViewId) {
-                AccessibilityNodeInfo info = null;
-//                if (virtualViewId == View.NO_ID) {
-//                    info = AccessibilityNodeInfo.obtain(AndroidApplication.viewRoot);
-//                    // Add the virtual children of the root View.
-//                    for (Map.Entry<Integer, Item_> set : AndroidApplication.quorumItems.entrySet())
-//                    {
-//                        Item_ item = set.getValue();
-//                        info.addChild(AndroidApplication.viewRoot, item.GetHashCode());
-//                    }
-//                } 
-//                else {
-//                    // Find the view that corresponds to the given id.
-//                    Item_ item = quorumItems.get(virtualViewId);
-//                    if (item == null) {
-//                        return null;
-//                    }
-//                    // Obtain and initialize an AccessibilityNodeInfo with
-//                    // information about the virtual view.
-//                    info = AccessibilityNodeInfo.obtain();
-//                    info.setPackageName(androidActivity.getPackageName());
-//                    info.setClassName(item.GetName());
-//                    info.setSource(viewRoot, virtualViewId);
-//                    info.setParent(viewRoot);
-//                    info.setText(item.GetDescription());
-//                    Log.d("AndroidApplication", "SELECTION ADDED");
-////                  info.addAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS);
-////                  info.addAction(AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS);
-//                    info.addAction(AccessibilityNodeInfo.ACTION_SELECT);
-//                    info.addAction(AccessibilityNodeInfo.ACTION_CLEAR_SELECTION);
-//                    info.setFocusable(false);
-//                    info.setVisibleToUser(true);
-//
-//                    Rect bounds;
-//                    if (item instanceof Item2D_)
-//                    {
-//                        double itemX = ((Item2D_)item).GetScreenX();
-//                        double itemY = (((Item2D_) item).GetScreenY());
-//
-//                        if (itemX == Double.NaN)
-//                            itemX = 0;
-//
-//                        if (itemY == Double.NaN)
-//                            itemY = 0;
-//
-//                        int left = (int)itemX;
-//                        int top = AndroidApplication.screenHeight - (int)(itemY + ((Item2D_) item).GetHeight());
-//                        int right = (int) (itemX + ((Item2D_) item).GetWidth());
-//                        int bottom = AndroidApplication.screenHeight - (int)(itemY);
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//                    else if (item instanceof Item3D_)
-//                    {
-//                        // This is only a place holder, to place a small box roughly at the
-//                        // center of a 3D object in the screen. To calculate this correctly,
-//                        // check how we calculate mouse input detection for 3D objects.
-//
-//                        Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-//
-//                        int left = (int)rectangle.GetX();
-//                        int top = AndroidApplication.screenHeight - (int)(rectangle.GetY() + rectangle.GetHeight());
-//                        int right = (int) (rectangle.GetX() + rectangle.GetWidth());
-//                        int bottom = AndroidApplication.screenHeight - (int)(rectangle.GetY());
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//                    else
-//                    {
-//                        int left = 0;
-//                        int top = 0;
-//                        int right = 0;
-//                        int bottom = 0;
-//                        bounds = new Rect(left, top, right, bottom);
-//                    }
-//
-//
-//                    info.setBoundsInScreen(bounds);
-//                }
-                return info;
-            }
-        };
+        Rect bounds = androidActivity.getWindowManager().getCurrentWindowMetrics().getBounds();
+        screenHeight = bounds.height();
+        screenWidth = bounds.width();
 
         /*
         if (this.useImmersiveMode && getVersion() >= Build.VERSION_CODES.KITKAT) {
@@ -266,6 +185,14 @@ public class AndroidApplication
     
     public boolean RequiresOrientationChange(AndroidConfiguration_ config)
     {
+        // Any orientation: nothing to wait for; the sensor is followed.
+        if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__ANY_ORIENTATION_())
+        {
+            if (!hasBeenOriented)
+                ResetOrientationToDefault(config);
+            return false;
+        }
+
         boolean required = true;
         
         if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
@@ -297,13 +224,20 @@ public class AndroidApplication
     
     public void ResetOrientationToDefault(AndroidConfiguration_ config)
     {
+        // Either landscape (or either portrait), following the device as it
+        // turns over, not one fixed side.
         if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__LANDSCAPE_())
         {
-            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__PORTRAIT_())
         {
-            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+        }
+        else if (config.Get_Libraries_Game_AndroidConfiguration__defaultOrientation_() == config.Get_Libraries_Game_AndroidConfiguration__ANY_ORIENTATION_())
+        {
+            // Every way up, unless the person locked the rotation.
+            androidActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         }
         
         hasBeenOriented = true;
@@ -317,23 +251,18 @@ public class AndroidApplication
         }
     }
     
+    /*
+    Hides the status bar with the window's WindowInsetsController (Android 11
+    and later), which replaced setSystemUiVisibility.
+    */
     public void HideStatusBar(boolean hide)
     {
-        if (!hide || GetVersion() < 11)
+        if (!hide)
             return;
-        View rootView = androidActivity.getWindow().getDecorView();
-        
-        try
-        {
-            Method m = View.class.getMethod("setSystemUiVisibility", int.class);
-            if (GetVersion() <= 13)
-                m.invoke(rootView, 0x0);
-            m.invoke(rootView, 0x1);
-        }
-        catch (Exception e)
-        {
-            //log("AndroidApplication", "Can't hide status bar", e);
-        }
+
+        WindowInsetsController controller = androidActivity.getWindow().getInsetsController();
+        if (controller != null)
+            controller.hide(WindowInsets.Type.statusBars());
     }
     
     public void onWindowFocusChanged(boolean hasFocus)
@@ -355,23 +284,20 @@ public class AndroidApplication
         }
     }
     
+    /*
+    Immersive mode: the status and navigation bars are hidden, and come back
+    for a moment when the person swipes from the edge of the screen.
+    */
     public void UseImmersiveMode(boolean mode)
     {
-        if (!mode || GetVersion() < Build.VERSION_CODES.KITKAT)
+        if (!mode)
             return;
-        
-        View view = androidActivity.getWindow().getDecorView();
-        try
+
+        WindowInsetsController controller = androidActivity.getWindow().getInsetsController();
+        if (controller != null)
         {
-            Method m = View.class.getMethod("setSystemUiVisibility", int.class);
-            int code = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION 
-                | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            m.invoke(view, code);
-        }
-        catch (Exception e)
-        {
-            //log("AndroidApplication", "Can't set immersive mode", e);
+            controller.hide(WindowInsets.Type.systemBars());
+            controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
     }
     
@@ -483,6 +409,16 @@ public class AndroidApplication
     public Context GetContext()
     {
         return androidActivity;
+    }
+
+    /*
+        Whether this device can run Quorum's Vulkan renderer: a Vulkan 1.3
+        (0x403000) driver. Many Android 14 devices have only 1.1.
+    */
+    public boolean IsVulkanAvailable()
+    {
+        Context context = GetContext();
+        return context != null && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION, 0x403000);
     }
     
     public Handler GetHandler()

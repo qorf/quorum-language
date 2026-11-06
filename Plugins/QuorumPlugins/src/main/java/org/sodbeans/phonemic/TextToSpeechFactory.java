@@ -11,7 +11,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.net.ServerSocket;
 import java.util.Iterator;
 import org.sodbeans.phonemic.daemon.PhonemicDaemon;
 import org.sodbeans.phonemic.mac.VoiceOver;
@@ -66,6 +65,9 @@ public class TextToSpeechFactory {
                 OnLoadNonVoiceOverMac();
             }
         }
+        else if (isIOS()) {
+            OnLoadIOS();
+        }
         else if (os == OperatingSystem.LINUX) {
             // Our only option is speech-dispatcher.
             try {
@@ -88,22 +90,32 @@ public class TextToSpeechFactory {
                     getStackTraceString(stackTrace));
             }
 
-            linuxSpeak = new LinuxSpeak();
-            instance = linuxSpeak;
-            speech.setSpeech(linuxSpeak);
-            isLoaded = true;
+            // The Linux library isn't shipped any more (Linux isn't supported),
+            // so speech is only set up if it loaded. Otherwise isLoaded stays
+            // false and getDefaultTextToSpeech returns NullSpeak, so say is
+            // silent instead of failing. Android also reports "Linux" and
+            // ends up here.
+            if (linuxLibraryLoaded) {
+                try {
+                    linuxSpeak = new LinuxSpeak();
+                    instance = linuxSpeak;
+                    speech.setSpeech(linuxSpeak);
+                    isLoaded = true;
+                }
+                catch (Exception | Error e) {
+                    logger.log(Level.SEVERE, "Could not start speech-dispatcher speech. " +
+                        getStackTraceString(e.getStackTrace()));
+                    linuxSpeak = null;
+                }
+            }
         }
         else if(isWindows()) {
 
             try {
-                if(OperatingSystem.getNumberBits() == 64) {
-                    loadLibrary("nvdaControllerClient64");
-                    loadLibrary("SappyJNI64");
-                }
-                else {
-                    loadLibrary("nvdaControllerClient32");
-                    loadLibrary("SappyJNI");
-                }
+                //SAPI speech is part of Windows.dll. Windows speech always
+                //uses SAPI (JAWS and NVDA were removed in 2026).
+                File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+                System.load(jar.getParentFile().getAbsolutePath() + "\\jni\\Windows.dll");
                 windowsSpeak = new WindowsSpeak();
                 speech.setSpeech(windowsSpeak);
                 instance = speech;
@@ -134,59 +146,52 @@ public class TextToSpeechFactory {
         isLoaded = true;
     }
 
+    /**
+     * Speech on a Mac without VoiceOver, through AVSpeechSynthesizer
+     * (AppleSpeak). Its native code is in Mac.so, the universal Mac library in
+     * the program's jni folder, which the game engine loads too. Loading the
+     * same file again is harmless.
+     */
     public static void OnLoadNonVoiceOverMac()
     {
-        //check if the server is already running
-            boolean isRunning = false;
-            try {
-                ServerSocket ss = new ServerSocket(56103); //test if the server port is in use or not
-                ss.close(); //port not in use, close it so the server can use it
-            }
-            catch (IOException ex) {
-                isRunning = true;
-            }
-            
-            if (!isRunning) {
-                Runtime runtime = Runtime.getRuntime();
+        try {
+            File jar = new File(TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+            System.load(jar.getParentFile().getAbsolutePath() + "/jni/Mac.so");
+            OnLoadAppleSpeech();
+        }
+        catch (Exception | Error e) {
+            logger.log(Level.SEVERE, "Could not load the Mac speech library. " +
+                getStackTraceString(e.getStackTrace()), e);
+            isLoaded = false;
+        }
+    }
 
-                String JNIRoot = new File(
-                TextToSpeechFactory.class.getProtectionDomain().getCodeSource().getLocation().getPath()).getParent();
+    /**
+     * Speech on iOS, through AVSpeechSynthesizer (AppleSpeak). The natives
+     * are linked into the app, so there is nothing to load.
+     */
+    public static void OnLoadIOS()
+    {
+        try {
+            OnLoadAppleSpeech();
+        }
+        catch (Exception | Error e) {
+            logger.log(Level.SEVERE, "Could not start speech on iOS. " +
+                getStackTraceString(e.getStackTrace()), e);
+            isLoaded = false;
+        }
+    }
 
-                String filePath = "";
-                if(!JNIRoot.contains("file:")) {
-                    filePath = "/jni/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
-                } else {
-                    filePath = "/CocoaSpeechServer.app/Contents/MacOS/CocoaSpeechServer";
-                }
-                File file = new File(JNIRoot + filePath);
-                String absolutePath = file.getAbsolutePath().replaceAll("%20", " ");
-                if(absolutePath.contains("/file:")) {
-                    String[] split = absolutePath.split("/file:");
-                    absolutePath = split[1];
-                }
+    private static void OnLoadAppleSpeech()
+    {
+        speech.setSpeech(new AppleSpeak());
+        instance = speech;
+        isLoaded = true;
+    }
 
-                String[] s= {absolutePath};
-
-                try {
-                    Process p = runtime.exec(s);
-                    speech.setSpeech(TextToSpeechFactory.getPhonemicClient("localhost"));
-                    instance = speech;
-                    isLoaded = true;
-                } catch (IOException ex) {
-                    Logger.getLogger(TextToSpeechFactory.class.getName()).log(Level.SEVERE, null, ex);
-                    isLoaded = false;
-                }
-            } else {
-                try {
-                    speech.setSpeech(TextToSpeechFactory.getPhonemicClient("localhost"));
-                    instance = speech;
-                    isLoaded = true;
-                } catch (IOException ex) {
-                    Logger.getLogger(TextToSpeechFactory.class.getName()).log(Level.SEVERE, null, ex);
-                    isLoaded = false;
-                }
-                isLoaded = true;
-            }
+    private static boolean isIOS() {
+        String name = System.getProperty("os.name");
+        return name != null && name.contains("iOS");
     }
     
     private static String getStackTraceString(StackTraceElement[] elements) {
@@ -266,8 +271,9 @@ public class TextToSpeechFactory {
 
     /**
      * Allows the user to request a particular text to speech engine. Since
-     * some engines are only available on some systems (e.g., JAWS on Windows,
-     * Carbon on Mac OS X), this request may fail and return null.
+     * some engines are only available on some systems (e.g., Microsoft SAPI
+     * on Windows, speech-dispatcher on Linux), this request may fail and
+     * return null.
      *
      * @param engine
      * @return
@@ -277,18 +283,6 @@ public class TextToSpeechFactory {
             return instance;
         }
         else if (isWindows() && TextToSpeechEngine.MICROSOFT_SAPI == engine){
-            if(windowsSAPILoaded) {
-                windowsSpeak.setTextToSpeechEngine(engine);
-                return windowsSpeak;
-            } //return null otherwise
-        }
-        else if (isWindows() && TextToSpeechEngine.JAWS == engine){
-            if(windowsSAPILoaded) {
-                windowsSpeak.setTextToSpeechEngine(engine);
-                return windowsSpeak;
-            } //return null otherwise
-        }
-        else if (isWindows() && TextToSpeechEngine.NVDA == engine){
             if(windowsSAPILoaded) {
                 windowsSpeak.setTextToSpeechEngine(engine);
                 return windowsSpeak;
@@ -411,62 +405,5 @@ public class TextToSpeechFactory {
             System.load(JNIPath + "/" + libFullName);
         }
     }
-    
-    /**
-     * Returns whether or not the given file exists.
-     * @param path
-     * @return 
-     */
-    private static boolean fileExists(String path) {
-        File f = new File(path);
-        
-        return f.exists();
-    }
-    /**
-     * Determines if the given JAWS script is installed. This function checks
-     * for the following path names, where %APPDATA% is the AppData environment
-     * variable.
-     * 
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jcf
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jss
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsb
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsd
-     * %APPDATA%\Freedom Scientific\JAWS\12.0\Settings\enu\$name.jsh
-     * 
-     * @param name the script name to search for
-     * @return 
-     */
-    public static boolean jawsScriptExists(String name) {
-        if (!isWindows())
-            return false;
-        
-        String appData = System.getenv("AppData");
-        
-        return fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jcf")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsb")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsd")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jsh")
-                || fileExists(appData + "\\Freedom Scientific\\JAWS\\12.0\\Settings\\enu\\" + name + ".jss");
-    }
-    
-    /**
-     * Determine if the given NVDA script is installed. THis function checks
-     * for the following path names, where %APPDATA% is the AppData environment
-     * variable.
-     * 
-     * %APPDATA%\nvda\appModules\$name.py
-     * %APPDATA%\nvda\appModules\$name.pyo
-     * 
-     * @param name the script name to search for.
-     * @return 
-     */
-    public static boolean nvdaScriptExists(String name) {
-        if (!isWindows())
-            return false;
-        
-        String appData = System.getenv("AppData");
 
-        return fileExists(appData + "\\nvda\\appModules\\" + name + ".py")
-                || fileExists(appData + "\\nvda\\appModules\\" + name + ".pyo");
-    }
 }

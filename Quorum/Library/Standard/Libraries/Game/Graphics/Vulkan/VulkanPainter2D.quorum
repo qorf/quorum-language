@@ -23,6 +23,7 @@ use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
 use Libraries.Compute.Vector4
+use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Texture
 
 class VulkanPainter2D is Painter2D
@@ -64,6 +65,10 @@ class VulkanPainter2D is Painter2D
     number clipHeight = -1
     boolean isClipping = false
     
+    // Used to turn clip coordinates, which are in world coordinates, into
+    // screen pixels through the camera.
+    Vector3 clipPoint
+
     integer viewportX = 0
     integer viewportY = 0
     integer viewportWidth = 0
@@ -92,9 +97,7 @@ on create
     end
 
     action RegenerateRenderPass(boolean isFirstPass) returns boolean
-        if renderPass not= undefined
-            renderPass:Dispose()
-        end
+        // Begin has already retired any old pass (Item 32).
 
         VulkanRenderPass pass
         renderPass = pass
@@ -111,54 +114,11 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         Framebuffers must either exactly match the RenderPass, or be compatible with it. More details here:
         https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
         */
-        VulkanAttachmentDescription outputColorAttachment
-        outputColorAttachment:SetFormat(graphics:GetSwapchain():GetImageViewInfo():GetFormat())
-        outputColorAttachment:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        outputColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
-        outputColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-
-        if isFirstPass
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        else
-outputColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_PRESENT_SOURCE)
-            outputColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
-        end
-
+        // The attachments match the swapchain's framebuffers, with or
+        // without 2D MSAA (Item 29).
         Array<VulkanAttachmentDescription> attachmentDescriptions
-        attachmentDescriptions:Add(outputColorAttachment)
-
-
-        VulkanAttachmentReference outputColorReference
-        outputColorReference:SetAttachmentIndex(0)
-        outputColorReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
-
-        Array<VulkanAttachmentReference> attachmentReferences
-        attachmentReferences:Add(outputColorReference)
-        
-        VulkanAttachmentDescription depthDescription
-        depthDescription:SetFormat(constants:FORMAT_D32_SFLOAT)
-        depthDescription:SetSamples(constants:SAMPLE_COUNT_1_BIT)
-        depthDescription:SetLoadOp(constants:ATTACHMENT_LOAD_OP_CLEAR)
-        depthDescription:SetStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilLoadOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
-        depthDescription:SetInitialLayout(constants:IMAGE_LAYOUT_UNDEFINED)
-        depthDescription:SetFinalLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
-        VulkanAttachmentReference depthReference
-        depthReference:SetAttachmentIndex(1)
-        depthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
-        
-        attachmentDescriptions:Add(depthDescription)
-
-        VulkanSubpassDescription subpass
-        subpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
-        subpass:SetColorAttachments(attachmentReferences)
-        subpass:SetDepthStencilAttachment(depthReference)
-
         Array<VulkanSubpassDescription> subpassDescriptions
-        subpassDescriptions:Add(subpass)
+        subpassDescriptions:Add(graphics:MakeSwapchainSubpass(isFirstPass, attachmentDescriptions))
 
         
         VulkanSubpassDependency dependency
@@ -166,7 +126,9 @@ depthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE)
         dependency:SetDestinationSubpass(0)
         dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
         dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
-        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+        // Color writes too: with 2D MSAA this pass loads the multisampled
+        // image an earlier layer's pass wrote (Item 29).
+        dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
         dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
 
         Array<VulkanSubpassDependency> subpassDependencies
@@ -239,6 +201,18 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             return now
         end
         
+        // The copies below overwrite output buffers that the previous
+        // frame's draws may still be reading. Make them wait for those
+        // reads (Item 32).
+        VulkanConstants barrierConstants
+        VulkanMemoryBarrier readBarrier
+        readBarrier:SetSourceStageMask(barrierConstants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
+        readBarrier:SetDestinationStageMask(barrierConstants:PIPELINE_STAGE_TRANSFER_BIT)
+        readBarrier:SetDestinationAccessMask(barrierConstants:ACCESS_TRANSFER_WRITE_BIT)
+        PipelineBarrierCommand readBarrierCommand
+        readBarrierCommand:SetMemoryBarrier(readBarrier)
+        commandBuffer:Record(readBarrierCommand)
+
         Iterator<Array<VulkanPainter2DBatch>> arrays = batches:GetValueIterator()
         VulkanPipeline defaultPipeline = GetDefaultPipeline()
         repeat while arrays:HasNext()
@@ -278,6 +252,14 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             return now
         end
         
+        // If the 2D sample count changed (Item 29), the swapchain's
+        // framebuffers were remade for it; make this painter's pass match.
+        // The old pass is retired (Item 32).
+        if IsRenderPassValid() and renderPass:GetSampleCount() not= graphics:GetSwapchainSampleCount()
+            graphics:Retire(renderPass)
+            renderPass = undefined
+        end
+
         // If the render pass isn't defined and valid, regenerate it.
         // We'll have to determine if this is the first painter in the Game as part of this.
         if not IsRenderPassValid()
@@ -491,8 +473,48 @@ clipValues:GetZ() not= lastClipValues:GetZ() or clipValues:GetW() not= lastClipV
 setScissor:SetPosition(0, 0)
             setScissor:SetSize(swapchain:GetImageWidth(), swapchain:GetImageHeight())
                 else
-                    setScissor:SetPosition(cast(integer, clipValues:GetX()), swapchain:GetImageHeight() - cast(integer, clipValues:GetY() + clipValues:GetW()))
-setScissor:SetSize(cast(integer, clipValues:GetZ()), cast(integer, clipValues:GetW()))
+                    /*
+                    Clip coordinates are in world coordinates, so the corners
+                    go through the camera to find their pixels, as the OpenGL
+                    painter does. A moved camera (such as for a display's safe
+                    region) would otherwise clip the wrong part of the screen.
+                    */
+                    Matrix4 combined = camera:GetCombinedMatrix()
+                    clipPoint:Set(clipValues:GetX(), clipValues:GetY(), 0)
+                    clipPoint:Multiply(combined)
+                    /*
+                    Rounded to the nearest pixel boundary, as the GPU decides
+                    which pixels to draw (those whose centers are inside). Cutting
+                    the fraction off instead dropped the right column and top row
+                    a clipped control draws, whenever its edge fell more than
+                    halfway into a pixel, such as a text field's border on
+                    those sides.
+                    */
+                    integer x1 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth + 0.5)
+                    integer y1 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight + 0.5)
+                    clipPoint:Set(clipValues:GetX() + clipValues:GetZ(), clipValues:GetY() + clipValues:GetW(), 0)
+                    clipPoint:Multiply(combined)
+                    integer x2 = cast(integer, viewportX + (clipPoint:GetX() + 1) / 2.0 * viewportWidth + 0.5)
+                    integer y2 = cast(integer, viewportY + (clipPoint:GetY() + 1) / 2.0 * viewportHeight + 0.5)
+
+                    // Vulkan rejects negative scissor offsets and sizes.
+                    integer top = swapchain:GetImageHeight() - y2
+                    if x1 < 0
+                        x1 = 0
+                    end
+                    if top < 0
+                        top = 0
+                    end
+                    integer scissorWidth = x2 - x1
+                    integer scissorHeight = swapchain:GetImageHeight() - y1 - top
+                    if scissorWidth < 0
+                        scissorWidth = 0
+                    end
+                    if scissorHeight < 0
+                        scissorHeight = 0
+                    end
+                    setScissor:SetPosition(x1, top)
+                    setScissor:SetSize(scissorWidth, scissorHeight)
                 end
 commandBuffer:Record(setScissor)
             end
@@ -597,7 +619,12 @@ DrawableShape shape = drawable:GetDrawableShape()
         end
         VulkanShaderProgram vulkanProgram = cast(VulkanShaderProgram, requestedProgram:GetShaderProgramStrategy())
         
-        if vulkanProgram:GetPipeline() = undefined
+        // Made, or made again if it was made for another sample count
+        // (Item 29).
+        VulkanPipeline programPipeline = vulkanProgram:GetPipeline()
+        if programPipeline = undefined
+            vulkanProgram:CreatePipeline(renderPass)
+        elseif programPipeline:GetInfo():GetRasterizationSamples() not= renderPass:GetSampleCount()
             vulkanProgram:CreatePipeline(renderPass)
         end
 

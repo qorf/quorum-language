@@ -179,7 +179,7 @@ end
 AddFilterTextField()
         
         if blockName not= ""
-AddLabel(blockName):SetFontSize(HEADER_SIZE)
+AddHeading(blockName, HEADER_SIZE, 2)
             if blockDescription not= ""
                 Label label = AddLabel(blockDescription)
                 label:SetFontSize(LABEL_SIZE)
@@ -189,7 +189,7 @@ Label label = AddLabel("No documentation available.")
                 label:SetFontSize(LABEL_SIZE)
                 label:SetJustifyAlignment()
             end
-            AddLabel(className):SetFontSize(HEADER_SIZE)
+            AddHeading(className, HEADER_SIZE, 2)
 if clazzDocs not= undefined 
                 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
                 if description not= ""
@@ -203,7 +203,7 @@ Label label = AddLabel("No documentation available.")
                 label:SetJustifyAlignment()
         end
         else
-AddLabel(className):SetFontSize(HEADER_SIZE)
+AddHeading(className, HEADER_SIZE, 2)
             if clazzDocs not= undefined
 text description = GetDescriptionFromResultClass(result, clazz, clazzDocs)
                 if description not= undefined and description not= ""
@@ -249,7 +249,7 @@ if not showActions
             return now
         end
         if actions not= undefined
-            AddLabel("Actions"):SetFontSize(HEADER_SIZE)
+            AddHeading("Actions", HEADER_SIZE, 2)
 
         integer i = 0
         repeat while i < actions:GetSize()
@@ -264,12 +264,23 @@ suggestedActionItems:Add(AddBlockPaletteItem(call, actions:Get(i)))
     end
     
     action SetupDefaultSuggestions
-        AddLabel("Basic"):SetFontSize(HEADER2_SIZE)
+        AddHeading("Basic", HEADER2_SIZE, 3)
         AddBasicBlocks()
-AddLabel("Control"):SetFontSize(HEADER2_SIZE)
+        AddHeading("Control", HEADER2_SIZE, 3)
         AddControlBlocks()
-AddLabel("Action"):SetFontSize(HEADER2_SIZE)
+        AddHeading("Action", HEADER2_SIZE, 3)
         AddActionBlocks()
+    end
+
+    /*
+        Adds a label that screen readers announce as a heading of the given
+        level, and list among the page's headings.
+    */
+    action AddHeading(text name, integer size, integer headingLevel) returns Label
+        Label heading = AddLabel(name)
+        heading:SetFontSize(size)
+        heading:SetHeadingLevel(headingLevel)
+        return heading
     end
 
     action AddFilterTextField
@@ -302,7 +313,7 @@ filterField:SetHorizontalLayoutMode(filterField:parent:Control:FILL)
             return now
         end
         if not block:IsHintsEmpty()
-            AddLabel("Hints"):SetFontSize(HEADER_SIZE)
+            AddHeading("Hints", HEADER_SIZE, 2)
             integer i = 0
             Iterator<Hint> hints = block:GetHintIterator()
             repeat while hints:HasNext()

@@ -1,5 +1,7 @@
 package Libraries.Game
 
+use Libraries.Game.Shapes.Rectangle
+
 /*
     GameDisplay is responsible for handling information about LWJGL's Display
     object, which represents the game screen.
@@ -151,4 +153,31 @@ class GameDisplay
     end
     */
     blueprint action GetSecondsSinceStart returns number
+
+    /*
+    The GetSafeRegion action returns the part of the display that nothing
+    covers: no camera cutout, notch, rounded corner, status bar or system
+    gesture area. It is in pixels, with (0, 0) at the bottom left, like the
+    display. On a display that nothing covers, such as a desktop window, it is
+    the whole display. Layers can keep their content inside it (see
+    Layer:SetUseSafeRegion).
+
+    Attribute: Returns The display's safe region, in pixels.
+    */
+    action GetSafeRegion returns Rectangle
+        Rectangle region
+        region:SetRectangle(0, 0, GetWidth(), GetHeight())
+        return region
+    end
+
+    /*
+    The HasSafeRegion action returns true if something covers part of the
+    display, so that its safe region is smaller than the display.
+
+    Attribute: Returns True if the safe region is smaller than the display.
+    */
+    action HasSafeRegion returns boolean
+        Rectangle region = GetSafeRegion()
+        return region:GetWidth() < GetWidth() or region:GetHeight() < GetHeight()
+    end
 end

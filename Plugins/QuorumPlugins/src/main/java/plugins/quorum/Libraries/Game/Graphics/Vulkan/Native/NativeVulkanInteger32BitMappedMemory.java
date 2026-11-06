@@ -1,0 +1,61 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Native;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanInteger32BitMappedMemory;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanInteger32BitMappedMemoryStrategy;
+import quorum.Libraries.Containers.Integer32BitArray;
+import quorum.Libraries.Containers.Integer32BitArray_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+
+import java.nio.IntBuffer;
+
+// Mapped GPU memory as 32-bit integers on iOS and Android: the desktop's code,
+// with Java's own buffers instead of LWJGL's.
+public class NativeVulkanInteger32BitMappedMemory implements VulkanInteger32BitMappedMemoryStrategy
+{
+    private final VulkanInteger32BitMappedMemory peer;
+
+    public NativeVulkanInteger32BitMappedMemory(VulkanInteger32BitMappedMemory peer)
+    {
+        this.peer = peer;
+    }
+
+    IntBuffer intBuffer = null;
+
+    public void CreateNative(VulkanBuffer_ quorumBuffer)
+    {
+        VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
+        intBuffer = NativeVulkan.Wrap(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize()).asIntBuffer();
+    }
+
+    public void SetNative(int index, int value)
+    {
+        intBuffer.put(index, value);
+    }
+
+    public void SetNative(int index, Integer32BitArray_ quorumArray, int arrayOffset, int arrayItems)
+    {
+        int[] array = ((Integer32BitArray)quorumArray).plugin_.ints;
+        // Only update the position if it doesn't match the index.
+        // We want to maintain uninterrupted sequential insertion whenever possible.
+        if (intBuffer.position() != index)
+            intBuffer.position(index);
+
+        intBuffer.put(array, arrayOffset, arrayItems);
+    }
+
+    public int GetNative(int index)
+    {
+        return intBuffer.get(index);
+    }
+
+    public void Dispose()
+    {
+        /*
+        Null out the buffer so it can be garbage collected. We don't manually free the memory because we didn't directly
+        allocate it -- we just wrapped a chunk of memory that was allocated by the VulkanBuffer. The VulkanBuffer is
+        responsible for deallocating the memory during an Unmap operation.
+        */
+        intBuffer = null;
+    }
+}

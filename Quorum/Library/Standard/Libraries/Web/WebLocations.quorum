@@ -1,0 +1,66 @@
+package Libraries.Web
+
+/*
+    WebLocations holds the one rule every location on a website follows:
+    a location is always inside the site, so it never starts with a slash
+    and never uses ".." to climb out of its folder. With that rule,
+    "style/site.css" can only mean one place; there is no "/style/site.css"
+    that means something else. It also joins a folder and a location the
+    same way everywhere. It is a shared class, so there is only one.
+
+    Attribute: Example
+    use Libraries.Web.WebLocations
+
+    WebLocations locations
+    locations:Check("tutorials/start.html")
+    output locations:Join("html", "tutorials/start.html")
+*/
+shared class WebLocations
+    constant text SEPARATOR = "/"
+    constant text PARENT_FOLDER = ".."
+
+    /*
+        Stops the build with a clear message if a location breaks the rule:
+        it starts with a slash, or uses ".." to leave its folder.
+
+        Attribute: Parameter location A location, such as "tutorials/start.html".
+    */
+    action Check(text location)
+        if location:StartsWith(SEPARATOR)
+            alert("Locations are always inside the site; leave out the leading slash: " + location)
+        end
+        if location:Contains(PARENT_FOLDER)
+            alert("A location can't use .. to leave its folder: " + location)
+        end
+    end
+
+    /*
+        Joins a folder and a location inside it, with one slash between
+        them, whether or not the folder ends with one.
+
+        Attribute: Parameter folder A folder, such as "html" or "html/".
+        Attribute: Parameter location A location inside it, such as "media/a.csv".
+        Attribute: Returns The two joined, such as "html/media/a.csv".
+    */
+    action Join(text folder, text location) returns text
+        if folder:IsEmpty()
+            return location
+        end
+        if folder:EndsWith(SEPARATOR)
+            return folder + location
+        end
+        return folder + SEPARATOR + location
+    end
+
+    /*
+        Returns a location as a browser asks for it, from the top of the
+        site: "style/site.css" becomes "/style/site.css". Only the site
+        adds this slash; people never write it.
+
+        Attribute: Parameter location A location, such as "style/site.css".
+        Attribute: Returns The location with one leading slash.
+    */
+    action FromSiteTop(text location) returns text
+        return SEPARATOR + location
+    end
+end

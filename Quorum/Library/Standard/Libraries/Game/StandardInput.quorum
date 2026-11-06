@@ -490,9 +490,13 @@ Array<RecentInputTimer> recentGestures
                     counter = counter + 1
                 end
 
+                // A layer whose automatic resizing is off is left alone.
                 counter = 0
                 repeat while counter < layers:GetSize()
-                    layers:Get(counter):Resize(event)
+                    Layer layer = layers:Get(counter)
+                    if layer:GetAutomaticResizing()
+                        layer:Resize(event)
+                    end
                     counter = counter + 1
                 end
             end

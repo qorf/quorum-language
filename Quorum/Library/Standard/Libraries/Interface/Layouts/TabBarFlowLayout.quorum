@@ -15,6 +15,12 @@ class TabBarFlowLayout is Layout
     boolean ignoreHidden = false
     number offset = 0
 
+    // What the last layout found. Only the horizontal layout sets these.
+    boolean overflowing = false
+    number visibleStart = 0
+    number visibleEnd = 0
+    number maximumOffset = 0
+
     /*
     This action sets the starting position of the tabs. This is used to offset
     the tab positions to allow for access to tabs that hang off the edge of the container.
@@ -27,6 +33,83 @@ class TabBarFlowLayout is Layout
 offset represents an x-offset, and for a vertical scheme, it represents a y-offset.*/
     action GetOffset returns number
         return offset
+    end
+
+    /*
+    This action returns whether the tabs were wider than their container the
+    last time this layout ran, so that some of them are scrolled out of view.
+    Only the horizontal layout sets this. It is false until the first layout.
+
+    Attribute: Returns True if the tabs are wider than the container, or false if they all fit.
+    */
+    action IsOverflowing returns boolean
+        return overflowing
+    end
+
+    /*
+    This action records whether the tabs are wider than their container. The
+    layout sets it each time it runs, so most users won't need it.
+
+    Attribute: Parameter overflow True if the tabs are wider than the container.
+    */
+    action SetOverflowing(boolean overflow)
+        overflowing = overflow
+    end
+
+    /*
+    This action returns where the area that shows tabs starts, inside the
+    container, after the last layout. For a horizontal layout this is an x
+    position. It is more than 0 when scroll arrows take room at the start.
+
+    Attribute: Returns The position where the visible tab area starts.
+    */
+    action GetVisibleStart returns number
+        return visibleStart
+    end
+
+    /*
+    This action returns where the area that shows tabs ends, inside the
+    container, after the last layout. For a horizontal layout this is an x
+    position. It is less than the container's width when scroll arrows take
+    room at the end.
+
+    Attribute: Returns The position where the visible tab area ends.
+    */
+    action GetVisibleEnd returns number
+        return visibleEnd
+    end
+
+    /*
+    This action records the area of the container that shows tabs. The layout
+    sets it each time it runs, so most users won't need it.
+
+    Attribute: Parameter start Where the visible tab area starts.
+    Attribute: Parameter finish Where the visible tab area ends.
+    */
+    action SetVisibleArea(number start, number finish)
+        visibleStart = start
+        visibleEnd = finish
+    end
+
+    /*
+    This action returns the largest offset the last layout allowed: the
+    offset that brings the end of the last tab to the end of the visible
+    area. It is 0 when all of the tabs fit.
+
+    Attribute: Returns The largest offset the layout allows.
+    */
+    action GetMaximumOffset returns number
+        return maximumOffset
+    end
+
+    /*
+    This action records the largest offset the layout allows. The layout sets
+    it each time it runs, so most users won't need it.
+
+    Attribute: Parameter maximum The largest offset the layout allows.
+    */
+    action SetMaximumOffset(number maximum)
+        maximumOffset = maximum
     end
 
     action SetIgnoreHidden(boolean ignore)

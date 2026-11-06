@@ -14,6 +14,8 @@ use Libraries.Interface.Events.TextInputListener
 use Libraries.Interface.Events.TextInputProcessor
 use Libraries.Interface.Events.TextInputEvent
 use Libraries.Interface.Events.ResizeListener
+use Libraries.Interface.Events.ResizeEvent
+use Libraries.Interface.Events.ResizeProcessor
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.Events.GestureListener
 use Libraries.Containers.Iterator
@@ -21,6 +23,10 @@ use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Containers.HashTable
+use Libraries.System.Logging.SharedLogger
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.TextBox
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -46,6 +52,8 @@ class MobileInput is GameInput
     // An array used to store incoming keyboard and text input events.
     Array<KeyboardEvent> keyboardEvents
     Array<TextInputEvent> textInputEvents
+    private ResizeProcessor resizeProcessor
+    Array<ResizeEvent> resizeEvents
 
     /*
     An array containing "recent" touches. Touches are considered recent if
@@ -53,6 +61,17 @@ class MobileInput is GameInput
     "multipleTapTimer" value from AndroidConfiguration.
     */
     Array<RecentInputTimer> recentTouches
+
+    // The text control each finger's drag belongs to, by finger
+    // (FindTouchCapture).
+    HashTable<integer, Item> touchCaptures
+
+    // The item showing a hover under each finger, by finger
+    // (HoverUnderFinger).
+    HashTable<integer, Item> touchHovers
+
+    // Whether touches are logged (SetDebugInput).
+    boolean debugInput = false
 
     /*
     An array containing "recent" key presses. Presses are considered recent if
@@ -98,6 +117,7 @@ class MobileInput is GameInput
         HandleGestureEvents()
         HandleKeyboardEvents()
         HandleTextInputEvents()
+        HandleResizeEvents()
     end  
 
     public action HandleTouchEvents()
@@ -127,6 +147,7 @@ class MobileInput is GameInput
                     set:SetInputTrigger(set:BEGIN)
 
                     recentInput = GetRecentTouchInput(touchEvent)
+                    ShowFocusOutline()
 
                     multiSet = set:Copy()
 
@@ -134,216 +155,264 @@ class MobileInput is GameInput
                     set:SetInputTrigger(set:FINISH)
                 end
 
-                BehaviorEvent behaviorEvent
-                behaviorEvent:SetTouchEvent(touchEvent)
+                // A finger whose drag belongs to a text control
+                // (touchCaptures) sends it its movement and its end, wherever
+                // the finger is, so a drag that leaves the control keeps
+                // selecting.
+                boolean captured = false
+                Item handledBy = undefined
+                boolean ranBehavior = false
+                if touchEvent:eventType not= touchEvent:BEGAN and touchCaptures:HasKey(touchEvent:fingerID)
+                    handledBy = touchCaptures:GetValue(touchEvent:fingerID)
+                    captured = SendToCapture(handledBy, set, touchEvent)
+                    ranBehavior = captured
+                    if touchEvent:eventType = touchEvent:ENDED or touchEvent:eventType = touchEvent:CANCELLED
+                        touchCaptures:RemoveKey(touchEvent:fingerID)
+                        // A hover this finger started ends with it.
+                        HoverUnderFinger(touchEvent)
+                    end
+                end
 
-                boolean useDefaultTable = true
+                if not captured
+                    BehaviorEvent behaviorEvent
+                    behaviorEvent:SetTouchEvent(touchEvent)
 
-                integer counter = layers:GetSize()
-                repeat while counter > 0 and not touchEvent:WasEventHandled()
-                    counter = counter - 1
+                    boolean useDefaultTable = true
 
-                    Item temp = layers:Get(counter):ProcessTouchEvent(touchEvent)
-                    if touchEvent:GetSource() not= undefined
-                        Item seeker = touchEvent:GetSource()
+                    integer counter = layers:GetSize()
+                    repeat while counter > 0 and not touchEvent:WasEventHandled()
+                        counter = counter - 1
+
+                        Item temp = layers:Get(counter):ProcessTouchEvent(touchEvent)
+                        if touchEvent:GetSource() not= undefined
+                            Item seeker = touchEvent:GetSource()
                         
-                        boolean noMoveTarget = true
-                        if not (touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY)
-                            noMoveTarget = false
-                        end
+                            boolean noMoveTarget = true
+                            if not (touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY)
+                                noMoveTarget = false
+                            end
 
-                        InputSet beginSet = set:Copy()
-                        beginSet:SetInputTrigger(beginSet:BEGIN)
-                        InputSet finishSet = set:Copy()
-                        finishSet:SetInputTrigger(finishSet:FINISH)
+                            InputSet beginSet = set:Copy()
+                            beginSet:SetInputTrigger(beginSet:BEGIN)
+                            InputSet finishSet = set:Copy()
+                            finishSet:SetInputTrigger(finishSet:FINISH)
 
-                        repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
+                            repeat while seeker not= undefined and (useDefaultTable = true or noMoveTarget)
                             
-                            InputTable table = GetInputTable(seeker:GetInputGroup())
+                                InputTable table = GetInputTable(seeker:GetInputGroup())
 
-                            if useDefaultTable
-                                if table not= undefined
-                                    if recentInput not= undefined
-                                        if ItemsAreRelated(seeker, recentInput:item)
-                                            multiSet:SetEventCount(recentInput:count + 1)
-                                        else
-                                            multiSet:SetEventCount(1)
-                                        end
-                                        if table:HasKey(multiSet)
-                                            set = multiSet
-                                        end
-                                    end
-                                    if table:HasKey(set)
+                                if useDefaultTable
+                                    if table not= undefined
                                         if recentInput not= undefined
-                                            recentInput:timer = 0
-                                            if recentInput:item not= seeker
-                                                recentInput:item = seeker
-                                                recentInput:count = 1
-                                                touchEvent:tapCount = 1
+                                            if ItemsAreRelated(seeker, recentInput:item)
+                                                multiSet:SetEventCount(recentInput:count + 1)
                                             else
-                                                recentInput:count = recentInput:count + 1
-                                                touchEvent:tapCount = recentInput:count
+                                                multiSet:SetEventCount(1)
+                                            end
+                                            if table:HasKey(multiSet)
+                                                set = multiSet
                                             end
                                         end
+                                        if table:HasKey(set)
+                                            if recentInput not= undefined
+                                                recentInput:timer = 0
+                                                if recentInput:item not= seeker
+                                                    recentInput:item = seeker
+                                                    recentInput:count = 1
+                                                    touchEvent:tapCount = 1
+                                                else
+                                                    recentInput:count = recentInput:count + 1
+                                                    touchEvent:tapCount = recentInput:count
+                                                end
+                                            end
 
-                                        useDefaultTable = false
-                                        touchEvent:SetEventHandled(true)
-                                        target = seeker
+                                            useDefaultTable = false
+                                            touchEvent:SetEventHandled(true)
+                                            target = seeker
+                                        end
                                     end
                                 end
-                            end
 
-                            if noMoveTarget
-                                if table not= undefined
-                                    boolean valid = table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet)
-                                    if valid
-                                        noMoveTarget = false
-                                        touchMoveTarget = seeker
+                                if noMoveTarget
+                                    if table not= undefined
+                                        boolean valid = table:HasKey(set) or table:HasKey(beginSet) or table:HasKey(finishSet)
+                                        if valid
+                                            noMoveTarget = false
+                                            touchMoveTarget = seeker
+                                        end
                                     end
                                 end
-                            end
 
-                            if seeker is Item2D
-                                Item2D target2D = cast(Item2D, seeker)
-                                seeker = target2D:GetParent()
-                            elseif seeker is Item3D
-                                Item3D target3D = cast(Item3D, seeker)
-                                seeker = target3D:GetParent()
-                            else
-                                seeker = undefined
+                                if seeker is Item2D
+                                    Item2D target2D = cast(Item2D, seeker)
+                                    seeker = target2D:GetParent()
+                                elseif seeker is Item3D
+                                    Item3D target3D = cast(Item3D, seeker)
+                                    seeker = target3D:GetParent()
+                                else
+                                    seeker = undefined
+                                end
                             end
                         end
                     end
-                end
 
-                if not touchEvent:WasEventHandled()
-                    NotifyTouchListeners(touchEvent)
-                end
+                    FocusUnderFinger(touchEvent)
+                    // A lifted finger's hover ends after its own behavior
+                    // runs (below): ending it runs the item's "mouse off",
+                    // which for a button lets go of the press, so the
+                    // button's touch up would then not activate it.
+                    boolean fingerLifted = touchEvent:eventType = touchEvent:ENDED or touchEvent:eventType = touchEvent:CANCELLED
+                    if not fingerLifted
+                        HoverUnderFinger(touchEvent)
+                    end
+
+                    if not touchEvent:WasEventHandled()
+                        NotifyTouchListeners(touchEvent)
+                    end
                 
-                behaviorEvent:SetItem(target)
-                InputTable table = undefined
+                    behaviorEvent:SetItem(target)
+                    InputTable table = undefined
                 
-                if touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY
+                    if touchEvent:eventType = touchEvent:MOVED or touchEvent:eventType = touchEvent:STATIONARY
                     
-                    if lastTouchMoveTarget not= touchMoveTarget
-                        BehaviorEvent lastTargetEvent
-                        lastTargetEvent:SetItem(undefined)
-                        lastTargetEvent:SetTouchEvent(touchEvent)
+                        if lastTouchMoveTarget not= touchMoveTarget
+                            BehaviorEvent lastTargetEvent
+                            lastTargetEvent:SetItem(undefined)
+                            lastTargetEvent:SetTouchEvent(touchEvent)
 
-                        InputSet finishSet = set:Copy()
-                        finishSet:SetInputTrigger(set:FINISH)
+                            InputSet finishSet = set:Copy()
+                            finishSet:SetInputTrigger(set:FINISH)
 
-                        Item lastTarget = lastTouchMoveTarget
+                            Item lastTarget = lastTouchMoveTarget
 
-                        repeat while lastTarget not= undefined
-                            InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
+                            repeat while lastTarget not= undefined
+                                InputTable moveTable = GetInputTable(lastTarget:GetInputGroup())
 
-                            boolean valid = false
-                            if moveTable not= undefined
-                                valid = moveTable:HasKey(finishSet)
-                            end
+                                boolean valid = false
+                                if moveTable not= undefined
+                                    valid = moveTable:HasKey(finishSet)
+                                end
 
-                            if valid
-                                lastTargetEvent:SetItem(lastTarget)
-                                lastTarget = undefined
-                            else
-                                if target is Item2D
-                                    Item2D target2D = cast(Item2D, lastTarget)
-                                    lastTarget = target2D:GetParent()
-                                elseif target is Item3D
-                                    Item3D target3D = cast(Item3D, lastTarget)
-                                    lastTarget = target3D:GetParent()
-                                else
+                                if valid
+                                    lastTargetEvent:SetItem(lastTarget)
                                     lastTarget = undefined
-                                end
-                            end
-                        end
-
-                        if lastTargetEvent:GetItem() = undefined
-                            table = GetDefaultInputTable()
-                        else
-                            table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
-                        end
-                        
-                        boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
-
-                        BehaviorEvent newTargetEvent
-                        newTargetEvent:SetItem(undefined)
-                        newTargetEvent:SetTouchEvent(touchEvent)
-
-                        InputSet beginSet = set:Copy()
-                        beginSet:SetInputTrigger(set:BEGIN)
-
-                        Item newTarget = touchMoveTarget
-
-                        repeat while newTarget not= undefined
-                            InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
-
-                            // Calculate boolean over multiple steps - necessary to
-                            // circumvent compiler bug.
-                            boolean valid = false
-                            if moveTable not= undefined
-                                valid = moveTable:HasKey(beginSet)
-                            end
-
-                            if valid
-                                newTargetEvent:SetItem(newTarget)
-                                newTarget = undefined
-                            else
-                                if newTarget is Item2D
-                                    Item2D target2D = cast(Item2D, newTarget)
-                                    newTarget = target2D:GetParent()
-                                elseif newTarget is Item3D
-                                    Item3D target3D = cast(Item3D, newTarget)
-                                    newTarget = target3D:GetParent()
                                 else
-                                    newTarget = undefined
+                                    if target is Item2D
+                                        Item2D target2D = cast(Item2D, lastTarget)
+                                        lastTarget = target2D:GetParent()
+                                    elseif target is Item3D
+                                        Item3D target3D = cast(Item3D, lastTarget)
+                                        lastTarget = target3D:GetParent()
+                                    else
+                                        lastTarget = undefined
+                                    end
                                 end
                             end
-                        end
 
-                        table = undefined
-
-                        if newTargetEvent:GetItem() = undefined
-                            table = GetDefaultInputTable()
-                        else
-                            table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
-                        end
-
-                        table:ProcessInput(beginSet, newTargetEvent)
-
-                        lastTouchMoveTarget = touchMoveTarget
-                    end
-                end
-
-                if useDefaultTable
-                    table = GetDefaultInputTable()
-
-                    if recentInput not= undefined
-
-                        if ItemsAreRelated(recentInput:item, touchEvent:GetSource())
-                            multiSet:SetEventCount(recentInput:count + 1)
-                            recentInput:timer = 0
-                            recentInput:count = recentInput:count + 1
-                            touchEvent:tapCount = recentInput:count
-                            if table:HasKey(multiSet)
-                                set = multiSet
+                            if lastTargetEvent:GetItem() = undefined
+                                table = GetDefaultInputTable()
+                            else
+                                table = GetInputTable(lastTargetEvent:GetItem():GetInputGroup())
                             end
-                        else
-                            recentInput:timer = 0
-                            recentInput:count = 1
-                            touchEvent:tapCount = 1
+                        
+                            boolean tableProcessResult = table:ProcessInput(finishSet, lastTargetEvent)
+
+                            BehaviorEvent newTargetEvent
+                            newTargetEvent:SetItem(undefined)
+                            newTargetEvent:SetTouchEvent(touchEvent)
+
+                            InputSet beginSet = set:Copy()
+                            beginSet:SetInputTrigger(set:BEGIN)
+
+                            Item newTarget = touchMoveTarget
+
+                            repeat while newTarget not= undefined
+                                InputTable moveTable = GetInputTable(newTarget:GetInputGroup())
+
+                                // Calculate boolean over multiple steps - necessary to
+                                // circumvent compiler bug.
+                                boolean valid = false
+                                if moveTable not= undefined
+                                    valid = moveTable:HasKey(beginSet)
+                                end
+
+                                if valid
+                                    newTargetEvent:SetItem(newTarget)
+                                    newTarget = undefined
+                                else
+                                    if newTarget is Item2D
+                                        Item2D target2D = cast(Item2D, newTarget)
+                                        newTarget = target2D:GetParent()
+                                    elseif newTarget is Item3D
+                                        Item3D target3D = cast(Item3D, newTarget)
+                                        newTarget = target3D:GetParent()
+                                    else
+                                        newTarget = undefined
+                                    end
+                                end
+                            end
+
+                            table = undefined
+
+                            if newTargetEvent:GetItem() = undefined
+                                table = GetDefaultInputTable()
+                            else
+                                table = GetInputTable(newTargetEvent:GetItem():GetInputGroup())
+                            end
+
+                            table:ProcessInput(beginSet, newTargetEvent)
+
+                            lastTouchMoveTarget = touchMoveTarget
                         end
-
-                        recentInput:item = touchEvent:GetSource()
                     end
-                else
-                    table = GetInputTable(target:GetInputGroup())
-                end
-                
-                table:ProcessInput(set, behaviorEvent)
 
+                    if useDefaultTable
+                        table = GetDefaultInputTable()
+
+                        if recentInput not= undefined
+
+                            if ItemsAreRelated(recentInput:item, touchEvent:GetSource())
+                                multiSet:SetEventCount(recentInput:count + 1)
+                                recentInput:timer = 0
+                                recentInput:count = recentInput:count + 1
+                                touchEvent:tapCount = recentInput:count
+                                if table:HasKey(multiSet)
+                                    set = multiSet
+                                end
+                            else
+                                recentInput:timer = 0
+                                recentInput:count = 1
+                                touchEvent:tapCount = 1
+                            end
+
+                            recentInput:item = touchEvent:GetSource()
+                        end
+                    else
+                        table = GetInputTable(target:GetInputGroup())
+                    end
+                
+                    ranBehavior = table:ProcessInput(set, behaviorEvent)
+                    handledBy = behaviorEvent:GetItem()
+                    if fingerLifted
+                        HoverUnderFinger(touchEvent)
+                    end
+                end
+
+                if debugInput
+                    LogTouch(touchEvent, handledBy, ranBehavior, captured)
+                end
+
+                if touchEvent:eventType = touchEvent:BEGAN
+                    Item capture = FindTouchCapture(touchEvent:GetSource())
+                    if capture not= undefined
+                        touchCaptures:Add(touchEvent:fingerID, capture)
+                    end
+                end
+
+                // A cancelled touch ends too, or it would stay in currentTouches
+                // and keep getting movement (ContinueTouchInputSets).
                 if touchEvent:eventType = touchEvent:BEGAN or touchEvent:eventType = touchEvent:ENDED
+                        or touchEvent:eventType = touchEvent:CANCELLED
                     UpdateCurrentTouches(touchEvent)
                 end
                 // End of repeat statement over size of touch events.
@@ -351,6 +420,116 @@ class MobileInput is GameInput
         end
 
         ContinueTouchInputSets()
+    end
+
+    // Draws the focus outline again if a new page hid it
+    // (Game:HideFocusOutlineUntilTouch).
+    private action ShowFocusOutline
+        Game game = manager:GetGame()
+        if game not= undefined
+            game:ShowFocusOutline()
+        end
+    end
+
+    /*
+    On a touch screen the focus follows the finger: when a finger goes down
+    or moves, the focusable item under it (or its nearest focusable parent)
+    gets the focus. A finger passing over a text field or text box doesn't
+    focus it, since that would show the keyboard; a tap still does.
+    */
+    private action FocusUnderFinger(TouchEvent event)
+        if not (event:eventType = event:BEGAN or event:eventType = event:MOVED)
+            return now
+        end
+
+        Item seeker = event:GetSource()
+        repeat while seeker not= undefined and not seeker:IsFocusable()
+            if seeker is Item2D
+                Item2D seeker2D = cast(Item2D, seeker)
+                seeker = seeker2D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+
+        if seeker = undefined or seeker:IsFocused()
+            return now
+        end
+        if event:eventType = event:MOVED and (seeker is TextField or seeker is TextBox)
+            return now
+        end
+        seeker:Focus()
+    end
+
+    /*
+    On a touch screen a moving finger shows the same hover a mouse does: as
+    it moves onto an item that reacts to the mouse entering it (a button, a
+    menu item, a tree item), that item's "mouse on" behavior runs, and the
+    item it left gets its "mouse off". Lifting the finger ends the hover.
+    */
+    private action HoverUnderFinger(TouchEvent event)
+        Item previous = undefined
+        if touchHovers:HasKey(event:fingerID)
+            previous = touchHovers:GetValue(event:fingerID)
+        end
+
+        Item current = undefined
+        if event:eventType = event:BEGAN or event:eventType = event:MOVED
+            current = FindHoverTarget(event:GetSource())
+        end
+
+        if current = previous
+            return now
+        end
+        if previous not= undefined
+            RunHover(previous, false, event)
+        end
+        if current = undefined
+            touchHovers:RemoveKey(event:fingerID)
+        else
+            touchHovers:Add(event:fingerID, current)
+            RunHover(current, true, event)
+        end
+    end
+
+    // The item, or its nearest parent, whose input table reacts to the mouse
+    // entering it: the rule StandardInput uses for a mouse.
+    private action FindHoverTarget(Item start) returns Item
+        InputSet hoverSet
+        hoverSet:SetInputType(hoverSet:MOUSE_MOVEMENT_INPUT)
+        hoverSet:SetInputTrigger(hoverSet:BEGIN)
+        Item seeker = start
+        repeat while seeker not= undefined
+            InputTable table = GetInputTable(seeker:GetInputGroup())
+            if table not= undefined and table:HasKey(hoverSet)
+                return seeker
+            end
+            if seeker is Item2D
+                Item2D seeker2D = cast(Item2D, seeker)
+                seeker = seeker2D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+        return undefined
+    end
+
+    // Runs an item's "mouse on" (entering) or "mouse off" behavior.
+    private action RunHover(Item item, boolean entering, TouchEvent event)
+        InputSet hoverSet
+        hoverSet:SetInputType(hoverSet:MOUSE_MOVEMENT_INPUT)
+        if entering
+            hoverSet:SetInputTrigger(hoverSet:BEGIN)
+        else
+            hoverSet:SetInputTrigger(hoverSet:FINISH)
+        end
+        InputTable table = GetInputTable(item:GetInputGroup())
+        if table not= undefined and table:HasKey(hoverSet)
+            BehaviorEvent behaviorEvent
+            behaviorEvent:SetItem(item)
+            behaviorEvent:SetTouchEvent(event)
+            table:ProcessInput(hoverSet, behaviorEvent)
+        end
     end
 
     private action UpdateRecentInputTimers
@@ -400,6 +579,92 @@ class MobileInput is GameInput
         recentTouches:Add(timer)
 
         return timer
+    end
+
+    /*
+    The SetDebugInput action sets whether touches are logged, through the
+    SharedLogger: each touch going down, lifting or being cancelled, where it
+    was, the item it hit, the item whose input handled it, and whether a
+    behavior ran. It is for finding input problems on phones and tablets.
+
+    Attribute: Parameter enabled True to log touches.
+    */
+    action SetDebugInput(boolean enabled)
+        debugInput = enabled
+    end
+
+    // One line per touch going down, lifting or being cancelled (moves are
+    // too many to log).
+    private action LogTouch(TouchEvent event, Item handledBy, boolean ranBehavior, boolean captured)
+        text phase = ""
+        if event:eventType = event:BEGAN
+            phase = "began"
+        elseif event:eventType = event:ENDED
+            phase = "ended"
+        elseif event:eventType = event:CANCELLED
+            phase = "cancelled"
+        else
+            return now
+        end
+
+        text hit = "nothing"
+        if event:GetSource() not= undefined
+            hit = "'" + event:GetSource():GetName() + "'"
+        end
+        text handler = "no input table"
+        if handledBy not= undefined
+            handler = "'" + handledBy:GetName() + "'"
+        end
+        text captureNote = ""
+        if captured
+            captureNote = " (captured)"
+        end
+
+        SharedLogger logger
+        logger:Log("Touch " + phase + " at (" + event:GetX() + ", " + event:GetY() + "): hit " + hit
+            + ", handled by " + handler + captureNote + ", behavior ran: " + ranBehavior)
+    end
+
+    /*
+    The text field or text box a touch beginning on this item belongs to (the
+    item or the nearest one above it), if any. Its drag then stays with it
+    until the finger lifts. Other controls follow the finger: a chart's touch
+    exploration selects whatever is under it.
+    */
+    private action FindTouchCapture(Item start) returns Item
+        Item seeker = start
+        repeat while seeker not= undefined
+            if seeker is TextField or seeker is TextBox
+                return seeker
+            end
+
+            if seeker is Item2D
+                Item2D seeker2D = cast(Item2D, seeker)
+                seeker = seeker2D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+        return undefined
+    end
+
+    /*
+    Sends a captured finger's movement or end to the control it belongs to.
+    Returns false if that control's input doesn't handle it, so the touch is
+    handled as usual instead.
+    */
+    private action SendToCapture(Item capture, InputSet set, TouchEvent event) returns boolean
+        InputTable table = GetInputTable(capture:GetInputGroup())
+        if table = undefined or not table:HasKey(set)
+            return false
+        end
+
+        BehaviorEvent captureEvent
+        captureEvent:SetTouchEvent(event)
+        captureEvent:SetItem(capture)
+        table:ProcessInput(set, captureEvent)
+        event:SetEventHandled(true)
+        return true
     end
 
     private action UpdateCurrentTouches(TouchEvent event)
@@ -680,11 +945,43 @@ class MobileInput is GameInput
         textInputEvents:Empty(false)
     end
 
+    /*
+    This action tells the resize listeners and the layers that the display
+    changed size, for example because the device was rotated, as the desktop
+    does (StandardInput). A layer whose automatic resizing is off
+    (Layer:SetAutomaticResizing) is left alone; resize listeners still hear
+    every change.
+    */
+    public action HandleResizeEvents()
+        resizeProcessor:Update(resizeEvents)
+        Array<Layer> layers = parent:GameInput:layers
+        repeat while not resizeEvents:IsEmpty()
+            ResizeEvent event = resizeEvents:RemoveFromFront()
+            integer counter = 0
+            repeat while counter < resizeListeners:GetSize()
+                resizeListeners:Get(counter):SizeChanged(event)
+                counter = counter + 1
+            end
+
+            if layers not= undefined
+                counter = 0
+                repeat while counter < layers:GetSize()
+                    Layer layer = layers:Get(counter)
+                    if layer:GetAutomaticResizing()
+                        layer:Resize(event)
+                    end
+                    counter = counter + 1
+                end
+            end
+        end
+    end
+
     private action ProcessKeyboardEvent(Array<KeyboardEvent> events)
         KeyboardEvent currentEvent = undefined
         KeyboardListener currentListener = undefined
         Iterator<KeyboardListener> listenIterator = keyboardListeners:GetIterator()
 
+        ShowFocusOutline()
         text inputGroup = ""
         Item focusedItem = manager:GetFocus()
         if focusedItem not= undefined

@@ -17,6 +17,10 @@ class ListRenderer is Control
 
         SetName("List Background")
 
+        // This draws the list's box, so it takes the List settings from the
+        // interface options, such as the box's rounded corners.
+        SetInterfaceOptionsKey("List")
+
         // We want custom drawing to occur, but we also want to make sure ListItems can still receive mouse input.
         SetCustomDrawing(true)
         SetChildrenProcessingMouseEvents(true)
@@ -56,8 +60,13 @@ class ListRenderer is Control
         integer firstLine = list:GetFirstVisibleLine()
 
         boolean lastItem = false
-        number x = 0
-        number width = GetWidth()
+        // Items sit a little inside the box, so their rounded selection and
+        // hover bands don't touch its edges.
+        number x = 4 * GetInterfaceScale()
+        number width = GetWidth() - x * 2
+        if width < 0
+            width = 0
+        end
         integer i = 0
 
         repeat while i < list:GetLineCount()

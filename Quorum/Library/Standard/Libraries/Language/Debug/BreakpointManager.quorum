@@ -4,10 +4,19 @@ use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 
+/*
+The BreakpointManager keeps every breakpoint, grouped by the absolute path of
+its file. A file's breakpoints are found by the line each is on now, not the
+line it was added on. So a breakpoint whose line moves while the code is
+edited is still found, removed and saved correctly.
+
+Listeners hear about each breakpoint added or removed, and about a rehash,
+when a file's breakpoints were checked after an edit.
+*/
 class BreakpointManager
-    HashTable<text, HashTable<integer, Breakpoint>> breakpoints
+    // Each file's breakpoints, by the file's absolute path.
+    HashTable<text, Array<Breakpoint>> breakpoints
     Array<BreakpointListener> breakpointListeners
-    Array<Breakpoint> bpCache
 
     action Add(BreakpointListener listener)
         if listener = undefined
@@ -26,76 +35,97 @@ class BreakpointManager
     action GetListeners returns Iterator<BreakpointListener>
         return breakpointListeners:GetIterator()
     end
-    
-    action Rehash(text path)
-        HashTable<integer, Breakpoint> points = breakpoints:GetValue(path)
-        
-        if points not= undefined
-            Iterator<Breakpoint> iterator = points:GetValueIterator()
-            repeat while iterator:HasNext()
-                Breakpoint bp = iterator:Next()
-                bpCache:Add(bp)
-            end
 
-            points:Empty()
-            i = 0
-            repeat while i < bpCache:GetSize()
-                Breakpoint value = bpCache:Get(i)
-                points:Add(value:GetLine(), value)
-                i = i + 1
-            end
-
-            bpCache:Empty()
+    /*
+    This action adds a breakpoint. It does nothing, and returns false, if the
+    breakpoint has no file, its line is negative, or its file already has a
+    breakpoint on that line.
+    */
+    action AddBreakpoint(Breakpoint point) returns boolean
+        if point = undefined or point:GetFile() = undefined or point:GetLine() < 0
+            return false
         end
 
-        BreakpointEvent event
-        event:SetPath(path)
-        event:SetRehashEvent(true)
-        FireEvent(event)
-    end
-
-    action GetBreakpoints returns Iterator<Breakpoint>
-        Array<Breakpoint> bps
-        Iterator<text> iterator = breakpoints:GetKeyIterator()
-        repeat while iterator:HasNext()
-            text value = iterator:Next()
-            HashTable<integer,Breakpoint> lines = breakpoints:GetValue(value)
-            Iterator<Breakpoint> points = lines:GetValueIterator()
-            repeat while points:HasNext()
-                Breakpoint bp = points:Next()
-                bps:Add(bp)
-            end
+        text path = point:GetFile():GetAbsolutePath()
+        if GetBreakpoint(path, point:GetLine()) not= undefined
+            return false
         end
-        return bps:GetIterator()
-    end
 
-    action ToggleBreakpoint(Breakpoint point)
-        File file = point:GetFile()
-        integer line = point:GetLine()
-        text path = file:GetAbsolutePath()
+        Array<Breakpoint> points = breakpoints:GetValue(path)
+        if points = undefined
+            Array<Breakpoint> newPoints
+            points = newPoints
+            breakpoints:Add(path, points)
+        end
+        points:Add(point)
+
         BreakpointEvent event
         event:SetBreakpoint(point)
-        if breakpoints:HasKey(path)
-            HashTable<integer, Breakpoint> lines = breakpoints:GetValue(path)
-            if lines:HasKey(line)
-                lines:RemoveKey(line)
+        event:SetPath(path)
+        event:SetIsAdded(true)
+        FireEvent(event)
+        return true
+    end
 
-                if lines:IsEmpty()
-                    breakpoints:RemoveKey(path)
-                end
-                event:SetIsAdded(false)
-            else 
-                lines:Add(line, point)
-                event:SetIsAdded(true)
-            end
-        else 
-            HashTable<integer, Breakpoint> lines
-            lines:Add(line, point)
-            breakpoints:Add(path, lines)
-            event:SetIsAdded(true)
+    /*
+    This action removes this breakpoint, the object itself, wherever its line
+    is now. It returns false if the manager didn't have it.
+    */
+    action RemoveBreakpoint(Breakpoint point) returns boolean
+        if point = undefined or point:GetFile() = undefined
+            return false
         end
 
+        text path = point:GetFile():GetAbsolutePath()
+        Array<Breakpoint> points = breakpoints:GetValue(path)
+        if points = undefined
+            return false
+        end
+
+        integer index = IndexOf(points, point)
+        if index < 0
+            return false
+        end
+
+        points:RemoveAt(index)
+        if points:IsEmpty()
+            breakpoints:RemoveKey(path)
+        end
+
+        BreakpointEvent event
+        event:SetBreakpoint(point)
+        event:SetPath(path)
+        event:SetIsAdded(false)
         FireEvent(event)
+        return true
+    end
+
+    // Whether the manager has this breakpoint, the object itself.
+    action HasBreakpoint(Breakpoint point) returns boolean
+        if point = undefined or point:GetFile() = undefined
+            return false
+        end
+        Array<Breakpoint> points = breakpoints:GetValue(point:GetFile():GetAbsolutePath())
+        if points = undefined
+            return false
+        end
+        return IndexOf(points, point) >= 0
+    end
+
+    /*
+    This action removes the breakpoint on this point's file and line if there
+    is one, and adds this point if not.
+    */
+    action ToggleBreakpoint(Breakpoint point)
+        if point = undefined or point:GetFile() = undefined
+            return now
+        end
+        Breakpoint existing = GetBreakpoint(point:GetFile():GetAbsolutePath(), point:GetLine())
+        if existing not= undefined
+            RemoveBreakpoint(existing)
+        else
+            AddBreakpoint(point)
+        end
     end
 
     action ToggleBreakpoint(File file, integer line)
@@ -105,34 +135,144 @@ class BreakpointManager
         ToggleBreakpoint(point)
     end
 
-    action GetBreakpoints(text path) returns Iterator<Breakpoint>
-        HashTable<integer, Breakpoint> points = breakpoints:GetValue(path)
-        if points = undefined
-            Array<Breakpoint> bps
-            return bps:GetIterator()
+    /*
+    This action checks a file's breakpoints after its code changed. Editing
+    can move two breakpoints onto one line. The first one stays, and each of
+    the others is removed with its own event, so editors and the debugger hear
+    about it. Breakpoints on negative lines are removed too. Then it fires a
+    rehash event for the file.
+    */
+    action Rehash(text path)
+        Array<Breakpoint> points = breakpoints:GetValue(path)
+        if points not= undefined
+            Array<Breakpoint> extras
+            integer index = 0
+            repeat while index < points:GetSize()
+                Breakpoint point = points:Get(index)
+                if point:GetLine() < 0
+                    extras:Add(point)
+                else
+                    integer earlier = 0
+                    repeat while earlier < index
+                        if points:Get(earlier):GetLine() = point:GetLine()
+                            extras:Add(point)
+                            earlier = index
+                        end
+                        earlier = earlier + 1
+                    end
+                end
+                index = index + 1
+            end
+
+            index = 0
+            repeat while index < extras:GetSize()
+                RemoveBreakpoint(extras:Get(index))
+                index = index + 1
+            end
         end
 
-        Iterator<Breakpoint> iterator = points:GetValueIterator()
-        return iterator
+        BreakpointEvent event
+        event:SetPath(path)
+        event:SetRehashEvent(true)
+        FireEvent(event)
     end
 
+    /*
+    This action tells listeners that something about the breakpoints changed,
+    such as a project opening or closing, without one breakpoint to name. It's
+    a rehash event with an empty path.
+    */
+    action FireChangedEvent
+        BreakpointEvent event
+        event:SetPath("")
+        event:SetRehashEvent(true)
+        FireEvent(event)
+    end
+
+    // Every breakpoint, in a new array, so it's safe to remove while going
+    // through it.
+    action GetBreakpoints returns Iterator<Breakpoint>
+        Array<Breakpoint> all
+        Iterator<Array<Breakpoint>> files = breakpoints:GetValueIterator()
+        repeat while files:HasNext()
+            Array<Breakpoint> points = files:Next()
+            integer index = 0
+            repeat while index < points:GetSize()
+                all:Add(points:Get(index))
+                index = index + 1
+            end
+        end
+        return all:GetIterator()
+    end
+
+    // One file's breakpoints, in a new array.
+    action GetBreakpoints(text path) returns Iterator<Breakpoint>
+        Array<Breakpoint> copy
+        Array<Breakpoint> points = breakpoints:GetValue(path)
+        if points not= undefined
+            integer index = 0
+            repeat while index < points:GetSize()
+                copy:Add(points:Get(index))
+                index = index + 1
+            end
+        end
+        return copy:GetIterator()
+    end
+
+    // The breakpoint on this line of this file now, or undefined.
     action GetBreakpoint(text path, integer line) returns Breakpoint
-        HashTable<integer, Breakpoint> points = breakpoints:GetValue(path)
+        Array<Breakpoint> points = breakpoints:GetValue(path)
         if points = undefined
             return undefined
         end
+        integer index = 0
+        repeat while index < points:GetSize()
+            Breakpoint point = points:Get(index)
+            if point:GetLine() = line
+                return point
+            end
+            index = index + 1
+        end
+        return undefined
+    end
 
-        //undefined if it doesn't exist
-        Breakpoint point = points:GetValue(line)
-        return point
+    // The absolute path of every file that has a breakpoint.
+    action GetPaths returns Iterator<text>
+        Array<text> paths
+        Iterator<text> keys = breakpoints:GetKeyIterator()
+        repeat while keys:HasNext()
+            paths:Add(keys:Next())
+        end
+        return paths:GetIterator()
+    end
+
+    // How many breakpoints there are in all.
+    action GetSize returns integer
+        integer total = 0
+        Iterator<Array<Breakpoint>> files = breakpoints:GetValueIterator()
+        repeat while files:HasNext()
+            total = total + files:Next():GetSize()
+        end
+        return total
     end
 
     action FireEvent(BreakpointEvent event)
-        i = 0
-        repeat while i < breakpointListeners:GetSize()
-            BreakpointListener listener = breakpointListeners:Get(i)
+        integer index = 0
+        repeat while index < breakpointListeners:GetSize()
+            BreakpointListener listener = breakpointListeners:Get(index)
             listener:ToggledBreakpoint(event)
-            i = i + 1
+            index = index + 1
         end
+    end
+
+    private action IndexOf(Array<Breakpoint> points, Breakpoint point) returns integer
+        integer index = 0
+        repeat while index < points:GetSize()
+            if points:Get(index) = point
+                return index
+            end
+            index = index + 1
+        end
+        return -1
     end
 end

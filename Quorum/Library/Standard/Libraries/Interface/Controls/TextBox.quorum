@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Item2D
 use Libraries.Game.GameStateManager
+use Libraries.Game.GameDisplay
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
@@ -9,6 +10,9 @@ use Libraries.Game.Graphics.Font
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.Glyph
 use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Compute.Vector3
+use Libraries.Game.Layer2D
 use Libraries.Interface.Events.MouseMovementListener
 use Libraries.Interface.Events.FocusListener
 use Libraries.Interface.Events.FocusEvent
@@ -1836,15 +1840,72 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     end
 
     /*
+    The TouchBegan action puts the caret at the character nearest the touch,
+    as a click does, and starts a drag: moving the finger (TouchMoved)
+    selects from there. The input system calls it for a touch on the box.
+
+    Attribute: Parameter event The touch that began.
+    */
+    action TouchBegan(TouchEvent event)
+        Vector3 point = GetTouchPoint(event)
+        draggingInText = true
+        PositionCaretFromPoint(point:GetX(), point:GetY(), false)
+    end
+
+    /*
+    The TouchMoved action selects from where the touch began to the
+    character nearest the finger, as dragging the mouse does.
+
+    Attribute: Parameter event The touch that moved.
+    */
+    action TouchMoved(TouchEvent event)
+        if draggingInText
+            Vector3 point = GetTouchPoint(event)
+            PositionCaretFromPoint(point:GetX(), point:GetY(), true)
+        end
+    end
+
+    /*
+    The TouchEnded action ends a drag started by TouchBegan.
+
+    Attribute: Parameter event The touch that ended.
+    */
+    action TouchEnded(TouchEvent event)
+        draggingInText = false
+    end
+
+    // A touch is in screen coordinates, and the caret is placed in world
+    // coordinates, through the layer's camera (which the display's safe
+    // region may have moved).
+    private action GetTouchPoint(TouchEvent event) returns Vector3
+        Layer2D touchLayer = GetLayer()
+        if touchLayer = undefined or touchLayer:GetCamera() = undefined
+            Vector3 point
+            point:Set(event:GetX(), event:GetY(), 0)
+            return point
+        end
+        return touchLayer:GetCamera():ScreenToWorldCoordinates(event:GetX() - touchLayer:GetViewportX(), event:GetY() - touchLayer:GetViewportY())
+    end
+
+    /*
     This action positions the caret in accordance with the provided mouse event.
     This is called internally by the system as needed, and shouldn't be called
     directly by users.
     */
     action MousePositionCaret(MouseEvent event, boolean dragging)
+        PositionCaretFromPoint(event:GetX(), event:GetY(), dragging)
+    end
+
+    /*
+    Places the caret at the character nearest a point in world coordinates,
+    and, when dragging, extends the selection to it. The mouse
+    (MousePositionCaret) and touch (TouchBegan, TouchMoved) both use it.
+    */
+    private action PositionCaretFromPoint(number pointX, number pointY, boolean dragging)
         integer line = caretLine
         integer index = caretCharacter
 
-        PositionCaretFromCoordinates(event:GetX() - background:GetGlobalX(), event:GetY() - background:GetGlobalY())
+        PositionCaretFromCoordinates(pointX - background:GetGlobalX(), pointY - background:GetGlobalY())
 
         integer caretPosition = GetCaretPosition()
         if caretPosition < selection:GetLockStart() or caretPosition > selection:GetLockEnd()
@@ -2001,6 +2062,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
     action Update(number seconds)
         if caretActive
+            // The caret blinks only while frames come, so it asks for them
+            // on a display that draws only when needed.
+            GameStateManager manager
+            GameDisplay display = manager:GetGameDisplay()
+            if display not= undefined
+                display:RequestRendering()
+            end
             caretTimer = caretTimer - seconds
             if caretTimer < 0
                 caretTimer = caretBlinkTime

@@ -1,14 +1,18 @@
 package Libraries.Game
 
+use Libraries.Game.Graphics.Vulkan.VulkanOptions
+
 class AndroidConfiguration is ApplicationConfiguration
 
     public constant integer LANDSCAPE = 1
     public constant integer PORTRAIT = 2
+    public constant integer ANY_ORIENTATION = 3
 
     /*
     What orientation the phone should be in by default when running a Game.
-    This should be one of either the LANDSCAPE or PORTRAIT constants. The 
-    default value is LANDSCAPE.
+    This should be one of the LANDSCAPE, PORTRAIT or ANY_ORIENTATION
+    constants. ANY_ORIENTATION follows the device as it turns, unless the
+    person has locked the rotation. The default value is LANDSCAPE.
     */
     public integer defaultOrientation = LANDSCAPE
 
@@ -107,6 +111,20 @@ class AndroidConfiguration is ApplicationConfiguration
     for things such as double-tap input.
     */
     public number multipleTapTimer = 0.5
+
+    /*
+    Whether or not the game draws with Vulkan instead of OpenGL ES. Vulkan
+    needs a device with Vulkan 1.3; on others, the game draws with OpenGL ES
+    even when this is true. This value must be set before starting the game.
+    The default value is false.
+    */
+    public boolean useVulkan = false
+
+    /*
+    How Vulkan is used when useVulkan is true, such as which Vulkan version is
+    asked for.
+    */
+    public VulkanOptions vulkanOptions
 
     /*
     This action will set the game display to fill the entire screen of the 

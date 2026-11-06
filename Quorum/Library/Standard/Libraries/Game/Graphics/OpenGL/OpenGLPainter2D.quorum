@@ -133,7 +133,7 @@ class OpenGLPainter2D is Painter2D
     Camera camera = undefined
 
     // Projection matrix, taken from the Camera. Allows us to translate world coordinates to screen coordinates.
-    Matrix4 projectionMatrix
+    CameraMatrix4 projectionMatrix
 
     // If this boolean is true, we can safely batch together Drawables to be rendered together for performance.
     // Otherwise, each Drawable has to be rendered separately, because a custom shader program/mapping might need different values on a per-Drawable basis.
@@ -381,7 +381,7 @@ class OpenGLPainter2D is Painter2D
             alert("I couldn't create the Painter2D because the display hasn't been initialized!")
         end
 
-        projectionMatrix:SetToOrthographic2D(0, 0, display:GetWidth(), display:GetHeight())
+        projectionMatrix:OrthographicProjection(0, display:GetWidth(), 0, display:GetHeight(), 0, 1)
 
         defaultProgram = GetDefaultShaders()
     end
@@ -941,14 +941,21 @@ OpenGLManager graphics = GetGraphics()
         the clip point will apply to.
         */
         clipPoint:Multiply(projectionMatrix)
-        integer x = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
-        integer y = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        /*
+        Rounded to the nearest pixel boundary, as the GPU decides which pixels
+        to draw (those whose centers are inside). Cutting the fraction off
+        instead dropped the right column and top row a clipped control draws,
+        whenever its edge fell more than halfway into a pixel, such as a text
+        field's border on those sides.
+        */
+        integer x = cast(integer, (clipPoint:GetX() + 1) / 2.0 * display:GetWidth() + 0.5)
+        integer y = cast(integer, (clipPoint:GetY() + 1) / 2.0 * display:GetHeight() + 0.5)
         
         clipPoint:Set(GetClipX2(), GetClipY2(), 0)
         
         clipPoint:Multiply(projectionMatrix)
-        integer x2 = cast(integer, ((clipPoint:GetX() + 1) / 2.0 * display:GetWidth()))
-        integer y2 = cast(integer, ((clipPoint:GetY() + 1) / 2.0 * display:GetHeight()))
+        integer x2 = cast(integer, (clipPoint:GetX() + 1) / 2.0 * display:GetWidth() + 0.5)
+        integer y2 = cast(integer, (clipPoint:GetY() + 1) / 2.0 * display:GetHeight() + 0.5)
         
         integer width = 0
         integer height = 0

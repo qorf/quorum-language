@@ -1,0 +1,543 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Page.Button
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.Form
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.Input
+use Libraries.Web.Page.Label
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.Script
+use Libraries.Web.Page.Span
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.WebTag
+
+use Libraries.Web.Page.all
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.WebColor
+use Libraries.System.File
+use Libraries.Containers.HashTable
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+use Libraries.Web.WebTextEscaper
+
+/*
+    QuorumLoginForm is the Quorum website's sign-in dialog, as LoginForm
+    builds it for the main site, with its looks from the site's styles
+    instead of Tailwind's classes. It has three dialogs (sign in, forgot
+    password, sign up) and three messages (success, alert, feedback), all
+    with LoginForm's identifiers and handlers, since the site's script
+    opens, switches and fills them by those.
+
+    A sign-up field the site's script marks as filled in wrongly
+    (aria-invalid) gets a red border, and its message under it is shown
+    and tied to it (aria-describedby), so screen readers say it too.
+
+    Attribute: Example
+    QuorumLoginForm login
+    page:PlaceAtEnd(login:Build(page))
+*/
+class QuorumLoginForm
+    StyleSheetConstants constants
+    QuorumSiteOptions options
+    WebTextEscaper escaper
+
+    // The folder the icons are read from (SetIconFolder), and the icons'
+    // files in it.
+    text iconFolder = ""
+    // Icons given as their SVG, by file name (SetIcons), used instead of
+    // the files.
+    HashTable<text, text> icons = undefined
+    constant text CROSS_ICON = "exit-cross.svg"
+    constant text SUCCESS_ICON = "success-check.svg"
+    constant text ALERT_ICON = "error-cross.svg"
+    constant text FEEDBACK_ICON = "info-icon.svg"
+    constant text HIDDEN_CLASS = "hidden"
+    constant text ERROR_ATTRIBUTE = "data-error-message"
+    constant text DESCRIBED_BY_ATTRIBUTE = "aria-describedby"
+    constant text LABEL_ATTRIBUTE = "aria-label"
+
+    // The shaded backdrop over the whole window, and the column in it
+    // that centers a dialog ("fixed w-screen h-screen bg-modal-black-50";
+    // "flex flex-col h-full items-center justify-center").
+    WebBoxStyle backdrop
+    WebStackLayout center
+    WebBoxStyle centerBox
+
+    // A dialog: "w-3/4 lg:w-[750px] p-10 bg-neutral-white rounded-2xl
+    // shadow-lg flex flex-col gap-6"; its top row, title and close
+    // button.
+    WebStackLayout dialog
+    WebBoxStyle dialogBox
+    WebBoxStyle dialogLarge
+    WebRowLayout topRow
+    WebTextStyle dialogTitle
+    WebBoxStyle dialogTitleBox
+    WebBoxStyle closeButton
+
+    // Fields: "flex flex-col space-y-2 w-full sm:w-3/5"; each field
+    // "p-2 rounded-md border border-neutral-grey-50", red while marked
+    // wrong; its message "text-attention-red-100 text-sm".
+    WebStackLayout fields
+    WebBoxStyle fieldsSmall
+    WebStackLayout field
+    WebBoxStyle fieldBox
+    WebBoxStyle invalidInput
+    WebTextStyle errorMessage
+    WebBoxStyle label
+
+    // Buttons: link-like ones ("underline font-bold"), and the blue
+    // submit buttons ("px-8 py-2 rounded-xl bg-quorum-blue-100
+    // text-neutral-black font-bold text-xl hover:shadow-lg").
+    WebBoxStyle linkButton
+    WebBoxStyle largeLinkButton
+    WebTextStyle largeLinkButtonHover
+    WebBoxStyle submit
+    WebBoxStyle submitHover
+    WebRowLayout buttonRow
+    WebBoxStyle spaced
+
+    // Messages: "p-4 rounded-xl mt-3 lg:w-[750px] text-neutral-black",
+    // each in its own color; inside, the icon beside the words.
+    WebBoxStyle successMessage
+    WebBoxStyle alertMessage
+    WebBoxStyle feedbackMessage
+    WebBoxStyle messageLarge
+    WebRowLayout messageRow
+    WebTextStyle messageHeading
+    WebTextStyle messageText
+
+    on create
+        WebColor shade
+        shade:SetColor(0, 0, 0)
+        shade:SetOpacity(0.5)
+        backdrop:SetCoverWindow(true)
+        backdrop:SetBackground(shade)
+        center:AlignCenter()
+        center:SetCenteredVertically(true)
+        centerBox:SetHeightPercent(100)
+
+        dialog:SetGap(constants:SPACING_6)
+        dialogBox:SetWidthPercent(75)
+        dialogBox:SetPadding(constants:SPACING_10, constants:SPACING_10)
+        dialogBox:SetBackground(options:GetWhite())
+        dialogBox:SetRoundedCorners(constants:SPACING_4)
+        dialogBox:SetShadow(true)
+        dialogLarge:SetWidth(750)
+        topRow:SetSpreadOut(true)
+        topRow:SetCenteredVertically(true)
+        dialogTitle:SetBold(true)
+        dialogTitle:SetFontSize(constants:EXTRA_LARGE_3_FONT_SIZE)
+        dialogTitle:SetLineHeight(constants:EXTRA_LARGE_3_LINE_HEIGHT)
+        dialogTitleBox:SetTextStyle(dialogTitle)
+        closeButton:SetPadding(constants:SPACING_1, constants:SPACING_1)
+
+        fields:SetGap(constants:SPACING_2)
+        fieldsSmall:SetWidthPercent(60)
+        field:SetGap(constants:SPACING_1)
+        fieldBox:SetPadding(constants:SPACING_2, constants:SPACING_2)
+        fieldBox:SetRoundedCorners(constants:SPACING_1_5)
+        fieldBox:SetBorder(constants:SPACING_PIXEL, options:GetGrey50())
+        WebColor red
+        red:SetColor(255, 0, 0)
+        invalidInput:SetBorder(constants:SPACING_PIXEL, red)
+        errorMessage:SetColor(red)
+        errorMessage:SetFontSize(constants:SMALL_FONT_SIZE)
+        errorMessage:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+        label:SetMargin(constants:SPACING_1, constants:SPACING_0)
+
+        // Lesson's links here were Quorum blue 100, too light on white to
+        // read easily (about 3 to 1); blue 150 reads well.
+        WebTextStyle linkWords
+        linkWords:SetUnderline(true)
+        linkWords:SetBold(true)
+        linkWords:SetColor(options:GetQuorumBlue150())
+        linkButton:SetTextStyle(linkWords)
+        WebTextStyle largeLinkWords = linkWords:Copy()
+        largeLinkWords:SetUnderline(false)
+        largeLinkWords:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        largeLinkWords:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        largeLinkButton:SetTextStyle(largeLinkWords)
+        largeLinkButtonHover:SetUnderline(true)
+        WebTextStyle submitWords
+        submitWords:SetBold(true)
+        submitWords:SetColor(options:GetBlack())
+        submitWords:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        submitWords:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        submit:SetPadding(constants:SPACING_2, constants:SPACING_8)
+        submit:SetRoundedCorners(constants:SPACING_3)
+        submit:SetBackground(options:GetQuorumBlue100())
+        submit:SetTextStyle(submitWords)
+        submitHover:SetShadow(true)
+        buttonRow:SetAtEnd(true)
+        buttonRow:SetCenteredVertically(true)
+        buttonRow:SetGap(constants:SPACING_4)
+        spaced:SetMargin(constants:SPACING_4, constants:SPACING_0)
+
+        WebColor green
+        green:SetColor(210, 232, 222)
+        WebColor rose
+        rose:SetColor(231, 179, 176)
+        WebTextStyle messageWords
+        messageWords:SetColor(options:GetBlack())
+        successMessage:SetBackground(green)
+        alertMessage:SetBackground(rose)
+        feedbackMessage:SetBackground(options:GetQuorumBlue25())
+        successMessage:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        successMessage:SetRoundedCorners(constants:SPACING_3)
+        successMessage:SetMargin(constants:SPACING_3, constants:SPACING_0)
+        successMessage:SetTextStyle(messageWords)
+        alertMessage:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        alertMessage:SetRoundedCorners(constants:SPACING_3)
+        alertMessage:SetMargin(constants:SPACING_3, constants:SPACING_0)
+        alertMessage:SetTextStyle(messageWords:Copy())
+        feedbackMessage:SetPadding(constants:SPACING_4, constants:SPACING_4)
+        feedbackMessage:SetRoundedCorners(constants:SPACING_3)
+        feedbackMessage:SetMargin(constants:SPACING_3, constants:SPACING_0)
+        feedbackMessage:SetTextStyle(messageWords:Copy())
+        messageLarge:SetWidth(750)
+        messageRow:SetGap(constants:SPACING_4)
+        messageRow:SetCenteredVertically(true)
+        messageHeading:SetBold(true)
+        messageHeading:SetFontSize(constants:EXTRA_LARGE_FONT_SIZE)
+        messageHeading:SetLineHeight(constants:EXTRA_LARGE_LINE_HEIGHT)
+        messageText:SetFontSize(constants:SMALL_FONT_SIZE)
+        messageText:SetLineHeight(constants:SMALL_LINE_HEIGHT)
+    end
+
+    /*
+        Builds the dialog for one page, with its looks set on that page. It
+        starts hidden; the site's script shows it.
+
+        Attribute: Parameter page The page it goes on.
+        Attribute: Returns The dialog's backdrop, with everything in it.
+    */
+    action Build(WebPage page) returns Division
+        Division modal
+        modal:SetIdentifier("loginModal")
+        modal:AddAttribute("aria-labelledby", "loginTitleDiv")
+        modal:AddClassAttribute(HIDDEN_CLASS)
+        page:SetStyle(modal, backdrop)
+
+        Division inner
+        inner:SetIdentifier("innerLoginDiv")
+        page:SetLayout(inner, center)
+        page:SetStyle(inner, centerBox)
+        modal:AddNestedTag(inner)
+
+        inner:AddNestedTag(GetSignIn(page))
+        inner:AddNestedTag(GetForgotPassword(page))
+        inner:AddNestedTag(GetSignUp(page))
+        inner:AddNestedTag(GetMessage(page, "Success", SUCCESS_ICON, successMessage, "successMessage", "successMessageHeader", "successMessageText"))
+        inner:AddNestedTag(GetMessage(page, "Alert", ALERT_ICON, alertMessage, "alertMessage", "alertMessageHeader", "alertMessageText"))
+        inner:AddNestedTag(GetMessage(page, "Feedback", FEEDBACK_ICON, feedbackMessage, "feedbackMessage", "feedbackMessageHeader", "feedbackMessageText"))
+
+        Script script
+        script:SetCode(GetFieldScript())
+        modal:AddNestedTag(script)
+        return modal
+    end
+
+    private action GetSignIn(WebPage page) returns Division
+        Division box = GetDialog(page, "signInModal", false)
+        Division titleWords
+        titleWords:SetIdentifier("loginTitleDiv")
+        titleWords:AddText("Login to Quorum")
+        page:SetStyle(titleWords, dialogTitleBox)
+        box:AddNestedTag(GetTopRow(page, titleWords, "closeSignInModal", "Close sign in"))
+
+        // The form element stays empty, as in LoginForm: the site's
+        // script reads the fields by their identifiers.
+        Form form
+        form:SetIdentifier("loginmodalform")
+        form:AddAttribute("method", "post")
+
+        Division fieldList = GetFieldList(page)
+        fieldList:AddNestedTag(GetPlainField(page, "Username", "usernameInput", "usernameLabel", "text", "username"))
+        fieldList:AddNestedTag(GetPlainField(page, "Password", "passwordInput", "", "password", "password"))
+        Button forgot = GetLinkButton(page, "Forgot password?", "forgotPassword", linkButton)
+        forgot:SetOnClick("let signInModal = document.getElementById('signInModal'); let forgotPasswordModal = document.getElementById('forgotPasswordModal'); signInModal.classList.add('hidden'); forgotPasswordModal.classList.remove('hidden'); document.getElementById('emailForgotInput').focus(); HideMessages();")
+        // In a paragraph, so it sits at the left at its own width.
+        Paragraph forgotLine
+        forgotLine:AddNestedTag(forgot)
+        fieldList:AddNestedTag(forgotLine)
+        box:AddNestedTag(fieldList)
+
+        Division row = GetButtonRow(page)
+        Button register = GetLinkButton(page, "Create an Account", "registerAccountLink", largeLinkButton)
+        page:SetStyleOnHover(register, largeLinkButtonHover)
+        register:SetOnClick("let signInModal = document.getElementById('signInModal'); let registerModal = document.getElementById('signUpModal'); signInModal.classList.add('hidden'); registerModal.classList.remove('hidden'); document.getElementById('userNameInput').focus(); HideMessages();")
+        row:AddNestedTag(register)
+        Button login
+        login:SetIdentifier("submitSignInForm")
+        login:SetType("submit")
+        login:AddText("Login")
+        login:SetOnClick("login()")
+        page:SetStyle(login, submit)
+        page:SetStyleOnHover(login, submitHover)
+        row:AddNestedTag(login)
+        box:AddNestedTag(row)
+        box:AddNestedTag(form)
+        return box
+    end
+
+    private action GetForgotPassword(WebPage page) returns Division
+        Division box = GetDialog(page, "forgotPasswordModal", true)
+        Heading heading
+        heading:SetScale(2)
+        heading:AddText("Forgot Password?")
+        page:SetStyle(heading, dialogTitle)
+        box:AddNestedTag(GetTopRow(page, heading, "closeForgotPasswordModal", "Close forgot password"))
+
+        Form form
+        form:SetIdentifier("resetPasswordForm")
+        form:AddAttribute("method", "post")
+        form:AddAttribute("action", "javascript:forgotPasswordClick()")
+        form:SetPost(true)
+        Division fieldList = GetFieldList(page)
+        Division email = GetPlainField(page, "Email", "emailForgotInput", "emailForgotLabel", "text", "email")
+        fieldList:AddNestedTag(email)
+        form:AddNestedTag(fieldList)
+
+        Paragraph back
+        back:AddText("Back to ")
+        page:SetStyle(back, spaced)
+        Button signIn = GetLinkButton(page, "Sign in", "backToLoginButtonForgot", linkButton)
+        signIn:AddAttribute("onclick", "let signInModal = document.getElementById('signInModal'); let forgotModal = document.getElementById('forgotPasswordModal'); forgotModal.classList.add('hidden'); signInModal.classList.remove('hidden'); document.getElementById('usernameInput').focus(); HideMessages();")
+        back:AddNestedTag(signIn)
+        form:AddNestedTag(back)
+
+        Division row = GetButtonRow(page)
+        Input request
+        request:SetIdentifier("submitForgotPasswordForm")
+        request:SetDefaultValue("Request Reset")
+        request:SetType("submit")
+        page:SetStyle(request, submit)
+        page:SetStyleOnHover(request, submitHover)
+        row:AddNestedTag(request)
+        form:AddNestedTag(row)
+        box:AddNestedTag(form)
+        return box
+    end
+
+    private action GetSignUp(WebPage page) returns Division
+        Division box = GetDialog(page, "signUpModal", true)
+        Heading heading
+        heading:SetScale(2)
+        heading:AddText("Sign up for Quorum")
+        page:SetStyle(heading, dialogTitle)
+        box:AddNestedTag(GetTopRow(page, heading, "closeSignUpModal", "Close sign up"))
+
+        Form form
+        form:SetIdentifier("registrationForm")
+        form:AddAttribute("method", "post")
+        form:AddAttribute("action", "javascript:registrationSubmit()")
+        form:SetPost(true)
+        page:SetLayout(form, fields)
+        page:SetStyleFromWidth(form, constants:SMALL_SCREEN_WIDTH, fieldsSmall)
+        form:AddNestedTag(GetCheckedField(page, "User Name", "userNameInput", "userNameLabel", "text", "username", "checkValidityExists.call(this);", "Username required"))
+        form:AddNestedTag(GetCheckedField(page, "First Name", "firstNameInput", "firstNameLabel", "text", "first_name", "checkValidityExists.call(this);", "First Name required"))
+        form:AddNestedTag(GetCheckedField(page, "Last Name", "lastNameInput", "lastNameLabel", "text", "last_name", "checkValidityExists.call(this);", "Last Name required"))
+        form:AddNestedTag(GetCheckedField(page, "Email", "emailRegistrationInput", "emailRegistrationLabel", "text", "email", "checkValidityEmail.call(this);", "Email address required"))
+        form:AddNestedTag(GetCheckedField(page, "Birthday (12/31/1970)", "birthdayInput", "birthdayLabel", "text", "birthday", "checkValidityDate.call(this);", "Birthday missing or wrong format"))
+        form:AddNestedTag(GetCheckedField(page, "Password", "passwordEnterInput", "passwordLabel", "password", "password", "checkValidityExists.call(this); checkConfirmPassword();", "Password required"))
+        form:AddNestedTag(GetCheckedField(page, "Confirm password", "confirmPasswordInput", "confirmPasswordLabel", "password", "confirm_password", "checkValidityExists.call(this); checkConfirmPassword();", "Passwords do not match"))
+        box:AddNestedTag(form)
+
+        Paragraph haveAccount
+        haveAccount:AddText("Already have an account? ")
+        Button signIn = GetLinkButton(page, "Sign in", "backToLoginButton", linkButton)
+        signIn:AddAttribute("onclick", "let signInModal = document.getElementById('signInModal'); let registerModal = document.getElementById('signUpModal'); registerModal.classList.add('hidden'); signInModal.classList.remove('hidden'); document.getElementById('usernameInput').focus(); HideMessages();")
+        haveAccount:AddNestedTag(signIn)
+        box:AddNestedTag(haveAccount)
+
+        Division row = GetButtonRow(page)
+        Button signUp
+        signUp:SetIdentifier("submitRegistrationForm")
+        signUp:SetType("submit")
+        signUp:AddAttribute("form", "registrationForm")
+        signUp:AddText("Sign Up")
+        page:SetStyle(signUp, submit)
+        page:SetStyleOnHover(signUp, submitHover)
+        row:AddNestedTag(signUp)
+        box:AddNestedTag(row)
+        return box
+    end
+
+    // A dialog's box, hidden at first unless it is the first one shown.
+    // A click inside it doesn't reach the backdrop, which closes it.
+    private action GetDialog(WebPage page, text identifier, boolean hidden) returns Division
+        Division box
+        box:SetIdentifier(identifier)
+        box:AddAttribute("role", "dialog")
+        box:AddAttribute("aria-modal", "true")
+        box:AddAttribute("onclick", "event.stopPropagation()")
+        if hidden
+            box:AddClassAttribute(HIDDEN_CLASS)
+        end
+        page:SetLayout(box, dialog)
+        page:SetStyle(box, dialogBox)
+        page:SetStyleFromWidth(box, constants:LARGE_SCREEN_WIDTH, dialogLarge)
+        return box
+    end
+
+    // A dialog's title beside its close button, which closes the whole
+    // dialog and puts sign in back as the first one shown.
+    private action GetTopRow(WebPage page, WebTag titleElement, text identifier, text name) returns Division
+        Division row
+        page:SetLayout(row, topRow)
+        row:AddNestedTag(titleElement)
+        Button close
+        close:SetIdentifier(identifier)
+        close:AddAttribute(LABEL_ATTRIBUTE, name)
+        close:AddText(ReadIcon(CROSS_ICON))
+        close:SetOnClick("document.getElementById('signInModal').classList.remove('hidden'); document.getElementById('forgotPasswordModal').classList.add('hidden'); document.getElementById('signUpModal').classList.add('hidden'); hideLoginModal();")
+        page:SetStyle(close, closeButton)
+        row:AddNestedTag(close)
+        return row
+    end
+
+    private action GetFieldList(WebPage page) returns Division
+        Division list
+        page:SetLayout(list, fields)
+        page:SetStyleFromWidth(list, constants:SMALL_SCREEN_WIDTH, fieldsSmall)
+        return list
+    end
+
+    // A label and its field.
+    private action GetPlainField(WebPage page, text words, text identifier, text labelIdentifier, text type, text name) returns Division
+        return GetCheckedField(page, words, identifier, labelIdentifier, type, name, "", "")
+    end
+
+    // A label and its field; if it has a check, the site's script runs it
+    // when the reader leaves the field, and the problem is shown under the
+    // field while the check fails.
+    private action GetCheckedField(WebPage page, text words, text identifier, text labelIdentifier, text type, text name, text checkScript, text problem) returns Division
+        Division box
+        page:SetLayout(box, field)
+        Label fieldLabel
+        fieldLabel:AddText(escaper:Escape(words))
+        fieldLabel:AddAttribute("for", identifier)
+        if not labelIdentifier:IsEmpty()
+            fieldLabel:SetIdentifier(labelIdentifier)
+        end
+        box:AddNestedTag(fieldLabel)
+
+        Input entry
+        entry:SetType(type)
+        entry:SetIdentifier(identifier)
+        entry:SetName(name)
+        entry:SetRequired(true)
+        page:SetStyle(entry, fieldBox)
+        page:SetStyleWhenInvalid(entry, invalidInput)
+        box:AddNestedTag(entry)
+
+        if not checkScript:IsEmpty()
+            text messageIdentifier = identifier + "Error"
+            entry:AddAttribute("onblur", checkScript)
+            entry:AddAttribute(ERROR_ATTRIBUTE, messageIdentifier)
+            entry:AddAttribute(DESCRIBED_BY_ATTRIBUTE, messageIdentifier)
+            Paragraph message
+            message:SetIdentifier(messageIdentifier)
+            message:AddAttribute("hidden", "")
+            message:AddText(escaper:Escape(problem))
+            page:SetStyle(message, errorMessage)
+            box:AddNestedTag(message)
+        end
+        return box
+    end
+
+    private action GetLinkButton(WebPage page, text words, text identifier, WebBoxStyle style) returns Button
+        Button button
+        button:SetIdentifier(identifier)
+        button:SetType("button")
+        button:AddText(escaper:Escape(words))
+        page:SetStyle(button, style)
+        return button
+    end
+
+    private action GetButtonRow(WebPage page) returns Division
+        Division row
+        page:SetLayout(row, buttonRow)
+        return row
+    end
+
+    // A message the site's script shows: an icon beside a heading and
+    // words. Hidden from everyone until shown.
+    private action GetMessage(WebPage page, text heading, text icon, WebBoxStyle look, text identifier, text headingIdentifier, text textIdentifier) returns Division
+        Division message
+        message:SetIdentifier(identifier)
+        message:AddAttribute("aria-hidden", "true")
+        message:AddAttribute("hidden", "")
+        message:AddAttribute("tabindex", "-1")
+        page:SetStyle(message, look)
+        page:SetStyleFromWidth(message, constants:LARGE_SCREEN_WIDTH, messageLarge)
+
+        Division row
+        page:SetLayout(row, messageRow)
+        Span symbol
+        symbol:AddAttribute("aria-hidden", "true")
+        symbol:AddText(ReadIcon(icon))
+        row:AddNestedTag(symbol)
+        Division words
+        words:AddAttribute("aria-live", "polite")
+        Heading title
+        title:SetIdentifier(headingIdentifier)
+        title:SetScale(2)
+        title:AddText(escaper:Escape(heading))
+        page:SetStyle(title, messageHeading)
+        words:AddNestedTag(title)
+        Paragraph body
+        body:SetIdentifier(textIdentifier)
+        page:SetStyle(body, messageText)
+        words:AddNestedTag(body)
+        row:AddNestedTag(words)
+        message:AddNestedTag(row)
+        return message
+    end
+
+    /*
+        Sets the folder the icons are read from, such as
+        "html/media/userInterface/SVG/" (QuorumSite passes its own, from
+        QuorumSite:SetIconFolder).
+
+        Attribute: Parameter folder The folder, ending with a slash.
+    */
+    action SetIconFolder(text folder)
+        iconFolder = folder
+    end
+
+    /*
+        Sets icons as their SVG, by their files' names (such as
+        "hamburger.svg"), used instead of reading the files (QuorumSite
+        passes its own, from QuorumSite:SetIcon).
+
+        Attribute: Parameter icons The icons' SVG, by file name.
+    */
+    action SetIcons(HashTable<text, text> icons)
+        me:icons = icons
+    end
+
+    // An icon given as text if there is one, or else its file's.
+    private action ReadIcon(text name) returns text
+        if icons not= undefined
+            if icons:HasKey(name)
+                return icons:GetValue(name)
+            end
+        end
+        File file
+        file:SetPath(iconFolder + name)
+        return file:Read()
+    end
+
+    /*
+        The dialog's own script: HideMessages hides all three messages, as
+        LoginForm's handlers did inline; and each checked field's message
+        shows while the site's script marks the field as wrong.
+    */
+    private action GetFieldScript returns text
+        return "function HideMessages(){['alertMessage','feedbackMessage','successMessage'].forEach(function(id){var message=document.getElementById(id);message.setAttribute('aria-hidden','true');message.hidden=true;});}document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('[data-error-message]').forEach(function(field){var message=document.getElementById(field.getAttribute('data-error-message'));var update=function(){message.hidden=field.getAttribute('aria-invalid')!=='true';};new MutationObserver(update).observe(field,{attributes:true,attributeFilter:['aria-invalid']});update();});});"
+    end
+end

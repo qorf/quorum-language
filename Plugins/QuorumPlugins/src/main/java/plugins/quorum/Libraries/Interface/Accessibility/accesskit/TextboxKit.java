@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import quorum.Libraries.Containers.MultipleLineText_;
@@ -17,18 +17,27 @@ public class TextboxKit extends TextKitBase {
     }
 
     private NodeId GetLineID(int lineIndex) {
-        long id = (long)(GetItem().GetHashCode()) << 32;
+        long id = GetNodeID().value << 32;
         id |= (long)lineIndex;
         return new NodeId(id);
+    }
+
+    // The line a text run's id names (GetLineID), or -1 if it isn't one of this box's runs.
+    private int GetLineIndex(NodeId lineID) {
+        if ((lineID.value >>> 32) != GetNodeID().value) {
+            return -1;
+        }
+        return (int)(lineID.value & 0xffffffffL);
     }
 
     public Node Build() {
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof TextBox_) { //technically not compiler guaranteed. You can set the code to anything.
                 TextBox_ box = (TextBox_) item;
                 TextBoxSelection_ selection = box.GetSelection();
@@ -58,7 +67,7 @@ public class TextboxKit extends TextKitBase {
                 builder.setTextSelection(new TextSelection(anchor, focus));
             }
             BuildChildren(builder);
-            return builder.build();
+            return builder;
         }
         return null;
     }
@@ -118,10 +127,10 @@ public class TextboxKit extends TextKitBase {
 
     @Override
     public Node BuildInternalChild(NodeId id) {
-        if ((int)(id.value >>> 32) != GetItem().GetHashCode()) {
+        int lineIndex = GetLineIndex(id);
+        if (lineIndex < 0) {
             throw new IllegalArgumentException("unexpected child ID");
         }
-        int lineIndex = (int)(id.value & 0xffffffff);
         Item_ item = GetItem();
         if(item != null && item instanceof TextBox_) {
             TextBox_ box = (TextBox_) item;
@@ -137,8 +146,8 @@ public class TextboxKit extends TextKitBase {
             } else if (!s.endsWith("\r") && !s.endsWith("\n")) {
                 s += value.GetLineSeparator();
             }
-            NodeBuilder builder = BuildLineBase(lineIndex, s);
-            return builder.build();
+            Node builder = BuildLineBase(lineIndex, s);
+            return builder;
         }
         return null;
     }

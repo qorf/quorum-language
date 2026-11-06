@@ -6,7 +6,6 @@ use Libraries.Game.Graphics.Models.OpenGL.Attributes.IntegerAttribute
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.DepthTestAttribute
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.EnvironmentOpenGL
 use Libraries.Game.Graphics.TextureDescriptor
-use Libraries.Game.Graphics.Shaders.SkyboxShader
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
@@ -15,6 +14,8 @@ use Libraries.Game.Graphics.Shaders.OpenGL.Fragment.DefaultFragmentShader3DOpenG
 use Libraries.Game.Graphics.Shaders.Programs.DefaultShaderProgram3D
 use Libraries.Game.Graphics.OpenGL.OpenGLConstants
 use Libraries.Game.Graphics.all
+use Libraries.Game.WebApplication
+use Libraries.Game.Graphics.Shaders.OpenGL.Mapping.SkyboxShaderMappingOpenGL
 
 class OpenGLPainter3D is Painter3D, Disposable
     
@@ -22,7 +23,6 @@ class OpenGLPainter3D is Painter3D, Disposable
     Camera camera = undefined
     EnvironmentOpenGL environment = undefined
     Skybox skybox = undefined
-    SkyboxShader skyboxShader
 
     ShaderProgram defaultProgram = undefined
     boolean isRendering = false
@@ -173,15 +173,35 @@ private action GetGraphics returns OpenGLManager
             if (skybox:IsLoaded() = false)
                 alert("I can't render the skybox because it wasn't fully loaded. Make sure all six sides are loaded before trying to use it.")
             end
-            OpenGLManager graphics = GetGraphics()
-            OpenGLConstants constants
-            graphics:EnableProperty(constants:GL_DEPTH_TEST)
-            graphics:EnableProperty(constants:GL_BLEND)
-            skyboxShader:Render(skybox, camera)
+            RenderSkybox()
         end
 
         EndGraphicsState()
         isRendering = false
+    end
+
+    /*
+    This action draws the skybox with the SkyboxShaderProgram, behind
+    everything drawn so far. Only perspective cameras show a sky. The web
+    still draws with its own skybox shader.
+    */
+    private action RenderSkybox
+        OpenGLManager graphics = GetGraphics()
+        OpenGLConstants constants
+        GameStateManager gameState
+
+        ShaderManager shaders = gameState:GetShaderManager()
+        ShaderProgram program = shaders:GetSkyboxShaderProgram()
+        SkyboxShaderMappingOpenGL mapping = cast(SkyboxShaderMappingOpenGL, program:GetShaderMapping())
+        program:Begin()
+        mapping:SetSkybox(skybox)
+        mapping:Begin(program, camera)
+        // The triangle comes from the vertex number, so no vertex inputs
+        // are used; the default vertex array is enough.
+        graphics:UseDefaultVertexArray()
+        graphics:DrawBuffer(constants:GL_TRIANGLES, 0, 3)
+        mapping:End(program)
+        program:End()
     end
 
     private action EndGraphicsState
@@ -217,11 +237,7 @@ OpenGLManager graphics = GetGraphics()
                     currentProgram:End()
                 end
                 currentProgram = undefined
-OpenGLManager graphics = GetGraphics()
-                OpenGLConstants constants
-                graphics:EnableProperty(constants:GL_DEPTH_TEST)
-                graphics:EnableProperty(constants:GL_BLEND)
-                skyboxShader:Render(skybox, camera)
+                RenderSkybox()
             end
             
             ShaderProgram candidateProgram = defaultProgram

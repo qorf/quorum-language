@@ -38,6 +38,13 @@ function plugins_quorum_Libraries_System_File_() {
         return this.defaultWorkingDirectory;
     };
 
+    // The web has no folder of the program's own: the page's site, the
+    // default working directory, where writing a file downloads it. Computed
+    // again, since SetWorkingDirectory changes defaultWorkingDirectory.
+    this.GetStorageDirectoryNative = function () {
+        return window.location.protocol + "//" + window.location.hostname;
+    };
+
     this.SetWorkingDirectoryNative$quorum_text = function (path) {
         this.defaultWorkingDirectory = path;
     };

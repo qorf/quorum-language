@@ -18,7 +18,12 @@ class ScrollableControl is Control
     Math math
     constant number liner = math:SquareRoot(math:Logarithm(1.1))
 
-    integer barThickness = 20
+    // How thick the scroll bars are, before the interface scale.
+    integer barThickness = 12
+
+    // How round the bars' and handles' ends are, as a share of half their
+    // thickness: 1 would be fully round, so this is a little less.
+    constant number BAR_ROUNDING = 0.7
 
     /*
     Values representing how far the scroll bars have moved, where 0 is the start
@@ -32,6 +37,11 @@ class ScrollableControl is Control
     // How much of the overall content can be seen in the view, as a ratio of overall width/height.
     number verticalViewRatio = 1
     number horizontalViewRatio = 1
+
+    // The handles' lengths as a share of their tracks: the visible share of
+    // the content, but never shorter than MinimumHandleLength.
+    number verticalHandleRatio = 1
+    number horizontalHandleRatio = 1
 
     public constant integer VISIBLE_IF_NEEDED = 1
     public constant integer ALWAYS_VISIBLE = 2
@@ -106,6 +116,19 @@ class ScrollableControl is Control
         parent:Control:Add(horizontalBar)
         verticalBar:Add(verticalControl)
         horizontalBar:Add(horizontalControl)
+
+        // The bars and their handles have rounded ends.
+        RoundEnds(verticalBar)
+        RoundEnds(horizontalBar)
+        RoundEnds(verticalControl)
+        RoundEnds(horizontalControl)
+    end
+
+    private action RoundEnds(Control control)
+        control:SetTopLeftRounding(BAR_ROUNDING)
+        control:SetTopRightRounding(BAR_ROUNDING)
+        control:SetBottomLeftRounding(BAR_ROUNDING)
+        control:SetBottomRightRounding(BAR_ROUNDING)
     end
 
     /*
@@ -267,8 +290,11 @@ class ScrollableControl is Control
 
         number gutterWidth = GetCombinedGutterWidth()
 
+        verticalHandleRatio = GetHandleRatio(verticalViewRatio, barHeight)
+        horizontalHandleRatio = GetHandleRatio(horizontalViewRatio, barWidth)
+
         if verticalVisible
-            verticalControl:SetPercentageHeight(verticalViewRatio)
+            verticalControl:SetPercentageHeight(verticalHandleRatio)
             verticalBar:Show()
             scrollableRegion:SetPixelWidth(-barThickness - gutterWidth / GetInterfaceScale())
         else
@@ -279,7 +305,7 @@ class ScrollableControl is Control
         scrollableRegion:SetPixelX(gutterWidth)
 
         if horizontalVisible
-            horizontalControl:SetPercentageWidth(horizontalViewRatio)
+            horizontalControl:SetPercentageWidth(horizontalHandleRatio)
             horizontalBar:Show()
             // Currently, ManualLayout applies interface scale to dimensions, but not to positions. Thus only the Y needs the scale applied manually.
             scrollableRegion:SetPixelHeight(-barThickness)
@@ -331,7 +357,9 @@ class ScrollableControl is Control
                     return now
                 end
             else
-                verticalControl:SetPercentageHeight(verticalViewRatio)
+                verticalHandleRatio = GetHandleRatio(verticalViewRatio, barHeight)
+                verticalControl:SetPercentageHeight(verticalHandleRatio)
+                verticalControl:SetPercentageY(1.0 - ToTrack(scrollPercentageY, verticalViewRatio, verticalHandleRatio))
             end
 
             verticalBar:Resize()
@@ -351,7 +379,9 @@ class ScrollableControl is Control
                     return now
                 end
             else
-                horizontalControl:SetPercentageWidth(horizontalViewRatio)
+                horizontalHandleRatio = GetHandleRatio(horizontalViewRatio, barWidth)
+                horizontalControl:SetPercentageWidth(horizontalHandleRatio)
+                horizontalControl:SetPercentageX(ToTrack(scrollPercentageX, horizontalViewRatio, horizontalHandleRatio))
             end
 
             horizontalBar:Resize()
@@ -372,8 +402,8 @@ class ScrollableControl is Control
             percentY = 0.0
         end
 
-        horizontalControl:SetPercentageX(percentX)
-        verticalControl:SetPercentageY(1.0 - percentY)
+        horizontalControl:SetPercentageX(ToTrack(percentX, horizontalViewRatio, horizontalHandleRatio))
+        verticalControl:SetPercentageY(1.0 - ToTrack(percentY, verticalViewRatio, verticalHandleRatio))
 
         scrollPercentageX = percentX
         scrollPercentageY = percentY
@@ -397,15 +427,116 @@ class ScrollableControl is Control
     action GetVerticalTrackPercentage(number y) returns number
         number sharedSpaceOffset = 0
         if horizontalBar:IsShowing()
-            sharedSpaceOffset = barThickness
+            sharedSpaceOffset = barThickness * GetInterfaceScale()
         end
 
-        return 1.0 - (y - sharedSpaceOffset) / verticalBar:GetHeight()
+        return FromTrack(1.0 - (y - sharedSpaceOffset) / verticalBar:GetHeight(), verticalViewRatio, verticalHandleRatio)
     end
 
     // This action translate a pixel value to a percentage scroll X value. The pixel value is relative to the Spreadsheet.
     action GetHorizontalTrackPercentage(number x) returns number
-        return x / horizontalBar:GetWidth()
+        return FromTrack(x / horizontalBar:GetWidth(), horizontalViewRatio, horizontalHandleRatio)
+    end
+
+    // The shortest a handle gets, in pixels: twice the bar's thickness.
+    private action MinimumHandleLength returns number
+        return barThickness * 2 * GetInterfaceScale()
+    end
+
+    // A handle's length as a share of its track.
+    private action GetHandleRatio(number viewRatio, number trackLength) returns number
+        if trackLength <= 0
+            return viewRatio
+        end
+        number minimum = MinimumHandleLength() / trackLength
+        if minimum > 1.0
+            minimum = 1.0
+        end
+        if viewRatio < minimum
+            return minimum
+        end
+        return viewRatio
+    end
+
+    /*
+    Converts how far the content is scrolled (0 to 1 - viewRatio) into where
+    the handle's start sits on its track (0 to 1 - handleRatio), and back.
+    They are the same when the handle is its natural length.
+    */
+    private action ToTrack(number scrolled, number viewRatio, number handleRatio) returns number
+        if viewRatio >= 1.0
+            return 0
+        end
+        return scrolled * (1.0 - handleRatio) / (1.0 - viewRatio)
+    end
+
+    private action FromTrack(number track, number viewRatio, number handleRatio) returns number
+        if handleRatio >= 1.0
+            return 0
+        end
+        return track * (1.0 - viewRatio) / (1.0 - handleRatio)
+    end
+
+    /*
+    The PageVertically action moves the view by one view's height, toward
+    the top (up is true) or the bottom, as a click on the scroll bar's
+    track does.
+
+    Attribute: Parameter up True to move toward the top.
+    */
+    action PageVertically(boolean up)
+        number change = verticalViewRatio
+        if up
+            change = -change
+        end
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + change)
+    end
+
+    /*
+    The PageHorizontally action moves the view by one view's width, toward
+    the left (left is true) or the right.
+
+    Attribute: Parameter left True to move toward the left.
+    */
+    action PageHorizontally(boolean left)
+        number change = horizontalViewRatio
+        if left
+            change = -change
+        end
+        RefreshPaneView(GetScrollPercentageX() + change, GetScrollPercentageY())
+    end
+
+    /*
+    The CanScrollVertically action returns whether this control's view can
+    move further toward the top of its content (up is true) or toward the
+    bottom. It is false when all of the content already fits.
+
+    Attribute: Parameter up True to ask about moving toward the top.
+    Attribute: Returns True if the view can move further that way.
+    */
+    action CanScrollVertically(boolean up) returns boolean
+        if verticalViewRatio >= 1.0
+            return false
+        end
+        if up
+            return scrollPercentageY > 0
+        end
+        return scrollPercentageY < 1.0 - verticalViewRatio
+    end
+
+    /*
+    The ScrollByDrag action moves the view with a finger's drag on a touch
+    screen. The distance is in pixels, with a drag up positive: the content
+    follows the finger, so a drag up shows more of the content below.
+
+    Attribute: Parameter distanceY How far the finger moved up, in pixels.
+    */
+    action ScrollByDrag(number distanceY)
+        if verticalViewRatio >= 1.0 or GetHeight() <= 0
+            return now
+        end
+        number totalHeight = GetHeight() / verticalViewRatio
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + distanceY / totalHeight)
     end
 
     action ScrolledMouse(MouseEvent event)

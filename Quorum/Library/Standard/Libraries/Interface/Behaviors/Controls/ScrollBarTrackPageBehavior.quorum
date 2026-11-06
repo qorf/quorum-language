@@ -1,0 +1,57 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Controls.ScrollBarTrack
+use Libraries.Interface.Controls.ScrollBarControl
+use Libraries.Interface.Controls.ScrollableControl
+
+/*
+The ScrollBarTrackPageBehavior moves a scroll bar one page toward a click or
+tap on its track, outside the handle: up or left if it lands before the
+handle, down or right if after.
+*/
+class ScrollBarTrackPageBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is ScrollBarTrack)
+            return now
+        end
+        ScrollBarTrack track = cast(ScrollBarTrack, event:GetItem())
+        ScrollableControl control = track:GetScrollableControl()
+        ScrollBarControl handle = track:GetHandle()
+        if control = undefined or handle = undefined
+            return now
+        end
+
+        number x = 0
+        number y = 0
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if mouseEvent not= undefined
+            x = mouseEvent:GetX()
+            y = mouseEvent:GetY()
+        elseif touchEvent not= undefined
+            x = touchEvent:x
+            y = touchEvent:y
+        else
+            return now
+        end
+
+        if track:IsVertical()
+            // y grows upward, so a click above the handle's top moves up.
+            if y > handle:GetGlobalY() + handle:GetHeight()
+                control:PageVertically(true)
+            elseif y < handle:GetGlobalY()
+                control:PageVertically(false)
+            end
+        else
+            if x < handle:GetGlobalX()
+                control:PageHorizontally(true)
+            elseif x > handle:GetGlobalX() + handle:GetWidth()
+                control:PageHorizontally(false)
+            end
+        end
+    end
+end

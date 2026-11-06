@@ -1,0 +1,181 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+
+/*
+The ButtonRowLayout puts a row of buttons side by side, each as wide as its
+words, when they all fit in the container's width. When they don't, every
+button goes on its own line instead, as wide as the container, so a row is
+never broken partway. The container is as tall as what it holds. Items that
+aren't showing are skipped.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Layouts.ButtonRowLayout
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Control row
+        ButtonRowLayout layout
+        row:SetLayout(layout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+
+        Button choose
+        choose:SetName("Choose...")
+        row:Add(choose)
+        Button remove
+        remove:SetName("Remove")
+        row:Add(remove)
+        Add(row)
+    end
+end
+*/
+class ButtonRowLayout is Layout
+    // The space between buttons, side by side or one above another, in
+    // points before the interface scale.
+    number gap = 8
+
+    /*
+    This action sets the space between the buttons, in points before the
+    interface scale. The default is 8.
+
+    Attribute: Parameter value The space between the buttons
+    */
+    action SetGap(number value)
+        gap = value
+    end
+
+    /*
+    This action returns the space between the buttons, in points before the
+    interface scale.
+
+    Attribute: Returns The space between the buttons
+    */
+    action GetGap returns number
+        return gap
+    end
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+        if containerProperties not= undefined and containerProperties:NeedsRendering()
+            container:LoadGraphics(containerProperties)
+        end
+        number scale = container:GetInterfaceScale()
+        number space = gap * scale
+
+        // The buttons that show, with their widths at their words' size and
+        // their heights.
+        Array<Control> buttons
+        Array<number> widths
+        Array<number> heights
+        number total = 0
+        integer index = 0
+        repeat while index < items:GetSize()
+            Item2D item = items:Get(index)
+            if item is Control and item:IsShowing()
+                Control control = cast(Control, item)
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                if properties:NeedsRendering()
+                    control:LoadGraphics(properties)
+                end
+                Font font = control:GetFont()
+                if font = undefined
+                    font = properties:GetFont()
+                end
+                number textWidth = 0
+                number lineHeight = 0
+                if font not= undefined
+                    font = font:Copy()
+                    font:SetSize(cast(integer, control:GetFontSize() * scale))
+                    textWidth = MeasureText(font, properties:GetLabelText())
+                    lineHeight = font:GetLineHeight()
+                end
+                number buttonWidth = textWidth + (control:GetLeftPadding() + control:GetRightPadding()) * scale
+                number buttonHeight = lineHeight + (control:GetTopPadding() + control:GetBottomPadding()) * scale
+                if buttons:GetSize() > 0
+                    total = total + space
+                end
+                total = total + buttonWidth
+                buttons:Add(control)
+                widths:Add(buttonWidth)
+                heights:Add(buttonHeight)
+            end
+            index = index + 1
+        end
+
+        boolean oneRow = total <= containerWidth
+
+        // The container's height: the tallest button for a row, or every
+        // button and the spaces between them for a column.
+        number height = 0
+        integer measureIndex = 0
+        repeat while measureIndex < buttons:GetSize()
+            number measuredHeight = heights:Get(measureIndex)
+            if oneRow
+                if measuredHeight > height
+                    height = measuredHeight
+                end
+            else
+                if measureIndex > 0
+                    height = height + space
+                end
+                height = height + measuredHeight
+            end
+            measureIndex = measureIndex + 1
+        end
+        if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
+            container:SetHeight(height)
+        else
+            height = containerHeight
+        end
+
+        // Places the buttons, from the left for a row, or from the top for
+        // a column.
+        number x = 0
+        number top = height
+        integer placeIndex = 0
+        repeat while placeIndex < buttons:GetSize()
+            Control button = buttons:Get(placeIndex)
+            number placedHeight = heights:Get(placeIndex)
+            if oneRow
+                button:SetSize(widths:Get(placeIndex), placedHeight)
+                button:SetPosition(x, (height - placedHeight) / 2.0)
+                x = x + widths:Get(placeIndex) + space
+            else
+                button:SetSize(containerWidth, placedHeight)
+                top = top - placedHeight
+                button:SetPosition(0, top)
+                top = top - space
+            end
+            placeIndex = placeIndex + 1
+        end
+    end
+
+    // The width of a line of text in a font.
+    private action MeasureText(Font font, text value) returns number
+        if value = undefined
+            return 0
+        end
+        number width = 0
+        integer index = 0
+        repeat while index < value:GetSize()
+            Glyph glyph = font:GetGlyph(value:GetCharacter(index))
+            if glyph not= undefined
+                width = width + glyph:horizontalAdvance
+            end
+            index = index + 1
+        end
+        return width
+    end
+end

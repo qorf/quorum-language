@@ -64,5 +64,24 @@ class IOSAccessibility is Accessibility
 
     system action Shutdown
 
+    /*
+        Handles the focus change as every platform does, then tells VoiceOver
+        once if elements were added or removed this frame (a page change, a
+        tree item opening), so it moves to the new focus.
+    */
+    action Update
+        parent:Accessibility:Update()
+        PostPendingChanges()
+    end
+
+    private system action PostPendingChanges
+
+    /*
+        Sets whether this prints, on the console, the items VoiceOver moves
+        through after every change and every notification sent to VoiceOver
+        (IOSConfiguration's debugAccessibility).
+    */
+    system action SetDebug(boolean enabled)
+
     action IsScreenReaderListening returns boolean return false end
 end

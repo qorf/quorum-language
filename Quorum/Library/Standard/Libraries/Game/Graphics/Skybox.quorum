@@ -3,11 +3,19 @@ package Libraries.Game.Graphics
 use Libraries.System.File
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Game.GameStateManager
+use Libraries.Game.WebApplication
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
 
 class Skybox
 
-    // OpenGL constants for the sides of the cube map.
-    // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
+    // OpenGL's names for the sides of a cube map. The load actions pass
+    // these as they always have (front as negative z, back as positive z,
+    // from before Quorum's world was left-handed); LoadCubeSide puts each
+    // file on the face the renderer needs (Item 26).
     constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_X = 34069
     constant integer GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 34070
     constant integer GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 34071
@@ -17,21 +25,27 @@ class Skybox
 
     Texture cubeMap = undefined
     Matrix4 transform
-    
-    // Used to invert the skybox. A value of -1 inverts the box, while a value of 1 leaves it as it is.
-    number inverter = 1
+
+    // An array of all the six resources files used to load this Skybox: right, left, up, down, front, back.
+    Array<File> cubeSides
+
+    // The camera's directions for drawing the sky, from UpdateView.
+    Vector3 viewRight
+    Vector3 viewUp
+    Vector3 viewForward
+    Math math
 
     /*
     Flags to indicate which sides are loaded. A Skybox can only be rendered if
     all of the sides of the Skybox are loaded. These are set to true inside the
     LoadSide action, and set to false by the Dispose action.
     */
-    File rightSource = undefined
-    File leftSource = undefined
-    File upSource = undefined
-    File downSource = undefined
-    File frontSource = undefined
-    File backSource = undefined
+    //File rightSource = undefined
+    //File leftSource = undefined
+    //File upSource = undefined
+    //File downSource = undefined
+    //File frontSource = undefined
+    //File backSource = undefined
 
     /*
     The Load action loads all six sides of the Skybox. It takes six text
@@ -128,19 +142,14 @@ class Skybox
 
     */
     action Load(File right, File left, File up, File down, File forward, File back)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end    
+        PrepareCubeMap()
 
-        LoadSide(right, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
-        LoadSide(left, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
-        LoadSide(up, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
-        LoadSide(down, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(forward, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
-        LoadSide(back, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(right, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+        LoadCubeSide(left, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
+        LoadCubeSide(up, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
+        LoadCubeSide(down, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
+        LoadCubeSide(forward, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(back, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
     /*
@@ -228,13 +237,9 @@ class Skybox
 
     */
     action LoadRight(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_X)
     end
 
     /*
@@ -322,13 +327,9 @@ class Skybox
 
     */
     action LoadLeft(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_X)
     end
 
     /*
@@ -416,13 +417,9 @@ class Skybox
 
     */
     action LoadTop(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Y)
     end
 
     /*
@@ -510,13 +507,9 @@ class Skybox
 
     */
     action LoadBottom(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y)
     end
 
     /*
@@ -604,14 +597,9 @@ class Skybox
 
     */
     action LoadFront(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
     end
 
     /*
@@ -699,30 +687,83 @@ class Skybox
 
     */
     action LoadBack(File image)
-        if cubeMap = undefined
-            Texture texture
-            cubeMap = texture
-            InitializeCubeMap(texture)
-        end
+        PrepareCubeMap()
 
-        // Note that positive Z in OpenGL is negative Z in Quorum, and vice versa.
-        LoadSide(image, cubeMap, GL_TEXTURE_CUBE_MAP_POSITIVE_Z)
+        LoadCubeSide(image, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z)
     end
 
     /*
-    Initializes the given texture to be used as a cube map, instead of a single
-    2D texture.
+    This action makes the cube map's Texture the first time a side is
+    loaded. Under OpenGL it becomes a GL cube texture; under Vulkan it waits
+    for all six sides.
     */
-    private system action InitializeCubeMap(Texture texture)
+    private action PrepareCubeMap
+        if cubeMap not= undefined
+            return now
+        end
+        Texture texture
+        cubeMap = texture
+        cubeSides:SetSize(6)
+    end
 
     /*
-    Load pixels from a file into a pixel map, then apply it to the
-    given side of the given cube map texture. The side should be one of the 
-    GL_TEXTURE_CUBE_MAP constants at the top of this class.
+    This action loads one side, given by its OpenGL constant as the load
+    actions always have, onto the face the renderer needs:
+    - Vulkan: the side's pixels are kept, and once all six are in, the
+      texture manager makes the cube.
+    - OpenGL on the desktop: front and back are swapped onto positive and
+      negative z, which Quorum's left-handed world needs; the other sides
+      are unchanged.
+    - The web: unchanged, since it still draws with its own skybox shader.
 
-    This is done as a system action due to asynchronous file loading on the web.
+    Attribute: Parameter file The image file.
+    Attribute: Parameter side One of the GL_TEXTURE_CUBE_MAP constants above.
     */
-    private system action LoadSide(File file, Texture texture, integer side)
+    private action LoadCubeSide(File file, integer side)
+        cubeSides:Set(GetTranslatedSide(side), file)
+        GameStateManager manager
+        if HasAllSides()
+                cubeMap:LoadCubemapFromFiles(cubeSides)
+            end
+    end
+
+    /*
+    This action returns a translates an OpenGL cube face constant into an array index for the cubeSides array.
+    These are ordered +x, -x, +y, -y, +z, -z (right, left, up, down, front, back).
+
+    Attribute: Parameter side One of the GL_TEXTURE_CUBE_MAP constants above.
+    Attribute: Returns The layer, 0 to 5.
+    */
+    private action GetTranslatedSide(integer side) returns integer
+        if side = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+            return 0
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_X
+            return 1
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Y
+            return 2
+        elseif side = GL_TEXTURE_CUBE_MAP_NEGATIVE_Y
+            return 3
+        elseif side = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
+            return 4
+        end
+        return 5
+    end
+
+    /*
+    This action returns true once every side's pixels are in.
+
+    Attribute: Returns True if all six sides are loaded.
+    */
+    private action HasAllSides returns boolean
+        integer i = 0
+        repeat while i < 6
+            if cubeSides:Get(i) = undefined
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
 
     /*
     Whether this Skybox has been loaded or not yet. On most platforms, this is
@@ -731,8 +772,137 @@ class Skybox
     loading is handled during online execution.
     */
     action IsLoaded returns boolean
-        return rightSource not= undefined and leftSource not= undefined and upSource not= undefined and
-            downSource not= undefined and frontSource not= undefined and backSource not= undefined
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return false
+        end
+        
+        integer i = 0
+        repeat while i < cubeSides:GetSize()
+            if cubeSides:Get(i) = undefined
+                return false
+            end
+            i = i + 1
+        end
+        
+        return true
+    end
+
+    /*
+    This action returns the cube map texture holding the six sides. It is
+    used by the painters to draw the sky.
+
+    Attribute: Returns The cube map, or undefined if no side is loaded yet.
+    */
+    action GetCubeMap returns Texture
+        return cubeMap
+    end
+
+    /*
+    This action returns the Skybox's rotation, as set by Rotate and
+    SetToRotation.
+
+    Attribute: Returns The rotation.
+    */
+    action GetRotation returns Matrix4
+        return transform
+    end
+
+    /*
+    This action works out, from a camera, the three vectors the painters'
+    sky shaders need to find the direction through each pixel: the camera's
+    forward direction, and its right and up directions, each as long as the
+    view reaches at a distance of 1. A pixel at screen position (x, y), each
+    from -1 at the left or bottom to 1 at the right or top, looks along
+    forward + x × right + y × up. Using the camera's directions instead of
+    its matrices keeps the sky the same in every renderer, and moving the
+    camera never moves the sky. The painters call it each time they draw the
+    sky; read the results with GetViewRight, GetViewUp and GetViewForward.
+
+    Attribute: Parameter camera The camera the sky is seen from.
+    Attribute: Returns True if the camera can show a sky, false for an orthographic camera.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+        Skybox skybox
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            SetSkybox(skybox)
+            if skybox:UpdateView(GetCamera3D())
+                output "The camera looks along z " + skybox:GetViewForward():GetZ()
+            end
+        end
+    end
+    */
+    action UpdateView(Camera camera) returns boolean
+        PerspectiveCamera perspective = cast(PerspectiveCamera, camera)
+        number zoom = 1
+        if camera is PerspectiveCamera
+            zoom = perspective:GetZoom()
+            if zoom <= 0
+            zoom = 1
+        end
+        end
+        
+        // The same field of view the camera's projection uses (vertical).
+        number halfHeight = math:Tangent(math:DegreesToRadians(perspective:GetFieldOfView() / zoom) / 2)
+        number aspect = 1
+        if camera:GetHeight() > 0
+            aspect = camera:GetWidth() / camera:GetHeight()
+        end
+
+        viewForward:Set(camera:GetDirection())
+        viewForward:Normalize()
+        // In Quorum's left-handed world, up × forward points right.
+        viewRight:Set(camera:GetUp())
+        viewRight:CrossProduct(viewForward)
+        viewRight:Normalize()
+        // Made again from the other two, in case the camera's up isn't
+        // exactly square to its direction.
+        viewUp:Set(viewForward)
+        viewUp:CrossProduct(viewRight)
+        viewUp:Normalize()
+
+        viewRight:Scale(halfHeight * aspect)
+        viewUp:Scale(halfHeight)
+        return true
+    end
+
+    /*
+    This action returns the camera's right direction from the last
+    UpdateView, as long as the view reaches sideways at a distance of 1.
+
+    Attribute: Returns The right vector.
+    */
+    action GetViewRight returns Vector3
+        return viewRight
+    end
+
+    /*
+    This action returns the camera's up direction from the last UpdateView,
+    as long as the view reaches upward at a distance of 1.
+
+    Attribute: Returns The up vector.
+    */
+    action GetViewUp returns Vector3
+        return viewUp
+    end
+
+    /*
+    This action returns the camera's forward direction from the last
+    UpdateView, of length 1.
+
+    Attribute: Returns The forward vector.
+    */
+    action GetViewForward returns Vector3
+        return viewForward
     end
 
     /*
@@ -743,12 +913,7 @@ class Skybox
     action Dispose
         cubeMap:Dispose()
         cubeMap = undefined
-        rightSource = undefined
-        leftSource = undefined
-        upSource = undefined
-        downSource = undefined
-        frontSource = undefined
-        backSource = undefined
+        cubeSides:Empty()
     end
 
     /*
@@ -910,116 +1075,68 @@ class Skybox
     end
 
     /*
-    This action returns whether or not the images of the Skybox are currently
-    inverted. This will cause them to appear to be drawn backwards. By default,
-    Skyboxes are inverted, so this will return true. This can be disabled or
-    enabled using the InvertSkybox action.
-
-    Attribute: Returns Whether or not the Skybox is inverted. This is true by default.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Skybox
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Skybox skybox
-            // Assuming we have a folder named "Skybox" containing our six images.
-            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
-            SetSkybox(skybox)
-            
-            boolean inverted = skybox:IsInverted()
-            output "Is the Skybox inverted? " + inverted
-        end
-    end
-    */
-    action IsInverted returns boolean
-        return inverter = 1
-    end
-
-    /*
-    The InvertSkybox action sets whether or not the images of the Skybox should
-    be inverted when used. If this is true, images will appear to be flipped
-    around the y-axis (or in other words, appear to be drawn backwards). If this
-    is set to false, then the images will appear to be drawn in the correct
-    direction, but the left image will appear on the right, and the right image
-    will appear on the left. By default, this value is set to true.
-
-    Attribute: Parameter invert Whether or not the Skybox should be inverted.
-
-    Attribute: Example
-
-    use Libraries.Game.Game
-    use Libraries.Game.Graphics.Skybox
-
-    class Main is Game
-
-        action Main
-            StartGame()
-        end
-
-        action CreateGame
-            Skybox skybox
-            // Assuming we have a folder named "Skybox" containing our six images.
-            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
-            skybox:InvertSkybox(false)
-            SetSkybox(skybox)
-        end
-    end
-    */
-    action InvertSkybox(boolean invert)
-        if invert
-            inverter = 1
-        else
-            inverter = -1
-        end
-    end
-
-    /*
     This action returns the file that was used to load the right side of the skybox.
     */
     action GetRightFile returns File
-        return rightSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(0)
     end
 
     /*
     This action returns the file that was used to load the left side of the skybox.
     */
     action GetLeftFile returns File
-        return leftSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(1)
     end
 
     /*
     This action returns the file that was used to load the top side of the skybox.
     */
     action GetTopFile returns File
-        return upSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(2)
     end
 
     /*
     This action returns the file that was used to load the bottom side of the skybox.
     */
     action GetBottomFile returns File
-        return downSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(3)
     end
 
     /*
     This action returns the file that was used to load the front side of the skybox.
     */
     action GetFrontFile returns File
-        return frontSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(4)
     end
 
     /*
     This action returns the file that was used to load the back side of the skybox.
     */
     action GetBackFile returns File
-        return backSource
+        if cubeSides = undefined or cubeSides:IsEmpty()
+            return undefined
+        end
+        
+        return cubeSides:Get(5)
     end
 end

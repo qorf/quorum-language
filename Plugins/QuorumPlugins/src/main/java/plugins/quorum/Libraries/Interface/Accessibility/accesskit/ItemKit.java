@@ -1,19 +1,27 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Layer3D_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
-import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
-import quorum.Libraries.Language.Object_;
 
 public class ItemKit {
+    /*
+        Node ids 1 to 15 are kept for MacAccessibility's own nodes (the root
+        is 1, the announcers 2 and 3). Every kit gets the next number, so no
+        two kits share an id, which item hash codes couldn't promise. Text
+        runs use (kit id << 32) | line, which never meets a kit id.
+    */
+    private static final long FIRST_ITEM_NODE_ID = 16;
+    private static long nextNodeId = FIRST_ITEM_NODE_ID;
+
+    private final NodeId id = NewNodeID();
     private Role role = null;
     private Item_ item = null;
     private ItemKit parent = null;
@@ -23,22 +31,45 @@ public class ItemKit {
     public ItemKit() {
         SetRole(Role.UNKNOWN);
     }
+
+    private static synchronized NodeId NewNodeID() {
+        NodeId result = new NodeId(nextNodeId);
+        nextNodeId = nextNodeId + 1;
+        return result;
+    }
+
     /*
         Needs to be replaced for general items.
      */
     public Node Build() {
-        NodeBuilder builder = new NodeBuilder(GetRole());
+        Node builder = new Node(GetRole());
         Item_ item = GetItem();
         if (item != null) {
             Rect rect = GetBoundingRectangle();
             builder.setBounds(rect);
-            builder.setName(item.GetName() + ", " + item.GetDescription());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
         }
         BuildChildren(builder);
-        return builder.build();
+        return builder;
     }
 
-    protected void BuildChildren(NodeBuilder builder) {
+    /*
+        Sends what VoiceOver needs but AccessKit's macOS adapter leaves out
+        (MacAccessibilityExtras), each time this kit's node is built. Most
+        kits have nothing to send.
+    */
+    public void SendExtras() {
+    }
+
+    // A node with only this kit's role and children (MacAccessibility.SafeBuild).
+    public final Node BuildFallbackNode() {
+        Node node = new Node(GetRole());
+        BuildChildren(node);
+        return node;
+    }
+
+    protected void BuildChildren(Node builder) {
         for (NodeId child : GetInternalChildren()) {
             builder.addChild(child);
         }
@@ -48,11 +79,7 @@ public class ItemKit {
     }
 
     public NodeId GetNodeID() {
-        return GetNodeID(item);
-    }
-
-    public static NodeId GetNodeID(Item_ item) {
-        return new NodeId(item.GetHashCode());
+        return id;
     }
 
     public Item_ GetItem() {
@@ -79,8 +106,13 @@ public class ItemKit {
         return indexInParent;
     }
 
-    public final Iterable<ItemKit> GetChildren() {
-        return children;
+    /*
+        A copy of the children, so building nodes can't be disturbed if
+        something adds or removes a kit meanwhile (everything runs on the
+        main thread, so a copy is all that is needed).
+    */
+    public final ArrayList<ItemKit> GetChildrenCopy() {
+        return new ArrayList<ItemKit>(children);
     }
 
     public final void AddChild(ItemKit child) {
@@ -103,55 +135,44 @@ public class ItemKit {
 
     public Rect GetBoundingRectangle()
     {
-        // The order of values in the bounding box is left, top, width, height.
-        Rect rect;
-        double[] bounds = new double[4];
-
         DesktopDisplay_ display = (DesktopDisplay_) GameStateManager.display;
 
         if (display == null)
         {
-            rect = new Rect(0,0,0,0);
-            return rect;
+            return new Rect(0,0,0,0);
         }
-
-        double windowX = display.GetDisplayX();
-        double windowY = display.GetDisplayY();
 
         /*
         We need to know the height to correct for the difference in y
-        direction between Windows and Quorum (0 is at the top in Windows, and
-        and the bottom in Quorum).
+        direction between the Mac (0 is at the top in AccessKit) and Quorum
+        (0 is at the bottom).
         */
         double windowHeight = display.GetHeight();
 
         if (item instanceof Item2D_)
         {
-            double itemX = ((Item2D_)item).GetScreenX();
-            double itemY = (((Item2D_) item).GetScreenY());
+            Item2D_ item2D = (Item2D_) item;
+            double itemX = item2D.GetScreenX();
+            double itemY = item2D.GetScreenY();
 
-            if (itemX == Double.NaN) {
+            if (Double.isNaN(itemX)) {
                 itemX = 0;
             }
 
-            if (itemY == Double.NaN) {
+            if (Double.isNaN(itemY)) {
                 itemY = 0;
             }
 
-            //bounding boxes require a slightly different approach than UIA.
-            rect = new Rect(
+            return new Rect(
                     itemX,
-                    windowHeight - itemY - ((Item2D_) item).GetHeight(),
-                    ((Item2D_) item).GetWidth() + itemX,
+                    windowHeight - itemY - item2D.GetHeight(),
+                    item2D.GetWidth() + itemX,
                     windowHeight - itemY
             );
         }
         else if (item instanceof Item3D_)
         {
-            // This is only a place holder, to place a small box roughly at the
-            // center of a 3D object in the screen. To calculate this correctly,
-            // check how we calculate mouse input detection for 3D objects.
-
+            // A placeholder (step 8 of the plan fixes 3D bounds).
             Item3D_ item3D = ((Item3D_) item);
             Rectangle_ rectangle = item3D.GetScreenBounds();
 
@@ -163,14 +184,9 @@ public class ItemKit {
             double x2 = viewX + rectangle.GetWidth() + rectangle.GetX();
             double y1 = windowHeight - rectangle.GetY() - viewY - rectangle.GetHeight();
             double y2 = windowHeight - rectangle.GetY() - viewY;
-            rect = new Rect( x1, y1, x2, y2);
+            return new Rect( x1, y1, x2, y2);
         }
-        else
-        {
-            rect = new Rect(0,0,0,0);
-        }
-
-        return rect;
+        return new Rect(0,0,0,0);
     }
 
     public Iterable<NodeId> GetInternalChildren() {

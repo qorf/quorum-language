@@ -1,0 +1,41 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.Controls.ScrollableControl
+use Libraries.Interface.Item2D
+
+/*
+The ScrollableControlPanBehavior scrolls a list or scroll pane as a finger
+drags over it on a touch screen. Like the mouse wheel, a drag that the
+control can't follow any further (it is at its end, or shows everything)
+goes on to the scrollable control around it.
+*/
+class ScrollableControlPanBehavior is Behavior
+    action Run(BehaviorEvent behaviorEvent)
+        GestureEvent event = behaviorEvent:GetGestureEvent()
+        if event = undefined or not (behaviorEvent:GetItem() is ScrollableControl)
+            return now
+        end
+
+        number distance = event:GetPanDistanceY()
+        if distance = 0
+            return now
+        end
+
+        // A drag down shows content above, so it moves toward the top.
+        boolean up = distance < 0
+        Item2D seeker = cast(ScrollableControl, behaviorEvent:GetItem())
+        repeat while seeker not= undefined
+            if seeker is ScrollableControl
+                ScrollableControl scrollable = cast(ScrollableControl, seeker)
+                if scrollable:CanScrollVertically(up)
+                    scrollable:ScrollByDrag(distance)
+                    return now
+                end
+            end
+            seeker = seeker:GetParent()
+        end
+    end
+end

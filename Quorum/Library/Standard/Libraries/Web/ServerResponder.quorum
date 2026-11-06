@@ -1,0 +1,64 @@
+package Libraries.Web
+
+use Libraries.Network.NetworkExchangeListener
+
+/*
+    ServerResponder is anything on a website that lives at a location
+    and can answer a request for it. A WebPage is one: by default it
+    answers with its HTML. Other responders answer with data, such as the
+    result of signing in. A WebSite holds its responders by location and
+    gives each request to the one at the request's location.
+
+    To answer requests, a responder fills in ResponseReceived, from
+    NetworkExchangeListener.
+
+    Attribute: Example
+    use Libraries.Web.ServerResponder
+    use Libraries.Network.NetworkExchange
+
+    class Greeting is ServerResponder
+        on create
+            SetLocation("greeting")
+        end
+
+        action ResponseReceived(NetworkExchange exchange)
+            text response = "Hello"
+            exchange:SendResponseHeaders(200, response)
+            exchange:SendResponse(response)
+        end
+    end
+*/
+class ServerResponder is NetworkExchangeListener
+    // Where this lives on the site, such as "tutorials/Scenes/intro.html".
+    text location = ""
+    WebLocations locations
+
+    /*
+        Sets where this lives on its website, relative to the site's
+        folder and never with a leading slash, such as
+        "tutorials/Scenes/intro.html". A WebSite finds, writes and serves
+        it by this location.
+
+        Attribute: Parameter location Where this lives on the site.
+
+        Attribute: Example
+        use Libraries.Web.Page.WebPage
+
+        WebPage page
+        page:SetLocation("tutorials/start.html")
+    */
+    action SetLocation(text location)
+        locations:Check(location)
+        me:location = location
+    end
+
+    /*
+        Returns where this lives on its website. A class may instead
+        override this action and return its location directly.
+
+        Attribute: Returns The location on the site.
+    */
+    action GetLocation returns text
+        return location
+    end
+end

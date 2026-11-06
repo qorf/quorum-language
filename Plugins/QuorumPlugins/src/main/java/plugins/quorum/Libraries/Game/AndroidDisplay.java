@@ -14,15 +14,27 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.EGLConfigChooser;
 import android.opengl.GLSurfaceView.Renderer;
+import android.graphics.Rect;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
+import android.view.Choreographer;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import plugins.quorum.Libraries.Game.Graphics.Texture;
 import plugins.quorum.Libraries.Game.libGDX.GdxEglConfigChooser;
 
 import plugins.quorum.Libraries.Game.libGDX.WindowedMean;
 import quorum.Libraries.Game.AndroidConfiguration;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics_;
+import plugins.quorum.Libraries.Interface.Events.ResizeProcessor;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -75,68 +87,253 @@ public class AndroidDisplay implements Renderer
 
        private int[] value = new int[1];
        private Object synch = new Object();
+
+       /*
+       With Vulkan (AndroidConfiguration's useVulkan): a SurfaceView, whose
+       Surface Vulkan draws on, and a thread that runs the game once per screen
+       refresh (Choreographer), as GLSurfaceView's thread does with OpenGL.
+       */
+       private volatile Surface vulkanSurface = null;
+       private HandlerThread vulkanThread = null;
+       private Handler vulkanHandler = null;
+       // The display, so input and accessibility can reach the game's thread
+       // (RunOnGameThread).
+       private static AndroidDisplay current = null;
+       private Choreographer choreographer = null;
+       // Touched only on the Vulkan thread.
+       private volatile boolean vulkanRunning = false;
+       private boolean frameRequested = false;
+       private final Choreographer.FrameCallback vulkanFrame = new Choreographer.FrameCallback()
+       {
+           @Override
+           public void doFrame(long frameTimeNanos)
+           {
+               frameRequested = false;
+               if (!vulkanRunning)
+                   return;
+               RunVulkanFrame();
+               RequestVulkanFrame();
+           }
+       };
     
     public void Initialize(AndroidApplication application, AndroidConfiguration configuration)
     {
         config = configuration;
         app = application;
-        view = CreateGLSurfaceView(application);
+        if (GameStateManager.graphics instanceof VulkanGraphics)
+            view = CreateVulkanSurfaceView(application);
+        else
+            view = CreateGLSurfaceView(application);
         
         view.setFocusable(true);
         view.setFocusableInTouchMode(true);
     }
-    
-    protected void PreserveEGLContextOnPause () 
+
+    /*
+    The view for Vulkan, and the thread the game runs on. Android gives the
+    view a Surface when it's shown, and takes it away when the app goes to the
+    background: frames run only while there is one.
+    */
+    protected View CreateVulkanSurfaceView(AndroidApplication application)
     {
-        int sdkVersion = android.os.Build.VERSION.SDK_INT;
-        if ((sdkVersion >= 11 && view instanceof GLSurfaceView20)/* || view instanceof GLSurfaceView20API18*/) 
+        vulkanThread = new HandlerThread("Quorum Vulkan");
+        vulkanThread.start();
+        vulkanHandler = new Handler(vulkanThread.getLooper());
+        current = this;
+
+        SurfaceView surfaceView = new VulkanSurfaceView(application.GetContext());
+        plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput.SetView(surfaceView);
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback()
         {
-            try 
+            @Override
+            public void surfaceCreated(SurfaceHolder holder)
             {
-                view.getClass().getMethod("setPreserveEGLContextOnPause", boolean.class).invoke(view, true);
-            } 
-            catch (Exception e) 
-            {
-                //Gdx.app.log(LOG_TAG, "Method GLSurfaceView.setPreserveEGLContextOnPause not found");
             }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, final int newWidth, final int newHeight)
+            {
+                // A new size on a surface Vulkan already draws on (the device
+                // turned): the game lays out again and the swapchain is made
+                // again, as on iOS. Otherwise, frames start on the new surface.
+                if (vulkanRunning && holder.getSurface() == vulkanSurface)
+                {
+                    width = newWidth;
+                    height = newHeight;
+                    vulkanHandler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            ResizeProcessor.AddResizeEvent(0, newWidth, newHeight);
+                            ((VulkanGraphics_)GameStateManager.graphics).RequestSwapchainRegeneration();
+                        }
+                    });
+                    return;
+                }
+                width = newWidth;
+                height = newHeight;
+                StartVulkanFrames(holder.getSurface());
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder)
+            {
+                StopVulkanFrames();
+            }
+        });
+        return surfaceView;
+    }
+
+    // The Surface Vulkan draws on, for NativeVulkanSurface.
+    public Surface GetVulkanSurface()
+    {
+        return vulkanSurface;
+    }
+
+    /*
+    Starts the frames on the Vulkan thread with the new Surface. When the app
+    comes back from the background, Vulkan's surface and swapchain are made
+    again on it first (VulkanGraphics:RestoreSurface).
+    */
+    private void StartVulkanFrames(final Surface surface)
+    {
+        vulkanSurface = surface;
+        vulkanHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (choreographer == null)
+                    choreographer = Choreographer.getInstance();
+                if (created)
+                    ((VulkanGraphics_)GameStateManager.graphics).RestoreSurface();
+                vulkanRunning = true;
+                RequestVulkanFrame();
+            }
+        });
+    }
+
+    /*
+    Stops the frames when Android takes the Surface away, and frees what
+    Vulkan made on it (VulkanGraphics:LoseSurface). Android needs that done
+    before this returns, so the Android thread waits for the Vulkan thread.
+    */
+    private void StopVulkanFrames()
+    {
+        final CountDownLatch done = new CountDownLatch(1);
+        vulkanHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                vulkanRunning = false;
+                if (choreographer != null)
+                    choreographer.removeFrameCallback(vulkanFrame);
+                frameRequested = false;
+                if (created)
+                    ((VulkanGraphics_)GameStateManager.graphics).LoseSurface();
+                done.countDown();
+            }
+        });
+        try
+        {
+            done.await(4, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException ignored)
+        {
+        }
+        vulkanSurface = null;
+    }
+
+    private void RequestVulkanFrame()
+    {
+        if (!frameRequested)
+        {
+            frameRequested = true;
+            choreographer.postFrameCallback(vulkanFrame);
         }
     }
+
+    /*
+    Runs work on the thread the game runs on. With Vulkan that's the "Quorum
+    Vulkan" thread, while touches and TalkBack's requests come on Android's
+    main thread, so the work is posted there and Quorum's lists and items
+    are only changed by one thread. With OpenGL, it is queued on GLSurfaceView's thread.
+    */
+    public static void RunOnGameThread(Runnable work)
+    {
+        AndroidDisplay display = current;
+        if (display != null && display.vulkanHandler != null)
+            display.vulkanHandler.post(work);
+        else if (display != null && display.view instanceof GLSurfaceView)
+        {
+            // With OpenGL the game runs on GLSurfaceView's thread.
+            GLSurfaceView glView = (GLSurfaceView)display.view;
+            glView.queueEvent(work);
+            glView.requestRender();
+        }
+        else
+            work.run();
+    }
+
+    /*
+    One frame with Vulkan, on the Vulkan thread. The first one starts Vulkan
+    (Game:InitializeLayers), now that there's a Surface, and makes the game.
+    */
+    private void RunVulkanFrame()
+    {
+        if (!created)
+        {
+            UpdatePPI();
+            app.GetGame().InitializeLayers();
+            app.GetGame().CreateGame();
+            created = true;
+            synchronized (this)
+            {
+                running = true;
+            }
+        }
+
+        long time = System.nanoTime();
+        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        lastFrameTime = time;
+        totalTime = totalTime + deltaTime;
+        mean.addValue(deltaTime);
+
+        frameId++;
+        app.GetGame().ContinueGame();
+
+        if (time - frameStart > 1000000000)
+        {
+            fps = frames;
+            frames = 0;
+            frameStart = time;
+        }
+        frames++;
+    }
     
-    
-    protected View CreateGLSurfaceView (AndroidApplication application) 
+    protected void PreserveEGLContextOnPause ()
+    {
+        if (view instanceof GLSurfaceView20)
+            ((GLSurfaceView20)view).setPreserveEGLContextOnPause(true);
+    }
+
+
+    protected View CreateGLSurfaceView (AndroidApplication application)
     {
         if (!CheckGL20())
             throw new GameRuntimeError("This application requires OpenGL ES 2.0 or higher.");
 
         Log.d("Android Application - Android Display", "Found support for OpenGL ES 2.0 or higher.");
-        
-        EGLConfigChooser configChooser = getEglConfigChooser();
-        int sdkVersion = android.os.Build.VERSION.SDK_INT;
-        /*
-        if (sdkVersion <= 10 && config.useGLSurfaceView20API18) 
-        {
-            //GLSurfaceView20API18 view = new GLSurfaceView20API18(application.getContext(), resolutionStrategy);
-            //if (configChooser != null)
-                ;//view.setEGLConfigChooser(configChooser);
-            //else
-                ;//view.setEGLConfigChooser(config.r, config.g, config.b, config.a, config.depth, config.stencil);
-            //view.setRenderer(this);
-            return view;
-        }
-        */
-        //else ...
-        {
-            boolean nullContext = application.GetContext() == null;
-            Log.d("Android Display", "Application context null? " + nullContext);
-            Log.d("Android Display", "Attempting to get resources...");
-            application.GetActivity().getResources();
-            Log.d("Android Display", "Got resources.");
-            GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
 
-            view.setEGLConfigChooser(configChooser);
-            view.setRenderer(this);
-            return view;
-        }
+        EGLConfigChooser configChooser = getEglConfigChooser();
+        GLSurfaceView20 view = new GLSurfaceView20(application.GetContext(), config);
+        current = this;
+        plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput.SetView(view);
+        view.setEGLConfigChooser(configChooser);
+        view.setRenderer(this);
+        return view;
     }
     
     
@@ -168,10 +365,9 @@ public class AndroidDisplay implements Renderer
             config.Get_Libraries_Game_ApplicationConfiguration__samples_());
     }
 
-    private void UpdatePPI() 
+    private void UpdatePPI()
     {
-        DisplayMetrics metrics = new DisplayMetrics();
-        app.GetActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        DisplayMetrics metrics = app.GetActivity().getResources().getDisplayMetrics();
 
         ppiX = metrics.xdpi;
         ppiY = metrics.ydpi;
@@ -232,8 +428,13 @@ public class AndroidDisplay implements Renderer
     public void onSurfaceChanged (javax.microedition.khronos.opengles.GL10 gl, int width, int height) 
     {
         Log.d("Android Application - Android Display", "Beginning onSurfaceChanged");
+        // A new size after the game started (the device turned): the game
+        // lays out again, as on iOS and the desktop.
+        boolean resized = created && (width != this.width || height != this.height);
         this.width = width;
         this.height = height;
+        if (resized)
+            ResizeProcessor.AddResizeEvent(0, width, height);
         UpdatePPI();
         gl.glViewport(0, 0, this.width, this.height);
         if (created == false) 
@@ -274,9 +475,9 @@ public class AndroidDisplay implements Renderer
         logManagedCachesStatus();
         */
         
-        Display display = app.GetActivity().getWindowManager().getDefaultDisplay();
-        this.width = display.getWidth();
-        this.height = display.getHeight();
+        Rect bounds = app.GetActivity().getWindowManager().getCurrentWindowMetrics().getBounds();
+        this.width = bounds.width();
+        this.height = bounds.height();
         this.mean = new WindowedMean(5);
         this.lastFrameTime = System.nanoTime();
 
@@ -642,7 +843,8 @@ public class AndroidDisplay implements Renderer
         // This check needs to be made more thorough. This satisfies the simple
         // case of making sure the display was initialized at some point, but
         // doesn't necessarily guarantee that an OpenGL context exists, which is
-        // the more important question to answer.
-        return eglContext != null;
+        // the more important question to answer. With Vulkan, it's whether
+        // there's a Surface to draw on.
+        return eglContext != null || vulkanSurface != null;
     }
 }

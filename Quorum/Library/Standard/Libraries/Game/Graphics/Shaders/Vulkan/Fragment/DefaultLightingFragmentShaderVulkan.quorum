@@ -3,6 +3,8 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 use Libraries.Game.Graphics.Shaders.Shader
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanLightingProperties
 
 class DefaultLightingFragmentShaderVulkan is Shader
     
@@ -11,9 +13,17 @@ class DefaultLightingFragmentShaderVulkan is Shader
         GameStateManager gameState
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_LIGHTING_FRAGMENT_SHADER)
+		
+		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+		VulkanLightingProperties lights = graphics:GetLightingProperties()
         
         SetCode(GetVersionHeader() + "
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
 #extension GL_EXT_scalar_block_layout: require
+
+#define SHADOW_MAP_CASCADE_COUNT " + lights:GetShadowMapCascadeCount() + "
+#define MAXIMUM_LIGHTS " + lights:GetMaximumLights() + "
 
 const float PI = 3.14159265359;
 
@@ -26,14 +36,29 @@ layout (set = 0, binding = 0) uniform sampler2D positionSampler;
 layout (set = 0, binding = 1) uniform sampler2D albedoSampler;
 layout (set = 0, binding = 2) uniform sampler2D normalsSampler;
 layout (set = 0, binding = 3) uniform sampler2D pbrSampler;
+layout (set = 2, binding = 1) uniform sampler2DArray shadowSamplers[];
 
 struct Light
 {
-	// The position of a PointLight, or the direction of a DirectionalLight
+	// A point light's or spotlight's position, or a directional light's direction
 	vec3 positionDirection;
-	uint isDirectional;
+	// 0 point, 1 directional, 2 spot (Item 37)
+	uint lightType;
 	float intensity;
 	vec3 color;
+	// A spotlight's direction, in world space
+	vec3 spotDirection;
+	// Where a point light or spotlight fades to nothing
+	float range;
+	float cosInner;
+	float cosOuter;
+	vec2 spare;
+};
+
+struct CascadeShadow
+{
+	mat4 matrix[6];
+	vec4 splitDistance;
 };
 
 layout(scalar, set = 1, binding = 0) readonly buffer Lights
@@ -47,7 +72,96 @@ layout(scalar, set = 1, binding = 1) uniform SceneInfo
 	float ambientIntensity;
 	vec3 ambientColor;
 	uint lightsCount;
+	mat4 cameraViewMatrix;
 } sceneInfo;
+
+layout(set = 2, binding = 0) uniform CascadeShadows
+{
+	CascadeShadow data[SHADOW_MAP_CASCADE_COUNT * MAXIMUM_LIGHTS];
+} shadows;
+
+//float chebyshevUpperBound(vec2 moments, float t) {
+float chebyshevUpperBound(vec2 moments, float t) {
+    // Surface is fully lit if the current fragment is before the light occluder
+    if (t <= moments.x)
+		return 1.0;
+
+    // Compute variance
+    float variance = moments.y - (moments.x * moments.x);
+	variance = max(variance, 0.00002); // Small epsilon to avoid divide by zero
+
+    // Compute probabilistic upper bound
+    float d = t - moments.x;
+    float p_max = variance / (variance + d * d);
+
+    // Reduce light bleeding
+    p_max = smoothstep(0.2, 1.0, p_max);
+
+    return p_max;
+}
+
+/*
+float calcVisibility(vec4 worldPosition, uint shadowIndex, uint matrixIndex) {
+    //vec4 shadowMapPosition = shadows.cascadeshadows[cascadeIndex].projViewMatrix * worldPosition;
+	vec4 shadowMapPosition = shadows.data[shadowIndex].matrix[matrixIndex] * worldPosition;
+
+    vec2 uv = vec2(shadowMapPosition.x * 0.5 + 0.5, (-shadowMapPosition.y) * 0.5 + 0.5);
+    float depth = shadowMapPosition.z;
+    vec2 moments = texture(shadowSampler, vec4(uv, matrixIndex, shadowIndex)).rg;
+
+    float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+}
+*/
+
+float calculateDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex) 
+{
+	vec4 shadowMapPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex].matrix[0] * worldPosition;
+	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
+
+	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
+    float depth = shadowMapXYZ.z;
+	
+	// A directional light's map has one layer per cascade (Item 35).
+	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, cascadeIndex)).rg;
+
+	float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+}
+
+float calculatePointVisibility(vec4 worldPosition, vec3 lightPosition, uint lightIndex, uint cascadeIndex) 
+{
+	vec3 direction = worldPosition.rgb - lightPosition;
+	vec3 absDirection = abs(direction);
+	
+	// Determine which component is the largest
+    // 1.0 if true, 0.0 if false
+    float isX = float(absDirection.x >= absDirection.y && absDirection.x >= absDirection.z);
+    float isY = float(absDirection.y >= absDirection.z) * (1.0 - isX);
+    float isZ = 1.0 - isX - isY;
+
+	// Find the sign of the dominant component (1.0 for positive, 0.0 for negative)
+    // We sample the chosen component using dot products
+    float dominantSign = step(0.0, dot(direction, vec3(isX, isY, isZ)));
+	
+	// Map to a face of the cubemap.
+    // 0: Positive X, 1: Negative X, 2: Positive Y, 3: Negative Y, 4: Positive Z, 5: Negative Z 
+    uint axisOffset = uint(isY * 2.0 + isZ * 4.0);
+    uint signOffset = uint(1.0 - dominantSign); // Dominant sign is 0 if negative, or 1 if positive
+	uint targetFace = axisOffset + signOffset;
+
+	CascadeShadow shadow = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex];
+	vec4 shadowMapPosition = shadow.matrix[targetFace] * worldPosition;
+	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
+
+	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
+    float depth = shadowMapXYZ.z;
+	
+	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex + targetFace)).rg;
+
+	float visibility = chebyshevUpperBound(moments, depth);
+    return visibility;
+}
 
 float distributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness * roughness;
@@ -85,18 +199,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
-    vec3 tmpSub = light.positionDirection - worldPos;
-    vec3 L = normalize(tmpSub - worldPos);
+// The light a surface reflects toward the eye from one light, given the
+// direction to the light and the light's strength there (Cook-Torrance).
+vec3 lightContribution(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
     vec3 H = normalize(V + L);
 
-    // Calculate distance and attenuation
-    float distance = length(tmpSub);
-    float attenuation = 1.0 / (distance * distance);
-    float intensity = 10.0f;
-    vec3 radiance = light.color * light.intensity * attenuation;
-
-    // Cook-Torrance BRDF
     float NDF = distributionGGX(N, H, roughness);
     float G = geometrySmith(N, V, L, roughness);
     vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
@@ -113,27 +220,48 @@ vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, ve
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
+// How much of a light's strength reaches a distance: the inverse square,
+// faded smoothly to nothing at the light's range (Item 37).
+float rangeAttenuation(float distance, float range) {
+    float inverseSquare = 1.0 / max(distance * distance, 0.0001);
+    if (range <= 0.0) {
+        return inverseSquare;
+    }
+    float ratio = distance / range;
+    float window = clamp(1.0 - ratio * ratio * ratio * ratio, 0.0, 1.0);
+    return inverseSquare * window * window;
+}
+
+vec3 calculatePointLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
+    vec3 toLight = light.positionDirection - worldPos;
+    float distance = length(toLight);
+    // The direction to the light (Item 37: this subtracted worldPos twice).
+    vec3 L = toLight / max(distance, 0.0001);
+    vec3 radiance = light.color * light.intensity * rangeAttenuation(distance, light.range);
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
+}
+
+vec3 calculateSpotLight(Light light, vec3 worldPos, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
+    vec3 toLight = light.positionDirection - worldPos;
+    float distance = length(toLight);
+    vec3 L = toLight / max(distance, 0.0001);
+
+    // Full strength inside the inner angle, fading to nothing at the outer.
+    float cosAngle = dot(-L, light.spotDirection);
+    float cone = clamp((cosAngle - light.cosOuter) / max(light.cosInner - light.cosOuter, 0.0001), 0.0, 1.0);
+    if (cone <= 0.0) {
+        return vec3(0.0);
+    }
+    cone = cone * cone;
+
+    vec3 radiance = light.color * light.intensity * rangeAttenuation(distance, light.range) * cone;
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
+}
+
 vec3 calculateDirectionalLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness) {
     vec3 L = normalize(-light.positionDirection);
-    vec3 H = normalize(V + L);
-
     vec3 radiance = light.color * light.intensity;
-
-    // Cook-Torrance BRDF
-    float NDF = distributionGGX(N, H, roughness);
-    float G = geometrySmith(N, V, L, roughness);
-    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular = numerator / denominator;
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
-
-    float NdotL = max(dot(N, L), 0.0);
-    return (kD * albedo / PI + specular) * radiance * NdotL;
+    return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
 }
 
 void main()
@@ -141,8 +269,21 @@ void main()
 	vec4 rawAlbedo = texture(albedoSampler, v_samplerCoordinate);
 	vec3 albedo = rawAlbedo.rgb;
 	vec3 normal = texture(normalsSampler, v_samplerCoordinate).rgb;
-	vec3 worldPosition = texture(positionSampler, v_samplerCoordinate).rgb;
+	vec4 rawWorldPosition = texture(positionSampler, v_samplerCoordinate);
+	vec3 worldPosition = rawWorldPosition.xyz;
 	vec3 pbr = texture(pbrSampler, v_samplerCoordinate).rgb;
+
+	// With MSAA (Item 27), an edge pixel's G-buffer values are averages of
+	// its samples, and samples where nothing was drawn hold zeros. Geometry
+	// writes a position w of 1, so w is the share of the pixel covered.
+	// Dividing by it gives the model's own values back, so silhouettes
+	// against the sky are lit correctly and have no dark halo. Without MSAA,
+	// coverage is exactly 1 or 0, and nothing changes.
+	float coverage = rawWorldPosition.w;
+	float uncover = coverage > 0.0001 ? 1.0 / coverage : 0.0;
+	albedo = albedo * uncover;
+	worldPosition = worldPosition * uncover;
+	pbr = pbr * uncover;
 	
 	float roughness = pbr.g;
 	float metallic = pbr.b;
@@ -154,18 +295,56 @@ void main()
     F0 = mix(F0, albedo, metallic);
 
     vec3 Lo = vec3(0.0);
+	
+	vec4 viewPos = sceneInfo.cameraViewMatrix * vec4(worldPosition, 1.0);
+	
     for (uint i = 0; i < sceneInfo.lightsCount; i++) {
         Light light = lights.array[i];
-        if (light.isDirectional == 1) {
-            Lo += calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness);
-        } else {
-            Lo += calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
+		uint cascadeIndex = 0;
+		
+        if (light.lightType == 1u)
+		{
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (viewPos.z > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+		
+			float shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+            Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
+        }
+        else if (light.lightType == 2u)
+		{
+			// Spotlights cast no shadows yet (Item 37).
+            Lo += calculateSpotLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
+		}
+		else
+		{
+			// The maximum distance along an axis from the light's position to the world position of the fragment.
+			vec3 absLightDist = abs(worldPosition.rgb - light.positionDirection);
+			float maxAlignedDist = max(absLightDist.x, max(absLightDist.y, absLightDist.z));
+		
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (maxAlignedDist > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+		
+			float shadow = calculatePointVisibility(vec4(worldPosition, 1.0), light.positionDirection, i, cascadeIndex);
+            Lo += (calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow);
         }
     }
-    vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity;
+    // The PBR image's first channel is ambient occlusion (1 for none), so
+    // cracks and hollows get less ambient light. Direct light is unchanged.
+    vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity * pbr.r;
     vec3 color = ambient + Lo;
 
-	//outputColor = texture(albedoSampler, v_samplerCoordinate);
 	outputColor = vec4(color.rgb, rawAlbedo.a);
 }
 ")

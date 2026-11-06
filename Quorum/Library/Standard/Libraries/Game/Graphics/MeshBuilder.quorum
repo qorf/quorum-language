@@ -973,13 +973,13 @@ begin(createAttributes(attributes), primitiveType);
     */
     action BuildRectangle(Vector3 corner00, Vector3 corner10, Vector3 corner11, Vector3 corner01, Vector3 normal)
         vertTemp1:Set(corner00, normal, undefined, undefined)
-        vertTemp1:SetTextureCoordinates(0, 1)
+        vertTemp1:SetTextureCoordinates(1, 1)
         vertTemp2:Set(corner10, normal, undefined, undefined)
-        vertTemp2:SetTextureCoordinates(1, 1)
+        vertTemp2:SetTextureCoordinates(0, 1)
         vertTemp3:Set(corner11, normal, undefined, undefined)
-        vertTemp3:SetTextureCoordinates(1, 0)
+        vertTemp3:SetTextureCoordinates(0, 0)
         vertTemp4:Set(corner01, normal, undefined, undefined)
-        vertTemp4:SetTextureCoordinates(0, 0)
+        vertTemp4:SetTextureCoordinates(1, 0)
         BuildRectangle(vertTemp1, vertTemp2, vertTemp3, vertTemp4)
     end
 
@@ -1123,12 +1123,12 @@ begin(createAttributes(attributes), primitiveType);
             BuildRectangle(i101, i001, i011, i111)
         elseif primitiveType = TRIANGLES
             EnsureRectangleIndices(6)
-            BuildRectangle(i000, i100, i110, i010)
-            BuildRectangle(i101, i001, i011, i111)
-            BuildRectangle(i000, i010, i011, i001)
-            BuildRectangle(i101, i111, i110, i100)
-            BuildRectangle(i101, i100, i000, i001)
-            BuildRectangle(i110, i111, i011, i010)
+            BuildRectangle(i000, i010, i110, i100)
+            BuildRectangle(i101, i111, i011, i001)
+            BuildRectangle(i000, i001, i011, i010)
+            BuildRectangle(i101, i100, i110, i111)
+            BuildRectangle(i101, i001, i000, i100)
+            BuildRectangle(i110, i010, i011, i111)
         else
             alert("I did not recognize the primitive type used to construct the box - the valid values are POINTS, LINES, and TRIANGLES.")
         end
@@ -1157,11 +1157,31 @@ begin(createAttributes(attributes), primitiveType);
             BuildRectangle(corner100, corner000, corner010, corner110, norm)
             BuildRectangle(corner001, corner101, corner111, corner011, norm:Scale(-1))
             norm = calcVector1:Set(corner000):LinearInterpolation(corner101, 0.5):Subtract(calcVector2:Set(corner010):LinearInterpolation(corner111, 0.5)):Normalize()
-            BuildRectangle(corner000, corner100, corner101, corner001, norm)
-            BuildRectangle(corner011, corner111, corner110, corner010, norm:Scale(-1))
+            //BuildRectangle(corner000, corner100, corner101, corner001, norm)
+            //BuildRectangle(corner011, corner111, corner110, corner010, norm:Scale(-1))
+            BuildRectangle(corner101, corner001, corner000, corner100, norm)
+            BuildRectangle(corner110, corner010, corner011, corner111, norm:Scale(-1))
             norm = calcVector1:Set(corner000):LinearInterpolation(corner011, 0.5):Subtract(calcVector2:Set(corner100):LinearInterpolation(corner111, 0.5)):Normalize()
             BuildRectangle(corner000, corner001, corner011, corner010, norm)
             BuildRectangle(corner101, corner100, corner110, corner111, norm:Scale(-1))
+            
+            //BuildRectangle(corner100, corner110, corner010, corner000, norm)
+//BuildRectangle(corner001, corner011, corner111, corner101, norm:Scale(-1))
+            //norm = calcVector1:Set(corner000):LinearInterpolation(corner101, 0.5):Subtract(calcVector2:Set(corner010):LinearInterpolation(corner111, 0.5)):Normalize()
+//BuildRectangle(corner000, corner001, corner101, corner100, norm)
+//BuildRectangle(corner011, corner010, corner110, corner111, norm:Scale(-1))
+            //norm = calcVector1:Set(corner000):LinearInterpolation(corner011, 0.5):Subtract(calcVector2:Set(corner100):LinearInterpolation(corner111, 0.5)):Normalize()
+//BuildRectangle(corner000, corner010, corner011, corner001, norm)
+//BuildRectangle(corner101, corner111, corner110, corner100, norm:Scale(-1))
+            
+            //BuildRectangle(corner000, corner010, corner110, corner100, norm)
+//BuildRectangle(corner101, corner111, corner011, corner001, norm:Scale(-1))
+            //norm = calcVector1:Set(corner000):LinearInterpolation(corner101, 0.5):Subtract(calcVector2:Set(corner010):LinearInterpolation(corner111, 0.5)):Normalize()
+//BuildRectangle(corner100, corner101, corner001, corner000, norm)
+//BuildRectangle(corner111, corner110, corner010, corner011, norm:Scale(-1))
+            //norm = calcVector1:Set(corner000):LinearInterpolation(corner011, 0.5):Subtract(calcVector2:Set(corner100):LinearInterpolation(corner111, 0.5)):Normalize()
+//BuildRectangle(corner001, corner011, corner010, corner000, norm)
+//BuildRectangle(corner100, corner110, corner111, corner101, norm:Scale(-1))
         end
     end
 
@@ -1203,10 +1223,14 @@ begin(createAttributes(attributes), primitiveType);
         number x1 = x + halfWidth
         number z1 = z + halfDepth
         
-        Vector3 corner00 = tempVector1:Set(x0, y, z0)
-        Vector3 corner01 = tempVector2:Set(x0, y, z1)
-        Vector3 corner11 = tempVector3:Set(x1, y, z1)
-        Vector3 corner10 = tempVector4:Set(x1, y, z0)
+        //Vector3 corner00 = tempVector1:Set(x0, y, z0)
+        //Vector3 corner01 = tempVector2:Set(x0, y, z1)
+        //Vector3 corner11 = tempVector3:Set(x1, y, z1)
+        //Vector3 corner10 = tempVector4:Set(x1, y, z0)
+        Vector3 corner00 = tempVector1:Set(x1, y, z0)
+        Vector3 corner01 = tempVector2:Set(x0, y, z0)
+        Vector3 corner11 = tempVector3:Set(x0, y, z1)
+        Vector3 corner10 = tempVector4:Set(x1, y, z1)
 
         if (bits:And(attributes:GetMask(), (bits:Or(attributes:NORMAL, bits:Or(attributes:BINORMAL, bits:Or(attributes:TANGENT, attributes:TEXTURE_COORDINATES)))))) = 0
             vertTemp1:Set(corner00, undefined, undefined, undefined)
@@ -1311,7 +1335,8 @@ begin(createAttributes(attributes), primitiveType);
         integer counter = 0
         repeat while counter <= divisions
             angle = startAngle + step * counter
-            u = 1.0 - divisionStep * counter
+            // u grows with the angle, which is left to right seen from outside.
+            u = divisionStep * counter
             current1:SetPosition(math:Cosine(angle) * halfWidth, 0, math:Sine(angle) * halfDepth)
             current1:SetNormal(tempVector8:Set(current1:GetPosition()):Normalize())
             current1:GetPosition():SetY(-halfHeight)
@@ -1510,7 +1535,7 @@ begin(createAttributes(attributes), primitiveType);
             currEx:SetPosition(centerX, centerY, centerZ)
             currEx:GetPosition():Add(sxEx:GetX() * x + syEx:GetX() * y, sxEx:GetY() * x + syEx:GetY() * y,
                 sxEx:GetZ() * x + syEx:GetZ() * y)
-            currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 + 0.5 * y)
+            currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 - 0.5 * y)
 
             i1 = AddVertex(currEx)
             
@@ -1528,7 +1553,7 @@ begin(createAttributes(attributes), primitiveType);
                 currIn:SetPosition(centerX, centerY, centerZ)
                 currIn:GetPosition():Add(sxIn:GetX() * x + syIn:GetX() * y, sxIn:GetY() * x + syIn:GetY() * y,
                     sxIn:GetZ() * x + syIn:GetZ() * y)
-                currIn:SetTextureCoordinates(0.5 + us * x, 0.5 + vs * y)
+                currIn:SetTextureCoordinates(0.5 - us * x, 0.5 + vs * y)
 
                 i2 = i1
                 i1 = AddVertex(currIn)
@@ -1594,7 +1619,8 @@ begin(createAttributes(attributes), primitiveType);
             integer iu = 0
             repeat while iu <= divisionsU
                 angleU = auo + stepU * iu
-                u = 1.0 - us * iu
+                // u grows with the angle, which is left to right seen from outside.
+                u = us * iu
 
                 curr1:GetPosition():Set(math:Cosine(angleU) * halfWidth * t, h, math:Sine(angleU) * halfDepth * t)
                 curr1:GetNormal():Set(curr1:GetPosition()):Normalize()

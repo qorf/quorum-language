@@ -418,7 +418,9 @@ expressionField:AddBottomLabel("boolean")
         i = startLine
         repeat while i <= endLine
             integer startIndex = updatedText:CharacterIndexFromLineIndex(i)
-            updatedText = updatedText:Delete(startIndex, startIndex + 4)
+            if startIndex + 4 < updatedText:GetSize() and updatedText:GetText(startIndex, startIndex+4) = "    "
+                updatedText = updatedText:Delete(startIndex, startIndex + 4)
+            end
             i = i + 1
         end
 

@@ -1,0 +1,392 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Compute.Math
+use Libraries.System.File
+
+/*
+TerrainStreamer keeps only the regions near a target, usually the player,
+loaded in a TerrainData, so a world can be far larger than what fits in
+memory. The whole world is saved in a folder, one region to a file, and
+regions are loaded from it as the target comes near and unloaded as it moves
+away. A region that has changed is saved before it is unloaded, so the
+change is there when it is loaded again.
+
+Regions within the load radius of the target are loaded, nearest first, a
+few each update so no single frame does too much. Quorum has no background
+threads, so spreading the work over frames is the way to keep the game
+smooth. Regions are only unloaded once they are past the unload radius,
+which is a little larger, so a region near the edge isn't loaded and
+unloaded over and over as the target moves back and forth.
+
+Distances are measured from the target to the nearest point of a region's
+square, in world units.
+
+Terrain3D does not stream regions yet; its documentation says it is planned.
+This class follows its one-file-per-region layout.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainStreamer
+use Libraries.System.File
+
+TerrainData data
+File folder
+folder:SetPath("SavedTerrain")
+data:LoadSettings(folder)
+
+TerrainStreamer streamer
+streamer:SetTerrainData(data)
+streamer:SetFolder(folder)
+streamer:SetLoadRadius(100)
+streamer:LoadAllNear(0, 0)
+*/
+class TerrainStreamer
+    TerrainData terrainData = undefined
+    File folder = undefined
+
+    // How near, in world units, a region must be to be loaded, and how far
+    // it must be to be unloaded.
+    number loadRadius = 100
+    number unloadRadius = 120
+
+    // How many regions may be loaded, and unloaded, in one update.
+    integer loadsPerUpdate = 1
+    integer unloadsPerUpdate = 2
+
+    // What the last update did.
+    integer lastLoaded = 0
+    integer lastUnloaded = 0
+    integer lastSaved = 0
+
+    Math math
+
+    /*
+    This action sets the terrain whose regions are loaded and unloaded.
+
+    Attribute: Parameter data The terrain's data.
+    */
+    action SetTerrainData(TerrainData data)
+        terrainData = data
+    end
+
+    /*
+    This action returns the terrain whose regions are loaded and unloaded.
+
+    Attribute: Returns The terrain's data.
+    */
+    action GetTerrainData returns TerrainData
+        return terrainData
+    end
+
+    /*
+    This action sets the folder the world is saved in. Regions are loaded
+    from it, and changed regions are saved back to it.
+
+    Attribute: Parameter folder The folder.
+    */
+    action SetFolder(File folder)
+        me:folder = folder
+    end
+
+    /*
+    This action returns the folder the world is saved in.
+
+    Attribute: Returns The folder.
+    */
+    action GetFolder returns File
+        return folder
+    end
+
+    /*
+    This action sets how near, in world units, a region must be to the
+    target to be loaded. The unload radius is set to this plus half a
+    region's width, so regions at the edge don't keep loading and unloading.
+
+    Attribute: Parameter radius The load radius, in world units. It must be more than 0.
+    */
+    action SetLoadRadius(number radius)
+        if radius <= 0
+            alert("The load radius must be more than 0, but was given " + radius + ".")
+        end
+        loadRadius = radius
+        unloadRadius = radius + GetRegionWorldSize() / 2
+    end
+
+    /*
+    This action returns how near, in world units, a region must be to the
+    target to be loaded.
+
+    Attribute: Returns The load radius.
+    */
+    action GetLoadRadius returns number
+        return loadRadius
+    end
+
+    /*
+    This action sets how far, in world units, a region must be from the
+    target to be unloaded. It must be at least the load radius.
+
+    Attribute: Parameter radius The unload radius, in world units.
+    */
+    action SetUnloadRadius(number radius)
+        if radius < loadRadius
+            alert("The unload radius must be at least the load radius, " + loadRadius + ", but was given " + radius + ".")
+        end
+        unloadRadius = radius
+    end
+
+    /*
+    This action returns how far, in world units, a region must be from the
+    target to be unloaded.
+
+    Attribute: Returns The unload radius.
+    */
+    action GetUnloadRadius returns number
+        return unloadRadius
+    end
+
+    /*
+    This action sets how many regions may be loaded in one update. The
+    default is 1.
+
+    Attribute: Parameter count The number of regions. It must be at least 1.
+    */
+    action SetLoadsPerUpdate(integer count)
+        if count < 1
+            alert("At least 1 region must be loaded per update, but was given " + count + ".")
+        end
+        loadsPerUpdate = count
+    end
+
+    /*
+    This action returns how many regions may be loaded in one update.
+
+    Attribute: Returns The number of regions.
+    */
+    action GetLoadsPerUpdate returns integer
+        return loadsPerUpdate
+    end
+
+    /*
+    This action returns how many regions the last update loaded.
+
+    Attribute: Returns The number of regions loaded.
+    */
+    action GetLastLoadedCount returns integer
+        return lastLoaded
+    end
+
+    /*
+    This action returns how many regions the last update unloaded.
+
+    Attribute: Returns The number of regions unloaded.
+    */
+    action GetLastUnloadedCount returns integer
+        return lastUnloaded
+    end
+
+    /*
+    This action returns how many changed regions the last update saved
+    before unloading them.
+
+    Attribute: Returns The number of regions saved.
+    */
+    action GetLastSavedCount returns integer
+        return lastSaved
+    end
+
+    /*
+    This action returns how wide one region is in the world.
+
+    Attribute: Returns The region size times the vertex spacing.
+    */
+    action GetRegionWorldSize returns number
+        if terrainData = undefined
+            return 0
+        end
+        return terrainData:GetRegionSize() * terrainData:GetVertexSpacing()
+    end
+
+    /*
+    This action returns how far a world position is from the nearest point
+    of a region's square. It is 0 inside the square.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Parameter worldX The position along x, in world units.
+    Attribute: Parameter worldZ The position along z, in world units.
+    Attribute: Returns The distance, in world units.
+    */
+    action GetDistanceToRegion(integer locationX, integer locationZ, number worldX, number worldZ) returns number
+        number size = GetRegionWorldSize()
+        number dx = GetDistanceToSpan(worldX, locationX * size, (locationX + 1) * size)
+        number dz = GetDistanceToSpan(worldZ, locationZ * size, (locationZ + 1) * size)
+        return math:SquareRoot(dx * dx + dz * dz)
+    end
+
+    /*
+    This action unloads regions that have moved out of reach and loads ones
+    that have come into reach, a few at a time. Call it every frame with the
+    target's position. Changed regions are saved before they are unloaded.
+
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    Attribute: Returns True if any region was loaded or unloaded.
+    */
+    action Update(number worldX, number worldZ) returns boolean
+        lastLoaded = 0
+        lastUnloaded = 0
+        lastSaved = 0
+        if terrainData = undefined or folder = undefined
+            return false
+        end
+
+        UnloadFarRegions(worldX, worldZ, unloadsPerUpdate)
+        integer i = 0
+        repeat while i < loadsPerUpdate
+            if not LoadNearestRegion(worldX, worldZ)
+                i = loadsPerUpdate
+            end
+            i = i + 1
+        end
+        return lastLoaded > 0 or lastUnloaded > 0
+    end
+
+    /*
+    This action loads every saved region within the load radius at once,
+    with no limit per update. It is meant for the start of a game, before
+    anything is drawn.
+
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    Attribute: Returns How many regions were loaded.
+    */
+    action LoadAllNear(number worldX, number worldZ) returns integer
+        integer loaded = 0
+        repeat while LoadNearestRegion(worldX, worldZ)
+            loaded = loaded + 1
+        end
+        return loaded
+    end
+
+    /*
+    This action saves every loaded region that has changed. Call it before
+    the game ends to keep changes that haven't been saved by unloading.
+
+    Attribute: Returns How many regions were saved.
+    */
+    action SaveChanges returns integer
+        integer saved = 0
+        integer i = 0
+        repeat while i < terrainData:GetRegionCount()
+            TerrainRegion region = terrainData:GetRegionAtIndex(i)
+            if region:IsModified()
+                terrainData:SaveRegion(folder, region)
+                saved = saved + 1
+            end
+            i = i + 1
+        end
+        return saved
+    end
+
+    /*
+    This action unloads every loaded region, saving the changed ones first.
+    */
+    action UnloadAll
+        SaveChanges()
+        repeat while terrainData:GetRegionCount() > 0
+            TerrainRegion region = terrainData:GetRegionAtIndex(0)
+            terrainData:UnloadRegion(region:GetLocationX(), region:GetLocationZ())
+        end
+    end
+
+    /*
+    This action loads the nearest saved region within the load radius that
+    isn't loaded yet.
+
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    Attribute: Returns True if a region was loaded, or false if every region in reach is loaded.
+    */
+    private action LoadNearestRegion(number worldX, number worldZ) returns boolean
+        number size = GetRegionWorldSize()
+        integer firstX = cast(integer, math:Floor((worldX - loadRadius) / size))
+        integer lastX = cast(integer, math:Floor((worldX + loadRadius) / size))
+        integer firstZ = cast(integer, math:Floor((worldZ - loadRadius) / size))
+        integer lastZ = cast(integer, math:Floor((worldZ + loadRadius) / size))
+
+        boolean found = false
+        integer bestX = 0
+        integer bestZ = 0
+        number bestDistance = 0
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                if terrainData:HasSavedRegion(locationX, locationZ) and not terrainData:HasRegion(locationX, locationZ)
+                    number distance = GetDistanceToRegion(locationX, locationZ, worldX, worldZ)
+                    if distance <= loadRadius and (not found or distance < bestDistance)
+                        found = true
+                        bestX = locationX
+                        bestZ = locationZ
+                        bestDistance = distance
+                    end
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+
+        if found
+            terrainData:LoadRegion(folder, bestX, bestZ)
+            lastLoaded = lastLoaded + 1
+        end
+        return found
+    end
+
+    /*
+    This action unloads regions past the unload radius, saving changed ones
+    first.
+
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    Attribute: Parameter limit The most regions to unload.
+    */
+    private action UnloadFarRegions(number worldX, number worldZ, integer limit)
+        integer i = terrainData:GetRegionCount() - 1
+        repeat while i >= 0 and lastUnloaded < limit
+            TerrainRegion region = terrainData:GetRegionAtIndex(i)
+            integer locationX = region:GetLocationX()
+            integer locationZ = region:GetLocationZ()
+            if GetDistanceToRegion(locationX, locationZ, worldX, worldZ) > unloadRadius
+                if region:IsModified()
+                    // Saving also updates terrain.json with the region's new
+                    // height range.
+                    terrainData:SaveRegion(folder, region)
+                    lastSaved = lastSaved + 1
+                end
+                terrainData:UnloadRegion(locationX, locationZ)
+                lastUnloaded = lastUnloaded + 1
+            end
+            i = i - 1
+        end
+    end
+
+    /*
+    This action returns how far a number is from a span along one axis. It is
+    0 inside the span.
+
+    Attribute: Parameter value The number.
+    Attribute: Parameter low The start of the span.
+    Attribute: Parameter high The end of the span.
+    Attribute: Returns The distance to the span.
+    */
+    private action GetDistanceToSpan(number value, number low, number high) returns number
+        if value < low
+            return low - value
+        elseif value > high
+            return value - high
+        end
+        return 0
+    end
+end

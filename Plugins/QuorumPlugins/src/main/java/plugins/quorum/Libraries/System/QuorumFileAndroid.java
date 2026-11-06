@@ -42,6 +42,12 @@ public class QuorumFileAndroid extends QuorumFile{
         }
     }
     
+    // The app's private files folder, kept between runs.
+    @Override
+    public String GetStorageDirectoryNative() {
+        return AndroidApplication.GetActivity().getFilesDir().getAbsolutePath();
+    }
+
     public boolean IsAssetRequest() {
         return GetWorkingDirectoryNative().compareTo(ASSET_REQUEST_KEY) == 0;
     }

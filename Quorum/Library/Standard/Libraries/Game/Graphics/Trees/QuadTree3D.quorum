@@ -1,0 +1,82 @@
+package Libraries.Game.Graphics.Trees
+
+/*
+QuadTree3D is a render tree that divides the ground into squares, and each
+square into four smaller squares, as needed. Each square runs the full
+height of the region. It is a good choice for a scene that is mostly flat
+and spread out, such as terrain and the things on it.
+
+Set the region the squares cover with SetRegion, ideally before adding
+items. Items outside the region still work, but are tested one by one.
+
+Its two parts are RenderCellTree3D grids that do not split the height. The
+squares themselves are made and searched by RenderCellTree3D, which Octree3D
+also uses. The squares are loose, so an item is placed by its center and
+size alone, and moving an item rarely changes the tree. Everything else,
+the actions every render tree has, comes from StaticDynamicRenderTree3D.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Trees.QuadTree3D
+use Libraries.Interface.Item3D
+use Libraries.Containers.Array
+
+QuadTree3D tree
+tree:SetRegion(-100, -10, -100, 100, 50, 100)
+Item3D box
+box:SetDimensions(1, 1, 1)
+tree:Add(box)
+Array<Item3D> found
+tree:CollectInSphere(0, 0, 0, 5, found)
+output found:GetSize()
+*/
+class QuadTree3D is StaticDynamicRenderTree3D
+    RenderCellTree3D staticCells
+    RenderCellTree3D dynamicCells
+
+    on create
+        staticCells:SetSplitsHeight(false)
+        dynamicCells:SetSplitsHeight(false)
+        SetParts(staticCells, dynamicCells)
+    end
+
+    /*
+    This action sets the region of the world the squares cover. The squares
+    are as tall as the region, so its bottom and top should hold everything
+    that is drawn. The top square is as wide as the region's wider side.
+    Items already in the tree are placed again.
+
+    Attribute: Parameter minimumX The smallest x of the region.
+    Attribute: Parameter minimumY The smallest y of the region.
+    Attribute: Parameter minimumZ The smallest z of the region.
+    Attribute: Parameter maximumX The largest x of the region.
+    Attribute: Parameter maximumY The largest y of the region.
+    Attribute: Parameter maximumZ The largest z of the region.
+    */
+    action SetRegion(number minimumX, number minimumY, number minimumZ, number maximumX, number maximumY, number maximumZ)
+        staticCells:SetRegion(minimumX, minimumY, minimumZ, maximumX, maximumY, maximumZ)
+        dynamicCells:SetRegion(minimumX, minimumY, minimumZ, maximumX, maximumY, maximumZ)
+    end
+
+    /*
+    This action sets how many times a square can be divided. Each level
+    halves the size. Deeper squares fit small items more tightly, but
+    searches visit more squares. The default is 8. Items already in the
+    tree are placed again.
+
+    Attribute: Parameter depth The deepest level, at least 0.
+    */
+    action SetMaximumDepth(integer depth)
+        staticCells:SetMaximumDepth(depth)
+        dynamicCells:SetMaximumDepth(depth)
+    end
+
+    /*
+    This action returns how many times a square can be divided.
+
+    Attribute: Returns The deepest level a square can be at.
+    */
+    action GetMaximumDepth returns integer
+        return staticCells:GetMaximumDepth()
+    end
+end

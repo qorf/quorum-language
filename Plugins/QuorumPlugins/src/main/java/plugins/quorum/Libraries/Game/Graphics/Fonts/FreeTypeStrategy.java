@@ -158,12 +158,8 @@ public class FreeTypeStrategy
 
             map.LoadFromByteBuffer(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
 
-            quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
-            texData.InitializeFileTextureData(null, pixmap, null, false);
-            texData.SetDisposalState(false);
-
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
-            texture.LoadFromTextureData(texData);
+            texture.LoadFromPixelMap(pixmap);
 
             quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
             region.LoadTextureRegion(texture);
@@ -211,12 +207,8 @@ public class FreeTypeStrategy
 
             map.LoadFromByteBuffer(bitmap, (int)bitmapData[3], (int)bitmapData[2], PixelMap.FORMAT_RGBA8888);
 
-            quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
-            texData.InitializeFileTextureData(null, pixmap, null, false);
-            texData.SetDisposalState(false);
-
             quorum.Libraries.Game.Graphics.Texture texture = new quorum.Libraries.Game.Graphics.Texture();
-            texture.LoadFromTextureData(texData);
+            texture.LoadFromPixelMap(pixmap);
 
             quorum.Libraries.Game.Graphics.TextureRegion region = new quorum.Libraries.Game.Graphics.TextureRegion();
             region.LoadTextureRegion(texture);
@@ -472,12 +464,7 @@ public class FreeTypeStrategy
         plugins.quorum.Libraries.Game.Graphics.PixelMap map = pixmap.plugin_;
 
         map.LoadFromByteBuffer(destination, totalWidth, totalHeight, PixelMap.FORMAT_RGBA8888);
-
-        quorum.Libraries.Game.Graphics.FileTextureData texData = new quorum.Libraries.Game.Graphics.FileTextureData();
-        texData.InitializeFileTextureData(null, pixmap, null, false);
-        texData.SetDisposalState(false);
-
-        texture.LoadFromTextureData(texData);
+        texture.LoadFromPixelMap(pixmap);
             
         quorum.Libraries.Game.Graphics.Color c = new quorum.Libraries.Game.Graphics.Color();
         c.SetColor(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());

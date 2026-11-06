@@ -1,18 +1,20 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import dev.accesskit.*;
-import dev.accesskit.Tree;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Tree;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
-import plugins.quorum.Libraries.Interface.AccessibilityManager;
+import quorum.Libraries.Containers.Array_;
+import quorum.Libraries.Containers.Iterator_;
 import quorum.Libraries.Interface.Controls.*;
 import quorum.Libraries.Interface.Events.ControlActivationEvent_;
 import quorum.Libraries.Interface.Events.FocusEvent_;
@@ -24,9 +26,11 @@ import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
 import quorum.Libraries.Interface.Item_;
-import quorum.Libraries.Interface.Selections.Selection_;
+import quorum.Libraries.Interface.Selections.ListSelection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
+import quorum.Libraries.Interface.Selections.TreeSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
+import quorum.Libraries.Language.Object_;
 
 /**
  *
@@ -38,53 +42,111 @@ public class MacAccessibility {
     private final RootItemKit root = new RootItemKit();
     private final HashMap<NodeId, ItemKit> items = new HashMap<NodeId, ItemKit>();
 
-    private final ArrayList<DummyKit> dummies = new ArrayList<DummyKit>();
-    private int currentDummy = -1;
+    // Each item's kit, found by the item itself (not its hash code).
+    private final IdentityHashMap<Item_, ItemKit> kitsByItem = new IdentityHashMap<Item_, ItemKit>();
+
+    // Two live regions for Notify, used in turn (see AnnouncerKit).
+    private final AnnouncerKit[] announcers = { new AnnouncerKit(2), new AnnouncerKit(3) };
+    private int currentAnnouncer = 0;
+
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
     private boolean isFocusDirty = false;
 
+    // Kits whose children all need rebuilding (a tab's siblings, when it is selected).
+    private final HashSet<NodeId> refreshChildren = new HashSet<NodeId>();
+
+    // The item Select last reported, so it is rebuilt when the selection moves on.
+    private Item_ lastSelected = null;
+
+    // True until a whole tree has reached AccessKit. If building the first
+    // tree fails, AccessKit keeps an empty placeholder and won't ask again,
+    // and it ends the program unless the next update carries the whole tree.
+    private boolean needsFullTree = true;
+
     public MacAccessibility() {
         items.put(root.GetNodeID(), root);
-        DummyKit dummy1 = new DummyKit();
-        dummy1.SetDummyNodeID(2);
-        DummyKit dummy2 = new DummyKit();
-        dummy2.SetDummyNodeID(3);
-        dummies.add(dummy1);
-        dummies.add(dummy2);
-        items.put(dummy1.GetNodeID(), dummy1);
-        items.put(dummy2.GetNodeID(), dummy2);
-        root.AddChild(dummy1);
-        root.AddChild(dummy2);
-        try
-        {
-            java.io.File file = new java.io.File(AccessibilityManager.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            String runLocation = file.getParentFile().getAbsolutePath();
-            String nativeFile = runLocation + "/jni/libaccesskit_jni.dylib";
-            System.load(nativeFile);
-
-            long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
-
-            adapter = MacosSubclassingAdapter.forWindow(handle, new TreeUpdateSupplier() {
-                @Override
-                public TreeUpdate get() {
-                    return BuildFullTree();
-                }
-            });
+        for (AnnouncerKit announcer : announcers) {
+            items.put(announcer.GetNodeID(), announcer);
+            root.AddChild(announcer);
         }
-        catch (URISyntaxException ex)
-        {
-            Logger.getLogger(AccessibilityManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
+        // AccessKit's natives are in Mac.so, which Game.java loads before
+        // DesktopApplication makes this, so there is nothing to load here.
+        long handle = GLFWNativeCocoa.glfwGetCocoaWindow(DesktopDisplay.window);
+        adapter = MacosSubclassingAdapter.forWindow(handle, new ActivationHandler() {
+            @Override
+            public TreeUpdate requestInitialTree() {
+                TreeUpdate update = BuildFullTree();
+                needsFullTree = false;
+                return update;
+            }
+        });
+        // AccessKit assumes the window isn't focused until told;
+        // WindowFocusChanged keeps it up to date after this.
+        adapter.updateViewFocusState(
+            GLFW.glfwGetWindowAttrib(DesktopDisplay.window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE);
     }
 
-    private static void Traverse(ItemKit itemKit, TreeUpdate update) {
-        update.add(itemKit.GetNodeID(), itemKit.Build());
-        for (ItemKit child : itemKit.GetChildren()) {
+    private ItemKit GetKit(Item_ item) {
+        if (item == null) {
+            return null;
+        }
+        return kitsByItem.get(item);
+    }
+
+    /*
+        A kit's node, or, if building it fails, a plain node with the kit's
+        role and children. One broken node then can't stop every update
+        (an update that throws reaches AccessKit as nothing at all), and
+        the children stay listed, which AccessKit requires.
+    */
+    private static Node SafeBuild(ItemKit kit) {
+        try {
+            Node node = kit.Build();
+            if (node != null) {
+                return node;
+            }
+        } catch (RuntimeException error) {
+            Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+                "Building an accessibility node failed: " + kit.getClass().getSimpleName(), error);
+        }
+        return kit.BuildFallbackNode();
+    }
+
+    /*
+        A kit's node, as SafeBuild makes it, with its node id as its author
+        id, and the kit's extras sent (MacAccessibilityExtras). A failure in
+        the extras costs only the extras.
+    */
+    private static Node BuildNode(ItemKit kit) {
+        Node node = Identify(kit.GetNodeID(), SafeBuild(kit));
+        try {
+            kit.SendExtras();
+        } catch (RuntimeException error) {
+            Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+                "Sending VoiceOver extras failed: " + kit.getClass().getSimpleName(), error);
+        }
+        return node;
+    }
+
+    /*
+        Gives a node its id, in decimal, as its author id. AccessKit hands
+        it to VoiceOver as the element's identifier, which is how Mac.so
+        finds the element (MacAccessibilityExtras).
+    */
+    private static Node Identify(NodeId id, Node node) {
+        node.setAuthorId(Long.toUnsignedString(id.value));
+        return node;
+    }
+
+    private static void Traverse(ItemKit itemKit, final TreeUpdate update) {
+        update.add(itemKit.GetNodeID(), BuildNode(itemKit));
+        for (ItemKit child : itemKit.GetChildrenCopy()) {
             Traverse(child, update);
         }
         for (NodeId child : itemKit.GetInternalChildren()) {
-            update.add(child, itemKit.BuildInternalChild(child));
+            update.add(child, Identify(child, itemKit.BuildInternalChild(child)));
         }
     }
 
@@ -96,11 +158,16 @@ public class MacAccessibility {
     }
 
     private void SetItemToDirty(Item_ item) {
-        if(item != null) {
-            ItemKit kit = items.get(ItemKit.GetNodeID(item));
-            if(kit != null) {
-                dirtyNodes.add(kit.GetNodeID());
-            }
+        ItemKit kit = GetKit(item);
+        if(kit != null) {
+            dirtyNodes.add(kit.GetNodeID());
+        }
+    }
+
+    // Rebuilds every child of this item's kit, on the next update.
+    private void SetChildrenToDirty(ItemKit kit) {
+        if (kit != null) {
+            refreshChildren.add(kit.GetNodeID());
         }
     }
 
@@ -121,7 +188,16 @@ public class MacAccessibility {
     }
 
     public void  NativeUpdate() {
-        if (!dirtyNodes.isEmpty() || isFocusDirty) {
+        for (NodeId id : refreshChildren) {
+            ItemKit parent = items.get(id);
+            if (parent != null) {
+                for (ItemKit child : parent.GetChildrenCopy()) {
+                    dirtyNodes.add(child.GetNodeID());
+                }
+            }
+        }
+        refreshChildren.clear();
+        if (needsFullTree || !dirtyNodes.isEmpty() || isFocusDirty) {
             if (!items.containsKey(focus)) {
                 // Try again on the next frame.
                 return;
@@ -129,15 +205,27 @@ public class MacAccessibility {
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
-                    TreeUpdate update = TreeUpdate.withFocus(focus);
-                    for (NodeId id : dirtyNodes) {
-                        ItemKit kit = items.get(id);
-                        update.add(id, kit.Build());
-                        for (NodeId child : kit.GetDirtyInternalChildren()) {
-                            update.add(child, kit.BuildInternalChild(child));
-                        }
+                    if (needsFullTree) {
+                        TreeUpdate update = BuildFullTree();
+                        needsFullTree = false;
+                        return update;
                     }
-                    return update;
+                    try {
+                        TreeUpdate update = TreeUpdate.withFocus(focus);
+                        for (NodeId id : dirtyNodes) {
+                            ItemKit kit = items.get(id);
+                            update.add(id, BuildNode(kit));
+                            for (NodeId child : kit.GetDirtyInternalChildren()) {
+                                update.add(child, Identify(child, kit.BuildInternalChild(child)));
+                            }
+                        }
+                        return update;
+                    } catch (RuntimeException error) {
+                        // Nothing of this update reaches AccessKit, but the
+                        // dirty marks are cleared below: send everything next time.
+                        needsFullTree = true;
+                        throw error;
+                    }
                 }
             });
             for (NodeId id : dirtyNodes) {
@@ -180,24 +268,46 @@ public class MacAccessibility {
         //We need to polish everything, but it's a start.
         ChangeFocusNextFrame(item);
 
+        // The kits send each item's selected state; rebuild the item that
+        // was selected before and the one selected now.
+        if (lastSelected != null && lastSelected != item) {
+            SetItemToDirty(lastSelected);
+        }
+        SetItemToDirty(item);
+        lastSelected = item;
+
+        // A list's row count can change without any row it shows being
+        // added (rows out of view get no node), so it is sent again as the
+        // selection moves (ListKit.SendExtras).
+        if (item instanceof ListItem_) {
+            SetItemToDirty(((ListItem_) item).GetList());
+        }
+
         return false;
     }
 
     private void ChangeFocusNextFrame(Item_ item) {
-        NodeId id = ItemKit.GetNodeID(item);
-        ItemKit kit = items.get(id);
+        ItemKit kit = GetKit(item);
+        if (kit == null && item != null && NativeAdd(item)) {
+            // An item that was hidden when it was added (a list row
+            // scrolled out of view, see ListRenderer.RefreshContents) got
+            // no kit, and Show doesn't tell accessibility. It is showing
+            // now that it is selected or focused, so add it.
+            kit = GetKit(item);
+        }
         if(kit != null) {
-            // TODO: the following should really be done when handling the
-            // appropriate GLFW event that indicates when the window itself
-            // gains or loses focus.
-            adapter.updateViewFocusState(true);
-            focus = id;
+            focus = kit.GetNodeID();
             isFocusDirty = true;
         }
     }
+
     public void  ButtonActivated(Button_ button) {
-        if(button == null) {
-            return;
+        // Activating a tab selects it and deselects the others.
+        if (button instanceof Tab_) {
+            ItemKit kit = GetKit(button);
+            if (kit != null) {
+                SetChildrenToDirty(kit.GetParent());
+            }
         }
     }
 
@@ -205,17 +315,81 @@ public class MacAccessibility {
         SetItemToDirty(button);
     }
 
+    /*
+        A tree or list that gains focus has already reported its selection
+        (Tree.GainedFocus forces a selection event), and this runs later in
+        the same frame (Accessibility.Update). Focusing the container would
+        undo that, leaving VoiceOver on the whole tree, so the selected item
+        keeps the focus.
+    */
     public void  FocusChanged(FocusEvent_ event) {
         Item_ item = event.GetNewFocus();
         if(item != null) {
-            ChangeFocusNextFrame(item);
+            Item_ selected = GetSelectedItem(item);
+            ChangeFocusNextFrame(selected != null ? selected : item);
         }
+    }
+
+    // The selected item of a tree or list, or null.
+    private static Item_ GetSelectedItem(Item_ item) {
+        if (item instanceof Tree_) {
+            TreeSelection_ selection = ((Tree_) item).GetSelection();
+            if (selection != null && !selection.IsEmpty()) {
+                return selection.GetTreeItem();
+            }
+        } else if (item instanceof List_) {
+            ListSelection_ selection = ((List_) item).GetSelection();
+            if (selection != null && !selection.IsEmpty()) {
+                return selection.GetListItem();
+            }
+        }
+        return null;
+    }
+
+    /*
+        A row of a List. The list's renderer hides the rows that are out of
+        view only to skip drawing them, and Show doesn't tell accessibility,
+        so hidden rows get a node too: VoiceOver counts a list's rows by its
+        children, so a row without a node is missing from "x of y".
+    */
+    private static boolean IsListRow(Item_ item) {
+        return item instanceof ListItem_ && ((ListItem_) item).GetList() != null;
+    }
+
+    // A List drawn as a tree (List:SetTreeAccessibility).
+    private static boolean IsTreeList(Item_ item) {
+        return item instanceof List_ && ((List_) item).HasTreeAccessibility();
+    }
+
+    /*
+        The row a tree-like list draws this row under: the nearest row above
+        it with a smaller level (ListItem:GetAccessibilityLevel), or null for
+        a top row. Its kit goes under that row's kit, so VoiceOver finds its
+        siblings as Tree items' (the Projects tree reads "2 of 5" that way).
+    */
+    private static Item_ GetParentRow(ListItem_ row) {
+        List_ list = row.GetList();
+        if (list == null || !list.HasTreeAccessibility()) {
+            return null;
+        }
+        int level = row.GetAccessibilityLevel();
+        if (level <= 0) {
+            return null;
+        }
+        int index = list.GetIndexOf(row);
+        for (int i = index - 1; i >= 0; i--) {
+            ListItem_ other = list.GetListItem(i);
+            if (other.GetAccessibilityLevel() < level) {
+                return other;
+            }
+        }
+        return null;
     }
 
     private ItemKit GetKitFromCode(Item_ item) {
         int code = item.GetAccessibilityCode();
         ItemKit itemKit = null;
-        if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
+        if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || (!item.IsShowing() && !IsListRow(item))) {
             return null;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
             itemKit = new ItemKit();
@@ -270,10 +444,10 @@ public class MacAccessibility {
             TextFieldKit kit = new TextFieldKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_()) {
-            ListKit kit = new ListKit();
+            ListKit kit = new ListKit(IsTreeList(item));
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_()) {
-            ListItemKit kit = new ListItemKit();
+            ListItemKit kit = new ListItemKit(item instanceof ListItem_ && IsTreeList(((ListItem_) item).GetList()));
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TREE_TABLE_()) {
             TreeTableKit kit = new TreeTableKit();
@@ -311,23 +485,30 @@ public class MacAccessibility {
     public boolean NativeAdd(Item_ item)
     {
         //first has this item already been added
-        ItemKit existingKit = items.get(ItemKit.GetNodeID(item));
+        ItemKit existingKit = GetKit(item);
         if(existingKit != null) {
             return true;
         }
 
-        //second, if it's been added, accesskit seems to require parent hierarchies, at least in this design
+        //second, before we possibly recurse into the parent, see if the
+        //item even has an accessible representation
+        ItemKit itemKit = GetKitFromCode(item);
+        if (itemKit == null) {
+            return false;
+        }
+
+        //third, if it's been added, accesskit seems to require parent hierarchies, at least in this design
         //be ordered parent to child. That might be dangerous quorum side, because that's definitely a contract
         //someone could violate, but we'll give it a try for the end of the hackathon.
         //as such, try the parent next
-        Item_ parent = item.GetAccessibleParent();
+        Item_ parent = GetParentForKit(item);
         ItemKit parentKit;
         if (parent != null) {
-            parentKit = items.get(ItemKit.GetNodeID(parent));
+            parentKit = GetKit(parent);
 
             if(parentKit == null) { //the parent isn't actually a node, it needs to be added to the hierarchy
-                boolean addedParent = NativeAdd(parent); //if false, the contract is violated. Throw an exception
-                parentKit = items.get(ItemKit.GetNodeID(parent)); //it was added, so it must be in there.
+                NativeAdd(parent);
+                parentKit = GetKit(parent); //null if the parent has no kit.
                 //if the parent kit is still null, just add it to the root
                 if(parentKit == null) {
                     parentKit = root;
@@ -337,54 +518,123 @@ public class MacAccessibility {
             parentKit = root;
         }
 
-        int code = item.GetAccessibilityCode();
-        Role role = null;
-        ItemKit itemKit = GetKitFromCode(item);
+        itemKit.SetItem(item);
+        NodeId id = itemKit.GetNodeID();
+        items.put(id, itemKit);
+        kitsByItem.put(item, itemKit);
+        dirtyNodes.add(id);
+        parentKit.AddChild(itemKit);
+        dirtyNodes.add(parentKit.GetNodeID());
+        return true;
+    }
 
-        if(itemKit != null) {
-            itemKit.SetItem(item);
-            NodeId id = itemKit.GetNodeID();
-            items.put(id, itemKit);
-            dirtyNodes.add(id);
-            parentKit.AddChild(itemKit);
-            dirtyNodes.add(parentKit.GetNodeID());
-            return true;
+    /*
+        The item whose kit holds this one: the accessible parent, except
+        that a submenu's items go under their menu item (MenuItemKit puts
+        them in a menu), not straight under the menu bar, where
+        GetAccessibleParent puts them (a MenuItem isn't an accessible
+        parent, so its panel's items skip it).
+    */
+    private Item_ GetParentForKit(Item_ item) {
+        if (item instanceof ListItem_) {
+            Item_ row = GetParentRow((ListItem_) item);
+            if (row != null) {
+                return row;
+            }
         }
-
-        return false;
+        if (item instanceof MenuItem_) {
+            MenuItem_ menu = ((MenuItem_) item).GetParentMenu();
+            if (menu != null && GetKit(menu) != null) {
+                return menu;
+            }
+        }
+        return item.GetAccessibleParent();
     }
 
     public boolean NativeRemove(Item_ item)
     {
-        if(item != null) {
-            NodeId id = ItemKit.GetNodeID(item);
-            ItemKit kit = items.remove(id);
-            if(kit != null) {
-                ItemKit parent = kit.GetParent();
-                NodeId parentID = parent.GetNodeID();
-                if (items.containsKey(parentID)) {
-                    dirtyNodes.add(parentID);
+        ItemKit kit = GetKit(item);
+        if(kit != null) {
+            NodeId id = kit.GetNodeID();
+            items.remove(id);
+            kitsByItem.remove(item);
+            MacAccessibilityExtras.remove(id);
+            if (kit instanceof MenuItemKit) {
+                MacAccessibilityExtras.remove(((MenuItemKit) kit).GetMenuID());
+            }
+            ItemKit parent = kit.GetParent();
+            NodeId parentID = parent.GetNodeID();
+            if (items.containsKey(parentID)) {
+                dirtyNodes.add(parentID);
+            }
+            dirtyNodes.remove(id);
+            kit.RemoveFromParent();
+            // Rows a tree-like list drew under this row (GetParentForKit) are
+            // its kit's children but not its Quorum children; take them out
+            // too, so none is left under a node that is gone. They come back
+            // when shown or selected.
+            if (kit instanceof ListItemKit) {
+                for (ItemKit child : kit.GetChildrenCopy()) {
+                    NativeRemove(child.GetItem());
                 }
-                dirtyNodes.remove(kit.GetNodeID());
-                kit.RemoveFromParent();
+            }
+            if (id.equals(focus)) {
+                // AccessKit needs a focus that is in the tree, and
+                // NativeUpdate sends nothing while the focus is missing.
+                focus = root.GetNodeID();
+                isFocusDirty = true;
+            }
+            if (item == lastSelected) {
+                lastSelected = null;
             }
         }
         return false;
     }
 
+    /*
+        A menu opened or closed: its menu (MenuItemKit) appears or goes, and
+        VoiceOver is told, as a native menu tells it (AXMenuOpened,
+        AXMenuClosed), after the update that adds or removes the menu.
+    */
     public void  MenuChanged(MenuChangeEvent_ event) {
-        /*
-
-        Mac menus are weird. How does this impact Access Kit?
-         */
+        MenuItem_ item = event.GetMenuItem();
+        SetItemToDirty(item);
+        ItemKit kit = GetKit(item);
+        if (kit instanceof MenuItemKit) {
+            NodeId menu = ((MenuItemKit) kit).GetMenuID();
+            int type = event.GetEventType();
+            if (type == event.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_()) {
+                MacAccessibilityExtras.queueNotice(menu, kit.GetNodeID(), MacAccessibilityExtras.MENU_OPENED);
+            } else if (type == event.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_()) {
+                MacAccessibilityExtras.queueNotice(menu, kit.GetNodeID(), MacAccessibilityExtras.MENU_CLOSED);
+            }
+        }
     }
 
+    /*
+        A tree item opened or closed (a PropertiesSectionItem too). Its
+        items arrive or leave through NativeAdd and NativeRemove; the item
+        is rebuilt for its expanded state, and VoiceOver is told, as
+        NSOutlineView tells it (AXRowExpanded or AXRowCollapsed on the row,
+        AXRowCountChanged on the outline).
+    */
     public void  TreeChanged(TreeChangeEvent_ event) {
-        /*
-        There's no trees yet, but this is the structure of the tree. I'm guessing we just refresh it.
-        This may be too heavyweight.
-         */
         SetItemToDirty(event.GetTree());
+        TreeItem_ item = event.GetTreeItem();
+        SetItemToDirty(item);
+        ItemKit itemKit = GetKit(item);
+        if (itemKit != null) {
+            int type = event.GetEventType();
+            if (type == event.Get_Libraries_Interface_Events_TreeChangeEvent__OPENED_()) {
+                MacAccessibilityExtras.queueNotice(itemKit.GetNodeID(), null, MacAccessibilityExtras.ROW_EXPANDED);
+            } else if (type == event.Get_Libraries_Interface_Events_TreeChangeEvent__CLOSED_()) {
+                MacAccessibilityExtras.queueNotice(itemKit.GetNodeID(), null, MacAccessibilityExtras.ROW_COLLAPSED);
+            }
+        }
+        ItemKit treeKit = GetKit(event.GetTree());
+        if (treeKit != null) {
+            MacAccessibilityExtras.queueNotice(treeKit.GetNodeID(), null, MacAccessibilityExtras.ROW_COUNT_CHANGED);
+        }
     }
 
     public void  TreeTableChanged(TreeTableChangeEvent_ event) {
@@ -401,7 +651,7 @@ public class MacAccessibility {
     public void  TextChanged(TextChangeEvent_ event) {
         Control_ control = event.GetControl();
         SetItemToDirty(control);
-        ItemKit kit = items.get(ItemKit.GetNodeID(control));
+        ItemKit kit = GetKit(control);
         if(kit == null) {
             return;
         }
@@ -460,36 +710,285 @@ public class MacAccessibility {
         }
     }
 
-    public void  WindowFocusChanged(WindowFocusEvent_ event) {}
-
-    private void NextDummy() {
-        currentDummy++;
-        if(currentDummy >= dummies.size() || currentDummy < 0) {
-            currentDummy = 0;
+    public void  WindowFocusChanged(WindowFocusEvent_ event) {
+        if (event != null) {
+            adapter.updateViewFocusState(event.IsFocused());
         }
     }
+
+    /*
+        Asks VoiceOver to say value, without moving focus: the text goes
+        into a live region (AnnouncerKit). The two announcers take turns,
+        and the other one is emptied, so a repeated message is spoken again.
+    */
     public void  Notify(Item_ item, String value) {
-        NextDummy();
-        if(dummies == null || dummies.isEmpty() || currentDummy >= dummies.size()) {
-            return;
-        }
-        DummyKit kit = dummies.get(currentDummy);
-        if(kit == null) {
-            return;
-        }
-        kit.SetName(value);
-        kit.SetItem(item);
-
-        focus = kit.GetNodeID();
-        dirtyNodes.add(focus);
-        isFocusDirty = true;
+        Announce(value, Live.ASSERTIVE);
     }
 
+    /*
+        notificationType is one of AccessibilityManager's constants. An aborted
+        action interrupts VoiceOver; anything else waits for it to finish
+        speaking.
+    */
     public void  Notify(Item_ item, String value, int notificationType) {
-        Notify(item, value);
+        final int ACTION_ABORTED_NOTIFICATION = 1;  // AccessibilityManager.quorum
+        Announce(value, notificationType == ACTION_ABORTED_NOTIFICATION ? Live.ASSERTIVE : Live.POLITE);
+    }
+
+    private void Announce(String value, Live live) {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        AnnouncerKit now = announcers[currentAnnouncer];
+        AnnouncerKit other = announcers[1 - currentAnnouncer];
+        now.SetText(value, live);
+        other.SetText(null, live);
+        dirtyNodes.add(now.GetNodeID());
+        dirtyNodes.add(other.GetNodeID());
+        currentAnnouncer = 1 - currentAnnouncer;
     }
 
     public void  Shutdown() {
-        adapter.close();
+        try { //I think this is ok. Just shut down.
+            adapter.close();
+        } catch(Exception e) {
+        }
+    }
+
+    public static int GetCellRowIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                return column.GetCellIndex(cell);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetCellColumnIndex(Object_ object)
+    {
+        if (object instanceof Cell_)
+        {
+            Cell_ cell = (Cell_)object;
+            Column_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
+                if (spreadsheet != null)
+                    return spreadsheet.GetColumnIndex(column);
+            }
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            TreeTableCell_ cell = (TreeTableCell_)object;
+            TreeTableColumn_ column = cell.GetColumn();
+
+            if (column != null)
+            {
+                TreeTable_ treeTable = cell.GetTreeTable();
+                if (treeTable != null)
+                    return treeTable.GetColumnIndex(column);
+            }
+        }
+
+        // If we can't retrieve the correct position, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetTreeItemSetSize(TreeItem_ item)
+    {
+        TreeItem_ parent = item.GetParentTreeItem();
+        if (parent == null)
+        {
+            Tree_ tree = item.GetTree();
+            if (tree == null)
+                return 1;
+            else
+                return tree.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a TreeItem_ object, returns the 1-indexed
+    position of that TreeItem within its set.
+    */
+    public static int GetTreeItemSetPosition(TreeItem_ item)
+    {
+        Array_ treeItems;
+        TreeItem_ parent = item.GetParentTreeItem();
+
+        if (parent != null)
+            treeItems = parent.Get_Libraries_Interface_Controls_TreeItem__treeItems_();
+        else
+        {
+            Tree_ tree = item.GetTree();
+            if (tree != null)
+                treeItems = tree.Get_Libraries_Interface_Controls_Tree__treeItems_();
+            else
+                return 1;
+        }
+
+        for (int i = 0; i < treeItems.GetSize(); i++)
+        {
+            if (treeItems.Get(i) == item)
+                return i + 1;
+        }
+
+        return 1;
+    }
+
+    public static int GetTableColumnsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetColumnsSize();
+        }
+        else if (treeTable != null)
+        {
+            return treeTable.GetColumnsSize();
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    /*
+    Used by the native layer. Returns the total number of rows in a TreeTable
+    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    the table structure that contains that cell. If the value can't be retrieved,
+    this returns -1.
+    */
+    public static int GetTableRowsSize(Object_ object)
+    {
+        Spreadsheet_ spreadsheet = null;
+        TreeTable_ treeTable = null;
+
+        if (object instanceof Spreadsheet_)
+        {
+            spreadsheet = (Spreadsheet_)object;
+        }
+        else if (object instanceof TreeTable_)
+        {
+            treeTable = (TreeTable_)object;
+        }
+        else if (object instanceof Cell_)
+        {
+            spreadsheet = ((Cell_)object).GetSpreadsheet();
+        }
+        else if (object instanceof TreeTableCell_)
+        {
+            treeTable = ((TreeTableCell_)object).GetTreeTable();
+        }
+
+        if (spreadsheet != null)
+        {
+            return spreadsheet.GetRowsSize();
+        }
+        else if (treeTable != null)
+        {
+            /*
+            TO-DO: The TreeTable doesn't currently have a way to calculate its number of rows.
+            It's not clear if this should be number of top-most rows, currently visible rows, or all total rows.
+            */
+            return 0;
+        }
+
+        // If we can't retrieve the size, return -1 to indicate failure.
+        return -1;
+    }
+
+    public static int GetMenuItemSetSize(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+        if (parent == null)
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root == null)
+                return 1;
+            else
+                return root.GetSize();
+        }
+        else
+        {
+            return parent.GetSize();
+        }
+    }
+
+    /*
+    Used by the native layer. Given a MenuItem_ object, returns the 1-indexed
+    position of that MenuItem within its set.
+    */
+    public static int GetMenuItemSetPosition(MenuItem_ item)
+    {
+        MenuItem_ parent = item.GetParentMenu();
+
+        if (parent != null)
+        {
+            Array_ menuItems = parent.Get_Libraries_Interface_Controls_MenuItem__menuItems_();
+            for (int i = 0; i < menuItems.GetSize(); i++)
+            {
+                if (menuItems.Get(i) == item)
+                    return i + 1;
+            }
+        }
+        else
+        {
+            MenuRoot_ root = item.GetMenuRoot();
+            if (root != null)
+            {
+                Iterator_ iterator = root.GetIterator();
+                int i = 0;
+                while (iterator.HasNext())
+                {
+                    i = i + 1;
+                    if (iterator.Next() == item)
+                        return i;
+                }
+            }
+        }
+
+        return 1;
     }
 }

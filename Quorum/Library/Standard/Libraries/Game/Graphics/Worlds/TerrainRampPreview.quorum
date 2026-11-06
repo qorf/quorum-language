@@ -1,0 +1,243 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+
+/*
+A TerrainRampPreview shows a ramp before it is made: the outline of a
+rectangle from the ramp's start to its end, as wide as the brush, at the
+heights the ramp will have, so a sloping outline shows the slope. It is
+green, with a black edge, so it shows on light and dark ground.
+
+Call Place whenever the ramp's end or width changes. Its mesh is made once
+and then updated in place, as TerrainBrushPreview's is. It doesn't cast
+shadows.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainRampPreview
+
+TerrainRampPreview preview
+preview:Place(0, 0, 2, 20, 0, 8, 4)
+*/
+class TerrainRampPreview is Model
+    // How far above the ramp's surface the outline floats, in world units.
+    number lift = 0.15
+
+    // How wide the outline's lines are, compared with the ramp's half
+    // width, and the black edge on each side of them.
+    number lineShare = 0.05
+    number edgeShare = 0.6
+    number edgeDrop = 0.02
+
+    boolean loaded = false
+    MeshVulkan lineMesh = undefined
+    MeshVulkan edgeMesh = undefined
+    Math math
+
+    Number32BitArray vertices
+    Number32BitArray edgeVertices
+    Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray textureCoordinates
+    Integer32BitArray indices
+
+    on create
+        // Four lines, each a strip of two quads' corners.
+        integer vertexCount = 16
+        vertices:SetSize(vertexCount * 3)
+        edgeVertices:SetSize(vertexCount * 3)
+        normals:SetSize(vertexCount * 3)
+        tangents:SetSize(vertexCount * 3)
+        bitangents:SetSize(vertexCount * 3)
+        textureCoordinates:SetSize(vertexCount * 2)
+        integer i = 0
+        repeat while i < vertexCount
+            normals:Set(i * 3, 0)
+            normals:Set(i * 3 + 1, 1)
+            normals:Set(i * 3 + 2, 0)
+            tangents:Set(i * 3, 1)
+            tangents:Set(i * 3 + 1, 0)
+            tangents:Set(i * 3 + 2, 0)
+            bitangents:Set(i * 3, 0)
+            bitangents:Set(i * 3 + 1, 0)
+            bitangents:Set(i * 3 + 2, 1)
+            textureCoordinates:Set(i * 2, 0)
+            textureCoordinates:Set(i * 2 + 1, 0)
+            i = i + 1
+        end
+
+        // Each line is one quad, drawn from both sides, so it shows
+        // whichever way the renderer culls.
+        indices:SetSize(4 * 12)
+        integer index = 0
+        integer line = 0
+        repeat while line < 4
+            integer first = line * 4
+            index = AddQuad(index, first, first + 1, first + 2, first + 3)
+            index = AddQuad(index, first, first + 2, first + 1, first + 3)
+            line = line + 1
+        end
+    end
+
+    /*
+    This action places the outline from a ramp's start to its end.
+
+    Attribute: Parameter startX The ramp's start along x, in world units.
+    Attribute: Parameter startZ The ramp's start along z, in world units.
+    Attribute: Parameter startHeight The ramp's height at its start.
+    Attribute: Parameter endX The ramp's end along x, in world units.
+    Attribute: Parameter endZ The ramp's end along z, in world units.
+    Attribute: Parameter endHeight The ramp's height at its end.
+    Attribute: Parameter halfWidth Half the ramp's width, in world units, such as the brush's size.
+    */
+    action Place(number startX, number startZ, number startHeight, number endX, number endZ, number endHeight, number halfWidth)
+        number lineX = endX - startX
+        number lineZ = endZ - startZ
+        number length = math:SquareRoot(lineX * lineX + lineZ * lineZ)
+        // Along the ramp, and across it.
+        number alongX = 0
+        number alongZ = 1
+        if length > 0.0001
+            alongX = lineX / length
+            alongZ = lineZ / length
+        end
+        number acrossX = -alongZ
+        number acrossZ = alongX
+
+        number centerX = (startX + endX) / 2
+        number centerZ = (startZ + endZ) / 2
+        number middle = (startHeight + endHeight) / 2
+        number line = math:MaximumOf(0.06, halfWidth * lineShare)
+        number edge = line * edgeShare
+
+        // The two long sides, then the start and end lines.
+        SetLine(0, startX + acrossX * halfWidth, startZ + acrossZ * halfWidth, startHeight,
+            endX + acrossX * halfWidth, endZ + acrossZ * halfWidth, endHeight, acrossX, acrossZ, line, edge, centerX, centerZ, middle)
+        SetLine(1, startX - acrossX * halfWidth, startZ - acrossZ * halfWidth, startHeight,
+            endX - acrossX * halfWidth, endZ - acrossZ * halfWidth, endHeight, acrossX, acrossZ, line, edge, centerX, centerZ, middle)
+        SetLine(2, startX - acrossX * halfWidth, startZ - acrossZ * halfWidth, startHeight,
+            startX + acrossX * halfWidth, startZ + acrossZ * halfWidth, startHeight, alongX, alongZ, line, edge, centerX, centerZ, middle)
+        SetLine(3, endX - acrossX * halfWidth, endZ - acrossZ * halfWidth, endHeight,
+            endX + acrossX * halfWidth, endZ + acrossZ * halfWidth, endHeight, alongX, alongZ, line, edge, centerX, centerZ, middle)
+
+        MeshData mesh = MakeMesh(vertices)
+        MeshData edgeData = MakeMesh(edgeVertices)
+        if not loaded
+            LoadLines(mesh, edgeData)
+            loaded = true
+        else
+            lineMesh:UpdateVertices(mesh)
+            edgeMesh:UpdateVertices(edgeData)
+        end
+
+        SetPosition(centerX, middle, centerZ)
+        number reach = length / 2 + halfWidth + line + edge
+        SetWidth(2 * reach)
+        SetHeight(math:AbsoluteValue(endHeight - startHeight) + 2 * lift)
+        SetDepth(2 * reach)
+    end
+
+    /*
+    This action sets one line's four corners, and its black edge's: a
+    ribbon from one point to another, as wide as the line, across the
+    given direction.
+    */
+    private action SetLine(integer line, number fromX, number fromZ, number fromHeight, number toX, number toZ, number toHeight,
+            number sideX, number sideZ, number width, number edge, number centerX, number centerZ, number middle)
+        integer first = line * 4
+        number half = width / 2
+        number outer = half + edge
+        SetCorner(vertices, first, fromX - sideX * half - centerX, fromHeight + lift - middle, fromZ - sideZ * half - centerZ)
+        SetCorner(vertices, first + 1, fromX + sideX * half - centerX, fromHeight + lift - middle, fromZ + sideZ * half - centerZ)
+        SetCorner(vertices, first + 2, toX - sideX * half - centerX, toHeight + lift - middle, toZ - sideZ * half - centerZ)
+        SetCorner(vertices, first + 3, toX + sideX * half - centerX, toHeight + lift - middle, toZ + sideZ * half - centerZ)
+        number low = lift - edgeDrop - middle
+        SetCorner(edgeVertices, first, fromX - sideX * outer - centerX, fromHeight + low, fromZ - sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 1, fromX + sideX * outer - centerX, fromHeight + low, fromZ + sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 2, toX - sideX * outer - centerX, toHeight + low, toZ - sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 3, toX + sideX * outer - centerX, toHeight + low, toZ + sideZ * outer - centerZ)
+    end
+
+    /*
+    This action sets one corner.
+    */
+    private action SetCorner(Number32BitArray array, integer vertex, number x, number y, number z)
+        array:Set(vertex * 3, x)
+        array:Set(vertex * 3 + 1, y)
+        array:Set(vertex * 3 + 2, z)
+    end
+
+    /*
+    This action makes a mesh from a list of corners.
+    */
+    private action MakeMesh(Number32BitArray corners) returns MeshData
+        MeshData mesh
+        mesh:SetVertices(corners)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+        return mesh
+    end
+
+    /*
+    This action adds two triangles for one quad to the list of indices.
+    */
+    private action AddQuad(integer index, integer a, integer b, integer c, integer d) returns integer
+        indices:Set(index, a)
+        indices:Set(index + 1, b)
+        indices:Set(index + 2, c)
+        indices:Set(index + 3, c)
+        indices:Set(index + 4, b)
+        indices:Set(index + 5, d)
+        return index + 6
+    end
+
+    /*
+    This action turns the outline's meshes into a blueprint and loads it,
+    the first time the preview is placed: green lines with black edges, no
+    shadows.
+    */
+    private action LoadLines(MeshData mesh, MeshData edgeData)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        meshes:Add(edgeData)
+
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID("Terrain ramp preview " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan lineBlueprint = manager:GetModelBlueprint(modelData)
+        Load(lineBlueprint)
+        lineMesh = lineBlueprint:GetMeshes():Get(0)
+        edgeMesh = lineBlueprint:GetMeshes():Get(1)
+
+        Color color
+        SetColor(0, color:CustomColor(0.15, 0.85, 0.25, 1))
+        SetColor(1, color:CustomColor(0.02, 0.02, 0.02, 1))
+        SetCastsShadows(false)
+    end
+end

@@ -105,6 +105,11 @@ class InterfaceOptions
     public constant text BORDER_THICKNESS = "borderThickness"
     public constant text SELECTION_BORDER_THICKNESS = "selectionBorderThickness"
     public constant text MOUSE_OVER_BORDER_THICKNESS = "mouseOverBorderThickness"
+    public constant text FOCUS_BORDER_THICKNESS = "focusBorderThickness"
+    public constant text TOP_ACCENT = "topAccent"
+    public constant text TOP_ACCENT_COLOR = "topAccentColor"
+    public constant text TOP_ACCENT_THICKNESS = "topAccentThickness"
+    public constant text RAISED = "raised"
     public constant text FONT_OUTLINE_THICKNESS = "fontOutlineThickness"
     public constant text TOP_LEFT_ROUNDING = "topLeftRounding"
     public constant text TOP_RIGHT_ROUNDING = "topRightRounding"
@@ -993,6 +998,112 @@ class InterfaceOptions
         return GetBorderThickness(controlType):IsNotANumber() = false
     end
 
+    /*
+    This action sets whether a control type draws a colored line along its
+    top (the accent line), hidden while it has the focus, when the focus
+    ring goes all the way around. It is off by default.
+
+    Attribute: Parameter controlType The kind of control, such as BUTTON.
+    Attribute: Parameter show True to draw the accent line.
+    */
+    action SetTopAccent(text controlType, boolean show)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        if show
+            palette:SetNumberProperty(TOP_ACCENT, 1)
+        else
+            palette:SetNumberProperty(TOP_ACCENT, 0)
+        end
+    end
+
+    // Whether a control type draws the accent line (SetTopAccent).
+    action HasTopAccent(text controlType) returns boolean
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        return palette not= undefined and palette:GetNumberProperty(TOP_ACCENT) = 1
+    end
+
+    /*
+    This action sets the color of a control type's accent line
+    (SetTopAccent).
+
+    Attribute: Parameter controlType The kind of control, such as BUTTON.
+    Attribute: Parameter value The line's color.
+    */
+    action SetTopAccentColor(text controlType, ColorGroup value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetColorProperty(TOP_ACCENT_COLOR, value)
+    end
+
+    action GetTopAccentColor(text controlType) returns ColorGroup
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return undefined
+        end
+        return palette:GetColorProperty(TOP_ACCENT_COLOR)
+    end
+
+    /*
+    This action sets how thick a control type's accent line is, in points
+    before the interface scale. The default is 2.
+
+    Attribute: Parameter controlType The kind of control, such as BUTTON.
+    Attribute: Parameter value The line's thickness.
+    */
+    action SetTopAccentThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetNumberProperty(TOP_ACCENT_THICKNESS, value)
+    end
+
+    action GetTopAccentThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined or palette:GetNumberProperty(TOP_ACCENT_THICKNESS):IsNotANumber()
+            return 2
+        end
+        return palette:GetNumberProperty(TOP_ACCENT_THICKNESS)
+    end
+
+    /*
+    This action sets whether a control type is drawn raised, with a soft
+    shadow below it (its shadow color, offset and fade). It is off by
+    default.
+
+    Attribute: Parameter controlType The kind of control, such as BUTTON.
+    Attribute: Parameter raised True to draw the shadow.
+    */
+    action SetRaised(text controlType, boolean raised)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        if raised
+            palette:SetNumberProperty(RAISED, 1)
+        else
+            palette:SetNumberProperty(RAISED, 0)
+        end
+    end
+
+    // Whether a control type is drawn raised (SetRaised).
+    action IsRaised(text controlType) returns boolean
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        return palette not= undefined and palette:GetNumberProperty(RAISED) = 1
+    end
+
     action SetSelectionBorderThickness(number value)
         SetNumberProperty(SELECTION_BORDER_THICKNESS, value)
     end
@@ -1061,6 +1172,47 @@ class InterfaceOptions
 
     action HasMouseOverBorderThickness(text controlType) returns boolean
         return GetMouseOverBorderThickness(controlType):IsNotANumber() = false
+    end
+
+    /*
+    This action sets the border thickness used while a control has the
+    focus, such as a thicker focus ring than the border at rest.
+
+    Attribute: Parameter value The thickness, in points before the interface scale.
+    */
+    action SetFocusBorderThickness(number value)
+        SetNumberProperty(FOCUS_BORDER_THICKNESS, value)
+    end
+
+    action GetFocusBorderThickness returns number
+        return GetNumberProperty(FOCUS_BORDER_THICKNESS)
+    end
+
+    action HasFocusBorderThickness returns boolean
+        return GetNumberProperty(FOCUS_BORDER_THICKNESS):IsNotANumber() = false
+    end
+
+    action SetFocusBorderThickness(text controlType, number value)
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            InterfaceOptions newPalette
+            palette = newPalette
+            SetInterfaceOptions(controlType, palette)
+        end
+        palette:SetFocusBorderThickness(value)
+    end
+
+    action GetFocusBorderThickness(text controlType) returns number
+        InterfaceOptions palette = GetInterfaceOptions(controlType)
+        if palette = undefined
+            return NOT_A_NUMBER
+        else
+            return palette:GetFocusBorderThickness()
+        end
+    end
+
+    action HasFocusBorderThickness(text controlType) returns boolean
+        return GetFocusBorderThickness(controlType):IsNotANumber() = false
     end
 
     action SetFontOutlineThickness(number value)
@@ -1771,6 +1923,22 @@ class InterfaceOptions
 
     action HasButtonBorderThickness returns boolean
         return GetBorderThickness(BUTTON):IsNotANumber() = false
+    end
+
+    action SetButtonTopAccent(boolean show)
+        SetTopAccent(BUTTON, show)
+    end
+
+    action SetButtonTopAccentColor(ColorGroup value)
+        SetTopAccentColor(BUTTON, value)
+    end
+
+    action SetButtonRaised(boolean raised)
+        SetRaised(BUTTON, raised)
+    end
+
+    action SetButtonFocusBorderThickness(number value)
+        SetFocusBorderThickness(BUTTON, value)
     end
 
     action SetButtonSelectionBorderThickness(number value)
@@ -4267,6 +4435,18 @@ class InterfaceOptions
 
     action HasDialogAcceptButtonBorderThickness returns boolean
         return GetBorderThickness(DIALOG_ACCEPT_BUTTON):IsNotANumber() = false
+    end
+
+    action SetDialogAcceptButtonTopAccent(boolean show)
+        SetTopAccent(DIALOG_ACCEPT_BUTTON, show)
+    end
+
+    action SetDialogAcceptButtonRaised(boolean raised)
+        SetRaised(DIALOG_ACCEPT_BUTTON, raised)
+    end
+
+    action SetDialogAcceptButtonFocusBorderThickness(number value)
+        SetFocusBorderThickness(DIALOG_ACCEPT_BUTTON, value)
     end
 
     action SetDialogAcceptButtonSelectionBorderThickness(number value)

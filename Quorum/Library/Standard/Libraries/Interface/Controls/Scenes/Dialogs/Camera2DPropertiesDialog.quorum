@@ -48,6 +48,9 @@ class Camera2DPropertiesDialog is PropertiesDialog
         basicPropertiesLabel:SetText("Basic Properties")
         basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(basicPropertiesLabel)
 
         Label positionLabel
         

@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.*;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Item_;
 
@@ -13,19 +13,20 @@ public class RadioButtonKit extends ItemKit{
         Item_ item = GetItem();
         if(item != null) {
             Rect rect = GetBoundingRectangle();
-            NodeBuilder builder = new NodeBuilder(GetRole());
+            Node builder = new Node(GetRole());
             builder.setBounds(rect);
-            builder.setName(item.GetName());
+            builder.setLabel(item.GetName());
+            builder.setDescription(item.GetDescription());
             if(item instanceof RadioButton_) { //technically not compiler guaranteed. You can set the code to anything.
                 RadioButton_ box = (RadioButton_) item;
                 boolean state = box.GetToggleState();
                 if(state) {
-                    builder.setChecked(Checked.TRUE);
+                    builder.setToggled(Toggled.TRUE);
                 } else {
-                    builder.setChecked(Checked.FALSE);
+                    builder.setToggled(Toggled.FALSE);
                 }
             }
-            return builder.build();
+            return builder;
         }
         return null;
     }

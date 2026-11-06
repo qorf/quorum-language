@@ -1,6 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
-import dev.accesskit.Role;
+import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 
 public class ToolbarKit extends ItemKit{
     public ToolbarKit() {

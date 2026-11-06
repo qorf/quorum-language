@@ -1,0 +1,37 @@
+package Libraries.Game.Graphics.Shaders.OpenGL.Vertex
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+/*
+SkyboxVertexShaderOpenGL draws one triangle covering the screen, at the far
+plane, for the sky. It needs no vertices: the corners come from the vertex
+number. It passes each pixel's screen position, from -1 to 1, to the
+fragment shader.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.OpenGL.Vertex.SkyboxVertexShaderOpenGL
+SkyboxVertexShaderOpenGL shader
+shader:Compile()
+*/
+class SkyboxVertexShaderOpenGL is Shader
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:SKYBOX_VERTEX_SHADER)
+        SetCode(GetVersionHeader() + "
+
+out vec2 v_screen;
+
+void main()
+{
+    vec2 corner = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    v_screen = corner * 2.0 - 1.0;
+    // Depth 1: the far plane, behind everything drawn.
+    gl_Position = vec4(v_screen, 1.0, 1.0);
+}
+")
+    end
+end

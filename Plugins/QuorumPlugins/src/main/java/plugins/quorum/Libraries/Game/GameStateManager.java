@@ -14,6 +14,7 @@ import quorum.Libraries.Game.Game_;
 import quorum.Libraries.Game.Graphics.OpenGL.DesktopOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.IOSOpenGL;
 import quorum.Libraries.Game.Graphics.OpenGL.AndroidOpenGL;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanGraphics;
 import quorum.Libraries.Game.Graphics.Fonts.FontManager;
 import quorum.Libraries.Game.Graphics.Fonts.FontManager_;
 
@@ -129,6 +130,11 @@ public class GameStateManager
             else if (graphics instanceof IOSOpenGL)
             {
                 nativeGraphics = ((IOSOpenGL) graphics).plugin_;
+            }
+            else if (graphics instanceof VulkanGraphics)
+            {
+                // The rest of the plugins tell Vulkan from OpenGL by this being null.
+                nativeGraphics = null;
             }
         }
     }

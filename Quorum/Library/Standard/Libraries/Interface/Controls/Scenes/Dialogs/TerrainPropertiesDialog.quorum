@@ -1,0 +1,215 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainGrowBehavior
+
+/*
+    The TerrainPropertiesDialog shows a selected terrain's name, which can be
+    changed, in a card, and a button that grows the terrain. If the
+    terrain's files weren't found, a line under the name says so.
+
+    It shows in the scene editor's Properties panel, with the terrain's
+    physics after it (TerrainPhysicsPropertiesDialog).
+*/
+class TerrainPropertiesDialog is PropertiesDialog
+
+    TextField nameField = undefined
+    // Shown only when the terrain's files weren't found.
+    Label missingLabel = undefined
+
+    // The terrain whose properties are shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Terrain")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        // Its text is the section's title, under a header that opens and
+        // closes it when the panel shows several sections (step 15).
+        SetHeading(headingLabel)
+
+        Control card = AddCard(panel, "")
+        Control nameContainer = MakeCardLine()
+        Label nameLabel
+        nameLabel:SetText("Name:")
+        nameLabel:SetRightMargin(10)
+        nameContainer:Add(nameLabel)
+
+        TextField field
+        nameField = field
+        nameField:SetHorizontalLayoutMode(nameContainer:FILL)
+        nameField:SetName("Name")
+        nameField:SetText("")
+        nameField:SetFocusable(true)
+        nameField:AddTextChangeListener(me)
+        nameContainer:Add(nameField)
+        focusArray:Add(nameField)
+        card:Add(nameContainer)
+
+        // Not a focus stop: when shown, the name field's description says
+        // the same, so a screen reader hears it there (SetTerrain).
+        Label missing
+        missingLabel = missing
+        missingLabel:SetText("")
+        // Full width, so a long message wraps.
+        missingLabel:SetHorizontalLayoutMode(missingLabel:parent:Control:STANDARD)
+        missingLabel:SetPercentageWidth(1.0)
+        missingLabel:SetLeftMargin(12)
+        missingLabel:SetRightMargin(12)
+        missingLabel:SetTopMargin(4)
+        missingLabel:SetBottomMargin(6)
+        missingLabel:Hide()
+        card:Add(missingLabel)
+
+        // Makes the terrain bigger without the brush (step 11).
+        FlowLayout growLayout
+        Control growLine
+        growLine:SetLayout(growLayout)
+        growLine:SetPercentageWidth(1.0)
+        growLine:SetVerticalLayoutMode(growLine:FIT_CONTENTS)
+        growLine:SetLeftMargin(20)
+        growLine:SetTopMargin(6)
+        growLine:SetBottomMargin(8)
+        Button growButton
+        growButton:SetName("Grow Everywhere")
+        growButton:SetDescription("Add a flat region on every side of the terrain")
+        TerrainGrowBehavior growBehavior
+        growBehavior:SetDialog(me)
+        growButton:SetBehavior(growBehavior)
+        growLine:Add(growButton)
+        panel:Add(growLine)
+        focusArray:Add(growButton)
+    end
+
+    /*
+        Makes the terrain one region bigger on every side. The section's
+        grow button calls it.
+    */
+    action Grow
+        if terrain not= undefined and GetSceneEditor() not= undefined
+            GetSceneEditor():GrowTerrain(terrain)
+        end
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's name and facts.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+
+        nameField:RemoveTextChangeListener(me)
+        nameField:SetText(terrain:GetName())
+        nameField:AddTextChangeListener(me)
+
+        // A scene can name a terrain whose files weren't found.
+        if terrain:IsMissing()
+            text message = "Files not found: this terrain is empty. Its folder " + GetFolderText(terrain:GetTerrainFile())
+                + " may have been moved, or not copied with the project. Saving the scene keeps its file name."
+            missingLabel:SetText(message)
+            missingLabel:Show()
+            nameField:SetDescription(message)
+        else
+            missingLabel:SetText("")
+            missingLabel:Hide()
+            nameField:SetDescription("")
+        end
+        // The card is as tall as its shown lines.
+        missingLabel:RequestLayout()
+    end
+
+    /*
+        This action returns the folder part of a terrain.json file's path.
+    */
+    private action GetFolderText(text path) returns text
+        text name = "/terrain.json"
+        if path:EndsWith(name)
+            return path:GetSubtext(0, path:GetSize() - name:GetSize())
+        end
+        return path
+    end
+
+    /*
+        This action renames the terrain as its name is typed.
+    */
+    action TextChanged(TextChangeEvent event)
+        if terrain = undefined
+            return now
+        end
+        if event:GetControl():Equals(nameField)
+            if nameField:GetText() not= terrain:GetName()
+                terrain:SetName(nameField:GetText())
+            end
+        end
+    end
+
+    /*
+        Moves the focus to the name field, with its text selected.
+    */
+    action FocusField
+        nameField:Focus()
+        nameField:Select(0, nameField:GetSize(), true)
+    end
+end

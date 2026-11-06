@@ -8,14 +8,14 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         activeGame.plugins_quorum_Libraries_Game_Graphics_Model_ = modelInfo;
         
         modelInfo.reader = new quorum_Libraries_Game_Graphics_ModelLoaders_ModelReader_();
-        modelInfo.builder = new quorum_Libraries_Game_Graphics_ModelBuilder_();
+        modelInfo.builder = new quorum_Libraries_Game_Graphics_Models_OpenGL_ModelBuilderOpenGL_();
         modelInfo.hashTable = {};
         modelInfo.dimensionsTable = {};
         modelInfo.calcBox = new quorum_Libraries_Game_BoundingBox_();
     }
     
 
-    this.GetCachedBlueprint$quorum_Libraries_System_File = function(file) 
+    this.GetCachedBlueprintOpenGL$quorum_Libraries_System_File = function(file)
     {
         var blueprint = modelInfo.hashTable[file.GetPath()];
         
@@ -29,7 +29,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
     
-    this.GetCachedDimensions$quorum_Libraries_Game_Graphics_ModelBlueprint = function(schematic) 
+    this.GetCachedDimensionsOpenGL$quorum_Libraries_Game_Graphics_Models_OpenGL_ModelBlueprintOpenGL = function(schematic)
     {
         if (schematic.id === undefined || schematic.id === null)
             return null;
@@ -43,7 +43,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return vector;
     };
     
-    this.GetCachedBox$quorum_number$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, color) 
+    this.GetCachedBoxOpenGL$quorum_number$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, color)
     {
         var blendKey;
         if (color.GetAlpha() < 1.0)
@@ -64,7 +64,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
 
-    this.GetCachedCylinder$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, divisions, color) 
+    this.GetCachedCylinderOpenGL$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, divisions, color)
     {
         var blendKey;
         if (color.GetAlpha() < 1.0)
@@ -85,7 +85,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
 
-    this.GetCachedSphere$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, hDivisions, vDivisions, color) 
+    this.GetCachedSphereOpenGL$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Color = function(width, height, depth, hDivisions, vDivisions, color)
     {
         var blendKey;
         if (color.GetAlpha() < 1.0)
@@ -106,7 +106,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
 
-    this.GetCachedBox$quorum_number$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, texture) 
+    this.GetCachedBoxOpenGL$quorum_number$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, texture)
     {
         var searchKey = ":BOX:TEXTURED:" + width + ":" + height + ":" + depth;
         
@@ -127,7 +127,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
 
-    this.GetCachedCylinder$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, divisions, texture) 
+    this.GetCachedCylinderOpenGL$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, divisions, texture)
     {
         var searchKey = ":CYLINDER:TEXTURED:" + width + ":" + height + ":" + depth + ":" + divisions;
         
@@ -148,7 +148,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
 
-    this.GetCachedSphere$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, hDivisions, vDivisions, texture) 
+    this.GetCachedSphereOpenGL$quorum_number$quorum_number$quorum_number$quorum_integer$quorum_integer$quorum_Libraries_Game_Graphics_Texture = function(width, height, depth, hDivisions, vDivisions, texture)
     {
         var searchKey = ":SPHERE:TEXTURED:" + width + ":" + height + ":" + depth + ":" + hDivisions + ":" + vDivisions;
         
@@ -169,7 +169,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
     
-    this.GetCachedPlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color$quorum_boolean = function(width, depth, color, doubleSided) 
+    this.GetCachedPlaneOpenGL$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Color$quorum_boolean = function(width, depth, color, doubleSided)
     {
         var blendKey;
         if (color.GetAlpha() < 1.0)
@@ -190,7 +190,7 @@ function plugins_quorum_Libraries_Game_Graphics_Model_()
         return blueprint;
     };
     
-    this.GetCachedPlane$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture$quorum_boolean = function(width, depth, texture, doubleSided) 
+    this.GetCachedPlaneOpenGL$quorum_number$quorum_number$quorum_Libraries_Game_Graphics_Texture$quorum_boolean = function(width, depth, texture, doubleSided)
     {
         var searchKey = ":PLANE:TEXTURED:" + width + ":" + depth + ":" + doubleSided;
         

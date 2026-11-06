@@ -22,6 +22,10 @@ class DefaultTreeItemContent is TreeItemContent
     // Used to ensure the font isn't loaded until the TreeItem's graphics are.
     boolean fontInitialized = false
 
+    // The arrow's color while the row is selected, or undefined to use the
+    // accent color (UpdateArrowColor).
+    ColorGroup selectedArrowColor = undefined
+
     on create
         FlowLayout flow
         flow:SetVerticalCentering(true)
@@ -70,6 +74,8 @@ class DefaultTreeItemContent is TreeItemContent
         if label not= undefined
             label:GainedSelection()
         end
+        selectedArrowColor = GetSelectionFontColor()
+        UpdateArrowColor()
     end
 
     action LostSelection
@@ -77,11 +83,29 @@ class DefaultTreeItemContent is TreeItemContent
         if label not= undefined
             label:LostSelection()
         end
+        selectedArrowColor = undefined
+        UpdateArrowColor()
     end
 
     action UnfocusedSelection
         if label not= undefined
             label:UnfocusedSelection()
+        end
+        selectedArrowColor = GetUnfocusedSelectionFontColor()
+        UpdateArrowColor()
+    end
+
+    // The open/close arrow matches the label: white on a selected row, and
+    // the accent color otherwise.
+    private action UpdateArrowColor
+        if expandButton = undefined or not (expandButton:GetView2D() is DefaultTreeMenuView)
+            return now
+        end
+        DefaultTreeMenuView arrowView = cast(DefaultTreeMenuView, expandButton:GetView2D())
+        if selectedArrowColor not= undefined
+            arrowView:SetColor(selectedArrowColor)
+        else
+            arrowView:SetColor(GetAccentColor())
         end
     end
 
@@ -96,11 +120,11 @@ class DefaultTreeItemContent is TreeItemContent
                 text defaultFontName = treeItem:GetDefaultFontName()
                 if defaultFontName not= undefined
                     font:LoadFont(defaultFontName)
-                    integer defaultFontSize = treeItem:GetDefaultFontSize()
-                    font:SetSize(defaultFontSize)
+                    // The item keeps the size it has: its tree's, or the
+                    // default for an item that was never given one.
+                    font:SetSize(treeItem:GetFontSize())
                     treeItem:SetFont(font)
-                    treeItem:SetFontSize(defaultFontSize)
-                end    
+                end
             end
         end
 
@@ -172,10 +196,7 @@ class DefaultTreeItemContent is TreeItemContent
         end
 
         expandButton:SetBackgroundColor(GetAccentColor())
-        if expandButton:GetView2D() is DefaultTreeMenuView
-            DefaultTreeMenuView defaultView = cast(DefaultTreeMenuView, expandButton:GetView2D())
-            defaultView:SetColor(GetAccentColor())
-        end
+        UpdateArrowColor()
 
         if icon = undefined
             Icon newIcon
@@ -217,6 +238,12 @@ class DefaultTreeItemContent is TreeItemContent
 label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             label:SetInterfaceOptionsKey(GetInterfaceOptionsKey())
             label:SetHorizontalMargins(4)
+
+            // The row's highlight (TreeRowHighlight, in the TreeItem) shows
+            // the selection as a band across the tree, so the label only
+            // changes its text color and draws no box of its own.
+            label:SetSelectionColor(color:CustomColor(0, 0, 0, 0))
+            label:SetUnfocusedSelectionColor(color:CustomColor(0, 0, 0, 0))
 
             LayoutProperties labelProperties = label:GetDefaultLayoutProperties()
             labelProperties:SetPercentageHeight(1.0)

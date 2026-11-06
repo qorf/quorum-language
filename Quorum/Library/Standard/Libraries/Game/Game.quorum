@@ -9,6 +9,7 @@ use Libraries.Game.GameDisplay
 use Libraries.Game.DesktopDisplay
 use Libraries.Game.GameStateManager
 use Libraries.Game.Application
+use Libraries.Game.Shapes.Rectangle
 use Libraries.Game.DesktopApplication
 use Libraries.Game.AndroidApplication
 use Libraries.Game.AndroidDisplay
@@ -102,6 +103,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.System.Properties
+use Libraries.System.Logging.SharedLogger
 use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.KeyboardListener
 use Libraries.Interface.Events.MouseListener
@@ -133,12 +135,14 @@ use Libraries.Interface.Layouts.Layout
 use Libraries.Interface.Undo.EditManager
 use Libraries.System.File
 use Libraries.System.SystemHelper
+use Libraries.System.FileWatcher
 use Libraries.Interface.Behaviors.Controls.ChartNavigateBehavior
 use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Events.GestureListener
 use Libraries.Interface.Options.LightModeOptions
 use Libraries.Interface.Events.GestureEvent
 use Libraries.Interface.DefaultInputSets
+use Libraries.Interface.SceneEditorKeys
 use Libraries.Interface.Behaviors.Controls.ChartMovableRegressionDragBehavior
 use Libraries.Interface.Events.ScreenshotListener
 use Libraries.Containers.Support.SortableContainer
@@ -185,6 +189,16 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+
+    // True while the focus outline is hidden until the next touch or key
+    // press (HideFocusOutlineUntilTouch).
+    boolean focusOutlineHidden = false
+
+    // MSAA for 3D under Vulkan (Item 27), passed to the graphics when they
+    // start. 1 is off.
+    integer multisampleCount = 1
+    // MSAA for 2D and the screen's final image under Vulkan (Item 29).
+    integer multisampleCount2D = 1
     Accessibility accessibility = undefined
     EditManager editManager
     InterfaceOptions interfaceOptions = undefined
@@ -200,6 +214,8 @@ class Game
 
     // Variables for the Layer system.
     private Array<Layer> layers
+    // Reused each frame, so a camera shared by several layers is placed once.
+    private Array<Camera> followedCameras
     private Layer2D currentLayer2D = undefined
     private Layer3D currentLayer3D = undefined
 
@@ -234,6 +250,12 @@ class Game
     */
     Array<SortableContainer<ScreenshotEvent, ScreenshotListener>> pendingScreenshots
 
+    /*
+    The FileWatchers added with AddFileWatcher. Each frame, ContinueGame
+    sends their waiting changes to their listeners, on the main thread.
+    */
+    Array<FileWatcher> fileWatchers
+
     on create
         LightModeOptions options
         interfaceOptions = options
@@ -253,7 +275,8 @@ class Game
     The StartGame action will start your game. Specifically, it does this:
     1. Creates the Game window.
     2. Calls the CreateGame() action.
-    3. Repeatedly calls Update() until Exit() is called or the window is closed.
+    3. Repeatedly calls Update(), runs the physics, and calls UpdateAfterPhysics(),
+       until Exit() is called or the window is closed.
 
     If you are using any actions to change the starting settings of the window,
     call those before calling StartGame().
@@ -280,8 +303,43 @@ class Game
             alert("I could not identify what type of application to use for this operating system!")
         end
         manager:SetApplication(application)
-        
-        GraphicsManager graphics = CreateGraphicsManager()
+
+        /*
+        On iOS and Android, Vulkan draws on the window, which doesn't exist
+        yet, so it is made now and started by InitializeLayers, once the
+        display has made the window.
+
+        The iOS simulator always uses OpenGL ES: its Metal GPU (like Apple
+        family 2) can't compile Quorum's Vulkan shaders, so Vulkan is tested
+        on real devices.
+        */
+        Properties simulatorCheck
+        boolean iosVulkan = (application is IOSApplication) and iosConfig:useVulkan
+        if iosVulkan and simulatorCheck:IsIosSimulator()
+            iosVulkan = false
+            SharedLogger logger
+            logger:Log("The iOS simulator can't run Quorum's Vulkan renderer, so this game uses OpenGL ES there. Vulkan runs on real iPhones and iPads.")
+        end
+
+        // On Android, Vulkan needs a Vulkan 1.3 driver. Devices without one
+        // (many on Android 14) draw with OpenGL ES instead.
+        boolean androidVulkan = (application is AndroidApplication) and androidConfig:useVulkan
+        if androidVulkan
+            AndroidApplication androidApplication = cast(AndroidApplication, application)
+            if not androidApplication:IsVulkanAvailable()
+                androidVulkan = false
+                SharedLogger androidLogger
+                androidLogger:Log("This device doesn't have Vulkan 1.3, so this game uses OpenGL ES. Vulkan runs on Android devices that have Vulkan 1.3.")
+            end
+        end
+
+        GraphicsManager graphics = undefined
+        if iosVulkan or androidVulkan
+            VulkanGraphics mobileVulkan
+            graphics = mobileVulkan
+        else
+            graphics = CreateGraphicsManager()
+        end
         manager:SetGameGraphics(graphics)
 
         if graphics is OpenGLManager
@@ -290,6 +348,9 @@ class Game
         elseif graphics is VulkanGraphics
             VulkanShaderManager shaderManager
             me:shaderManager = shaderManager
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            vulkan:SetMultisampleCount(multisampleCount)
+            vulkan:SetMultisampleCount2D(multisampleCount2D)
         end
 
         if application is DesktopApplication
@@ -319,6 +380,7 @@ class Game
             gl20 = manager:GetGameGraphics()
             
             IOSInput newInput
+            newInput:SetDebugInput(iosConfig:debugInput)
             gameInput = newInput
             manager:SetInput(newInput)
 
@@ -326,8 +388,10 @@ class Game
             manager:SetGameDisplay(display)
             display:SetConfiguration(iosConfig)
 
-            IOSOpenGL iosGraphics
-            manager:SetGameGraphics(iosGraphics)
+            if not (manager:GetGameGraphics() is VulkanGraphics)
+                IOSOpenGL iosGraphics
+                manager:SetGameGraphics(iosGraphics)
+            end
         elseif application is WebApplication
             WebInput newInput
             newInput:InitializeGestureProcessor(webConfig:containerID)
@@ -522,9 +586,13 @@ class Game
         manager:SetGameDisplay(display)
         display:SetConfiguration(androidConfig)
 
-        AndroidOpenGL graphics
-        manager:SetGameGraphics(graphics)
-        gl20 = graphics
+        if manager:GetGameGraphics() is VulkanGraphics
+            gl20 = manager:GetGameGraphics()
+        else
+            AndroidOpenGL graphics
+            manager:SetGameGraphics(graphics)
+            gl20 = graphics
+        end
 
         CompleteInitialSetup(androidApp)
     end
@@ -822,6 +890,7 @@ if gl20 is OpenGLManager
     */
     action ContinueGame
         gameInput:ProcessInputEvents()
+        DispatchFileChanges()
         UpdateAll()
         
         number seconds = GetSecondsBetweenFrames()
@@ -830,6 +899,8 @@ if gl20 is OpenGLManager
         if collide
             TestForCollisions(seconds)
         end
+        UpdateFollowingCameras(seconds)
+        UpdateAfterPhysics(seconds)
 
         if accessibility not= undefined
             accessibility:Update()
@@ -1007,6 +1078,60 @@ if gl20 is OpenGLManager
     */
     action GetAndroidConfiguration returns AndroidConfiguration
         return androidConfig
+    end
+
+    /*
+    This action will set the game configuration when run on an iPhone or iPad.
+    The configuration contains data that affect many technical details of the
+    game, such as which orientations are allowed, and whether the game draws
+    with Vulkan. This should be set before calling StartGame().
+
+    Attribute: Parameter config The IOSConfiguration to use.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.IOSConfiguration
+
+    class Main is Game
+
+        action Main
+            IOSConfiguration configuration
+            configuration:useVulkan = true
+            SetConfiguration(configuration)
+            StartGame()
+        end
+
+    end
+
+    */
+    action SetConfiguration(IOSConfiguration config)
+        iosConfig = config
+    end
+
+    /*
+    This action will return the game's configuration for iPhones and iPads.
+
+    Attribute: Returns The current IOSConfiguration.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.IOSConfiguration
+
+    class Main is Game
+
+        action Main
+            IOSConfiguration configuration = GetIOSConfiguration()
+            configuration:useVulkan = true
+            StartGame()
+        end
+
+    end
+
+    */
+    action GetIOSConfiguration returns IOSConfiguration
+        return iosConfig
     end
 
     /*
@@ -1195,6 +1320,57 @@ if gl20 is OpenGLManager
     end
 
     /*
+    The UpdateAfterPhysics action is called once on every frame, after Update
+    and after the physics has run, when every item is where it will be drawn.
+    It is called even on frames too short for a physics step. This is the
+    place for anything that should follow physics items on screen, such as a
+    light carried by a body. Placed in Update instead, which runs before the
+    physics, they would aim at where the items were, and the items would seem
+    to jitter. For a camera that simply chases an item, Camera:Follow does
+    this without any code here; following cameras have already been placed
+    when this action is called, so they can still be adjusted here.
+
+    Things that change the physics, such as forces and steering, still belong
+    in Update, so they act in the same frame. Changes made here take effect in
+    the next frame's physics. By default this action does nothing.
+
+    Attribute: Parameter seconds The number of seconds that have passed since the last frame.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Graphics.Camera
+
+        class Main is Game
+            Model ball
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                EnablePhysics3D(true)
+                Color color
+                ball:LoadBox(1, 1, 1, color:Red())
+                ball:SetPosition(0, 10, 0)
+                ball:EnablePhysics(true)
+                Add(ball)
+            end
+
+            // The camera follows the falling box from behind and above.
+            action UpdateAfterPhysics(number seconds)
+                Camera camera = GetCamera3D()
+                camera:SetPosition(ball:GetX(), ball:GetY() + 5, ball:GetZ() - 10)
+                camera:LookAt(ball:GetX(), ball:GetY(), ball:GetZ())
+            end
+        end
+    */
+    action UpdateAfterPhysics(number seconds)
+    end
+
+    /*
     CreateGame is called when you first start the game, and is useful for setting
     up things that need to be initialized before they can be used, like loading
     Drawables.
@@ -1292,6 +1468,33 @@ if gl20 is OpenGLManager
     */
     action OnExit returns boolean
         return true
+    end
+
+    /*
+    This action places every camera that follows an item (see
+    Camera:Follow), once a frame, after the physics and before the game's
+    UpdateAfterPhysics, so the game can still adjust a camera there. A camera
+    shared by several layers is placed only once.
+    */
+    private action UpdateFollowingCameras(number seconds)
+        followedCameras:Empty()
+        integer i = 0
+        repeat while i < layers:GetSize()
+            Layer layer = layers:Get(i)
+            Camera camera = undefined
+            if layer is Layer3D
+                Layer3D layer3D = cast(Layer3D, layer)
+                camera = layer3D:GetCamera()
+            elseif layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                camera = layer2D:GetCamera()
+            end
+            if camera not= undefined and camera:IsFollowing() and not followedCameras:Has(camera)
+                camera:UpdateFollow(seconds)
+                followedCameras:Add(camera)
+            end
+            i = i + 1
+        end
     end
 
     /*
@@ -2048,9 +2251,12 @@ if gl20 is OpenGLManager
 
     /*
     This action enables or disables vSync in the game. Passing a value of true
-    enables it, a value of false disables it. vSync is enabled by default. 
-    This action should be called before calling StartGame(). This option is only
-    used when the game is run on desktops.
+    enables it, a value of false disables it. vSync is disabled by default.
+    With vSync on, each frame is shown at the display's refresh, so frames don't
+    tear and the game runs no faster than the display. With it off, frames are
+    shown as soon as they're ready, which can tear (under Vulkan, the IMMEDIATE
+    present mode). This action should be called before calling StartGame(). This
+    option is only used when the game is run on desktops.
 
     Attribute: Parameter vSync Whether or not vSync should be enabled.
 
@@ -2396,6 +2602,15 @@ if gl20 is OpenGLManager
     action InitializeLayers
         // TO-DO: Consider moving this elsewhere. This needs to happen as a first step in initializing graphics before Painters are made, which occurs when creating layers.
         GraphicsManager graphics = manager:GetGameGraphics()
+
+        // On iOS and Android, Vulkan starts here: the display calls this once
+        // the window it draws on exists.
+        if graphics is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            if not vulkan:IsInitialized()
+                StartMobileVulkan(vulkan)
+            end
+        end
         // It's not clear yet if Vulkan will use the default vertex array in the same way OpenGL does for performance gain.
         if graphics is OpenGLManager
             OpenGLManager openGL = cast(OpenGLManager, graphics)
@@ -2417,6 +2632,36 @@ if gl20 is OpenGLManager
         currentLayer2D:SetName("Default Layer2D")
 
         gameInput:SetLayers(layers)
+
+        /*
+        Phones and tablets draw in pixels, several per screen point, so the
+        interface is scaled by that much to be as large as on a desktop.
+        CreateGame runs after this, so a program can still choose its own
+        scale there.
+        */
+        Application application = manager:GetApplication()
+        if application is IOSApplication or application is AndroidApplication
+            SetInterfaceScale(manager:GetGameDisplay():GetPixelScaleFactor())
+        end
+    end
+
+    /*
+    Starts Vulkan on iOS or Android, with the options from the platform's
+    configuration (useVulkan and vulkanOptions). If the device can't, the game
+    can't draw, so this says so and stops.
+    */
+    private action StartMobileVulkan(VulkanGraphics vulkan)
+        Application application = manager:GetApplication()
+        boolean started = false
+        if application is IOSApplication
+            started = vulkan:Initialize(iosConfig:vulkanOptions)
+        else
+            started = vulkan:Initialize(androidConfig:vulkanOptions)
+        end
+
+        if not started
+            alert("I couldn't start Vulkan on this device. It needs Vulkan 1.3, and iOS 15 or Android 14 or later.")
+        end
     end
 
     /*
@@ -3777,6 +4022,122 @@ if gl20 is OpenGLManager
         return GetCurrentLayer3D():GetSkybox()
     end
 
+    /*
+    This action turns multisample anti-aliasing (MSAA) for 3D on or off.
+    MSAA smooths the stair-stepped edges of 3D models by testing several
+    points in each pixel along their edges. 1 turns it off, which is the
+    default. 4 is the usual choice: it costs little on most graphics
+    hardware. 2 and 8 are also possible, if the device supports them;
+    otherwise the highest count it can do below is used. It works with the
+    Vulkan renderer only; OpenGL ignores it. It can be called at any time,
+    such as from a settings menu, and takes effect at the next frame.
+
+    Attribute: Parameter samples How many samples per pixel: 1 (off), 2, 4 or 8.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling3D(4)
+        end
+    end
+    */
+    action SetMultisampling3D(integer samples)
+        multisampleCount = samples
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            vulkan:SetMultisampleCount(samples)
+        end
+    end
+
+    /*
+    This action returns how many samples per pixel MSAA was asked to use (see
+    SetMultisampling3D).
+
+    Attribute: Returns The count asked for; 1 means MSAA is off.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling3D(4)
+            output "MSAA samples: " + GetMultisampling3D()
+        end
+    end
+    */
+    action GetMultisampling3D returns integer
+        return multisampleCount
+    end
+
+    /*
+    This action turns multisample anti-aliasing (MSAA) on or off for 2D, and
+    for everything drawn on the screen's final image. It smooths the edges
+    of 2D items that are turned or scaled. Shapes drawn from textures, such
+    as circles and text, and controls are already smooth, and don't change.
+    1 turns it off, which is the default; 4 is the usual choice. It works
+    with the Vulkan renderer only; OpenGL ignores it. It is separate from
+    SetMultisampling3D, which smooths 3D models. It takes effect at the next
+    frame.
+
+    Attribute: Parameter samples How many samples per pixel: 1 (off), 2, 4 or 8.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling2D(4)
+        end
+    end
+    */
+    action SetMultisampling2D(integer samples)
+        multisampleCount2D = samples
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            vulkan:SetMultisampleCount2D(samples)
+        end
+    end
+
+    /*
+    This action returns how many samples per pixel 2D MSAA was asked to use
+    (see SetMultisampling2D).
+
+    Attribute: Returns The count asked for; 1 means it's off.
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SetMultisampling2D(4)
+            output "2D MSAA samples: " + GetMultisampling2D()
+        end
+    end
+    */
+    action GetMultisampling2D returns integer
+        return multisampleCount2D
+    end
+
     action SetSimulationThreshold2D(number threshold)
         GetCurrentLayer2D():SetSimulationThreshold(threshold)
     end
@@ -3828,6 +4189,46 @@ if gl20 is OpenGLManager
     */
     action GetFocus returns Item
         return focusManager:GetFocus()
+    end
+
+    /*
+    The HideFocusOutlineUntilTouch action hides the outline around the
+    focused item on phones and tablets until the next touch or key press.
+    Forms calls it when a page opens: the first item gets the focus, so a
+    keyboard or VoiceOver starts there, but on a touch screen an outline on
+    an item nobody chose looks wrong. On a desktop it does nothing.
+    */
+    action HideFocusOutlineUntilTouch
+        Application application = manager:GetApplication()
+        if application is IOSApplication or application is AndroidApplication
+            focusOutlineHidden = true
+        end
+    end
+
+    /*
+    The ShowFocusOutline action draws the focus outline again after
+    HideFocusOutlineUntilTouch. MobileInput calls it on a touch or key press.
+    */
+    action ShowFocusOutline
+        if not focusOutlineHidden
+            return now
+        end
+        focusOutlineHidden = false
+        Item focused = GetFocus()
+        if focused is Item2D
+            Item2D focused2D = cast(Item2D, focused)
+            focused2D:RequestVerticesUpdate()
+        end
+    end
+
+    /*
+    The IsFocusOutlineHidden action returns true while the focus outline is
+    hidden until the next touch or key press.
+
+    Attribute: Returns True if the focus outline is hidden.
+    */
+    action IsFocusOutlineHidden returns boolean
+        return focusOutlineHidden
     end
 
     /*
@@ -4045,6 +4446,34 @@ if gl20 is OpenGLManager
     end
 
     /*
+    This action builds the scene editor's input tables again with other
+    keys, replacing the ones the Game made with the default keys. A program
+    that lets people change their keys, such as Quorum Studio, gives it a
+    SceneEditorKeys that returns their keys.
+
+    Attribute: Parameter keys The scene editor's keys.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.SceneEditorKeys
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SceneEditorKeys keys
+            ReplaceSceneEditorInput(keys)
+        end
+    end
+    */
+    action ReplaceSceneEditorInput(SceneEditorKeys keys)
+        DefaultInputSets sets
+        sets:SetupSceneEditorInput(gameInput, keys)
+    end
+
+    /*
     This action retrieves an InputTable with the matching identifier from the
     Game (if there is one). If there is no InputTable with this identifier,
     the action will return undefined.
@@ -4107,6 +4536,18 @@ if gl20 is OpenGLManager
         end
     end
     */
+    /*
+    The GetSafeRegion action returns the part of the display that nothing
+    covers, such as a camera cutout or a system bar, in pixels with (0, 0) at
+    the bottom left (see GameDisplay:GetSafeRegion). Games that draw their
+    own scenes can use it to keep important things visible.
+
+    Attribute: Returns The display's safe region.
+    */
+    action GetSafeRegion returns Rectangle
+        return manager:GetGameDisplay():GetSafeRegion()
+    end
+
     action SetInterfaceScale(number scale)
         integer counter = 0
         repeat while counter < layers:GetSize()
@@ -4805,6 +5246,70 @@ if gl20 is OpenGLManager
         container:Set(event, callback)
 
         pendingScreenshots:Add(container)
+    end
+
+    /*
+    Adds a FileWatcher. Each frame the Game sends the watcher's changes to
+    its listeners, on the main thread, so the listeners may change the
+    interface. Adding the same watcher twice has no effect.
+
+    Attribute: Parameter watcher the FileWatcher to add.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.System.File
+    use Libraries.System.FileWatcher
+    use Libraries.System.FileChangeEvent
+    use Libraries.System.FileChangeListener
+
+    class Main is Game, FileChangeListener
+        FileWatcher watcher
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File folder
+            folder:SetAbsolutePath("/Users/me/Documents/Notes")
+            watcher:AddListener(me)
+            watcher:Watch(folder, true)
+            AddFileWatcher(watcher)
+        end
+
+        action FileChanged(FileChangeEvent event)
+            File changed = event:GetFile()
+            output "Something changed: " + changed:GetAbsolutePath()
+        end
+    end
+    */
+    action AddFileWatcher(FileWatcher watcher)
+        if not fileWatchers:Has(watcher)
+            fileWatchers:Add(watcher)
+        end
+    end
+
+    /*
+    Removes a FileWatcher added with AddFileWatcher. The watcher keeps
+    watching; its changes wait until something else takes them.
+
+    Attribute: Parameter watcher the FileWatcher to remove.
+    */
+    action RemoveFileWatcher(FileWatcher watcher)
+        fileWatchers:Remove(watcher)
+    end
+
+    /*
+    Sends the waiting changes of every FileWatcher added with
+    AddFileWatcher to its listeners. Called from ContinueGame.
+    */
+    private action DispatchFileChanges
+        integer i = 0
+        repeat while i < fileWatchers:GetSize()
+            FileWatcher watcher = fileWatchers:Get(i)
+            watcher:DispatchChanges()
+            i = i + 1
+        end
     end
 
     action GetSharedTextureManager returns SharedTextureManager

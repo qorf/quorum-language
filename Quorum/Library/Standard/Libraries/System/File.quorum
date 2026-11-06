@@ -161,6 +161,32 @@ class File
         return GetWorkingDirectoryNative()
     end
 
+    /*
+        This action sets this File's working directory to the folder where the
+        program can save its own data and find it again the next time it
+        runs. On phones and tablets, the program's own files are read-only,
+        so files to save go here: on iPhones and iPads it is the app's
+        Documents folder, and on Android the app's private files folder. On
+        desktop computers it is the program's usual working directory, and on
+        the web it is the page's folder, where writing a file downloads it.
+
+        Attribute: Example
+        use Libraries.System.File
+
+        File save
+        save:SetWorkingDirectoryToStorage()
+        save:SetPath("scores.txt")
+        save:Write("High score: 100")
+    */
+    action SetWorkingDirectoryToStorage
+        SetWorkingDirectory(GetStorageDirectoryNative())
+    end
+
+    /*
+     * The folder where the program can save its own data, on the native side.
+     */
+    private system action GetStorageDirectoryNative returns text
+
     action SetWorkingDirectory(text path)
         boolean result = SetWorkingDirectoryNative(path)
         //if not result

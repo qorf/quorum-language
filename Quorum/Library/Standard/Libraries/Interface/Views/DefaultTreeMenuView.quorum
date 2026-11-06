@@ -4,60 +4,66 @@ use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureFilter
-use Libraries.Game.Graphics.Color
-use Libraries.Game.Graphics.PixelMap
-use Libraries.Game.Graphics.Format
-use Libraries.Game.Graphics.FileTextureData
-use Libraries.Game.GameStateManager
-use Libraries.Game.Graphics.SharedTextureManager
-use Libraries.Game.Graphics.SharedTexture
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Compute.Math
 
+/*
+    The DefaultTreeMenuView draws a tree item's arrow: a chevron, pointing
+    right when the item is closed and down when it is open. It is drawn at
+    the size it shows, in pixels, each pixel as solid as the share of it the
+    chevron covers, so its edges are smooth at any size and interface
+    scale. It is white, and tinted by the tree's colors.
+*/
 class DefaultTreeMenuView is Drawable, ToggleView
     boolean open = false
-    
-    constant text TEXTURE_KEY_PREFIX = "DefaultTreeMenuView-"
+
+    // The size, in pixels, the loaded chevron was drawn for.
+    integer drawnSize = 0
+    Math math
+
+    // Makes and shares the chevron textures.
+    ChevronTexture chevrons
+
+    // The smallest size a chevron is drawn for; smaller arrows shrink it.
+    constant integer SMALLEST_SIZE = 6
 
     action Initialize(integer width, integer height)
         SetName("DefaultTreeMenuView")
-        Color color
-        Texture texture = GenerateTriangle(200, 20, color:White())
-        Load(texture)
+        // Redrawn at its real size the first time it is sized.
+        LoadChevron(16)
     end
 
-    private action GenerateTriangle(integer size, integer buffer, Color color) returns Texture
-GameStateManager gameState
-        SharedTextureManager textureManager = gameState:GetSharedTextureManager()
-        text textureKey = TEXTURE_KEY_PREFIX + size + "-" + buffer
-        integer red = cast(integer, color:GetRed() * 255)
-integer green = cast(integer, color:GetGreen() * 255)
-integer blue = cast(integer, color:GetBlue() * 255)
-integer alpha = cast(integer, color:GetAlpha() * 255)
-        textureKey = textureKey + "-" + red + "/" + green + "/" + blue + "/" + alpha
-        if textureManager:HasKey(textureKey)
-            return textureManager:GetTexture(textureKey)
+    /*
+        Loads the chevron for a size, keeping the arrow turned as it was.
+    */
+    private action LoadChevron(integer size)
+        number angle = GetRotation()
+        // Loading a texture makes a Drawable white; keep the tree's tint.
+        ColorGroup tint = GetColorGroup()
+        Load(chevrons:GetTexture(size))
+        SetRotation(angle)
+        if tint not= undefined
+            SetColor(tint)
         end
-        
-        PixelMap map
-        Format format
-        format:SetValue(format:RGBA8888)
-        map:CreatePixelMap(size, size, format)
-        
-        
-        integer middle = buffer * 2
-        middle = cast(integer, size / 2.0)
-        map:FillTriangle(size / 4, buffer, size / 4, size - buffer, middle + size / 4, middle, color)
-        SharedTexture texture
-        texture:LoadFromPixelMap(map)
-        textureManager:Add(textureKey, texture)
-        return texture
+        drawnSize = size
     end
 
     action QueueForDrawing(Painter2D painter)
         parent:Drawable:QueueForDrawing(painter)
     end
 
+    /*
+        Sizes the arrow, drawing the chevron again first when the size, in
+        whole pixels, changed.
+    */
     action UpdateSize(number width, number height)
+        integer size = cast(integer, math:Round(math:MinimumOf(width, height)))
+        if size < SMALLEST_SIZE
+            size = SMALLEST_SIZE
+        end
+        if size not= drawnSize
+            LoadChevron(size)
+        end
         SetSize(width, height)
     end
 

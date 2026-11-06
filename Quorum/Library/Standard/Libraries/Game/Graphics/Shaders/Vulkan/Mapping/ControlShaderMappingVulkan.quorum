@@ -215,6 +215,13 @@ end
                         borderThickness = (1.0 / height) * (control:GetMouseOverBorderThickness() * control:GetInterfaceScale())
                     end
                 end
+                // While focused, the focus ring's own thickness, over the
+                // hover one (light mode's 1-point edge becomes a 2-point ring).
+                if overrideBorder = false and control:IsRenderingFocus()
+                    if control:HasFocusBorderThickness()
+                        borderThickness = (1.0 / height) * (control:GetFocusBorderThickness() * control:GetInterfaceScale())
+                    end
+                end
 
                 if borderThickness > 0
                     if control:HasLeftBorder()
@@ -368,9 +375,11 @@ borderColor = control:GetMouseOverBorderColor()
         end
 
         shape:SetDataForAllVertices(roundingIndex, utility:PackNormalizedVector4(bottomRightRounding, topRightRounding, bottomLeftRounding, topLeftRounding))
-        shape:SetDataForAllVertices(bordersIndex, rightBorder)
+        // Left, top, right, bottom: the order the fragment shader reads, and
+        // the OpenGL vertex shader's (ControlVertexShaderOpenGL).
+        shape:SetDataForAllVertices(bordersIndex, leftBorder)
         shape:SetDataForAllVertices(bordersIndex + 1, topBorder)
-        shape:SetDataForAllVertices(bordersIndex + 2, leftBorder)
+        shape:SetDataForAllVertices(bordersIndex + 2, rightBorder)
         shape:SetDataForAllVertices(bordersIndex + 3, bottomBorder)
         shape:SetDataForAllVertices(aspectRatioIndex, aspectRatio)
         shape:SetDataForAllVertices(antiAliasIndex, 1.0 / height)

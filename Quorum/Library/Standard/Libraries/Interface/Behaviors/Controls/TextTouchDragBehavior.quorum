@@ -1,0 +1,32 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.TextField
+
+/*
+The TextTouchDragBehavior runs as a finger moves on a text box or a text
+field, after a touch began there (TextBoxOpenKeyboardBehavior). It selects
+from where the touch began to the character nearest the finger, as dragging
+the mouse does.
+*/
+class TextTouchDragBehavior is Behavior
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        TouchEvent touch = event:GetTouchEvent()
+        if touch = undefined
+            return now
+        end
+
+        if item is TextBox
+            TextBox box = cast(TextBox, item)
+            box:TouchMoved(touch)
+        elseif item is TextField
+            TextField field = cast(TextField, item)
+            field:TouchMoved(touch)
+        end
+    end
+end

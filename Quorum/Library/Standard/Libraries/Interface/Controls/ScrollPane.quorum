@@ -38,6 +38,9 @@ class ScrollPane is ScrollableControl
     // This is set in the on create block to FIT_CONTENTS_VERTICALLY.
     integer regionSizingMode = 0
 
+    // Whether the pane scrolls to show an item inside it that gets the focus.
+    boolean scrollsToFocus = true
+
     on create
         /* 
         The scroll anchor's properties are set to their initial values as part
@@ -169,6 +172,94 @@ class ScrollPane is ScrollableControl
 
     action GetScrollRegionItems returns Array<Item2D>
         return renderer:GetScrollRegionItems()
+    end
+
+    /*
+    The SetScrollToFocus action sets whether this pane scrolls to show an
+    item inside it when that item gets the focus. It is true by default. A
+    pane that places its own focus, such as a block palette, can turn it off.
+
+    Attribute: Parameter value True to scroll to the focus.
+    */
+    action SetScrollToFocus(boolean value)
+        scrollsToFocus = value
+    end
+
+    /*
+    The GetScrollToFocus action returns whether this pane scrolls to show an
+    item inside it that gets the focus.
+
+    Attribute: Returns True if it scrolls to the focus.
+    */
+    action GetScrollToFocus returns boolean
+        return scrollsToFocus
+    end
+
+    /*
+    The ScrollToShow action scrolls this pane just far enough to show an
+    item inside it: up so its top is at the view's top, or down so its
+    bottom is at the view's bottom. An item already in view moves nothing.
+    An item taller or wider than the view moves only if none of it shows,
+    and then shows from its top or left edge. FocusManager calls it when an
+    item inside the pane gets the focus.
+
+    Attribute: Parameter target The item to show, inside this pane.
+    */
+    action ScrollToShow(Item2D target)
+        if target = undefined or not scrollsToFocus
+            return now
+        end
+        Control region = GetScrollableRegion()
+        if NeedsLayout() or region:NeedsLayout()
+            Resize()
+        end
+
+        // Up and down. Global y grows upward. A positive change moves the
+        // view down the content.
+        number contentHeight = GetTotalContentHeight()
+        if GetScrollPercentageHeight() < 1.0 and contentHeight > 0
+            number viewBottom = region:GetGlobalY()
+            number viewHeight = region:GetHeight()
+            number viewTop = viewBottom + viewHeight
+            number itemBottom = target:GetGlobalY()
+            number itemTop = itemBottom + target:GetHeight()
+            number changeY = 0
+            if target:GetHeight() > viewHeight
+                if itemTop < viewBottom or itemBottom > viewTop
+                    changeY = viewTop - itemTop
+                end
+            elseif itemTop > viewTop
+                changeY = viewTop - itemTop
+            elseif itemBottom < viewBottom
+                changeY = viewBottom - itemBottom
+            end
+            if changeY not= 0
+                SetScrollPercentageY(GetScrollPercentageY() + changeY / contentHeight)
+            end
+        end
+
+        // Left and right. A positive change moves the view right.
+        number contentWidth = GetTotalContentWidth()
+        if GetScrollPercentageWidth() < 1.0 and contentWidth > 0
+            number viewLeft = region:GetGlobalX()
+            number viewWidth = region:GetWidth()
+            number viewRight = viewLeft + viewWidth
+            number itemLeft = target:GetGlobalX()
+            number itemRight = itemLeft + target:GetWidth()
+            number changeX = 0
+            if target:GetWidth() > viewWidth
+                if itemRight < viewLeft or itemLeft > viewRight
+                    changeX = itemLeft - viewLeft
+                end
+            elseif itemLeft < viewLeft
+                changeX = itemLeft - viewLeft
+            elseif itemRight > viewRight
+                changeX = itemRight - viewRight
+            end
+            if changeX not= 0
+                SetScrollPercentageX(GetScrollPercentageX() + changeX / contentWidth)
+            end
+        end
     end
     
 end

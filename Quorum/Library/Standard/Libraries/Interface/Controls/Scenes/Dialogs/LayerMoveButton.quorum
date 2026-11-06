@@ -1,0 +1,160 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ChevronTexture
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Compute.Math
+
+/*
+    A LayerMoveButton is a small square button with a chevron pointing up
+    or down, which moves a terrain's material layer up or down in the
+    Materials section (step 18). It draws a button's face and focus ring
+    like any button, but no text: its name, such as "Move Grass001 up", is
+    for screen readers.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.Dialogs.LayerMoveButton
+
+    LayerMoveButton button
+    button:SetUp(true)
+    button:SetName("Move Grass001 up")
+*/
+class LayerMoveButton is Button
+    // The chevron, a child drawn over the button's face.
+    Drawable arrow
+    ChevronTexture chevrons
+    Math math
+    boolean up = true
+
+    // The size, in pixels, the loaded chevron was drawn for.
+    integer drawnSize = 0
+
+    // How wide and tall the button is, in pixels before the interface
+    // scale, and how much of it the chevron fills.
+    constant number BUTTON_SIZE = 24
+    constant number ARROW_SHARE = 0.75
+
+    on create
+        // Its own face, so it draws as a button with no text.
+        ControlShaderView view
+        view:Initialize()
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetView2D(view)
+        properties:SetLabelText("")
+        Control layoutValues
+        properties:SetHorizontalLayoutMode(layoutValues:STANDARD)
+        properties:SetVerticalLayoutMode(layoutValues:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelWidth(BUTTON_SIZE)
+        properties:SetPixelHeight(BUTTON_SIZE)
+        arrow:SetName("Arrow")
+        Add(arrow)
+    end
+
+    /*
+        Sets whether the chevron points up or down.
+
+        Attribute: Parameter value True for up, false for down
+    */
+    action SetUp(boolean value)
+        up = value
+        PlaceArrow()
+    end
+
+    /*
+        Returns true if the chevron points up.
+
+        Attribute: Returns True for up
+    */
+    action IsUp returns boolean
+        return up
+    end
+
+    /*
+        Names the button for screen readers. The name isn't drawn.
+
+        Attribute: Parameter name The name, such as "Move Grass001 up"
+    */
+    action SetName(text name)
+        parent:Button:SetName(name)
+        GetDefaultLayoutProperties():SetLabelText("")
+    end
+
+    action LoadGraphics(LayoutProperties properties)
+        parent:Button:LoadGraphics(properties)
+        PlaceArrow()
+    end
+
+    action SetSize(number newWidth, number newHeight)
+        parent:Button:SetSize(newWidth, newHeight)
+        PlaceArrow()
+    end
+
+    action SetWidth(number newWidth)
+        parent:Button:SetWidth(newWidth)
+        PlaceArrow()
+    end
+
+    action SetHeight(number newHeight)
+        parent:Button:SetHeight(newHeight)
+        PlaceArrow()
+    end
+
+    action GainedFocus(FocusEvent event)
+        parent:Button:GainedFocus(event)
+        ColorArrow()
+    end
+
+    action LostFocus(FocusEvent event)
+        parent:Button:LostFocus(event)
+        ColorArrow()
+    end
+
+    /*
+        Puts the chevron in the middle of the button, drawn for its size in
+        whole pixels, turned up or down.
+    */
+    private action PlaceArrow
+        integer size = cast(integer, math:Round(math:MinimumOf(GetWidth(), GetHeight()) * ARROW_SHARE))
+        if size < 6
+            return now
+        end
+        if size not= drawnSize
+            arrow:Load(chevrons:GetTexture(size))
+            drawnSize = size
+        end
+        arrow:SetSize(size, size)
+        arrow:SetOriginCenter()
+        arrow:SetPosition(math:Round((GetWidth() - size) / 2), math:Round((GetHeight() - size) / 2))
+        // The chevron points right; a quarter turn one way or the other
+        // points it down or up, as the tree's arrows turn.
+        if up
+            arrow:SetRotation(-90)
+        else
+            arrow:SetRotation(90)
+        end
+        ColorArrow()
+    end
+
+    /*
+        Colors the chevron as the button's text would be.
+    */
+    private action ColorArrow
+        ColorGroup color = undefined
+        if IsFocused()
+            color = GetFocusFontColor()
+        end
+        if color = undefined
+            color = GetFontColor()
+        end
+        if color not= undefined
+            arrow:SetColor(color)
+        end
+    end
+end

@@ -1,0 +1,724 @@
+package Libraries.Web.Page
+
+use Libraries.Web.WebTextEscaper
+
+/*
+    RichText writes text into one paragraph or list item, piece by piece:
+    plain words, and words named by what they are, such as a term being
+    defined or a key to press. Each piece takes its look from the page's
+    style options, so a page never says how words look. Text is written
+    exactly as a reader should see it: characters such as "<" and "&" are
+    made safe for the page here. Every action
+    returns the same RichText, so the pieces can be chained in one line.
+
+    A page gets one from anything that holds text: Paragraph, ListItem,
+    Title, Section, Subsection and Subsubsection each return a writer for
+    their own text. Each writer writes only into its own element.
+
+    Attribute: Example
+    use Libraries.Web.Page.all
+
+    class Main is WebPage
+        action Main
+            Section("Positions")
+            Paragraph("Every item has a position, written as "):Term("coordinates"):Text(".")
+        end
+    end
+*/
+class RichText
+    WebTag target = undefined
+    WebPage page = undefined
+
+    // Makes "&", "<" and ">" in text show as themselves. Every piece of
+    // text this writer adds goes through it.
+    WebTextEscaper escaper
+
+    // Characters that can't be typed inside a Quorum string.
+    text doubleQuote = ""
+    text lineFeed = ""
+    text nonBreakingSpace = ""
+    constant integer NON_BREAKING_SPACE_CODE = 160
+
+    // What goes between the keys of a key combination, such as Ctrl+S.
+    constant text KEY_SEPARATOR = "+"
+
+    // What separates the parts of a class's full name.
+    constant text NAME_SEPARATOR = "."
+
+    on create
+        doubleQuote = doubleQuote:GetDoubleQuote()
+        lineFeed = lineFeed:GetLineFeed()
+        nonBreakingSpace = nonBreakingSpace:GetUnicodeValue(NON_BREAKING_SPACE_CODE)
+    end
+
+    /*
+        Attaches this writer to the paragraph or list item it writes into,
+        and the page that styles what it writes. RichText calls this;
+        people making pages don't.
+
+        Attribute: Parameter target The paragraph or list item to write into.
+        Attribute: Parameter page The page the text is on.
+    */
+    action SetTarget(WebTag target, WebPage page)
+        me:target = target
+        me:page = page
+    end
+
+    /*
+        Adds plain words.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Scenes come in two kinds.")
+            end
+        end
+    */
+    action Text(text value) returns RichText
+        target:AddText(escaper:Escape(value))
+        return me
+    end
+
+    /*
+        Adds a double quote mark ("), which can't be typed inside a Quorum
+        string.
+
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Quorum Studio says "):DoubleQuote():Text("Placed"):DoubleQuote():Text(".")
+            end
+        end
+    */
+    action DoubleQuote returns RichText
+        target:AddText(doubleQuote)
+        return me
+    end
+
+    /*
+        Adds words that are quoted, such as what someone or something says.
+        The browser puts the quote marks around them, in the style of the
+        page's language, so the marks aren't typed.
+
+        Attribute: Parameter value The quoted words, without quote marks.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Quorum Studio says "):Quoted("Placed"):Text(".")
+            end
+        end
+    */
+    action Quoted(text value) returns RichText
+        Quote quote
+        quote:AddText(escaper:Escape(value))
+        target:AddNestedTag(quote)
+        return me
+    end
+
+    /*
+        Starts a new line within the same paragraph or list item, as a
+        line break the reader sees. Use a new paragraph instead when the
+        text starts a new idea.
+
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Quorum Studio"):NewLine():Text("Las Vegas, Nevada")
+            end
+        end
+    */
+    action NewLine returns RichText
+        LineBreak lineBreak
+        target:AddNestedTag(lineBreak)
+        return me
+    end
+
+    /*
+        Adds a line feed character to the text. A browser shows it as a
+        space, so it changes how the page's source looks, not how the page
+        looks; use NewLine for a line the reader sees.
+
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("First line"):LineFeed():Text("still the same line to a reader")
+            end
+        end
+    */
+    action LineFeed returns RichText
+        target:AddText(lineFeed)
+        return me
+    end
+
+    /*
+        Adds a term at the place it is introduced or defined.
+
+        Attribute: Parameter value The term.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("The point (0, 0, 0) is called the "):Term("origin"):Text(".")
+            end
+        end
+    */
+    action Term(text value) returns RichText
+        DefinedTerm term
+        term:AddText(escaper:Escape(value))
+        page:SetStyle(term, page:GetStyleOptions():GetTerm())
+        target:AddNestedTag(term)
+        return me
+    end
+
+    /*
+        Adds important words.
+
+        Attribute: Parameter value The important words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph():Strong("Save your work"):Text(" before closing the editor.")
+            end
+        end
+    */
+    action Strong(text value) returns RichText
+        StrongText strong
+        strong:AddText(escaper:Escape(value))
+        page:SetStyle(strong, page:GetStyleOptions():GetStrong())
+        target:AddNestedTag(strong)
+        return me
+    end
+
+    /*
+        Adds words said with stress.
+
+        Attribute: Parameter value The stressed words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Neither kind is "):Emphasis("better"):Text(".")
+            end
+        end
+    */
+    action Emphasis(text value) returns RichText
+        Emphasize emphasis
+        emphasis:AddText(escaper:Escape(value))
+        page:SetStyle(emphasis, page:GetStyleOptions():GetEmphasis())
+        target:AddNestedTag(emphasis)
+        return me
+    end
+
+    /*
+        Adds code, such as the name of an action.
+
+        Attribute: Parameter value The code.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Call "):Code("SetGap"):Text(" to space the items.")
+            end
+        end
+    */
+    action Code(text value) returns RichText
+        CodeBlock code
+        code:AddText(escaper:Escape(value))
+        page:SetStyle(code, page:GetStyleOptions():GetCode())
+        target:AddNestedTag(code)
+        return me
+    end
+
+    /*
+        Adds a key to press, such as "Enter".
+
+        Attribute: Parameter value The key.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Press "):Key("Enter"):Text(" to place the item.")
+            end
+        end
+    */
+    action Key(text value) returns RichText
+        KeyboardInput key
+        key:AddText(escaper:Escape(value))
+        page:SetStyle(key, page:GetStyleOptions():GetKey())
+        target:AddNestedTag(key)
+        return me
+    end
+
+    /*
+        Adds bold words that have no other meaning: only a look. Prefer
+        Term, Strong or Emphasis when one of them fits.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph():Bold("Note:"):Text(" this changes every page.")
+            end
+        end
+    */
+    action Bold(text value) returns RichText
+        Bold bold
+        bold:AddText(escaper:Escape(value))
+        page:SetStyle(bold, page:GetStyleOptions():GetBold())
+        target:AddNestedTag(bold)
+        return me
+    end
+
+    /*
+        Adds the name of a variable: a name that stands for a value, in math
+        or in code.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Set "):Variable("x"):Text(" to 100.")
+            end
+        end
+    */
+    action Variable(text value) returns RichText
+        Variable variable
+        variable:AddText(escaper:Escape(value))
+        page:SetStyle(variable, page:GetStyleOptions():GetVariable())
+        target:AddNestedTag(variable)
+        return me
+    end
+
+    /*
+        Adds what a program prints or says, such as a message a screen
+        reader reads aloud.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Quorum Studio says "):Output("Placed"):Text(".")
+            end
+        end
+    */
+    action Output(text value) returns RichText
+        SampleOutput sample
+        sample:AddText(escaper:Escape(value))
+        page:SetStyle(sample, page:GetStyleOptions():GetOutput())
+        target:AddNestedTag(sample)
+        return me
+    end
+
+    /*
+        Adds a combination of two keys pressed together, such as Ctrl+S.
+
+        Attribute: Parameter first The first key, such as "Ctrl".
+        Attribute: Parameter second The second key, such as "S".
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Press "):Keys("Ctrl", "S"):Text(" to save.")
+            end
+        end
+    */
+    action Keys(text first, text second) returns RichText
+        KeyboardInput combination
+        AddKeyTo(combination, first)
+        combination:AddText(KEY_SEPARATOR)
+        AddKeyTo(combination, second)
+        target:AddNestedTag(combination)
+        return me
+    end
+
+    /*
+        Adds a combination of three keys pressed together, such as
+        Ctrl+Shift+S.
+
+        Attribute: Parameter first The first key, such as "Ctrl".
+        Attribute: Parameter second The second key, such as "Shift".
+        Attribute: Parameter third The third key, such as "S".
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Press "):Keys("Ctrl", "Shift", "S"):Text(" to save as.")
+            end
+        end
+    */
+    action Keys(text first, text second, text third) returns RichText
+        KeyboardInput combination
+        AddKeyTo(combination, first)
+        combination:AddText(KEY_SEPARATOR)
+        AddKeyTo(combination, second)
+        combination:AddText(KEY_SEPARATOR)
+        AddKeyTo(combination, third)
+        target:AddNestedTag(combination)
+        return me
+    end
+
+    /*
+        Adds a short form, such as "CSTA", with its full form, which
+        screen readers and tooltips can give.
+
+        Attribute: Parameter short The short form, as shown.
+        Attribute: Parameter full The full form.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("See the "):Abbreviation("CSTA", "Computer Science Teachers Association"):Text(" standards.")
+            end
+        end
+    */
+    action Abbreviation(text short, text full) returns RichText
+        Abbreviation abbreviation
+        abbreviation:AddText(escaper:Escape(short))
+        abbreviation:SetTitle(escaper:EscapeAttribute(full))
+        target:AddNestedTag(abbreviation)
+        return me
+    end
+
+    /*
+        Adds words raised above the line, such as the 2 in x squared.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("The area is x"):Superscript("2"):Text(".")
+            end
+        end
+    */
+    action Superscript(text value) returns RichText
+        SuperscriptText superscript
+        superscript:AddText(escaper:Escape(value))
+        target:AddNestedTag(superscript)
+        return me
+    end
+
+    /*
+        Adds words lowered below the line, such as the 2 in H2O.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Water is H"):Subscript("2"):Text("O.")
+            end
+        end
+    */
+    action Subscript(text value) returns RichText
+        SubscriptText subscript
+        subscript:AddText(escaper:Escape(value))
+        target:AddNestedTag(subscript)
+        return me
+    end
+
+    /*
+        Adds the title of a work, such as a game, book or film.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph():Citation("StarCraft"):Text(" shipped with a map editor.")
+            end
+        end
+    */
+    action Citation(text value) returns RichText
+        Cite citation
+        citation:AddText(escaper:Escape(value))
+        target:AddNestedTag(citation)
+        return me
+    end
+
+    /*
+        Adds a date or time, with the same moment written the way
+        computers read it, so screen readers, calendars and search engines
+        can understand it.
+
+        Attribute: Parameter words The date or time as shown, such as "1998".
+        Attribute: Parameter moment The same moment for computers, such as "1998" or "2026-10-29".
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("StarCraft ("):Time("1998", "1998"):Text(") shipped with a map editor.")
+            end
+        end
+    */
+    action Time(text words, text moment) returns RichText
+        Time time
+        time:AddText(escaper:Escape(words))
+        time:SetDateTime(escaper:EscapeAttribute(moment))
+        target:AddNestedTag(time)
+        return me
+    end
+
+    /*
+        Adds highlighted words, to point at them, such as a line that changed.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Change "):Highlight("SetGap(8)"):Text(" to SetGap(16).")
+            end
+        end
+    */
+    action Highlight(text value) returns RichText
+        Highlight highlight
+        highlight:AddText(escaper:Escape(value))
+        target:AddNestedTag(highlight)
+        return me
+    end
+
+    /*
+        Adds words that were inserted, to show a change being made.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("The line becomes SetGap("):Deleted("8"):Inserted("16"):Text(").")
+            end
+        end
+    */
+    action Inserted(text value) returns RichText
+        Inserted inserted
+        inserted:AddText(escaper:Escape(value))
+        target:AddNestedTag(inserted)
+        return me
+    end
+
+    /*
+        Adds words that were deleted, to show a change being made.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("The line becomes SetGap("):Deleted("8"):Inserted("16"):Text(").")
+            end
+        end
+    */
+    action Deleted(text value) returns RichText
+        Deleted deleted
+        deleted:AddText(escaper:Escape(value))
+        target:AddNestedTag(deleted)
+        return me
+    end
+
+    /*
+        Adds small print, such as a side note.
+
+        Attribute: Parameter value The words.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Scenes save automatically. "):SmallText("(Every few seconds.)")
+            end
+        end
+    */
+    action SmallText(text value) returns RichText
+        SmallText small
+        small:AddText(escaper:Escape(value))
+        target:AddNestedTag(small)
+        return me
+    end
+
+    /*
+        Adds a space that never breaks across lines, to keep two words
+        together, such as "Warcraft III".
+
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Warcraft"):NonBreakingSpace():Text("III shipped with its World Editor.")
+            end
+        end
+    */
+    action NonBreakingSpace returns RichText
+        target:AddText(nonBreakingSpace)
+        return me
+    end
+
+    /*
+        Adds a link to the page documenting a class in a code library,
+        showing the class's short name. The website knows where those
+        pages are (see WebSite:SetLibraryCodeFolder).
+
+        Attribute: Parameter className The class's full name, such as "Libraries.System.File".
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Files are read with "):LibraryCodeLink("Libraries.System.File"):Text(".")
+            end
+        end
+    */
+    action LibraryCodeLink(text className) returns RichText
+        // The short name is everything after the last separator.
+        integer last = -1
+        integer next = className:IndexOf(NAME_SEPARATOR)
+        repeat while next >= 0
+            last = next
+            if last + 1 < className:GetSize()
+                next = className:IndexOf(NAME_SEPARATOR, last + 1)
+            else
+                next = -1
+            end
+        end
+        return LibraryCodeLink(className:GetSubtext(last + 1), className)
+    end
+
+    /*
+        Adds a link to the page documenting a class in a code library,
+        showing words of your choice.
+
+        Attribute: Parameter words The words to show.
+        Attribute: Parameter className The class's full name, such as "Libraries.System.File".
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("Read it with the "):LibraryCodeLink("File class", "Libraries.System.File"):Text(".")
+            end
+        end
+    */
+    action LibraryCodeLink(text words, text className) returns RichText
+        return Link(words, page:GetWebSite():GetLibraryCodeAddress(className))
+    end
+
+    // Adds one key, as its own <kbd>, inside a key combination.
+    private action AddKeyTo(KeyboardInput combination, text value)
+        KeyboardInput key
+        key:AddText(escaper:Escape(value))
+        combination:AddNestedTag(key)
+    end
+
+    /*
+        Adds a link.
+
+        Attribute: Parameter words The words to show.
+        Attribute: Parameter address Where the link goes.
+        Attribute: Returns This writer, to add more.
+
+        Attribute: Example
+        use Libraries.Web.Page.all
+
+        class Main is WebPage
+            action Main
+                Paragraph("See the "):Link("standards", "https://csteachers.org/pk12standards/view/"):Text(".")
+            end
+        end
+    */
+    action Link(text words, text address) returns RichText
+        Link link
+        link:AddText(escaper:Escape(words))
+        link:SetAddress(escaper:EscapeAttribute(address))
+        page:SetStyle(link, page:GetStyleOptions():GetLink())
+        target:AddNestedTag(link)
+        return me
+    end
+end

@@ -1,0 +1,91 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanMemoryAllocatorStrategy;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.vma.VmaAllocatorCreateInfo;
+import org.lwjgl.util.vma.VmaTotalStatistics;
+import org.lwjgl.util.vma.VmaVulkanFunctions;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
+
+import static org.lwjgl.util.vma.Vma.*;
+import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
+
+public class DesktopVulkanMemoryAllocator implements VulkanMemoryAllocatorStrategy
+{
+    private final VulkanMemoryAllocator peer;
+
+    public DesktopVulkanMemoryAllocator(VulkanMemoryAllocator peer)
+    {
+        this.peer = peer;
+    }
+
+    long allocatorPointer = 0L;
+
+    public boolean CreateNative(VulkanInstance_ quorumInstance, VulkanDevice_ quorumDevice)
+    {
+        VulkanInstance pluginInstance = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance)quorumInstance).plugin_;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanPhysicalDevice pluginPhysicalDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumDevice.GetPhysicalDevice()).plugin_;
+
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            PointerBuffer pointerBuffer = stack.mallocPointer(1);
+
+            // Create the interface the VMA will use for accessing Vulkan functions through our structures.
+            VmaVulkanFunctions vulkanFunctions = VmaVulkanFunctions.calloc(stack);
+            vulkanFunctions.set(pluginInstance.GetInstance(), pluginDevice.GetDevice());
+
+            VmaAllocatorCreateInfo createInfo = VmaAllocatorCreateInfo.calloc(stack);
+            createInfo.instance(pluginInstance.GetInstance());
+            createInfo.device(pluginDevice.GetDevice());
+            createInfo.physicalDevice(pluginPhysicalDevice.GetDevice());
+            createInfo.pVulkanFunctions(vulkanFunctions);
+            createInfo.flags(VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT);
+
+            int vulkanResult = vmaCreateAllocator(createInfo, pointerBuffer);
+            if (vulkanResult != VK_SUCCESS)
+                return false;
+
+            allocatorPointer = pointerBuffer.get(0);
+        }
+
+        return true;
+    }
+
+    public void DisposeNative()
+    {
+        vmaDestroyAllocator(allocatorPointer);
+        allocatorPointer = 0L;
+    }
+
+    public long GetAllocatorPointer()
+    {
+        return allocatorPointer;
+    }
+
+    public double GetAllocatedBytes()
+    {
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
+            vmaCalculateStatistics(allocatorPointer, statistics);
+            return (double)statistics.total().statistics().allocationBytes();
+        }
+    }
+
+    public int GetAllocationCount()
+    {
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
+            vmaCalculateStatistics(allocatorPointer, statistics);
+            return statistics.total().statistics().allocationCount();
+        }
+    }
+}

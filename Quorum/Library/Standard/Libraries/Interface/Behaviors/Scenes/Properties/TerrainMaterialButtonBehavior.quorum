@@ -1,0 +1,35 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
+
+/*
+    The TerrainMaterialButtonBehavior is a button in a terrain's Materials
+    section (step 9): "Add material...", or a layer's "Choose..." or
+    "Remove". It tells the section which was pressed.
+*/
+class TerrainMaterialButtonBehavior is Behavior
+    TerrainMaterialsPropertiesDialog dialog = undefined
+    integer kind = 0
+    integer layer = 0
+
+    /*
+        Sets which section and button this is.
+
+        Attribute: Parameter dialog The Materials section
+        Attribute: Parameter kind The section's ADD, CHOOSE or REMOVE
+        Attribute: Parameter layer The layer, from 0, for CHOOSE and REMOVE
+    */
+    action Setup(TerrainMaterialsPropertiesDialog dialog, integer kind, integer layer)
+        me:dialog = dialog
+        me:kind = kind
+        me:layer = layer
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog not= undefined
+            dialog:ButtonActivated(kind, layer)
+        end
+    end
+end

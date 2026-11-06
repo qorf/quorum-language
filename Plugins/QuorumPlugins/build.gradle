@@ -1,12 +1,16 @@
-import org.gradle.internal.os.OperatingSystem
-
 plugins {
     id 'java'
     id 'application'
 }
 
-group 'plugins.quorum'
-version '10.0'
+// The operating system, from Java rather than Gradle's internal OperatingSystem
+// class, which Gradle doesn't promise to keep.
+def osName = System.getProperty("os.name").toLowerCase()
+def isMac = osName.contains("mac")
+def isWindows = osName.contains("windows")
+
+group = 'plugins.quorum'
+version = '10.0'
 
 project.ext.lwjglVersion = "3.4.1"
 project.ext.lwjglMac = "natives-macos"
@@ -14,21 +18,97 @@ project.ext.lwjglMacArm = "natives-macos-arm64"
 project.ext.lwjglWindows = "natives-windows"
 project.ext.lwjglWindows32 = "natives-windows-x86"
 
-switch (OperatingSystem.current()) {
-    case OperatingSystem.MAC_OS:
-        project.ext.lwjglNatives = "natives-macos"
-        break
-    case OperatingSystem.WINDOWS:
-        def osArch = System.getProperty("os.arch")
-        project.ext.lwjglNatives = osArch.contains("64")
-                ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
-                : "natives-windows-x86"
-        break
+if (isMac) {
+    project.ext.lwjglNatives = "natives-macos"
+} else if (isWindows) {
+    def osArch = System.getProperty("os.arch")
+    project.ext.lwjglNatives = osArch.contains("64")
+            ? "natives-windows${osArch.startsWith("aarch64") ? "-arm64" : ""}"
+            : "natives-windows-x86"
 }
 
 repositories {
     mavenCentral()
     //google()
+}
+
+// Android's API (compile only), from the newest Android platform installed in
+// the Android SDK (ANDROID_HOME, or where Android Studio puts it). The Android
+// code needs API 31 or later; Quorum targets 36. Without an Android SDK, the
+// old API 23 jar in the repository is used, which can't compile that code.
+def androidSdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
+if (androidSdk == null) {
+    androidSdk = isWindows
+            ? System.getenv("LOCALAPPDATA") + "/Android/Sdk"
+            : System.getProperty("user.home") + "/Library/Android/sdk"
+}
+def androidJar = file('../GamePlugin/JavaGame/libs/android.jar')
+def androidApi = 23
+def androidPlatforms = file("$androidSdk/platforms").listFiles()
+if (androidPlatforms != null) {
+    def newest = androidPlatforms
+            .findAll { new File(it, "android.jar").exists() && it.name ==~ /android-\d+.*/ }
+            .max { (it.name =~ /android-(\d+)/)[0][1] as int }
+    if (newest != null) {
+        androidJar = new File(newest, "android.jar")
+        androidApi = (newest.name =~ /android-(\d+)/)[0][1] as int
+    }
+}
+
+// The newest Android API the plugins use (AccessibilityNodeInfo.setContainerTitle).
+// Below it, stop with what to install rather than dozens of compile errors. This
+// is checked only when compiling, so tasks like clean still work without an SDK.
+// The user installs the SDK themselves: it asks them to accept Google's license.
+def minimumAndroidApi = 34
+tasks.named('compileJava') {
+    doFirst {
+        if (androidApi < minimumAndroidApi) {
+            def found = androidApi == 23
+                    ? "No Android SDK was found. Looked in ANDROID_HOME, ANDROID_SDK_ROOT and ${androidSdk}."
+                    : "The Android SDK in ${androidSdk} only has API ${androidApi}. Quorum needs API ${minimumAndroidApi} or later."
+            def steps = isWindows
+                    ? """RUN THESE STEPS, IN ORDER:
+
+  1. Install Android Studio. In a terminal, run:
+
+       winget install Google.AndroidStudio
+
+  2. Open Android Studio and finish its setup. It installs the Android SDK.
+     Then open Settings > Languages & Frameworks > Android SDK.
+     Under SDK Platforms, check Android 16 (API 36), and click OK.
+     Accept the license when it asks.
+
+  3. Build the standard library again."""
+                    : """RUN THESE COMMANDS IN A TERMINAL, IN ORDER:
+
+  1. Install the Android command-line tools (skip this if sdkmanager already works):
+
+       brew install --cask android-commandlinetools
+
+  2. Install the Android platform Quorum compiles against:
+
+       sdkmanager --sdk_root="\$HOME/Library/Android/sdk" "platforms;android-36"
+
+     It shows the Android SDK license. Read it, type y, and press Return.
+     (Keep --sdk_root as it is: that's where this build looks.)
+
+  3. Build the standard library again.
+
+  These need Homebrew (https://brew.sh) and Java 17 or later (check with: java -version).
+  Or, instead of steps 1 and 2: install Android Studio (https://developer.android.com/studio),
+  open Settings > Languages & Frameworks > Android SDK, and install Android 16 (API 36)."""
+            throw new GradleException("""
+==============================================================================
+ Quorum's Android plugins need the Android SDK (API 36).
+ ${found}
+==============================================================================
+
+${steps}
+
+If the Android SDK is installed somewhere else, set ANDROID_HOME to its folder.
+==============================================================================""")
+        }
+    }
 }
 
 
@@ -39,7 +119,7 @@ dependencies {
 
     //local dependencies
     compileOnly files('../../Quorum/Library/Compiled/Run/QuorumStandardLibrary.jar')
-    compileOnly files('../GamePlugin/JavaGame/libs/android.jar')
+    compileOnly files(androidJar)
 
     //These dependencies are the old ones used from the older RoboVM. The new ones
     //should be compiled against instead, but we need to check compatability, and as such
@@ -49,9 +129,9 @@ dependencies {
     //compileOnly files('../GamePlugin/JavaGame/libs/robovm-rt-1.8.0.jar')
 
     //Mobivm dependencies
-    compileOnly 'com.mobidevelop.robovm:robovm-compiler:2.3.20'
-    compileOnly 'com.mobidevelop.robovm:robovm-rt:2.3.20'
-    compileOnly 'com.mobidevelop.robovm:robovm-cocoatouch:2.3.20'
+    compileOnly 'com.mobidevelop.robovm:robovm-compiler:2.3.26'
+    compileOnly 'com.mobidevelop.robovm:robovm-rt:2.3.26'
+    compileOnly 'com.mobidevelop.robovm:robovm-cocoatouch:2.3.26'
 
     implementation 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
 
@@ -128,15 +208,19 @@ dependencies {
     //LEGO EV3
     implementation files('../RobotPlugin/LegoPlugins/libraries/ev3classes.jar')
     implementation files('../RobotPlugin/LegoPlugins/libraries/dbusjava.jar')
-
-    //accesskit for mac
-    implementation files('libraries/accesskit.jar')
 }
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+}
+
+// The sources are UTF-8. Without this, javac reads them in the system's default
+// encoding: UTF-8 on a Mac, but the code page on Windows (usually Cp1252), which
+// turns characters like the bullet in TextAdjust.java into three and fails.
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 jar {
@@ -156,12 +240,30 @@ test {
     //useJUnitPlatform()
 }
 
-task copyToQuorum(type: Copy) {
-    from configurations.runtimeClasspath
-    into '../../Quorum/Library/Compiled/Run/libraries'
+// Copies the plugins jar and its libraries into the standard library. The
+// copies are in doLast, after the jar task: a copy written directly in this
+// block runs while Gradle sets up the build, and copies the previous build's
+// jar. It's a plain task, not a Copy task, because Gradle skips a Copy task
+// whose files (the libraries) haven't changed, and its doLast with it, so the
+// new jar was never copied.
+task copyToQuorum {
+    dependsOn jar
 
-    copy {
-        from 'build/libs/QuorumStandardPlugins.jar'
-        into '../../Quorum/Library/Compiled/Run/'
+    doLast {
+        // The copy below only adds files, so remove LWJGL jars of any other
+        // version first; otherwise each upgrade leaves the old ones behind,
+        // and they end up in the installers.
+        delete fileTree('../../Quorum/Library/Compiled/Run/libraries') {
+            include 'lwjgl*.jar'
+            exclude "lwjgl*-${project.ext.lwjglVersion}*.jar"
+        }
+        copy {
+            from configurations.runtimeClasspath
+            into '../../Quorum/Library/Compiled/Run/libraries'
+        }
+        copy {
+            from jar.archiveFile
+            into '../../Quorum/Library/Compiled/Run/'
+        }
     }
 }

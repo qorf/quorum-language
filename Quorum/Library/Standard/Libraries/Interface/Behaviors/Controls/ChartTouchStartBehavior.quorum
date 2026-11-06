@@ -25,6 +25,10 @@ class ChartTouchStartBehavior is Behavior
 
         if item is ChartItem
             ChartItem chartItem = cast(ChartItem, item)
+            // A part with no chart set (such as a legend entry) is skipped.
+            if chartItem:GetContainer() = undefined
+                return now
+            end
             if chartItem:GetContainer():GetTouchExplorationEnabled() and chartItem:GetContainer():GetSelection():GetChartItem() not= chartItem
                 chartItem:GetContainer():Select(chartItem)
             end

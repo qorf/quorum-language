@@ -1,0 +1,28 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
+
+/*
+    The TerrainGrowBehavior is the Terrain section's "Grow by one region on
+    every side" button (step 11).
+*/
+class TerrainGrowBehavior is Behavior
+    TerrainPropertiesDialog dialog = undefined
+
+    /*
+        Sets the section the button is in.
+
+        Attribute: Parameter dialog The Terrain section
+    */
+    action SetDialog(TerrainPropertiesDialog dialog)
+        me:dialog = dialog
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog not= undefined
+            dialog:Grow()
+        end
+    end
+end

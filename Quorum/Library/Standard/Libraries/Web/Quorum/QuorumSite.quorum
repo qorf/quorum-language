@@ -1,0 +1,1013 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.WebLocations
+use Libraries.Web.WebTextEscaper
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Network.NetworkExchange
+use Libraries.System.DateTime
+use Libraries.Web.WebSite
+use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.RichText
+use Libraries.Web.Page.Division
+use Libraries.Web.Page.NavigationDivision
+use Libraries.Web.Page.OrderedList
+use Libraries.Web.Page.ListItem
+use Libraries.Web.Page.Paragraph
+use Libraries.Web.Page.UnorderedList
+use Libraries.Web.Page.Link
+use Libraries.Web.Page.Heading
+use Libraries.Web.Page.MainContent
+use Libraries.Web.Page.Header
+use Libraries.Web.Page.Span
+use Libraries.Web.Page.Image
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Page.StrongText
+use Libraries.Web.Page.WebPage
+use Libraries.Web.Page.Script
+use Libraries.Web.Series.PageSeries
+use Libraries.Web.Series.PageSeriesEntry
+
+/*
+    QuorumSite is the Quorum website's frame and course navigation, for
+    any site in the Quorum look (such as the website, or the library's
+    documentation). It is a WebSite that puts every page in the site's
+    frame: the navigation bar, sign-in, the course's contents on the left,
+    "On this page" on the right, and the footer, with its looks from
+    QuorumSiteOptions. Each series of pages is a course: each of its pages
+    gets breadcrumbs and Back and Next links that keep a reader in the
+    course they are following, and its breadcrumbs are described to search
+    engines (structured data). Pages a server builds when asked get the
+    same frame (FinishServedPage).
+
+    A site with more to add, such as reports built from every page, does
+    it in a subclass (FinishSitePages, FinishSitePage). The frame's icons
+    are read from a folder the site sets (SetIconFolder). Everything
+    general stays in WebSite.
+
+    Attribute: Example
+    use Libraries.Web.Quorum.QuorumSite
+    use Libraries.Web.Quorum.QuorumSiteOptions
+
+    QuorumSiteOptions options
+    QuorumSite site
+    site:SetFolder("html")
+    site:SetStyleOptions(options)
+    site:SetIconFolder("html/media/userInterface/SVG/")
+*/
+class QuorumSite is WebSite
+    // Where the frame's icons are read from (SetIconFolder).
+    text iconFolder = ""
+    // Icons given as their SVG, by file name (SetIcon), used instead of
+    // the files in the icon folder.
+    HashTable<text, text> icons
+    WebTextEscaper escaper
+
+    // Pages whose "On this page" goes in the left column (see
+    // SetOnThisPageOnLeft).
+    HashTable<WebPage, boolean> onThisPageOnLeft
+
+    // Pages with no "On this page" at all (see HideOnThisPage).
+    HashTable<WebPage, boolean> onThisPageHidden
+
+    // Pages that use the whole width: no course contents, no "On this page"
+    // (UseFullWidth), such as the home page.
+    HashTable<WebPage, boolean> fullWidth
+
+    // Pages whose title banner spans the window (UseFullBleedBanner).
+    HashTable<WebPage, boolean> fullBleedBanner
+
+    // The larger course a series is part of, by the series' key: its name
+    // and location (a track page listing its units), for the breadcrumbs.
+    HashTable<text, text> partOfNames
+    HashTable<text, text> partOfLocations
+
+    // Structured data, in the shared schema.org vocabulary.
+    constant text SCHEMA_CONTEXT = "https://schema.org"
+    constant text STRUCTURED_DATA_TYPE = "application/ld+json"
+    constant text LEARNING_RESOURCE = "LearningResource"
+
+    // Course navigation. A link that keeps a reader in a course carries
+    // the course's key in the address, as ?course=scenes.
+    WebLocations locations
+    constant text COURSE_PARAMETER = "course"
+    constant text COURSE_DATA_ATTRIBUTE = "data-course"
+    constant text HIDDEN_ATTRIBUTE = "hidden"
+    constant text LABEL_ATTRIBUTE = "aria-label"
+    constant text CURRENT_ATTRIBUTE = "aria-current"
+    constant text CURRENT_PAGE = "page"
+    constant text BREADCRUMB_LABEL = "Breadcrumb"
+    constant text HOME_NAME = "Home"
+    constant text HOME_ADDRESS = "/"
+    constant text HIDDEN_FROM_READERS = "aria-hidden"
+    constant text ARIA_TRUE = "true"
+    constant text BREADCRUMB_SEPARATOR = "›"
+    constant text FORWARD_MARK = " ›"
+    constant text BACKWARD_MARK = "‹ "
+    constant text LINE_SEPARATOR = " · "
+    constant text UP_NEXT_IN = "Up next in "
+    constant text END_OF = "End of "
+    constant text BACK_TO = "Back to "
+    constant text BACK = "Back: "
+    constant text COURSE_OVERVIEW = "Course overview"
+    constant text ALSO_PART_OF = "Also part of "
+
+    // Navigation regions on a page need different names, so the side
+    // contents keep the course's name and the end of a lesson adds this.
+    constant text NEXT_LABEL_ENDING = ": what's next"
+
+    // The site's look (a shared class), for its course navigation.
+    QuorumSiteOptions quorumOptions
+
+    // Letting readers zoom in on a page's pictures. Each picture the
+    // site marks gets wrapped, when the page loads, in a button named
+    // "Zoom:" and its description; the button opens a dialog showing the
+    // picture large with its description under it. The dialog takes
+    // focus, closes with Escape, its Close button or a click, and gives
+    // focus back to the button. The button is centered, as the old pages
+    // centered their pictures. With scripts off, pictures stay plain
+    // pictures, with no button that does nothing. Their looks are the
+    // site's generated script classes ("zoom-button", "zoom-dialog" and
+    // the like, in QuorumSiteOptions); the script writes no styles.
+    constant text ZOOM_ATTRIBUTE = "data-zoom"
+    constant text ZOOM_SCRIPT = "document.addEventListener('DOMContentLoaded',function(){var pictures=document.querySelectorAll('img[data-zoom]');if(!pictures.length){return;}var box=document.createElement('dialog');box.id='zoomedImageContainer';box.setAttribute('aria-label','Zoomed picture');box.className='zoom-dialog';var close=document.createElement('button');close.type='button';close.textContent='Close';close.className='zoom-close';var big=document.createElement('img');big.className='zoom-picture';big.alt='';var words=document.createElement('p');words.className='zoom-words';var inner=document.createElement('div');inner.className='zoom-stack zoom-inner';inner.append(close,big,words);box.appendChild(inner);document.body.appendChild(box);var opener=null;close.addEventListener('click',function(){box.close();});box.addEventListener('click',function(event){if(event.target!==close){box.close();}});box.addEventListener('close',function(){if(opener){opener.focus();}});pictures.forEach(function(picture){var button=document.createElement('button');button.type='button';button.setAttribute('aria-label','Zoom: '+picture.alt);button.className='zoom-button';picture.parentNode.insertBefore(button,picture);button.appendChild(picture);button.addEventListener('click',function(){big.src=picture.src;big.alt=picture.alt;words.textContent=picture.alt;opener=button;box.showModal();close.focus();});});});"
+
+    // The frame around every page, as Lesson builds it for the main site,
+    // with the frame's looks (a shared class) and the screen widths where
+    // they change. The navigation bar and sign-in forms are still the
+    // main site's, with its Tailwind classes.
+    QuorumFrameLooks frame
+    StyleSheetConstants constants
+    // The version queries for the site's scripts (such as "?version=14.0.4"),
+    // so browsers fetch a script again when it changes. The site's
+    // VersionHelper knows them; whatever builds the site hands them over
+    // with SetScriptVersions.
+    text languageVersion = ""
+    text scriptVersion = ""
+    text highlighterVersion = ""
+    text loadVersion = ""
+    // The site's font, Montserrat, from Google Fonts, as output.css
+    // imported it (style/google.css only declares Open Sans, which no
+    // page uses).
+    constant text FONTS_STYLE_SHEET = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap"
+    constant text JQUERY_SCRIPT = "script/jquery-1.8.3.min.js"
+    constant text LIBRARY_SCRIPT = "script/QuorumStandardLibrary.js"
+    constant text SITE_SCRIPT = "script/script.js"
+    constant text HIGHLIGHT_SCRIPT = "script/prism-quorum.js"
+    constant text LOAD_SCRIPT = "script/load.js"
+    constant text SCRIPTS_FOLDER = "script/"
+    constant text ICON = "media/favicon.ico"
+    constant text ROLE_ATTRIBUTE = "role"
+    constant text MAIN_ROLE = "main"
+    constant text MAIN_IDENTIFIER = "main"
+    constant text MAIN_TAB_INDEX = "-1"
+    constant text CONTENT_IDENTIFIER = "content"
+    constant text COLUMNS_IDENTIFIER = "mainDiv"
+    constant text SKIP_LINK_IDENTIFIER = "skipLink"
+    constant text SKIP_LINK_WORDS = "Skip to Main Content"
+    constant text ON_THIS_PAGE_WORDS = "On this page"
+    constant text FOOTER_IDENTIFIER = "footer"
+    constant text FOOTER_ROLE = "contentinfo"
+    constant text FOOTER_NAME = "The Quorum Programming Language"
+    constant text FOOTER_FUNDING = "Copyright © 2014-2025. Funding for Quorum comes largely from the National Science Foundation #0940521, #1440878, #1644491, #1640131, #1738259 and #1738252, #2023739, #2048356, #2106392, #2121993. Other contributions can be found on "
+    constant text CONTRIBUTORS_WORDS = "the contributors page."
+    constant text CONTRIBUTORS_ADDRESS = "/contributors.html"
+
+    // Shows the navigation for the course named in the address (if the
+    // page has it) and hides the rest; with no course named, or an
+    // unknown one, the home course's navigation stays.
+    constant text COURSE_CHOOSER_SCRIPT = "(function(){var c=new URLSearchParams(window.location.search).get('course');if(!c){return;}var all=document.querySelectorAll('[data-course]');var found=false;all.forEach(function(e){if(e.getAttribute('data-course')===c){found=true;}});if(!found){return;}all.forEach(function(e){e.hidden=e.getAttribute('data-course')!==c;});})();"
+
+    /*
+        Sets the version queries added to the addresses of the scripts the
+        frame loads, so browsers fetch a script again when it changes.
+
+        Attribute: Parameter language The query for the Quorum standard library's script.
+        Attribute: Parameter script The query for the site's own script.
+        Attribute: Parameter highlighter The query for the code highlighter's script.
+        Attribute: Parameter load The query for the script that loads Quorum programs.
+
+        Attribute: Example
+        VersionHelper versions
+        QuorumSite site
+        site:SetScriptVersions(versions:GetLanguageVersionQuery(), versions:GetScriptVersionQuery(), versions:GetPrismVersionQuery(), versions:GetLoadVersionQuery())
+    */
+    action SetScriptVersions(text language, text script, text highlighter, text load)
+        languageVersion = language
+        scriptVersion = script
+        highlighterVersion = highlighter
+        loadVersion = load
+    end
+
+    /*
+        Puts a page's "On this page" in the left column, where a course's
+        lessons would go, instead of the right. For a page in no course
+        whose contents are its main way around, such as the release
+        notes, listed by year.
+
+        Attribute: Parameter page A page on the site, in no course.
+    */
+    action SetOnThisPageOnLeft(WebPage page)
+        onThisPageOnLeft:Set(page, true)
+    end
+
+    /*
+        Leaves out a page's "On this page", for a page too short to need
+        it, such as a track page with a single section. Its text takes
+        the room instead.
+
+        Attribute: Parameter page A page on the site.
+    */
+    action HideOnThisPage(WebPage page)
+        onThisPageHidden:Set(page, true)
+    end
+
+    /*
+        Gives a page the whole width: no course contents on the left and no
+        "On this page", so wide parts such as the home page's block editor
+        have the room. For pages in no course.
+
+        Attribute: Parameter page A page on the site.
+    */
+    action UseFullWidth(WebPage page)
+        fullWidth:Set(page, true)
+        onThisPageHidden:Set(page, true)
+    end
+
+    /*
+        Gives a page the whole width (as UseFullWidth) and lets its title
+        banner span the window, edge to edge, as the Download page's old
+        header did. The banner stays the first thing in the main area; the
+        rest of the page is set in from the edges instead.
+
+        Attribute: Parameter page A page on the site, with a banner (such as ProductBanner).
+    */
+    action UseFullBleedBanner(WebPage page)
+        UseFullWidth(page)
+        fullBleedBanner:Set(page, true)
+    end
+
+    /*
+        Lets a page's title banner span the window, edge to edge, while the
+        page keeps its columns (its course's contents on the left), as the
+        practice problems' header did. The rest of the page is set in from
+        the edges.
+
+        Attribute: Parameter page A page on the site, with a banner (such as ColorBanner).
+    */
+    action UseEdgeToEdgeBanner(WebPage page)
+        fullBleedBanner:Set(page, true)
+    end
+
+    /*
+        Puts a page the server built when asked (a reader's projects or
+        project, a password reset) in the site's frame, at the whole width
+        (as UseFullWidth), as WebSite:PrepareServedPage asks. Its settings
+        are kept only while the frame is built, so serving pages doesn't
+        fill the site's tables.
+
+        Attribute: Parameter page The page, set up.
+    */
+    action FinishServedPage(WebPage page)
+        Array<PageSeries> noCourses
+        fullWidth:Set(page, true)
+        onThisPageHidden:Set(page, true)
+        AddFrame(page, noCourses)
+        fullWidth:RemoveKey(page)
+        onThisPageHidden:RemoveKey(page)
+    end
+
+    /*
+        Answers a request as WebSite does, and logs it to the console: its
+        path, who asked, when, and how long it took. If answering fails,
+        it logs the stack trace and answers with an error (500), so one
+        failed request doesn't stop the server.
+    */
+    action ResponseReceived(NetworkExchange exchange)
+        DateTime time
+        number start = time:GetEpochTime()
+        text path = exchange:GetPath()
+
+        check
+            parent:WebSite:ResponseReceived(exchange)
+
+            number stop = time:GetEpochTime()
+            output exchange:GetPath() + ": " + exchange:GetHost() + ": " + time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+                time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond() + ", " + (stop - start)
+            output "END"
+            output ""
+        detect e
+            output "------------ ERROR ------------"
+            output "Path: " + path
+            output "Stack Trace"
+            output e:GetStackTraceMessage()
+            output ""
+            output "Status"
+            output exchange:GetPath() + ": " + exchange:GetHost() + ": " + time:GetYear() + "-" + time:GetMonth() + "-" + time:GetDayOfMonth() + " " +
+                time:GetHour() + ":" + time:GetMinute() + ":" + time:GetSecond()
+            output "------------ ERROR ------------"
+            text response = "The server encountered a fatal error and could not fulfill the request"
+            exchange:SendResponseHeaders(500, response)
+            exchange:SendResponse(response)
+        end
+    end
+
+    /*
+        Called once, before the course navigation and the frame are added,
+        for a subclass to add pages built from the site's other pages (such
+        as a report or an overview for each course) and to fill in parts of
+        pages that need every page (such as lists of what covers what).
+        Pages it adds get the navigation and frame like any other. It does
+        nothing here.
+    */
+    action FinishSitePages
+    end
+
+    /*
+        Called for each page that isn't plain, after its course navigation
+        and before its frame, for a subclass to add to it, such as
+        structured data describing a lesson. It does nothing here.
+
+        Attribute: Parameter page The page.
+        Attribute: Parameter pageCourses The courses (series) it is in.
+    */
+    action FinishSitePage(WebPage page, Array<PageSeries> pageCourses)
+    end
+
+    /*
+        Sets the folder the frame's icons are read from, such as
+        "html/media/userInterface/SVG/": the navigation bar's menu, search
+        and Discord icons, and the sign-in dialog's. The website sets it to
+        its own folder of icons.
+
+        Attribute: Parameter folder The folder, ending with a slash.
+    */
+    action SetIconFolder(text folder)
+        iconFolder = folder
+    end
+
+    /*
+        Sets one of the frame's icons as its SVG, used instead of the file
+        of that name in the icon folder, for a site with no folder of
+        icons, such as the library's documentation.
+
+        Attribute: Parameter name The icon's file name, such as "hamburger.svg".
+        Attribute: Parameter svg The icon's SVG.
+    */
+    action SetIcon(text name, text svg)
+        icons:Set(name, svg)
+    end
+
+    /*
+        Returns the folder the frame's icons are read from (SetIconFolder).
+
+        Attribute: Returns The folder.
+    */
+    action GetIconFolder returns text
+        return iconFolder
+    end
+
+    /*
+        Once every page is set up: fills in the pages' standards lists,
+        then builds a report page for each set. WebSite calls this before
+        building the stylesheet, so the reports are styled and written like
+        any other page.
+    */
+    action FinishContent
+        // Pages built from the others, and anything a subclass fills in on
+        // them, before the course navigation and the frame.
+        FinishSitePages()
+
+        // Course navigation for every page in a course, and its structured
+        // data (breadcrumbs), then anything a subclass adds to each page.
+        // Plain pages (the old site's) keep their own navigation and frame.
+        Iterator<WebPage> allPages = GetPageIterator()
+        repeat while allPages:HasNext()
+            WebPage page = allPages:Next()
+            Array<PageSeries> pageCourses = GetSeriesOf(page)
+            if IsPlainPage(page)
+                // Nothing added.
+            elseif pageCourses:GetSize() > 0
+                AddCourseNavigation(page, pageCourses, GetHomeSeries(page))
+                if not GetAddress():IsEmpty()
+                    AddBreadcrumbData(page, pageCourses)
+                end
+            end
+            if not IsPlainPage(page)
+                FinishSitePage(page, pageCourses)
+            end
+        end
+
+        // Last, the frame around every page, so the course navigation
+        // above sits inside the page's content column.
+        allPages = GetPageIterator()
+        repeat while allPages:HasNext()
+            WebPage framed = allPages:Next()
+            if not IsPlainPage(framed)
+                AddFrame(framed, GetSeriesOf(framed))
+            end
+        end
+    end
+
+    /*
+        Returns the address of a page that keeps the reader in a course:
+        the page's address with the course's key added, such as
+        "/tutorials/Scenes/intro.html?course=scenes". Every link a course
+        writes uses this, so following Next or a course's lesson list keeps
+        the reader in that course.
+
+        Attribute: Parameter location The page's location on the site.
+        Attribute: Parameter course The course the reader is following.
+        Attribute: Returns The address.
+    */
+    action GetCourseAddress(text location, PageSeries course) returns text
+        return locations:FromSiteTop(location) + "?" + COURSE_PARAMETER + "=" + course:GetKey()
+    end
+
+    /*
+        Adds a lesson's course navigation: breadcrumbs at the start, and
+        Back, Next and "Also part of" at the end, one version for each
+        course the lesson is in. Only the home course's version shows at
+        first; a short script shows the version for the course named in
+        the address instead, so a reader following another course stays in
+        it. With scripts off, the home course's version stays, and works.
+    */
+    private action AddCourseNavigation(WebPage page, Array<PageSeries> courses, PageSeries home)
+        Division opening
+        Division closing
+        integer i = 0
+        repeat while i < courses:GetSize()
+            PageSeries course = courses:Get(i)
+            boolean shown = (course = home)
+            opening:AddNestedTag(GetBreadcrumbs(page, course, shown))
+            // A page that is part of an entry (such as a problem in a set)
+            // has its own way through the entry, so no Up next or Back.
+            if not course:IsPart(page:GetLocation())
+                closing:AddNestedTag(GetCourseLinks(page, course, courses, shown))
+            end
+            i = i + 1
+        end
+        page:PlaceAtStart(opening)
+        page:PlaceAtEnd(closing)
+
+        Script chooser
+        chooser:SetCode(COURSE_CHOOSER_SCRIPT)
+        page:PlaceAtEnd(chooser)
+    end
+
+    // Home › Course › Lesson, for one course, in one row (design B).
+    /*
+        Records that a series is one part of a larger course, such as a unit
+        of a track, so the breadcrumbs read Home › the course › the series ›
+        the lesson.
+
+        Attribute: Parameter unit The series.
+        Attribute: Parameter courseName The larger course's name, such as "Computer Science Principles".
+        Attribute: Parameter courseLocation The larger course's page, such as "lessons/code.html".
+    */
+    action PartOf(PageSeries unit, text courseName, text courseLocation)
+        partOfNames:Set(unit:GetKey(), courseName)
+        partOfLocations:Set(unit:GetKey(), courseLocation)
+    end
+
+    private action GetBreadcrumbs(WebPage page, PageSeries course, boolean shown) returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, BREADCRUMB_LABEL)
+        MarkForCourse(navigation, course, shown)
+        OrderedList list
+        page:SetLayout(list, quorumOptions:GetBreadcrumbs())
+        page:SetStyle(list, quorumOptions:GetBreadcrumbList())
+        navigation:AddNestedTag(list)
+
+        list:AddNestedTag(GetBreadcrumb(page, HOME_NAME, HOME_ADDRESS))
+        list:AddNestedTag(GetSeparator(page))
+        text partOfLocation = ""
+        if partOfNames:HasKey(course:GetKey())
+            // The larger course first, then this series within it.
+            partOfLocation = partOfLocations:GetValue(course:GetKey())
+            list:AddNestedTag(GetBreadcrumb(page, partOfNames:GetValue(course:GetKey()), locations:FromSiteTop(partOfLocation)))
+            list:AddNestedTag(GetSeparator(page))
+        end
+        if course:GetOverviewLocation():IsEmpty() or course:GetOverviewLocation() = partOfLocation
+            // A course with no overview page of its own is named, not linked.
+            ListItem courseName
+            courseName:AddText(escaper:Escape(course:GetName()))
+            list:AddNestedTag(courseName)
+        else
+            list:AddNestedTag(GetBreadcrumb(page, course:GetName(), GetCourseAddress(course:GetOverviewLocation(), course)))
+        end
+        list:AddNestedTag(GetSeparator(page))
+        // A page that is part of an entry (AddPart), such as a problem in a
+        // set: the entry it belongs to comes before it, unless the entry
+        // has the page's own title (as a set's own page has).
+        if course:IsPart(page:GetLocation())
+            PageSeriesEntry entry = course:GetEntry(course:GetPosition(page:GetLocation()))
+            if entry:GetTitle() not= page:GetTitleText()
+                list:AddNestedTag(GetBreadcrumb(page, entry:GetTitle(), GetCourseAddress(entry:GetLocation(), course)))
+                list:AddNestedTag(GetSeparator(page))
+            end
+        end
+
+        ListItem current
+        current:AddAttribute(CURRENT_ATTRIBUTE, CURRENT_PAGE)
+        page:SetStyle(current, quorumOptions:GetBreadcrumbCurrent())
+        list:AddNestedTag(current)
+        WriterFor(current, page):Text(page:GetTitleText())
+        return navigation
+    end
+
+    // One step in the breadcrumbs: a link without an underline.
+    private action GetBreadcrumb(WebPage page, text words, text address) returns ListItem
+        ListItem item
+        item:AddNestedTag(GetLink(page, words, address, quorumOptions:GetBreadcrumbLink()))
+        return item
+    end
+
+    // The mark between two steps. It sits in its own item, hidden from
+    // screen readers, which announce the list's steps themselves.
+    private action GetSeparator(WebPage page) returns ListItem
+        ListItem item
+        item:AddAttribute(HIDDEN_FROM_READERS, ARIA_TRUE)
+        page:SetStyle(item, quorumOptions:GetBreadcrumbSeparator())
+        item:AddText(BREADCRUMB_SEPARATOR)
+        return item
+    end
+
+    // A link with its own look, its words and address made safe.
+    action GetLink(WebPage page, text words, text address, WebTextStyle style) returns Link
+        Link link
+        link:SetAddress(escaper:EscapeAttribute(address))
+        link:AddText(escaper:Escape(words))
+        page:SetStyle(link, style)
+        return link
+    end
+
+    // A mark, such as an arrow, that screen readers skip.
+    action GetMark(text mark) returns Span
+        Span span
+        span:AddAttribute(HIDDEN_FROM_READERS, ARIA_TRUE)
+        span:AddText(mark)
+        return span
+    end
+
+    /*
+        The end of a lesson, for one course (design F): an "Up next" box
+        with the next lesson's name and summary, then one line with a link
+        back (the previous lesson, or the course's overview for its first
+        lesson) and the other courses the lesson is in. On a course's last
+        lesson, the box says the course is done and links its overview.
+    */
+    private action GetCourseLinks(WebPage page, PageSeries course, Array<PageSeries> courses, boolean shown) returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, escaper:EscapeAttribute(course:GetName() + NEXT_LABEL_ENDING))
+        MarkForCourse(navigation, course, shown)
+        Division column
+        page:SetLayout(column, GetStyleOptions():GetStack())
+        navigation:AddNestedTag(column)
+        text overviewAddress = GetCourseAddress(course:GetOverviewLocation(), course)
+
+        Division box
+        page:SetStyle(box, quorumOptions:GetUpNext())
+        column:AddNestedTag(box)
+        Paragraph label
+        page:SetStyle(label, quorumOptions:GetUpNextLabel())
+        box:AddNestedTag(label)
+        Paragraph nextLine
+        box:AddNestedTag(nextLine)
+
+        integer position = course:GetPosition(page:GetLocation())
+        if position < course:GetSize() - 1
+            PageSeriesEntry following = course:GetEntry(position + 1)
+            label:AddText(escaper:Escape(UP_NEXT_IN + course:GetName()))
+            Link next = GetLink(page, following:GetTitle(), GetCourseAddress(following:GetLocation(), course), quorumOptions:GetUpNextLink())
+            next:AddNestedTag(GetMark(FORWARD_MARK))
+            nextLine:AddNestedTag(next)
+            text summary = following:GetDescription()
+            if not summary:IsEmpty()
+                Paragraph summaryLine
+                page:SetStyle(summaryLine, quorumOptions:GetUpNextDescription())
+                summaryLine:AddText(escaper:Escape(summary))
+                box:AddNestedTag(summaryLine)
+            end
+        else
+            label:AddText(escaper:Escape(END_OF + course:GetName()))
+            // A course with no overview page has nowhere to go from its end.
+            if not course:GetOverviewLocation():IsEmpty()
+                Link overview = GetLink(page, COURSE_OVERVIEW, overviewAddress, quorumOptions:GetUpNextLink())
+                overview:AddNestedTag(GetMark(FORWARD_MARK))
+                nextLine:AddNestedTag(overview)
+            end
+        end
+
+        Paragraph line
+        page:SetStyle(line, quorumOptions:GetCourseLine())
+        column:AddNestedTag(line)
+        // Back goes to the page before, or at the start to the course's
+        // overview, if it has one.
+        boolean hasBack = position > 0 or not course:GetOverviewLocation():IsEmpty()
+        if hasBack
+            line:AddNestedTag(GetMark(BACKWARD_MARK))
+        end
+        RichText writer = WriterFor(line, page)
+        if position > 0
+            PageSeriesEntry previous = course:GetEntry(position - 1)
+            writer:Text(BACK):Link(previous:GetTitle(), GetCourseAddress(previous:GetLocation(), course))
+        elseif hasBack
+            writer:Link(BACK_TO + course:GetName(), overviewAddress)
+        end
+
+        if courses:GetSize() > 1
+            if hasBack
+                line:AddNestedTag(GetMark(LINE_SEPARATOR))
+            end
+            writer:Text(ALSO_PART_OF)
+            boolean first = true
+            integer i = 0
+            repeat while i < courses:GetSize()
+                PageSeries other = courses:Get(i)
+                if other not= course
+                    if not first
+                        writer:Text(", ")
+                    end
+                    if other:GetOverviewLocation():IsEmpty()
+                        writer:Text(other:GetName())
+                    else
+                        writer:Link(other:GetName(), GetCourseAddress(other:GetOverviewLocation(), other))
+                    end
+                    first = false
+                end
+                i = i + 1
+            end
+        end
+        return navigation
+    end
+
+    // Marks navigation as belonging to a course, hidden unless it is the
+    // course shown first.
+    private action MarkForCourse(NavigationDivision navigation, PageSeries course, boolean shown)
+        navigation:AddAttribute(COURSE_DATA_ATTRIBUTE, course:GetKey())
+        if not shown
+            navigation:AddAttribute(HIDDEN_ATTRIBUTE, HIDDEN_ATTRIBUTE)
+        end
+    end
+
+    private action WriterFor(WebTag element, WebPage page) returns RichText
+        RichText writer
+        writer:SetTarget(element, page)
+        return writer
+    end
+
+    /*
+        Adds one BreadcrumbList to a page's structured data for each course
+        it is in: Home, the course, the page. Search engines accept several
+        trails for one page.
+    */
+    private action AddBreadcrumbData(WebPage page, Array<PageSeries> courses)
+        integer i = 0
+        repeat while i < courses:GetSize()
+            PageSeries course = courses:Get(i)
+            JavaScriptObjectNotation trail
+            trail:SetObject()
+            trail:Add("@context", SCHEMA_CONTEXT)
+            trail:Add("@type", "BreadcrumbList")
+            JavaScriptObjectNotation items
+            items:SetArray()
+            items:Add(GetTrailItem(1, HOME_NAME, GetPublicAddress("")))
+            integer position = 2
+            if partOfNames:HasKey(course:GetKey())
+                items:Add(GetTrailItem(position, partOfNames:GetValue(course:GetKey()), GetPublicAddress(partOfLocations:GetValue(course:GetKey()))))
+                position = position + 1
+            end
+            items:Add(GetTrailItem(position, course:GetName(), GetPublicAddress(course:GetOverviewLocation())))
+            if course:IsPart(page:GetLocation())
+                // The entry the page is part of, as the breadcrumbs show it.
+                PageSeriesEntry entry = course:GetEntry(course:GetPosition(page:GetLocation()))
+                if entry:GetTitle() not= page:GetTitleText()
+                    position = position + 1
+                    items:Add(GetTrailItem(position, entry:GetTitle(), GetPublicAddress(entry:GetLocation())))
+                end
+            end
+            items:Add(GetTrailItem(position + 1, page:GetTitleText(), GetPublicAddress(page:GetLocation())))
+            trail:Add("itemListElement", items)
+            AddStructuredDataScript(page, trail)
+            i = i + 1
+        end
+    end
+
+    private action GetTrailItem(integer position, text name, text address) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation item
+        item:SetObject()
+        item:Add("@type", "ListItem")
+        item:Add("position", position)
+        item:Add("name", escaper:EscapeForScript(name))
+        item:Add("item", escaper:EscapeForScript(address))
+        return item
+    end
+
+    /*
+        Adds a Course to a course overview page's structured data: its
+        name, description, address, provider, and its lessons in order.
+    */
+    action AddCourseData(WebPage page, PageSeries course)
+        JavaScriptObjectNotation data
+        data:SetObject()
+        data:Add("@context", SCHEMA_CONTEXT)
+        data:Add("@type", "Course")
+        data:Add("name", escaper:EscapeForScript(course:GetName()))
+        if not course:GetDescription():IsEmpty()
+            data:Add("description", escaper:EscapeForScript(course:GetDescription()))
+        end
+        data:Add("url", escaper:EscapeForScript(GetPublicAddress(course:GetOverviewLocation())))
+        data:Add("isAccessibleForFree", true)
+
+        JavaScriptObjectNotation provider
+        provider:SetObject()
+        provider:Add("@type", "Organization")
+        provider:Add("name", escaper:EscapeForScript(GetSiteName()))
+        provider:Add("url", escaper:EscapeForScript(GetAddress()))
+        data:Add("provider", provider)
+
+        JavaScriptObjectNotation lessons
+        lessons:SetArray()
+        integer i = 0
+        repeat while i < course:GetSize()
+            PageSeriesEntry entry = course:GetEntry(i)
+            JavaScriptObjectNotation lesson
+            lesson:SetObject()
+            lesson:Add("@type", LEARNING_RESOURCE)
+            lesson:Add("name", escaper:EscapeForScript(entry:GetTitle()))
+            lesson:Add("url", escaper:EscapeForScript(GetPublicAddress(entry:GetLocation())))
+            lessons:Add(lesson)
+            i = i + 1
+        end
+        data:Add("hasPart", lessons)
+        AddStructuredDataScript(page, data)
+    end
+
+    /*
+        Builds the Quorum website's frame around a page's content, as
+        Lesson does for the main site today: the scripts and fonts every
+        page loads, a link to skip to the content, sign-in, the navigation
+        bar, three columns (the course's contents, the page's content, and
+        "On this page"), and the footer. Its looks come from
+        QuorumFrameLooks and match Lesson's; the side columns appear only
+        on wider screens. The navigation bar and sign-in forms are still
+        the main site's.
+    */
+    private action AddFrame(WebPage page, Array<PageSeries> pageCourses)
+        // What every page loads.
+        page:AddStylesheet(FONTS_STYLE_SHEET)
+        page:AddScript(locations:FromSiteTop(JQUERY_SCRIPT))
+        page:AddScript(locations:FromSiteTop(LIBRARY_SCRIPT) + languageVersion)
+        page:AddScript(locations:FromSiteTop(SITE_SCRIPT) + scriptVersion)
+        page:AddScript(locations:FromSiteTop(HIGHLIGHT_SCRIPT) + highlighterVersion)
+        Script locateFiles
+        locateFiles:SetCode(GetLocateFilesScript())
+        page:GetWebPageHeader():Add(locateFiles)
+        page:AddScript(locations:FromSiteTop(LOAD_SCRIPT) + loadVersion)
+        page:AddIcon(locations:FromSiteTop(ICON))
+
+        // The page's content, with everything it already has (breadcrumbs,
+        // course links), goes in the middle column.
+        Division content
+        content:SetIdentifier(CONTENT_IDENTIFIER)
+        page:SetLayout(content, frame:GetContent())
+        page:SetStyle(content, frame:GetContentBox())
+        boolean full = fullWidth:HasKey(page)
+        if not full
+            page:SetStyleFromWidth(content, constants:SMALL_SCREEN_WIDTH, frame:GetContentSmall())
+        end
+        // A page whose "On this page" is on the left, or left out, has no
+        // right column, so its text keeps the wider width on wide screens
+        // too.
+        boolean onLeft = onThisPageOnLeft:HasKey(page)
+        boolean hidden = onThisPageHidden:HasKey(page)
+        boolean rightColumn = not (onLeft or hidden)
+        if rightColumn
+            page:SetStyleFromWidth(content, constants:MEDIUM_SCREEN_WIDTH, frame:GetContentMedium())
+        end
+        page:MoveContentInto(content)
+
+        Division courseContents
+        page:SetStyle(courseContents, frame:GetSideColumn())
+        page:SetStyleFromWidth(courseContents, constants:SMALL_SCREEN_WIDTH, frame:GetSideColumnSmall())
+        integer i = 0
+        repeat while i < pageCourses:GetSize()
+            PageSeries course = pageCourses:Get(i)
+            boolean shown = (course = GetHomeSeries(page))
+            courseContents:AddNestedTag(GetCourseContents(page, course, shown))
+            i = i + 1
+        end
+
+        Division onThisPage
+        page:SetStyle(onThisPage, frame:GetSideColumn())
+        page:SetStyleFromWidth(onThisPage, constants:MEDIUM_SCREEN_WIDTH, frame:GetOnThisPageColumnMedium())
+        if onLeft
+            courseContents:AddNestedTag(GetOnThisPage(page))
+        elseif rightColumn
+            onThisPage:AddNestedTag(GetOnThisPage(page))
+        end
+
+        Division columns
+        columns:SetIdentifier(COLUMNS_IDENTIFIER)
+        page:SetLayout(columns, frame:GetColumns())
+        if not full
+            columns:AddNestedTag(courseContents)
+        end
+        columns:AddNestedTag(content)
+        if rightColumn
+            columns:AddNestedTag(onThisPage)
+        end
+
+        MainContent main
+        main:AddAttribute(ROLE_ATTRIBUTE, MAIN_ROLE)
+        main:SetIdentifier(MAIN_IDENTIFIER)
+        main:SetTabIndex(MAIN_TAB_INDEX)
+        if fullBleedBanner:HasKey(page)
+            // The banner first, edge to edge; the columns take the margins.
+            page:SetStyle(main, frame:GetMainFlush())
+            Header banner = page:GetTitleHeader()
+            if banner not= undefined
+                content:Remove(banner)
+                main:AddNestedTag(banner)
+            end
+            page:SetStyle(columns, frame:GetFlushColumns())
+            page:SetStyleFromWidth(columns, constants:MEDIUM_SCREEN_WIDTH, frame:GetFlushColumnsMedium())
+            page:SetStyleFromWidth(columns, constants:LARGE_SCREEN_WIDTH, frame:GetFlushColumnsLarge())
+        else
+            page:SetStyle(main, frame:GetMain())
+            page:SetStyleFromWidth(main, constants:MEDIUM_SCREEN_WIDTH, frame:GetMainMedium())
+            page:SetStyleFromWidth(main, constants:LARGE_SCREEN_WIDTH, frame:GetMainLarge())
+        end
+        main:AddNestedTag(columns)
+
+        Division outer
+        page:SetLayout(outer, frame:GetOuter())
+        page:SetStyle(outer, frame:GetOuterBox())
+        outer:AddNestedTag(main)
+        outer:AddNestedTag(GetFooter(page))
+
+        Link skip
+        page:SetStyle(skip, frame:GetSkipLink())
+        page:SetStyleOnFocus(skip, frame:GetSkipLinkFocus())
+        skip:SetIdentifier(SKIP_LINK_IDENTIFIER)
+        skip:SetAddress("#" + CONTENT_IDENTIFIER)
+        skip:AddText(SKIP_LINK_WORDS)
+
+        QuorumLoginForm login
+        login:SetIconFolder(iconFolder)
+        login:SetIcons(icons)
+        QuorumNavigationBar navigation
+        navigation:SetIconFolder(iconFolder)
+        navigation:SetIcons(icons)
+        page:PlaceAtEnd(skip)
+        page:PlaceAtEnd(login:Build(page))
+        page:PlaceAtEnd(navigation:Build(page))
+        page:PlaceAtEnd(outer)
+        AddZoom(page)
+    end
+
+    /*
+        The footer: the site's name, the copyright and funding, and a link
+        to the contributors. It is the page's footer for screen readers
+        (the contentinfo landmark), as PageFooter's footer element was.
+    */
+    private action GetFooter(WebPage page) returns Division
+        Division footer
+        footer:SetIdentifier(FOOTER_IDENTIFIER)
+        footer:AddAttribute(ROLE_ATTRIBUTE, FOOTER_ROLE)
+        page:SetStyle(footer, frame:GetFooter())
+        page:SetStyleFromWidth(footer, constants:MEDIUM_SCREEN_WIDTH, frame:GetFooterMedium())
+
+        StrongText name
+        name:AddText(escaper:Escape(FOOTER_NAME))
+        footer:AddNestedTag(name)
+        Paragraph funding
+        funding:AddText(escaper:Escape(FOOTER_FUNDING))
+        Link contributors = GetLink(page, CONTRIBUTORS_WORDS, CONTRIBUTORS_ADDRESS, frame:GetFooterLink())
+        funding:AddNestedTag(contributors)
+        footer:AddNestedTag(funding)
+        return footer
+    end
+
+    // Lets readers zoom in on the page's pictures, if it has any. Only
+    // pictures with a description are marked: a decorative picture has
+    // nothing to say when zoomed.
+    private action AddZoom(WebPage page)
+        Array<Image> pictures = page:GetImages()
+        boolean any = false
+        integer i = 0
+        repeat while i < pictures:GetSize()
+            Image picture = pictures:Get(i)
+            if picture:GetAlternate() not= undefined
+                if not picture:GetAlternate():GetValue():IsEmpty()
+                    picture:AddAttribute(ZOOM_ATTRIBUTE, ARIA_TRUE)
+                    any = true
+                end
+            end
+            i = i + 1
+        end
+        if not any
+            return now
+        end
+
+        Script zoomScript
+        zoomScript:SetCode(ZOOM_SCRIPT)
+        page:PlaceAtEnd(zoomScript)
+    end
+
+    // The left column for one course: its name, then its lessons, with
+    // this page marked. Hidden unless it is the course shown first.
+    private action GetCourseContents(WebPage page, PageSeries course, boolean shown) returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, course:GetName())
+        MarkForCourse(navigation, course, shown)
+
+        Paragraph name
+        page:SetStyle(name, frame:GetContentsName())
+        navigation:AddNestedTag(name)
+        WriterFor(name, page):Link(course:GetName(), GetCourseAddress(course:GetOverviewLocation(), course))
+
+        UnorderedList list
+        page:SetLayout(list, frame:GetContentsList())
+        navigation:AddNestedTag(list)
+        integer i = 0
+        repeat while i < course:GetSize()
+            PageSeriesEntry entry = course:GetEntry(i)
+            ListItem item
+            page:SetStyle(item, frame:GetContentsItem())
+            page:SetStyleOnHover(item, frame:GetContentsItemHover())
+            list:AddNestedTag(item)
+            Link link
+            page:SetStyle(link, frame:GetContentsLink())
+            link:SetAddress(escaper:EscapeAttribute(GetCourseAddress(entry:GetLocation(), course)))
+            link:AddText(escaper:Escape(entry:GetTitle()))
+            // The page's own entry, or the entry it is part of (AddPart).
+            if course:GetPosition(page:GetLocation()) = i
+                page:SetStyle(link, frame:GetContentsCurrentLink())
+                link:AddAttribute(CURRENT_ATTRIBUTE, CURRENT_PAGE)
+            end
+            item:AddNestedTag(link)
+            i = i + 1
+        end
+        return navigation
+    end
+
+    // The right column: links to the page's sections and subsections.
+    private action GetOnThisPage(WebPage page) returns NavigationDivision
+        NavigationDivision navigation
+        navigation:AddAttribute(LABEL_ATTRIBUTE, ON_THIS_PAGE_WORDS)
+
+        Paragraph name
+        page:SetStyle(name, frame:GetContentsName())
+        name:AddText(ON_THIS_PAGE_WORDS)
+        navigation:AddNestedTag(name)
+
+        UnorderedList list
+        page:SetLayout(list, frame:GetContentsList())
+        navigation:AddNestedTag(list)
+        Array<Heading> headings = page:GetHeadings()
+        integer i = 0
+        repeat while i < headings:GetSize()
+            Heading heading = headings:Get(i)
+            text words = page:GetHeadingText(heading)
+            integer level = heading:GetScale()
+            if not words:IsEmpty() and level >= 2 and level <= 3
+                ListItem item
+                if level = 3
+                    page:SetStyle(item, frame:GetContentsIndentedItem())
+                else
+                    page:SetStyle(item, frame:GetContentsItem())
+                end
+                page:SetStyleOnHover(item, frame:GetContentsItemHover())
+                list:AddNestedTag(item)
+                Link link
+                page:SetStyle(link, frame:GetContentsLink())
+                link:SetAddress("#" + heading:GetIdentifier():GetValue())
+                link:AddText(escaper:Escape(words))
+                item:AddNestedTag(link)
+            end
+            i = i + 1
+        end
+        return navigation
+    end
+
+    // Tells the page's code where its data files are, as Lesson does.
+    private action GetLocateFilesScript returns text
+        text quote = ""
+        quote = quote:GetDoubleQuote()
+        return "var Module = {locateFile: function(path, prefix) {if (path.endsWith(" + quote + ".data" + quote + ")) return " + quote + locations:FromSiteTop(SCRIPTS_FOLDER) + quote + " + path; return prefix + path;}};"
+    end
+
+    action AddStructuredDataScript(WebPage page, JavaScriptObjectNotation data)
+        Script script
+        script:SetGenerateType(false)
+        script:SetType(STRUCTURED_DATA_TYPE)
+        script:SetCode(data:ToText())
+        page:GetWebPageHeader():Add(script)
+    end
+end

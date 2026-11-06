@@ -12,6 +12,8 @@ use Libraries.Interface.Controls.AnnotationLineGutter
 use Libraries.Containers.HashTable
 use Libraries.Interface.Controls.Support.GutterAnnotation
 use Libraries.Interface.Controls.TextStyles.TextStyle
+use Libraries.System.File
+use Libraries.Language.Compile.Symbol.Class
 
 
 class SingleLineBlock is Block
@@ -163,20 +165,37 @@ class SingleLineBlock is Block
         end
         
         if editor not= undefined
+            // The debugger's line is a navigation index (the gutter's row).
+            integer currentLine = GetNavigationIndex()
+            integer debuggerLine = editor:GetDebuggerLine()
+            if debuggerLine not= -1 and currentLine = debuggerLine
+                result = result + " Debugging line."
+            end
+
+            /*
+                A breakpoint is kept by file and text line, as CodeEditor's
+                GutterClicked sets it: the class's file when the editor has
+                none, and the block's first text line, which isn't its
+                navigation index once an earlier block spans several rows.
+            */
             BreakpointManager breakpoints = editor:GetBreakpointManager()
-            
-            if breakpoints not= undefined and editor:GetFile() not= undefined
-integer currentLine = GetNavigationIndex()
-                integer debuggerLine = editor:GetDebuggerLine()
-Breakpoint point = breakpoints:GetBreakpoint(editor:GetFile():GetAbsolutePath(), currentLine)
-                if (point not= undefined) or (currentLine = debuggerLine and debuggerLine not= -1)
-                    if currentLine = debuggerLine
-                        result = result + " Debugging line."
-end
-if point not= undefined and point:GetLine() = currentLine
-                        result = result + " Breakpoint."
-                    end
+            File breakpointFile = editor:GetFile()
+            if breakpointFile = undefined
+                Class editorClass = editor:GetClass()
+                if editorClass not= undefined
+                    breakpointFile = editorClass:GetFile()
                 end
+            end
+            if breakpoints not= undefined and breakpointFile not= undefined
+                Breakpoint point = breakpoints:GetBreakpoint(breakpointFile:GetAbsolutePath(), GetStartLine())
+                if point not= undefined
+                    result = result + " Breakpoint."
+                end
+            end
+
+            text lineStatus = editor:GetLineStatus(GetStartLine())
+            if lineStatus not= ""
+                result = result + " " + lineStatus
             end
             
             AnnotationLineGutter gutter = editor:GetAnnotationLineGutter()

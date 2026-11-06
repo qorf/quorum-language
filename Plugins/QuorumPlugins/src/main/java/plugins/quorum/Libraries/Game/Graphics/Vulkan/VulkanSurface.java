@@ -1,35 +1,39 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.glfw.GLFWVulkan;
-import org.lwjgl.system.MemoryStack;
-import plugins.quorum.Libraries.Game.DesktopDisplay;
 import quorum.Libraries.Game.GameDisplay_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanSurface;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanSurface;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanSurfaceStrategy;
 
-import java.nio.LongBuffer;
-
+/*
+The Java side of Quorum's VulkanSurface. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanSurface), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanSurface, with quorum-natives' src/vulkan).
+*/
 public class VulkanSurface
 {
     public Object me_;
-    private long vulkanSurfacePointer = 0L;
+
+    private final VulkanSurfaceStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanSurface(this) : new DesktopVulkanSurface(this);
 
     public boolean CreateNative(VulkanInstance_ quorumInstance, GameDisplay_ display)
     {
-        try (MemoryStack stack = MemoryStack.stackPush())
-        {
-            VulkanInstance pluginInstance = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance)quorumInstance).plugin_;
-            DesktopDisplay pluginDisplay = ((quorum.Libraries.Game.DesktopDisplay)display).plugin_;
-
-            LongBuffer pointerBuffer = stack.mallocLong(1);
-            GLFWVulkan.glfwCreateWindowSurface(pluginInstance.GetInstance(), pluginDisplay.window, null, pointerBuffer);
-            vulkanSurfacePointer = pointerBuffer.get(0);
-        }
-
-        return (vulkanSurfacePointer != 0L);
+        return strategy.CreateNative(quorumInstance, display);
     }
 
     public long GetSurfacePointer()
     {
-        return vulkanSurfacePointer;
+        return strategy.GetSurfacePointer();
+    }
+
+    public void DisposeNative()
+    {
+        strategy.DisposeNative();
+    }
+
+    public VulkanSurfaceStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

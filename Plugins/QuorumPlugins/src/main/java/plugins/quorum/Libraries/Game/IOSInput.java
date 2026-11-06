@@ -52,6 +52,26 @@ public class IOSInput
 
     public void setFocusedTextAdjust(TextAdjust focusedTextField) {
         this.focusedTextAdjust = focusedTextField;
+        UpdateSecureEntry();
+    }
+
+    /*
+        Matches the hidden text field's secure entry to the focused control, so
+        a password field gets a secure keyboard: no predictions, no Writing
+        Tools, and nothing typed is learned.
+     */
+    public void UpdateSecureEntry() {
+        if (textfield == null) {
+            return;
+        }
+
+        boolean secure = focusedTextAdjust != null && focusedTextAdjust.IsSecure();
+        if (textfield.isSecureTextEntry() != secure) {
+            textfield.setSecureTextEntry(secure);
+            if (textfield.isFirstResponder()) {
+                textfield.reloadInputViews();
+            }
+        }
     }
 
     private static class NSObjectWrapper<T extends NSObject> 
@@ -324,8 +344,13 @@ public class IOSInput
                     }
                 }
 
-                focusedTextAdjust.setAccessibilityValue(focusedTextAdjust.GetText());
-                return true;
+                focusedTextAdjust.setAccessibilityValue(focusedTextAdjust.GetAccessibleText());
+                // The typed text needs a frame to show (drawOnlyWhenNeeded).
+                IOSDisplay.RequestFrame();
+                // Quorum keeps the text. The hidden field keeps its one "x",
+                // so iOS always has something to delete and every backspace
+                // reaches us.
+                return false;
             }
 
             @Override
@@ -363,8 +388,10 @@ public class IOSInput
         if (textfield == null) createDefaultTextField();
         if (visible) {
             System.out.println("Visible");
-            textfield.becomeFirstResponder();
+            UpdateSecureEntry();
+            textfield.setText("x");
             textfield.setDelegate(textDelegate);
+            textfield.becomeFirstResponder();
         } else {
             System.out.println("Not visible");
             textfield.resignFirstResponder();
@@ -755,6 +782,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddDoubleTapEvent(UIGestureRecognizer recognizer)
@@ -765,6 +794,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddSwipeEvent(UIGestureRecognizer recognizer)
@@ -788,6 +819,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddLongPressEvent(UIGestureRecognizer recognizer)
@@ -800,6 +833,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPanEvent(UIGestureRecognizer recognizer)
@@ -836,6 +871,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchBeginEvent(UIGestureRecognizer recognizer)
@@ -853,6 +890,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchContinueEvent(UIGestureRecognizer recognizer)
@@ -870,6 +909,8 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
     }
 
     public void AddPinchEndEvent(UIGestureRecognizer recognizer)
@@ -887,6 +928,39 @@ public class IOSInput
         InitializeValues(recognizer, quorumEvent);
 
         gestureEventList.Add(quorumEvent);
+
+        IOSDisplay.RequestFrame();
+    }
+
+    /*
+        One step of VoiceOver's zoom action, as the pinch a finger would make:
+        BEGIN (scale 1), CONTINUE (the step), then FINISH (scale 1), at a point
+        in screen coordinates. Pinch listeners then zoom for VoiceOver users
+        with no changes. FINISH sets isPinch, as Android does for a large pinch.
+     */
+    public void AddAccessibilityPinchEvents(CGPoint point, double scale)
+    {
+        double[] scales = {1.0, scale, 1.0};
+        GestureEvent template = new GestureEvent();
+        int[] timings = {template.BEGIN, template.CONTINUE, template.FINISH};
+
+        final CGRect bounds = app.GetCachedBounds();
+        int x = (int)(point.getX() * app.displayScaleFactor - bounds.getMinX());
+        // We need to invert the y-axis to match the Quorum engine's y-axis.
+        int y = (int)(bounds.getMaxY() - (point.getY() * app.displayScaleFactor));
+
+        for (int i = 0; i < timings.length; i++)
+        {
+            GestureEvent quorumEvent = new GestureEvent();
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__eventType_(quorumEvent.PINCH);
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__timingCode_(timings[i]);
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__scaleFactor_(scales[i]);
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__isPinch_(timings[i] == quorumEvent.FINISH);
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__x_(x);
+            quorumEvent.Set_Libraries_Interface_Events_GestureEvent__y_(y);
+            gestureEventList.Add(quorumEvent);
+            IOSDisplay.RequestFrame();
+        }
     }
 
     public void InitializePlugin(List_ list, List_ gestureList)

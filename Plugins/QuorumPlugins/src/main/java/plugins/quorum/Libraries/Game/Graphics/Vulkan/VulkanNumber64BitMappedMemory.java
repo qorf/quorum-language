@@ -1,52 +1,49 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
-import org.lwjgl.system.MemoryUtil;
-import quorum.Libraries.Containers.Number64BitArray;
 import quorum.Libraries.Containers.Number64BitArray_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanNumber64BitMappedMemory;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanNumber64BitMappedMemory;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanNumber64BitMappedMemoryStrategy;
 
-import java.nio.DoubleBuffer;
-
+/*
+The Java side of Quorum's VulkanNumber64BitMappedMemory. Its work is done by a strategy: LWJGL on
+the desktop (DesktopVulkanNumber64BitMappedMemory), or Quorum's own Vulkan layer in C on iOS and
+Android (NativeVulkanNumber64BitMappedMemory, with quorum-natives' src/vulkan).
+*/
 public class VulkanNumber64BitMappedMemory
 {
     public Object me_;
 
-    DoubleBuffer doubleBuffer = null;
+    private final VulkanNumber64BitMappedMemoryStrategy strategy = VulkanPlatform.UsesNativeVulkan() ? new NativeVulkanNumber64BitMappedMemory(this) : new DesktopVulkanNumber64BitMappedMemory(this);
 
     public void CreateNative(VulkanBuffer_ quorumBuffer)
     {
-        VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
-        doubleBuffer = MemoryUtil.memDoubleBuffer(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize() / 8);
+        strategy.CreateNative(quorumBuffer);
     }
 
     public void SetNative(int index, double value)
     {
-        doubleBuffer.put(index, value);
+        strategy.SetNative(index, value);
     }
 
     public void SetNative(int index, Number64BitArray_ quorumArray, int arrayOffset, int arrayItems)
     {
-        double[] array = ((Number64BitArray)quorumArray).plugin_.doubles;
-        // Only update the position if it doesn't match the index.
-        // We want to maintain uninterrupted sequential insertion whenever possible.
-        if (doubleBuffer.position() != index)
-            doubleBuffer.position(index);
-
-        doubleBuffer.put(array, arrayOffset, arrayItems);
+        strategy.SetNative(index, quorumArray, arrayOffset, arrayItems);
     }
 
     public double GetNative(int index)
     {
-        return doubleBuffer.get(index);
+        return strategy.GetNative(index);
     }
 
     public void Dispose()
     {
-        /*
-        Null out the buffer so it can be garbage collected. We don't manually free the memory because we didn't directly
-        allocate it -- we just wrapped a chunk of memory that was allocated by the VulkanBuffer. The VulkanBuffer is
-        responsible for deallocating the memory during an Unmap operation.
-        */
-        doubleBuffer = null;
+        strategy.Dispose();
+    }
+
+    public VulkanNumber64BitMappedMemoryStrategy GetStrategy()
+    {
+        return strategy;
     }
 }

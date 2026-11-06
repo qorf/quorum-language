@@ -1,0 +1,505 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Math
+use Libraries.Game.Layer3D
+
+/*
+TerrainCollision gives a terrain collision only near one place, usually the
+player. The ground is split into a grid of small squares, the shape size
+across, and only the squares within a radius of the target have a collision
+piece. Far away ground costs nothing in physics, however large the world
+is.
+
+As the target moves into a new square of the grid, pieces that are now too
+far away are taken out of the game and moved to the new squares that came
+into reach. Pieces are kept and reused rather than made and thrown away.
+While the target stays in the same square, Update does nothing.
+
+Both the shape size and the radius are in samples, as in Terrain3D, whose
+dynamic collision mode this follows. Its defaults are a shape size of 16 and
+a radius of 64. The shape size must be a power of 2 that is no larger than
+the terrain's region size, so every square sits inside one region.
+
+Only squares in a region get a piece. Anything outside the radius, such as a
+ball rolling away from the player, has no ground under it.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainCollision
+
+class Main is Game
+    TerrainData data
+    TerrainCollision collision
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        EnablePhysics3D(true)
+        data:AddRegion(0, 0)
+        collision:SetTerrainData(data)
+    end
+
+    action Update(number seconds)
+        // Keep collision around the camera.
+        collision:Update(GetCurrentLayer3D(), GetCamera3D():GetX(), GetCamera3D():GetZ())
+    end
+end
+*/
+class TerrainCollision
+    TerrainData terrainData = undefined
+
+    // The size of each square of the grid, and how far from the target
+    // squares get a piece, both in samples.
+    integer shapeSize = 16
+    integer radius = 64
+
+    // How much the ground grips what rests on it, given to every piece.
+    number friction = 1
+
+    // The layer the active pieces are in.
+    Layer3D layer = undefined
+
+    // Pieces that are in the layer, and pieces waiting to be reused.
+    Array<TerrainCollisionPiece> activePieces
+    Array<TerrainCollisionPiece> freePieces
+
+    // The square of the grid the target was in at the last update, and
+    // whether every active piece must be placed again at the next one.
+    boolean hasTarget = false
+    integer lastCellX = 0
+    integer lastCellZ = 0
+    boolean needsRefresh = false
+
+    // The squares that should have pieces, worked out at each update.
+    Integer32BitArray wantedX
+    Integer32BitArray wantedZ
+    integer wantedCount = 0
+
+    // How many squares wantedX and wantedZ have room for. It is kept here
+    // because asking an Integer32BitArray its size before it has one fails.
+    integer wantedRoom = 0
+
+    Math math
+
+    /*
+    This action sets the terrain whose ground the pieces follow.
+
+    Attribute: Parameter data The heights of the whole terrain.
+    */
+    action SetTerrainData(TerrainData data)
+        terrainData = data
+        needsRefresh = true
+    end
+
+    /*
+    This action returns the terrain whose ground the pieces follow.
+
+    Attribute: Returns The terrain's data.
+    */
+    action GetTerrainData returns TerrainData
+        return terrainData
+    end
+
+    /*
+    This action sets how many samples across each collision piece is. It
+    must be a power of 2, at least 4. The default is 16, as in Terrain3D.
+
+    Attribute: Parameter size The number of cells along each side of a piece.
+    */
+    action SetShapeSize(integer size)
+        if size < 4 or not IsPowerOfTwo(size)
+            alert("The collision shape size must be a power of 2 and at least 4, but was given " + size + ".")
+        end
+        shapeSize = size
+        hasTarget = false
+        needsRefresh = true
+    end
+
+    /*
+    This action returns how many samples across each collision piece is.
+
+    Attribute: Returns The number of cells along each side of a piece.
+    */
+    action GetShapeSize returns integer
+        return shapeSize
+    end
+
+    /*
+    This action sets how far from the target, in samples, the ground has
+    collision. The default is 64, as in Terrain3D.
+
+    Attribute: Parameter samples The radius, in samples. It must be more than 0.
+    */
+    action SetRadius(integer samples)
+        if samples <= 0
+            alert("The collision radius must be more than 0, but was given " + samples + ".")
+        end
+        radius = samples
+        hasTarget = false
+    end
+
+    /*
+    This action returns how far from the target, in samples, the ground has
+    collision.
+
+    Attribute: Returns The radius, in samples.
+    */
+    action GetRadius returns integer
+        return radius
+    end
+
+    /*
+    This action sets how much the ground grips what rests on it. It applies
+    to pieces made after this, so set it before the first update.
+
+    Attribute: Parameter friction The friction.
+    */
+    action SetFriction(number friction)
+        me:friction = friction
+    end
+
+    /*
+    This action returns how much the ground grips what rests on it.
+
+    Attribute: Returns The friction.
+    */
+    action GetFriction returns number
+        return friction
+    end
+
+    /*
+    This action returns how many collision pieces are in the game.
+
+    Attribute: Returns The number of active pieces.
+    */
+    action GetActivePieceCount returns integer
+        return activePieces:GetSize()
+    end
+
+    /*
+    This action returns one of the collision pieces that are in the game.
+
+    Attribute: Parameter index Which piece, from 0 to one less than GetActivePieceCount.
+    Attribute: Returns The piece.
+    */
+    action GetActivePiece(integer index) returns TerrainCollisionPiece
+        return activePieces:Get(index)
+    end
+
+    /*
+    This action returns the first sample of the grid square that holds a
+    sample, along one axis. Squares start at multiples of the shape size, so
+    with a size of 16, sample 20 is in the square starting at 16, and sample
+    -1 is in the square starting at -16.
+
+    Attribute: Parameter sample A sample's number along one axis.
+    Attribute: Returns The first sample of its square along that axis.
+    */
+    action GetCellStart(integer sample) returns integer
+        return cast(integer, math:Floor(cast(number, sample) / shapeSize)) * shapeSize
+    end
+
+    /*
+    This action works out which grid squares should have collision pieces
+    for a target at a world position: those in a region whose centers are
+    within the radius of the center of the target's own square. Use
+    GetChosenCount, GetChosenX and GetChosenZ to read the result.
+
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    */
+    action ChooseCells(number worldX, number worldZ)
+        integer centerCellX = GetCellStart(terrainData:GetSampleX(worldX))
+        integer centerCellZ = GetCellStart(terrainData:GetSampleZ(worldZ))
+        CheckShapeSize()
+
+        // How many squares the radius can reach on each side.
+        integer reach = (radius + shapeSize - 1) / shapeSize
+        integer across = 2 * reach + 1
+        if wantedRoom < across * across
+            wantedRoom = across * across
+            wantedX:SetSize(wantedRoom)
+            wantedZ:SetSize(wantedRoom)
+        end
+
+        wantedCount = 0
+        integer limit = radius * radius
+        integer row = -reach
+        repeat while row <= reach
+            integer column = -reach
+            repeat while column <= reach
+                integer cellX = centerCellX + column * shapeSize
+                integer cellZ = centerCellZ + row * shapeSize
+                // Squares are compared center to center, which is the same
+                // as comparing their first samples.
+                integer dx = cellX - centerCellX
+                integer dz = cellZ - centerCellZ
+                if dx * dx + dz * dz <= limit and terrainData:HasSample(cellX, cellZ)
+                    wantedX:Set(wantedCount, cellX)
+                    wantedZ:Set(wantedCount, cellZ)
+                    wantedCount = wantedCount + 1
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+    This action returns how many squares the last ChooseCells chose.
+
+    Attribute: Returns The number of squares.
+    */
+    action GetChosenCount returns integer
+        return wantedCount
+    end
+
+    /*
+    This action returns the first sample along x of a square the last
+    ChooseCells chose.
+
+    Attribute: Parameter index Which square, from 0 to one less than GetChosenCount.
+    Attribute: Returns The square's first sample along x.
+    */
+    action GetChosenX(integer index) returns integer
+        return wantedX:Get(index)
+    end
+
+    /*
+    This action returns the first sample along z of a square the last
+    ChooseCells chose.
+
+    Attribute: Parameter index Which square, from 0 to one less than GetChosenCount.
+    Attribute: Returns The square's first sample along z.
+    */
+    action GetChosenZ(integer index) returns integer
+        return wantedZ:Get(index)
+    end
+
+    /*
+    This action keeps collision pieces around a target. Call it every frame
+    with the target's position; it only does work when the target has moved
+    into a different square of the grid, or after the heights or settings
+    have changed.
+
+    Attribute: Parameter gameLayer The layer to add the pieces to, usually the game's current 3D layer.
+    Attribute: Parameter worldX The target's position along x, in world units.
+    Attribute: Parameter worldZ The target's position along z, in world units.
+    Attribute: Returns True if any pieces were moved.
+    */
+    action Update(Layer3D gameLayer, number worldX, number worldZ) returns boolean
+        if terrainData = undefined
+            return false
+        end
+        if layer not= undefined and layer not= gameLayer
+            Clear()
+        end
+        layer = gameLayer
+
+        integer cellX = GetCellStart(terrainData:GetSampleX(worldX))
+        integer cellZ = GetCellStart(terrainData:GetSampleZ(worldZ))
+        if hasTarget and not needsRefresh and cellX = lastCellX and cellZ = lastCellZ
+            return false
+        end
+
+        if needsRefresh
+            // Everything is placed again, since the heights or settings changed.
+            Clear()
+            needsRefresh = false
+        end
+
+        ChooseCells(worldX, worldZ)
+
+        // Take out the pieces that are no longer wanted. The list is walked
+        // backward, so removing one does not skip the next.
+        integer i = activePieces:GetSize() - 1
+        repeat while i >= 0
+            TerrainCollisionPiece piece = activePieces:Get(i)
+            if not IsChosen(piece)
+                layer:Remove(piece)
+                activePieces:RemoveAt(i)
+                freePieces:Add(piece)
+            end
+            i = i - 1
+        end
+
+        // Put pieces in the chosen squares that don't have one yet.
+        integer k = 0
+        repeat while k < wantedCount
+            integer x = wantedX:Get(k)
+            integer z = wantedZ:Get(k)
+            if not HasActivePiece(x, z)
+                TerrainCollisionPiece piece = PlaceFreePiece(x, z)
+                AddToLayer(piece)
+                activePieces:Add(piece)
+            end
+            k = k + 1
+        end
+
+        hasTarget = true
+        lastCellX = cellX
+        lastCellZ = cellZ
+        return true
+    end
+
+    /*
+    This action places again any active pieces that cover a rectangle of
+    samples, after heights there have changed. The pieces read heights
+    straight from the terrain, but their position and size depend on the
+    lowest and highest heights they cover.
+
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    Attribute: Returns How many pieces were placed again.
+    */
+    action Rebuild(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ) returns integer
+        integer rebuilt = 0
+        integer i = 0
+        repeat while i < activePieces:GetSize()
+            TerrainCollisionPiece piece = activePieces:Get(i)
+            if piece:IsAffectedBy(minimumX, minimumZ, maximumX, maximumZ)
+                layer:Remove(piece)
+                piece:Place(terrainData, piece:GetFirstSampleX(), piece:GetFirstSampleZ(), shapeSize)
+                AddToLayer(piece)
+                rebuilt = rebuilt + 1
+            end
+            i = i + 1
+        end
+        return rebuilt
+    end
+
+    /*
+    This action takes every piece out of the game and keeps them for reuse.
+    The next Update places pieces again.
+    */
+    action Clear
+        integer i = 0
+        repeat while i < activePieces:GetSize()
+            TerrainCollisionPiece piece = activePieces:Get(i)
+            if layer not= undefined
+                layer:Remove(piece)
+            end
+            freePieces:Add(piece)
+            i = i + 1
+        end
+        activePieces:Empty(false)
+        hasTarget = false
+    end
+
+    /*
+    This action asks for every piece to be placed again at the next Update,
+    such as after the terrain has been built again.
+    */
+    action Refresh
+        needsRefresh = true
+    end
+
+    /*
+    This action returns a piece placed on a square, reusing a free piece if
+    there is one. A new piece gets its physics set up, in the same order a
+    game uses for Terrain: its shape first, then physics, then its scale and
+    position.
+
+    Attribute: Parameter firstX The square's first sample along x.
+    Attribute: Parameter firstZ The square's first sample along z.
+    Attribute: Returns The placed piece, not yet in the layer.
+    */
+    private action PlaceFreePiece(integer firstX, integer firstZ) returns TerrainCollisionPiece
+        if not freePieces:IsEmpty()
+            TerrainCollisionPiece reused = freePieces:RemoveFromEnd()
+            reused:Place(terrainData, firstX, firstZ, shapeSize)
+            return reused
+        end
+
+        TerrainCollisionPiece piece
+        piece:Measure(terrainData, firstX, firstZ, shapeSize)
+        piece:ApplyCollisionShape()
+        piece:EnablePhysics(true)
+        piece:SetMass(0)
+        piece:SetFriction(friction)
+        piece:PlaceInWorld()
+        return piece
+    end
+
+    /*
+    This action adds a piece to the layer, able to collide. Layer3D's Remove
+    turns an item's collision off, and its Add doesn't turn it back on, so a
+    piece that was taken out and is being put back would otherwise be in the
+    game without colliding with anything.
+
+    Attribute: Parameter piece The piece.
+    */
+    private action AddToLayer(TerrainCollisionPiece piece)
+        piece:SetCollidable(true)
+        layer:Add(piece)
+    end
+
+    /*
+    This action returns true if a piece covers one of the squares the last
+    ChooseCells chose.
+
+    Attribute: Parameter piece The piece.
+    Attribute: Returns True if the piece is still wanted.
+    */
+    private action IsChosen(TerrainCollisionPiece piece) returns boolean
+        integer k = 0
+        repeat while k < wantedCount
+            if piece:Covers(wantedX:Get(k), wantedZ:Get(k))
+                return true
+            end
+            k = k + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns true if an active piece covers the square starting
+    at a sample.
+
+    Attribute: Parameter firstX The square's first sample along x.
+    Attribute: Parameter firstZ The square's first sample along z.
+    Attribute: Returns True if the square has a piece.
+    */
+    private action HasActivePiece(integer firstX, integer firstZ) returns boolean
+        integer i = 0
+        repeat while i < activePieces:GetSize()
+            if activePieces:Get(i):Covers(firstX, firstZ)
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action stops with an error if the shape size doesn't fit evenly in
+    the terrain's regions, since a piece must not cross a region's edge.
+    */
+    private action CheckShapeSize
+        if shapeSize > terrainData:GetRegionSize()
+            alert("The collision shape size, " + shapeSize + ", must be no larger than the region size, " +
+                terrainData:GetRegionSize() + ".")
+        end
+    end
+
+    /*
+    This action returns true if a number is a power of 2.
+
+    Attribute: Parameter value The number.
+    Attribute: Returns True if the value is 1, 2, 4, 8 and so on.
+    */
+    private action IsPowerOfTwo(integer value) returns boolean
+        integer power = 1
+        repeat while power < value
+            power = power * 2
+        end
+        return power = value
+    end
+end

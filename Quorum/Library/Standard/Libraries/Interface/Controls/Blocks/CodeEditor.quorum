@@ -206,7 +206,7 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
                 return now
             end
             integer line = block:GetStartLine()
-            if line >= GetLineCount()
+            if line < 0
                 return now
             end
             if clazz not= undefined and clazz:GetFile() not= undefined and breakpoints not= undefined
@@ -249,9 +249,59 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     from the textBox */
     action PreviousFindSelection()
         if findIndices not= undefined and findIndices:GetSize() not= 0
-            integer previousSelection = findSelection 
+            integer previousSelection = findSelection
             findSelection = findSelection - 1
             UpdateCurrentFindSelection(previousSelection, true)
+        end
+    end
+
+    /*
+    This action makes find start from the caret, for use after FindText when
+    the code has changed since the matches were last found. With forward
+    true, the next NextFindSelection goes to the first match at or after the
+    caret. With forward false, the next PreviousFindSelection goes to the
+    last match before the caret, and Replace replaces the first match at or
+    after it. With no caret, or no matches, nothing changes.
+
+    Attribute: Parameter forward True if the next step will be NextFindSelection, false for PreviousFindSelection or Replace.
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Blocks.CodeEditor
+
+    CodeEditor editor
+    editor:FindText("con", false, false)
+    editor:StartFindSelectionAtCaret(true)
+    editor:NextFindSelection()
+    */
+    action StartFindSelectionAtCaret(boolean forward)
+        if findIndices = undefined or findIndices:GetSize() = 0
+            return now
+        end
+        integer caret = GetCaretPosition()
+        if caret < 0
+            return now
+        end
+
+        // The first match that starts at or after the caret, or the number
+        // of matches when there's none after it.
+        integer firstAfter = findIndices:GetSize()
+        integer index = 0
+        repeat while index < findIndices:GetSize()
+            if findIndices:Get(index):GetFirstValue() >= caret
+                firstAfter = index
+                index = findIndices:GetSize()
+            else
+                index = index + 1
+            end
+        end
+
+        // Next adds one and Previous takes one away before showing a match;
+        // both wrap around at the ends (UpdateCurrentFindSelection).
+        if forward
+            findSelection = firstAfter - 1
+        else
+            findSelection = firstAfter
         end
     end
 
@@ -349,6 +399,11 @@ class CodeEditor is ScrollableLineControl, GutterListener, BlockEnvironment
     action Replace(text replaceWord) 
         //SetTextChangeListenerOn(false) *In the ReplaceBehavior
         if findSelection < 0
+            findSelection = 0
+        end
+        // Past the last match (fewer matches after finding again, or none
+        // after the caret): wrap to the first, as Next does.
+        if findSelection >= findIndices:GetSize()
             findSelection = 0
         end
         if findIndices:GetSize() not= 0
@@ -2609,6 +2664,19 @@ integer i = blocks:GetSize()
         return breakpoints
     end
 
+    /*
+    This action returns a few words that screen readers say about the text
+    line a block starts on, after the block's other details, such as
+    "Changed." for a line version control sees as changed. This editor
+    knows of nothing, so it returns ""; editors that know more override it.
+
+    Attribute: Parameter line The text line, from 0, as Block:GetStartLine gives it.
+    Attribute: Returns Words ending in a period, or "".
+    */
+    action GetLineStatus(integer line) returns text
+        return ""
+    end
+
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
         lineGutter:SetBreakpointManager(breakpoints)
@@ -3179,7 +3247,7 @@ line number in the raw text. */
         // Return the block's index if it contains the line. Otherwise, check the next/previous block.
         // This is technically O(n), but in practice, the navigation index and line numbers will rarely diverge very far.
         repeat until block = undefined
-            if block:GetStartLine() >= line and block:GetEndLine() <= line
+            if block:GetStartLine() <= line and block:GetEndLine() >= line
                 return block:GetNavigationIndex()
             end
             if moveForward

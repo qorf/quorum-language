@@ -1,0 +1,514 @@
+package Libraries.Game.Graphics.Worlds
+use Libraries.System.File
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Collision.Shapes.HeightmapTerrainShape
+use Libraries.Game.BoundingBox
+use Libraries.Compute.Math
+
+/*This is a default and very primitive Terrain class that can be used 
+to store data from a height map image. 
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Game
+use Libraries.Game.Graphics.PixelMap
+use Libraries.System.File
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Worlds.Terrain
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.Worlds.Terrain
+
+class Main is Game
+    Terrain terrain
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        File file
+        file:SetPath("Terrain.png")
+        terrain:LoadHeightMap(file)
+        
+        number scale = 0.5
+        terrain:Scale(scale,scale,scale)
+        terrain:SetY(-15)
+        terrain:SetX(-25)
+        terrain:SetZ(10)
+        
+        Color color
+        Add(terrain)
+        
+        DirectionalLight light
+        light:SetIntensity(3)
+        light:SetColor(color:LightGray())
+        light:SetDirection(-1, -5, -1)
+        Add(light)
+        
+        PointLight light2
+        light2:SetIntensity(100)
+        light2:SetColor(color:Green())
+        light2:SetPosition(0, 3, -15)
+        Add(light2)
+    end
+
+    action Update(number seconds)
+        Camera camera = GetCamera3D()
+        camera:Move(0,0,2 * seconds)
+    end
+end*/
+class Terrain is Model 
+    BitwiseOperations ops
+    number maxHeight = 0
+    number stickHeight = 30
+    number stickWidth = 1
+    number stickDepth = 1
+    integer pixelWidth = 0
+    integer pixelHeight = 0
+    MeshData meshData
+    number collisionMargin = 0.04
+    TextureSplat textureSplat = undefined
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter text the path to the file to process.*/
+    action LoadHeightMap(text path)
+        File file
+        file:SetPath(path)
+        LoadHeightMap(file)
+    end
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter text the path to the file to process.
+Attribute: Parameter key This is a key used by the cache. If this is called from the file version, it is the absolute path by default.*/
+    action LoadHeightMap(PixelMap map, text key)
+        //Temporary storage
+        Vector3 normal
+        Vector3 temp
+        
+        //Store all the mathematical details for the mesh.
+        Number32BitArray vertices
+        vertices:SetSize(map:GetWidth() * map:GetHeight() * 3)
+        Number32BitArray normals
+        normals:SetSize(vertices:GetSize())
+        Number32BitArray tangents
+        tangents:SetSize(vertices:GetSize())
+        Number32BitArray bitangents
+        bitangents:SetSize(vertices:GetSize())
+        Number32BitArray textureCoordinates
+        textureCoordinates:SetSize(map:GetWidth() * map:GetHeight() * 2)
+        
+        HeightmapTerrainShape terrainShape
+        terrainShape:SetTerrain(me)
+        
+        pixelWidth = map:GetWidth()
+        pixelHeight = map:GetHeight()
+        
+        //Loop through the pixel map and get all the coordinates
+        i = 0
+        j = 0
+        repeat while i < map:GetHeight()
+            repeat while j < map:GetWidth()
+                integer code = map:GetPixel(i, j)
+            
+                //y is the height of the position. This is the red (biggest chunk) and green (fine detail), giving a 16 bit size. 
+                number x = j
+                number y = CalculateHeightFromPixel(code)
+                number z = i
+                
+                if y > maxHeight
+                    maxHeight = y
+                end
+                
+                //Tracking the indices
+                integer bump = (i * map:GetWidth() * 3)
+                integer position = j * 3 + bump
+                integer uvBump = (i * map:GetWidth() * 2)
+                integer uvPosition = j * 2 + uvBump
+                
+                //vertices
+                vertices:Set(position, x)
+                vertices:Set(position + 1, y)
+                vertices:Set(position + 2, z)
+
+                number left = 0
+                number right = 0
+                number top = 0
+                number bottom = 0
+                
+                //If there is no neighbor, just use the vertex value
+                //Left
+                if j - 1 >= 0
+                    left  = CalculateHeightFromPixel(map:GetPixel(i, j - 1))
+                else
+                    left  = y
+                end
+                
+                //Right
+                if j + 1 < map:GetWidth()
+                    right  = CalculateHeightFromPixel(map:GetPixel(i, j + 1))
+                else
+                    //Mirror
+                    right  = y
+                end
+                
+                //Top
+                if i - 1 >= 0
+                    integer newCode = map:GetPixel(i - 1, j)
+                    bottom  = CalculateHeightFromPixel(map:GetPixel(i - 1, j))
+                else
+                    bottom = y
+                end
+                
+                if i + 1 < map:GetHeight()
+                    top  = CalculateHeightFromPixel(map:GetPixel(i + 1, j))
+                else
+                    top = y
+                end
+                
+                number dx = right - left
+                number dz = top - bottom
+                
+                //Calculate the normals
+                Vector3 result = temp:Set(-dx, 2, -dz):Normalize()
+                Vector3 normalTemp = result:Copy()
+                normals:Set(position, result:GetX())
+                normals:Set(position + 1, result:GetY())
+                normals:Set(position + 2, result:GetZ())
+                
+                //Calculate the tangents
+                result = temp:Set(2, dx, 0):Normalize()
+                Vector3 tangentTemp = result:Copy()
+                tangents:Set(position, result:GetX())
+                tangents:Set(position + 1, result:GetY())
+                tangents:Set(position + 2, result:GetZ())
+                
+                //Calculate the bitangents
+                result = normalTemp:CrossProduct(tangentTemp)
+                bitangents:Set(position, result:GetX())
+                bitangents:Set(position + 1, result:GetY())
+                bitangents:Set(position + 2, result:GetZ())
+                
+                //Calculate the texture coordinates
+                textureCoordinates:Set(uvPosition, 0)
+                textureCoordinates:Set(uvPosition + 1, 0)
+                
+                j = j + 1
+            end
+            
+            j = 0
+            i = i + 1
+        end
+        
+        //This looks wrong but is not. The stick height is the y coordinate or the height from the map
+        //Height in the height map is really the x,y in the image, which is not the 3D height.
+        SetWidth(map:GetWidth())
+        SetHeight(maxHeight)
+        SetDepth(map:GetHeight())
+        
+        terrainShape:Set(GetWidth(), GetHeight(), GetDepth())
+        SetShape(terrainShape)
+        
+        //Calculate the indices
+        Integer32BitArray indices
+        indices:SetSize((map:GetWidth() - 1) * (map:GetHeight() - 1) * 2 * 3)
+        integer position = 0
+        
+        i = 0
+        repeat while i < map:GetHeight() - 1
+            j = 0
+            repeat while j < map:GetWidth() - 1
+                integer width = map:GetWidth()
+                integer topLeft = i * width + j
+                integer topRight = topLeft + 1
+                integer bottomLeft = (i + 1) * width + j
+                integer bottomRight = bottomLeft + 1
+                //Cell Left
+                indices:Set(position, topLeft)
+                indices:Set(position + 1, bottomLeft)
+                indices:Set(position + 2, topRight)
+                
+                //Cell Right
+                indices:Set(position + 3, topRight)
+                indices:Set(position + 4, bottomLeft)
+                indices:Set(position + 5, bottomRight)
+                
+                position = position + 6
+                j = j + 1
+ end
+            i = i + 1
+ end
+        
+        //Create a MeshData for the model
+        meshData:SetVertices(vertices)
+        meshData:SetIndices(indices)
+        meshData:SetNormals(normals)
+        meshData:SetTangents(tangents)
+        meshData:SetBitangents(bitangents)
+        meshData:SetTextureCoordinates(textureCoordinates)
+        meshData:SetMaterialIndex(0)
+        
+        Array<MeshData> meshes
+        meshes:Add(meshData)
+        
+        //This will likely need to change. Some research is needed first
+        //We likely want to let the user map materials and textures.
+        Array<Material> materials
+        Material material
+        //Confusing, but the Assimp library uses vectors for colors.
+        //As such, this is RGBA, scaled from 0 to 1 (256)
+        Vector4 diffuse
+        diffuse:Set(1,1,1,1)
+        material:SetDiffuse(diffuse)
+        materials:Add(material)
+        
+        //The model data needs a unique ID, the meshes, and materials.
+        ModelData modelData
+        modelData:SetID(key)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        
+        //Now get a model blueprint and set it.
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan bluey = manager:GetModelBlueprint(modelData)
+        SetModelBlueprint(bluey)
+        
+    end
+    
+    
+    /*This action loads a height map from a gray scale image. The amount of 
+white in every pixel generates the height in the model. 
+
+Attribute: Parameter File the file to process.*/
+    action LoadHeightMap(File file)
+        PixelMap map
+        map:LoadPixelMap(file)
+        LoadHeightMap(map, file:GetAbsolutePath())
+    end
+    
+    
+    /*This action fills the vertices for a single pixel at the position x,z. The position is put into two places,
+the first three vertices in the already filled vertices array, and the bounding box is computed. If any of 
+these objects are undefined, this will crash, as this action is an optimization to reduce memory and increase 
+reuse.
+
+Attribute: Parameter x the x in the pixel map
+Attribute: Parameter y the y in the pixel map, which translates to z in the heightmap.
+Attribute: Parameter vertices This array must be filled with exactly three vectors, representing the triangle created 
+in the mesh. 
+Attrbiute: Parameter box the location of the bounding box to fill from the triangle.
+Attribute: Parameter leftTriangle Whether it is the left or right triangle in the mesh.*/
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box, boolean leftTriangle)
+        if x > pixelWidth - 2
+            x = pixelWidth - 2
+        end
+        
+        if y > pixelHeight - 2
+            y = pixelHeight - 2
+        end
+        
+        integer stride = 3
+        integer topLeft = y * pixelWidth + x
+                integer topRight = topLeft + 1
+                integer bottomLeft = (y + 1) * pixelWidth + x
+                integer bottomRight = bottomLeft + 1
+        
+        topLeft = topLeft * stride
+        topRight = topRight * stride
+        bottomLeft = bottomLeft * stride
+        bottomRight = bottomRight * stride
+        
+        integer first = topLeft
+        integer second = bottomLeft
+        integer third = topRight
+        
+        if not leftTriangle
+            first = topRight
+            second = bottomLeft
+            third = bottomRight
+        end
+        
+        
+        Number32BitArray verticesNum32 = meshData:GetVertices()
+                //Cell Left
+                //indices:Set(position, topLeft)
+                //indices:Set(position + 1, bottomLeft)
+                //indices:Set(position + 2, topRight)
+        Vector3 tl = vertices:Get(0)
+        Vector3 bl = vertices:Get(1)
+        Vector3 tr = vertices:Get(2)
+        //find the position of the vertex, taking into account of stride of 3
+        //top left
+        
+        tl:SetX(verticesNum32:Get(first))
+        tl:SetY(verticesNum32:Get(first + 1))
+        tl:SetZ(verticesNum32:Get(first + 2))
+        
+        //bottom left
+        bl:SetX(verticesNum32:Get(second))
+        bl:SetY(verticesNum32:Get(second + 1))
+        bl:SetZ(verticesNum32:Get(second + 2))
+        
+        //top right
+        tr:SetX(verticesNum32:Get(third))
+        tr:SetY(verticesNum32:Get(third + 1))
+        tr:SetZ(verticesNum32:Get(third + 2))
+        
+        Vector3 min = box:GetMinimum()
+        Vector3 max = box:GetMaximum()
+        
+        Vector3 vert = vertices:Get(0)
+        min:SetX(vert:GetX())
+        min:SetY(vert:GetY())
+        min:SetZ(vert:GetZ())
+        
+        max:SetX(vert:GetX())
+        max:SetY(vert:GetY())
+        max:SetZ(vert:GetZ())
+        
+        i = 1
+        repeat while i < 3
+            vert = vertices:Get(i)
+            newx = vert:GetX()
+            newy = vert:GetY()
+            newz = vert:GetZ()
+            
+            if newx < min:GetX()
+                min:SetX(newx)
+            elseif newx > max:GetX()
+                max:SetX(newx)
+            end
+            
+            
+            if newy < min:GetY()
+                min:SetY(newy)
+            elseif newy > max:GetY()
+                max:SetY(newy)
+            end
+            
+            
+            if newz < min:GetZ()
+                min:SetZ(newz)
+            elseif newz > max:GetZ()
+                max:SetZ(newz)
+            end
+            
+            i = i + 1
+        end
+        min:Add(-collisionMargin)
+        max:Add(collisionMargin)
+    end
+    
+    action FillAtPixel(integer x, integer y, Array<Vector3> vertices, BoundingBox box)
+        FillAtPixel(x, y, vertices, box, true)
+    end
+    
+    /*
+    This action reads a height from a pixel, from 0 to the height scale.
+
+    The height is held across two channels, because one byte only allows 256 different
+    heights and generated terrain shows that as visible steps on a shallow slope. Red
+    carries the coarse part and green subdivides it, the way the digits of a number work,
+    which gives 65536 heights instead of 256.
+    */
+    private action CalculateHeightFromPixel(integer code) returns number
+        integer coarse = ops:And(ops:ShiftRight(code, 24), 255)
+        integer fine = ops:And(ops:ShiftRight(code, 16), 255)
+        return stickHeight * (coarse * 256 + fine) / 65536.0
+    end
+    
+    
+    private action FillVector(Vector3 vector, integer index, Number32BitArray vertices)
+        vector:SetX(vertices:Get(index * 3))
+        vector:SetY(vertices:Get(index * 3 + 1))
+        vector:SetZ(vertices:Get(index * 3 + 2))
+    end
+    
+    /*This action get the amount to scale the height values. By default, 
+they are scaled by 30 * some amount of white in the pixel in the heightmap,
+which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
+    action GetStickHeight returns number
+        return stickHeight
+    end
+
+    /*This action get the amount to scale the height values. By default, 
+they are scaled by 30 * some amount of white in the pixel in the heightmap,
+which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
+    action SetHeightScale(number stickHeight)
+        me:stickHeight = stickHeight
+    end
+    action GetStickWidth returns number
+        return stickWidth
+    end
+
+    action SetStickWidth(number stickWidth)
+        me:stickWidth = stickWidth
+    end
+
+    action GetStickLength returns number
+        return stickDepth
+    end
+
+    action SetStickDepth(number stickDepth)
+        me:stickDepth = stickDepth
+    end
+
+    action GetPixelWidth returns integer
+        return pixelWidth
+    end
+
+    action GetPixelHeight returns integer
+        return pixelHeight
+    end
+
+    /*
+    This action fills in the box around the terrain's mesh, in its own
+    coordinates. The mesh starts at the terrain's position, at one corner,
+    and runs one unit per height sample across and deep, as tall as its
+    highest point. The terrain's scale is in its transform, so it is not
+    applied here.
+
+    Attribute: Parameter local The box to fill in.
+    Attribute: Returns True, or false if the terrain has not been built yet.
+    */
+    action GetRenderBounds(BoundingBox local) returns boolean
+        if GetPixelWidth() <= 0 or GetPixelHeight() <= 0
+            return false
+        end
+        Vector3 minimum
+        minimum:Set(0, 0, 0)
+        Vector3 maximum
+        maximum:Set(GetPixelWidth() - 1, GetHeight(), GetPixelHeight() - 1)
+        local:Set(minimum, maximum)
+        return true
+    end
+
+    action GetTextureSplat returns TextureSplat
+        return textureSplat
+    end
+
+    action SetTextureSplat(TextureSplat textureSplat)
+        me:textureSplat = textureSplat
+    end
+
+end

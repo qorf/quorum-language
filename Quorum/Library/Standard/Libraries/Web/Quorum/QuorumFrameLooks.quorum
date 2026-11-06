@@ -1,0 +1,278 @@
+package Libraries.Web.Quorum
+
+use Libraries.Web.Styles.StyleSheetConstants
+use Libraries.Web.Styles.WebBoxStyle
+use Libraries.Web.Styles.WebTextStyle
+use Libraries.Web.Layouts.WebRowLayout
+use Libraries.Web.Layouts.WebStackLayout
+
+/*
+    QuorumFrameLooks is the look of the frame the Quorum website puts
+    around every page: the page's columns, the course's contents and "On
+    this page" beside the text, the link to skip to the content, and the
+    footer. Each look matches what Lesson's Tailwind classes gave the main
+    site; the class names are in the comments. It is a shared class, so
+    every page uses the same looks, and the stylesheet has one rule for
+    each.
+*/
+shared class QuorumFrameLooks
+    StyleSheetConstants constants
+    QuorumSiteOptions options
+
+    // The page below the navigation bar: the main part, then the footer.
+    WebStackLayout outer
+    WebBoxStyle outerBox
+
+    // The main part, with margins that widen on wider screens.
+    WebBoxStyle main
+    WebBoxStyle mainMedium
+    WebBoxStyle mainLarge
+    // A page with a full-bleed banner (QuorumSite:UseFullBleedBanner): its
+    // main area has no margins, so the banner spans the window, and the
+    // columns under it take the margins instead, with the old pages'
+    // wider side room ("px-5% lg:px-10%") on large screens.
+    WebBoxStyle mainFlush
+    WebBoxStyle flushColumns
+    WebBoxStyle flushColumnsMedium
+    WebBoxStyle flushColumnsLarge
+
+    // The three columns, and each column's look.
+    WebRowLayout columns
+    WebBoxStyle sideColumn
+    WebBoxStyle sideColumnSmall
+    WebBoxStyle onThisPageColumnMedium
+    WebStackLayout content
+    WebBoxStyle contentBox
+    WebBoxStyle contentSmall
+    WebBoxStyle contentMedium
+
+    // The lists beside the text: their names, items and links.
+    WebTextStyle contentsName
+    WebStackLayout contentsList
+    WebBoxStyle contentsItem
+    WebBoxStyle contentsIndentedItem
+    WebBoxStyle contentsItemHover
+    WebBoxStyle contentsLink
+    WebBoxStyle contentsCurrentLink
+
+    // The link to skip to the content: hidden from sight until it has
+    // keyboard focus.
+    WebBoxStyle skipLink
+    WebBoxStyle skipLinkFocus
+
+    // The footer.
+    WebBoxStyle footer
+    WebBoxStyle footerMedium
+    WebTextStyle footerLink
+
+    on create
+        // "flex flex-col"; at least as tall as the window, so the footer
+        // sits at the bottom of a short page.
+        outerBox:SetFillScreenHeight(true)
+
+        // "my-8 mx-2 md:mx-8 lg:mx-16 flex-grow"
+        main:SetMargin(constants:SPACING_8, constants:SPACING_2)
+        main:SetGrow(true)
+        mainMedium:SetMargin(constants:SPACING_8, constants:SPACING_8)
+        mainLarge:SetMargin(constants:SPACING_8, constants:SPACING_16)
+        mainFlush:SetGrow(true)
+        flushColumns:SetMargin(constants:SPACING_8, constants:SPACING_4)
+        flushColumnsMedium:SetMargin(constants:SPACING_8, constants:SPACING_12)
+        flushColumnsLarge:SetMargin(constants:SPACING_8, constants:SPACING_40)
+
+        // "flex flex-row"; columns lined up along the top, so the side
+        // columns can stay in view as the text scrolls.
+        columns:SetAlignedTop(true)
+
+        // Side columns: "hidden sm:block w-1/5 sticky top-8" (the course's
+        // contents) and "hidden md:block ..." (On this page).
+        sideColumn:SetDisplayed(false)
+        sideColumnSmall:SetDisplayed(true)
+        sideColumnSmall:SetWidthPercent(20)
+        sideColumnSmall:SetStickyTop(constants:SPACING_8)
+        onThisPageColumnMedium = sideColumnSmall:Copy()
+
+        // The text: "flex flex-col w-5/5 sm:w-4/5 md:w-3/5 mx-4 gap-y-4".
+        // It grows into the room the side columns leave, and may narrow
+        // below a long line of code, which then scrolls in its own box.
+        content:SetGap(constants:SPACING_4)
+        contentBox:SetMargin(constants:SPACING_0, constants:SPACING_4)
+        contentBox:SetGrow(true)
+        contentBox:SetShrinkBelowContent(true)
+        contentSmall:SetWidthPercent(80)
+        contentMedium:SetWidthPercent(60)
+
+        // The lists' names: "font-bold uppercase".
+        contentsName:SetBold(true)
+        contentsName:SetUppercase(true)
+
+        // "space-y-2"
+        contentsList:SetGap(constants:SPACING_2)
+
+        // Items: "rounded-xl hover:bg-quorum-blue-25"; indented ones, in
+        // On this page, add "ml-4".
+        contentsItem:SetRoundedCorners(constants:SPACING_3)
+        contentsIndentedItem = contentsItem:Copy()
+        contentsIndentedItem:SetLeftMargin(constants:SPACING_4)
+        contentsItemHover:SetBackground(options:GetQuorumBlue25())
+
+        // Links: "block w-full py-1 px-2", in the text's color, with no
+        // underline. The page the reader is on: "bg-quorum-blue-50
+        // font-bold rounded-xl". (Lesson also capitalized every word of
+        // each title; titles now show as written.)
+        WebTextStyle linkWords
+        linkWords:SetUnderline(false)
+        contentsLink:SetDisplayed(true)
+        contentsLink:SetPadding(constants:SPACING_1, constants:SPACING_2)
+        contentsLink:SetTextStyle(linkWords)
+        contentsCurrentLink = contentsLink:Copy()
+        contentsCurrentLink:SetBackground(options:GetQuorumBlue50())
+        contentsCurrentLink:SetRoundedCorners(constants:SPACING_3)
+        WebTextStyle currentWords = linkWords:Copy()
+        currentWords:SetBold(true)
+        contentsCurrentLink:SetTextStyle(currentWords)
+
+        // "sr-only focus:not-sr-only text-center bg-black text-white
+        // underline text-2xl"
+        skipLink:SetVisuallyHidden(true)
+        skipLinkFocus:SetVisuallyHidden(false)
+        skipLinkFocus:SetDisplayed(true)
+        skipLinkFocus:SetBackground(options:GetBlack())
+        WebTextStyle skipWords
+        skipWords:SetColor(options:GetWhite())
+        skipWords:SetUnderline(true)
+        skipWords:AlignCenter()
+        skipWords:SetFontSize(constants:EXTRA_LARGE_2_FONT_SIZE)
+        skipWords:SetLineHeight(constants:EXTRA_LARGE_2_LINE_HEIGHT)
+        skipLinkFocus:SetTextStyle(skipWords)
+
+        // "text-center px-4 md:px-20 md:min-h-[172px] text-neutral-white
+        // bg-neutral-grey-95 text-base"; its link "text-quorum-blue-100
+        // hover:underline", shown underlined, so it doesn't rely on color.
+        WebTextStyle footerWords
+        footerWords:SetColor(options:GetWhite())
+        footerWords:AlignCenter()
+        footer:SetBackground(options:GetGrey95())
+        footer:SetPadding(constants:SPACING_6, constants:SPACING_4)
+        footer:SetTextStyle(footerWords)
+        footerMedium:SetPadding(constants:SPACING_12, constants:SPACING_20)
+        footerLink:SetColor(options:GetQuorumBlue100())
+        footerLink:SetUnderline(true)
+    end
+
+    action GetOuter returns WebStackLayout
+        return outer
+    end
+
+    action GetOuterBox returns WebBoxStyle
+        return outerBox
+    end
+
+    action GetMain returns WebBoxStyle
+        return main
+    end
+
+    action GetMainMedium returns WebBoxStyle
+        return mainMedium
+    end
+
+    action GetMainLarge returns WebBoxStyle
+        return mainLarge
+    end
+
+    action GetMainFlush returns WebBoxStyle
+        return mainFlush
+    end
+
+    action GetFlushColumns returns WebBoxStyle
+        return flushColumns
+    end
+
+    action GetFlushColumnsMedium returns WebBoxStyle
+        return flushColumnsMedium
+    end
+
+    action GetFlushColumnsLarge returns WebBoxStyle
+        return flushColumnsLarge
+    end
+
+    action GetColumns returns WebRowLayout
+        return columns
+    end
+
+    action GetSideColumn returns WebBoxStyle
+        return sideColumn
+    end
+
+    action GetSideColumnSmall returns WebBoxStyle
+        return sideColumnSmall
+    end
+
+    action GetOnThisPageColumnMedium returns WebBoxStyle
+        return onThisPageColumnMedium
+    end
+
+    action GetContent returns WebStackLayout
+        return content
+    end
+
+    action GetContentBox returns WebBoxStyle
+        return contentBox
+    end
+
+    action GetContentSmall returns WebBoxStyle
+        return contentSmall
+    end
+
+    action GetContentMedium returns WebBoxStyle
+        return contentMedium
+    end
+
+    action GetContentsName returns WebTextStyle
+        return contentsName
+    end
+
+    action GetContentsList returns WebStackLayout
+        return contentsList
+    end
+
+    action GetContentsItem returns WebBoxStyle
+        return contentsItem
+    end
+
+    action GetContentsIndentedItem returns WebBoxStyle
+        return contentsIndentedItem
+    end
+
+    action GetContentsItemHover returns WebBoxStyle
+        return contentsItemHover
+    end
+
+    action GetContentsLink returns WebBoxStyle
+        return contentsLink
+    end
+
+    action GetContentsCurrentLink returns WebBoxStyle
+        return contentsCurrentLink
+    end
+
+    action GetSkipLink returns WebBoxStyle
+        return skipLink
+    end
+
+    action GetSkipLinkFocus returns WebBoxStyle
+        return skipLinkFocus
+    end
+
+    action GetFooter returns WebBoxStyle
+        return footer
+    end
+
+    action GetFooterMedium returns WebBoxStyle
+        return footerMedium
+    end
+
+    action GetFooterLink returns WebTextStyle
+        return footerLink
+    end
+end

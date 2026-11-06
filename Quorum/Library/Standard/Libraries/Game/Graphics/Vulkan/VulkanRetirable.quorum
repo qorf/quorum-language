@@ -1,0 +1,41 @@
+package Libraries.Game.Graphics.Vulkan
+
+/*
+VulkanRetirable is the parent of Vulkan objects that can be handed to
+VulkanGraphics:Retire. Retire keeps such an object until every frame that
+might still be using it on the GPU has finished, then calls its Release
+action, which frees it.
+
+Attribute: Example
+// In a class that made a buffer and now replaces it:
+// VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+// graphics:Retire(oldBuffer)
+*/
+class VulkanRetirable
+    // The frame number at which this object may be freed (Item 31).
+    integer retireFrame = 0
+
+    /*
+    This action frees the object's Vulkan resources. VulkanGraphics calls
+    it once no frame on the GPU can still be using the object.
+    */
+    blueprint action Release
+
+    /*
+    This action returns the frame number at which the object may be freed.
+
+    Attribute: Returns The frame number.
+    */
+    action GetRetireFrame returns integer
+        return retireFrame
+    end
+
+    /*
+    This action sets the frame number at which the object may be freed.
+
+    Attribute: Parameter frame The frame number.
+    */
+    action SetRetireFrame(integer frame)
+        retireFrame = frame
+    end
+end

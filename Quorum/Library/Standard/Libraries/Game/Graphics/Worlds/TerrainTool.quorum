@@ -1,0 +1,120 @@
+package Libraries.Game.Graphics.Worlds
+
+/*
+TerrainTool names the kinds of change a terrain brush can make. A brush
+has a tool, which says what it changes, and an operation, which says how:
+
+- SCULPT changes the ground's shape. ADD raises it, SUBTRACT lowers it,
+  AVERAGE smooths it, and GRADIENT pulls it toward a ramp between two
+  points.
+- HEIGHT with REPLACE flattens the ground toward one height.
+- TEXTURE changes the splat weights. ADD paints one ground texture, and
+  AVERAGE blurs the weights so textures blend more softly.
+- REGION adds (ADD) or removes (SUBTRACT) the whole region under the
+  brush's center.
+
+This follows Terrain3D's editor, which also pairs a tool with an operation,
+so "raise" is sculpt and add, and "flatten" is height and replace.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainTool
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+
+TerrainTool tools
+TerrainBrush brush
+brush:SetTool(tools:SCULPT, tools:AVERAGE)
+output tools:GetName(brush:GetTool(), brush:GetOperation())
+*/
+class TerrainTool
+    public constant integer SCULPT = 0
+    public constant integer HEIGHT = 1
+    public constant integer TEXTURE = 2
+    public constant integer REGION = 3
+
+    public constant integer ADD = 0
+    public constant integer SUBTRACT = 1
+    public constant integer REPLACE = 2
+    public constant integer AVERAGE = 3
+    public constant integer GRADIENT = 4
+
+    /*
+    This action returns true if a tool and operation make sense together.
+
+    Attribute: Parameter tool The tool, such as SCULPT.
+    Attribute: Parameter operation The operation, such as ADD.
+    Attribute: Returns True if the brush can use this pair.
+    */
+    action IsValid(integer tool, integer operation) returns boolean
+        if tool = SCULPT
+            return operation = ADD or operation = SUBTRACT or operation = AVERAGE or operation = GRADIENT
+        elseif tool = HEIGHT
+            return operation = REPLACE
+        elseif tool = TEXTURE
+            return operation = ADD or operation = AVERAGE
+        elseif tool = REGION
+            return operation = ADD or operation = SUBTRACT
+        end
+        return false
+    end
+
+    /*
+    This action returns a short, plain name for a tool and operation, such
+    as "raise" or "paint", for menus, undo names and speech.
+
+    Attribute: Parameter tool The tool.
+    Attribute: Parameter operation The operation.
+    Attribute: Returns The name, or "unknown" if the pair is not valid.
+    */
+    action GetName(integer tool, integer operation) returns text
+        if tool = SCULPT
+            if operation = ADD
+                return "raise"
+            elseif operation = SUBTRACT
+                return "lower"
+            elseif operation = AVERAGE
+                return "smooth"
+            elseif operation = GRADIENT
+                return "ramp"
+            end
+        elseif tool = HEIGHT
+            if operation = REPLACE
+                return "flatten"
+            end
+        elseif tool = TEXTURE
+            if operation = ADD
+                return "paint"
+            elseif operation = AVERAGE
+                return "blend paint"
+            end
+        elseif tool = REGION
+            if operation = ADD
+                return "add region"
+            elseif operation = SUBTRACT
+                return "remove region"
+            end
+        end
+        return "unknown"
+    end
+
+    /*
+    This action returns true if a tool changes the ground's shape, so the
+    terrain's meshes must be rebuilt after it.
+
+    Attribute: Parameter tool The tool.
+    Attribute: Returns True for SCULPT, HEIGHT and REGION.
+    */
+    action ChangesShape(integer tool) returns boolean
+        return tool = SCULPT or tool = HEIGHT or tool = REGION
+    end
+
+    /*
+    This action returns true if a tool changes splat weights, so the
+    terrain's splat texture must be rebuilt after it.
+
+    Attribute: Parameter tool The tool.
+    Attribute: Returns True for TEXTURE and REGION.
+    */
+    action ChangesSplat(integer tool) returns boolean
+        return tool = TEXTURE or tool = REGION
+    end
+end

@@ -1,0 +1,51 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.SpotLight
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+
+/*
+    EditorSpotLight is a spotlight added to a 3D scene in the scene editor.
+    Like EditorPointLight, it is also a model, so the editor can select it,
+    move it and turn it. Turning it aims its cone, which points down in the
+    light's own space. The scene saves it as a "SpotLight".
+*/
+class EditorSpotLight is EditorModel, SpotLight
+
+    /*
+        Changes the light's color. The editor model has no shape loaded, so
+        only the light's color is set.
+
+        Attribute: Parameter color The color
+    */
+    action SetColor(Color color)
+        parent:SpotLight:SetColor(color)
+    end
+
+    /*
+        Returns the light's color.
+
+        Attribute: Returns The color
+    */
+    action GetColor returns Color
+        return parent:SpotLight:GetColor()
+    end
+
+    /*
+        Sets how bright the light is.
+
+        Attribute: Parameter intensity The intensity
+    */
+    action SetIntensity(number intensity)
+        parent:SpotLight:SetIntensity(intensity)
+    end
+
+    /*
+        Returns how bright the light is.
+
+        Attribute: Returns The intensity
+    */
+    action GetIntensity returns number
+        return parent:SpotLight:GetIntensity()
+    end
+end

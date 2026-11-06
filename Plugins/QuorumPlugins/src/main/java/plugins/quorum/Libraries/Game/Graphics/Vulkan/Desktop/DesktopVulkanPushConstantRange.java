@@ -1,0 +1,49 @@
+package plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop;
+
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanPushConstantRangeStrategy;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkPushConstantRange;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange_;
+
+import static org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_COMPUTE_BIT;
+
+public class DesktopVulkanPushConstantRange implements VulkanPushConstantRangeStrategy
+{
+    private final VulkanPushConstantRange peer;
+
+    public DesktopVulkanPushConstantRange(VulkanPushConstantRange peer)
+    {
+        this.peer = peer;
+    }
+    VkPushConstantRange.Buffer pushConstantBuffer = null;
+    public void Create() {
+        VulkanPushConstantRange_ quorumSide = (VulkanPushConstantRange_) peer.me_;
+        int capacity = quorumSide.GetCapacity();
+        int size = quorumSide.GetSize();
+        int offset = quorumSide.GetOffset();
+        int stage = quorumSide.GetStage();
+
+//        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkPushConstantRange.Buffer vpcr = null;
+            if (size > 0) {
+//                vpcr = VkPushConstantRange.calloc(1, stack);
+                vpcr = VkPushConstantRange.calloc(capacity);
+                VkPushConstantRange range = vpcr.get(0);
+                range.stageFlags(stage);
+                range.offset(offset);
+                range.size(size);
+                pushConstantBuffer = vpcr;
+            }
+//        }
+    }
+
+    public void Dispose()
+    {
+        if (pushConstantBuffer != null)
+        {
+            pushConstantBuffer.free();
+            pushConstantBuffer = null;
+        }
+    }
+}

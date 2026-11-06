@@ -137,6 +137,49 @@ SetColor(sourceColor:GetRed(), sourceColor:GetGreen(), sourceColor:GetBlue(), so
     end
 
     /*
+    This action provides a value between 0 and 1.0 representing red.
+
+    Attribute: code An integer code for a color.
+    */
+    action GetRedFromCode(integer code) returns number
+        number value = ops:And(ops:ShiftRight(code, 24), 255) / 255.0
+        return value
+    end
+    
+    
+    /*
+    This action provides a value between 0 and 1.0 representing blue.
+
+    Attribute: code An integer code for a color.
+    */
+    action GetBlueFromCode(integer code) returns number
+        number value = ops:And(ops:ShiftRight(code, 8), 255) / 255.0
+        return value
+    end
+    
+    
+    /*
+    This action provides a value between 0 and 1.0 representing green.
+
+    Attribute: code An integer code for a color.
+    */
+    action GetGreenFromCode(integer code) returns number
+        number value = ops:And(ops:ShiftRight(code, 16), 255) / 255.0
+        return value
+    end
+    
+    
+    /*
+    This action provides a value between 0 and 1.0 representing alpha.
+
+    Attribute: code An integer code for a color.
+    */
+    action GetAlphaFromCode(integer code) returns number
+        number value = ops:And(code, 255) / 255.0
+        return value
+    end
+    
+    /*
     This action is used internally by the game engine to set a color using an
     integer value representing a color. Most users will never need to use this
     action directly.

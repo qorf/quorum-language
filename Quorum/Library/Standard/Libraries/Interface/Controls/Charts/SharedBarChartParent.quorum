@@ -101,13 +101,17 @@ number blinkIdleTime = 1.0
             AdjustStacked()
         end
 
-        parent:Chart:LoadGraphics(properties)
-
+        // A vertical bar chart has no vertical grid lines, and a horizontal
+        // one none across. This is set before the axes load (in
+        // Chart:LoadGraphics), or they would make lines that are never laid
+        // out.
         if GetHorizontalFlag()
             HideMajorYGridLines()
         else
             HideMajorXGridLines()
         end
+
+        parent:Chart:LoadGraphics(properties)
         LoadChartAreaItems()
     end
     
@@ -367,24 +371,24 @@ selectionBar:Show()
             barShowing = true
             blinkTimer = blinkIdleTime
                 selectionBar:SetSize(bar:GetWidth(), 25)
-                selectionBar:SetX(bar:GetGlobalX())
+                selectionBar:SetX(bar:GetGlobalX() - GetGlobalX())
                 if ShowAnnotations()
                     ChartLabel annotation = bar:GetAnnotation()
-                    selectionBar:SetY(bar:GetGlobalY() + bar:GetHeight() + 10 + annotation:GetHeight())
+                    selectionBar:SetY(bar:GetGlobalY() - GetGlobalY() + bar:GetHeight() + 10 + annotation:GetHeight())
                 else
-                    selectionBar:SetY(bar:GetGlobalY() + bar:GetHeight() + 10)
+                    selectionBar:SetY(bar:GetGlobalY() - GetGlobalY() + bar:GetHeight() + 10)
                 end
             else
 selectionBar:Show()
             barShowing = true
             blinkTimer = blinkIdleTime
 selectionBar:SetSize(25, bar:GetHeight())
-                selectionBar:SetY(bar:GetGlobalY())
+                selectionBar:SetY(bar:GetGlobalY() - GetGlobalY())
                 if ShowAnnotations()
                     ChartLabel annotation = bar:GetAnnotation()
-                    selectionBar:SetX(bar:GetGlobalX() + bar:GetWidth() + 10 + annotation:GetWidth())
+                    selectionBar:SetX(bar:GetGlobalX() - GetGlobalX() + bar:GetWidth() + 10 + annotation:GetWidth())
                 else
-selectionBar:SetX(bar:GetGlobalX() + bar:GetWidth() + 10)
+selectionBar:SetX(bar:GetGlobalX() - GetGlobalX() + bar:GetWidth() + 10)
                 end
             end
     end

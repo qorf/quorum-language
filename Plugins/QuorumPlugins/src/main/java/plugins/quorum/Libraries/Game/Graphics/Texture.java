@@ -111,7 +111,7 @@ public class Texture
         RELOADABLE_TEXTURES.removeValue(this, true);
     }
     
-    public void Dispose()
+    public void DisposeNative()
     {
         if (glHandle != 0)
         {
