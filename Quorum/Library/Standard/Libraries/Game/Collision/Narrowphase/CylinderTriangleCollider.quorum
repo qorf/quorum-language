@@ -1,0 +1,491 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Shapes.Cylinder
+use Libraries.Game.Collision.Shapes.Triangle
+use Libraries.Game.Collision.Narrowphase.TriangleCollider3D
+use Libraries.Game.Collision.Narrowphase.TriangleGeometry3D
+use Libraries.Game.Collision.Narrowphase.ContactClipper3D
+use Libraries.Game.Collision.Narrowphase.ConvexConvexPairSolver
+
+/*
+CylinderTriangleCollider finds the contacts between a cylinder and one
+triangle. It handles the two ways a cylinder usually rests on a surface
+itself, and hands every other case to the general collision test,
+ConvexConvexPairSolver.
+
+It works in the cylinder's own space, where the cylinder is centered on the
+origin and its height runs along its up axis. First it checks a set of
+directions that can separate the two: the triangle's normal, the cylinder's
+axis, the axis crossed with each triangle edge, and the direction from the
+axis out to each triangle corner. If any shows a gap wider than the contact
+threshold, there is no contact. These directions are not every direction
+that could separate a cylinder from a triangle, so passing this check does
+not prove the two touch, but failing it always proves they do not.
+
+Then it looks at how the cylinder's axis lines up with the triangle's
+normal:
+
+    Standing on a cap, when the axis is within 10 degrees of the normal: the
+    cap facing the triangle is treated as an eight sided shape around its
+    rim, cut down to the area over the triangle, and each remaining point
+    that reaches the triangle becomes a contact. This gives up to four.
+
+    Lying on its side, when the axis is within 10 degrees of the triangle's
+    plane: the line along the cylinder's side nearest the triangle is cut
+    down to the area over the triangle, and its ends become up to two
+    contacts.
+
+    Anything else, such as a tilted cylinder touching on its rim, or a
+    standing or lying cylinder whose contact does not fall over the
+    triangle, uses the general collision test, which gives one contact. So
+    does a triangle with no area.
+
+The triangle is thickened by its margin, as with the general collision test.
+The cylinder is its full size, its half extents plus its margin, with sharp
+rims, while the general test rounds its rims by its margin.
+
+Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Interface.Item3D
+    use Libraries.Game.Collision.PhysicsPosition3D
+    use Libraries.Game.Collision.LocalCollisionPoints3D
+    use Libraries.Game.Collision.CollisionPointsResult3D
+    use Libraries.Game.Collision.Shapes.Cylinder
+    use Libraries.Game.Collision.Shapes.Triangle
+
+    Item3D ground
+    Item3D barrel
+    LocalCollisionPoints3D points
+    points:Set(ground, barrel)
+    CollisionPointsResult3D result
+    result:Initialize(ground, barrel)
+
+    Triangle triangle
+    Vector3 a
+    a:Set(-5, 0, 5)
+    Vector3 b
+    b:Set(5, 0, 5)
+    Vector3 c
+    c:Set(0, 0, -5)
+    triangle:Set(a, b, c)
+    PhysicsPosition3D triangleTransform
+
+    Cylinder cylinder
+    cylinder:Set(0.6, 1, 0.6)
+    PhysicsPosition3D cylinderTransform
+    cylinderTransform:GetOrigin():Set(0, 0.53, 0)
+
+    CylinderTriangleCollider collider
+    collider:Collide(points, triangle, triangleTransform, cylinder, cylinderTransform, result, false)
+    // The cylinder stands on its bottom cap, so points holds four contacts
+    // around the rim.
+*/
+class CylinderTriangleCollider is TriangleCollider3D
+    // How far, in degrees, the cylinder's axis may lean from the triangle's
+    // normal and still count as standing on a cap, or lean from the
+    // triangle's plane and still count as lying on its side. Anything that
+    // leans more is handed to the general collision test.
+    //
+    // This is a tuning value chosen for this collider, not one taken from
+    // Bullet. A larger angle lets more cylinders use the faster contacts
+    // here, but the cap's eight rim points or the side's line then sit
+    // farther from where a leaning cylinder really touches. A smaller angle
+    // sends more cylinders to the slower general test, which gives a
+    // single contact.
+    constant number ALIGNMENT_DEGREES = 10
+
+    // The angle above turned into the numbers the collider compares against.
+    // The collider measures |normal · axis|, which, for two unit vectors, is
+    // the cosine of the angle between the axis and the normal. The axis is
+    // within ALIGNMENT_DEGREES of the normal when that value is at least the
+    // cosine of ALIGNMENT_DEGREES, so that is capAlignment. The axis is
+    // within ALIGNMENT_DEGREES of the triangle's plane, which is 90 degrees
+    // from the normal, when the value is at most the cosine of 90 minus
+    // ALIGNMENT_DEGREES, which is the sine of ALIGNMENT_DEGREES, so that is
+    // sideAlignment. For 10 degrees they are about 0.985 and 0.174. Both are
+    // worked out once, in on create.
+    number capAlignment = 0
+    number sideAlignment = 0
+
+    // The cap is treated as a shape with this many corners around its rim.
+    constant integer RIM_POINTS = 8
+
+    // A direction shorter than this, squared, is skipped.
+    constant number SMALL_AXIS = 0.000000000001
+
+    TriangleGeometry3D localTriangle
+    Vector3 localCorner0
+    Vector3 localCorner1
+    Vector3 localCorner2
+    Vector3 extents
+    number radius = 0
+    number halfHeight = 0
+    integer upAxis = 1
+
+    Vector3 axis
+    Vector3 normal
+    Vector3 sideways
+    Number32BitArray rimCosines
+    Number32BitArray rimSines
+
+    Array<Vector3> polygon
+    Array<Vector3> clipped
+    Array<Vector3> keptPoints
+    Number32BitArray keptSeparations
+    Integer32BitArray chosen
+    integer keptCount = 0
+
+    Vector3 worldNormal
+    Vector3 worldPoint
+    PhysicsPosition3D cylinderTransform = undefined
+
+    ConvexConvexPairSolver generalSolver
+    boolean usedGeneralTest = false
+
+    Math math
+
+    on create
+        number alignmentRadians = math:DegreesToRadians(ALIGNMENT_DEGREES)
+        capAlignment = math:Cosine(alignmentRadians)
+        sideAlignment = math:Sine(alignmentRadians)
+
+        ContactClipper3D contactClipper = GetClipper()
+        polygon = contactClipper:CreatePointArray()
+        clipped = contactClipper:CreatePointArray()
+        keptPoints = contactClipper:CreatePointArray()
+        keptSeparations:SetSize(contactClipper:MAXIMUM_POINTS)
+        chosen:SetSize(contactClipper:MAXIMUM_POINTS)
+
+        rimCosines:SetSize(RIM_POINTS)
+        rimSines:SetSize(RIM_POINTS)
+        integer i = 0
+        repeat while i < RIM_POINTS
+            number angle = i * 2 * math:pi / RIM_POINTS
+            rimCosines:Set(i, math:Cosine(angle))
+            rimSines:Set(i, math:Sine(angle))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action tests a cylinder against a triangle, and reports contacts if
+    they are within the collision's contact threshold. It does not refresh
+    the collision's points, so it can be called for many triangles in a row.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter triangle The triangle, with its corners in its own space.
+    Attribute: Parameter triangleTransform Where the triangle is in the world.
+    Attribute: Parameter cylinder The cylinder.
+    Attribute: Parameter transform Where the cylinder is in the world. Its origin is the cylinder's center.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the collision's two items.
+    Attribute: Parameter cylinderIsItemA False when the triangle is item A, as terrain calls it, and true when the cylinder is item A.
+    */
+    action Collide(LocalCollisionPoints3D collisionPoints, Triangle triangle, PhysicsPosition3D triangleTransform,
+            Cylinder cylinder, PhysicsPosition3D transform, CollisionPointsResult3D result, boolean cylinderIsItemA)
+        Begin(collisionPoints, result, cylinderIsItemA)
+        LoadTriangle(triangle, triangleTransform)
+        usedGeneralTest = false
+        if not CollideLoaded(cylinder, transform)
+            CollideGeneral(collisionPoints, triangle, triangleTransform, cylinder, transform, result)
+        end
+    end
+
+    /*
+    This action returns true if the last call to Collide handed the work to
+    the general collision test.
+    */
+    action UsedGeneralTest returns boolean
+        return usedGeneralTest
+    end
+
+    /*
+    This action tests a cylinder against the triangle that is already loaded.
+    It returns true if it has finished, whether or not it found contacts, and
+    false if the general collision test is needed instead.
+    */
+    private action CollideLoaded(Cylinder cylinder, PhysicsPosition3D transform) returns boolean
+        cylinderTransform = transform
+        upAxis = cylinder:GetUpAxis()
+        number cylinderMargin = cylinder:GetMargin()
+        extents:Set(cylinder:GetHalfExtentsWithoutMargin()):Add(cylinderMargin, cylinderMargin, cylinderMargin)
+        halfHeight = GetComponent(extents, upAxis)
+        if upAxis = 0
+            radius = extents:GetY()
+        else
+            radius = extents:GetX()
+        end
+
+        // Move the triangle into the cylinder's space.
+        TriangleGeometry3D world = GetGeometry()
+        Matrix3 basis = transform:GetBasis()
+        Vector3 origin = transform:GetOrigin()
+        localCorner0:Set(world:GetCorner(0)):Subtract(origin):MultiplyByTranspose(basis)
+        localCorner1:Set(world:GetCorner(1)):Subtract(origin):MultiplyByTranspose(basis)
+        localCorner2:Set(world:GetCorner(2)):Subtract(origin):MultiplyByTranspose(basis)
+        localTriangle:Load(localCorner0, localCorner1, localCorner2)
+
+        if IsSeparated()
+            return true
+        end
+
+        if localTriangle:IsDegenerate()
+            return false
+        end
+
+        // The triangle's normal, turned to point from the triangle toward the
+        // cylinder's center, which is the origin here.
+        normal:Set(localTriangle:GetNormal())
+        if normal:DotProduct(localCorner0) > 0
+            normal:Scale(-1)
+        end
+
+        number alignment = math:AbsoluteValue(GetComponent(normal, upAxis))
+        integer count = 0
+        if alignment >= capAlignment
+            BuildCap()
+            count = RIM_POINTS
+        elseif alignment <= sideAlignment
+            BuildSide()
+            count = 2
+        else
+            return false
+        end
+
+        number margin = GetTriangleMargin()
+        count = GetClipper():ClipToTriangle(polygon, count, clipped, localTriangle, margin)
+
+        number surface = normal:DotProduct(localCorner0) + margin
+        number threshold = GetContactThreshold()
+        keptCount = 0
+        integer i = 0
+        repeat while i < count
+            Vector3 point = clipped:Get(i)
+            number separation = normal:DotProduct(point) - surface
+            if separation <= threshold
+                Keep(point, separation)
+            end
+            i = i + 1
+        end
+
+        if keptCount = 0
+            return false
+        end
+
+        ReportKept()
+        return true
+    end
+
+    /*
+    This action returns true if one of the directions this collider checks
+    shows a gap between the cylinder and the triangle wider than the contact
+    threshold.
+    */
+    private action IsSeparated returns boolean
+        if not localTriangle:IsDegenerate()
+            axis:Set(localTriangle:GetNormal())
+            if IsSeparatedAlong()
+                return true
+            end
+        end
+
+        SetAxisToUp()
+        if IsSeparatedAlong()
+            return true
+        end
+
+        // The cylinder's axis crossed with each triangle edge.
+        integer j = 0
+        repeat while j < 3
+            SetAxisToUp()
+            axis:CrossProduct(localTriangle:GetEdge(j))
+            if axis:LengthSquared() > SMALL_AXIS
+                axis:Normalize()
+                if IsSeparatedAlong()
+                    return true
+                end
+            end
+            j = j + 1
+        end
+
+        // The direction from the cylinder's axis out to each triangle corner.
+        integer i = 0
+        repeat while i < 3
+            axis:Set(localTriangle:GetCorner(i))
+            SetComponent(axis, upAxis, 0)
+            if axis:LengthSquared() > SMALL_AXIS
+                axis:Normalize()
+                if IsSeparatedAlong()
+                    return true
+                end
+            end
+            i = i + 1
+        end
+
+        return false
+    end
+
+    /*
+    This action is used by "action IsSeparated." It measures the cylinder and
+    the triangle along the unit vector in axis, and returns true if they are
+    farther apart along it than the contact threshold.
+    */
+    private action IsSeparatedAlong returns boolean
+        // How far a cylinder reaches from its center along a direction: its
+        // half height times how much the direction lines up with its axis,
+        // plus its radius times how much it does not.
+        number lineUp = GetComponent(axis, upAxis)
+        number across = 1 - lineUp * lineUp
+        if across < 0
+            across = 0
+        end
+        number reach = halfHeight * math:AbsoluteValue(lineUp) + radius * math:SquareRoot(across)
+
+        number margin = GetTriangleMargin()
+        number low = localTriangle:GetProjectionMinimum(axis) - margin
+        number high = localTriangle:GetProjectionMaximum(axis) + margin
+
+        number separation = low - reach
+        if -reach - high > separation
+            separation = -reach - high
+        end
+        return separation > GetContactThreshold()
+    end
+
+    /*
+    This action fills the first RIM_POINTS points of polygon with the corners
+    of the cap facing the triangle, in order around its rim.
+    */
+    private action BuildCap
+        // normal points toward the cylinder, so the triangle is on the side
+        // it points away from.
+        number capAt = halfHeight
+        if GetComponent(normal, upAxis) > 0
+            capAt = -halfHeight
+        end
+        integer first = (upAxis + 1) mod 3
+        integer second = (upAxis + 2) mod 3
+
+        integer i = 0
+        repeat while i < RIM_POINTS
+            Vector3 point = polygon:Get(i)
+            SetComponent(point, upAxis, capAt)
+            SetComponent(point, first, radius * rimCosines:Get(i))
+            SetComponent(point, second, radius * rimSines:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action fills the first two points of polygon with the ends of the
+    line along the cylinder's side that is nearest the triangle.
+    */
+    private action BuildSide
+        // The direction toward the triangle, flattened so it is at a right
+        // angle to the cylinder's axis.
+        sideways:Set(normal):Scale(-1)
+        SetComponent(sideways, upAxis, 0)
+        sideways:Normalize()
+
+        polygon:Get(0):Set(sideways):Scale(radius)
+        SetComponent(polygon:Get(0), upAxis, -halfHeight)
+        polygon:Get(1):Set(sideways):Scale(radius)
+        SetComponent(polygon:Get(1), upAxis, halfHeight)
+    end
+
+    /*
+    This action hands the collision to the general collision test, with the
+    two shapes in the same order as the collision's items.
+    */
+    private action CollideGeneral(LocalCollisionPoints3D collisionPoints, Triangle triangle,
+            PhysicsPosition3D triangleTransform, Cylinder cylinder, PhysicsPosition3D transform,
+            CollisionPointsResult3D result)
+        usedGeneralTest = true
+        number reach = triangle:GetMargin() + cylinder:GetMargin() + GetContactThreshold()
+        if IsSwapped()
+            generalSolver:SetMinkowskiA(cylinder)
+            generalSolver:SetMinkowskiB(triangle)
+            generalSolver:GetClosestPoints(transform, triangleTransform, reach * reach, result, false)
+        else
+            generalSolver:SetMinkowskiA(triangle)
+            generalSolver:SetMinkowskiB(cylinder)
+            generalSolver:GetClosestPoints(triangleTransform, transform, reach * reach, result, false)
+        end
+    end
+
+    /*
+    This action stores a contact point, in the cylinder's space, and its
+    separation, to be reported by ReportKept.
+    */
+    private action Keep(Vector3 point, number separation)
+        if keptCount >= keptPoints:GetSize()
+            return now
+        end
+        keptPoints:Get(keptCount):Set(point)
+        keptSeparations:Set(keptCount, separation)
+        keptCount = keptCount + 1
+    end
+
+    /*
+    This action reports the kept contacts, choosing four of them if there are
+    more. Each is moved from the cylinder's space into the world.
+    */
+    private action ReportKept
+        integer count = GetClipper():ReduceToFour(keptPoints, keptSeparations, keptCount, normal, chosen)
+
+        Matrix3 basis = cylinderTransform:GetBasis()
+        worldNormal:Set(normal):Multiply(basis)
+
+        integer i = 0
+        repeat while i < count
+            integer index = chosen:Get(i)
+            worldPoint:Set(keptPoints:Get(index))
+            cylinderTransform:Transform(worldPoint)
+            AddContact(worldNormal, worldPoint, keptSeparations:Get(index))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets axis to the cylinder's up axis.
+    */
+    private action SetAxisToUp
+        axis:Set(0, 0, 0)
+        SetComponent(axis, upAxis, 1)
+    end
+
+    /*
+    This action returns a component of a vector by index: 0 for x, 1 for y
+    and 2 for z.
+    */
+    private action GetComponent(Vector3 vector, integer index) returns number
+        if index = 0
+            return vector:GetX()
+        elseif index = 1
+            return vector:GetY()
+        end
+        return vector:GetZ()
+    end
+
+    /*
+    This action sets a component of a vector by index: 0 for x, 1 for y and
+    2 for z.
+    */
+    private action SetComponent(Vector3 vector, integer index, number value)
+        if index = 0
+            vector:SetX(value)
+        elseif index = 1
+            vector:SetY(value)
+        else
+            vector:SetZ(value)
+        end
+    end
+end

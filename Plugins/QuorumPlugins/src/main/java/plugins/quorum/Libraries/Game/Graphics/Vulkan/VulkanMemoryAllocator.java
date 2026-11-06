@@ -3,6 +3,7 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.vma.VmaAllocatorCreateInfo;
+import org.lwjgl.util.vma.VmaTotalStatistics;
 import org.lwjgl.util.vma.VmaVulkanFunctions;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstance_;
@@ -56,5 +57,25 @@ public class VulkanMemoryAllocator
     public long GetAllocatorPointer()
     {
         return allocatorPointer;
+    }
+
+    public double GetAllocatedBytes()
+    {
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
+            vmaCalculateStatistics(allocatorPointer, statistics);
+            return (double)statistics.total().statistics().allocationBytes();
+        }
+    }
+
+    public int GetAllocationCount()
+    {
+        try (MemoryStack stack = MemoryStack.stackPush())
+        {
+            VmaTotalStatistics statistics = VmaTotalStatistics.calloc(stack);
+            vmaCalculateStatistics(allocatorPointer, statistics);
+            return statistics.total().statistics().allocationCount();
+        }
     }
 }

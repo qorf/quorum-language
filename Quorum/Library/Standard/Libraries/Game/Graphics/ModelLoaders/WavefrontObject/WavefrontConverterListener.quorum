@@ -160,8 +160,10 @@ class WavefrontConverterListener is WavefrontObjectListener
                 Vector3 vector = currentPosition:GetVector()
                 vector:SetY(cast(number, terminal:value))
             elseif positionIndex = 2
+                // OBJ files are right-handed and the world is left-handed, so z
+                // is flipped as it is read.
                 Vector3 vector = currentPosition:GetVector()
-                vector:SetZ(cast(number, terminal:value))
+                vector:SetZ(-1 * cast(number, terminal:value))
             elseif positionIndex = 3
                 currentPosition:SetWidth(cast(number, terminal:value))
             end
@@ -174,8 +176,9 @@ class WavefrontConverterListener is WavefrontObjectListener
                 Vector3 vector = currentNormal:GetVector()
                 vector:SetY(cast(number, terminal:value))
             elseif normalIndex = 2
+                // Normals are flipped the same way as positions.
                 Vector3 vector = currentNormal:GetVector()
-                vector:SetZ(cast(number, terminal:value))
+                vector:SetZ(-1 * cast(number, terminal:value))
             end
             normalIndex = normalIndex + 1
         elseif isVertexTexture

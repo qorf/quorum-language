@@ -14,6 +14,11 @@ import plugins.quorum.Libraries.Game.GameFile;
 import plugins.quorum.Libraries.Game.GameRuntimeError;
 import plugins.quorum.Libraries.Game.Graphics.OpenGL.OpenGLManager;
 import plugins.quorum.Libraries.Game.libGDX.BufferUtils;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import quorum.Libraries.System.File;
+import quorum.Libraries.System.File_;
 
 /**
  *
@@ -89,6 +94,9 @@ public class PixelMap {
             int width = (int) nativeData[1];
             int height = (int) nativeData[2];
             ByteBuffer convertedBuffer = ConvertToRGBA8888(pixelPointer, (int)nativeData[3], width, height, (byte) 255);
+            // The converted pixels live in Java's memory. The native ones
+            // aren't used again, so free them now (Item 34).
+            Free(nativeData[0]);
             LoadFromByteBuffer(convertedBuffer, width, height, FORMAT_RGBA8888);
             return;
         }
@@ -146,6 +154,118 @@ public class PixelMap {
         if (pixelPointer == null)
             throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
         SetPixel(basePointer, x, y, code);
+    }
+
+    // Channel helpers, working on the RGBA8888 bytes in pixelPointer, which is
+    // what the Vulkan texture manager uploads. Converted images keep their
+    // pixels here rather than in the native pixmap.
+
+    public void CopyChannel(quorum.Libraries.Game.Graphics.PixelMap_ quorumSource, int sourceChannel, int destinationChannel)
+    {
+        PixelMap source = ((quorum.Libraries.Game.Graphics.PixelMap) quorumSource).plugin_;
+        CheckChannel(sourceChannel);
+        CheckChannel(destinationChannel);
+        CheckSameRGBA(source);
+        int count = width * height;
+        for (int i = 0; i < count; i++)
+            pixelPointer.put(i * 4 + destinationChannel, source.pixelPointer.get(i * 4 + sourceChannel));
+    }
+
+    public void CopyGrayValue(quorum.Libraries.Game.Graphics.PixelMap_ quorumSource, int destinationChannel)
+    {
+        PixelMap source = ((quorum.Libraries.Game.Graphics.PixelMap) quorumSource).plugin_;
+        CheckChannel(destinationChannel);
+        CheckSameRGBA(source);
+        int count = width * height;
+        for (int i = 0; i < count; i++)
+            pixelPointer.put(i * 4 + destinationChannel, (byte) source.GetGrayValue(i));
+    }
+
+    public void SetChannel(int channel, int value)
+    {
+        CheckChannel(channel);
+        CheckRGBA();
+        byte b = (byte) Math.max(0, Math.min(255, value));
+        int count = width * height;
+        for (int i = 0; i < count; i++)
+            pixelPointer.put(i * 4 + channel, b);
+    }
+
+    public void InvertChannel(int channel)
+    {
+        CheckChannel(channel);
+        CheckRGBA();
+        int count = width * height;
+        for (int i = 0; i < count; i++)
+        {
+            int value = pixelPointer.get(i * 4 + channel) & 0xFF;
+            pixelPointer.put(i * 4 + channel, (byte) (255 - value));
+        }
+    }
+
+    public void ScaleNormalsByOcclusion(quorum.Libraries.Game.Graphics.PixelMap_ quorumOcclusion)
+    {
+        PixelMap occlusion = ((quorum.Libraries.Game.Graphics.PixelMap) quorumOcclusion).plugin_;
+        CheckSameRGBA(occlusion);
+        int count = width * height;
+        for (int i = 0; i < count; i++)
+        {
+            double x = (pixelPointer.get(i * 4) & 0xFF) / 255.0 * 2.0 - 1.0;
+            double y = (pixelPointer.get(i * 4 + 1) & 0xFF) / 255.0 * 2.0 - 1.0;
+            double z = (pixelPointer.get(i * 4 + 2) & 0xFF) / 255.0 * 2.0 - 1.0;
+            double length = Math.sqrt(x * x + y * y + z * z);
+            if (length < 0.000001)
+            {
+                x = 0; y = 0; z = 1; length = 1;
+            }
+            double ao = occlusion.GetGrayValue(i) / 255.0;
+            double scale = (Math.sqrt(ao) * 0.5 + 0.5) / length;
+            pixelPointer.put(i * 4, ToByte(x * scale));
+            pixelPointer.put(i * 4 + 1, ToByte(y * scale));
+            pixelPointer.put(i * 4 + 2, ToByte(z * scale));
+        }
+    }
+
+    // A pixel's gray value: alpha when red, green and blue are all 255 (how
+    // a one-channel image is converted), red otherwise.
+    private int GetGrayValue(int pixel)
+    {
+        int r = pixelPointer.get(pixel * 4) & 0xFF;
+        int g = pixelPointer.get(pixel * 4 + 1) & 0xFF;
+        int b = pixelPointer.get(pixel * 4 + 2) & 0xFF;
+        if (r == 255 && g == 255 && b == 255)
+            return pixelPointer.get(pixel * 4 + 3) & 0xFF;
+        return r;
+    }
+
+    // Turns a value from -1 to 1 into a byte from 0 to 255.
+    private static byte ToByte(double value)
+    {
+        long level = Math.round((value * 0.5 + 0.5) * 255.0);
+        return (byte) Math.max(0, Math.min(255, level));
+    }
+
+    private void CheckChannel(int channel)
+    {
+        if (channel < 0 || channel > 3)
+            throw new GameRuntimeError("A PixelMap channel must be from 0 to 3, but was given " + channel + ".");
+    }
+
+    private void CheckRGBA()
+    {
+        if (pixelPointer == null)
+            throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        if (format != FORMAT_RGBA8888)
+            throw new GameRuntimeError("This PixelMap action needs the RGBA8888 format, which loaded images have when using Vulkan.");
+    }
+
+    private void CheckSameRGBA(PixelMap other)
+    {
+        CheckRGBA();
+        other.CheckRGBA();
+        if (other.width != width || other.height != height)
+            throw new GameRuntimeError("The two PixelMaps must be the same size, but one is " + width + " by " + height +
+                " and the other " + other.width + " by " + other.height + ".");
     }
     
     public int GetPixel(int x, int y)
@@ -466,5 +586,39 @@ public class PixelMap {
 
         LoadFromByteBuffer(result, width, height, FORMAT_RGBA8888);
     }
-    
+
+    public void Save(File_ file) throws IOException {
+        String path = file.GetAbsolutePath();
+        String extension = file.GetFileExtension();
+        if(extension.compareTo("png") == 0 ||
+                extension.compareTo("jpg") == 0 ||
+                extension.compareTo("jpeg") == 0 ||
+                extension.compareTo("gif") == 0 ||
+                extension.compareTo("bmp") == 0 ||
+                extension.compareTo("dib") == 0)
+        {
+        } else {
+            throw new IOException("Extension in format " + extension + " is not available on this platform.");
+        }
+        int[] pixels = new int[width * height];
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < width; j++) {
+                //Java's buffered image packs the pixels differently.
+                //So, repack them and bitshift into the way it likes it
+                int code = GetPixel(j, i);
+                int r = (code >>> 24) & 255;
+                int g = (code >>> 16) & 255;
+                int b = (code >>> 8) & 255;
+                int a = code & 255;
+                int argb = (a << 24) | (r << 16) | (g << 8) | b;
+                pixels[i * width + j] = argb;
+            }
+        }
+
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        image.setRGB(0, 0, width, height, pixels, 0, width);
+
+        java.io.File out = new java.io.File(path);
+        ImageIO.write(image, extension, out);
+    }
 }

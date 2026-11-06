@@ -3,8 +3,65 @@ package Libraries.Game.Graphics
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Models.OpenGL.Attributes.ColorAttribute
 
+/*
+An AmbientLight is the soft light that reaches every part of a 3D scene,
+even the sides of objects facing away from every other light. In the real
+world, light bounces off the ground, walls and sky, so a shadowed side is
+dim rather than completely black. An ambient light stands in for all of
+that bounced light at once.
+
+It has no direction and no position. It lights every surface of every
+object by the same amount, so on its own it makes objects look flat. It is
+used together with a DirectionalLight or a PointLight, which give objects
+their shape and shadows, while the ambient light keeps their dark sides
+from turning black.
+
+Its color sets both how bright it is and what color it adds. A dim gray,
+such as (0.3, 0.3, 0.3), is a good start for a daytime scene. A darker,
+bluish color suits night. Ambient light does not cast shadows.
+
+A game has one ambient light at a time, set with SetAmbientLight, on the
+game or on a Layer3D.
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.AmbientLight
+use Libraries.Game.Graphics.DirectionalLight
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Color color
+
+        Model box
+        box:LoadBox(2, 2, 2, color:Orange())
+        box:SetPosition(0, 0, 5)
+        Add(box)
+
+        // The sun lights the top and one side of the box.
+        DirectionalLight sun
+        sun:SetColor(0.8, 0.8, 0.8, 1)
+        sun:SetDirection(-1, -4, 2)
+        Add(sun)
+
+        // A dim gray ambient light keeps the box's other sides from being
+        // completely black.
+        AmbientLight ambient
+        ambient:SetColor(0.3, 0.3, 0.3, 1)
+        SetAmbientLight(ambient)
+    end
+
+    action Update(number seconds)
+    end
+end
+*/
 class AmbientLight is Light
-    
     ColorAttribute attribute
 
     on create

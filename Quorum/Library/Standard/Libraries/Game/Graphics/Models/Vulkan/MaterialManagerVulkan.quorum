@@ -13,6 +13,9 @@ use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
 use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Vulkan.VulkanMemoryBarrier
+use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
 
 class MaterialManagerVulkan
     
@@ -23,6 +26,13 @@ class MaterialManagerVulkan
     
     // An array containing any materials that are awaiting data transfers to GPU.
     Array<MaterialVulkan> pendingMaterials
+
+    // Textures shared by materials, by key: a file's path (with ":normal"
+    // for normal maps), or a texture set's key. Each counts its users, and
+    // is disposed when none is left (Item 34).
+    HashTable<text, Texture> sharedTextures
+    HashTable<text, integer> sharedTextureUsers
+    HashTable<Texture, text> sharedTextureKeys
 
     VulkanDevice device = undefined
 
@@ -47,25 +57,107 @@ class MaterialManagerVulkan
             VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
             VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
 
+            boolean copied = false
             integer i = 0
             repeat while i < pendingMaterials:GetSize()
                 MaterialVulkan material = pendingMaterials:Get(i)
                 if material:IsPreloaded()
                     material:Load()
                 end
-if material:HasData()
+                if material:HasData()
                     material:TransferBuffers(commandBuffer)
+                    copied = true
                 end
-
                 i = i + 1
             end
-
             pendingMaterials:Empty()
+
+            // Drawing waits for the material copies (Item 34).
+            if copied
+                VulkanConstants constants
+                VulkanMemoryBarrier afterCopy
+                afterCopy:SetSourceStageMask(constants:PIPELINE_STAGE_TRANSFER_BIT)
+                afterCopy:SetSourceAccessMask(constants:ACCESS_TRANSFER_WRITE_BIT)
+                afterCopy:SetDestinationStageMask(constants:PIPELINE_STAGE_VERTEX_SHADER_BIT + constants:PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+                afterCopy:SetDestinationAccessMask(constants:ACCESS_SHADER_READ_BIT)
+                PipelineBarrierCommand afterCommand
+                afterCommand:SetMemoryBarrier(afterCopy)
+                commandBuffer:Record(afterCommand)
+            end
         end
     end
     
     action AddPendingMaterial(MaterialVulkan material)
         pendingMaterials:Add(material)
+    end
+
+    /*
+    This action returns a shared texture, counting one more user of it, or
+    undefined if none has been added under the key.
+
+    Attribute: Parameter key The texture's key.
+    Attribute: Returns The texture, or undefined.
+    */
+    action UseSharedTexture(text key) returns Texture
+        if not sharedTextures:HasKey(key)
+            return undefined
+        end
+        sharedTextureUsers:Add(key, sharedTextureUsers:GetValue(key) + 1)
+        return sharedTextures:GetValue(key)
+    end
+
+    /*
+    This action adds a texture to share under a key, with one user.
+
+    Attribute: Parameter key The texture's key.
+    Attribute: Parameter texture The texture.
+    */
+    action AddSharedTexture(text key, Texture texture)
+        sharedTextures:Add(key, texture)
+        sharedTextureUsers:Add(key, 1)
+        sharedTextureKeys:Add(texture, key)
+    end
+
+    /*
+    This action counts one fewer user of a shared texture, and disposes it
+    when none is left. A texture that isn't shared is disposed straight
+    away.
+
+    Attribute: Parameter texture The texture.
+    */
+    action ReleaseSharedTexture(Texture texture)
+        if not sharedTextureKeys:HasKey(texture)
+            texture:Dispose()
+            return now
+        end
+        text key = sharedTextureKeys:GetValue(texture)
+        integer users = sharedTextureUsers:GetValue(key) - 1
+        if users > 0
+            sharedTextureUsers:Add(key, users)
+            return now
+        end
+        sharedTextures:RemoveKey(key)
+        sharedTextureUsers:RemoveKey(key)
+        sharedTextureKeys:RemoveKey(texture)
+        texture:Dispose()
+    end
+
+    /*
+    This action takes a material out of the waiting list, if it is there.
+
+    Attribute: Parameter material The material.
+    */
+    action RemovePendingMaterial(MaterialVulkan material)
+        pendingMaterials:Remove(material)
+    end
+
+    /*
+    This action returns how many textures materials share.
+
+    Attribute: Returns The number of textures.
+    */
+    action GetSharedTextureCount returns integer
+        return sharedTextures:GetSize()
     end
     
     action GetMaterial(Material data) returns MaterialVulkan

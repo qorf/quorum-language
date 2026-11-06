@@ -23,7 +23,7 @@ public class VulkanPhysicalDevice
     private VkPhysicalDeviceProperties deviceProperties = null;
     private VkQueueFamilyProperties.Buffer queueFamilyProperties = null;
     private VkPhysicalDeviceMemoryProperties memoryProperties = null;
-    private VkPhysicalDeviceFeatures deviceFeatures = null;
+//    private VkPhysicalDeviceFeatures deviceFeatures = null;
 
     long memorySize = 0L;
 
@@ -233,8 +233,8 @@ public class VulkanPhysicalDevice
             queueFamilyProperties = candidateFamilyProperties;
             memoryProperties = candidateMemoryProperties;
 
-            deviceFeatures = VkPhysicalDeviceFeatures.calloc();
-            vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
+//            deviceFeatures = VkPhysicalDeviceFeatures.calloc();
+//            vkGetPhysicalDeviceFeatures(physicalDevice, deviceFeatures);
         }
 
         return true;
@@ -288,14 +288,14 @@ public class VulkanPhysicalDevice
         deviceProperties.free();
         queueFamilyProperties.free();
         memoryProperties.free();
-        deviceFeatures.free();
+//        deviceFeatures.free();
 
         physicalDevice = null;
         deviceExtensions = null;
         deviceProperties = null;
         queueFamilyProperties = null;
         memoryProperties = null;
-        deviceFeatures = null;
+//        deviceFeatures = null;
     }
 
     public VkPhysicalDevice GetDevice()
@@ -323,8 +323,8 @@ public class VulkanPhysicalDevice
         return memoryProperties;
     }
 
-    public VkPhysicalDeviceFeatures GetDeviceFeatures()
-    {
-        return deviceFeatures;
-    }
+//    public VkPhysicalDeviceFeatures GetDeviceFeatures()
+//    {
+//        return deviceFeatures;
+//    }
 }

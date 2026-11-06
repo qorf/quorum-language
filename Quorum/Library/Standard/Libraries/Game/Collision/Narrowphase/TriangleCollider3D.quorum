@@ -1,0 +1,145 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Collision.LocalCollisionPoints3D
+use Libraries.Game.Collision.CollisionPointsResult3D
+use Libraries.Game.Collision.PhysicsPosition3D
+use Libraries.Game.Collision.Shapes.Triangle
+
+/*
+TriangleCollider3D is the parent of the colliders that test a shape against a
+single triangle, such as a sphere, box or cylinder against one triangle of a
+terrain. It holds what they all share: the triangle in world space, a clipper
+for building contact polygons, and the one place where a contact is turned
+into the form CollisionPointsResult3D expects.
+
+A collision between two items has an item A and an item B, and
+CollisionPointsResult3D:AddCollisionPoint expects a normal pointing from B
+toward A, a point on B, and a depth that is negative when the two overlap.
+The triangle can be either item. Terrain makes the triangle item A, so that is
+the usual case, but a collider may be called the other way around. Rather
+than each collider working this out, they all describe a contact the same
+way, by a normal pointing from the triangle toward the shape, a point on the
+shape, and the separation, and AddContact converts it.
+
+The triangle colliders never call RefreshCollisionPoints. A concave shape such
+as terrain tests many triangles against the same collision, and refreshes the
+points once when it has tested them all.
+
+A collider is used in three steps: Begin, to say where contacts go and which
+item the triangle is; LoadTriangle, to load the triangle; and then the
+collider's own collision action, which calls AddContact for each contact.
+*/
+class TriangleCollider3D
+    TriangleGeometry3D geometry
+    ContactClipper3D clipper
+
+    LocalCollisionPoints3D collisionPoints = undefined
+    CollisionPointsResult3D result = undefined
+    boolean swapped = false
+    number triangleMargin = 0
+
+    // Reused by AddContact.
+    Vector3 reportedNormal
+    Vector3 reportedPoint
+
+    /*
+    This action gets the collider ready to report contacts for one collision.
+    Attribute: Parameter collisionPoints The collision's stored contact points.
+    Attribute: Parameter result Where contacts are reported. It must already be initialized with the collision's two items.
+    Attribute: Parameter shapeIsItemA False when the triangle is item A, which is how terrain calls it, and true when the other shape is item A.
+    */
+    action Begin(LocalCollisionPoints3D collisionPoints, CollisionPointsResult3D result, boolean shapeIsItemA)
+        me:collisionPoints = collisionPoints
+        me:result = result
+        me:swapped = shapeIsItemA
+        result:SetCollisionPoints(collisionPoints)
+    end
+
+    /*
+    This action loads a triangle, moving its corners into the world using the
+    given transform, and takes its margin from the triangle.
+    */
+    action LoadTriangle(Triangle triangle, PhysicsPosition3D transform)
+        geometry:Load(triangle, transform)
+        triangleMargin = triangle:GetMargin()
+    end
+
+    /*
+    This action loads a triangle whose corners are already in world space,
+    with the given margin.
+    */
+    action LoadTriangle(Vector3 a, Vector3 b, Vector3 c, number margin)
+        geometry:Load(a, b, c)
+        triangleMargin = margin
+    end
+
+    /*
+    This action returns the loaded triangle.
+    */
+    action GetGeometry returns TriangleGeometry3D
+        return geometry
+    end
+
+    /*
+    This action returns the clipper the collider uses to build contact
+    polygons.
+    */
+    action GetClipper returns ContactClipper3D
+        return clipper
+    end
+
+    /*
+    This action returns how thick a shell is added around the triangle. The
+    triangle is treated as if it were this much thicker on both sides and
+    this much wider past every edge, which is what the general collision test
+    does with a triangle's margin.
+    */
+    action GetTriangleMargin returns number
+        return triangleMargin
+    end
+
+    /*
+    This action returns true when the other shape, not the triangle, is item A.
+    */
+    action IsSwapped returns boolean
+        return swapped
+    end
+
+    /*
+    This action returns how far apart two shapes may be and still have a
+    contact recorded. Contacts farther apart than this are not kept.
+    */
+    action GetContactThreshold returns number
+        return collisionPoints:GetCollisionBreakingThreshold()
+    end
+
+    /*
+    This action reports one contact. The contact is described the same way by
+    every triangle collider, and is converted here to the form that
+    CollisionPointsResult3D expects, based on which item the triangle is.
+
+    When the triangle is item A, the normal from B toward A points from the
+    shape toward the triangle, and the point on B is the point on the shape.
+    When the shape is item A, the normal points from the triangle toward the
+    shape, and the point on B is the matching point on the triangle, found by
+    moving back across the gap. Either way, the point on A that
+    CollisionPointsResult3D works out, the point on B plus the normal times
+    the depth, is the other side of the same contact.
+    Attribute: Parameter normalTowardShape The unit normal pointing from the triangle toward the shape.
+    Attribute: Parameter pointOnShape The contact point on the shape's surface, in world space.
+    Attribute: Parameter separation How far apart the shape and the triangle are along the normal, negative when they overlap.
+    */
+    action AddContact(Vector3 normalTowardShape, Vector3 pointOnShape, number separation)
+        if swapped
+            reportedNormal:Set(normalTowardShape)
+            // The point on the triangle is the point on the shape, moved back
+            // toward the triangle by the separation.
+            reportedPoint:Set(pointOnShape):MultiplyAndAdd(normalTowardShape, -separation)
+        else
+            reportedNormal:Set(normalTowardShape):Scale(-1)
+            reportedPoint:Set(pointOnShape)
+        end
+        result:AddCollisionPoint(reportedNormal, reportedPoint, separation)
+    end
+end

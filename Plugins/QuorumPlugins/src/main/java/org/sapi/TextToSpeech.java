@@ -49,10 +49,9 @@ public class TextToSpeech {
     public native boolean setVoiceNative(String string);
 
     /**
-     * This function attempts to change the speech engine to another type,
-     * if it is available. For example, you can request to load JAWS. If a
-     * a problem occurs (e.g., JAWS is not available), this method
-     * returns null and the request is ignored.
+     * This function attempts to change the speech engine. Only
+     * "MICROSOFT_SAPI" is supported; any other engine returns false and the
+     * request is ignored.
      *
      * @param engine
      * @return

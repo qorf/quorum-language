@@ -32,4 +32,20 @@ class VulkanMemoryAllocator
 
     private system action DisposeNative
 
+    /*
+    This action returns how many bytes of GPU memory are allocated through
+    the allocator right now, for buffers and images together.
+
+    Attribute: Returns The number of bytes.
+    */
+    system action GetAllocatedBytes returns number
+
+    /*
+    This action returns how many buffers and images are allocated through
+    the allocator right now.
+
+    Attribute: Returns The number of allocations.
+    */
+    system action GetAllocationCount returns integer
+
 end

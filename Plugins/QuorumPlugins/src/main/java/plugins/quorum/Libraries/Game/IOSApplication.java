@@ -207,7 +207,19 @@ public class IOSApplication
         input.Initialize(this);
         ((IOSDisplay)display).plugin_.Initialize(scale, this, config, input, ((IOSOpenGL)GameStateManager.graphics).plugin_);
 
-        this.uiWindow = new UIWindow(UIScreen.getMainScreen().getBounds());
+        // The window is made in CreateWindow, when iOS connects the scene.
+        return true;
+    }
+
+    /*
+    Makes the window that shows the game, in the scene iOS connected. Since iOS 27,
+    apps must use the scene life cycle (Apple's TN3187), so IOSSceneDelegate calls
+    this after DidFinishLaunching, instead of DidFinishLaunching making the window
+    for the whole screen.
+    */
+    final UIWindow CreateWindow(UIWindowScene scene)
+    {
+        this.uiWindow = new UIWindow(scene);
         this.uiWindow.setRootViewController(((IOSDisplay)display).plugin_.viewController);
         this.uiWindow.makeKeyAndVisible();
         accessibilityContainer = new IOSAccessibilityContainer();
@@ -223,11 +235,11 @@ public class IOSApplication
         this.uiWindow.getRootViewController().getView().addSubview(accessibilityContainer);
 
         //hidden text field for the keyboard
+        IOSInput input = ((quorum.Libraries.Game.IOSInput)GameStateManager.input).plugin_;
         UITextField field = input.getKeyboardTextField();
         this.uiWindow.getRootViewController().getView().addSubview(field);
 
-        System.out.println("IOSApplication: DidFinishLaunching: this.uiWindow.makeKeyAndVisible() called.32323");
-        return true;
+        return this.uiWindow;
     }
 
     private int GetIOSVersion()
@@ -320,6 +332,15 @@ public class IOSApplication
             ((IOSOpenGL)GameStateManager.graphics).plugin_.glFlush();
         }
 
+    }
+
+    /*
+    Exit is declared in IOSApplication.quorum. iOS apps don't quit themselves:
+    Apple's guidelines treat that as a crash, so this does nothing, and the
+    person using the app leaves it the usual way.
+    */
+    public void Exit()
+    {
     }
 
     public void WillTerminate (UIApplication uiApp)

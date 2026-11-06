@@ -1,0 +1,35 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.ShaderManager
+
+/*
+SkyboxVertexShaderVulkan draws one triangle covering the screen for the sky.
+It needs no vertices: the corners come from the vertex number. It passes
+each pixel's screen position, from -1 to 1, to the fragment shader.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.SkyboxVertexShaderVulkan
+SkyboxVertexShaderVulkan shader
+shader:Compile()
+*/
+class SkyboxVertexShaderVulkan is Shader
+    on create
+        SetType(parent:Shader:VERTEX_SHADER)
+        GameStateManager manager
+        ShaderManager shaderManager = manager:GetShaderManager()
+        SetName(shaderManager:SKYBOX_VERTEX_SHADER)
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) out vec2 v_screen;
+
+void main()
+{
+    vec2 corner = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+    v_screen = corner * 2.0 - 1.0;
+    gl_Position = vec4(v_screen, 0.0, 1.0);
+}
+")
+    end
+end

@@ -21,12 +21,22 @@ class ModelBlueprintVulkan is ModelBlueprint
     AnimationFrameVulkan bindPoseAnimationFrame = undefined
     
     BoundingBox boundingBox
+
+    // How many models have this blueprint loaded (Item 33).
+    integer userCount = 0
+
+    // True once the blueprint's GPU memory has been freed (Item 33).
+    boolean released = false
     
     on create
         boundingBox:Invalidate()
     end
     
 action HasAnimations returns boolean
+        // A released blueprint has let go of its data (Item 33).
+        if data = undefined
+            return false
+        end
         Animations animations = data:GetAnimations()
         if animations = undefined
             return false
@@ -170,6 +180,92 @@ Animations animations = data:GetAnimations()
 
     action SetBindPoseAnimationFrame(AnimationFrameVulkan bindPoseAnimationFrame)
         me:bindPoseAnimationFrame = bindPoseAnimationFrame
+    end
+
+
+    /*
+    This action counts one more model using the blueprint. Model:Load calls
+    it through the model manager.
+    */
+    action AddUser
+        userCount = userCount + 1
+    end
+
+    /*
+    This action counts one fewer model using the blueprint.
+
+    Attribute: Returns How many models still use it.
+    */
+    action RemoveUser returns integer
+        if userCount > 0
+            userCount = userCount - 1
+        end
+        return userCount
+    end
+
+    /*
+    This action returns how many models use the blueprint.
+
+    Attribute: Returns The number of models.
+    */
+    action GetUserCount returns integer
+        return userCount
+    end
+
+    /*
+    This action returns true once the blueprint's GPU memory has been
+    freed. A released blueprint can't be drawn or loaded into a model.
+
+    Attribute: Returns True if released.
+    */
+    action IsReleased returns boolean
+        return released
+    end
+
+    /*
+    This action frees the GPU memory of the blueprint's meshes and
+    animation frames, once no frame on the GPU still uses it, and lets go
+    of its model data. The model manager calls it when no model uses the
+    blueprint any more. Doing it twice does nothing.
+    */
+    action Release
+        if released
+            return now
+        end
+        released = true
+
+        integer i = 0
+        if meshes not= undefined
+            repeat while i < meshes:GetSize()
+                meshes:Get(i):Release()
+                i = i + 1
+            end
+        end
+        if animationFrames not= undefined
+            i = 0
+            repeat while i < animationFrames:GetSize()
+                Array<AnimationFrameVulkan> frames = animationFrames:Get(i)
+                integer j = 0
+                repeat while j < frames:GetSize()
+                    frames:Get(j):Release()
+                    j = j + 1
+                end
+                i = i + 1
+            end
+        end
+        if bindPoseAnimationFrame not= undefined
+            bindPoseAnimationFrame:Release()
+        end
+        // Each blueprint makes its own materials, so nothing else holds
+        // them (Item 34).
+        if materials not= undefined
+            i = 0
+            repeat while i < materials:GetSize()
+                materials:Get(i):Release()
+                i = i + 1
+            end
+        end
+        data = undefined
     end
 
 end

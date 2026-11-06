@@ -59,10 +59,18 @@ class ModelBuilder
     action CreatePlane(number width, number depth, Vector4 textureCoordinates, boolean doubleSided) returns ModelData
         Reset()
         
-        ModelData data = NewModelData(4, 6)
+        integer multiplier = 1
+        if doubleSided
+            multiplier = 2
+        end
+        
+        ModelData data = NewModelData(4 * multiplier, 6 * multiplier)
         data:SetID("Plane")
         MeshData mesh = data:GetMeshes():Get(0)
         AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, true)
+        if doubleSided
+            AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, false)
+        end
         
         return data
     end
@@ -174,25 +182,27 @@ class ModelBuilder
             facingOffset = -1
         end
         
-        number halfWidth = 0.5 * width * facingOffset
+        number halfWidth = 0.5 * width
         number halfDepth = 0.5 * depth * facingOffset
+        
         number x1 = x - halfWidth
         number x2 = x + halfWidth
         number z1 = z - halfDepth
         number z2 = z + halfDepth
         
         vertices:Set(currentVertex * POSITION_SIZE, x1)
-        vertices:Set(currentVertex * POSITION_SIZE + 1, y)
         vertices:Set(currentVertex * POSITION_SIZE + 2, z2)
-        vertices:Set(currentVertex * POSITION_SIZE + 3, x1)
-        vertices:Set(currentVertex * POSITION_SIZE + 4, y)
-        vertices:Set(currentVertex * POSITION_SIZE + 5, z1)
+        vertices:Set(currentVertex * POSITION_SIZE + 3, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 5, z2)
         vertices:Set(currentVertex * POSITION_SIZE + 6, x2)
-        vertices:Set(currentVertex * POSITION_SIZE + 7, y)
         vertices:Set(currentVertex * POSITION_SIZE + 8, z1)
-        vertices:Set(currentVertex * POSITION_SIZE + 9, x2)
+        vertices:Set(currentVertex * POSITION_SIZE + 9, x1)
+        vertices:Set(currentVertex * POSITION_SIZE + 11, z1)
+        
+        vertices:Set(currentVertex * POSITION_SIZE + 1, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 4, y)
+        vertices:Set(currentVertex * POSITION_SIZE + 7, y)
         vertices:Set(currentVertex * POSITION_SIZE + 10, y)
-        vertices:Set(currentVertex * POSITION_SIZE + 11, z2)
         
         integer i = currentVertex * NORMAL_SIZE
         integer limit = i + 12
@@ -218,17 +228,13 @@ class ModelBuilder
         number texUp = setTextureCoordinates:GetW()
         
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, texLeft)
-        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, texDown)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, texUp)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, texLeft)
-        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, texUp)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, texDown)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, texRight)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, texUp)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, texRight)
-        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, texUp)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, texDown)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, texRight)
-        //textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, texDown)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, texUp)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, texLeft)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, texDown)
         
         indices:Set(currentIndex, currentVertex)
         indices:Set(currentIndex + 1, currentVertex + 1)
@@ -252,12 +258,12 @@ class ModelBuilder
         
         // If this plane is on a back face, we want to reverse the winding order.
         number backFaceOffset = 1
-        if xNormal < 0 or zNormal < 0
+        if xNormal < 0 or zNormal > 0
             backFaceOffset = -1
         end
         
         number halfWidth = 0.5 * width * backFaceOffset
-        number halfHeight = 0.5 * height * backFaceOffset
+        number halfHeight = 0.5 * height
         
         number y1 = y - halfHeight
         number y2 = y + halfHeight
@@ -307,26 +313,7 @@ class ModelBuilder
             i = i + 3
         end
         
-        if zNormal < 0
-            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 1)
-        elseif zNormal > 0
-            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
-        elseif xNormal > 0
-            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
+        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 0)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 1)
@@ -334,17 +321,6 @@ class ModelBuilder
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 1)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
         textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 0)
-        else
-            // xNormal is < 0 in this case
-            textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 1, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 2, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 3, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 4, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 5, 0)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 6, 1)
-        textureCoordinates:Set(currentVertex * TEXTURE_COORDS_SIZE + 7, 1)
-        end
         
         indices:Set(currentIndex, currentVertex)
         indices:Set(currentIndex + 1, currentVertex + 1)
@@ -445,7 +421,7 @@ class ModelBuilder
         integer counter = 0
         repeat while counter <= divisions
             number angle = startAngle + step * counter
-            number u = 1.0 - divisionStep * counter
+            number u = divisionStep * counter
             
             i2 = currentVertex
             workPosition:Set(math:Cosine(angle) * halfWidth, 0, math:Sine(angle) * halfDepth)
@@ -504,11 +480,6 @@ Me too, man.*/
         innerWidthOffsets:Set(tangentX, tangentY, tangentZ):Scale(innerWidth * 0.5)
         innerHeightOffsets:Set(binormalX, binormalY, binormalZ):Scale(innerHeight * 0.5)
 
-        //VertexSchematic currIn = vertTemp3:Set(undefined, undefined, undefined, undefined)
-        //currIn:SetTextureCoordinates(0.5, 0.5)
-        //currIn:SetPosition(centerX, centerY, centerZ)
-        //currIn:SetNormal(normalX, normalY, normalZ)
-
         workPosition:Set(centerX, centerY, centerZ)
         workTexture:Set(0.5, 0.5)
         workNormal:Set(normalX, normalY, normalZ)
@@ -535,10 +506,6 @@ Me too, man.*/
             workPosition:Add(widthOffsets:GetX() * x + heightOffsets:GetX() * y, widthOffsets:GetY() * x + heightOffsets:GetY() * y,
                 widthOffsets:GetZ() * x + heightOffsets:GetZ() * y)
             workTexture:Set(0.5 + 0.5 * x, 0.5 + 0.5 * y)
-            //currEx:SetPosition(centerX, centerY, centerZ)
-            //currEx:GetPosition():Add(sxEx:GetX() * x + syEx:GetX() * y, sxEx:GetY() * x + syEx:GetY() * y,
-//                sxEx:GetZ() * x + syEx:GetZ() * y)
-            //currEx:SetTextureCoordinates(0.5 + 0.5 * x, 0.5 + 0.5 * y)
 
             i1 = AddVertex(data, workPosition, workNormal, workTangent, workBitangent, workTexture)
             

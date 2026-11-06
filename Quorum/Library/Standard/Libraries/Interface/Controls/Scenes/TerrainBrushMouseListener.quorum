@@ -1,0 +1,36 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.MouseEvent
+
+/*
+    The TerrainBrushMouseListener moves a terrain's brush to the ground under
+    the pointer, while a terrain tool is chosen in the scene editor (step 7).
+    The SceneEditor adds one to itself.
+*/
+class TerrainBrushMouseListener is MouseMovementListener
+    SceneEditor editor = undefined
+
+    /*
+        Sets the scene editor whose terrain brush follows the pointer.
+
+        Attribute: Parameter editor The scene editor
+    */
+    action SetSceneEditor(SceneEditor editor)
+        me:editor = editor
+    end
+
+    action MovedMouse(MouseEvent event)
+        if editor not= undefined
+            editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
+        end
+    end
+
+    // During a stroke with the mouse, the brush follows the pointer too
+    // (step 8).
+    action DraggedMouse(MouseEvent event)
+        if editor not= undefined
+            editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
+        end
+    end
+end

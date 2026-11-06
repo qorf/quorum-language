@@ -1,0 +1,377 @@
+package Libraries.Game.Collision.Narrowphase
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+
+/*
+ContactClipper3D holds the polygon work that turns two touching shapes into a
+small set of contact points. It can cut a polygon by a plane, cut a polygon to
+the area over a triangle, and choose up to four points from a larger set.
+
+The colliders use it like this. A face of one shape is written into an array
+of points, cut down to the part that lies over the other shape, and the points
+that are close enough to touch are kept. If more than four are left,
+ReduceToFour picks the four that best describe the contact, because a
+collision stores at most four points.
+
+Every array a caller passes in must have room for MAXIMUM_POINTS vectors.
+CreatePointArray makes one that does. Cutting a convex polygon by a plane adds
+at most one point, so a four sided face cut by three planes has at most seven
+points, and an eight sided one at most eleven, both well under the limit.
+
+Attribute: Example
+
+    use Libraries.Compute.Vector3
+    use Libraries.Containers.Array
+    ContactClipper3D clipper
+    Array<Vector3> square = clipper:CreatePointArray()
+    Array<Vector3> clipped = clipper:CreatePointArray()
+    square:Get(0):Set(-1, 0, -1)
+    square:Get(1):Set(1, 0, -1)
+    square:Get(2):Set(1, 0, 1)
+    square:Get(3):Set(-1, 0, 1)
+    // Keep the part where x is at least 0.
+    Vector3 planeNormal
+    planeNormal:Set(1, 0, 0)
+    integer count = clipper:ClipAgainstPlane(square, 4, clipped, planeNormal, 0)
+    // count is 4: (0, 0, -1), (1, 0, -1), (1, 0, 1), (0, 0, 1), in some order.
+*/
+class ContactClipper3D
+    public constant integer MAXIMUM_POINTS = 16
+    public constant integer TARGET_POINTS = 4
+
+    // Intermediate results while cutting by several planes.
+    Array<Vector3> bufferA
+    Array<Vector3> bufferB
+
+    // Storage for ReduceToFour.
+    Number32BitArray projectedX
+    Number32BitArray projectedY
+    Number32BitArray angles
+    Integer32BitArray available
+    Vector3 axis1
+    Vector3 axis2
+    Vector3 relative
+
+    constant integer TRUE = 1
+    constant integer FALSE = 0
+
+    Math math
+
+    on create
+        bufferA = CreatePointArray()
+        bufferB = CreatePointArray()
+        projectedX:SetSize(MAXIMUM_POINTS)
+        projectedY:SetSize(MAXIMUM_POINTS)
+        angles:SetSize(MAXIMUM_POINTS)
+        available:SetSize(MAXIMUM_POINTS)
+    end
+
+    /*
+    This action returns a new array holding MAXIMUM_POINTS vectors, ready to be
+    used as a source or destination by the other actions.
+    */
+    action CreatePointArray returns Array<Vector3>
+        Array<Vector3> points
+        integer i = 0
+        repeat while i < MAXIMUM_POINTS
+            Vector3 point
+            points:Add(point)
+            i = i + 1
+        end
+        return points
+    end
+
+    /*
+    This action cuts a polygon by a plane, keeping the part where
+    planeNormal · point is at least planeOffset, which is the side the normal
+    points to. The first sourceCount points of source are the polygon's
+    corners in order around it. The kept polygon is written to the start of
+    destination, and the number of its corners is returned.
+
+    One point is kept or dropped. Two points are treated as a line segment,
+    and are cut to the kept part of it. Three or more are treated as a closed
+    polygon. source and destination must be different arrays.
+    Attribute: Parameter source The polygon to cut.
+    Attribute: Parameter sourceCount How many points of source to use.
+    Attribute: Parameter destination Where the kept polygon is written.
+    Attribute: Parameter planeNormal The plane's normal, pointing toward the side that is kept.
+    Attribute: Parameter planeOffset The plane's distance from the origin along the normal.
+    Attribute: Returns the number of points written to destination.
+    */
+    action ClipAgainstPlane(Array<Vector3> source, integer sourceCount, Array<Vector3> destination,
+            Vector3 planeNormal, number planeOffset) returns integer
+        if sourceCount <= 0
+            return 0
+        end
+
+        if sourceCount = 1
+            Vector3 single = source:Get(0)
+            if planeNormal:DotProduct(single) - planeOffset >= 0
+                destination:Get(0):Set(single)
+                return 1
+            end
+            return 0
+        end
+
+        if sourceCount = 2
+            return ClipSegment(source, destination, planeNormal, planeOffset)
+        end
+
+        Vector3 current = source:Get(0)
+        number currentDistance = planeNormal:DotProduct(current) - planeOffset
+        number firstDistance = currentDistance
+
+        integer clippedCount = 0
+        integer i = 0
+        repeat while i < sourceCount and clippedCount < MAXIMUM_POINTS
+            integer nextIndex = i + 1
+            number nextDistance = firstDistance
+            if nextIndex = sourceCount
+                nextIndex = 0
+            else
+                nextDistance = planeNormal:DotProduct(source:Get(nextIndex)) - planeOffset
+            end
+            Vector3 next = source:Get(nextIndex)
+
+            boolean currentInside = currentDistance >= 0
+            boolean nextInside = nextDistance >= 0
+
+            if currentInside
+                destination:Get(clippedCount):Set(current)
+                clippedCount = clippedCount + 1
+            end
+
+            if currentInside not= nextInside and clippedCount < MAXIMUM_POINTS
+                number fraction = currentDistance / (currentDistance - nextDistance)
+                // current + (next - current) * fraction
+                destination:Get(clippedCount):Set(current):Scale(1 - fraction):MultiplyAndAdd(next, fraction)
+                clippedCount = clippedCount + 1
+            end
+
+            current = next
+            currentDistance = nextDistance
+            i = i + 1
+        end
+
+        return clippedCount
+    end
+
+    /*
+    This action is used by "action ClipAgainstPlane" for a line segment, which
+    has two points and no closing edge.
+    */
+    private action ClipSegment(Array<Vector3> source, Array<Vector3> destination,
+            Vector3 planeNormal, number planeOffset) returns integer
+        Vector3 start = source:Get(0)
+        Vector3 finish = source:Get(1)
+        number startDistance = planeNormal:DotProduct(start) - planeOffset
+        number finishDistance = planeNormal:DotProduct(finish) - planeOffset
+
+        boolean startInside = startDistance >= 0
+        boolean finishInside = finishDistance >= 0
+
+        if startInside and finishInside
+            destination:Get(0):Set(start)
+            destination:Get(1):Set(finish)
+            return 2
+        end
+
+        if not startInside and not finishInside
+            return 0
+        end
+
+        number fraction = startDistance / (startDistance - finishDistance)
+        if startInside
+            destination:Get(0):Set(start)
+        else
+            destination:Get(0):Set(finish)
+        end
+        destination:Get(1):Set(start):Scale(1 - fraction):MultiplyAndAdd(finish, fraction)
+        return 2
+    end
+
+    /*
+    This action cuts a polygon down to the part that lies over a triangle,
+    when seen along the triangle's normal, by cutting it with the triangle's
+    three side planes. Each side plane is moved outward by expand, so the area
+    kept is the triangle grown by expand on every side. This is how a
+    triangle's margin is included.
+
+    The first sourceCount points of source are the polygon's corners in order
+    around it. The result is written to the start of destination, and the
+    number of its corners is returned. A degenerate triangle has no side
+    planes, so nothing is kept. source and destination must be different
+    arrays, and neither may be one of this clipper's own buffers.
+    */
+    action ClipToTriangle(Array<Vector3> source, integer sourceCount, Array<Vector3> destination,
+            TriangleGeometry3D triangle, number expand) returns integer
+        if triangle:IsDegenerate()
+            return 0
+        end
+
+        integer count = ClipAgainstPlane(source, sourceCount, bufferA,
+            triangle:GetSideNormal(0), triangle:GetSideOffset(0) - expand)
+        count = ClipAgainstPlane(bufferA, count, bufferB,
+            triangle:GetSideNormal(1), triangle:GetSideOffset(1) - expand)
+        count = ClipAgainstPlane(bufferB, count, destination,
+            triangle:GetSideNormal(2), triangle:GetSideOffset(2) - expand)
+        return count
+    end
+
+    /*
+    This action chooses at most four of a set of contact points, and writes
+    their indexes to the start of chosen. If there are four or fewer, all of
+    them are chosen, in order. Otherwise the deepest point is chosen first,
+    and the other three are the points closest to evenly spaced directions
+    around the middle of the set, starting from the deepest point. This is
+    the method Bullet calls cullPoints2, and the one BoxBoxCollider uses.
+
+    The points should be the corners of a polygon in order around it, which
+    is what the clipping actions produce, and they should lie roughly in a
+    plane at a right angle to normal.
+    Attribute: Parameter points The contact points.
+    Attribute: Parameter depths How deep each point is. Lower values are deeper, and negative values overlap.
+    Attribute: Parameter count How many points there are.
+    Attribute: Parameter normal The direction the points are seen from.
+    Attribute: Parameter chosen Where the chosen indexes are written. It needs room for four values.
+    Attribute: Returns the number of points chosen.
+    */
+    action ReduceToFour(Array<Vector3> points, Number32BitArray depths, integer count, Vector3 normal,
+            Integer32BitArray chosen) returns integer
+        if count <= TARGET_POINTS
+            integer index = 0
+            repeat while index < count
+                chosen:Set(index, index)
+                index = index + 1
+            end
+            return count
+        end
+
+        MakeAxes(normal)
+
+        // Flatten the points onto the plane at a right angle to the normal.
+        Vector3 origin = points:Get(0)
+        number meanX = 0
+        number meanY = 0
+        integer i = 0
+        repeat while i < count
+            relative:Set(points:Get(i)):Subtract(origin)
+            number x = relative:DotProduct(axis1)
+            number y = relative:DotProduct(axis2)
+            projectedX:Set(i, x)
+            projectedY:Set(i, y)
+            meanX = meanX + x
+            meanY = meanY + y
+            i = i + 1
+        end
+
+        // The middle of the polygon, weighted by area, including the edge
+        // that closes it. If it has no area, the plain average is used.
+        number twiceArea = 0
+        number sumX = 0
+        number sumY = 0
+        i = 0
+        repeat while i < count
+            integer nextIndex = (i + 1) mod count
+            number x0 = projectedX:Get(i)
+            number y0 = projectedY:Get(i)
+            number x1 = projectedX:Get(nextIndex)
+            number y1 = projectedY:Get(nextIndex)
+            number cross = x0 * y1 - x1 * y0
+            twiceArea = twiceArea + cross
+            sumX = sumX + cross * (x0 + x1)
+            sumY = sumY + cross * (y0 + y1)
+            i = i + 1
+        end
+
+        number centerX = meanX / count
+        number centerY = meanY / count
+        if math:AbsoluteValue(twiceArea) > math:SMALLEST_STEP_32_BIT
+            centerX = sumX / (3 * twiceArea)
+            centerY = sumY / (3 * twiceArea)
+        end
+
+        integer deepest = 0
+        i = 1
+        repeat while i < count
+            if depths:Get(i) < depths:Get(deepest)
+                deepest = i
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < count
+            number x = projectedX:Get(i) - centerX
+            number y = projectedY:Get(i) - centerY
+            // InverseTangent(x, y) returns the angle of the point (x, y).
+            if math:AbsoluteValue(x) + math:AbsoluteValue(y) > math:SMALLEST_STEP_32_BIT
+                angles:Set(i, math:InverseTangent(x, y))
+            else
+                angles:Set(i, 0)
+            end
+            available:Set(i, TRUE)
+            i = i + 1
+        end
+
+        chosen:Set(0, deepest)
+        available:Set(deepest, FALSE)
+
+        integer chosenCount = 1
+        repeat while chosenCount < TARGET_POINTS
+            integer bestIndex = -1
+            number bestDifference = 1.0e100
+
+            number targetAngle = angles:Get(deepest) + chosenCount * (2 * math:pi / TARGET_POINTS)
+            if targetAngle > math:pi
+                targetAngle = targetAngle - 2 * math:pi
+            end
+
+            i = 0
+            repeat while i < count
+                if available:Get(i) = TRUE
+                    number difference = math:AbsoluteValue(angles:Get(i) - targetAngle)
+                    if difference > math:pi
+                        difference = 2 * math:pi - difference
+                    end
+                    if difference < bestDifference
+                        bestDifference = difference
+                        bestIndex = i
+                    end
+                end
+                i = i + 1
+            end
+
+            if bestIndex < 0
+                return chosenCount
+            end
+
+            chosen:Set(chosenCount, bestIndex)
+            available:Set(bestIndex, FALSE)
+            chosenCount = chosenCount + 1
+        end
+
+        return chosenCount
+    end
+
+    /*
+    This action sets axis1 and axis2 to two unit vectors at right angles to
+    each other and to the given normal.
+    */
+    private action MakeAxes(Vector3 normal)
+        // Start from whichever world axis is least lined up with the normal,
+        // so the cross product is never close to zero.
+        if math:AbsoluteValue(normal:GetX()) > 0.57
+            axis1:Set(normal:GetY(), -normal:GetX(), 0)
+        else
+            axis1:Set(0, normal:GetZ(), -normal:GetY())
+        end
+        axis1:Normalize()
+        axis2:Set(normal):CrossProduct(axis1)
+        axis2:Normalize()
+    end
+end

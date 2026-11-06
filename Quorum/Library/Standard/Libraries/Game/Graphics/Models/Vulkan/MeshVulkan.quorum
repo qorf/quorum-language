@@ -12,6 +12,9 @@ use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferCommand
 use Libraries.Game.Graphics.Models.Data.AnimationMeshData
 use Libraries.Game.NumberUtilities
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class MeshVulkan
     
@@ -44,7 +47,21 @@ Each vertex is made of 14 32-bit components:
     integer globalIndexBufferIndex = -1
     
     MaterialVulkan material = undefined
-    
+
+    // The mapped staging memory for the first load, kept so an update made
+    // before the first copy can write straight into it.
+    VulkanNumber32BitMappedMemory vertexMapping = undefined
+
+    // Packed vertices waiting to be copied to the GPU, or undefined if no
+    // update is waiting. If several updates come in one frame, the last wins.
+    Number32BitArray pendingVertices = undefined
+
+    // One staging buffer and mapping per frame in flight, made the first time
+    // a frame slot needs one. A slot's buffer is only written after that
+    // slot's fence has been waited on, so the GPU is done reading it.
+    Array<VulkanBuffer> updateStagingBuffers
+    Array<VulkanNumber32BitMappedMemory> updateMappings
+
     action Load(VulkanDevice device, MeshData data, AnimationMeshData animationData)
         if IsReady()
             alert("I cannot load data into this mesh because it has already been loaded!")
@@ -56,12 +73,8 @@ Each vertex is made of 14 32-bit components:
         VulkanConstants constants
         
         Number32BitArray vertices = data:GetVertices()
-        Number32BitArray normals = data:GetNormals()
-    Number32BitArray tangents = data:GetTangents()
-    Number32BitArray bitangents = data:GetBitangents()
-    Number32BitArray textureCoordinates = data:GetTextureCoordinates()
-    Integer32BitArray indices = data:GetIndices()
-        
+        Integer32BitArray indices = data:GetIndices()
+
         VulkanBuffer vertexStagingBuffer
         VulkanBuffer indexStagingBuffer
         me:vertexStagingBuffer = vertexStagingBuffer
@@ -74,37 +87,11 @@ Each vertex is made of 14 32-bit components:
         vertexStagingBuffer:CreateTransferSourceBuffer(device, vertexBufferSize * 4)
         indexStagingBuffer:CreateTransferSourceBuffer(device, indexCount * 4)
         
-        Number32BitArray vertexArray
-        vertexArray:SetSize(vertexBufferSize)
-        integer counter = 0
-        repeat while counter < vertexCount
-            integer arrayIndex = counter * vertexSize
-            vertexArray:Set(arrayIndex, vertices:Get(counter * 3))
-            vertexArray:Set(arrayIndex + 1, vertices:Get(counter * 3 + 1))
-            vertexArray:Set(arrayIndex + 2, vertices:Get(counter * 3 + 2))
-            
-            vertexArray:Set(arrayIndex + 3, normals:Get(counter * 3))
-            vertexArray:Set(arrayIndex + 4, normals:Get(counter * 3 + 1))
-            vertexArray:Set(arrayIndex + 5, normals:Get(counter * 3 + 2))
-            
-            vertexArray:Set(arrayIndex + 6, tangents:Get(counter * 3))
-            vertexArray:Set(arrayIndex + 7, tangents:Get(counter * 3 + 1))
-            vertexArray:Set(arrayIndex + 8, tangents:Get(counter * 3 + 2))
-            
-            vertexArray:Set(arrayIndex + 9, bitangents:Get(counter * 3))
-            vertexArray:Set(arrayIndex + 10, bitangents:Get(counter * 3 + 1))
-            vertexArray:Set(arrayIndex + 11, bitangents:Get(counter * 3 + 2))
-            
-            // Invert the texture y-coordinate to match our coordinate systems.
-            vertexArray:Set(arrayIndex + 12, textureCoordinates:Get(counter * 2))
-            vertexArray:Set(arrayIndex + 13, 1.0 - textureCoordinates:Get(counter * 2 + 1))
-            
-            counter = counter + 1
-        end
-        
-        VulkanNumber32BitMappedMemory vertexMapping = vertexStagingBuffer:MapToNumber32BitMemory()
+        Number32BitArray vertexArray = PackVertices(data)
+
+        vertexMapping = vertexStagingBuffer:MapToNumber32BitMemory()
         VulkanInteger32BitMappedMemory indexMapping = indexStagingBuffer:MapToInteger32BitMemory()
-        
+
         vertexMapping:Set(vertexArray)
         indexMapping:Set(indices)
         
@@ -158,14 +145,12 @@ Each vertex is made of 14 32-bit components:
             animationDataBuffer:CreateTransferDestinationBuffer(device, animationDataStagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         end
         
-        //TODO: These cause a crash in some cases, for reasons unclear. Go back and figure this out later.
-        //vertexStagingBuffer:StopMapping()
-        //indexStagingBuffer:StopMapping()
-        //animationDataStagingBuffer:StopMapping()
+        // The staging buffers stay mapped until their copy is recorded;
+        // TransferBuffers then retires them (Item 33).
     end
     
     action HasData returns boolean
-        return vertexStagingBuffer not= undefined or vertexBuffer not= undefined
+        return vertexBuffer not= undefined
     end
     
     action IsReady returns boolean
@@ -173,7 +158,7 @@ Each vertex is made of 14 32-bit components:
     end
     
     action HasAnimations returns boolean
-        return animationDataStagingBuffer not= undefined or animationDataBuffer not= undefined
+        return animationDataBuffer not= undefined
     end
     
     action GetDevice returns VulkanDevice
@@ -208,6 +193,164 @@ Each vertex is made of 14 32-bit components:
         end
         
         dataTransferred = true
+
+        // The copies above are the staging buffers' only use. They are
+        // freed once this frame has finished on the GPU (Item 33).
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(vertexStagingBuffer)
+        graphics:Retire(indexStagingBuffer)
+        graphics:Retire(animationDataStagingBuffer)
+        vertexStagingBuffer = undefined
+        indexStagingBuffer = undefined
+        animationDataStagingBuffer = undefined
+        vertexMapping = undefined
+    end
+
+    /*
+    This action packs a mesh's positions, normals, tangents, bitangents and
+    texture coordinates into one array of 14 numbers per vertex, the layout the
+    vertex shader reads. The texture's vertical coordinate is flipped to match
+    Vulkan's image layout.
+
+    Attribute: Parameter data The mesh data to pack.
+    Attribute: Returns An array of vertexCount times 14 numbers.
+    */
+    private action PackVertices(MeshData data) returns Number32BitArray
+        Number32BitArray vertices = data:GetVertices()
+        Number32BitArray normals = data:GetNormals()
+        Number32BitArray tangents = data:GetTangents()
+        Number32BitArray bitangents = data:GetBitangents()
+        Number32BitArray textureCoordinates = data:GetTextureCoordinates()
+
+        integer count = vertices:GetSize() / 3
+        Number32BitArray vertexArray
+        vertexArray:SetSize(count * vertexSize)
+        integer counter = 0
+        repeat while counter < count
+            integer arrayIndex = counter * vertexSize
+            vertexArray:Set(arrayIndex, vertices:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 1, vertices:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 2, vertices:Get(counter * 3 + 2))
+
+            vertexArray:Set(arrayIndex + 3, normals:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 4, normals:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 5, normals:Get(counter * 3 + 2))
+
+            vertexArray:Set(arrayIndex + 6, tangents:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 7, tangents:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 8, tangents:Get(counter * 3 + 2))
+
+            vertexArray:Set(arrayIndex + 9, bitangents:Get(counter * 3))
+            vertexArray:Set(arrayIndex + 10, bitangents:Get(counter * 3 + 1))
+            vertexArray:Set(arrayIndex + 11, bitangents:Get(counter * 3 + 2))
+
+            // Invert the texture y-coordinate to match our coordinate systems.
+            vertexArray:Set(arrayIndex + 12, textureCoordinates:Get(counter * 2))
+            vertexArray:Set(arrayIndex + 13, 1.0 - textureCoordinates:Get(counter * 2 + 1))
+
+            counter = counter + 1
+        end
+        return vertexArray
+    end
+
+    /*
+    This action replaces the mesh's vertex data (positions, normals, tangents,
+    bitangents and texture coordinates) without making new GPU buffers. The
+    new data must have the same number of vertices, and the triangles (the
+    indices) stay the same. The mesh keeps drawing its old data until the copy
+    runs at the start of the next frame. If this is called several times
+    before then, only the last data is copied. Animated meshes are not
+    supported.
+
+    Attribute: Parameter data The new mesh data, with the same vertex count as before.
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+    use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+
+    ModelBlueprintVulkan blueprint = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+    MeshVulkan mesh = blueprint:GetMeshes():Get(0)
+    mesh:UpdateVertices(newMeshData)
+    */
+    action UpdateVertices(MeshData data)
+        if not HasData()
+            alert("I cannot update this mesh's vertices because it was never loaded.")
+        end
+        if HasAnimations()
+            alert("I cannot update the vertices of an animated mesh.")
+        end
+        integer newCount = data:GetVertices():GetSize() / 3
+        if newCount not= vertexCount
+            alert("I cannot update this mesh's vertices because the new data has " + newCount + " vertices and the mesh has " + vertexCount + ".")
+        end
+
+        Number32BitArray packed = PackVertices(data)
+
+        // Before the first copy has been recorded, nothing on the GPU reads
+        // the first staging buffer yet, so the new data can go straight there.
+        if not dataTransferred
+            vertexMapping:Set(packed)
+            return now
+        end
+
+        boolean alreadyWaiting = pendingVertices not= undefined
+        pendingVertices = packed
+        if not alreadyWaiting
+            ModelManagerVulkan manager
+            MeshVulkan self = me
+            manager:QueueMeshUpdate(self)
+        end
+    end
+
+    /*
+    This action returns whether new vertex data is waiting to be copied.
+
+    Attribute: Returns True if an update is waiting for the next frame.
+    */
+    action HasPendingUpdate returns boolean
+        return pendingVertices not= undefined
+    end
+
+    /*
+    This action records the copy of waiting vertex data into the given command
+    buffer. It is called by the model manager once per frame, right after the
+    frame's fence has been waited on, so this slot's staging buffer is free to
+    write.
+
+    Attribute: Parameter buffer The frame's command buffer, already recording.
+    Attribute: Parameter slot The frame slot (resource index) of this frame.
+    Attribute: Parameter slotCount How many frames can be in flight.
+    */
+    action RecordUpdate(VulkanCommandBuffer buffer, integer slot, integer slotCount)
+        if pendingVertices = undefined
+            return now
+        end
+
+        repeat while updateStagingBuffers:GetSize() < slotCount
+            updateStagingBuffers:Add(undefined)
+            updateMappings:Add(undefined)
+        end
+
+        VulkanBuffer staging = updateStagingBuffers:Get(slot)
+        if staging = undefined
+            VulkanBuffer newStaging
+            newStaging:CreateTransferSourceBuffer(device, vertexBuffer:GetSize())
+            updateStagingBuffers:Set(slot, newStaging)
+            updateMappings:Set(slot, newStaging:MapToNumber32BitMemory())
+            staging = newStaging
+        end
+
+        VulkanNumber32BitMappedMemory mapping = updateMappings:Get(slot)
+        mapping:Set(pendingVertices)
+
+        CopyBufferCommand copy
+        copy:SetSourceBuffer(staging)
+        copy:SetDestinationBuffer(vertexBuffer)
+        copy:SetSize(staging:GetSize())
+        buffer:Record(copy)
+
+        pendingVertices = undefined
     end
 
     action GetGlobalVertexBufferIndex returns integer
@@ -252,28 +395,54 @@ Each vertex is made of 14 32-bit components:
     
     /*Returns the size of the vertex buffer in bytes.*/
     action GetVertexBufferSize returns integer
-        if dataTransferred
-            return vertexBuffer:GetSize()
-        elseif vertexStagingBuffer not= undefined
-            return vertexStagingBuffer:GetSize()
-        else
+        if vertexBuffer = undefined
             return 0
         end
+        return vertexBuffer:GetSize()
     end
     
     /*Returns the size of the index buffer in bytes.*/
     action GetIndexBufferSize returns integer
-        if dataTransferred
-            return indexBuffer:GetSize()
-        elseif indexStagingBuffer not= undefined
-            return indexStagingBuffer:GetSize()
-        else
+        if indexBuffer = undefined
             return 0
         end
+        return indexBuffer:GetSize()
     end
 
     action GetAnimationDataBuffer returns VulkanBuffer
         return animationDataBuffer
+    end
+
+
+    /*
+    This action frees the mesh's GPU buffers once no frame on the GPU still
+    uses them. The model manager calls it when the mesh's blueprint is no
+    longer used by any model. The mesh can't be drawn or updated afterwards.
+    */
+    action Release
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        graphics:Retire(vertexStagingBuffer)
+        graphics:Retire(indexStagingBuffer)
+        graphics:Retire(animationDataStagingBuffer)
+        graphics:Retire(vertexBuffer)
+        graphics:Retire(indexBuffer)
+        graphics:Retire(animationDataBuffer)
+        integer i = 0
+        repeat while i < updateStagingBuffers:GetSize()
+            graphics:Retire(updateStagingBuffers:Get(i))
+            i = i + 1
+        end
+        updateStagingBuffers:Empty()
+        updateMappings:Empty()
+        vertexStagingBuffer = undefined
+        indexStagingBuffer = undefined
+        animationDataStagingBuffer = undefined
+        vertexBuffer = undefined
+        indexBuffer = undefined
+        animationDataBuffer = undefined
+        vertexMapping = undefined
+        pendingVertices = undefined
     end
 
 end

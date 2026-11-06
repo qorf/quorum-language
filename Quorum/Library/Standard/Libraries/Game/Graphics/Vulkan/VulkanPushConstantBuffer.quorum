@@ -1,6 +1,9 @@
 package Libraries.Game.Graphics.Vulkan
 
 use Libraries.Compute.Matrix4
+use Libraries.Compute.Matrix3
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
 
 class VulkanPushConstantBuffer
     
@@ -24,6 +27,25 @@ the SHADER_DEVICE_ADDRESS_BIT usage flag to be added to the constants. */
     
     /*This action adds a 32-bit integer value to the buffer.*/
     system action AddInteger32Bit(integer value)
+    
+    /*This action adds a vector of 3 32-bit numbers to the buffer. Equivalent to using AddNumber32Bit 3 times.*/
+    system action AddVector3(number x, number y, number z)
+    
+    /*This action adds a vector of 3 32-bit numbers to the buffer. Equivalent to using AddNumber32Bit 3 times.*/
+    action AddVector3(Vector3 vector)
+        AddVector3(vector:GetX(), vector:GetY(), vector:GetZ())
+end
+    
+    /*This action adds a vector of 4 32-bit numbers to the buffer. Equivalent to using AddNumber32Bit 4 times.*/
+    system action AddVector4(number x, number y, number z, number w)
+    
+    /*This action adds a vector of 4 32-bit numbers to the buffer. Equivalent to using AddNumber32Bit 4 times.*/
+    action AddVector4(Vector4 vector)
+        AddVector4(vector:GetX(), vector:GetY(), vector:GetZ(), vector:GetW())
+end
+    
+    /*This action adds a 3x3 matrix to the buffer.*/
+    system action AddMatrix3(Matrix3 matrix)
     
     /*This action adds a 4x4 matrix to the buffer.*/
     system action AddMatrix4(Matrix4 matrix)

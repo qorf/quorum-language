@@ -1,5 +1,7 @@
 package Libraries.Game.Scenes
 
+use Libraries.System.Logging.SharedLogger
+
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
@@ -17,6 +19,7 @@ use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Game.Graphics.PointLight
+use Libraries.Game.Graphics.SpotLight
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.PerspectiveCamera
@@ -29,15 +32,46 @@ use Libraries.Game.Graphics.Skybox
 use Libraries.System.File
 use Libraries.Containers.HashTable
 use Libraries.Game.Audio3D
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainMaterial
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
 
 class DefaultSceneManager is SceneManager
     
     GameStateManager gameState
     HashTable<text, Texture> loadedTextures
 
+    // The terrain materials loaded for the scene being loaded, by full
+    // path, so terrains that share one share it (step 9).
+    HashTable<text, TerrainMaterial> loadedTerrainMaterials
+
+    // The layer materials loaded for the scene being loaded, by full path,
+    // so layers naming the same material file share it (step 14).
+    HashTable<text, Material> loadedMaterials
+
+    // The terrain.json files of the terrains loaded for the scene being
+    // loaded, by full path. Two terrains can't share one folder: each would
+    // save over the other, and both would draw in the same place.
+    HashTable<text, text> loadedTerrainFiles
+
+    // True while loading a scene saved before version 2, which needs its
+    // rotations and 2D cameras converted to the left-handed world.
+    boolean convertFromRightHanded = false
+
     action Load(Scene scene)
         Game game = gameState:GetGame()
         SceneProperties properties
+        loadedTerrainMaterials:Empty()
+        loadedMaterials:Empty()
+        loadedTerrainFiles:Empty()
+
+        number version = 1.0
+        JavaScriptObjectNotation data = scene:GetData()
+        if data:HasValue(properties:VERSION)
+            version = data:GetNumber(properties:VERSION)
+        end
+        convertFromRightHanded = version < 2.0
 
         // Modify any application-level properties.
         JavaScriptObjectNotation application = scene:GetApplicationProperties()
@@ -196,13 +230,13 @@ class DefaultSceneManager is SceneManager
                 // Don't check the keys if it was handled by custom loading.
             elseif key = properties:POSITION
                 Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+                camera:SetPosition(position:Get(0), position:Get(1), CameraZ(camera, position:Get(2)))
             elseif key = properties:DIRECTION
                 Number32BitArray direction = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetDirection(direction:Get(0), direction:Get(1), direction:Get(2))
+                camera:SetDirection(direction:Get(0), direction:Get(1), CameraZ(camera, direction:Get(2)))
             elseif key = properties:UP
                 Number32BitArray up = ConvertToNumber32BitArray(json:GetObject(key))
-                camera:SetUp(up:Get(0), up:Get(1), up:Get(2))
+                camera:SetUp(up:Get(0), up:Get(1), CameraZ(camera, up:Get(2)))
             elseif key = properties:SIZE
                 Number32BitArray size = ConvertToNumber32BitArray(json:GetObject(key))
                 camera:SetWidth(size:Get(0))
@@ -221,6 +255,20 @@ class DefaultSceneManager is SceneManager
 
             counter = counter + 1
         end
+    end
+
+    /*
+    This action returns a z value for a camera being loaded. A 2D camera from a
+    scene saved before version 2 looks along -z, which the left-handed world
+    mirrors, so it is mirrored through the z = 0 plane, where 2D items are
+    drawn. The picture is the same from either side, so it only stops being
+    mirrored. 3D cameras are loaded as saved.
+    */
+    private action CameraZ(Camera camera, number z) returns number
+        if convertFromRightHanded and camera is OrthographicCamera
+            return -z
+        end
+        return z
     end
 
     /*
@@ -288,7 +336,12 @@ class DefaultSceneManager is SceneManager
         repeat while iterator:HasNext()
             JavaScriptObjectNotation item = iterator:Next()
             if item not= undefined and not item:IsUndefined() //if this isn't an empty object value
-                items:Add(LoadItem3D(item))
+                // An item can be left out, such as a second terrain naming
+                // the same files as another.
+                Item3D loaded = LoadItem3D(item)
+                if loaded not= undefined
+                    items:Add(loaded)
+                end
             end
         end
 
@@ -497,9 +550,15 @@ class DefaultSceneManager is SceneManager
         elseif type = "PointLight"
             PointLight pointLight
             return pointLight
+        elseif type = "SpotLight"
+            SpotLight spotLight
+            return spotLight
         elseif type = "Audio3D"
             Audio3D audio
             return audio
+        elseif type = "Terrain"
+            TerrainItem terrain
+            return terrain
         else
             // Default to Item3D.
             Item3D newItem
@@ -512,6 +571,11 @@ class DefaultSceneManager is SceneManager
 
         // Load Items, Models
         text classValue = json:GetValue(properties:CLASS)
+
+        // A terrain has its own files and no transform.
+        if classValue = "Terrain"
+            return LoadTerrain(json)
+        end
         Item3D item = undefined
         Number32BitArray size = undefined
         Number32BitArray scale = undefined
@@ -525,6 +589,13 @@ class DefaultSceneManager is SceneManager
 
         // Variables used if the Item is a PointLight.
         PointLight light = undefined
+
+        // Variables used if the Item is a SpotLight.
+        SpotLight spot = undefined
+        Number32BitArray spotDirection = undefined
+        number innerAngle = -1
+        number outerAngle = -1
+        number range = 0
         number intensity = 0
 
         // Color is used for both Models and PointLights.
@@ -555,6 +626,10 @@ number restitution = 0
 
         if classValue = "PointLight"
             light = cast(PointLight, item)
+        end
+
+        if classValue = "SpotLight"
+            spot = cast(SpotLight, item)
         end
 
         if classValue = "Audio3D"
@@ -608,6 +683,14 @@ number restitution = 0
                 restitution = json:GetNumber(key)
             elseif key = properties:INTENSITY
                 intensity = json:GetNumber(key)
+            elseif key = properties:DIRECTION
+                spotDirection = ConvertToNumber32BitArray(json:GetObject(key))
+            elseif key = properties:INNER_ANGLE
+                innerAngle = json:GetNumber(key)
+            elseif key = properties:OUTER_ANGLE
+                outerAngle = json:GetNumber(key)
+            elseif key = properties:RANGE
+                range = json:GetNumber(key)
             elseif key = properties:VOLUME
                 volume = json:GetNumber(key)
             elseif key = properties:PITCH
@@ -689,11 +772,32 @@ number restitution = 0
                 audio:Play()
             end
         else
-            // Set the size, which would've been handled by model loading.
-            item:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+            // Set the size, which would've been handled by model loading. An
+            // item of a kind this program doesn't know may have no size.
+            if size not= undefined
+                item:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+            end
 
             if light not= undefined
                 light:SetLight(color, light:GetPosition(), intensity)
+            end
+
+            if spot not= undefined
+                if color not= undefined
+                    spot:SetColor(color)
+                end
+                spot:SetIntensity(intensity)
+                if spotDirection not= undefined
+                    spot:SetDirection(spotDirection:Get(0), spotDirection:Get(1), spotDirection:Get(2))
+                end
+                if outerAngle > 0
+                    number inner = innerAngle
+                    if inner < 0
+                        inner = outerAngle * 2 / 3
+                    end
+                    spot:SetConeAngles(inner, outerAngle)
+                end
+                spot:SetRange(range)
             end
         end
 
@@ -710,6 +814,17 @@ number restitution = 0
         end
 
         if transform not= undefined
+            if convertFromRightHanded
+                // Scenes saved before version 2 were placed while OpenGL drew
+                // the world mirrored in z. Mirroring the rotation once, by
+                // flipping the signs of m02, m12, m20, and m21, makes the item
+                // face the way it did when it was placed.
+                transform:Set(2, -transform:Get(2))
+                transform:Set(6, -transform:Get(6))
+                transform:Set(8, -transform:Get(8))
+                transform:Set(9, -transform:Get(9))
+            end
+
             Matrix4 matrix = item:GetRotationTransform()
             matrix:row0column0 = transform:Get(0)
             matrix:row0column1 = transform:Get(1)
@@ -815,6 +930,174 @@ number restitution = 0
         layer:SetSkybox(skybox)
     end
 
+    /*
+    This action loads a terrain from a scene: a TerrainItem, from the
+    terrain.json file the scene names, relative to the project. Its
+    collision and friction come from the scene's "Physics Enabled" and
+    "Friction" values. A terrain needs Vulkan.
+
+    Attribute: Parameter json The terrain's entry in the scene.
+    Attribute: Returns The TerrainItem.
+    */
+    private action LoadTerrain(JavaScriptObjectNotation json) returns Item3D
+        SceneProperties properties
+        if not (gameState:GetGameGraphics() is VulkanGraphics)
+            alert("This scene has a terrain, and a terrain needs Vulkan for now.")
+        end
+        if not json:HasValue(properties:FILE)
+            alert("A terrain in this scene doesn't say where its terrain.json file is.")
+        end
+        TerrainItem terrain = cast(TerrainItem, CreateItem3D("Terrain"))
+        if json:HasValue(properties:NAME)
+            terrain:SetName(json:GetValue(properties:NAME))
+        end
+        if json:HasValue(properties:DESCRIPTION)
+            terrain:SetDescription(json:GetValue(properties:DESCRIPTION))
+        end
+        if json:HasValue(properties:PHYSICS_ENABLED)
+            terrain:SetCollision(json:GetBoolean(properties:PHYSICS_ENABLED))
+        end
+        // The collision mode, when the scene has it, is more exact than
+        // "Physics Enabled" (step 13).
+        if json:HasValue(properties:COLLISION)
+            text collisionValue = json:GetValue(properties:COLLISION)
+            if collisionValue = properties:COLLISION_DYNAMIC_VALUE
+                terrain:SetCollisionMode(1)
+            elseif collisionValue = properties:COLLISION_DISABLED_VALUE
+                terrain:SetCollisionMode(0)
+            else
+                terrain:SetCollisionMode(2)
+            end
+        end
+        if json:HasValue(properties:FRICTION)
+            terrain:SetFriction(json:GetNumber(properties:FRICTION))
+        end
+        if json:HasValue(properties:STREAMING) and json:GetBoolean(properties:STREAMING)
+            number radius = 100
+            if json:HasValue(properties:DRAW_RADIUS)
+                radius = GetTerrainNumber(json, properties:DRAW_RADIUS, 100)
+            end
+            if radius <= 0
+                radius = 100
+            end
+            terrain:SetStreaming(true, radius)
+        end
+        text path = json:GetValue(properties:FILE)
+        File terrainFile = ConvertToProjectFile(path)
+        // Terrains made before they went under the Scenes folder were at the
+        // project's top level, in Terrains. If one has since been moved
+        // under Scenes, it is found there, and the scene saves the new path.
+        text scenesPrefix = properties:SCENES_FOLDER + "/"
+        if not terrainFile:Exists() and not path:StartsWith(scenesPrefix)
+            File moved = ConvertToProjectFile(scenesPrefix + path)
+            if moved:Exists()
+                terrainFile = moved
+            end
+        end
+        // A second terrain naming the same terrain.json is left out, so the
+        // next save drops it.
+        text terrainKey = terrainFile:GetAbsolutePath()
+        if loadedTerrainFiles:HasKey(terrainKey)
+            SharedLogger logger
+            logger:Log("This scene names the terrain " + path + " twice. The second is left out, since two terrains can't share one folder; saving the scene drops it.")
+            return undefined
+        end
+        loadedTerrainFiles:Add(terrainKey, path)
+
+        // The ground's look, if it has one (step 9). It is given before the
+        // terrain loads, so the region models are made once, with it. A
+        // missing file leaves the ground plain, and the scene keeps naming
+        // it.
+        if json:HasValue(properties:MATERIAL)
+            text materialPath = json:GetValue(properties:MATERIAL)
+            terrain:SetMaterialFile(materialPath)
+            File materialFile = ConvertToProjectFile(materialPath)
+            if materialFile:Exists()
+                text key = materialFile:GetAbsolutePath()
+                if loadedTerrainMaterials:HasKey(key)
+                    terrain:SetMaterial(loadedTerrainMaterials:GetValue(key))
+                else
+                    TerrainMaterial material
+                    material:Load(materialFile, loadedMaterials)
+                    loadedTerrainMaterials:Add(key, material)
+                    terrain:SetMaterial(material)
+                end
+            else
+                SharedLogger logger
+                logger:Log("The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain.")
+            end
+        end
+        terrain:Load(terrainFile)
+        return terrain
+    end
+
+    /*
+    This action returns a number from a terrain's entry, whether it was
+    written as a whole number or with a decimal point, or a default if the
+    entry doesn't have it.
+    */
+    private action GetTerrainNumber(JavaScriptObjectNotation json, text key, number defaultValue) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return defaultValue
+    end
+
+    /*
+    This action saves a terrain into a scene: its name, its description,
+    its terrain.json file, its terrain material file if it has one, its
+    collision (as "Physics Enabled" and "Collision"), its friction, and its
+    streaming if it streams.
+
+    Attribute: Parameter terrain The terrain.
+    Attribute: Returns The terrain's entry for the scene.
+    */
+    private action SaveTerrain(TerrainItem terrain) returns JavaScriptObjectNotation
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        json:Add(properties:CLASS, "Terrain")
+        json:Add(properties:NAME, terrain:GetName())
+        json:Add(properties:DESCRIPTION, terrain:GetDescription())
+        json:Add(properties:FILE, terrain:GetTerrainFile())
+        if terrain:GetMaterialFile() not= ""
+            json:Add(properties:MATERIAL, terrain:GetMaterialFile())
+        end
+        json:Add(properties:PHYSICS_ENABLED, terrain:HasCollision())
+        integer mode = terrain:GetCollisionMode()
+        if mode = 1
+            json:Add(properties:COLLISION, properties:COLLISION_DYNAMIC_VALUE)
+        elseif mode = 0
+            json:Add(properties:COLLISION, properties:COLLISION_DISABLED_VALUE)
+        else
+            json:Add(properties:COLLISION, properties:COLLISION_FULL_VALUE)
+        end
+        json:Add(properties:FRICTION, terrain:GetFriction())
+        if terrain:IsStreaming()
+            json:Add(properties:STREAMING, true)
+            json:Add(properties:DRAW_RADIUS, terrain:GetDrawRadius())
+        end
+        return json
+    end
+
+    /*
+    This action returns the layer materials loaded for the scene, by their
+    files' full paths, so a scene editor can share them when it adds a
+    layer from the same file (step 14).
+
+    Attribute: Returns The materials.
+    */
+    action GetLoadedMaterials returns HashTable<text, Material>
+        return loadedMaterials
+    end
+
     action Save(Game game) returns Scene
         Array<Layer> layers
         Iterator<Layer> iterator = game:GetLayerIterator()
@@ -829,6 +1112,7 @@ number restitution = 0
     action Save(Array<Layer> layers) returns Scene
         SceneProperties properties
         JavaScriptObjectNotation json
+        json:Add(properties:VERSION, properties:LASTEST_VERSION)
         json:Add(properties:LAYERS, SaveLayers(layers))
         Scene scene
         scene:SetData(json)
@@ -1093,10 +1377,18 @@ number restitution = 0
     end
 
     private action SaveItem3D(Item3D item) returns JavaScriptObjectNotation
+        // A terrain saves only where its files are, and its physics. Its
+        // region models come from its files, so they aren't saved as
+        // children.
+        if item is TerrainItem
+            return SaveTerrain(cast(TerrainItem, item))
+        end
+
         SceneProperties properties
         JavaScriptObjectNotation json
         Model model = undefined
         PointLight light = undefined
+        SpotLight spot = undefined
         Audio3D audio = undefined
 
         if not CustomSaveProperty3D(item, properties:CLASS, json)
@@ -1106,6 +1398,9 @@ number restitution = 0
             elseif item is PointLight
                 json:Add(properties:CLASS, "PointLight")
                 light = cast(PointLight, item)
+            elseif item is SpotLight
+                json:Add(properties:CLASS, "SpotLight")
+                spot = cast(SpotLight, item)
             elseif item is Audio3D
                 json:Add(properties:CLASS, "Audio3D")
                 audio = cast(Audio3D, item)
@@ -1118,6 +1413,8 @@ number restitution = 0
                 model = cast(Model, item)
             elseif classValue = "PointLight"
                 light = cast(PointLight, item)
+            elseif classValue = "SpotLight"
+                spot = cast(SpotLight, item)
             elseif classValue = "Audio3D"
                 audio = cast(Audio3D, item)
             end
@@ -1188,6 +1485,17 @@ number restitution = 0
             if not CustomSaveProperty3D(item, properties:INTENSITY, json)
                 json:Add(properties:INTENSITY, light:GetIntensity())
             end
+        elseif spot not= undefined
+            Color spotColor = spot:GetColor()
+            if spotColor not= undefined
+                json:Add(properties:COLOR, NewJsonArray(spotColor:GetRed(), spotColor:GetGreen(), spotColor:GetBlue(), spotColor:GetAlpha()))
+            end
+            json:Add(properties:INTENSITY, spot:GetIntensity())
+            Vector3 aim = spot:GetDirection()
+            json:Add(properties:DIRECTION, NewJsonArray(aim:GetX(), aim:GetY(), aim:GetZ()))
+            json:Add(properties:INNER_ANGLE, spot:GetInnerAngle())
+            json:Add(properties:OUTER_ANGLE, spot:GetOuterAngle())
+            json:Add(properties:RANGE, spot:GetRangeSetting())
         elseif audio not= undefined
             if not CustomSaveProperty3D(audio, properties:FILE, json)
                 json:Add(properties:FILE, audio:GetSourceFile():GetPath())

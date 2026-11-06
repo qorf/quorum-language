@@ -1,0 +1,407 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+/*
+TerrainSplatFragmentShader colors the ground with up to four textures,
+blended by a splat map: each point of the ground says how much of each
+texture to show there. It is the default 3D fragment shader with one more
+case. Models whose material has a negative metallic value are terrain, and
+are splatted. Every other model is drawn exactly as the default shader draws
+it, so this shader can stand in for the default one.
+
+For a terrain model, the shader reads three things:
+1. The splat weights, from the model's texture override, which holds the
+   region's splat map. Its texture coordinates are the vertex's place in
+   that map. The four weights are made to add up to 1.
+2. The four ground layers, from the model's color override, in one of two
+   ways:
+   - Plain textures: its red, green, blue and alpha bytes are the places
+     of the red, green, blue and alpha textures in the global texture
+     array.
+   - Texture sets (library item 24), marked by an alpha byte of 255: its
+     red byte is the place of the layer table, a 4 by 1 texture with one
+     pixel per layer (see WorldTerrain's CheckLayerTableReady), and its
+     green byte is how softly layers blend by height. Each layer then has
+     a color and height texture, a normal, roughness and ambient occlusion
+     texture, and its own tile size. A layer without a normal texture (255
+     in the table) is a plain texture: flat, with the material's roughness
+     and a middle height.
+   Until a model has a color override, it is drawn a plain green.
+3. The pixel's world position, which gives the ground textures' coordinates,
+   so they tile evenly and line up across regions. The layer repeat is how
+   many world units one tile covers.
+
+The outputs are the same four the default shader writes for the deferred
+lighting pass: position, color, normal, and ambient occlusion, roughness
+and metallic, so lighting and shadows work as they do for any model.
+
+Height blending is Terrain3D's idea: where layers meet, each point shows the
+layer that stands highest there, its height map plus its weight, so stones
+poke through grass instead of the two fading into each other. The softness
+sets how far below the highest layer another can be and still show.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainSplatFragmentShader
+
+TerrainSplatFragmentShader shader
+shader:SetLayerRepeat(4)
+*/
+class TerrainSplatFragmentShader is Shader
+    // How many world units one tile of each ground texture covers.
+    number layerRepeat = 4
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName("Terrain Splat Fragment Shader")
+        BuildCode()
+    end
+
+    /*
+    This action sets how many world units one tile of each ground texture
+    covers. It must be set before the shader is compiled.
+
+    Attribute: Parameter tileSize The size of one tile, in world units. It must be more than 0.
+    */
+    action SetLayerRepeat(number tileSize)
+        if tileSize <= 0
+            alert("The layer repeat must be more than 0, but was given " + tileSize + ".")
+        end
+        layerRepeat = tileSize
+        BuildCode()
+    end
+
+    /*
+    This action returns how many world units one tile of each ground
+    texture covers.
+
+    Attribute: Returns The size of one tile, in world units.
+    */
+    action GetLayerRepeat returns number
+        return layerRepeat
+    end
+
+    /*
+    This action writes the shader's code, with the layer repeat written in
+    as a constant.
+    */
+    private action BuildCode
+        // A whole number like 4 is written as 4.0, as GLSL needs for a float.
+        text tileText = "" + layerRepeat
+        if not tileText:Contains(".") and not tileText:Contains("E")
+            tileText = tileText + ".0"
+        end
+
+        SetCode(GetVersionHeader() +
+"
+" +
+"#ifdef GL_ES
+    #define LOWP lowp
+    precision mediump float;
+#else
+    #define LOWP
+#endif
+
+// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
+// How many world units one tile of each ground texture covers.
+const float LAYER_REPEAT = " + tileText + ";
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+struct Material {
+	uint diffuseColor;
+	uint textureIndex;
+	uint hasNormalMap;
+	uint hasRoughMap;
+	uint normalMapIndex;
+	uint roughMapIndex;
+	float roughness;
+	float metallic;
+	uint flags;
+	float textureScale;
+	uint reserved1;
+	uint reserved2;
+};
+
+layout(scalar, buffer_reference) buffer Materials
+{
+	Material data;
+};
+
+layout(location = 0) in vec2 v_textureCoords;
+layout(location = 1) flat in uint v_entityID;
+layout(location = 2) flat in uint v_hasDiffuseOverride;
+layout(location = 3) flat in uint v_diffuseOverride;
+layout(location = 4) flat in uint v_hasTextureOverride;
+layout(location = 5) flat in uint v_textureOverrideIndex;
+layout(location = 6) in vec4 v_position;
+layout(location = 7) in mat3 v_tangentBitangentNormal;
+
+layout (location = 0) out vec4 outputPosition;
+layout (location = 1) out vec4 outputColor;
+layout (location = 2) out vec4 outputNormal;
+layout (location = 3) out vec4 outputPBR;
+
+vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
+{
+    vec3 newNormal = tanBitanNormal[2];
+    if (material.hasNormalMap > 0)
+    {
+		newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
+        newNormal = normalize(newNormal * 2.0 - 1.0);
+        newNormal = normalize(tanBitanNormal * newNormal);
+    }
+    return newNormal;
+}
+
+vec4 sampleGlobalTexture(uint index, vec2 coordinates)
+{
+    return texture(nonuniformEXT(sampler2D(globalTextures[index], immutableSampler)), coordinates);
+}
+
+// Reads a texture with the rates its coordinates change across the screen
+// given, so the right mip level is chosen even inside a branch that differs
+// from pixel to pixel (library item 25).
+vec4 sampleGlobalTextureGrad(uint index, vec2 coordinates, vec2 changeX, vec2 changeY)
+{
+    return textureGrad(nonuniformEXT(sampler2D(globalTextures[index], immutableSampler)), coordinates, changeX, changeY);
+}
+
+struct InstanceData {
+   uint vertexPadding1;
+   uint vertexPadding2;
+   uint indexPadding1;
+   uint indexPadding2;
+   Materials materials;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
+};
+
+layout(scalar, buffer_reference) buffer Instances {
+   InstanceData[] data;
+};
+
+layout(push_constant) uniform PushConstants {
+   Instances instances;
+} pushConstants;
+
+// Reads a byte from a packed color, as a whole number from 0 to 255.
+uvec4 unpackBytes(uint packed)
+{
+    return uvec4(unpackUnorm4x8(packed) * 255.0 + 0.5);
+}
+
+// Colors terrain whose layers are texture sets, listed in the layer table,
+// blending them by height. The weights are already normalized.
+void splatTextureSets(Material material, vec4 weights, uvec4 overrideBytes)
+{
+    uint tablePlace = overrideBytes.x;
+
+    // How fast the world position changes across the screen, for picking
+    // mip levels. Taken here, before any branch, since layers with no
+    // weight are skipped below (Terrain3D does the same).
+    vec2 positionDx = dFdx(v_position.xz);
+    vec2 positionDy = dFdy(v_position.xz);
+    float softness = max(float(overrideBytes.y) / 254.0, 0.01);
+
+    // The ground's own frame: the normal from the mesh, with x and z laid
+    // onto it. Texture coordinates are world x and z, and a normal map's
+    // green points to the image's top, which is toward smaller v, so
+    // toward -z.
+    vec3 groundNormal = normalize(v_tangentBitangentNormal[2]);
+    vec3 tangent = normalize(vec3(1.0, 0.0, 0.0) - groundNormal * groundNormal.x);
+    vec3 bitangent = cross(groundNormal, tangent);
+    mat3 groundFrame = mat3(tangent, bitangent, groundNormal);
+
+    vec4 albedoHeight[4];
+    vec4 normalRoughness[4];
+    bool hasNormals[4];
+    float stand[4];
+    float highest = -1.0;
+    for (int i = 0; i < 4; i++)
+    {
+        albedoHeight[i] = vec4(0.0);
+        normalRoughness[i] = vec4(0.5, 0.5, 1.0, material.roughness);
+        hasNormals[i] = false;
+        stand[i] = -1.0;
+        if (weights[i] < 0.01)
+            continue;
+
+        uvec4 entry = uvec4(texelFetch(nonuniformEXT(sampler2D(globalTextures[tablePlace], immutableSampler)), ivec2(i, 0), 0) * 255.0 + 0.5);
+        float tileSize = entry.z > 0u ? float(entry.z) / 4.0 : LAYER_REPEAT;
+        vec2 coordinates = v_position.xz / tileSize;
+        albedoHeight[i] = sampleGlobalTextureGrad(entry.x, coordinates, positionDx / tileSize, positionDy / tileSize);
+        float height = 0.5;
+        if (entry.y != 255u)
+        {
+            normalRoughness[i] = sampleGlobalTextureGrad(entry.y, coordinates, positionDx / tileSize, positionDy / tileSize);
+            hasNormals[i] = true;
+            height = albedoHeight[i].a;
+        }
+        stand[i] = height + weights[i];
+        highest = max(highest, stand[i]);
+    }
+
+    // Each layer shows by how close it stands to the highest, within the
+    // softness, and only where it has weight.
+    float floorLevel = highest - softness;
+    vec4 blend = vec4(0.0);
+    for (int i = 0; i < 4; i++)
+    {
+        if (stand[i] >= 0.0)
+            blend[i] = max(stand[i] - floorLevel, 0.0);
+    }
+    float blendTotal = blend.r + blend.g + blend.b + blend.a;
+    if (blendTotal < 0.0001)
+        blend = weights;
+    else
+        blend = blend / blendTotal;
+
+    vec3 color = vec3(0.0);
+    vec3 packedNormal = vec3(0.0);
+    float roughness = 0.0;
+    float occlusion = 0.0;
+    for (int i = 0; i < 4; i++)
+    {
+        if (blend[i] <= 0.0)
+            continue;
+        color += albedoHeight[i].rgb * blend[i];
+        vec3 layerNormal = vec3(0.0, 0.0, 1.0);
+        float layerOcclusion = 1.0;
+        if (hasNormals[i])
+        {
+            vec3 unpacked = normalRoughness[i].rgb * 2.0 - 1.0;
+            // Terrain3D's packing: the normal's length carries ambient
+            // occlusion, as in the default shader (library item 24).
+            layerOcclusion = clamp(length(unpacked) * 2.0 - 1.0, 0.0, 1.0);
+            layerNormal = normalize(unpacked);
+        }
+        packedNormal += layerNormal * blend[i];
+        roughness += normalRoughness[i].a * blend[i];
+        occlusion += layerOcclusion * blend[i];
+    }
+
+    outputColor = vec4(color, 1.0);
+    outputPosition = v_position;
+    outputNormal = vec4(normalize(groundFrame * normalize(packedNormal)), 1.0);
+    outputPBR = vec4(occlusion, roughness, 0.0, 1.0);
+}
+
+// Colors terrain by blending its four ground textures by its splat weights.
+void splatTerrain(Material material)
+{
+    vec4 weights = vec4(1.0, 0.0, 0.0, 0.0);
+    if (v_hasTextureOverride == 1)
+        weights = sampleGlobalTexture(v_textureOverrideIndex, v_textureCoords);
+    float total = weights.r + weights.g + weights.b + weights.a;
+    if (total < 0.0001)
+    {
+        weights = vec4(1.0, 0.0, 0.0, 0.0);
+        total = 1.0;
+    }
+    weights = weights / total;
+
+    if (v_hasDiffuseOverride == 1)
+    {
+        uvec4 overrideBytes = unpackBytes(v_diffuseOverride);
+        // An alpha byte of 255 marks texture set layers, found through the
+        // layer table.
+        if (overrideBytes.w == 255u)
+        {
+            splatTextureSets(material, weights, overrideBytes);
+            return;
+        }
+
+        // Otherwise the color override's bytes are the four ground
+        // textures' places.
+        uvec4 layers = overrideBytes;
+        vec2 groundCoordinates = v_position.xz / LAYER_REPEAT;
+        vec4 red = sampleGlobalTexture(layers.x, groundCoordinates);
+        vec4 green = sampleGlobalTexture(layers.y, groundCoordinates);
+        vec4 blue = sampleGlobalTexture(layers.z, groundCoordinates);
+        vec4 alpha = sampleGlobalTexture(layers.w, groundCoordinates);
+        vec3 color = red.rgb * weights.r + green.rgb * weights.g + blue.rgb * weights.b + alpha.rgb * weights.a;
+        outputColor = vec4(color, 1.0);
+    }
+    else
+    {
+        // The ground textures aren't ready yet.
+        outputColor = vec4(0.4, 0.5, 0.3, 1.0);
+    }
+
+    outputPosition = v_position;
+    outputNormal = vec4(calculateNormal(material, v_tangentBitangentNormal, v_textureCoords), 1.0);
+    outputPBR = vec4(1.0, material.roughness, 0.0, 1.0);
+}
+
+void main()
+{
+   Instances instances = pushConstants.instances;
+   InstanceData instanceData = instances.data[v_entityID];
+   Materials materials = instanceData.materials;
+   Material material = materials.data;
+
+   // Terrain is marked by a negative metallic value.
+   if (material.metallic < 0.0)
+   {
+       splatTerrain(material);
+       return;
+   }
+
+	// Everything below is the default 3D fragment shader, unchanged.
+   uint textureIndex = material.textureIndex;
+	if (v_hasTextureOverride == 1)
+		textureIndex = v_textureOverrideIndex;
+
+	vec4 diffuse = unpackUnorm4x8(material.diffuseColor);
+	if (v_hasDiffuseOverride == 1)
+		diffuse = unpackUnorm4x8(v_diffuseOverride);
+
+    outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+
+	// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
+	if (outputColor.a < (diffuse.a / 2.0))
+	{
+		discard;
+	}
+
+	// Set position.
+	outputPosition = v_position;
+
+	// Calculate and set normal.
+	vec3 newNormal = calculateNormal(material, v_tangentBitangentNormal, v_textureCoords);
+	outputNormal = vec4(newNormal, 1.0);
+
+
+	// Calculate PBR properties.
+	float roughnessFactor = 0.0f;
+    float metallicFactor = 0.0f;
+    if (material.hasRoughMap > 0)
+	{
+		vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), v_textureCoords);
+        roughnessFactor = pbrValues.g;
+        metallicFactor = pbrValues.b;
+    }
+	else
+	{
+        roughnessFactor = material.roughness;
+        metallicFactor = material.metallic;
+    }
+
+	// The first channel is ambient occlusion (library item 24): 1 for none.
+	outputPBR = vec4(1.0, roughnessFactor, metallicFactor, 1.0);
+
+}"
+        )
+    end
+end

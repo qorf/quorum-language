@@ -99,6 +99,8 @@ notchPositionsIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
         creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         VulkanDescriptorSetLayout descriptorLayout = creator:FinishDescriptorSetLayout()
         
+        // Made the first time only (Item 32): see BlockShaderMappingVulkan.
+        if notchHeightMemory = undefined
         // Also initialize resources for the notch height descriptor.
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanDescriptorSetManager descriptorManager = graphics:GetDescriptorSetManager()
@@ -133,6 +135,7 @@ VulkanDescriptorResourcesInfo notchResourcesInfo
             uniformsDescriptorSets:Add(uniformSet)
             
             i = i + 1
+        end
         end
         
 VulkanPipelineInfo info = creator:Finish()

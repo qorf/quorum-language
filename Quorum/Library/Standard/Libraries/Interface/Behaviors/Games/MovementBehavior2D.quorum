@@ -1,0 +1,696 @@
+package Libraries.Interface.Behaviors.Games
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.CollisionEvent2D
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Game.InputMonitor
+use Libraries.Game.Layer2D
+use Libraries.Game.Collision.CollisionEdge2D
+use Libraries.Game.Physics.PhysicsProperties2D
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+
+/*
+A MovementBehavior2D moves a 2D item, such as a character, with the keyboard.
+Add it to an item with AddBehavior, and the item moves at once:
+
+1. In the default mode, TOP_DOWN, the arrow keys (or W, A, S, and D) move
+   the item up, down, left, and right, as in a maze or an adventure game
+   seen from above. Holding two keys moves it diagonally.
+2. In SIDE_VIEW mode, left and right (or A and D) move the item, and the
+   space bar (or up, or W) jumps, as in a platform game. Gravity pulls the
+   item down, so this mode needs 2D physics and a Responsive item.
+
+Every key can be changed, and each command can have more than one key.
+
+The behavior works out how to move the item from its physics settings, so
+the same code works for any item:
+
+1. An item without physics is moved directly. Nothing stops it, so it
+   passes through walls.
+2. A Nonresponsive item is given a velocity. It pushes other items, and
+   they don't push it back.
+3. A Responsive item is given a velocity. In SIDE_VIEW mode, only its
+   sideways velocity is set, so gravity still pulls it down, and it jumps
+   only when it is standing on something.
+4. An Unmovable item can't be moved. The behavior says so once, on the
+   console.
+
+To move the item some other way, such as from a computer-controlled
+player, turn the keyboard off with SetUseKeyboard(false) and set the
+commands with SetHorizontal, SetVertical, and Jump.
+
+Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Item2D
+    use Libraries.Interface.Behaviors.Games.MovementBehavior2D
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            LoadScene("Scenes/Scene.qs")
+
+            Item2D player = FindItem2DByName("1: Boy")
+            MovementBehavior2D movement
+            player:AddBehavior(movement)
+            GetCamera2D():Follow(player)
+        end
+    end
+*/
+class MovementBehavior2D is Behavior
+    /* The item moves up, down, left, and right, as seen from above. */
+    public constant integer TOP_DOWN = 0
+    /* The item moves left and right and jumps, as seen from the side. */
+    public constant integer SIDE_VIEW = 1
+
+    Math math
+    KeyboardEvent keys
+    InputMonitor monitor
+    PhysicsProperties2D physicsKinds
+
+    Item2D item = undefined
+
+    integer mode = TOP_DOWN
+    number speed = 200
+    number jumpHeight = 96
+    number acceleration = 0
+    boolean faceMovement = false
+
+    // The commands, each from -1 to 1. Positive horizontal is to the right,
+    // and positive vertical is up.
+    number horizontal = 0
+    number vertical = 0
+    boolean jumpRequested = false
+
+    // The movement actually used, which moves toward the commands at the
+    // acceleration rate.
+    number currentHorizontal = 0
+    number currentVertical = 0
+
+    boolean warnedUnmovable = false
+
+    Array<integer> upKeys
+    Array<integer> downKeys
+    Array<integer> leftKeys
+    Array<integer> rightKeys
+    Array<integer> jumpKeys
+
+    boolean useKeyboard = true
+    boolean jumpKeyWasDown = false
+    boolean active = true
+    boolean finished = false
+
+    on create
+        upKeys:Add(keys:UP)
+        upKeys:Add(keys:W)
+        downKeys:Add(keys:DOWN)
+        downKeys:Add(keys:S)
+        leftKeys:Add(keys:LEFT)
+        leftKeys:Add(keys:A)
+        rightKeys:Add(keys:RIGHT)
+        rightKeys:Add(keys:D)
+        jumpKeys:Add(keys:SPACE)
+        jumpKeys:Add(keys:UP)
+        jumpKeys:Add(keys:W)
+    end
+
+    /*
+    This action is called when the behavior is added to an item with
+    AddBehavior. It remembers the item, so the behavior knows what to move.
+    Most users never need to call it.
+
+    Attribute: Parameter event The event, which holds the item.
+    */
+    action Run(BehaviorEvent event)
+        Item target = event:GetItem()
+        if target is Item2D
+            SetItem(cast(Item2D, target))
+        end
+    end
+
+    /*
+    This action is called once per frame when the behavior has been added
+    to an item with AddBehavior, before the physics runs. It reads the
+    keyboard, if the keyboard is turned on, and then moves the item.
+
+    Attribute: Parameter seconds The time since the last frame, in seconds.
+    */
+    action Update(number seconds)
+        if item = undefined or seconds <= 0
+            return now
+        end
+
+        if not active
+            horizontal = 0
+            vertical = 0
+            jumpRequested = false
+        elseif useKeyboard
+            ReadKeyboard()
+        end
+
+        number step = acceleration * seconds
+        currentHorizontal = MoveToward(currentHorizontal, horizontal, step)
+        currentVertical = MoveToward(currentVertical, vertical, step)
+
+        number moveX = currentHorizontal
+        number moveY = 0
+        if mode = TOP_DOWN
+            moveY = currentVertical
+            number length = math:SquareRoot(moveX * moveX + moveY * moveY)
+            if length > 1
+                moveX = moveX / length
+                moveY = moveY / length
+            end
+        end
+
+        if faceMovement
+            if moveX > 0 and item:IsFlippedX()
+                item:FlipX()
+            elseif moveX < 0 and not item:IsFlippedX()
+                item:FlipX()
+            end
+        end
+
+        number velocityX = moveX * speed
+        number velocityY = moveY * speed
+
+        if not item:IsPhysicsEnabled()
+            item:Move(velocityX * seconds, velocityY * seconds)
+            jumpRequested = false
+            return now
+        end
+
+        integer kind = item:GetResponsiveness()
+        if kind = physicsKinds:UNMOVABLE
+            if not warnedUnmovable and (velocityX not= 0 or velocityY not= 0)
+                output "The item " + item:GetName() + " is Unmovable, so it can't be moved. Set its Responsiveness to Responsive or Nonresponsive."
+                warnedUnmovable = true
+            end
+            jumpRequested = false
+            return now
+        end
+
+        item:SetLinearVelocityX(velocityX)
+
+        if mode = TOP_DOWN or kind = physicsKinds:NON_RESPONSIVE
+            item:SetLinearVelocityY(velocityY)
+        elseif jumpRequested and jumpHeight > 0 and IsOnGround()
+            number gravity = GetGravityStrength()
+            if gravity > 0
+                item:SetLinearVelocityY(math:SquareRoot(2 * gravity * jumpHeight))
+            end
+        end
+        jumpRequested = false
+
+        if velocityX not= 0 or velocityY not= 0 or item:GetLinearVelocity():GetY() not= 0
+            item:Simulate(true)
+        end
+    end
+
+    /*
+    This action returns whether the item is standing on something: whether
+    it is touching another item whose top is at, or just under, its bottom.
+    An item without physics is never on the ground.
+
+    Attribute: Returns true if the item is standing on something, and false otherwise.
+    */
+    action IsOnGround returns boolean
+        if item = undefined or not item:IsPhysicsEnabled()
+            return false
+        end
+
+        number bottom = item:GetGlobalY()
+        number middle = bottom + item:GetHeight() / 2
+        number tolerance = item:GetHeight() / 4
+
+        CollisionEdge2D edge = item:GetCollisionList()
+        repeat while edge not= undefined
+            CollisionEvent2D collision = edge:GetCollision()
+            Item2D other = edge:GetOther()
+            if collision not= undefined and other not= undefined and collision:IsTouching()
+                number otherTop = other:GetGlobalY() + other:GetHeight()
+                number otherMiddle = other:GetGlobalY() + other:GetHeight() / 2
+                if otherMiddle < middle and otherTop <= bottom + tolerance
+                    return true
+                end
+            end
+            edge = edge:GetNext()
+        end
+        return false
+    end
+
+    /*
+    This action returns whether the behavior is finished. A behavior
+    added with AddBehavior keeps running until Stop is called.
+
+    Attribute: Returns true if Stop has been called, and false otherwise.
+    */
+    action IsFinished returns boolean
+        return finished
+    end
+
+    /*
+    This action stops the behavior. If it was added to an item with
+    AddBehavior, the item removes it at the start of the next frame, and an
+    item with physics stops moving on its own.
+    */
+    action Stop
+        finished = true
+        Release()
+    end
+
+    /*
+    This action is called when the behavior is removed from an item. It
+    stops an item with physics from moving on its own.
+    */
+    action Dispose
+        Release()
+    end
+
+    /*
+    Sets the commands from the keyboard. Holding both keys of a pair, such as
+    left and right, cancels them out.
+    */
+    private action ReadKeyboard
+        horizontal = 0
+        if AnyPressed(rightKeys)
+            horizontal = horizontal + 1
+        end
+        if AnyPressed(leftKeys)
+            horizontal = horizontal - 1
+        end
+
+        vertical = 0
+        if mode = TOP_DOWN
+            if AnyPressed(upKeys)
+                vertical = vertical + 1
+            end
+            if AnyPressed(downKeys)
+                vertical = vertical - 1
+            end
+        else
+            // Jump once each time the key goes down, not on every frame it
+            // is held.
+            boolean jumpDown = AnyPressed(jumpKeys)
+            if jumpDown and not jumpKeyWasDown
+                jumpRequested = true
+            end
+            jumpKeyWasDown = jumpDown
+        end
+    end
+
+    private action AnyPressed(Array<integer> keyCodes) returns boolean
+        integer i = 0
+        repeat while i < keyCodes:GetSize()
+            if monitor:IsKeyPressed(keyCodes:Get(i))
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    Returns how strongly gravity pulls down in the item's layer, as a
+    positive number, or 0 if it doesn't pull down.
+    */
+    private action GetGravityStrength returns number
+        Layer2D layer = item:GetLayer()
+        if layer = undefined
+            return 0
+        end
+        number down = -layer:GetGravity():GetY()
+        if down < 0
+            return 0
+        end
+        return down
+    end
+
+    /*
+    Sets the commands to 0, and stops an item with physics from moving on
+    its own.
+    */
+    private action Release
+        horizontal = 0
+        vertical = 0
+        currentHorizontal = 0
+        currentVertical = 0
+        jumpRequested = false
+
+        if item = undefined or not item:IsPhysicsEnabled()
+            return now
+        end
+        if item:GetResponsiveness() = physicsKinds:UNMOVABLE
+            return now
+        end
+        item:SetLinearVelocityX(0)
+        if mode = TOP_DOWN or item:GetResponsiveness() = physicsKinds:NON_RESPONSIVE
+            item:SetLinearVelocityY(0)
+        end
+    end
+
+    /*
+    Moves a value toward a target by at most the given step. A step of 0 or
+    less moves straight to the target.
+    */
+    private action MoveToward(number value, number target, number step) returns number
+        if step <= 0
+            return target
+        end
+        if value < target
+            return math:MinimumOf(value + step, target)
+        end
+        return math:MaximumOf(value - step, target)
+    end
+
+    /*
+    This action returns the item this behavior moves.
+
+    Attribute: Returns The item, or undefined if none has been set.
+    */
+    action GetItem returns Item2D
+        return item
+    end
+
+    /*
+    This action sets the item this behavior moves. AddBehavior sets it
+    automatically, so most users never need to call it.
+
+    Attribute: Parameter item The item to move.
+    */
+    action SetItem(Item2D item)
+        me:item = item
+        warnedUnmovable = false
+    end
+
+    /*
+    This action returns how the keys move the item: TOP_DOWN or SIDE_VIEW.
+
+    Attribute: Returns The mode.
+    */
+    action GetMode returns integer
+        return mode
+    end
+
+    /*
+    This action sets how the keys move the item. TOP_DOWN, the default,
+    moves up, down, left, and right. SIDE_VIEW moves left and right and
+    jumps, and needs 2D physics, gravity, and a Responsive item.
+
+    Attribute: Parameter mode The mode, such as movement:SIDE_VIEW.
+
+    Attribute: Example
+
+        use Libraries.Interface.Behaviors.Games.MovementBehavior2D
+
+        MovementBehavior2D movement
+        movement:SetMode(movement:SIDE_VIEW)
+    */
+    action SetMode(integer mode)
+        me:mode = mode
+    end
+
+    /*
+    This action returns the top speed, in pixels per second.
+
+    Attribute: Returns The speed.
+    */
+    action GetSpeed returns number
+        return speed
+    end
+
+    /*
+    This action sets the top speed, in pixels per second. The default is
+    200.
+
+    Attribute: Parameter speed The speed.
+    */
+    action SetSpeed(number speed)
+        me:speed = speed
+    end
+
+    /*
+    This action returns how high the item jumps in SIDE_VIEW mode.
+
+    Attribute: Returns The jump height.
+    */
+    action GetJumpHeight returns number
+        return jumpHeight
+    end
+
+    /*
+    This action sets how high the item jumps in SIDE_VIEW mode, in the same
+    units as the item's position, usually pixels. The default is 96, three
+    32-pixel tiles. A height of 0 turns jumping off. Only a Responsive item
+    with physics can jump, and only while it is standing on something, and
+    gravity must be pulling down.
+
+    Attribute: Parameter height The jump height.
+    */
+    action SetJumpHeight(number height)
+        jumpHeight = height
+    end
+
+    /*
+    This action returns how quickly the item reaches full speed.
+
+    Attribute: Returns The acceleration.
+    */
+    action GetAcceleration returns number
+        return acceleration
+    end
+
+    /*
+    This action sets how quickly the item speeds up and slows down, as the
+    share of full speed it can gain or lose each second. For example, 4
+    reaches full speed in a quarter of a second. The default is 0, which
+    changes speed at once.
+
+    Attribute: Parameter acceleration The acceleration.
+    */
+    action SetAcceleration(number acceleration)
+        me:acceleration = acceleration
+    end
+
+    /*
+    This action returns whether the item is flipped to face the way it moves.
+
+    Attribute: Returns true if the item faces the way it moves.
+    */
+    action IsFacingMovement returns boolean
+        return faceMovement
+    end
+
+    /*
+    This action sets whether the item is flipped left and right to face the
+    way it moves. The default is false. Turn it on for a character whose
+    picture faces right.
+
+    Attribute: Parameter face true to flip the item to face the way it moves.
+    */
+    action SetFaceMovement(boolean face)
+        faceMovement = face
+    end
+
+    /*
+    This action returns the horizontal command, from -1 for full speed left
+    to 1 for full speed right.
+
+    Attribute: Returns The horizontal command.
+    */
+    action GetHorizontal returns number
+        return horizontal
+    end
+
+    /*
+    This action sets the horizontal command, from -1 for full speed left to
+    1 for full speed right. While the keyboard is turned on, the keyboard
+    replaces it every frame, so turn it off first with
+    SetUseKeyboard(false).
+
+    Attribute: Parameter value The horizontal command.
+    */
+    action SetHorizontal(number value)
+        horizontal = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action returns the vertical command, from -1 for full speed down to
+    1 for full speed up.
+
+    Attribute: Returns The vertical command.
+    */
+    action GetVertical returns number
+        return vertical
+    end
+
+    /*
+    This action sets the vertical command, from -1 for full speed down to 1
+    for full speed up. It is used only in TOP_DOWN mode. While the keyboard
+    is turned on, the keyboard replaces it every frame, so turn it off first
+    with SetUseKeyboard(false).
+
+    Attribute: Parameter value The vertical command.
+    */
+    action SetVertical(number value)
+        vertical = math:MaximumOf(-1, math:MinimumOf(1, value))
+    end
+
+    /*
+    This action asks the item to jump on the next frame, in SIDE_VIEW mode.
+    It jumps only if it can: see SetJumpHeight.
+    */
+    action Jump
+        jumpRequested = true
+    end
+
+    /*
+    This action returns whether the behavior moves the item.
+
+    Attribute: Returns true if the behavior is active.
+    */
+    action IsActive returns boolean
+        return active
+    end
+
+    /*
+    This action sets whether the behavior moves the item. While it is not
+    active, the commands are 0 and the item stops, but the behavior stays on
+    the item and can be made active again.
+
+    Attribute: Parameter active true to move the item, or false to stop.
+    */
+    action SetActive(boolean active)
+        me:active = active
+        if not active
+            Release()
+        end
+    end
+
+    /*
+    This action returns whether the commands come from the keyboard.
+
+    Attribute: Returns true if the keyboard is used.
+    */
+    action IsUsingKeyboard returns boolean
+        return useKeyboard
+    end
+
+    /*
+    This action sets whether the commands come from the keyboard. Turn it
+    off to move the item from code, with SetHorizontal, SetVertical, and
+    Jump.
+
+    Attribute: Parameter useKeyboard true to use the keyboard.
+    */
+    action SetUseKeyboard(boolean useKeyboard)
+        me:useKeyboard = useKeyboard
+    end
+
+    /*
+    This action sets the one key that moves the item up in TOP_DOWN mode, in
+    place of any others. Use AddUpKey to add a key instead.
+
+    Attribute: Parameter key The key code, such as keys:UP from a KeyboardEvent.
+    */
+    action SetUpKey(integer key)
+        upKeys:Empty()
+        upKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item up in TOP_DOWN mode.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddUpKey(integer key)
+        upKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item down in TOP_DOWN mode,
+    in place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetDownKey(integer key)
+        downKeys:Empty()
+        downKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item down in TOP_DOWN mode.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddDownKey(integer key)
+        downKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item left, in place of any
+    others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetLeftKey(integer key)
+        leftKeys:Empty()
+        leftKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item left.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddLeftKey(integer key)
+        leftKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that moves the item right, in place of any
+    others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetRightKey(integer key)
+        rightKeys:Empty()
+        rightKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that moves the item right.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddRightKey(integer key)
+        rightKeys:Add(key)
+    end
+
+    /*
+    This action sets the one key that makes the item jump in SIDE_VIEW mode,
+    in place of any others.
+
+    Attribute: Parameter key The key code.
+    */
+    action SetJumpKey(integer key)
+        jumpKeys:Empty()
+        jumpKeys:Add(key)
+    end
+
+    /*
+    This action adds another key that makes the item jump in SIDE_VIEW mode.
+
+    Attribute: Parameter key The key code.
+    */
+    action AddJumpKey(integer key)
+        jumpKeys:Add(key)
+    end
+end

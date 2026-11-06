@@ -306,10 +306,6 @@ pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
     end
 
     private action CopyStandardFiles
-        File speechNative
-        speechNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
-        speechNative:SetPath("Libraries.Sound.Speech")
-
         File gameNative
         gameNative:SetWorkingDirectory(location:GetAbsolutePath() + "/Native/")
         gameNative:SetPath("Libraries.Game")
@@ -327,7 +323,6 @@ pythonFolder:SetPath("/Run/" + PYTHON_FOLDER)
         nativeDeployment:SetPath("Deploy")
 
 
-        speechNative:Copy(nativeFolder, true)
         gameNative:Copy(nativeFolder, true)
         interfaceNative:Copy(nativeFolder, true)
         if mobileNative:Exists()

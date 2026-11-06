@@ -12,7 +12,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
-import static org.lwjgl.vulkan.VK10.vkCreateDescriptorSetLayout;
+import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK12.VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 
 public class VulkanDescriptorSetLayout
@@ -108,5 +108,14 @@ public class VulkanDescriptorSetLayout
     public long GetLayoutHandle()
     {
         return layoutHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (layoutHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyDescriptorSetLayout(pluginDevice.GetDevice(), layoutHandle, null);
+        layoutHandle = 0L;
     }
 }

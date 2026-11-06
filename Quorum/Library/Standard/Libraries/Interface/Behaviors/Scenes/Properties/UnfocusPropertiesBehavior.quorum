@@ -3,6 +3,7 @@ package Libraries.Interface.Behaviors.Scenes.Properties
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.PropertiesPanel
 use Libraries.Interface.Behaviors.Behavior
 
 /*
@@ -19,6 +20,9 @@ class UnfocusPropertiesBehavior is Behavior
         if event:GetItem() is PropertiesDialog
             PropertiesDialog dialog = cast(PropertiesDialog, event:GetItem())
             controller = dialog:GetSceneEditor()
+        elseif event:GetItem() is PropertiesPanel
+            PropertiesPanel panel = cast(PropertiesPanel, event:GetItem())
+            controller = panel:GetSceneEditor()
         end
 
         if controller = undefined

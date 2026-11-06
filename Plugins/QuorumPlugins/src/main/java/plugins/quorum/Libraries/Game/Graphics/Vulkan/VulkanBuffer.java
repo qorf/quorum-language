@@ -153,7 +153,9 @@ public class VulkanBuffer
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
-        vmaUnmapMemory(pluginMemoryAllocator.GetAllocatorPointer(), mappedMemoryPointer);
+        // VMA unmaps by allocation, not by the mapped address.
+        vmaUnmapMemory(pluginMemoryAllocator.GetAllocatorPointer(), memoryHandle);
+        mappedMemoryPointer = 0L;
     }
 
     public long GetMappedMemoryPointer()
@@ -168,12 +170,20 @@ public class VulkanBuffer
 
     public void Dispose()
     {
+        // A second Dispose, or one before CreateNative, does nothing.
+        if (bufferHandle == 0L)
+            return;
+
         StopMapping();
 
         VulkanBuffer_ quorumBuffer = (VulkanBuffer_)me_;
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
         vmaDestroyBuffer(pluginMemoryAllocator.GetAllocatorPointer(), bufferHandle, memoryHandle);
+
+        bufferHandle = 0L;
+        memoryHandle = 0L;
+        bufferDeviceAddress = 0L;
     }
 
 

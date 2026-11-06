@@ -183,7 +183,8 @@ public class SkyboxShader
         program.SetUniform(skyboxIndex, 0);
         skybox.Get_Libraries_Game_Graphics_Skybox__cubeMap_().Bind();
 
-        program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
+        //program.SetUniform(inverterIndex, (float)skybox.Get_Libraries_Game_Graphics_Skybox__inverter_());
+        program.SetUniform(inverterIndex, 1.0f);
 
         graphics.glDrawArrays(OpenGLManager.GL_TRIANGLES, 0, 36);
 

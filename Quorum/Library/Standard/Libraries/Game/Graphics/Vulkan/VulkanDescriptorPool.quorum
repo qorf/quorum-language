@@ -58,8 +58,18 @@ class VulkanDescriptorPool
 
     private system action CreateNative(VulkanDevice device, Array<integer> descriptorTypes, integer poolFlags, Array<integer> descriptorCounts, integer maxSets) returns boolean
 
+    /*
+    This action frees the pool, and with it every descriptor set made from
+    it. Doing it twice does nothing. The device must be idle.
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
     end
+
+    private system action DisposeNative(VulkanDevice device)
 
 end

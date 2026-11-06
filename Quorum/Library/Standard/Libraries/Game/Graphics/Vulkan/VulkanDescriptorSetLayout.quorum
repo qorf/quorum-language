@@ -1,7 +1,7 @@
 package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 
-class VulkanDescriptorSetLayout
+class VulkanDescriptorSetLayout is VulkanRetirable
 
     VulkanDevice device = undefined
     Array<VulkanDescriptorSetLayoutBinding> bindings = undefined
@@ -46,9 +46,19 @@ class VulkanDescriptorSetLayout
         return device
     end
 
+    /*
+    This action frees the layout. Doing it twice does nothing. Descriptor
+    sets made from it must not be updated afterwards.
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
     end
+
+    private system action DisposeNative(VulkanDevice device)
 
     action GetBindings returns Array<VulkanDescriptorSetLayoutBinding>
         return bindings
@@ -56,6 +66,15 @@ class VulkanDescriptorSetLayout
     
     action IsInitialized returns boolean
         return initialized
+    end
+
+
+    /*
+    This action frees the object once VulkanGraphics:Retire knows no frame
+    on the GPU still uses it (Item 31). It is the same as Dispose.
+    */
+    action Release
+        Dispose()
     end
 
 end

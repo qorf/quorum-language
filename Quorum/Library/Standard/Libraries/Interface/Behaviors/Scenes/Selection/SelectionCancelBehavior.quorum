@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Interface.Behaviors.Behavior
 
 /*
@@ -19,6 +20,19 @@ use Libraries.Interface.Behaviors.Behavior
 class SelectionCancelBehavior is Behavior
 
     action Run(BehaviorEvent event)
+        // With a terrain's tool chosen, Escape first cancels a stroke going
+        // on (step 8), then leaves the tool, and the terrain stays selected
+        // (step 7).
+        if event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            if highlight:GetSceneEditor() not= undefined and highlight:GetSceneEditor():CancelTerrainStroke()
+                return now
+            end
+            if highlight:GetEditorTerrain() not= undefined and highlight:GetEditorTerrain():HasTool()
+                highlight:GetSceneEditor():SetTerrainTool(highlight:GetEditorTerrain(), 0)
+                return now
+            end
+        end
         if event:GetItem() is EditorItem
             EditorItem item = cast(EditorItem, event:GetItem())
             if item:GetSceneEditor() not= undefined

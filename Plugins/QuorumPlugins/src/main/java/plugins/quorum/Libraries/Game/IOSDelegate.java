@@ -10,6 +10,9 @@ import org.robovm.apple.uikit.UIAccessibilityTraits;
 import org.robovm.apple.uikit.UIApplication;
 import org.robovm.apple.uikit.UIApplicationDelegateAdapter;
 import org.robovm.apple.uikit.UIApplicationLaunchOptions;
+import org.robovm.apple.uikit.UISceneConfiguration;
+import org.robovm.apple.uikit.UISceneConnectionOptions;
+import org.robovm.apple.uikit.UISceneSession;
 import org.robovm.objc.ObjCRuntime;
 
 /**
@@ -48,6 +51,20 @@ public class IOSDelegate extends UIApplicationDelegateAdapter
         return didFinishLaunching;
     }
     
+    /*
+    Since iOS 27, apps must use the scene life cycle (Apple's TN3187). The window
+    is made by IOSSceneDelegate when iOS connects the scene; the Info.plist that
+    Quorum Studio writes names the same class.
+    */
+    @Override
+    public UISceneConfiguration getConfigurationForConnectingSceneSession(UIApplication application, UISceneSession connectingSceneSession, UISceneConnectionOptions options)
+    {
+        UISceneConfiguration configuration = new UISceneConfiguration("Default Configuration", connectingSceneSession.getRole());
+        configuration.setDelegateClass(IOSSceneDelegate.class);
+        return configuration;
+    }
+
+    // With the scene life cycle, iOS sends these to IOSSceneDelegate instead.
     @Override
     public void didBecomeActive(UIApplication application)
     {

@@ -24,7 +24,14 @@ class DesktopConfiguration is ApplicationConfiguration
     /* Initial y coordinate where the window will appear on screen. -1 for center. */
     public integer y = -1
 
-    /* If true, the application will use vSync. */
+    /*
+    If true, the application uses vSync: each frame is shown at the display's
+    refresh, so frames don't tear and the game runs no faster than the display.
+    If false (the default), frames are shown as soon as they're ready. Under
+    Vulkan that is the IMMEDIATE present mode, which can tear (the swapchain
+    uses FIFO instead if the device doesn't offer it); under OpenGL it is a swap
+    interval of 0.
+    */
     public boolean vSyncEnabled = false
 
     /* The title of the application. */
@@ -115,5 +122,19 @@ application will use OpenGL for rendering instead. Must be set before starting t
 to render the game, including the Vulkan API version and whether or not to use validation
 layers for debugging.*/
     public VulkanOptions vulkanOptions
+    
+    /*This option sets the maximum number of lights that can be active in a single Layer3D at a time.
+The default value is 16.  This value should be set before the Game starts, and only affects Vulkan applications.*/
+    public integer maximumLights = 16
+    
+    /*This action sets the number of "splits" used in cascading shadow maps. Increasing this number provides higher quality shadows
+but negatively impacts performance. The increase in quality with higher numbers falls off quickly, but the performance impact
+does not, so it is advised to keep this number relatively low. The default value is 3.*/
+    public integer shadowMapCascadeCount = 3
+    
+    /*This value determines the dimensions of the textures used by shadow maps in the game. Larger textures allow for higher resolution
+shadows but negatively impact performance. It is recommended to use powers of two for this value, e.g. 512, 1024, 2048, or 4096. The
+default value is 2048.*/
+    public integer shadowMapSize = 2048
 
 end

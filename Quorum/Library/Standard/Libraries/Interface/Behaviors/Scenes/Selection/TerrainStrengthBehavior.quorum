@@ -1,0 +1,43 @@
+package Libraries.Interface.Behaviors.Scenes.Selection
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+
+/*
+    The TerrainStrengthBehavior makes a selected terrain's brush stronger or
+    weaker by one step, when its tool is chosen (step 8). Alt+] and Alt+[
+    by default.
+*/
+class TerrainStrengthBehavior is Behavior
+    boolean stronger = true
+
+    /*
+        Sets whether this behavior strengthens the brush or weakens it.
+
+        Attribute: Parameter stronger True to strengthen, false to weaken
+    */
+    action SetStronger(boolean stronger)
+        me:stronger = stronger
+    end
+
+    /*
+        Returns true if this behavior strengthens the brush.
+
+        Attribute: Returns True to strengthen, false to weaken
+    */
+    action IsStronger returns boolean
+        return stronger
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
+            EditorTerrain terrain = highlight:GetEditorTerrain()
+            if terrain not= undefined and terrain:HasTool() and highlight:GetSceneEditor() not= undefined
+                highlight:GetSceneEditor():ChangeTerrainStrength(terrain, stronger)
+            end
+        end
+    end
+end

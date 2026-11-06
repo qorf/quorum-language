@@ -4,60 +4,150 @@ use Libraries.Interface.Views.ControlView
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Painter2D
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.TextureFilter
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
-use Libraries.Game.Graphics.FileTextureData
+use Libraries.Game.Graphics.Blending
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.SharedTexture
+use Libraries.Compute.Math
 
+/*
+    The DefaultTreeMenuView draws a tree item's arrow: a chevron, pointing
+    right when the item is closed and down when it is open. It is drawn at
+    the size it shows, in pixels, each pixel as solid as the share of it the
+    chevron covers, so its edges are smooth at any size and interface
+    scale. It is white, and tinted by the tree's colors.
+*/
 class DefaultTreeMenuView is Drawable, ToggleView
     boolean open = false
-    
-    constant text TEXTURE_KEY_PREFIX = "DefaultTreeMenuView-"
+
+    // The size, in pixels, the loaded chevron was drawn for.
+    integer drawnSize = 0
+    Math math
+
+    constant text TEXTURE_KEY_PREFIX = "DefaultTreeMenuView-chevron-"
+
+    // How many sample points across each pixel, each way.
+    constant integer SAMPLES = 4
+
+    // The smallest size a chevron is drawn for; smaller arrows shrink it.
+    constant integer SMALLEST_SIZE = 6
 
     action Initialize(integer width, integer height)
         SetName("DefaultTreeMenuView")
-        Color color
-        Texture texture = GenerateTriangle(200, 20, color:White())
-        Load(texture)
+        // Redrawn at its real size the first time it is sized.
+        LoadChevron(16)
     end
 
-    private action GenerateTriangle(integer size, integer buffer, Color color) returns Texture
-GameStateManager gameState
+    /*
+        Loads the chevron for a size, keeping the arrow turned as it was.
+    */
+    private action LoadChevron(integer size)
+        number angle = GetRotation()
+        Load(MakeChevron(size))
+        SetRotation(angle)
+        drawnSize = size
+    end
+
+    /*
+        Returns the chevron for a size, making it the first time: a white
+        ">" whose pixels' alpha is the share of their sample points inside
+        its stroke.
+    */
+    private action MakeChevron(integer size) returns Texture
+        GameStateManager gameState
         SharedTextureManager textureManager = gameState:GetSharedTextureManager()
-        text textureKey = TEXTURE_KEY_PREFIX + size + "-" + buffer
-        integer red = cast(integer, color:GetRed() * 255)
-integer green = cast(integer, color:GetGreen() * 255)
-integer blue = cast(integer, color:GetBlue() * 255)
-integer alpha = cast(integer, color:GetAlpha() * 255)
-        textureKey = textureKey + "-" + red + "/" + green + "/" + blue + "/" + alpha
+        text textureKey = TEXTURE_KEY_PREFIX + size
         if textureManager:HasKey(textureKey)
             return textureManager:GetTexture(textureKey)
         end
-        
+
         PixelMap map
         Format format
         format:SetValue(format:RGBA8888)
         map:CreatePixelMap(size, size, format)
-        
-        
-        integer middle = buffer * 2
-        middle = cast(integer, size / 2.0)
-        map:FillTriangle(size / 4, buffer, size / 4, size - buffer, middle + size / 4, middle, color)
+        // Pixels are set as they are, not blended with what is there.
+        Blending blending
+        blending:SetValue(blending:NONE)
+        map:SetBlending(blending)
+
+        // Two strokes meeting at the point, as fractions of the square.
+        number startX = 0.38 * size
+        number topY = 0.24 * size
+        number pointX = 0.64 * size
+        number middleY = 0.5 * size
+        number bottomY = 0.76 * size
+        number halfWidth = math:MaximumOf(1.4, 0.13 * size) / 2
+
+        Color color
+        number samplesPerPixel = SAMPLES * SAMPLES
+        integer y = 0
+        repeat while y < size
+            integer x = 0
+            repeat while x < size
+                integer hits = 0
+                integer sampleY = 0
+                repeat while sampleY < SAMPLES
+                    integer sampleX = 0
+                    repeat while sampleX < SAMPLES
+                        number pointOnX = x + (sampleX + 0.5) / SAMPLES
+                        number pointOnY = y + (sampleY + 0.5) / SAMPLES
+                        number nearest = math:MinimumOf(
+                            SegmentDistance(pointOnX, pointOnY, startX, topY, pointX, middleY),
+                            SegmentDistance(pointOnX, pointOnY, pointX, middleY, startX, bottomY))
+                        if nearest <= halfWidth
+                            hits = hits + 1
+                        end
+                        sampleX = sampleX + 1
+                    end
+                    sampleY = sampleY + 1
+                end
+                if hits > 0
+                    map:SetPixel(x, y, color:CustomColor(1, 1, 1, hits / samplesPerPixel))
+                end
+                x = x + 1
+            end
+            y = y + 1
+        end
+
         SharedTexture texture
         texture:LoadFromPixelMap(map)
         textureManager:Add(textureKey, texture)
         return texture
     end
 
+    /*
+        Returns how far a point is from a line segment.
+    */
+    private action SegmentDistance(number pointX, number pointY, number fromX, number fromY,
+            number toX, number toY) returns number
+        number alongX = toX - fromX
+        number alongY = toY - fromY
+        number t = ((pointX - fromX) * alongX + (pointY - fromY) * alongY) / (alongX * alongX + alongY * alongY)
+        t = math:MaximumOf(0, math:MinimumOf(1, t))
+        number offsetX = fromX + t * alongX - pointX
+        number offsetY = fromY + t * alongY - pointY
+        return math:SquareRoot(offsetX * offsetX + offsetY * offsetY)
+    end
+
     action QueueForDrawing(Painter2D painter)
         parent:Drawable:QueueForDrawing(painter)
     end
 
+    /*
+        Sizes the arrow, drawing the chevron again first when the size, in
+        whole pixels, changed.
+    */
     action UpdateSize(number width, number height)
+        integer size = cast(integer, math:Round(math:MinimumOf(width, height)))
+        if size < SMALLEST_SIZE
+            size = SMALLEST_SIZE
+        end
+        if size not= drawnSize
+            LoadChevron(size)
+        end
         SetSize(width, height)
     end
 
