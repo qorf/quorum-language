@@ -1,0 +1,74 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Game.Graphics.Skybox
+
+/*
+    The SceneEditorSkyEdit is one change to a 3D layer's sky in the scene
+    editor's undo list (QuincyWorld demo D3): a sky chosen or removed, or
+    its turn changed. It holds the sky and its turn before and after, and
+    gives the layer one or the other, then has the scene editor show it and
+    say what happened.
+*/
+class SceneEditorSkyEdit is Edit
+    SceneEditor controller = undefined
+    EditorLayer3D layer = undefined
+    Skybox before = undefined
+    number beforeTurn = 0
+    Skybox after = undefined
+    number afterTurn = 0
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter layer The layer whose sky changed
+        Attribute: Parameter before The sky before the change, or undefined for none
+        Attribute: Parameter beforeTurn Its turn before, in degrees
+        Attribute: Parameter after The sky after the change, or undefined for none
+        Attribute: Parameter afterTurn Its turn after, in degrees
+        Attribute: Parameter changeName What changed, such as "choose sky"
+    */
+    action Create(SceneEditor controller, EditorLayer3D layer, Skybox before, number beforeTurn, Skybox after, number afterTurn, text changeName)
+        me:controller = controller
+        me:layer = layer
+        me:before = before
+        me:beforeTurn = beforeTurn
+        me:after = after
+        me:afterTurn = afterTurn
+        name = changeName
+    end
+
+    action Undo
+        Put(before, beforeTurn)
+        controller:SkyEdited(layer, "Undid " + name)
+    end
+
+    action Redo
+        Put(after, afterTurn)
+        controller:SkyEdited(layer, "Redid " + name)
+    end
+
+    /*
+        Gives the layer a sky and turn.
+    */
+    private action Put(Skybox sky, number turn)
+        if sky not= undefined
+            sky:SetTurn(turn)
+        end
+        layer:SetSkybox(sky)
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

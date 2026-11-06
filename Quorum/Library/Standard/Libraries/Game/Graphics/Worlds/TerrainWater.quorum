@@ -825,6 +825,7 @@ class TerrainWater
         look:Add("Wave Speed", program:GetWaveSpeed())
         look:Add("Roughness", program:GetRoughness())
         look:Add("Ripple Strength", program:GetNormalStrength())
+        look:Add("Reflection", program:GetReflectionStrength())
         return look
     end
 
@@ -857,6 +858,10 @@ class TerrainWater
         end
         if look:HasValue("Ripple Strength")
             program:SetNormalStrength(ReadNumber(look, "Ripple Strength"))
+        end
+        // How strongly the sky is reflected (Water plan W4).
+        if look:HasValue("Reflection")
+            program:SetReflectionStrength(ReadNumber(look, "Reflection"))
         end
     end
 

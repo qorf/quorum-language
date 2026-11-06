@@ -37,7 +37,8 @@ class WaterState
     Array<TerrainLake> lakeCopies
 
     // The look: the two colors' red, green, blue and alpha, then clarity,
-    // shore fade, ripple size, ripple speed, roughness and ripple strength.
+    // shore fade, ripple size, ripple speed, roughness, ripple strength
+    // and reflection (Water plan W4).
     Array<number> look
 
     /*
@@ -70,6 +71,7 @@ class WaterState
         look:Add(program:GetWaveSpeed())
         look:Add(program:GetRoughness())
         look:Add(program:GetNormalStrength())
+        look:Add(program:GetReflectionStrength())
     end
 
     /*
@@ -117,6 +119,9 @@ class WaterState
             program:SetWaveSpeed(look:Get(11))
             program:SetRoughness(look:Get(12))
             program:SetNormalStrength(look:Get(13))
+        end
+        if look:GetSize() >= 15
+            water:GetWaterProgram():SetReflectionStrength(look:Get(14))
         end
         terrain:WaterChanged()
     end

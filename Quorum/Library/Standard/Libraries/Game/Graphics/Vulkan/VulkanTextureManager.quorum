@@ -656,12 +656,14 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         VulkanImageViewInfo viewInfo
         viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         viewInfo:SetLayerCount(pixelMaps:GetSize())
-        view:Create(device, image, viewInfo)
+        // The view's type is set before the view is made (it was set
+        // after, so cubes were made as plain 2D views; found 2026-11-06).
         if texture:IsCubemap()
             viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_CUBE)
         else
             viewInfo:SetViewType(constants:IMAGE_VIEW_TYPE_2D_ARRAY)
         end
+        view:Create(device, image, viewInfo)
         texture:SetVulkanImageView(view)
     end
 

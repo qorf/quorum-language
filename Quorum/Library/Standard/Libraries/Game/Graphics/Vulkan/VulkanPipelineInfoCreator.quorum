@@ -843,10 +843,11 @@ class VulkanPipelineInfoCreator
     - set 1: the global textures;
     - set 2: the G-buffer: position, albedo, normal, PBR and emissive
       samplers (emissive is Lighting plan L1);
-    - set 3: the lights (a storage buffer) and the scene data (a uniform).
+    - set 3: the lights (a storage buffer) and the scene data (a uniform);
+    - set 4: the sky's cube, a combined sampler (Water plan W4).
     Its push constants are 128 bytes: the instance buffer address, then 18
     numbers from the mapping's FillForwardData, then 12 numbers of scene
-    data from the painter. It blends over the lit image, with no depth test
+    data from the painter: the sky's rotation (W4). It blends over the lit image, with no depth test
     and no culling.
 
     The program's mapping must also say UseDefaultResources3D(true) and
@@ -901,8 +902,14 @@ class VulkanPipelineInfoCreator
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         FinishDescriptorSetLayout()
 
+        // Set 4: the sky's cube (Water plan W4), with the same binding as
+        // the skybox's own set, so the painter binds that set.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        FinishDescriptorSetLayout()
+
         // 128 bytes: the address, the program's 18 numbers, and the
-        // painter's 12. The painter's buffer is exactly this size.
+        // painter's 12 (the sky's rotation, W4). The painter's buffer is
+        // exactly this size.
         VulkanPushConstantRange pushConstants
         pushConstants:SetSize(128)
         pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)

@@ -48,6 +48,9 @@ use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
 use Libraries.Game.Graphics.DirectionalLight
 use Libraries.Compute.Vector3
 use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Color
 
 class VulkanPainter3D is Painter3D
     
@@ -158,7 +161,10 @@ VulkanSampler immutableSampler = undefined
     VulkanDescriptorSetLayout skyboxLayout = undefined
     Array<VulkanDescriptorSet> skyboxDescriptors
     Array<VulkanImageView> skyboxLinkedViews
-    
+    // A plain 1 by 1 cube, bound in place of the sky for forward programs
+    // when there is no sky to draw (Water plan W4).
+    Texture fallbackSkyCube = undefined
+
     integer DEFAULT_MAX_INSTANCES = 8192
     
     // A dummy vertex buffer. Without extensions to bypass it, the Vulkan spec requires we bind something to the vertex buffers, even if our pipeline doesn't need it due to bindless rendering.
@@ -1336,11 +1342,29 @@ if batches:HasKey(schematic)
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanTextureManager textureManager = graphics:GetTextureManager()
 
+        // The sky's cube for reflections (Water plan W4): the skybox's, if
+        // it is drawn this frame, or else a plain cube. Until the plain
+        // cube is uploaded, a frame after it is asked for, forward
+        // programs wait. The plain cube is only asked for when a forward
+        // program has something to draw.
+        boolean hasSky = false
+        VulkanImageView skyView = undefined
+        boolean skyChosen = false
+
         integer programIndex = 0
         repeat while programIndex < customPrograms:GetSize()
             ShaderProgram program = customPrograms:Get(programIndex)
             Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
-            if IsForwardProgram(program) and HasDrawCommands(programQueues)
+            if IsForwardProgram(program) and HasDrawCommands(programQueues) and not skyChosen
+                skyChosen = true
+                hasSky = CanDrawSky()
+                if hasSky
+                    skyView = skybox:GetCubeMap():GetVulkanImageView()
+                else
+                    skyView = GetFallbackSkyView()
+                end
+            end
+            if IsForwardProgram(program) and HasDrawCommands(programQueues) and skyView not= undefined
                 VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
                 if NeedsPipeline(strategy:GetPipeline(), lightRenderPass:GetSampleCount())
                     strategy:CreatePipeline(lightRenderPass)
@@ -1371,6 +1395,12 @@ if batches:HasKey(schematic)
                 lightDataBind:SetDescriptorSet(environment:GetLightDataDescriptorSet(resourceIndex))
                 lightDataBind:SetSetIndex(3)
                 commandBuffer:Record(lightDataBind)
+
+                BindDescriptorSetCommand skyBind
+                skyBind:SetPipelineLayout(layout)
+                skyBind:SetDescriptorSet(GetSkyboxDescriptor(resourceIndex, skyView))
+                skyBind:SetSetIndex(4)
+                commandBuffer:Record(skyBind)
 
                 // The program's own numbers, the same for all its queues.
                 integer slot = 0
@@ -1403,10 +1433,8 @@ if batches:HasKey(schematic)
                             forwardPushConstants:AddNumber32Bit(forwardProgramData:Get(slot))
                             slot = slot + 1
                         end
-                        // The forward scene data: unused until Item 41.
-                        repeat FORWARD_SCENE_DATA_SIZE times
-                            forwardPushConstants:AddNumber32Bit(0)
-                        end
+                        // The forward scene data: the sky's rotation (W4).
+                        AddForwardSceneData(hasSky)
 
                         SetPushConstantsCommand setPushConstants
                         setPushConstants:SetData(forwardPushConstants)
@@ -2358,6 +2386,29 @@ BindDescriptorSetCommand resultDescriptorBind
         setViewport:SetPosition(0, imageHeight)
         setViewport:SetSize(imageWidth, -imageHeight)
         commandBuffer:Record(setViewport)
+        RecordViewScissor(commandBuffer, swapchain)
+    end
+
+    /*
+        The sky (QuincyWorld demo D3) is drawn with the 3D view's own
+        viewport, so its directions match the camera's view, and a scissor
+        keeping it inside the view. It used the whole window's, so in a
+        scene editor in a panel the sky covered all of Quorum Studio.
+    */
+    private action SetSkyViewportAndScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
+        SetViewportCommand setViewport
+        setViewport:SetPosition(viewportX, swapchain:GetImageHeight() - viewportY)
+        setViewport:SetSize(viewportWidth, -viewportHeight)
+        commandBuffer:Record(setViewport)
+        RecordViewScissor(commandBuffer, swapchain)
+    end
+
+    /*
+        Records a scissor around the 3D view, inside the image.
+    */
+    private action RecordViewScissor(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain)
+        integer imageWidth = swapchain:GetImageWidth()
+        integer imageHeight = swapchain:GetImageHeight()
 
         // The viewport's y is measured from the bottom, and the scissor's
         // from the top.
@@ -2517,6 +2568,97 @@ BindDescriptorSetCommand resultDescriptorBind
     end
 
     /*
+    This action returns true if the sky will be drawn this frame: the layer
+    has a skybox, its cube is made, and the camera is a perspective camera.
+    The skybox draw and the forward programs' reflections both use it, so
+    they always agree (Water plan W4).
+
+    Attribute: Returns True if the sky can be drawn.
+    */
+    private action CanDrawSky returns boolean
+        if skybox = undefined or camera = undefined
+            return false
+        end
+        if not skybox:IsLoaded()
+            return false
+        end
+        Texture cube = skybox:GetCubeMap()
+        if cube = undefined or cube:GetVulkanImageView() = undefined
+            return false
+        end
+        return skybox:UpdateView(camera)
+    end
+
+    /*
+    This action returns the view of a plain 1 by 1 cube, bound for forward
+    programs when there is no sky (Water plan W4). It is made the first
+    time, and is ready once the texture manager has uploaded it, a frame
+    later. Its grey is never shown: the shaders are told there is no sky.
+
+    Attribute: Returns The cube's view, or undefined until it is uploaded.
+    */
+    private action GetFallbackSkyView returns VulkanImageView
+        if fallbackSkyCube = undefined
+            Format format
+            format:SetValue(format:RGBA8888)
+            Color grey
+            grey:SetColor(0.5, 0.5, 0.5, 1)
+            Array<PixelMap> sides
+            repeat 6 times
+                PixelMap side
+                side:CreatePixelMap(1, 1, format)
+                side:Fill(grey)
+                sides:Add(side)
+            end
+            Texture cube
+            cube:LoadCubemapFromPixelMaps(sides)
+            fallbackSkyCube = cube
+        end
+        return fallbackSkyCube:GetVulkanImageView()
+    end
+
+    /*
+    This action adds the forward scene data to the forward push constants
+    (Water plan W4): the sky's rotation as the first three columns of its
+    matrix, then 1 (the old mirror setting, kept so the layout stays the
+    same), then whether there is a sky, then a spare. With no sky, the
+    rotation is the identity. It writes exactly FORWARD_SCENE_DATA_SIZE
+    numbers.
+
+    Attribute: Parameter hasSky True if the sky's cube is bound.
+    */
+    private action AddForwardSceneData(boolean hasSky)
+        if hasSky
+            Matrix4 rotation = skybox:GetRotation()
+            forwardPushConstants:AddNumber32Bit(rotation:row0column0)
+            forwardPushConstants:AddNumber32Bit(rotation:row1column0)
+            forwardPushConstants:AddNumber32Bit(rotation:row2column0)
+            forwardPushConstants:AddNumber32Bit(rotation:row0column1)
+            forwardPushConstants:AddNumber32Bit(rotation:row1column1)
+            forwardPushConstants:AddNumber32Bit(rotation:row2column1)
+            forwardPushConstants:AddNumber32Bit(rotation:row0column2)
+            forwardPushConstants:AddNumber32Bit(rotation:row1column2)
+            forwardPushConstants:AddNumber32Bit(rotation:row2column2)
+            forwardPushConstants:AddNumber32Bit(1)
+            forwardPushConstants:AddNumber32Bit(1)
+        else
+            forwardPushConstants:AddNumber32Bit(1)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(1)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(0)
+            forwardPushConstants:AddNumber32Bit(1)
+            forwardPushConstants:AddNumber32Bit(1)
+            forwardPushConstants:AddNumber32Bit(0)
+        end
+        // Spare.
+        forwardPushConstants:AddNumber32Bit(0)
+    end
+
+    /*
     This action draws the skybox, if the layer has one that is loaded and
     the camera is a perspective camera: the skybox program's full-screen
     triangle, with the camera's directions and the sky's rotation in push
@@ -2527,19 +2669,10 @@ BindDescriptorSetCommand resultDescriptorBind
     Attribute: Parameter resourceIndex The frame slot.
     */
     private action RecordSkybox(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain, integer resourceIndex)
-        if skybox = undefined or camera = undefined
-            return now
-        end
-        if not skybox:IsLoaded()
+        if not CanDrawSky()
             return now
         end
         Texture cube = skybox:GetCubeMap()
-        if cube = undefined or cube:GetVulkanImageView() = undefined
-            return now
-        end
-        if not skybox:UpdateView(camera)
-            return now
-        end
         VulkanConstants constants
 
         ShaderManager shaders = gameState:GetShaderManager()
@@ -2555,7 +2688,7 @@ BindDescriptorSetCommand resultDescriptorBind
         BindPipelineCommand bindPipeline
         bindPipeline:SetPipeline(pipeline)
         commandBuffer:Record(bindPipeline)
-        SetResultViewportAndScissor(commandBuffer, swapchain)
+        SetSkyViewportAndScissor(commandBuffer, swapchain)
 
         BindDescriptorSetCommand bindCube
         bindCube:SetPipelineLayout(layout)

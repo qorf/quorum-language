@@ -7,8 +7,9 @@ WaterFragmentShader colors water (library item 39). It is drawn after the
 deferred lighting, over the lit image, and reads the G-buffer's position to
 see what is behind the water: deeper water is darker, the edge fades into
 the shore, and water behind the ground is hidden. Two layers of ripples
-move with time, and every light shines and glints on the surface. It
-needs the camera data of library item 38.
+move with time, and every light shines and glints on the surface. The sky
+is reflected in it, strongly at low angles and hardly looking down (Water
+plan W4). It needs the camera data of library item 38.
 
 Its settings come from WaterShaderProgram, through the push constants,
 after the instance buffer address.
@@ -86,6 +87,10 @@ layout(scalar, set = 3, binding = 1) uniform SceneInfo
 	float fogBaseHeight;
 	float fogHeightFalloff;
 } sceneInfo;
+
+// The sky's cube (Water plan W4): the skybox's own, or a plain one when
+// there is no sky.
+layout(set = 4, binding = 0) uniform samplerCube skyCube;
 
 struct Material {
 	uint diffuseColor;
@@ -208,6 +213,22 @@ float rangeAttenuation(float distance, float range)
     return inverseSquare * window * window;
 }
 
+// The sky seen along a world direction, turned as the skybox is drawn
+// (Water plan W4). With no sky, the fog's color if there is fog, or else
+// the ambient light.
+vec3 skyColor(vec3 direction)
+{
+    if (water.hasSky < 0.5)
+    {
+        if (sceneInfo.fogAmount > 0.0)
+            return sceneInfo.fogColor;
+        return sceneInfo.ambientColor * sceneInfo.ambientIntensity;
+    }
+    vec3 turned = vec3(dot(direction, water.skyColumn0), dot(direction, water.skyColumn1), dot(direction, water.skyColumn2));
+    turned.x = turned.x * water.skyInverter;
+    return texture(skyCube, turned).rgb;
+}
+
 // One light on the water (Cook-Torrance, as the lighting pass, with
 // water's reflectance). The light the water's color gives back goes to
 // body, and the glint to glint.
@@ -288,9 +309,12 @@ void main()
     float clarity = max(water.look.x, 0.0);
     vec3 waterColor = mix(water.shallowColor.rgb, water.deepColor.rgb, 1.0 - exp(-depth * clarity));
     float opacity = mix(water.shallowColor.a, water.deepColor.a, 1.0 - exp(-thickness * clarity));
-    // A soft edge where the water meets the shore.
+    // A soft edge where the water meets the shore. The reflection fades
+    // with it too.
+    float shore = 1.0;
     if (water.look.y > 0.0)
-        opacity *= clamp(depth / water.look.y, 0.0, 1.0);
+        shore = clamp(depth / water.look.y, 0.0, 1.0);
+    opacity *= shore;
     // Over the sky, open water is opaque: the result pass blends the lit
     // image over the sky by its alpha.
     if (!hasGround)
@@ -328,12 +352,28 @@ void main()
         }
     }
 
-    // The glint is added on top, and shows even on clear water: the
-    // blend gives color × alpha + behind × (1 - alpha), so the color is
-    // divided by the alpha here.
+    // The sky reflected in the water (Water plan W4): hardly any looking
+    // straight down, nearly a mirror at a low angle (Schlick's fresnel). A
+    // ripple can tilt the reflection below the horizon; the sky above is
+    // what it would show there. Seen from below, there is none.
+    float facing = max(dot(N, V), 0.0);
+    float fresnel = WATER_REFLECTANCE + (1.0 - WATER_REFLECTANCE) * pow(1.0 - facing, 5.0);
+    float reflection = clamp(fresnel * water.look.w * shore, 0.0, 1.0);
+    if (V.y < 0.0)
+        reflection = 0.0;
+    vec3 R = reflect(-V, N);
+    R.y = abs(R.y);
+    vec3 sky = skyColor(normalize(R));
+
+    // The reflection covers the water's own color, and makes the water as
+    // opaque as it is strong. The glint is added on top, and shows even on
+    // clear water. The blend gives color × alpha + behind × (1 - alpha),
+    // so the color is divided by the alpha here.
+    vec3 covered = body * opacity * (1.0 - reflection) + sky * reflection + glint;
+    float alpha = opacity * (1.0 - reflection) + reflection;
     float glintAlpha = clamp(max(glint.r, max(glint.g, glint.b)), 0.0, 1.0);
-    float alpha = clamp(opacity + glintAlpha * (1.0 - opacity), 0.0, 1.0);
-    vec3 color = (body * opacity + glint) / max(alpha, 0.0001);
+    alpha = clamp(alpha + glintAlpha * (1.0 - alpha), 0.0, 1.0);
+    vec3 color = covered / max(alpha, 0.0001);
     // Far water fades into the fog like the land (library item 40). The
     // ground behind was already fogged by the lighting pass.
     color = applyFog(color, surface);

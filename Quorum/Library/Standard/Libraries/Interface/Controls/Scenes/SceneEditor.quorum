@@ -84,6 +84,9 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Camera2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Camera3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Dialogs.SkyPropertiesDialog
+use Libraries.Interface.Undo.SceneEditorSkyEdit
+use Libraries.Game.Graphics.Skybox
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPhysicsPropertiesDialog
@@ -225,6 +228,8 @@ class SceneEditor is Control, DefaultSceneManager
     PointLightPropertiesDialog pointLightPropertiesDialog
     SpotLightPropertiesDialog spotLightPropertiesDialog
     Audio3DPropertiesDialog audio3DPropertiesDialog
+    // A 3D layer's Sky section (QuincyWorld demo D3).
+    SkyPropertiesDialog skyPropertiesDialog
 
     // A terrain's properties (step 5). They are added only with a
     // Properties panel, since two floating dialogs would cover each other.
@@ -390,6 +395,7 @@ class SceneEditor is Control, DefaultSceneManager
         propertiesDialogs:Add(pointLightPropertiesDialog)
         propertiesDialogs:Add(spotLightPropertiesDialog)
         propertiesDialogs:Add(audio3DPropertiesDialog)
+        propertiesDialogs:Add(skyPropertiesDialog)
 
         integer counter = 0
         repeat while counter < propertiesDialogs:GetSize()
@@ -2783,11 +2789,11 @@ action Update(number seconds)
     /*
     This action changes one number of a terrain's water look (Water plan
     W6): the shallow or deep color's red, green, blue or alpha, from 0 to 1,
-    or the clarity, shore fade, ripple size, ripple speed, roughness or
-    ripple strength. It can be undone.
+    or the clarity, shore fade, ripple size, ripple speed, roughness,
+    ripple strength or reflection (W4). It can be undone.
 
     Attribute: Parameter terrain The terrain
-    Attribute: Parameter kind Which number: 0 to 3 the shallow color's parts, 4 to 7 the deep color's, then 8 clarity, 9 shore fade, 10 ripple size, 11 ripple speed, 12 roughness, 13 ripple strength
+    Attribute: Parameter kind Which number: 0 to 3 the shallow color's parts, 4 to 7 the deep color's, then 8 clarity, 9 shore fade, 10 ripple size, 11 ripple speed, 12 roughness, 13 ripple strength, 14 reflection
     Attribute: Parameter value The new value
     Attribute: Parameter label What the number is called, for speaking
     */
@@ -2839,6 +2845,11 @@ action Update(number seconds)
             program:SetRoughness(value)
         elseif kind = 13
             program:SetNormalStrength(value)
+        elseif kind = 14
+            if value > 1
+                return now
+            end
+            program:SetReflectionStrength(value)
         else
             return now
         end
@@ -2861,6 +2872,109 @@ action Update(number seconds)
         edit:Create(me, terrain, before, after, name)
         editManager:Add(edit)
         WaterEdited(terrain, message)
+    end
+
+    /*
+    This action gives a 3D layer the sky found in a folder (QuincyWorld demo
+    D3): six pictures named as Skybox:LoadFolder says. A folder inside the
+    project is kept relative to it, so the scene can be moved and games find
+    the same pictures. It can be undone.
+
+    Attribute: Parameter layer The 3D layer
+    Attribute: Parameter folder The folder chosen
+    */
+    action ChooseLayerSkyFolder(EditorLayer3D layer, File folder)
+        if layer = undefined or folder = undefined
+            return now
+        end
+        File projectFolder = folder
+        if projectLocation not= undefined and folder:GetAbsolutePath():StartsWith(projectLocation:GetAbsolutePath())
+            projectFolder = ConvertToProjectFile(GetProjectRelativePath(folder))
+        elseif projectLocation not= undefined
+            NotifyAccessibility(me, "That folder is outside the project, so the sky's pictures may not be found when the game runs. Copying them into the project is safer.")
+        end
+        Skybox before = layer:GetSkybox()
+        number beforeTurn = 0
+        if before not= undefined
+            beforeTurn = before:GetTurn()
+        end
+        Skybox sky
+        if not sky:LoadFolder(projectFolder)
+            NotifyAccessibility(me, "No sky: the folder " + folder:GetFileName() + " needs six pictures named right, left, top, bottom, front and back, or px, nx, py, ny, pz and nz.")
+            return now
+        end
+        sky:SetTurn(beforeTurn)
+        layer:SetSkybox(sky)
+        SceneEditorSkyEdit edit
+        edit:Create(me, layer, before, beforeTurn, sky, beforeTurn, "choose sky")
+        editManager:Add(edit)
+        SkyEdited(layer, "Sky chosen from " + folder:GetFileName() + ".")
+    end
+
+    /*
+    This action takes a 3D layer's sky away (QuincyWorld demo D3). It can be
+    undone.
+
+    Attribute: Parameter layer The 3D layer
+    */
+    action RemoveLayerSky(EditorLayer3D layer)
+        if layer = undefined
+            return now
+        end
+        Skybox before = layer:GetSkybox()
+        if before = undefined
+            NotifyAccessibility(me, "This layer has no sky.")
+            return now
+        end
+        layer:SetSkybox(undefined)
+        SceneEditorSkyEdit edit
+        edit:Create(me, layer, before, before:GetTurn(), undefined, 0, "remove sky")
+        editManager:Add(edit)
+        SkyEdited(layer, "Sky removed.")
+    end
+
+    /*
+    This action turns a 3D layer's sky about the up axis (QuincyWorld demo
+    D3), in degrees. It can be undone.
+
+    Attribute: Parameter layer The 3D layer
+    Attribute: Parameter degrees The turn
+    */
+    action SetLayerSkyTurn(EditorLayer3D layer, number degrees)
+        if layer = undefined
+            return now
+        end
+        Skybox sky = layer:GetSkybox()
+        if sky = undefined
+            SkyEdited(layer, "")
+            return now
+        end
+        number before = sky:GetTurn()
+        if before = degrees
+            return now
+        end
+        sky:SetTurn(degrees)
+        SceneEditorSkyEdit edit
+        edit:Create(me, layer, sky, before, sky, degrees, "turn sky")
+        editManager:Add(edit)
+        SkyEdited(layer, "Sky turned to " + degrees + " degrees.")
+    end
+
+    /*
+    This action is called after a layer's sky changed, or a change was undone
+    or redone (QuincyWorld demo D3): the Sky section follows, and the message
+    is announced.
+
+    Attribute: Parameter layer The layer
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action SkyEdited(EditorLayer3D layer, text message)
+        if skyPropertiesDialog:IsShowing()
+            skyPropertiesDialog:Refresh()
+        end
+        if message not= ""
+            NotifyAccessibility(me, message)
+        end
     end
 
     /*

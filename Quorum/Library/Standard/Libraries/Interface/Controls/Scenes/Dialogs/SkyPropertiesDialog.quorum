@@ -1,0 +1,258 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.FileChooser
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Skybox
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SkyFieldListener
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Behaviors.Scenes.Properties.SkyButtonBehavior
+use Libraries.System.File
+
+/*
+    The SkyPropertiesDialog is a 3D layer's Sky section (QuincyWorld demo
+    D3). It says which sky the layer has, if any, and lets the user choose
+    one from a folder of six pictures (named right, left, top, bottom, front
+    and back, or px, nx, py, ny, pz and nz; see Skybox:LoadFolder), remove
+    it, or turn it about the up axis, so the sun in the pictures can be
+    lined up with the scene's light. The sky is saved with the scene, and
+    every change can be undone.
+
+    It shows in the scene editor's Properties panel when a 3D layer is
+    selected and no item is.
+*/
+class SkyPropertiesDialog is PropertiesDialog
+    // What a button does.
+    public constant integer CHOOSE_FOLDER = 0
+    public constant integer REMOVE = 1
+
+    constant number FIELD_LABEL_WIDTH = 120
+
+    Label skyLabel = undefined
+    Button chooseButton = undefined
+    Button removeButton = undefined
+    TextField turnField = undefined
+
+    EditorLayer3D layer = undefined
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Sky")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Sky")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        SetHeading(headingLabel)
+
+        Control card = AddCard(panel, "")
+        Control labelLine = MakeCardLine()
+        Label label
+        skyLabel = label
+        skyLabel:SetText("Sky: none")
+        skyLabel:SetFocusable(true)
+        labelLine:Add(skyLabel)
+        card:Add(labelLine)
+        focusArray:Add(skyLabel)
+
+        Control buttons = MakeButtonRow()
+        chooseButton = MakeButton(buttons, "Choose sky folder...", "Choose a folder holding the sky's six pictures, named right, left, top, bottom, front and back", CHOOSE_FOLDER)
+        removeButton = MakeButton(buttons, "Remove sky", "Take the sky away from this layer", REMOVE)
+        card:Add(buttons)
+        focusArray:Add(chooseButton)
+        focusArray:Add(removeButton)
+
+        Control line = MakeCardLine()
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText("Turn:")
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
+        TextField field
+        turnField = field
+        turnField:SetName("Sky turn")
+        turnField:SetDescription("How far the sky is turned about the up axis, in degrees")
+        turnField:SetText("0")
+        turnField:SetFocusable(true)
+        turnField:SetRightMargin(8)
+        turnField:SetHorizontalLayoutMode(line:FILL)
+        SkyFieldListener listener
+        listener:Setup(me, turnField)
+        turnField:AddFocusListener(listener)
+        line:Add(turnField)
+        card:Add(line)
+        focusArray:Add(turnField)
+    end
+
+    /*
+        Adds a button to a line.
+    */
+    private action MakeButton(Control line, text name, text description, integer kind) returns Button
+        Button button
+        button:SetName(name)
+        button:SetDescription(description)
+        button:SetRightMargin(10)
+        SkyButtonBehavior behavior
+        behavior:Setup(me, kind)
+        button:SetBehavior(behavior)
+        line:Add(button)
+        return button
+    end
+
+    /*
+        This action shows the section when a 3D layer is selected and no
+        item is, and hides it otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        EditorLayer selected = undefined
+        if selection:IsLayerSelected() and not selection:IsItemSelected()
+            selected = selection:GetSelectedLayer()
+        end
+        if selected is EditorLayer3D
+            SetLayer(cast(EditorLayer3D, selected))
+            if not IsShowing()
+                Show()
+            end
+        else
+            layer = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action has no item fields to set; the section follows the
+        selected layer.
+    */
+    action SetFields(EditorItem item)
+    end
+
+    /*
+        Shows a layer's sky.
+
+        Attribute: Parameter layer The 3D layer
+    */
+    action SetLayer(EditorLayer3D layer)
+        me:layer = layer
+        updating = true
+        Skybox sky = undefined
+        if layer not= undefined
+            sky = layer:GetSkybox()
+        end
+        if sky = undefined or sky:GetRightFile() = undefined
+            skyLabel:SetText("Sky: none")
+            turnField:SetText("0")
+        else
+            File right = sky:GetRightFile()
+            text folder = right:GetPath()
+            integer slash = LastSlash(folder)
+            if slash > 0
+                folder = folder:GetSubtext(0, slash)
+            end
+            skyLabel:SetText("Sky: " + folder)
+            turnField:SetText("" + sky:GetTurn())
+        end
+        updating = false
+    end
+
+    /*
+        Returns the place of the last slash in a path, or -1.
+    */
+    private action LastSlash(text path) returns integer
+        integer i = path:GetSize() - 1
+        repeat while i >= 0
+            text character = path:GetCharacter(i)
+            if character = "/" or character = "\"
+                return i
+            end
+            i = i - 1
+        end
+        return -1
+    end
+
+    /*
+        Shows the layer's sky again, after it changed.
+    */
+    action Refresh
+        if layer not= undefined
+            SetLayer(layer)
+        end
+    end
+
+    /*
+        This action is called by the section's buttons.
+
+        Attribute: Parameter kind CHOOSE_FOLDER or REMOVE
+    */
+    action ButtonActivated(integer kind)
+        SceneEditor editor = GetSceneEditor()
+        if layer = undefined or editor = undefined or updating
+            return now
+        end
+        if kind = CHOOSE_FOLDER
+            FileChooser chooser
+            File chosen = chooser:ChooseFolderDialog(editor:GetProjectLocation())
+            if chosen not= undefined
+                editor:ChooseLayerSkyFolder(layer, chosen)
+            end
+            chooseButton:Focus()
+        elseif kind = REMOVE
+            editor:RemoveLayerSky(layer)
+            chooseButton:Focus()
+        end
+    end
+
+    /*
+        This action is called when the focus leaves the Turn field: its
+        value is taken. Text that isn't a number is ignored.
+
+        Attribute: Parameter field The field the focus left
+    */
+    action FieldLeft(TextField field)
+        SceneEditor editor = GetSceneEditor()
+        if layer = undefined or editor = undefined or updating
+            return now
+        end
+        if field:Equals(turnField)
+            number value = 0
+            check
+                value = field:GetText():ParseNumber()
+            detect e is Error
+                Refresh()
+                return now
+            end
+            editor:SetLayerSkyTurn(layer, value)
+        end
+    end
+
+    /*
+        Moves the focus to the choose button.
+    */
+    action FocusField
+        chooseButton:Focus()
+    end
+end

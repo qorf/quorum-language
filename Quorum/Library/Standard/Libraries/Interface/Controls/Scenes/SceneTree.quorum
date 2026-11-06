@@ -224,11 +224,18 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
 
             SceneTreeItem treeItem = cast(SceneTreeItem, selectedItem)
             EditorLayer relatedLayer = treeItem:GetSceneLayer()
-            if relatedLayer not= controller:GetSelectedLayer()
+            Item relatedItem = treeItem:GetSceneItem()
+            if relatedItem = undefined
+                // A layer's own row selects the layer alone, even when an
+                // item in it was selected, so the layer's sections (such as
+                // Sky) show again (fixed 2026-11-06).
+                if relatedLayer not= controller:GetSelectedLayer() or controller:GetSelectedItem() not= undefined
+                    controller:SetSelection(relatedLayer, undefined)
+                end
+            elseif relatedLayer not= controller:GetSelectedLayer()
                 controller:SetSelectedLayer(relatedLayer)
             end
 
-            Item relatedItem = treeItem:GetSceneItem()
             if relatedItem not= undefined
                 filterArray:Set(0, relatedItem)
                 controller:SetFilteredItems(filterArray, false)

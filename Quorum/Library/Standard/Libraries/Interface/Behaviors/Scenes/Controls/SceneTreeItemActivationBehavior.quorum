@@ -28,7 +28,8 @@ class SceneTreeItemActivationBehavior is Behavior
             text value = treeItem:GetName()
             SceneEditor controller = treeItem:GetSceneEditor()
             if controller not= undefined
-                controller:SetSelectedLayer(treeItem:GetSceneLayer())
+                // The layer alone, even if an item in it was selected.
+                controller:SetSelection(treeItem:GetSceneLayer(), undefined)
                 controller:Focus()
             end
         elseif item = undefined and treeItem:GetSceneLayer() = undefined

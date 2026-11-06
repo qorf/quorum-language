@@ -195,6 +195,12 @@ class DefaultSceneManager is SceneManager
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
             elseif key = properties:SKYBOX
                 LoadSkybox(cast(Layer3D, layer), json:GetObject(key))
+            elseif key = properties:SKYBOX_TURN
+                // Saved after the skybox (QuincyWorld demo D3).
+                Layer3D skyLayer = cast(Layer3D, layer)
+                if skyLayer:GetSkybox() not= undefined
+                    skyLayer:GetSkybox():SetTurn(json:GetNumber(key))
+                end
             end
 
             counter = counter + 1
@@ -914,18 +920,34 @@ number restitution = 0
         File up
         File back
         File front
-        JavaScriptObjectNotation current = json:Get(0)
-        right:SetPath(current:GetValue())
-        current = json:Get(1)
-        left:SetPath(current:GetValue())
-        current = json:Get(2)
-        up:SetPath(current:GetValue())
-        current = json:Get(3)
-        down:SetPath(current:GetValue())
-        current = json:Get(4)
-        front:SetPath(current:GetValue())
-        current = json:Get(5)
-        back:SetPath(current:GetValue())
+        // GetObject gives an array as an object holding the array, as
+        // ConvertToNumber32BitArray reads it, so the six paths are inside
+        // its first element (fixed 2026-11-06). A sky that isn't six paths
+        // is left out, so the rest of the scene still loads.
+        JavaScriptObjectNotation sides = json
+        if json:GetSize() = 1
+            sides = json:Get(0)
+        end
+        if sides = undefined or sides:GetSize() < 6
+            SharedLogger logger
+            logger:Log("This scene's sky doesn't name six pictures, so it is left out.")
+            return now
+        end
+
+        // The paths are relative to the project, as models' are, so the
+        // scene editor finds them too (QuincyWorld demo D3).
+        JavaScriptObjectNotation current = sides:Get(0)
+        right = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(1)
+        left = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(2)
+        up = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(3)
+        down = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(4)
+        front = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(5)
+        back = ConvertToProjectFile(current:GetValue())
 
         skybox:Load(right, left, up, down, front, back)
         layer:SetSkybox(skybox)
@@ -1250,6 +1272,16 @@ number restitution = 0
 
             if layer3D:GetAmbientLight() not= undefined or layer3D:GetDirectionalLights():HasNext()
                 json:Add(properties:LIGHTS, SaveLights(layer3D))
+            end
+
+            // The sky (QuincyWorld demo D3), and its turn after it, so the
+            // turn is read once the sky is loaded.
+            Skybox skybox = layer3D:GetSkybox()
+            if skybox not= undefined and skybox:GetRightFile() not= undefined
+                json:Add(properties:SKYBOX, SaveSkybox(skybox))
+                if skybox:GetTurn() not= 0
+                    json:Add(properties:SKYBOX_TURN, skybox:GetTurn())
+                end
             end
         end
 
@@ -1623,6 +1655,8 @@ number restitution = 0
     action SaveSkybox(Skybox skybox) returns JavaScriptObjectNotation
         JavaScriptObjectNotation json
         json:SetArray()
+        // Each path as the side was loaded: relative to the project when
+        // it was loaded from a scene or chosen in the scene editor.
         json:Add(skybox:GetRightFile():GetPath())
         json:Add(skybox:GetLeftFile():GetPath())
         json:Add(skybox:GetTopFile():GetPath())

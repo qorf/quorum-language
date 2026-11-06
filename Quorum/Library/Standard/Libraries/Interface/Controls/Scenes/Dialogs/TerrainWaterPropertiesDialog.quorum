@@ -214,6 +214,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         AddLookField(card, "Ripple speed:", "How fast the ripples move")
         AddLookField(card, "Roughness:", "How rough the surface is, from 0 to 1")
         AddLookField(card, "Ripple strength:", "How strongly the ripples bend the light")
+        AddLookField(card, "Reflection:", "How strongly the sky is reflected, from 0 to 1")
         Control closeLine = MakeCardLine()
         closeLookButton = MakeButton(closeLine, "Close look", "Close the water's look", CLOSE_LOOK, 0)
         card:Add(closeLine)
@@ -421,6 +422,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             SetText(lookFields:Get(11), "" + program:GetWaveSpeed())
             SetText(lookFields:Get(12), "" + program:GetRoughness())
             SetText(lookFields:Get(13), "" + program:GetNormalStrength())
+            SetText(lookFields:Get(14), "" + program:GetReflectionStrength())
         end
 
         ShowRows(shown)
