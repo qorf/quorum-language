@@ -342,15 +342,12 @@ default material loading system, as part of the model load system).*/
         mapping:Set(dataArray)
         stagingBuffer:StopMapping()
 
-        // A texture set's packed pixels have been copied by now: the
-        // texture manager runs before the material manager every frame
-        // (Item 34).
+        // A texture set's packed pixels have been copied by now. The PixelMaps are automatically disposed after texture load,
+        // so now we just release the Quorum objects so they can be garbage collected.
         if packedAlbedoHeight not= undefined and albedoHeightTexture:GetVulkanTextureIndex() >= 0
-            packedAlbedoHeight:Dispose()
             packedAlbedoHeight = undefined
         end
         if packedNormalRoughness not= undefined and normalRoughnessTexture:GetVulkanTextureIndex() >= 0
-            packedNormalRoughness:Dispose()
             packedNormalRoughness = undefined
         end
         
@@ -517,11 +514,19 @@ default material loading system, as part of the model load system).*/
         usedTextures:Empty()
 
         if packedAlbedoHeight not= undefined
-            packedAlbedoHeight:Dispose()
+            check
+                packedAlbedoHeight:Dispose()
+            detect error
+                // If this was already disposed, it's an error, but we can safely ignore it.
+            end
             packedAlbedoHeight = undefined
         end
         if packedNormalRoughness not= undefined
-            packedNormalRoughness:Dispose()
+            check
+                packedNormalRoughness:Dispose()
+            detect error
+                // If this was already disposed, it's an error, but we can safely ignore it.
+            end
             packedNormalRoughness = undefined
         end
         albedoHeightTexture = undefined
