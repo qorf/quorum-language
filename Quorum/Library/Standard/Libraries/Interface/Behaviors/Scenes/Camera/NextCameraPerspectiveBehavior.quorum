@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+
+/*
+    This behavior moves the editor camera to the next perspective in a 3D scene: origin, horizon, or
+    top-down. It works while the scene editor or an item in it has focus.
+*/
+class NextCameraPerspectiveBehavior is Behavior
+    action Run(BehaviorEvent event)
+        SceneEditor editor = undefined
+        if event:GetItem() is SceneEditor
+            editor = cast(SceneEditor, event:GetItem())
+        elseif event:GetItem() is EditorItem
+            EditorItem item = cast(EditorItem, event:GetItem())
+            editor = item:GetSceneEditor()
+        end
+
+        if editor not= undefined
+            editor:NextCameraPerspective()
+        end
+    end
+end

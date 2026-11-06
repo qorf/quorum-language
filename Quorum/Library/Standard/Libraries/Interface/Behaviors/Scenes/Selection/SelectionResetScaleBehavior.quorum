@@ -15,6 +15,10 @@ class SelectionResetScaleBehavior is Behavior
         if event:GetItem() is EditorItem
             EditorItem item = cast(EditorItem, event:GetItem())
             item:ResetScale()
+            // The rest of a group selection is reset too.
+            if item:GetSceneEditor() not= undefined
+                item:GetSceneEditor():ResetScaleOfOtherSelectedItems(item)
+            end
             item:NotifyAccessibility("Reset scale")
         end
     end

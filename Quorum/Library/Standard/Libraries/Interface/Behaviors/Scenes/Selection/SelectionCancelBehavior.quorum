@@ -4,20 +4,20 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Containers.Array
 use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Interface.Behaviors.Behavior
 
 /*
-    This behavior is used in the scene editor to stop a selection. In the scene 
-    editor when an item or items are selected a highlight is created and the user 
-    can cycle through selected items. When this behavior is run the selection is 
-    emptied and the user can no longer cycle through them and interact with other 
-    parts of the editor without affecting the selected items. 
+    This behavior is used in the scene editor to stop a selection. In the scene
+    editor when an item or items are selected a highlight is created and the user
+    can cycle through selected items. When this behavior is run the selection is
+    emptied and the user can no longer cycle through them and interact with other
+    parts of the editor without affecting the selected items. It also works while
+    the scene editor itself has focus, so Escape clears a selection that is still
+    being built with Shift+Enter. Focus stays on the scene editor in that case.
 */
 class SelectionCancelBehavior is Behavior
-
-    // An empty array passed to clear the filtered items list.
-    Array<Item3D> emptyArray
 
     action Run(BehaviorEvent event)
         // With a terrain's tool chosen, Escape first cancels a stroke going
@@ -35,7 +35,12 @@ class SelectionCancelBehavior is Behavior
         end
         if event:GetItem() is EditorItem
             EditorItem item = cast(EditorItem, event:GetItem())
-            item:GetSceneEditor():SetFilteredItems(emptyArray, true)
+            if item:GetSceneEditor() not= undefined
+                item:GetSceneEditor():ClearSelection(true)
+            end
+        elseif event:GetItem() is SceneEditor
+            SceneEditor editor = cast(SceneEditor, event:GetItem())
+            editor:ClearSelection(false)
         end
     end
 end

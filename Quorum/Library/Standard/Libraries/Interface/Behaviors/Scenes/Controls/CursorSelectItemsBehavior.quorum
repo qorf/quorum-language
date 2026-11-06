@@ -8,15 +8,36 @@ use Libraries.Interface.Behaviors.Behavior
 /*
     This behavior sets the filtered items of the editor to be any items that are found at 
     the cursor. When items are filtered then the user can navigate through them like a list 
-    and select and edit individual items from that list. 
+    and select and edit individual items from that list.
+
+    If the behavior is set to add to the selection (Shift+Enter), the items at the cursor are
+    added to the items already selected instead. Nothing is ever removed this way.
+    Focus stays on the cursor so it can be moved to more items. Pressing Enter afterward confirms
+    that selection and moves focus to it, rather than replacing it with the items at the cursor.
 */
 class CursorSelectItemsBehavior is Behavior
+    boolean addToSelection = false
+
+    action SetAddToSelection(boolean value)
+        addToSelection = value
+    end
+
+    action GetAddToSelection returns boolean
+        return addToSelection
+    end
 
     action Run(BehaviorEvent event)
         if event:GetItem() is SceneEditor
             SceneEditor controller = cast(SceneEditor, event:GetItem())
             EditorCursor cursor = controller:GetCursor()
-            controller:SetFilteredItems(cursor:GetItemsAtCursor(), true)
+            if addToSelection
+                controller:AddSelectedItems(cursor:GetItemsAtCursor())
+            elseif controller:IsKeyboardSelectionPending()
+                // Enter after Shift+Enter confirms the selection instead of replacing it.
+                controller:ConfirmKeyboardSelection()
+            else
+                controller:SetFilteredItems(cursor:GetItemsAtCursor(), true)
+            end
         end
     end
 

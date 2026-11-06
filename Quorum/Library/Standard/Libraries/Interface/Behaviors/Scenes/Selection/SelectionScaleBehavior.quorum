@@ -49,6 +49,10 @@ class SelectionScaleBehavior is Behavior
         elseif event:GetItem() is EditorItem3D
             EditorItem3D item = cast(EditorItem3D, event:GetItem())
             item:Scale(scale)
+            // The rest of a group selection is scaled by the same amount.
+            if item:GetSceneEditor() not= undefined
+                item:GetSceneEditor():ScaleOtherSelectedItems(item, scale:GetX(), scale:GetY(), scale:GetZ())
+            end
 
             // A terrain's highlight says what happened itself: it sizes the
             // brush, or says a terrain isn't scaled (step 7).
@@ -77,6 +81,10 @@ class SelectionScaleBehavior is Behavior
         elseif event:GetItem() is EditorItem2D
             EditorItem2D item = cast(EditorItem2D, event:GetItem())
             item:Scale(scale:GetX(), scale:GetY())
+            // The rest of a group selection is scaled by the same amount.
+            if item:GetSceneEditor() not= undefined
+                item:GetSceneEditor():ScaleOtherSelectedItems(item, scale:GetX(), scale:GetY(), scale:GetZ())
+            end
 
             // Temporary output while developing.
             if (scale:GetX() > 1 and scale:GetY() > 1)

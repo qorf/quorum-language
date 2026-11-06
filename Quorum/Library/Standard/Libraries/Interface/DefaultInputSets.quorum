@@ -1,5 +1,6 @@
 package Libraries.Interface
 
+use Libraries.Containers.Array
 use Libraries.Game.GameInput
 use Libraries.Game.InputSet
 use Libraries.Interface.Events.KeyboardEvent
@@ -1499,6 +1500,9 @@ InputSet shiftF10SetTextBox
         SelectionScaleBehavior selectionScaleZUpBehavior
         SelectionScaleBehavior selectionScaleZDownBehavior
         SelectionDeleteBehavior selectionDeleteBehavior
+        SelectionDuplicateBehavior selectionDuplicateBehavior
+        SelectionCopyBehavior selectionCopyBehavior
+        SelectionPasteBehavior selectionPasteBehavior
         SelectionCancelBehavior selectionCancelBehavior
         SelectionResetScaleBehavior selectionResetScaleBehavior
         SelectSceneItemBehavior selectSceneItemBehavior
@@ -1582,6 +1586,8 @@ InputSet shiftF10SetTextBox
         OpenSceneEditorFindDialogBehavior openFindDialogBehavior
         CloseSceneEditorFindDialogBehavior closeFindDialogBehavior
         CursorSelectItemsBehavior cursorSelectItemsBehavior
+        CursorSelectItemsBehavior cursorAddItemsBehavior
+        cursorAddItemsBehavior:SetAddToSelection(true)
         CursorIncreaseSizeBehavior cursorIncreaseSizeBehavior
         CursorDecreaseSizeBehavior cursorDecreaseSizeBehavior
 
@@ -1713,6 +1719,15 @@ InputSet shiftF10SetTextBox
 
         table:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
+        // Shift+Enter adds the items at the cursor to the selection without removing anything.
+        // Focus stays on the cursor so more items can be added, and Enter confirms the selection.
+        InputSet cursorAddItemsInput
+        cursorAddItemsInput:SetKeyboardInput(keys:ENTER)
+        cursorAddItemsInput = AddShiftModifier(cursorAddItemsInput)
+        table:Add(cursorAddItemsInput, cursorAddItemsBehavior)
+
+        table:Add(selectionScaleUpSet, cursorIncreaseSizeBehavior)
+        table:Add(selectionScaleDownSet, cursorDecreaseSizeBehavior)
         table:Add(sceneKeys:GetCursorSizeUpKey(), cursorIncreaseSizeBehavior)
         table:Add(sceneKeys:GetCursorSizeDownKey(), cursorDecreaseSizeBehavior)
 
@@ -1743,6 +1758,8 @@ InputSet shiftF10SetTextBox
 
         InputSet selectionCancelSet = sceneKeys:GetSelectionCancelKey()
         cameraItemTable2D:Add(selectionCancelSet, selectionCancelBehavior)
+        // Escape on the editor clears a selection still being built with Shift+Enter.
+        table:Add(selectionCancelSet, selectionCancelBehavior)
 
         // 3D camera set
         cameraItemTable3D:Add(reportLocation, reportLocationBehavior)
@@ -1848,8 +1865,60 @@ InputSet shiftF10SetTextBox
         InputSet selectionDeleteSet = sceneKeys:GetSelectionDeleteKey()
         InputSet selectionDeleteSet2 = sceneKeys:GetSelectionDeleteKey2()
 
+        InputSet selectionDuplicateSet
+        selectionDuplicateSet:SetKeyboardInput(keys:D)
+        InputSet selectionCopySet
+        selectionCopySet:SetKeyboardInput(keys:C)
+        InputSet selectionPasteSet
+        selectionPasteSet:SetKeyboardInput(keys:V)
+        if ShouldUseMacKeys()
+            selectionDuplicateSet = AddShiftModifier(AddMetaModifier(selectionDuplicateSet))
+            selectionCopySet = AddMetaModifier(selectionCopySet)
+            selectionPasteSet = AddMetaModifier(selectionPasteSet)
+        else
+            selectionDuplicateSet = AddShiftModifier(AddControlModifier(selectionDuplicateSet))
+            selectionCopySet = AddControlModifier(selectionCopySet)
+            selectionPasteSet = AddControlModifier(selectionPasteSet)
+        end
+
+
         selectionTable:Add(selectionDeleteSet, selectionDeleteBehavior)
         selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
+        selectionTable:Add(selectionDuplicateSet, selectionDuplicateBehavior)
+        selectionTable:Add(selectionCopySet, selectionCopyBehavior)
+        selectionTable:Add(selectionPasteSet, selectionPasteBehavior)
+
+        // Ctrl+A (Cmd+A on a Mac) selects every item in the layer, from a selected item or the editor.
+        SelectAllItemsBehavior selectAllItemsBehavior
+        InputSet selectAllSet
+        selectAllSet:SetKeyboardInput(keys:A)
+        if ShouldUseMacKeys()
+            selectAllSet = AddMetaModifier(selectAllSet)
+        else
+            selectAllSet = AddControlModifier(selectAllSet)
+        end
+        selectionTable:Add(selectAllSet, selectAllItemsBehavior)
+        selectionTable2D:Add(selectAllSet, selectAllItemsBehavior)
+
+        // Undo and redo while a selected item has focus, using the same keys as Quorum Studio.
+        SelectionUndoBehavior selectionUndoBehavior
+        SelectionUndoBehavior selectionRedoBehavior
+        selectionRedoBehavior:SetRedo(true)
+        InputSet selectionUndoSet
+        selectionUndoSet:SetKeyboardInput(keys:Z)
+        InputSet selectionRedoSet
+        selectionRedoSet:SetKeyboardInput(keys:Y)
+        if ShouldUseMacKeys()
+            selectionUndoSet = AddMetaModifier(selectionUndoSet)
+            selectionRedoSet = AddMetaModifier(selectionRedoSet)
+        else
+            selectionUndoSet = AddControlModifier(selectionUndoSet)
+            selectionRedoSet = AddControlModifier(selectionRedoSet)
+        end
+        selectionTable:Add(selectionUndoSet, selectionUndoBehavior)
+        selectionTable:Add(selectionRedoSet, selectionRedoBehavior)
+        selectionTable2D:Add(selectionUndoSet, selectionUndoBehavior)
+        selectionTable2D:Add(selectionRedoSet, selectionRedoBehavior)
         selectionTable:Add(selectionCancelSet, selectionCancelBehavior)
 
         selectionTable:Add(toggleGridInput, toggleGridBehavior)
@@ -1968,6 +2037,28 @@ InputSet shiftF10SetTextBox
 
         //sceneItem3DTable:Add(GetLeftClick(), selectSceneItemBehavior)
 table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
+
+        // Shift and left click adds an item to the selection, or removes it if already selected.
+        SelectScene3DItemBehavior addScene3DItemBehavior
+        addScene3DItemBehavior:SetAddToSelection(true)
+        table:Add3D(AddShiftModifier(GetLeftClick()), addScene3DItemBehavior)
+
+        // Holding the left mouse button and moving drags the selected 3D items. Releasing ends the drag.
+        SelectionMouseDragBehavior selectionMouseDragBehavior
+        InputSet leftClickMove
+        leftClickMove:SetMouseMovementInput(mouse:LEFT)
+        leftClickMove:SetInputTrigger(leftClickMove:CONTINUE)
+        InputSet leftClickRelease = GetLeftClick()
+        leftClickRelease:SetInputTrigger(leftClickRelease:FINISH)
+        table:Add3D(leftClickMove, selectionMouseDragBehavior)
+        table:Add3D(leftClickRelease, selectionMouseDragBehavior)
+
+        // Holding Alt while pressing and dragging moves the selected 3D items up and down instead.
+        SelectionMouseDragBehavior selectionMouseVerticalDragBehavior
+        selectionMouseVerticalDragBehavior:SetVertical(true)
+        table:Add3D(AddAltModifier(GetLeftClick()), selectScene3DItemBehavior)
+        table:Add3D(AddAltModifier(leftClickMove:Copy()), selectionMouseVerticalDragBehavior)
+        table:Add3D(AddAltModifier(leftClickRelease:Copy()), selectionMouseVerticalDragBehavior)
         
         // drag and drop
         sceneItemTable:Add(selectionHighlightDragInput, selectionHighlightDragBehavior)
@@ -1984,6 +2075,11 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         dragOffSet:SetDropItemInput()
         dragOffSet:SetInputTrigger(dragOffSet:FINISH_UNCAUGHT)
 
+        table:Add3D(selectionPasteSet, selectionPasteBehavior)
+        // Copy also works from the editor, so items selected with Shift+Enter can be copied right away.
+        table:Add3D(selectionCopySet, selectionCopyBehavior)
+        table:Add2D(selectAllSet, selectAllItemsBehavior)
+        table:Add3D(selectAllSet, selectAllItemsBehavior)
         table:Add2D(dragIntoSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragIntoContinueSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragIntoFinishSet, sceneEditorAcceptDragBehavior)
@@ -2111,6 +2207,114 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         propertiesDialogTable:Add(openEditorFindDialogInput, openFindDialogBehavior)
 
         propertiesDialogTable:Add(focusCameraSet, focusCameraBehavior)
+
+        // game camera preview and setting the game camera, in the editor and while an item is selected
+        ToggleGamePreviewBehavior toggleGamePreviewBehavior
+        SetGameCameraBehavior setGameCameraBehavior
+        InputSet toggleGamePreviewSet
+        toggleGamePreviewSet:SetKeyboardInput(keys:V)
+        toggleGamePreviewSet:AddModifier(toggleGamePreviewSet:SHIFT)
+        NextCameraPerspectiveBehavior nextPerspectiveBehavior
+        InputSet nextPerspectiveSet
+        nextPerspectiveSet:SetKeyboardInput(keys:C)
+        nextPerspectiveSet:AddModifier(nextPerspectiveSet:ALT)
+        MoveGamePreviewBehavior moveGamePreviewBehavior
+        InputSet moveGamePreviewSet
+        moveGamePreviewSet:SetKeyboardInput(keys:V)
+        moveGamePreviewSet:AddModifier(moveGamePreviewSet:ALT)
+        InputSet setGameCameraSet
+        setGameCameraSet:SetKeyboardInput(keys:M)
+        setGameCameraSet:AddModifier(setGameCameraSet:SHIFT)
+        if ShouldUseMacKeys()
+            toggleGamePreviewSet = AddMetaModifier(toggleGamePreviewSet)
+            moveGamePreviewSet = AddMetaModifier(moveGamePreviewSet)
+            nextPerspectiveSet = AddMetaModifier(nextPerspectiveSet)
+            setGameCameraSet = AddMetaModifier(setGameCameraSet)
+        else
+            toggleGamePreviewSet = AddControlModifier(toggleGamePreviewSet)
+            moveGamePreviewSet = AddControlModifier(moveGamePreviewSet)
+            nextPerspectiveSet = AddControlModifier(nextPerspectiveSet)
+            setGameCameraSet = AddControlModifier(setGameCameraSet)
+        end
+        table:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        table:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        table:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        table:Add(setGameCameraSet, setGameCameraBehavior)
+        selectionTable:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        selectionTable:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        selectionTable:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        selectionTable:Add(setGameCameraSet, setGameCameraBehavior)
+        cameraItemTable3D:Add(toggleGamePreviewSet, toggleGamePreviewBehavior)
+        cameraItemTable3D:Add(moveGamePreviewSet, moveGamePreviewBehavior)
+        cameraItemTable3D:Add(nextPerspectiveSet, nextPerspectiveBehavior)
+        cameraItemTable3D:Add(setGameCameraSet, setGameCameraBehavior)
+
+        // camera perspective: arrow keys move the camera while held, and Escape leaves
+        InputTable perspectiveTable
+        perspectiveTable:SetIdentifier("CameraPerspective")
+        integer perspectiveKeyIndex = 0
+        repeat 4 times
+            InputSet pressSet
+            InputSet releaseSet
+            CameraPerspectivePanBehavior startPan
+            CameraPerspectivePanBehavior stopPan
+            if perspectiveKeyIndex = 0
+                pressSet = GetLeftArrowKey()
+                releaseSet = GetLeftArrowKey()
+                startPan:SetDirection(true, -1)
+                stopPan:SetDirection(true, 0)
+            elseif perspectiveKeyIndex = 1
+                pressSet = GetRightArrowKey()
+                releaseSet = GetRightArrowKey()
+                startPan:SetDirection(true, 1)
+                stopPan:SetDirection(true, 0)
+            elseif perspectiveKeyIndex = 2
+                pressSet = GetUpArrowKey()
+                releaseSet = GetUpArrowKey()
+                startPan:SetDirection(false, 1)
+                stopPan:SetDirection(false, 0)
+            else
+                pressSet = GetDownArrowKey()
+                releaseSet = GetDownArrowKey()
+                startPan:SetDirection(false, -1)
+                stopPan:SetDirection(false, 0)
+            end
+            releaseSet:SetInputTrigger(releaseSet:FINISH)
+            perspectiveTable:Add(pressSet, startPan)
+            perspectiveTable:Add(releaseSet, stopPan)
+            perspectiveKeyIndex = perspectiveKeyIndex + 1
+        end
+        // = and numpad plus zoom in, and - and numpad minus zoom out, while held.
+        Array<integer> zoomKeys
+        zoomKeys:Add(keys:EQUALS)
+        zoomKeys:Add(keys:NUMPAD_PLUS)
+        zoomKeys:Add(keys:MINUS)
+        zoomKeys:Add(keys:NUMPAD_MINUS)
+        integer zoomKeyIndex = 0
+        repeat while zoomKeyIndex < zoomKeys:GetSize()
+            InputSet zoomPress
+            zoomPress:SetKeyboardInput(zoomKeys:Get(zoomKeyIndex))
+            InputSet zoomRelease
+            zoomRelease:SetKeyboardInput(zoomKeys:Get(zoomKeyIndex))
+            zoomRelease:SetInputTrigger(zoomRelease:FINISH)
+            CameraPerspectiveZoomBehavior startZoom
+            CameraPerspectiveZoomBehavior stopZoom
+            if zoomKeyIndex < 2
+                startZoom:SetDirection(1)
+            else
+                startZoom:SetDirection(-1)
+            end
+            stopZoom:SetDirection(0)
+            perspectiveTable:Add(zoomPress, startZoom)
+            perspectiveTable:Add(zoomRelease, stopZoom)
+            zoomKeyIndex = zoomKeyIndex + 1
+        end
+
+        InputSet exitPerspectiveSet
+        exitPerspectiveSet:SetKeyboardInput(keys:ESCAPE)
+        ExitCameraPerspectiveBehavior exitPerspectiveBehavior
+        perspectiveTable:Add(exitPerspectiveSet, exitPerspectiveBehavior)
+        gameInput:AddInputTable(perspectiveTable)
 
         // find dialog
         InputSet closeVisualEditorFindDialogSet1 = sceneKeys:GetCloseFindDialogKey1()
