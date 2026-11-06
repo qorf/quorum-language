@@ -1,0 +1,337 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Model
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+
+/*
+WaterSurface is a flat sheet of water: a Model drawn with a
+WaterShaderProgram, after the lighting, over the ground (library item 39).
+Its look comes from the program. Place it at the water's level with
+SetPosition, or SetLevel. Water has no collision.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.WaterShaderProgram
+use Libraries.Game.Graphics.Worlds.WaterSurface
+
+class Main is Game
+    WaterShaderProgram water
+    WaterSurface lake
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        water:Install()
+        lake:Load(40, 40, water)
+        lake:SetLevel(2)
+        Add(lake)
+    end
+end
+*/
+class WaterSurface is Model
+    WaterShaderProgram waterProgram = undefined
+
+    // How many times LoadCells has built this surface, for unique names.
+    integer cellBuilds = 0
+
+    /*
+    This action makes the water a flat sheet, width along x and depth along
+    z, centered on its position, drawn with a water program.
+
+    Attribute: Parameter width The sheet's size along x.
+    Attribute: Parameter depth The sheet's size along z.
+    Attribute: Parameter program An installed water program.
+    */
+    action Load(number width, number depth, WaterShaderProgram program)
+        if program = undefined
+            alert("A WaterSurface needs an installed WaterShaderProgram. Call the program's Install action first.")
+        end
+        waterProgram = program
+        // Without Vulkan the program isn't installed (it logs why), and the
+        // surface stays empty, drawing nothing.
+        if program:GetNormalMap() = undefined
+            if program:IsCompiled()
+                alert("A WaterSurface needs an installed WaterShaderProgram. Call the program's Install action first.")
+            end
+            return now
+        end
+        LoadPlane(width, depth, program:GetNormalMap())
+        SetShaderProgram(program)
+        // Water casts no shadows and has nothing to bump into.
+        SetCastsShadows(false)
+        SetCollidable(false)
+    end
+
+    /*
+    This action makes the water the shape of a lake's water cells (Water
+    plan W6): a flat sheet over each run of cells with water along a row,
+    and nothing elsewhere, so water never shows past the lake's cells. The
+    surface is placed at the lake's grid corner, at its level.
+
+    A lake that follows the ground gets one square per cell instead, each
+    corner its water depth above the ground there, and on the ground at the
+    lake's edge, so the water never floats.
+
+    Attribute: Parameter lake A lake with water cells, made by Fill or Paint.
+    Attribute: Parameter program An installed water program.
+    Attribute: Parameter data The terrain's data, for a lake that follows the ground.
+    */
+    action LoadCells(TerrainLake lake, WaterShaderProgram program, TerrainData data)
+        if program = undefined
+            alert("A WaterSurface needs an installed WaterShaderProgram. Call the program's Install action first.")
+        end
+        waterProgram = program
+        if program:GetNormalMap() = undefined
+            return now
+        end
+        if lake:IsFollowingGround()
+            LoadFollowingCells(lake, program, data)
+            return now
+        end
+        Array<integer> runs = lake:GetRuns()
+        integer quads = runs:GetSize() / 3
+        if quads = 0
+            return now
+        end
+        number size = lake:GetCellSize()
+        number cornerX = lake:GetFirstColumn() * size
+        number cornerZ = lake:GetFirstRow() * size
+
+        integer vertexCount = quads * 4
+        Number32BitArray vertices
+        vertices:SetSize(vertexCount * 3)
+        Number32BitArray normals
+        normals:SetSize(vertexCount * 3)
+        Number32BitArray tangents
+        tangents:SetSize(vertexCount * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(vertexCount * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(vertexCount * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        integer quad = 0
+        repeat while quad < quads
+            number left = runs:Get(quad * 3 + 1) * size - cornerX
+            number right = left + runs:Get(quad * 3 + 2) * size
+            number near = runs:Get(quad * 3) * size - cornerZ
+            number far = near + size
+            integer corner = 0
+            repeat while corner < 4
+                integer vertex = quad * 4 + corner
+                number cornerLeft = left
+                if corner = 1 or corner = 3
+                    cornerLeft = right
+                end
+                number cornerNear = near
+                if corner >= 2
+                    cornerNear = far
+                end
+                vertices:Set(vertex * 3, cornerLeft)
+                vertices:Set(vertex * 3 + 1, 0)
+                vertices:Set(vertex * 3 + 2, cornerNear)
+                normals:Set(vertex * 3, 0)
+                normals:Set(vertex * 3 + 1, 1)
+                normals:Set(vertex * 3 + 2, 0)
+                tangents:Set(vertex * 3, 1)
+                tangents:Set(vertex * 3 + 1, 0)
+                tangents:Set(vertex * 3 + 2, 0)
+                bitangents:Set(vertex * 3, 0)
+                bitangents:Set(vertex * 3 + 1, 0)
+                bitangents:Set(vertex * 3 + 2, 1)
+                // The water reads its ripples at world places, so these are
+                // only filled in.
+                coordinates:Set(vertex * 2, cornerLeft / size)
+                coordinates:Set(vertex * 2 + 1, cornerNear / size)
+                corner = corner + 1
+            end
+            integer first = quad * 4
+            indices:Set(quad * 6, first)
+            indices:Set(quad * 6 + 1, first + 2)
+            indices:Set(quad * 6 + 2, first + 1)
+            indices:Set(quad * 6 + 3, first + 1)
+            indices:Set(quad * 6 + 4, first + 2)
+            indices:Set(quad * 6 + 5, first + 3)
+            quad = quad + 1
+        end
+
+        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program)
+        SetPosition(cornerX, lake:GetLevel(), cornerZ)
+    end
+
+    /*
+    This action makes a lake that follows the ground: one square per cell
+    with water, each corner the lake's water depth above the ground there,
+    or on the ground where the corner touches a cell without water.
+    */
+    private action LoadFollowingCells(TerrainLake lake, WaterShaderProgram program, TerrainData data)
+        if data = undefined
+            return now
+        end
+        number size = lake:GetCellSize()
+        integer firstColumn = lake:GetFirstColumn()
+        integer firstRow = lake:GetFirstRow()
+        integer quads = lake:GetWaterCellCount()
+        if quads = 0
+            return now
+        end
+        integer vertexCount = quads * 4
+        Number32BitArray vertices
+        vertices:SetSize(vertexCount * 3)
+        Number32BitArray normals
+        normals:SetSize(vertexCount * 3)
+        Number32BitArray tangents
+        tangents:SetSize(vertexCount * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(vertexCount * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(vertexCount * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        number cornerX = firstColumn * size
+        number cornerZ = firstRow * size
+        integer quad = 0
+        integer row = firstRow
+        repeat while row < firstRow + lake:GetRowCount()
+            integer column = firstColumn
+            repeat while column < firstColumn + lake:GetColumnCount()
+                if lake:IsWater(column, row)
+                    integer corner = 0
+                    repeat while corner < 4
+                        integer cornerColumn = column
+                        if corner = 1 or corner = 3
+                            cornerColumn = column + 1
+                        end
+                        integer cornerRow = row
+                        if corner >= 2
+                            cornerRow = row + 1
+                        end
+                        number worldX = cornerColumn * size
+                        number worldZ = cornerRow * size
+                        number ground = 0
+                        if data:HasHeight(worldX, worldZ)
+                            ground = data:GetSurfaceHeight(worldX, worldZ)
+                        else
+                            ground = data:GetSurfaceHeight((column + 0.5) * size, (row + 0.5) * size)
+                        end
+                        // A corner inside the water stands the depth above
+                        // the ground; one on the edge is on the ground.
+                        number waterHeight = ground
+                        if lake:IsWater(cornerColumn - 1, cornerRow - 1) and lake:IsWater(cornerColumn, cornerRow - 1) and lake:IsWater(cornerColumn - 1, cornerRow) and lake:IsWater(cornerColumn, cornerRow)
+                            waterHeight = ground + lake:GetWaterDepth()
+                        end
+                        integer vertex = quad * 4 + corner
+                        vertices:Set(vertex * 3, worldX - cornerX)
+                        vertices:Set(vertex * 3 + 1, waterHeight)
+                        vertices:Set(vertex * 3 + 2, worldZ - cornerZ)
+                        normals:Set(vertex * 3, 0)
+                        normals:Set(vertex * 3 + 1, 1)
+                        normals:Set(vertex * 3 + 2, 0)
+                        tangents:Set(vertex * 3, 1)
+                        tangents:Set(vertex * 3 + 1, 0)
+                        tangents:Set(vertex * 3 + 2, 0)
+                        bitangents:Set(vertex * 3, 0)
+                        bitangents:Set(vertex * 3 + 1, 0)
+                        bitangents:Set(vertex * 3 + 2, 1)
+                        coordinates:Set(vertex * 2, cornerColumn)
+                        coordinates:Set(vertex * 2 + 1, cornerRow)
+                        corner = corner + 1
+                    end
+                    integer first = quad * 4
+                    indices:Set(quad * 6, first)
+                    indices:Set(quad * 6 + 1, first + 2)
+                    indices:Set(quad * 6 + 2, first + 1)
+                    indices:Set(quad * 6 + 3, first + 1)
+                    indices:Set(quad * 6 + 4, first + 2)
+                    indices:Set(quad * 6 + 5, first + 3)
+                    quad = quad + 1
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program)
+        // The heights are the water's own, so the sheet stands at 0.
+        SetPosition(cornerX, 0, cornerZ)
+    end
+
+    /*
+    This action turns a water sheet's mesh into a model, drawn with the
+    water program.
+    */
+    private action LoadSheetMesh(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
+            Number32BitArray coordinates, Integer32BitArray indices, WaterShaderProgram program)
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        Material material
+        Vector4 white
+        white:Set(1, 1, 1, 1)
+        material:SetDiffuse(white)
+        Array<Material> materials
+        materials:Add(material)
+
+        // Each build gets its own name, since the renderer keeps blueprints
+        // by name.
+        cellBuilds = cellBuilds + 1
+        ModelData modelData
+        modelData:SetID("Lake water " + GetHashCode() + " build " + cellBuilds)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+        GetResources():SetTexture(program:GetNormalMap())
+        SetShaderProgram(program)
+        SetCastsShadows(false)
+        SetCollidable(false)
+    end
+
+    /*
+    This action returns the water program the surface is drawn with.
+
+    Attribute: Returns The water program, or undefined before Load.
+    */
+    action GetWaterProgram returns WaterShaderProgram
+        return waterProgram
+    end
+
+    /*
+    This action moves the surface up or down to a height, keeping it where
+    it is along x and z.
+
+    Attribute: Parameter level The water's height.
+    */
+    action SetLevel(number level)
+        SetPosition(GetX(), level, GetZ())
+    end
+
+    /*
+    This action returns the water's height.
+
+    Attribute: Returns The surface's y position.
+    */
+    action GetLevel returns number
+        return GetY()
+    end
+end

@@ -322,15 +322,16 @@ class SceneEditorKeys
         tools are numbered as in the in-game terrain editor: 1 raise, 2 lower,
         3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
         9 remove region; then the scene editor's own: 10 stamp, 11 erode,
-        12 auto paint. Default: Alt+1 to Alt+9, then Shift+Alt+1 to
-        Shift+Alt+3.
+        12 auto paint, 13 foliage (Terrain plan F3), 14 fill water and 15
+        paint water (Water plan W6). Default: Alt+1 to Alt+9, then
+        Shift+Alt+1 to Shift+Alt+6.
 
-        Attribute: Parameter tool The tool's number, from 1 to 12.
+        Attribute: Parameter tool The tool's number, from 1 to 15.
         Attribute: Returns The key that chooses it.
     */
     action GetTerrainToolKey(integer tool) returns InputSet
-        if tool < 1 or tool > 12
-            alert("A terrain tool's number is from 1 to 12, but was given " + tool + ".")
+        if tool < 1 or tool > 15
+            alert("A terrain tool's number is from 1 to 15, but was given " + tool + ".")
         end
         if tool > 9
             return WithModifiers(keys:NUM_1 + tool - 10, false, false, true, true)

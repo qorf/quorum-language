@@ -101,7 +101,9 @@ class EnvironmentVulkan is Environment
     constant integer DIRECTIONAL_LIGHT_TYPE = 1
     constant integer SPOT_LIGHT_TYPE = 2
     
-    constant integer SCENE_DATA_WORD_SIZE = 24
+    // The camera, ambient light, light count and view matrix (24 words),
+    // then the fog (8 words, Item 40).
+    constant integer SCENE_DATA_WORD_SIZE = 32
     constant integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
     
     constant integer CAMERA_POSITION_INDEX = 0
@@ -109,6 +111,12 @@ class EnvironmentVulkan is Environment
     constant integer AMBIENT_LIGHT_COLOR_INDEX = 4
     constant integer LIGHT_COUNT_INDEX = 7
     constant integer CAMERA_VIEW_MATRIX_INDEX = 8
+    constant integer FOG_COLOR_INDEX = 24
+    constant integer FOG_START_INDEX = 27
+    constant integer FOG_END_INDEX = 28
+    constant integer FOG_AMOUNT_INDEX = 29
+    constant integer FOG_BASE_HEIGHT_INDEX = 30
+    constant integer FOG_HEIGHT_FALLOFF_INDEX = 31
     
     /*Cascade shadow data is made of 6 Matrix4s for shadow projection transforms, followed by one Vector4 for split distance values.*/
     constant integer SHADOW_PROJECTION_WORD_SIZE = 16
@@ -124,10 +132,31 @@ class EnvironmentVulkan is Environment
     constant integer SPLIT_DISTANCE_INDEX = PROJECTION_MATRIX_INDEX + SHADOW_PROJECTION_CUBE_WORD_SIZE
     
     integer maxLights = -1
+
+    // How the lit image is fit to the screen (Lighting plan L2): the
+    // exposure scales the light, and the tone mapping is one of the
+    // TONE_MAPPING constants.
+    number exposure = 1.0
+    integer toneMapping = 0
+
+    /* No tone mapping: light brighter than white clips to white, as before. */
+    public constant integer TONE_MAPPING_NONE = 0
+    /* Reinhard tone mapping: gentle; bright light nears white slowly. */
+    public constant integer TONE_MAPPING_REINHARD = 1
+    /* ACES filmic tone mapping: a little more contrast, as films have. */
+    public constant integer TONE_MAPPING_ACES = 2
     VulkanLightingProperties lightingProperties = undefined
     
     Array<VulkanDescriptorSet> lightDataDescriptorSets
     VulkanDescriptorSetLayout lightDataDescriptorSetLayout = undefined
+
+    // Distance fog (Item 40). An amount of 0 is no fog.
+    Color fogColor = undefined
+    number fogStart = 50
+    number fogEnd = 300
+    number fogAmount = 0
+    number fogBaseHeight = 0
+    number fogHeightFalloff = 0
     
     // Used to check if the camera has changed since the previous update. If so, we need to update shadows.
     Matrix4 previousCameraTransform
@@ -363,7 +392,244 @@ end
     */
     action GetAmbientLight returns AmbientLight
         return ambientLight
-end
+    end
+
+    /*
+    This action turns on distance fog: things fade into the fog color as
+    they get farther from the camera, from none at the start distance to
+    all of it at the end distance. The sky isn't fogged, so a color close
+    to the sky's horizon looks best. Vulkan only (Item 40, Water plan W2).
+
+    Attribute: Parameter color The fog's color.
+    Attribute: Parameter nearDistance The distance where fog begins.
+    Attribute: Parameter farDistance The distance where fog is thickest. It must be more than the near distance.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Environment
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Environment environment = GetCurrentLayer3D():GetEnvironment()
+            if environment is EnvironmentVulkan
+                EnvironmentVulkan vulkanEnvironment = cast(EnvironmentVulkan, environment)
+                Color haze
+                haze:SetColor(0.78, 0.86, 0.94, 1)
+                vulkanEnvironment:SetFog(haze, 60, 260)
+            end
+        end
+    end
+    */
+    action SetFog(Color color, number nearDistance, number farDistance)
+        if farDistance <= nearDistance
+            alert("The fog's far distance must be more than its near distance, but was given " + nearDistance + " and " + farDistance + ".")
+        end
+        fogColor = color
+        fogStart = nearDistance
+        fogEnd = farDistance
+        if fogAmount <= 0
+            fogAmount = 1
+        end
+        SetFogDirty()
+    end
+
+    /*
+    This action sets the most fog anything gets, from 0 (no fog) to 1 (the
+    farthest things are only the fog color).
+
+    Attribute: Parameter amount The most fog, from 0 to 1.
+    */
+    action SetFogAmount(number amount)
+        if amount < 0
+            amount = 0
+        elseif amount > 1
+            amount = 1
+        end
+        fogAmount = amount
+        SetFogDirty()
+    end
+
+    /*
+    This action makes the fog thinner higher up: above the base height it
+    fades by the falloff for each unit of height, so valleys are hazy and
+    hilltops clear. A falloff of 0 makes the fog the same at every height,
+    the default.
+
+    Attribute: Parameter baseHeight The height below which the fog is thickest.
+    Attribute: Parameter falloff How quickly the fog thins above it, 0 or more.
+    */
+    action SetFogHeight(number baseHeight, number falloff)
+        if falloff < 0
+            falloff = 0
+        end
+        fogBaseHeight = baseHeight
+        fogHeightFalloff = falloff
+        SetFogDirty()
+    end
+
+    /*
+    This action turns the fog off. SetFog turns it back on.
+    */
+    action RemoveFog
+        fogAmount = 0
+        SetFogDirty()
+    end
+
+    /*
+    This action returns true if there is fog.
+
+    Attribute: Returns True if fog is on.
+    */
+    action HasFog returns boolean
+        return fogColor not= undefined and fogAmount > 0
+    end
+
+    /*
+    This action returns the fog's color.
+
+    Attribute: Returns The fog's color, or undefined if SetFog hasn't been called.
+    */
+    action GetFogColor returns Color
+        return fogColor
+    end
+
+    /*
+    This action returns the distance where fog begins.
+
+    Attribute: Returns The fog's start.
+    */
+    action GetFogStart returns number
+        return fogStart
+    end
+
+    /*
+    This action returns the distance where fog is thickest.
+
+    Attribute: Returns The fog's end.
+    */
+    action GetFogEnd returns number
+        return fogEnd
+    end
+
+    /*
+    This action returns the most fog anything gets.
+
+    Attribute: Returns The fog amount, from 0 to 1.
+    */
+    action GetFogAmount returns number
+        return fogAmount
+    end
+
+    /*
+    This action returns the height below which the fog is thickest.
+
+    Attribute: Returns The fog's base height.
+    */
+    action GetFogBaseHeight returns number
+        return fogBaseHeight
+    end
+
+    /*
+    This action returns how quickly the fog thins above its base height.
+
+    Attribute: Returns The fog's height falloff.
+    */
+    action GetFogHeightFalloff returns number
+        return fogHeightFalloff
+    end
+
+    /*
+    This action marks the scene data of every frame slot to be written
+    again, for a fog change. Unlike SetSceneDataDirty, the shadows don't
+    need working out again (Item 40).
+    */
+    private action SetFogDirty
+        integer i = 0
+        repeat while i < sceneDataDirty:GetSize()
+            sceneDataDirty:Set(i, true)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets the exposure: how much the light is scaled before it is
+    drawn on the screen (Lighting plan L2). 1 leaves it as it is; 2 is twice
+    as bright, 0.5 half.
+
+    Attribute: Parameter value The exposure, more than 0.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetExposure(1.5)
+        end
+    end
+    */
+    action SetExposure(number value)
+        exposure = value
+    end
+
+    /*
+    This action returns the exposure.
+
+    Attribute: Returns The exposure; 1 leaves the light as it is.
+    */
+    action GetExposure returns number
+        return exposure
+    end
+
+    /*
+    This action sets how light brighter than white is fit to the screen
+    (Lighting plan L2): TONE_MAPPING_NONE clips it to white, as before;
+    TONE_MAPPING_REINHARD and TONE_MAPPING_ACES roll it off smoothly, so
+    strong lights and glowing surfaces keep their shape and color.
+
+    Attribute: Parameter value One of the TONE_MAPPING constants.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetToneMapping(environment:TONE_MAPPING_ACES)
+        end
+    end
+    */
+    action SetToneMapping(integer value)
+        if value < TONE_MAPPING_NONE or value > TONE_MAPPING_ACES
+            alert("The tone mapping must be one of EnvironmentVulkan's TONE_MAPPING constants, from " + TONE_MAPPING_NONE + " to " + TONE_MAPPING_ACES + ", not " + value + ".")
+        end
+        toneMapping = value
+    end
+
+    /*
+    This action returns the tone mapping.
+
+    Attribute: Returns One of the TONE_MAPPING constants.
+    */
+    action GetToneMapping returns integer
+        return toneMapping
+    end
 
     /*
     This action will return whether the Environment currently contains any
@@ -630,7 +896,24 @@ end
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 13, matrix:row1column3)
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 14, matrix:row2column3)
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 15, matrix:row3column3)
-            
+
+            // The fog (Item 40). With no color set, it is off.
+            if fogColor not= undefined and fogAmount > 0
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX, fogColor:GetRed())
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, fogColor:GetGreen())
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, fogColor:GetBlue())
+                sceneDataMappingArray:Set(FOG_AMOUNT_INDEX, fogAmount)
+            else
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX, 0)
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, 0)
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, 0)
+                sceneDataMappingArray:Set(FOG_AMOUNT_INDEX, 0)
+            end
+            sceneDataMappingArray:Set(FOG_START_INDEX, fogStart)
+            sceneDataMappingArray:Set(FOG_END_INDEX, fogEnd)
+            sceneDataMappingArray:Set(FOG_BASE_HEIGHT_INDEX, fogBaseHeight)
+            sceneDataMappingArray:Set(FOG_HEIGHT_FALLOFF_INDEX, fogHeightFalloff)
+
             sceneDataMemory:Set(sceneDataMappingArray)
             sceneDataDirty:Set(resourceIndex, false)
         end

@@ -1,0 +1,344 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+/*
+WaterFragmentShader colors water (library item 39). It is drawn after the
+deferred lighting, over the lit image, and reads the G-buffer's position to
+see what is behind the water: deeper water is darker, the edge fades into
+the shore, and water behind the ground is hidden. Two layers of ripples
+move with time, and every light shines and glints on the surface. It
+needs the camera data of library item 38.
+
+Its settings come from WaterShaderProgram, through the push constants,
+after the instance buffer address.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.WaterFragmentShader
+
+WaterFragmentShader shader
+*/
+class WaterFragmentShader is Shader
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName("Water Fragment Shader")
+        SetCode(GetVersionHeader() +
+"
+" +
+"// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
+const float PI = 3.14159265359;
+// How much light water reflects looking straight down.
+const float WATER_REFLECTANCE = 0.02;
+
+// The 3D camera uniform (library item 38).
+layout(set = 0, binding = 0) uniform Camera
+{
+    mat4 projectionViewMatrix;
+    vec3 cameraPosition;
+    float time;
+    vec2 screenSize;
+    float nearPlane;
+    float farPlane;
+} camera;
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+// The G-buffer's position: what is drawn behind or in front of the water.
+layout(set = 2, binding = 0) uniform sampler2D positionSampler;
+
+struct Light
+{
+	vec3 positionDirection;
+	uint lightType;
+	float intensity;
+	vec3 color;
+	vec3 spotDirection;
+	float range;
+	float cosInner;
+	float cosOuter;
+	vec2 spare;
+};
+
+layout(scalar, set = 3, binding = 0) readonly buffer Lights
+{
+	Light array[];
+} lights;
+
+layout(scalar, set = 3, binding = 1) uniform SceneInfo
+{
+	vec3 cameraPosition;
+	float ambientIntensity;
+	vec3 ambientColor;
+	uint lightsCount;
+	mat4 cameraViewMatrix;
+	// Distance fog (library item 40). An amount of 0 is no fog.
+	vec3 fogColor;
+	float fogStart;
+	float fogEnd;
+	float fogAmount;
+	float fogBaseHeight;
+	float fogHeightFalloff;
+} sceneInfo;
+
+struct Material {
+	uint diffuseColor;
+	uint textureIndex;
+	uint hasNormalMap;
+	uint hasRoughMap;
+	uint normalMapIndex;
+	uint roughMapIndex;
+	float roughness;
+	float metallic;
+	uint flags;
+	float textureScale;
+	// The rest of MaterialVulkan's 24 words (Lighting plan L1 and L4),
+	// unused by water.
+	uint emissiveColor;
+	uint emissiveMapIndex;
+	float emissiveStrength;
+	uint occlusionMapIndex;
+	float alphaCutoff;
+	float normalStrength;
+	float uvOffsetX;
+	float uvOffsetY;
+	float uvScaleX;
+	float uvScaleY;
+	float uvRotation;
+	uint reserved1;
+	uint reserved2;
+	uint reserved3;
+};
+
+layout(scalar, buffer_reference) buffer Materials
+{
+	Material data;
+};
+
+struct InstanceData {
+   uint vertexPadding1;
+   uint vertexPadding2;
+   uint indexPadding1;
+   uint indexPadding2;
+   Materials materials;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
+};
+
+layout(scalar, buffer_reference) buffer Instances {
+   InstanceData[] data;
+};
+
+// 128 bytes (library item 39): the instance address, the water program's
+// 18 numbers, then the painter's 12 numbers of forward scene data.
+layout(scalar, push_constant) uniform PushConstants {
+   Instances instances;
+   // rgb, and how much of the ground it hides
+   vec4 shallowColor;
+   vec4 deepColor;
+   // tile size, speed, direction x, direction z
+   vec4 waves;
+   // clarity, shore fade, roughness, reflection strength
+   vec4 look;
+   // ripple strength, spare
+   vec2 detail;
+   // The forward scene data: the sky's rotation (library item 41).
+   vec3 skyColumn0;
+   vec3 skyColumn1;
+   vec3 skyColumn2;
+   float skyInverter;
+   float hasSky;
+   float sceneSpare;
+} water;
+
+layout(location = 1) flat in uint v_entityID;
+layout(location = 4) flat in uint v_hasTextureOverride;
+layout(location = 5) flat in uint v_textureOverrideIndex;
+layout(location = 6) in vec4 v_position;
+
+layout(location = 0) out vec4 outputColor;
+
+vec3 readRipples(uint normalMap, vec2 coordinates)
+{
+    return texture(nonuniformEXT(sampler2D(globalTextures[normalMap], immutableSampler)), coordinates).rgb * 2.0 - 1.0;
+}
+
+// The surface's normal: two layers of ripples, a larger one moving with
+// the wind and a smaller one moving a little across it, added as slopes.
+vec3 waterNormal(uint normalMap, vec3 surface)
+{
+    float scale = max(water.waves.x, 0.01);
+    vec2 direction = water.waves.zw;
+    if (dot(direction, direction) < 0.0001)
+        direction = vec2(1.0, 0.0);
+    direction = normalize(direction);
+    vec2 across = normalize(direction + vec2(-direction.y, direction.x) * 0.6);
+    float travel = water.waves.y * camera.time;
+
+    float smallScale = scale * 0.43;
+    vec2 coordinatesA = (surface.xz + direction * travel) / scale;
+    vec2 coordinatesB = (surface.xz + across * travel * 0.8) / smallScale;
+    vec3 a = readRipples(normalMap, coordinatesA);
+    vec3 b = readRipples(normalMap, coordinatesB);
+
+    // The map's red is the slope along x and its green along z, and blue
+    // is up.
+    vec2 slope = (a.xy + b.xy) * water.detail.x;
+    return normalize(vec3(slope.x, a.z * b.z, slope.y));
+}
+
+// How much of a light's strength reaches a distance, as in the lighting
+// pass (library item 37).
+float rangeAttenuation(float distance, float range)
+{
+    float inverseSquare = 1.0 / max(distance * distance, 0.0001);
+    if (range <= 0.0)
+        return inverseSquare;
+    float ratio = distance / range;
+    float window = clamp(1.0 - ratio * ratio * ratio * ratio, 0.0, 1.0);
+    return inverseSquare * window * window;
+}
+
+// One light on the water (Cook-Torrance, as the lighting pass, with
+// water's reflectance). The light the water's color gives back goes to
+// body, and the glint to glint.
+void lightOnWater(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 waterColor, float roughness, inout vec3 body, inout vec3 glint)
+{
+    float NdotL = max(dot(N, L), 0.0);
+    if (NdotL <= 0.0)
+        return;
+    vec3 H = normalize(V + L);
+    float NdotV = max(dot(N, V), 0.0001);
+    float NdotH = max(dot(N, H), 0.0);
+
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
+    float distribution = a2 / (PI * d * d + 0.0000001);
+    float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
+    float geometry = (NdotV / (NdotV * (1.0 - k) + k)) * (NdotL / (NdotL * (1.0 - k) + k));
+    float fresnel = WATER_REFLECTANCE + (1.0 - WATER_REFLECTANCE) * pow(1.0 - max(dot(H, V), 0.0), 5.0);
+
+    float specular = distribution * geometry * fresnel / (4.0 * NdotV * NdotL + 0.0001);
+    body += (1.0 - fresnel) * waterColor / PI * radiance * NdotL;
+    glint += specular * radiance * NdotL;
+}
+
+// Fades a color into the fog by its distance from the camera, and less
+// above the fog's base height (library item 40), as the lighting pass does.
+vec3 applyFog(vec3 color, vec3 worldPosition)
+{
+	if (sceneInfo.fogAmount <= 0.0)
+		return color;
+	float distance = length(worldPosition - sceneInfo.cameraPosition);
+	float fog = smoothstep(sceneInfo.fogStart, sceneInfo.fogEnd, distance);
+	if (sceneInfo.fogHeightFalloff > 0.0)
+	{
+		float above = max(worldPosition.y - sceneInfo.fogBaseHeight, 0.0);
+		fog *= exp(-above * sceneInfo.fogHeightFalloff);
+	}
+	return mix(color, sceneInfo.fogColor, fog * sceneInfo.fogAmount);
+}
+
+void main()
+{
+    Instances instances = water.instances;
+    InstanceData instanceData = instances.data[v_entityID];
+    Materials materials = instanceData.materials;
+    Material material = materials.data;
+    // The water's ripple texture is its plane's texture.
+    uint normalMap = material.textureIndex;
+    if (v_hasTextureOverride == 1u)
+        normalMap = v_textureOverrideIndex;
+
+    vec3 surface = v_position.xyz;
+    vec3 toSurface = surface - camera.cameraPosition;
+    float surfaceDistance = length(toSurface);
+    vec3 V = -toSurface / max(surfaceDistance, 0.0001);
+
+    // What was drawn at this pixel. The position's w is how much of the
+    // pixel was covered (MSAA, library item 27), so dividing by it gives
+    // the position back at the edges of models.
+    vec4 behind = texelFetch(positionSampler, ivec2(gl_FragCoord.xy), 0);
+    bool hasGround = behind.w > 0.0001;
+    float thickness = 100000.0;
+    float depth = 100000.0;
+    if (hasGround)
+    {
+        vec3 ground = behind.xyz / behind.w;
+        float groundDistance = length(ground - camera.cameraPosition);
+        // Ground in front of the water hides it.
+        if (groundDistance <= surfaceDistance)
+            discard;
+        thickness = groundDistance - surfaceDistance;
+        depth = max(surface.y - ground.y, 0.0);
+    }
+
+    // Deeper water is darker. The more water the eye looks through, the
+    // less of the ground shows.
+    float clarity = max(water.look.x, 0.0);
+    vec3 waterColor = mix(water.shallowColor.rgb, water.deepColor.rgb, 1.0 - exp(-depth * clarity));
+    float opacity = mix(water.shallowColor.a, water.deepColor.a, 1.0 - exp(-thickness * clarity));
+    // A soft edge where the water meets the shore.
+    if (water.look.y > 0.0)
+        opacity *= clamp(depth / water.look.y, 0.0, 1.0);
+    // Over the sky, open water is opaque: the result pass blends the lit
+    // image over the sky by its alpha.
+    if (!hasGround)
+        opacity = 1.0;
+
+    vec3 N = waterNormal(normalMap, surface);
+    // Seen from below, the surface faces down.
+    if (V.y < 0.0)
+        N.y = -N.y;
+    float roughness = clamp(water.look.z, 0.02, 1.0);
+
+    vec3 body = sceneInfo.ambientColor * sceneInfo.ambientIntensity * waterColor;
+    vec3 glint = vec3(0.0);
+    for (uint i = 0u; i < sceneInfo.lightsCount; i++)
+    {
+        Light light = lights.array[i];
+        if (light.lightType == 1u)
+        {
+            lightOnWater(normalize(-light.positionDirection), light.color * light.intensity, V, N, waterColor, roughness, body, glint);
+        }
+        else
+        {
+            vec3 toLight = light.positionDirection - surface;
+            float distance = length(toLight);
+            vec3 L = toLight / max(distance, 0.0001);
+            float strength = light.intensity * rangeAttenuation(distance, light.range);
+            if (light.lightType == 2u)
+            {
+                float cosAngle = dot(-L, light.spotDirection);
+                float cone = clamp((cosAngle - light.cosOuter) / max(light.cosInner - light.cosOuter, 0.0001), 0.0, 1.0);
+                strength *= cone * cone;
+            }
+            if (strength > 0.0)
+                lightOnWater(L, light.color * strength, V, N, waterColor, roughness, body, glint);
+        }
+    }
+
+    // The glint is added on top, and shows even on clear water: the
+    // blend gives color × alpha + behind × (1 - alpha), so the color is
+    // divided by the alpha here.
+    float glintAlpha = clamp(max(glint.r, max(glint.g, glint.b)), 0.0, 1.0);
+    float alpha = clamp(opacity + glintAlpha * (1.0 - opacity), 0.0, 1.0);
+    vec3 color = (body * opacity + glint) / max(alpha, 0.0001);
+    // Far water fades into the fog like the land (library item 40). The
+    // ground behind was already fogged by the lighting pass.
+    color = applyFog(color, surface);
+    outputColor = vec4(color, alpha);
+}"
+        )
+    end
+end

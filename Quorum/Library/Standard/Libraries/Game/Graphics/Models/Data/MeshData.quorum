@@ -11,6 +11,30 @@ class MeshData
     Number32BitArray bitangents = undefined
     Number32BitArray textureCoordinates = undefined
     Integer32BitArray indices = undefined
+
+    // Each vertex's color, four numbers (red, green, blue, alpha) per vertex,
+    // when the model file has them (Lighting plan L4); undefined otherwise.
+    Number32BitArray colors = undefined
+
+    /*
+    This action returns each vertex's color, four numbers per vertex, or
+    undefined if the mesh has none.
+
+    Attribute: Returns The colors.
+    */
+    action GetColors returns Number32BitArray
+        return colors
+    end
+
+    /*
+    This action sets each vertex's color, four numbers (red, green, blue,
+    alpha) per vertex.
+
+    Attribute: Parameter vertexColors The colors, or undefined for none.
+    */
+    action SetColors(Number32BitArray vertexColors)
+        colors = vertexColors
+    end
     action GetMaterialIndex returns integer
         return materialIndex
     end

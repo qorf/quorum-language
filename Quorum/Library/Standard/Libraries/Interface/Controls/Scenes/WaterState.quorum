@@ -1,0 +1,268 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainWater
+use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.WaterSurface
+use Libraries.Game.Graphics.Worlds.WaterShaderProgram
+
+/*
+    A WaterState is a copy of everything about a terrain's water at one
+    moment (Water plan W6): whether it has a sea and the sea's level, its
+    lakes in order with their places, sizes, levels and names, and the
+    water's look. The scene editor keeps one from before and one from after
+    each water change, so the change can be undone and redone.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.WaterState
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+
+    TerrainItem ground
+    ground:Load("Scenes/Terrains/Terrain1/terrain.json")
+    WaterState before
+    before:Copy(ground)
+    ground:SetSeaLevel(2)
+    before:Apply(ground)
+*/
+class WaterState
+    boolean seaOn = false
+    number seaLevel = 0
+
+    // The lakes, in order, and a copy of each as it was: its name, level,
+    // shape and, for a lake of water cells, its cells (TerrainLake's
+    // CopyFrom).
+    Array<TerrainLake> lakes
+    Array<TerrainLake> lakeCopies
+
+    // The look: the two colors' red, green, blue and alpha, then clarity,
+    // shore fade, ripple size, ripple speed, roughness and ripple strength.
+    Array<number> look
+
+    /*
+        Copies a terrain's water as it is now.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action Copy(TerrainItem terrain)
+        TerrainWater water = terrain:GetWater()
+        seaOn = water:HasSea()
+        seaLevel = water:GetSeaLevel()
+        lakes:Empty()
+        lakeCopies:Empty()
+        integer i = 0
+        repeat while i < water:GetLakeCount()
+            TerrainLake lake = water:GetLake(i)
+            lakes:Add(lake)
+            TerrainLake copy
+            copy:CopyFrom(lake)
+            lakeCopies:Add(copy)
+            i = i + 1
+        end
+        WaterShaderProgram program = water:GetWaterProgram()
+        look:Empty()
+        AddColor(program:GetShallowColor())
+        AddColor(program:GetDeepColor())
+        look:Add(program:GetClarity())
+        look:Add(program:GetShoreFade())
+        look:Add(program:GetWaveScale())
+        look:Add(program:GetWaveSpeed())
+        look:Add(program:GetRoughness())
+        look:Add(program:GetNormalStrength())
+    end
+
+    /*
+        Adds a color's four parts to the look.
+    */
+    private action AddColor(Color color)
+        look:Add(color:GetRed())
+        look:Add(color:GetGreen())
+        look:Add(color:GetBlue())
+        look:Add(color:GetAlpha())
+    end
+
+    /*
+        Gives a terrain's water this state: the sea, the lakes and the look.
+        The lakes are taken out and put back in this state's order, each
+        made as it was kept: name, level, shape and cells; their sheets are
+        made again on the terrain's next update.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action Apply(TerrainItem terrain)
+        TerrainWater water = terrain:GetWater()
+        if seaOn
+            water:SetSeaLevel(seaLevel)
+        else
+            water:RemoveSea()
+        end
+        repeat while water:GetLakeCount() > 0
+            TakeOutLake(terrain, water:GetLake(water:GetLakeCount() - 1))
+        end
+        integer i = 0
+        repeat while i < lakes:GetSize()
+            TerrainLake lake = lakes:Get(i)
+            lake:CopyFrom(lakeCopies:Get(i))
+            water:AddLake(i, lake)
+            i = i + 1
+        end
+        if look:GetSize() >= 14
+            WaterShaderProgram program = water:GetWaterProgram()
+            program:SetShallowColor(MakeColor(0))
+            program:SetDeepColor(MakeColor(4))
+            program:SetClarity(look:Get(8))
+            program:SetShoreFade(look:Get(9))
+            program:SetWaveScale(look:Get(10))
+            program:SetWaveSpeed(look:Get(11))
+            program:SetRoughness(look:Get(12))
+            program:SetNormalStrength(look:Get(13))
+        end
+        terrain:WaterChanged()
+    end
+
+    /*
+        Makes a color from four parts of the look.
+    */
+    private action MakeColor(integer place) returns Color
+        Color color
+        color:SetColor(look:Get(place), look:Get(place + 1), look:Get(place + 2), look:Get(place + 3))
+        return color
+    end
+
+    /*
+        Takes a lake out of a terrain's water, with its sheet, which the
+        water's own RemoveLake leaves in the terrain.
+
+        Attribute: Parameter terrain The terrain
+        Attribute: Parameter lake The lake
+    */
+    action TakeOutLake(TerrainItem terrain, TerrainLake lake)
+        WaterSurface surface = lake:GetSurface()
+        if surface not= undefined
+            boolean removedSheet = terrain:Remove(surface)
+            surface:Dispose()
+            lake:SetSurface(undefined)
+        end
+        boolean removed = terrain:GetWater():RemoveLake(lake)
+    end
+
+    /*
+        Returns true if this state is the same as another, so a change that
+        changed nothing isn't put in the undo list.
+
+        Attribute: Parameter other The other state
+        Attribute: Returns True if they are the same
+    */
+    action IsSameAs(WaterState other) returns boolean
+        if seaOn not= other:HasSea() or seaLevel not= other:GetSeaLevel()
+            return false
+        end
+        return SameNumbers(look, other:GetLook()) and SameLakes(other:GetLakes()) and SameCopies(other:GetLakeCopies())
+    end
+
+    /*
+        Returns true if two lists of numbers are the same.
+    */
+    private action SameNumbers(Array<number> first, Array<number> second) returns boolean
+        if first:GetSize() not= second:GetSize()
+            return false
+        end
+        integer i = 0
+        repeat while i < first:GetSize()
+            if first:Get(i) not= second:Get(i)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+        Returns true if two lists of lakes hold the same lakes in order.
+    */
+    private action SameLakes(Array<TerrainLake> other) returns boolean
+        if lakes:GetSize() not= other:GetSize()
+            return false
+        end
+        integer i = 0
+        repeat while i < lakes:GetSize()
+            if lakes:Get(i) not= other:Get(i)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+        Returns true if two lists of kept lakes look the same: names, levels,
+        shapes and how many water cells each has.
+    */
+    private action SameCopies(Array<TerrainLake> other) returns boolean
+        if lakeCopies:GetSize() not= other:GetSize()
+            return false
+        end
+        integer i = 0
+        repeat while i < lakeCopies:GetSize()
+            TerrainLake first = lakeCopies:Get(i)
+            TerrainLake second = other:Get(i)
+            if first:GetName() not= second:GetName() or first:GetLevel() not= second:GetLevel() or first:IsMasked() not= second:IsMasked()
+                return false
+            end
+            if first:GetX() not= second:GetX() or first:GetZ() not= second:GetZ() or first:GetWidth() not= second:GetWidth() or first:GetDepth() not= second:GetDepth()
+                return false
+            end
+            if first:IsMasked() and first:GetWaterCellCount() not= second:GetWaterCellCount()
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+        Returns true if the state has a sea.
+
+        Attribute: Returns True for a sea
+    */
+    action HasSea returns boolean
+        return seaOn
+    end
+
+    /*
+        Returns the sea's level.
+
+        Attribute: Returns The level
+    */
+    action GetSeaLevel returns number
+        return seaLevel
+    end
+
+    /*
+        Returns the lakes, in order.
+
+        Attribute: Returns The lakes
+    */
+    action GetLakes returns Array<TerrainLake>
+        return lakes
+    end
+
+    /*
+        Returns the kept copies of the lakes, in order.
+
+        Attribute: Returns The copies
+    */
+    action GetLakeCopies returns Array<TerrainLake>
+        return lakeCopies
+    end
+
+    /*
+        Returns the look's numbers.
+
+        Attribute: Returns The numbers
+    */
+    action GetLook returns Array<number>
+        return look
+    end
+end

@@ -36,6 +36,8 @@ layout (set = 0, binding = 0) uniform sampler2D positionSampler;
 layout (set = 0, binding = 1) uniform sampler2D albedoSampler;
 layout (set = 0, binding = 2) uniform sampler2D normalsSampler;
 layout (set = 0, binding = 3) uniform sampler2D pbrSampler;
+// The light surfaces give off (Lighting plan L1).
+layout (set = 0, binding = 4) uniform sampler2D emissiveSampler;
 layout (set = 2, binding = 1) uniform sampler2DArray shadowSamplers[];
 
 struct Light
@@ -73,6 +75,13 @@ layout(scalar, set = 1, binding = 1) uniform SceneInfo
 	vec3 ambientColor;
 	uint lightsCount;
 	mat4 cameraViewMatrix;
+	// Distance fog (Item 40). An amount of 0 is no fog.
+	vec3 fogColor;
+	float fogStart;
+	float fogEnd;
+	float fogAmount;
+	float fogBaseHeight;
+	float fogHeightFalloff;
 } sceneInfo;
 
 layout(set = 2, binding = 0) uniform CascadeShadows
@@ -264,6 +273,22 @@ vec3 calculateDirectionalLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo
     return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
 }
 
+// Fades a color into the fog by its distance from the camera, and less
+// above the fog's base height (Item 40).
+vec3 applyFog(vec3 color, vec3 worldPosition)
+{
+	if (sceneInfo.fogAmount <= 0.0)
+		return color;
+	float distance = length(worldPosition - sceneInfo.cameraPosition);
+	float fog = smoothstep(sceneInfo.fogStart, sceneInfo.fogEnd, distance);
+	if (sceneInfo.fogHeightFalloff > 0.0)
+	{
+		float above = max(worldPosition.y - sceneInfo.fogBaseHeight, 0.0);
+		fog *= exp(-above * sceneInfo.fogHeightFalloff);
+	}
+	return mix(color, sceneInfo.fogColor, fog * sceneInfo.fogAmount);
+}
+
 void main()
 {
 	vec4 rawAlbedo = texture(albedoSampler, v_samplerCoordinate);
@@ -284,6 +309,7 @@ void main()
 	albedo = albedo * uncover;
 	worldPosition = worldPosition * uncover;
 	pbr = pbr * uncover;
+	vec3 emissive = texture(emissiveSampler, v_samplerCoordinate).rgb * uncover;
 	
 	float roughness = pbr.g;
 	float metallic = pbr.b;
@@ -343,7 +369,9 @@ void main()
     // The PBR image's first channel is ambient occlusion (1 for none), so
     // cracks and hollows get less ambient light. Direct light is unchanged.
     vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity * pbr.r;
-    vec3 color = ambient + Lo;
+    // Emissive light isn't lit or shadowed; it is added as it is (L1).
+    vec3 color = ambient + Lo + emissive;
+    color = applyFog(color, worldPosition);
 
 	outputColor = vec4(color.rgb, rawAlbedo.a);
 }

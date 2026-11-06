@@ -7,11 +7,16 @@ use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Containers.Number32BitArray
 
 class VulkanShaderMapping is ShaderMapping
     
     boolean useDefaultResources2D = false
     boolean useDefaultResources3D = false
+
+    // A forward program draws after the deferred lighting, over the lit
+    // image, instead of into the G-buffer (Item 39). Water is one.
+    boolean forwardPass = false
     
     /*This action is used to setup the values of a VulkanPipelineInfo that will be used to create the
 VulkanPipeline needed for the shader program. This can also be used to create and keep copies of
@@ -41,6 +46,42 @@ end
     
     action UseDefaultResources3D(boolean useResources)
         useDefaultResources3D = useResources
+    end
+
+    /*
+    This action returns true if the program draws after the deferred
+    lighting, over the lit image, instead of into the G-buffer: a forward
+    program, such as water (Item 39). Its pipeline should be made with
+    VulkanPipelineInfoCreator:AddForwardInfo3D.
+
+    Attribute: Returns True for a forward program.
+    */
+    action UsesForwardPass returns boolean
+        return forwardPass
+    end
+
+    /*
+    This action sets whether the program draws after the deferred lighting,
+    over the lit image (Item 39). A forward program's models aren't drawn
+    into the G-buffer and cast no shadows.
+
+    Attribute: Parameter forward True for a forward program.
+    */
+    action UseForwardPass(boolean forward)
+        forwardPass = forward
+    end
+
+    /*
+    This action fills a forward program's own push constant data for the
+    frame: 18 numbers, sent after the instance buffer address (Item 39).
+    The painter sets them all to 0 first, so a mapping only sets the ones it
+    uses. The shader reads them, in order, after the address. Mappings that
+    aren't forward don't need it.
+
+    Attribute: Parameter program The program being drawn.
+    Attribute: Parameter data The 18 numbers to fill.
+    */
+    action FillForwardData(ShaderProgram program, Number32BitArray data)
     end
     
 end

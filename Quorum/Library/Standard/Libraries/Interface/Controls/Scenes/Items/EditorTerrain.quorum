@@ -9,6 +9,10 @@ use Libraries.Game.Graphics.Worlds.TerrainTool
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Worlds.TerrainStroke
 use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Worlds.TerrainFoliage
+use Libraries.Game.Graphics.Worlds.FoliageCell
+use Libraries.Game.Graphics.Worlds.FoliageList
 
 /*
     The EditorTerrain class is a terrain in the Scene Editor. It is saved in
@@ -50,7 +54,24 @@ class EditorTerrain is TerrainItem
     public constant integer STAMP_TOOL = 10
     public constant integer ERODE_TOOL = 11
     public constant integer AUTO_PAINT_TOOL = 12
-    public constant integer LAST_TOOL = 12
+    // Paints foliage, the assets of the terrain's foliage list (Terrain
+    // plan F3).
+    public constant integer FOLIAGE_TOOL = 13
+    // Fills the hollow under the brush with water, and paints water with
+    // the brush (Water plan W6).
+    public constant integer FILL_WATER_TOOL = 14
+    public constant integer PAINT_WATER_TOOL = 15
+    public constant integer LAST_TOOL = 15
+
+    // How far above the ground under the brush the Fill water and Paint
+    // water tools put the water's level (Water plan W6).
+    number waterDepth = 2
+
+    // The foliage asset the Foliage tool paints, by its number in the
+    // foliage list (Terrain plan F3), and whether the foliage list file has
+    // changes the next save of the scene must write.
+    integer foliageAsset = 0
+    boolean foliageListChanged = false
 
     // The ramp tool's two ends (step 8): set at the brush, each with the
     // ground's height there. The brush gets the ramp once both are set.
@@ -230,6 +251,15 @@ class EditorTerrain is TerrainItem
             SaveTerrain()
             changed = false
         end
+        // The foliage list file, after assets were added, removed, moved or
+        // changed in the Foliage section (Terrain plan F3).
+        if foliageListChanged
+            FoliageList list = GetFoliageList()
+            if list not= undefined and list:GetFile() not= undefined
+                list:Save(list:GetFile())
+            end
+            foliageListChanged = false
+        end
         if materialChanged
             TerrainMaterial material = GetMaterial()
             if material not= undefined and material:GetFile() not= undefined
@@ -248,6 +278,144 @@ class EditorTerrain is TerrainItem
     */
     action IsMaterialChanged returns boolean
         return materialChanged
+    end
+
+    /*
+        Sets whether the terrain's foliage list file has changes that the
+        next save of the scene must write (Terrain plan F3).
+
+        Attribute: Parameter changed True if the list has changed
+    */
+    action SetFoliageListChanged(boolean changed)
+        foliageListChanged = changed
+    end
+
+    /*
+        Returns whether the terrain's foliage list file has changes that the
+        next save of the scene must write.
+
+        Attribute: Returns True if the list has changed since it was saved
+    */
+    action IsFoliageListChanged returns boolean
+        return foliageListChanged
+    end
+
+    /*
+        Returns the foliage asset the Foliage tool paints, by its number in
+        the terrain's foliage list (Terrain plan F3).
+
+        Attribute: Returns The asset's number, from 0
+    */
+    action GetFoliageAsset returns integer
+        return foliageAsset
+    end
+
+    /*
+        Sets the foliage asset the Foliage tool paints.
+
+        Attribute: Parameter asset The asset's number in the foliage list, from 0
+    */
+    action SetFoliageAsset(integer asset)
+        foliageAsset = asset
+    end
+
+    /*
+        Returns how far above the ground under the brush the Fill water and
+        Paint water tools put the water's level (Water plan W6).
+
+        Attribute: Returns The depth, in world units
+    */
+    action GetWaterDepth returns number
+        return waterDepth
+    end
+
+    /*
+        Sets how far above the ground under the brush the water tools put
+        the water's level.
+
+        Attribute: Parameter depth The depth, in world units, more than 0
+    */
+    action SetWaterDepth(number depth)
+        waterDepth = depth
+    end
+
+    /*
+        Returns how many foliage assets the terrain's foliage list has.
+
+        Attribute: Returns The count, 0 for no list
+    */
+    action GetFoliageAssetCount returns integer
+        if GetFoliageList() = undefined
+            return 0
+        end
+        return GetFoliageList():GetAssetCount()
+    end
+
+    /*
+        Returns how many times the Foliage tool multiplies its asset's
+        density: the brush's strength, where the usual strength is 1.
+
+        Attribute: Returns The multiplier
+    */
+    action GetFoliageDensityScale returns number
+        return brush:GetStrength() / DEFAULT_STRENGTH
+    end
+
+    /*
+        Describes the foliage under the brush, such as "12 Pine, 3 Rock", or
+        "no foliage" (Terrain plan F3).
+
+        Attribute: Returns The description
+    */
+    action DescribeFoliageUnderBrush returns text
+        FoliageList list = GetFoliageList()
+        if list = undefined or list:GetAssetCount() = 0
+            return "no foliage"
+        end
+        Array<integer> counts
+        integer a = 0
+        repeat while a < list:GetAssetCount()
+            counts:Add(0)
+            a = a + 1
+        end
+        number radius = brush:GetSize()
+        number radiusSquared = radius * radius
+        TerrainFoliage foliage = GetTerrainFoliage()
+        integer i = 0
+        repeat while i < foliage:GetCellCount()
+            FoliageCell cell = foliage:GetCellAtIndex(i)
+            number size = cell:GetCellSize()
+            number lowX = cell:GetCellX() * size
+            number lowZ = cell:GetCellZ() * size
+            integer asset = cell:GetAsset()
+            if asset >= 0 and asset < counts:GetSize() and lowX <= brushX + radius and lowX + size >= brushX - radius and lowZ <= brushZ + radius and lowZ + size >= brushZ - radius
+                integer copy = 0
+                repeat while copy < cell:GetCount()
+                    number offsetX = cell:GetX(copy) - brushX
+                    number offsetZ = cell:GetZ(copy) - brushZ
+                    if offsetX * offsetX + offsetZ * offsetZ <= radiusSquared
+                        counts:Set(asset, counts:Get(asset) + 1)
+                    end
+                    copy = copy + 1
+                end
+            end
+            i = i + 1
+        end
+        text result = ""
+        a = 0
+        repeat while a < counts:GetSize()
+            if counts:Get(a) > 0
+                if result not= ""
+                    result = result + ", "
+                end
+                result = result + counts:Get(a) + " " + list:GetAsset(a):GetName()
+            end
+            a = a + 1
+        end
+        if result = ""
+            return "no foliage"
+        end
+        return result
     end
 
     /*
@@ -376,11 +544,11 @@ class EditorTerrain is TerrainItem
         Chooses a tool, numbered as in the in-game terrain editor: 1 raise,
         2 lower, 3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add
         region, 9 remove region; then, in the scene editor only, 10 stamp,
-        11 erode and 12 auto paint, which act once per click; or 0 for none.
-        The first time a tool is chosen, the brush starts at the terrain's
-        middle.
+        11 erode and 12 auto paint, which act once per click, 13 foliage,
+        14 fill water and 15 paint water; or 0 for none. The first time a tool is chosen, the brush starts at
+        the terrain's middle.
 
-        Attribute: Parameter number The tool's number, from 0 to 12
+        Attribute: Parameter number The tool's number, from 0 to 15
     */
     action SetToolNumber(integer tool)
         if tool < 0 or tool > LAST_TOOL
@@ -411,6 +579,11 @@ class EditorTerrain is TerrainItem
             brush:SetTool(tools:SCULPT, tools:ADD)
         elseif tool = AUTO_PAINT_TOOL
             brush:SetTool(tools:TEXTURE, tools:ADD)
+        elseif tool = FOLIAGE_TOOL or tool = FILL_WATER_TOOL or tool = PAINT_WATER_TOOL
+            // The Foliage and water tools don't change the ground; the scene
+            // editor places copies and water itself (Terrain plan F3, Water
+            // plan W6).
+            brush:SetTool(tools:TEXTURE, tools:ADD)
         end
         if tool > 0 and not brushPlaced
             SetBrushPosition((GetMinimumX() + GetMaximumX()) / 2, (GetMinimumZ() + GetMaximumZ()) / 2)
@@ -418,7 +591,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Returns the chosen tool's number, from 1 to 12, or 0 for none.
+        Returns the chosen tool's number, from 1 to 15, or 0 for none.
 
         Attribute: Returns The tool's number
     */
@@ -439,7 +612,7 @@ class EditorTerrain is TerrainItem
         Remembers the tool that was chosen when the user left this terrain,
         so the scene editor can choose it again when they return (Round 2).
 
-        Attribute: Parameter tool The tool's number, from 0 to 12
+        Attribute: Parameter tool The tool's number, from 0 to 15
     */
     action SetSavedToolNumber(integer tool)
         savedToolNumber = tool
@@ -449,7 +622,7 @@ class EditorTerrain is TerrainItem
         Returns the tool that was chosen when the user last left this
         terrain, or 0.
 
-        Attribute: Returns The tool's number, from 0 to 12
+        Attribute: Returns The tool's number, from 0 to 15
     */
     action GetSavedToolNumber returns integer
         return savedToolNumber
@@ -458,7 +631,7 @@ class EditorTerrain is TerrainItem
     /*
         Returns a tool's name, by its number.
 
-        Attribute: Parameter number The tool's number, from 0 to 12
+        Attribute: Parameter number The tool's number, from 0 to 15
         Attribute: Returns Its name, such as "Raise", or "No tool" for 0
     */
     action GetToolName(integer tool) returns text
@@ -486,6 +659,12 @@ class EditorTerrain is TerrainItem
             return "Erode"
         elseif tool = AUTO_PAINT_TOOL
             return "Auto paint"
+        elseif tool = FOLIAGE_TOOL
+            return "Foliage"
+        elseif tool = FILL_WATER_TOOL
+            return "Fill water"
+        elseif tool = PAINT_WATER_TOOL
+            return "Paint water"
         end
         return "No tool"
     end
@@ -758,6 +937,15 @@ class EditorTerrain is TerrainItem
         if GetLayerCount() > 0
             integer code = data:GetSampleSplat(data:GetSampleX(brushX), data:GetSampleZ(brushZ))
             result = result + ", " + GetLayerLabel(GetMainLayer(code))
+        end
+        if toolNumber = FOLIAGE_TOOL
+            // What foliage the brush is over (Terrain plan F3).
+            result = result + ", " + DescribeFoliageUnderBrush()
+        end
+        // Water over the ground there (Water plan W6).
+        number waterDepth = GetWater():GetWaterDepthAt(brushX, brushZ)
+        if waterDepth > 0
+            result = result + ", under water, " + Round(waterDepth) + " deep"
         end
         return result + ", size " + Round(brush:GetSize())
     end

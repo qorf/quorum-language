@@ -28,6 +28,7 @@ use Libraries.Game.Graphics.Vulkan.Commands.BindPipelineCommand
 use Libraries.Game.Graphics.Vulkan.Commands.EndRenderPassCommand
 use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Shaders.Programs.TwoSidedShaderProgram3D
 use Libraries.Game.Graphics.Vulkan.Commands.DrawIndirectCommand
 use Libraries.Game.Graphics.Vulkan.Commands.SetPushConstantsCommand
 use Libraries.Game.Graphics.Vulkan.Commands.SetScissorCommand
@@ -59,6 +60,9 @@ class VulkanPainter3D is Painter3D
     ShaderProgram defaultProgram = undefined
     ShaderProgram defaultLightingProgram = undefined
     ShaderProgram defaultShadowProgram = undefined
+    // Draws models with a two-sided material without culling (Lighting
+    // plan L4), made the first time one is drawn.
+    ShaderProgram twoSidedProgram = undefined
     
     // The clear value for the scene-space is not the same background clear value used for the swapchain.
     // It must be fully transparent to ensure proper blending with other layers.
@@ -74,6 +78,17 @@ class VulkanPainter3D is Painter3D
     
     // An internal array used to transfer data from Matrix4 objects to mapped memory.
     Number32BitArray matrix4Array
+
+    // The 3D camera uniform's contents (Item 38, Water plan W1): the
+    // projection-view matrix, then the camera's position, time, the screen
+    // size, and the near and far planes. 24 numbers, 96 bytes.
+    Number32BitArray cameraDataArray
+    constant integer CAMERA_DATA_SIZE = 24
+
+    // Seconds since this painter started drawing, wrapped every hour, for
+    // shaders that animate (Item 38).
+    number shaderTime = 0
+    constant number SHADER_TIME_WRAP = 3600
     
     // The sampler used to access textures.
 VulkanSampler immutableSampler = undefined
@@ -120,6 +135,15 @@ VulkanSampler immutableSampler = undefined
     
     // A reusable buffer of data for sending push constants. Used to send a pointer to a DrawQueue's instance data during rendering.
     VulkanPushConstantBuffer pushConstants
+
+    // Forward programs (Item 39), such as water, draw in the lighting pass
+    // after the lighting. Their push constants are 128 bytes: the instance
+    // address, the program's 18 numbers, then 12 numbers of scene data.
+    VulkanPushConstantBuffer forwardPushConstants = undefined
+    Number32BitArray forwardProgramData
+    constant integer FORWARD_PUSH_CONSTANT_SIZE = 128
+    constant integer FORWARD_PROGRAM_DATA_SIZE = 18
+    constant integer FORWARD_SCENE_DATA_SIZE = 12
     
     // Another push constant buffer, this time for the shadow mapping phase.
     VulkanPushConstantBuffer shadowPushConstants = undefined
@@ -129,6 +153,8 @@ VulkanSampler immutableSampler = undefined
     // when the cube's view changes.
     Skybox skybox = undefined
     VulkanPushConstantBuffer skyboxPushConstants = undefined
+    // The exposure and tone mapping sent to the result copy (Lighting plan L2).
+    VulkanPushConstantBuffer toneMappingPushConstants = undefined
     VulkanDescriptorSetLayout skyboxLayout = undefined
     Array<VulkanDescriptorSet> skyboxDescriptors
     Array<VulkanImageView> skyboxLinkedViews
@@ -166,6 +192,10 @@ to allow for simultaneous rendering.*/
     // lights. Past SHADOW_MAP_KEEP_CALLS, the extra maps are freed (Item 35).
     integer extraShadowMapCalls = 0
     constant integer SHADOW_MAP_KEEP_CALLS = 180
+
+    // How many images the scene pass writes (the G-buffer): position,
+    // albedo, normals, PBR and emissive light (Lighting plan L1).
+    constant integer G_BUFFER_COUNT = 5
     
     
     // Used to create combined image-sampler descriptors. Accesses the individual values in a sampled image.
@@ -201,8 +231,10 @@ to allow for simultaneous rendering.*/
     
 on create
         matrix4Array:SetSize(16)
+        cameraDataArray:SetSize(CAMERA_DATA_SIZE)
         //Create the push constants buffer with a size of 8 bytes (one 64-bit pointer). 
         pushConstants:Create(8)
+        forwardProgramData:SetSize(FORWARD_PROGRAM_DATA_SIZE)
     end
 
     action AreRenderPassesValid returns boolean
@@ -299,15 +331,16 @@ The attachments we need correspond to our phases of rendering:
         Array<VulkanAttachmentDescription> resultAttachmentDescriptions
         
         // Scene render attachments. Without MSAA, the scene is drawn straight
-        // into the four G-buffer images (attachments 0 to 3) and depth (4).
-        // With MSAA (Item 27), it is drawn into multisampled copies
-        // (attachments 5 to 8, and a multisampled depth at 4), which the
-        // subpass resolves into the four G-buffer images as it finishes. The
-        // lighting pass reads the G-buffer images either way.
+        // into the G_BUFFER_COUNT G-buffer images (attachments 0 to 4:
+        // position, albedo, normals, PBR and emissive) and depth (5). With
+        // MSAA (Item 27), it is drawn into multisampled copies (attachments
+        // 6 to 10, and a multisampled depth at 5), which the subpass resolves
+        // into the G-buffer images as it finishes. The lighting pass reads
+        // the G-buffer images either way.
         integer positionFormat = GetPositionFormat()
         integer gBufferFormat = constants:FORMAT_R16G16B16A16_SFLOAT
         sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(positionFormat, 1, multisampled))
-        repeat 3 times
+        repeat G_BUFFER_COUNT - 1 times
             sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(gBufferFormat, 1, multisampled))
         end
 
@@ -325,20 +358,20 @@ The attachments we need correspond to our phases of rendering:
         Array<VulkanAttachmentReference> sceneResolveReferences = undefined
         if multisampled
             sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(positionFormat, sceneSampleCount, false))
-            repeat 3 times
+            repeat G_BUFFER_COUNT - 1 times
                 sceneAttachmentDescriptions:Add(MakeSceneColorAttachment(gBufferFormat, sceneSampleCount, false))
             end
             Array<VulkanAttachmentReference> resolveReferences
             sceneResolveReferences = resolveReferences
         end
 
-        // Position, albedo, normals and PBR: drawn into 0 to 3, or into 5 to
-        // 8 and resolved into 0 to 3.
+        // Position, albedo, normals, PBR and emissive: drawn into 0 to 4, or
+        // into 6 to 10 and resolved into 0 to 4.
         integer gBufferIndex = 0
-        repeat while gBufferIndex < 4
+        repeat while gBufferIndex < G_BUFFER_COUNT
             VulkanAttachmentReference colorReference
             if multisampled
-                colorReference:SetAttachmentIndex(5 + gBufferIndex)
+                colorReference:SetAttachmentIndex(G_BUFFER_COUNT + 1 + gBufferIndex)
                 VulkanAttachmentReference resolveReference
                 resolveReference:SetAttachmentIndex(gBufferIndex)
                 resolveReference:SetLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
@@ -352,7 +385,7 @@ The attachments we need correspond to our phases of rendering:
         end
 
         VulkanAttachmentReference sceneDepthReference
-        sceneDepthReference:SetAttachmentIndex(4)
+        sceneDepthReference:SetAttachmentIndex(G_BUFFER_COUNT)
         sceneDepthReference:SetLayout(constants:IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 
         // Now that we have all of the required attachment info, create the scene render pass.
@@ -494,6 +527,15 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             pbrSamplerBinding:SetDescriptorCount(1)
             pbrSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
             lightsBindings:Add(pbrSamplerBinding)
+
+            // The emissive light surfaces give off (Lighting plan L1), added
+            // after the lights.
+            VulkanDescriptorSetLayoutBinding emissiveSamplerBinding
+            emissiveSamplerBinding:SetBinding(4)
+            emissiveSamplerBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            emissiveSamplerBinding:SetDescriptorCount(1)
+            emissiveSamplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            lightsBindings:Add(emissiveSamplerBinding)
             
             lightsLayout:Create(device, lightsBindings)
             
@@ -529,13 +571,13 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         framebufferHeight = swapchainHeight
 
         // With MSAA, the multisampled images every frame draws into: position,
-        // albedo, normals, PBR, and depth (Item 27).
+        // albedo, normals, PBR, emissive, and depth (Item 27).
         Array<VulkanImageView> multisampledViews
         VulkanImageView multisampledDepthView = undefined
         if multisampled
             multisampledViews:Add(MakeMultisampledView(device, GetPositionFormat(),
                 constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT, constants:IMAGE_ASPECT_COLOR_BIT, swapchainWidth, swapchainHeight))
-            repeat 3 times
+            repeat G_BUFFER_COUNT - 1 times
                 multisampledViews:Add(MakeMultisampledView(device, constants:FORMAT_R16G16B16A16_SFLOAT,
                     constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT, constants:IMAGE_ASPECT_COLOR_BIT, swapchainWidth, swapchainHeight))
             end
@@ -562,9 +604,10 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
                 KeepSizedImage(positionImage, positionImageView)
                 renderImageViews:Add(positionImageView)
             
-            // The other color attachments all have the same properties, so they can be quickly created in a loop.
+            // Albedo, normals, PBR and emissive all have the same properties,
+            // so they are made in a loop.
             integer j = 0
-            repeat while j < 3
+            repeat while j < G_BUFFER_COUNT - 1
                 VulkanImageInfo imageInfo
             imageInfo:SetWidth(swapchainWidth)
             imageInfo:SetHeight(swapchainHeight)
@@ -607,7 +650,7 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             end
 
             // With MSAA, the multisampled G-buffer images come after depth,
-            // at 5 to 8.
+            // at G_BUFFER_COUNT + 1 onward.
             integer multisampledIndex = 0
             repeat while multisampledIndex < multisampledViews:GetSize()
                 renderImageViews:Add(multisampledViews:Get(multisampledIndex))
@@ -658,9 +701,10 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             end
             
             VulkanDescriptorSet lightSet = lightDescriptors:Get(i)
-            // Link up all four of the attachments out from the scene rendering stage as descriptor inputs to the lighting stage.
+            // Link every G-buffer image, the scene stage's outputs, as the
+            // lighting stage's inputs (bindings 0 to G_BUFFER_COUNT - 1).
             j = 0
-            repeat while j < 4
+            repeat while j < G_BUFFER_COUNT
                 VulkanDescriptorResourcesInfo lightResources
             VulkanDescriptorImageInfo lightImage
             lightImage:SetImageView(renderImageViews:Get(j))
@@ -1181,14 +1225,32 @@ if batches:HasKey(schematic)
     */
     private action GetCustomProgram(Model model) returns ShaderProgram
         ShaderProgram program = model:GetShaderProgram()
-        if program = undefined
-            return undefined
-        end
         ShaderProgram defaultOne = GetDefaultProgram()
-        if program = defaultOne
+        if program = undefined or program = defaultOne
+            // A model with a two-sided material is drawn without culling
+            // (Lighting plan L4).
+            ModelBlueprintVulkan modelSchematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
+            if modelSchematic:HasTwoSidedMaterial()
+                return GetTwoSidedProgram()
+            end
             return undefined
         end
         return program
+    end
+
+    /*
+    This action returns the program for models with a two-sided material,
+    making it the first time.
+
+    Attribute: Returns The two-sided program.
+    */
+    private action GetTwoSidedProgram returns ShaderProgram
+        if twoSidedProgram = undefined
+            TwoSidedShaderProgram3D program
+            program:Compile()
+            twoSidedProgram = program
+        end
+        return twoSidedProgram
     end
     
     /*
@@ -1241,6 +1303,126 @@ if batches:HasKey(schematic)
         VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
         if not strategy:GetShaderMapping():UsesDefaultResources3D()
             alert("I can't draw 3D models with the shader program " + program:GetName() + " because its shader mapping doesn't use the default 3D resources. A DefaultShaderMapping3DVulkan does.")
+        end
+    end
+
+    /*
+    This action returns true if a program draws after the deferred
+    lighting, over the lit image, such as water (Item 39).
+
+    Attribute: Parameter program The program.
+    Attribute: Returns True for a forward program.
+    */
+    private action IsForwardProgram(ShaderProgram program) returns boolean
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        return strategy:GetShaderMapping():UsesForwardPass()
+    end
+
+    /*
+    This action draws the forward programs' models, such as water, in the
+    lighting pass, after the lighting (Item 39). Each program's pipeline is
+    made for the lighting pass. The camera and textures are bound as in the
+    scene pass, the G-buffer and light data as in the lighting pass, and
+    the push constants carry the instance address, the program's own data
+    and the forward scene data.
+
+    Attribute: Parameter commandBuffer The frame's command buffer, in the lighting pass.
+    Attribute: Parameter swapchain The swapchain.
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter cameraDescriptor The frame's camera descriptor set.
+    */
+    private action RecordForwardPrograms(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain, integer resourceIndex, VulkanDescriptorSet cameraDescriptor)
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
+
+        integer programIndex = 0
+        repeat while programIndex < customPrograms:GetSize()
+            ShaderProgram program = customPrograms:Get(programIndex)
+            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
+            if IsForwardProgram(program) and HasDrawCommands(programQueues)
+                VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+                if NeedsPipeline(strategy:GetPipeline(), lightRenderPass:GetSampleCount())
+                    strategy:CreatePipeline(lightRenderPass)
+                end
+                VulkanPipeline pipeline = strategy:GetPipeline()
+                VulkanPipelineLayout layout = pipeline:GetInfo():GetLayout()
+
+                BindPipelineCommand bindPipeline
+                bindPipeline:SetPipeline(pipeline)
+                commandBuffer:Record(bindPipeline)
+                // The scene pass's viewport, so the water lands on the same
+                // pixels as the G-buffer it is compared with.
+                SetViewportAndScissor(commandBuffer, swapchain)
+
+                BindDescriptorSetCommand cameraBind
+                cameraBind:SetPipelineLayout(layout)
+                cameraBind:SetDescriptorSet(cameraDescriptor)
+                commandBuffer:Record(cameraBind)
+
+                BindDescriptorSetCommand gBufferBind
+                gBufferBind:SetPipelineLayout(layout)
+                gBufferBind:SetDescriptorSet(lightDescriptors:Get(resourceIndex))
+                gBufferBind:SetSetIndex(2)
+                commandBuffer:Record(gBufferBind)
+
+                BindDescriptorSetCommand lightDataBind
+                lightDataBind:SetPipelineLayout(layout)
+                lightDataBind:SetDescriptorSet(environment:GetLightDataDescriptorSet(resourceIndex))
+                lightDataBind:SetSetIndex(3)
+                commandBuffer:Record(lightDataBind)
+
+                // The program's own numbers, the same for all its queues.
+                integer slot = 0
+                repeat while slot < FORWARD_PROGRAM_DATA_SIZE
+                    forwardProgramData:Set(slot, 0)
+                    slot = slot + 1
+                end
+                strategy:GetShaderMapping():FillForwardData(program, forwardProgramData)
+
+                if forwardPushConstants = undefined
+                    VulkanPushConstantBuffer buffer
+                    buffer:Create(FORWARD_PUSH_CONSTANT_SIZE)
+                    forwardPushConstants = buffer
+                end
+
+                integer group = 0
+                repeat while group < programQueues:GetSize()
+                    VulkanDrawQueue3D queue = programQueues:Get(group)
+                    if queue not= undefined and queue:GetDrawCommandCount() > 0
+                        BindDescriptorSetCommand texturesBind
+                        texturesBind:SetPipelineLayout(layout)
+                        texturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(group))
+                        texturesBind:SetSetIndex(1)
+                        commandBuffer:Record(texturesBind)
+
+                        forwardPushConstants:ResetWritePosition()
+                        forwardPushConstants:AddBufferPointer(queue:GetInstanceDataBuffer())
+                        slot = 0
+                        repeat while slot < FORWARD_PROGRAM_DATA_SIZE
+                            forwardPushConstants:AddNumber32Bit(forwardProgramData:Get(slot))
+                            slot = slot + 1
+                        end
+                        // The forward scene data: unused until Item 41.
+                        repeat FORWARD_SCENE_DATA_SIZE times
+                            forwardPushConstants:AddNumber32Bit(0)
+                        end
+
+                        SetPushConstantsCommand setPushConstants
+                        setPushConstants:SetData(forwardPushConstants)
+                        setPushConstants:SetPipelineLayout(layout)
+                        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                        commandBuffer:Record(setPushConstants)
+
+                        DrawIndirectCommand draw
+                        draw:SetDrawCommands(queue:GetDrawCommandBuffer())
+                        draw:SetDrawCount(queue:GetDrawCommandCount())
+                        commandBuffer:Record(draw)
+                    end
+                    group = group + 1
+                end
+            end
+            programIndex = programIndex + 1
         end
     end
 
@@ -1329,7 +1511,10 @@ Layer layer = layers:Next()
             uniformsBinding:SetBinding(0)
             uniformsBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
             uniformsBinding:SetDescriptorCount(1)
-            uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT)
+            // The camera uniform carries time and the camera's position as
+            // well, for fragment shaders such as water (Item 38). This must
+            // match AddDefaultInfo3D.
+            uniformsBinding:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
             descriptorBindings:Add(uniformsBinding)
 
             // Describe the binding of the image sampler
@@ -1354,7 +1539,7 @@ Layer layer = layers:Next()
             repeat while counter < graphics:GetSwapchain():GetImageCount()
                 // These buffers are for a 4x4 matrix of floats, so 4 bytes * 16 values.
                 VulkanBuffer buffer
-                buffer:CreateMappableBuffer(device, 4 * 16, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+                buffer:CreateMappableBuffer(device, 4 * CAMERA_DATA_SIZE, constants:BUFFER_USAGE_UNIFORM_BUFFER_BIT)
                 cameraBuffers:Add(buffer)
 
                 VulkanNumber32BitMappedMemory mapping = buffer:MapToNumber32BitMemory()
@@ -1433,12 +1618,12 @@ Layer layer = layers:Next()
         VulkanLightingProperties lightProperties = graphics:GetLightingProperties()
         
         if sceneClearValues:IsEmpty()
-            repeat 4 times
+            repeat G_BUFFER_COUNT times
                 sceneClearValues:AddColor(0, 0, 0, 0)
             end
             sceneClearValues:AddDepthStencil(1, 0)
             // The multisampled G-buffer copies, with MSAA (Item 27).
-            repeat 4 times
+            repeat G_BUFFER_COUNT times
                 sceneClearValues:AddColor(0, 0, 0, 0)
             end
         end
@@ -1478,8 +1663,9 @@ Layer layer = layers:Next()
 VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentSwapchainIndex)
         VulkanDescriptorSet currentCameraDescriptor = cameraDescriptors:Get(currentSwapchainIndex)
         
-Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
-        currentCameraMapping:Set(projectionViewMatrix)
+        Number32BitArray projectionViewMatrix = MatrixToArray(camera:GetCombinedMatrix())
+        FillCameraData(projectionViewMatrix, graphics)
+        currentCameraMapping:Set(cameraDataArray)
         
 //VulkanDescriptorSet texturesDescriptorSet = graphics:GetTextureManager():GetGlobalTextureDescriptorSet()
         
@@ -1633,7 +1819,8 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         repeat while programIndex < customPrograms:GetSize()
             ShaderProgram program = customPrograms:Get(programIndex)
             Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
-            if HasDrawCommands(programQueues)
+            // Forward programs draw later, in the lighting pass (Item 39).
+            if HasDrawCommands(programQueues) and not IsForwardProgram(program)
                 VulkanShaderProgram programStrategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
                 if NeedsPipeline(programStrategy:GetPipeline(), sceneSampleCount)
                     programStrategy:CreatePipeline(sceneRenderPass)
@@ -1725,11 +1912,14 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         end
         programIndex = 0
         repeat while programIndex < customPrograms:GetSize()
-            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(customPrograms:Get(programIndex))
-            queueCounter = 0
-            repeat while queueCounter < programQueues:GetSize()
-                shadowQueues:Add(programQueues:Get(queueCounter))
-                queueCounter = queueCounter + 1
+            // Forward models, such as water, cast no shadows (Item 39).
+            if not IsForwardProgram(customPrograms:Get(programIndex))
+                Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(customPrograms:Get(programIndex))
+                queueCounter = 0
+                repeat while queueCounter < programQueues:GetSize()
+                    shadowQueues:Add(programQueues:Get(queueCounter))
+                    queueCounter = queueCounter + 1
+                end
             end
             programIndex = programIndex + 1
         end
@@ -1857,7 +2047,7 @@ end
         // Now that scene geometry has been rendered, and shadow maps calculated, prepare for the lighting pass.
         // First, ensure that all writing to the scene's color attachments has finished before attempting to read any of it.
         i = 0
-        repeat while i < 4
+        repeat while i < G_BUFFER_COUNT
             VulkanImage attachment = sceneFramebuffer:GetImageViews():Get(i):GetImage()
         AttachmentWriteBarrier(commandBuffer, attachment)
             i = i + 1
@@ -1919,6 +2109,10 @@ BindDescriptorSetCommand lightDescriptorBind
         lightDrawCommand:SetVertexCount(3)
         commandBuffer:Record(lightDrawCommand)
 
+        // Then the forward programs, such as water, over the lit image, in
+        // the same pass (Item 39).
+        RecordForwardPrograms(commandBuffer, swapchain, resourceIndex, currentCameraDescriptor)
+
         // End the render pass.
         EndRenderPassCommand endLightRenderPass
         commandBuffer:Record(endLightRenderPass)
@@ -1967,6 +2161,21 @@ BindDescriptorSetCommand resultDescriptorBind
             resultDescriptorBind:SetPipelineLayout(resultPipelineLayout)
             resultDescriptorBind:SetDescriptorSet(resultDescriptors:Get(resourceIndex))
             commandBuffer:Record(resultDescriptorBind)
+
+        // The exposure and tone mapping the copy applies (Lighting plan L2).
+        if toneMappingPushConstants = undefined
+            VulkanPushConstantBuffer toneBuffer
+            toneBuffer:Create(8)
+            toneMappingPushConstants = toneBuffer
+        end
+        toneMappingPushConstants:ResetWritePosition()
+        toneMappingPushConstants:AddNumber32Bit(environment:GetExposure())
+        toneMappingPushConstants:AddNumber32Bit(environment:GetToneMapping())
+        SetPushConstantsCommand tonePushConstants
+        tonePushConstants:SetData(toneMappingPushConstants)
+        tonePushConstants:SetPipelineLayout(resultPipelineLayout)
+        tonePushConstants:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+        commandBuffer:Record(tonePushConstants)
 
         DrawCommand resultDrawCommand
         resultDrawCommand:SetVertexCount(3)
@@ -2518,6 +2727,52 @@ BindDescriptorSetCommand resultDescriptorBind
         end
     end
     
+    /*
+    This action fills the 3D camera uniform's contents for this frame: the
+    projection-view matrix, the camera's position, the shader time (moved on
+    by this frame's length), the screen size, and the camera's near and far
+    planes (Item 38). The screen size is the whole window's, not the 3D
+    view's.
+
+    Attribute: Parameter projectionViewMatrix The matrix, as 16 numbers.
+    Attribute: Parameter graphics The Vulkan graphics.
+    */
+    private action FillCameraData(Number32BitArray projectionViewMatrix, VulkanGraphics graphics)
+        integer i = 0
+        repeat while i < 16
+            cameraDataArray:Set(i, projectionViewMatrix:Get(i))
+            i = i + 1
+        end
+
+        shaderTime = shaderTime + gameState:GetGame():GetSecondsBetweenFrames()
+        if shaderTime >= SHADER_TIME_WRAP
+            shaderTime = shaderTime - SHADER_TIME_WRAP
+        end
+
+        // GetPosition returns the camera's own vector, so nothing is made.
+        Vector3 cameraPosition = camera:GetPosition()
+        cameraDataArray:Set(16, cameraPosition:GetX())
+        cameraDataArray:Set(17, cameraPosition:GetY())
+        cameraDataArray:Set(18, cameraPosition:GetZ())
+        cameraDataArray:Set(19, shaderTime)
+
+        VulkanSwapchain frameSwapchain = graphics:GetSwapchain()
+        cameraDataArray:Set(20, frameSwapchain:GetImageWidth())
+        cameraDataArray:Set(21, frameSwapchain:GetImageHeight())
+        cameraDataArray:Set(22, camera:GetNear())
+        cameraDataArray:Set(23, camera:GetFar())
+    end
+
+    /*
+    This action returns the shader time: seconds since the painter started
+    drawing, wrapped every hour (Item 38).
+
+    Attribute: Returns The time, in seconds.
+    */
+    action GetShaderTime returns number
+        return shaderTime
+    end
+
     private action MatrixToArray(Matrix4 matrix) returns Number32BitArray
         matrix4Array:Set(0, matrix:row0column0)
         matrix4Array:Set(1, matrix:row1column0)

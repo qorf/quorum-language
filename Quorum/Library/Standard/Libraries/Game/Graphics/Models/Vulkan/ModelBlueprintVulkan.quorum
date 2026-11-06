@@ -15,6 +15,10 @@ class ModelBlueprintVulkan is ModelBlueprint
     ModelData data = undefined
     Array<MeshVulkan> meshes = undefined
     Array<MaterialVulkan> materials = undefined
+
+    // Whether a material is two-sided, found once the materials are set.
+    boolean twoSided = false
+    boolean twoSidedChecked = false
     Array<Array<AnimationFrameVulkan>> animationFrames = undefined
     
     // An additional animation frame that represents the bind pose -- i.e., no animation is performed. Used to allow the animation layer to apply base model transforms without animation.
@@ -160,6 +164,34 @@ Animations animations = data:GetAnimations()
 
     action SetMaterials(Array<MaterialVulkan> materials)
         me:materials = materials
+        twoSidedChecked = false
+    end
+
+    /*
+    This action returns true if any of the blueprint's materials is
+    two-sided, so the painter draws its models without hiding the backs of
+    faces (Lighting plan L4).
+
+    Attribute: Returns True if a material is two-sided.
+    */
+    action HasTwoSidedMaterial returns boolean
+        if twoSidedChecked
+            return twoSided
+        end
+        if materials = undefined or materials:IsEmpty()
+            return false
+        end
+        twoSided = false
+        integer i = 0
+        repeat while i < materials:GetSize()
+            MaterialVulkan material = materials:Get(i)
+            if material not= undefined and material:IsTwoSided()
+                twoSided = true
+            end
+            i = i + 1
+        end
+        twoSidedChecked = true
+        return twoSided
     end
     
     action GetMeshCount returns integer

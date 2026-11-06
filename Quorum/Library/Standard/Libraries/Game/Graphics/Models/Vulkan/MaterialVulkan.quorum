@@ -37,9 +37,17 @@ Normal map index (uint, 4 bytes); for a texture set, its normal-roughness textur
 Rough map index (uint, 4 bytes)
 Roughness Factor (float, 4 bytes)
 Metallic Factor (float, 4 bytes)
-Flags (uint, 4 bytes): 1 if the material is a texture set
+Flags (uint, 4 bytes): the FLAG constants below added together
 Texture scale (float, 4 bytes): world units per tile, for terrain
-Two reserved words (uint, 4 bytes each), 0*/
+Emissive color (RGBA8888, 4 bytes): the light the surface gives off
+Emissive map index (uint, 4 bytes)
+Emissive strength (float, 4 bytes): 1 for the color as it is
+Ambient occlusion map index (uint, 4 bytes); its red channel is used
+Alpha cutoff (float, 4 bytes): pixels with less alpha aren't drawn
+Normal strength (float, 4 bytes): how strongly the normal map bends light
+Texture offset x and y, scale x and y, and turn in radians (5 floats)
+Three reserved words (uint, 4 bytes each), 0
+The emissive and later words are Lighting plan L1 and L4.*/
     constant integer DIFFUSE_INDEX = 0
     constant integer TEXTURE_INDEX = 1
     constant integer HAS_NORMAL_MAP_INDEX = 2
@@ -50,12 +58,31 @@ Two reserved words (uint, 4 bytes each), 0*/
     constant integer METALLIC_FACTOR_INDEX = 7
     constant integer FLAGS_INDEX = 8
     constant integer TEXTURE_SCALE_INDEX = 9
-    constant integer RESERVED_INDEX_1 = 10
-    constant integer RESERVED_INDEX_2 = 11
+    constant integer EMISSIVE_COLOR_INDEX = 10
+    constant integer EMISSIVE_MAP_INDEX = 11
+    constant integer EMISSIVE_STRENGTH_INDEX = 12
+    constant integer OCCLUSION_MAP_INDEX = 13
+    constant integer ALPHA_CUTOFF_INDEX = 14
+    constant integer NORMAL_STRENGTH_INDEX = 15
+    constant integer UV_OFFSET_X_INDEX = 16
+    constant integer UV_OFFSET_Y_INDEX = 17
+    constant integer UV_SCALE_X_INDEX = 18
+    constant integer UV_SCALE_Y_INDEX = 19
+    constant integer UV_ROTATION_INDEX = 20
+    constant integer RESERVED_INDEX_1 = 21
+    constant integer RESERVED_INDEX_2 = 22
+    constant integer RESERVED_INDEX_3 = 23
 
+    // The flags. The shaders test the same numbers.
     constant integer TEXTURE_SET_FLAG = 1
+    constant integer EMISSIVE_MAP_FLAG = 2
+    constant integer OCCLUSION_MAP_FLAG = 4
+    constant integer UNLIT_FLAG = 8
+    constant integer TWO_SIDED_FLAG = 16
+    constant integer TEXTURE_TRANSFORM_FLAG = 32
+    constant integer ALPHA_RELATIVE_FLAG = 64
 
-    constant integer MATERIAL_BYTE_SIZE = 4 * 12
+    constant integer MATERIAL_BYTE_SIZE = 4 * 24
     
     VulkanBuffer stagingBuffer = undefined
     VulkanBuffer materialBuffer = undefined
@@ -66,6 +93,12 @@ Two reserved words (uint, 4 bytes each), 0*/
     Texture preloadTexture = undefined
     Texture preloadNormalMap = undefined
     Texture preloadRoughMap = undefined
+    Texture preloadEmissiveMap = undefined
+    Texture preloadOcclusionMap = undefined
+
+    // Whether both sides of each face are drawn (Lighting plan L4), kept
+    // after loading so the painter can draw the model without culling.
+    boolean twoSided = false
 
     // For a texture set: whether this material is one, and its two packed
     // textures, kept after loading so terrain can find their places.
@@ -92,6 +125,7 @@ Two reserved words (uint, 4 bytes each), 0*/
     action Preload(VulkanDevice device, Material data)
         me:device = device
         preloadData = data
+        twoSided = data:IsTwoSided()
 
         if data:UsesTextureSet()
             PreloadTextureSet(data)
@@ -125,6 +159,18 @@ Two reserved words (uint, 4 bytes each), 0*/
             // Do nothing, no rough map is used.
         else
             preloadRoughMap = UseFileTexture(roughPath, false)
+        end
+
+        // The emissive and ambient occlusion maps (Lighting plan L1 and L4).
+        // A texture set packs its own occlusion, so this is only for other
+        // materials, such as those loaded from model files.
+        text emissivePath = data:GetEmissiveMapPath()
+        if emissivePath not= undefined and emissivePath not= ""
+            preloadEmissiveMap = UseFileTexture(emissivePath, false)
+        end
+        text occlusionPath = data:GetAmbientOcclusionMapPath()
+        if occlusionPath not= undefined and occlusionPath not= ""
+            preloadOcclusionMap = UseFileTexture(occlusionPath, false)
         end
         
         
@@ -206,6 +252,12 @@ Two reserved words (uint, 4 bytes each), 0*/
             normalRoughness:CopyGrayValue(roughness, 3)
             roughness:Dispose()
         end
+
+        // The material frees these pixels itself, once both textures are
+        // copied (Load) or when it is released first (Release), so the
+        // texture manager mustn't free them as it copies them.
+        albedoHeight:SetDisposeAfterTextureLoad(false)
+        normalRoughness:SetDisposeAfterTextureLoad(false)
 
         // Both get mipmaps (Item 25). The normals' mipmaps keep the
         // ambient occlusion carried in their length.
@@ -329,14 +381,68 @@ default material loading system, as part of the model load system).*/
         end
         dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
         dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
-        if usesTextureSet
-            dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(TEXTURE_SET_FLAG))
-        else
-            dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(0))
-        end
         dataArray:Set(TEXTURE_SCALE_INDEX, data:GetTextureScale())
+
+        integer flags = 0
+        if usesTextureSet
+            flags = flags + TEXTURE_SET_FLAG
+        end
+
+        // The light the surface gives off (Lighting plan L1).
+        Vector4 emissive = data:GetEmissive()
+        if emissive = undefined
+            dataArray:Set(EMISSIVE_COLOR_INDEX, utility:PackNormalizedVector4(0, 0, 0, 0))
+        else
+            dataArray:Set(EMISSIVE_COLOR_INDEX, utility:PackNormalizedVector4(Clamp(emissive:GetX()), Clamp(emissive:GetY()), Clamp(emissive:GetZ()), 1.0))
+        end
+        if preloadEmissiveMap = undefined
+            dataArray:Set(EMISSIVE_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
+        else
+            flags = flags + EMISSIVE_MAP_FLAG
+            dataArray:Set(EMISSIVE_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadEmissiveMap:GetVulkanTextureLocalIndex()))
+        end
+        dataArray:Set(EMISSIVE_STRENGTH_INDEX, data:GetEmissiveStrength())
+
+        // What model files bring (Lighting plan L4).
+        if preloadOcclusionMap = undefined
+            dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
+        else
+            flags = flags + OCCLUSION_MAP_FLAG
+            dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadOcclusionMap:GetVulkanTextureLocalIndex()))
+        end
+        if data:IsUnlit()
+            flags = flags + UNLIT_FLAG
+        end
+        if twoSided
+            flags = flags + TWO_SIDED_FLAG
+        end
+        // How transparent pixels are cut out. "OPAQUE" cuts out nothing;
+        // "MASK" cuts out below its cutoff. A material that doesn't say
+        // keeps the old rule: the texture's alpha below half. "BLEND" uses
+        // the old rule too until see-through drawing (L6).
+        text alphaMode = data:GetAlphaMode()
+        if alphaMode = "OPAQUE"
+            dataArray:Set(ALPHA_CUTOFF_INDEX, 0.0)
+        elseif alphaMode = "MASK"
+            dataArray:Set(ALPHA_CUTOFF_INDEX, data:GetAlphaCutoff())
+        else
+            flags = flags + ALPHA_RELATIVE_FLAG
+            dataArray:Set(ALPHA_CUTOFF_INDEX, 0.5)
+        end
+        dataArray:Set(NORMAL_STRENGTH_INDEX, data:GetBumpShading())
+        if data:GetTextureOffsetX() not= 0 or data:GetTextureOffsetY() not= 0 or data:GetTextureScaleX() not= 1 or data:GetTextureScaleY() not= 1 or data:GetTextureRotation() not= 0
+            flags = flags + TEXTURE_TRANSFORM_FLAG
+        end
+        dataArray:Set(UV_OFFSET_X_INDEX, data:GetTextureOffsetX())
+        dataArray:Set(UV_OFFSET_Y_INDEX, data:GetTextureOffsetY())
+        dataArray:Set(UV_SCALE_X_INDEX, data:GetTextureScaleX())
+        dataArray:Set(UV_SCALE_Y_INDEX, data:GetTextureScaleY())
+        dataArray:Set(UV_ROTATION_INDEX, data:GetTextureRotation())
+
+        dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(flags))
         dataArray:Set(RESERVED_INDEX_1, utility:EncodeIntegerAsNumber(0))
         dataArray:Set(RESERVED_INDEX_2, utility:EncodeIntegerAsNumber(0))
+        dataArray:Set(RESERVED_INDEX_3, utility:EncodeIntegerAsNumber(0))
         
         VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
         mapping:Set(dataArray)
@@ -358,6 +464,33 @@ default material loading system, as part of the model load system).*/
         preloadTexture = undefined
         preloadNormalMap = undefined
         preloadRoughMap = undefined
+        preloadEmissiveMap = undefined
+        preloadOcclusionMap = undefined
+    end
+
+    /*
+    This action keeps a color part between 0 and 1, as a packed color holds.
+
+    Attribute: Parameter value The part.
+    Attribute: Returns The part, from 0 to 1.
+    */
+    private action Clamp(number value) returns number
+        if value < 0
+            return 0
+        elseif value > 1
+            return 1
+        end
+        return value
+    end
+
+    /*
+    This action returns true if both sides of the material's faces are
+    drawn, as for leaves and cards (Lighting plan L4).
+
+    Attribute: Returns True for two-sided.
+    */
+    action IsTwoSided returns boolean
+        return twoSided
     end
     
     action IsPreloaded returns boolean

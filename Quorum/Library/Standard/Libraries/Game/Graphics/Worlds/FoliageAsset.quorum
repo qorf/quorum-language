@@ -1,0 +1,517 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+
+/*
+A FoliageAsset is one kind of plant or object that can be scattered over a
+terrain, such as a pine, a rock or a tuft of grass (Terrain plan F1). It
+names the model to draw, or a picture for a flat card, and says how copies of
+it are placed: how many per square unit, how much their size, turn and shade
+vary, and on what slopes they grow. A FoliageList holds the assets a terrain
+uses; TerrainFoliage holds where each copy stands.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+FoliageAsset pine
+pine:SetName("Pine")
+pine:SetModelPath("Models/Pine.glb")
+pine:SetDensity(0.02)
+pine:SetRandomScale(0.3)
+pine:SetMaximumSlope(35)
+*/
+class FoliageAsset
+    text name = ""
+
+    // The model to draw, relative to the foliage list's file, or "" for a
+    // card.
+    text modelPath = ""
+
+    // A card's picture, relative to the foliage list's file, and how many
+    // crossed quads it has, from 1 to 3. Used when there is no model.
+    text cardPicturePath = ""
+    integer cardPlanes = 2
+
+    // How far above or below the ground each copy stands, in world units.
+    number heightOffset = 0
+
+    // Each copy's size: the base scale, varied by up to this share either
+    // way (0.2 is 20% larger or smaller).
+    number baseScale = 1
+    number randomScale = 0.2
+
+    // True to turn each copy a random amount about the up axis.
+    boolean randomTurn = true
+
+    // How much each copy's shade varies, from 0 (all the same) to 1.
+    number shadeVariation = 0.1
+
+    // The slopes it grows on, in degrees from flat.
+    number minimumSlope = 0
+    number maximumSlope = 90
+
+    // How many copies per square unit the foliage brush places.
+    number density = 0.05
+
+    boolean castsShadows = true
+
+    // How far from the camera copies are drawn, in world units.
+    number drawDistance = 200
+
+    /*
+    This action returns the asset's name, such as "Pine".
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the asset's name.
+
+    Attribute: Parameter value The name.
+    */
+    action SetName(text value)
+        name = value
+    end
+
+    /*
+    This action returns the model's path, relative to the foliage list's
+    file, or "" for a card.
+
+    Attribute: Returns The path.
+    */
+    action GetModelPath returns text
+        return modelPath
+    end
+
+    /*
+    This action sets the model to draw, such as "Models/Pine.glb", relative
+    to the foliage list's file.
+
+    Attribute: Parameter path The path, or "" for a card.
+    */
+    action SetModelPath(text path)
+        modelPath = path
+    end
+
+    /*
+    This action returns true if the asset is drawn as a flat card instead of
+    a model.
+
+    Attribute: Returns True for a card.
+    */
+    action IsCard returns boolean
+        return modelPath = ""
+    end
+
+    /*
+    This action returns a card's picture, relative to the foliage list's
+    file.
+
+    Attribute: Returns The path.
+    */
+    action GetCardPicturePath returns text
+        return cardPicturePath
+    end
+
+    /*
+    This action sets a card's picture, a .png with transparent parts.
+
+    Attribute: Parameter path The path, relative to the foliage list's file.
+    */
+    action SetCardPicturePath(text path)
+        cardPicturePath = path
+    end
+
+    /*
+    This action returns how many crossed quads a card has.
+
+    Attribute: Returns From 1 to 3.
+    */
+    action GetCardPlanes returns integer
+        return cardPlanes
+    end
+
+    /*
+    This action sets how many crossed quads a card has.
+
+    Attribute: Parameter planes From 1 to 3.
+    */
+    action SetCardPlanes(integer planes)
+        if planes < 1 or planes > 3
+            alert("A card has from 1 to 3 planes, but was given " + planes + ".")
+        end
+        cardPlanes = planes
+    end
+
+    /*
+    This action returns how far above the ground each copy stands.
+
+    Attribute: Returns The offset, in world units; below 0 sinks it.
+    */
+    action GetHeightOffset returns number
+        return heightOffset
+    end
+
+    /*
+    This action sets how far above the ground each copy stands.
+
+    Attribute: Parameter offset The offset, in world units; below 0 sinks it.
+    */
+    action SetHeightOffset(number offset)
+        heightOffset = offset
+    end
+
+    /*
+    This action returns each copy's base scale.
+
+    Attribute: Returns The scale.
+    */
+    action GetBaseScale returns number
+        return baseScale
+    end
+
+    /*
+    This action sets each copy's base scale.
+
+    Attribute: Parameter scale The scale, more than 0.
+    */
+    action SetBaseScale(number scale)
+        if scale <= 0
+            alert("A foliage asset's scale must be more than 0, but was given " + scale + ".")
+        end
+        baseScale = scale
+    end
+
+    /*
+    This action returns how much each copy's size varies.
+
+    Attribute: Returns The share either way, from 0 to 1.
+    */
+    action GetRandomScale returns number
+        return randomScale
+    end
+
+    /*
+    This action sets how much each copy's size varies, as a share of the
+    base scale either way.
+
+    Attribute: Parameter share From 0 (all the same) to 1.
+    */
+    action SetRandomScale(number share)
+        if share < 0 or share > 1
+            alert("A foliage asset's random scale is from 0 to 1, but was given " + share + ".")
+        end
+        randomScale = share
+    end
+
+    /*
+    This action returns true if each copy is turned a random amount.
+
+    Attribute: Returns True for random turns.
+    */
+    action HasRandomTurn returns boolean
+        return randomTurn
+    end
+
+    /*
+    This action sets whether each copy is turned a random amount about the
+    up axis.
+
+    Attribute: Parameter value True for random turns.
+    */
+    action SetRandomTurn(boolean value)
+        randomTurn = value
+    end
+
+    /*
+    This action returns how much each copy's shade varies.
+
+    Attribute: Returns From 0 to 1.
+    */
+    action GetShadeVariation returns number
+        return shadeVariation
+    end
+
+    /*
+    This action sets how much each copy's shade varies.
+
+    Attribute: Parameter variation From 0 (all the same) to 1.
+    */
+    action SetShadeVariation(number variation)
+        if variation < 0 or variation > 1
+            alert("A foliage asset's shade variation is from 0 to 1, but was given " + variation + ".")
+        end
+        shadeVariation = variation
+    end
+
+    /*
+    This action returns the least slope it grows on.
+
+    Attribute: Returns Degrees from flat.
+    */
+    action GetMinimumSlope returns number
+        return minimumSlope
+    end
+
+    /*
+    This action sets the least slope it grows on.
+
+    Attribute: Parameter degrees From 0 to 90.
+    */
+    action SetMinimumSlope(number degrees)
+        minimumSlope = degrees
+    end
+
+    /*
+    This action returns the steepest slope it grows on.
+
+    Attribute: Returns Degrees from flat.
+    */
+    action GetMaximumSlope returns number
+        return maximumSlope
+    end
+
+    /*
+    This action sets the steepest slope it grows on.
+
+    Attribute: Parameter degrees From 0 to 90.
+    */
+    action SetMaximumSlope(number degrees)
+        maximumSlope = degrees
+    end
+
+    /*
+    This action returns true if a slope is in the range this asset grows on.
+
+    Attribute: Parameter degrees The slope, in degrees from flat.
+    Attribute: Returns True if it can grow there.
+    */
+    action GrowsOnSlope(number degrees) returns boolean
+        return degrees >= minimumSlope and degrees <= maximumSlope
+    end
+
+    /*
+    This action returns how many copies per square unit the foliage brush
+    places.
+
+    Attribute: Returns The density.
+    */
+    action GetDensity returns number
+        return density
+    end
+
+    /*
+    This action sets how many copies per square unit the foliage brush
+    places, such as 0.02 for trees or 2 for grass.
+
+    Attribute: Parameter value The density, more than 0.
+    */
+    action SetDensity(number value)
+        if value <= 0
+            alert("A foliage asset's density must be more than 0, but was given " + value + ".")
+        end
+        density = value
+    end
+
+    /*
+    This action returns true if copies cast shadows.
+
+    Attribute: Returns True for shadows.
+    */
+    action CastsShadows returns boolean
+        return castsShadows
+    end
+
+    /*
+    This action sets whether copies cast shadows. Grass usually doesn't.
+
+    Attribute: Parameter value True for shadows.
+    */
+    action SetCastsShadows(boolean value)
+        castsShadows = value
+    end
+
+    /*
+    This action returns how far from the camera copies are drawn.
+
+    Attribute: Returns The distance, in world units.
+    */
+    action GetDrawDistance returns number
+        return drawDistance
+    end
+
+    /*
+    This action sets how far from the camera copies are drawn.
+
+    Attribute: Parameter distance The distance, in world units, more than 0.
+    */
+    action SetDrawDistance(number distance)
+        if distance <= 0
+            alert("A foliage asset's draw distance must be more than 0, but was given " + distance + ".")
+        end
+        drawDistance = distance
+    end
+
+    /*
+    This action returns a copy of the asset.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns FoliageAsset
+        FoliageAsset copy
+        copy:CopyFrom(me)
+        return copy
+    end
+
+    /*
+    This action makes this asset the same as another.
+
+    Attribute: Parameter other The asset to copy.
+    */
+    action CopyFrom(FoliageAsset other)
+        name = other:GetName()
+        modelPath = other:GetModelPath()
+        cardPicturePath = other:GetCardPicturePath()
+        cardPlanes = other:GetCardPlanes()
+        heightOffset = other:GetHeightOffset()
+        baseScale = other:GetBaseScale()
+        randomScale = other:GetRandomScale()
+        randomTurn = other:HasRandomTurn()
+        shadeVariation = other:GetShadeVariation()
+        minimumSlope = other:GetMinimumSlope()
+        maximumSlope = other:GetMaximumSlope()
+        density = other:GetDensity()
+        castsShadows = other:CastsShadows()
+        drawDistance = other:GetDrawDistance()
+    end
+
+    /*
+    This action writes the asset as one entry of a foliage list file.
+
+    Attribute: Returns The entry.
+    */
+    action ToJavaScriptObjectNotation returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:Add("Name", name)
+        if modelPath not= ""
+            json:Add("Model", modelPath)
+        else
+            json:Add("Card Picture", cardPicturePath)
+            json:Add("Card Planes", cardPlanes)
+        end
+        json:Add("Height Offset", heightOffset)
+        json:Add("Scale", baseScale)
+        json:Add("Random Scale", randomScale)
+        json:Add("Random Turn", randomTurn)
+        json:Add("Shade Variation", shadeVariation)
+        json:Add("Minimum Slope", minimumSlope)
+        json:Add("Maximum Slope", maximumSlope)
+        json:Add("Density", density)
+        json:Add("Casts Shadows", castsShadows)
+        json:Add("Draw Distance", drawDistance)
+        return json
+    end
+
+    /*
+    This action reads the asset from one entry of a foliage list file.
+    Values the entry doesn't have keep their defaults.
+
+    Attribute: Parameter json The entry.
+    */
+    action FromJavaScriptObjectNotation(JavaScriptObjectNotation json)
+        if json:HasValue("Name")
+            name = json:GetValue("Name")
+        end
+        if json:HasValue("Model")
+            modelPath = json:GetValue("Model")
+        end
+        if json:HasValue("Card Picture")
+            cardPicturePath = json:GetValue("Card Picture")
+        end
+        if HasNumber(json, "Card Planes")
+            cardPlanes = cast(integer, ReadNumber(json, "Card Planes"))
+        end
+        if HasNumber(json, "Height Offset")
+            heightOffset = ReadNumber(json, "Height Offset")
+        end
+        if HasNumber(json, "Scale")
+            baseScale = ReadNumber(json, "Scale")
+        end
+        if HasNumber(json, "Random Scale")
+            randomScale = ReadNumber(json, "Random Scale")
+        end
+        if HasBoolean(json, "Random Turn")
+            randomTurn = json:GetBoolean("Random Turn")
+        end
+        if HasNumber(json, "Shade Variation")
+            shadeVariation = ReadNumber(json, "Shade Variation")
+        end
+        if HasNumber(json, "Minimum Slope")
+            minimumSlope = ReadNumber(json, "Minimum Slope")
+        end
+        if HasNumber(json, "Maximum Slope")
+            maximumSlope = ReadNumber(json, "Maximum Slope")
+        end
+        if HasNumber(json, "Density")
+            density = ReadNumber(json, "Density")
+        end
+        if HasBoolean(json, "Casts Shadows")
+            castsShadows = json:GetBoolean("Casts Shadows")
+        end
+        if HasNumber(json, "Draw Distance")
+            drawDistance = ReadNumber(json, "Draw Distance")
+        end
+    end
+
+    /*
+    This action returns true if an entry has a number under a key, written
+    as a whole number or with a decimal point.
+    */
+    private action HasNumber(JavaScriptObjectNotation json, text key) returns boolean
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key and (child:IsInteger() or child:IsNumber())
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
+    This action returns a number from an entry, whether it was written as a
+    whole number or with a decimal point.
+    */
+    private action ReadNumber(JavaScriptObjectNotation json, text key) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return 0
+    end
+
+    /*
+    This action returns true if an entry has a true or false under a key.
+    */
+    private action HasBoolean(JavaScriptObjectNotation json, text key) returns boolean
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key and child:IsBoolean()
+                return true
+            end
+        end
+        return false
+    end
+end

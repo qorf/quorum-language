@@ -105,6 +105,17 @@ use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
 use Libraries.Game.InputMonitor
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Undo.SceneEditorTerrainEdit
+use Libraries.Interface.Undo.SceneEditorFoliageEdit
+use Libraries.Interface.Undo.SceneEditorWaterEdit
+use Libraries.Game.Graphics.Worlds.TerrainWater
+use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.WaterShaderProgram
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainWaterPropertiesDialog
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Game.Graphics.Worlds.FoliageList
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+use Libraries.Game.Graphics.Worlds.TerrainFoliage
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainFoliagePropertiesDialog
 use Libraries.Interface.Undo.SceneEditorTerrainMaterialEdit
 use Libraries.Interface.Undo.SceneEditorMaterialEdit
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainMaterialsPropertiesDialog
@@ -221,6 +232,10 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainPhysicsPropertiesDialog terrainPhysicsPropertiesDialog
     TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
     TerrainMaterialsPropertiesDialog terrainMaterialsPropertiesDialog
+    // A terrain's Foliage section (Terrain plan F3), after its Materials.
+    TerrainFoliagePropertiesDialog terrainFoliagePropertiesDialog
+    // A terrain's Water section (Water plan W6), after its Foliage.
+    TerrainWaterPropertiesDialog terrainWaterPropertiesDialog
     TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
     // The Stamp tool's settings, shown only while it is chosen (step 17).
     TerrainStampPropertiesDialog terrainStampPropertiesDialog
@@ -293,6 +308,26 @@ class SceneEditor is Control, DefaultSceneManager
     integer strokeKey = 0
     InputMonitor strokeMonitor
     MouseEvent mouseButtons
+
+    // A stroke with the Foliage tool (Terrain plan F3), going while
+    // foliageStroking is true. It is a stroke like the others for the keys
+    // and buttons that start and end it.
+    FoliageStroke foliageStroke = undefined
+    boolean foliageStroking = false
+
+    // A stroke with the Paint water tool (Water plan W6): the lake it
+    // paints into, whether it adds or erases, the water as it was before
+    // it, for undo, and where it last painted.
+    boolean waterStroking = false
+    TerrainLake waterStrokeLake = undefined
+    boolean waterStrokeAdds = true
+    WaterState waterStrokeBefore = undefined
+    integer waterStrokeCells = 0
+    number waterStrokeX = 0
+    number waterStrokeZ = 0
+    boolean waterStrokeDabbed = false
+    boolean waterStrokeMadeLake = false
+    KeyboardEvent modifierKeys
 
     // How much each strength key strengthens or weakens the brush, and its
     // limits.
@@ -551,12 +586,15 @@ class SceneEditor is Control, DefaultSceneManager
         end
 
         // A terrain's sections, after the built-in dialogs (step 5): its
-        // facts, its materials (step 9), its brush (step 7), the Stamp
+        // facts, its materials (step 9), its foliage (Terrain plan F3), its
+        // water (Water plan W6), its brush (step 7), the Stamp
         // tool's settings (step 17), its generate tools (step 10) and its
         // physics. The panel shows them in this order.
         if firstPanel
             AddPropertiesDialog(terrainPropertiesDialog)
             AddPropertiesDialog(terrainMaterialsPropertiesDialog)
+            AddPropertiesDialog(terrainFoliagePropertiesDialog)
+            AddPropertiesDialog(terrainWaterPropertiesDialog)
             AddPropertiesDialog(terrainBrushPropertiesDialog)
             AddPropertiesDialog(terrainStampPropertiesDialog)
             AddPropertiesDialog(terrainGeneratePropertiesDialog)
@@ -1483,14 +1521,14 @@ action Update(number seconds)
     /*
     This action chooses a terrain's tool, by its number (1 raise, 2 lower,
     3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
-    9 remove region, 10 stamp, 11 erode, 12 auto paint), or 0 to leave the
-    tool (step 7). With a tool chosen, a
+    9 remove region, 10 stamp, 11 erode, 12 auto paint, 13 foliage), or 0
+    to leave the tool (step 7). With a tool chosen, a
     ring shows the brush on the ground; the arrow keys and the pointer move
     it, and the size keys size it. A stroke going on is finished first. It is
     announced, and the Brush section of the Properties panel follows.
 
     Attribute: Parameter terrain The terrain
-    Attribute: Parameter tool The tool's number, from 0 to 12
+    Attribute: Parameter tool The tool's number, from 0 to 13
     */
     action SetTerrainTool(EditorTerrain terrain, integer tool)
         if terrain = undefined
@@ -2172,6 +2210,14 @@ action Update(number seconds)
         if tool >= 10 and tool <= 12
             return true
         end
+        // The Fill water and Paint water tools (Water plan W6).
+        if terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:PAINT_WATER_TOOL)
+            return true
+        end
+        // The Foliage tool needs an asset to paint (Terrain plan F3).
+        if terrain not= undefined and tool = terrain:FOLIAGE_TOOL
+            return terrain:GetFoliageAssetCount() > 0
+        end
         // Paint and blend paint need two materials to paint between.
         return (tool = 6 or tool = 7) and terrain not= undefined and terrain:GetLayerCount() >= 2
     end
@@ -2195,6 +2241,10 @@ action Update(number seconds)
         integer tool = terrain:GetToolNumber()
         if (tool = 6 or tool = 7) and terrain:GetLayerCount() < 2
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " needs two or more materials. Add them in the Materials section.")
+            return now
+        end
+        if tool = terrain:FOLIAGE_TOOL and terrain:GetFoliageAssetCount() = 0
+            NotifyAccessibility(terrain, "The Foliage tool needs a foliage asset. Add one in the Foliage section.")
             return now
         end
         if not CanStrokeWithTool(terrain, tool)
@@ -2224,6 +2274,28 @@ action Update(number seconds)
             // These aren't strokes: each click (or Space) does it once at
             // the brush, as one undoable change.
             UseOperationTool(terrain, tool)
+            return now
+        end
+        if tool = terrain:FILL_WATER_TOOL
+            // Not a stroke: each click (or Space) pours water at the brush,
+            // as one undoable change (Water plan W6).
+            FillTerrainWater(terrain, terrain:GetBrushX(), terrain:GetBrushZ())
+            return now
+        end
+        if tool = terrain:PAINT_WATER_TOOL
+            if BeginWaterStroke(terrain)
+                stroking = true
+                strokeByMouse = byMouse
+                strokeKey = key
+            end
+            return now
+        end
+        if tool = terrain:FOLIAGE_TOOL
+            BeginFoliageStroke(terrain)
+            paintShownSeconds = 0
+            stroking = true
+            strokeByMouse = byMouse
+            strokeKey = key
             return now
         end
         terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
@@ -2280,8 +2352,33 @@ action Update(number seconds)
             return now
         end
         if brushTerrain = undefined
-            terrainStroke:Cancel()
+            if foliageStroking
+                foliageStroking = false
+                boolean anything = foliageStroke:End()
+                foliageStroke:Undo()
+            elseif waterStroking
+                // The terrain the water was painted on is gone; there is
+                // nothing to put back.
+                waterStroking = false
+            else
+                terrainStroke:Cancel()
+            end
             stroking = false
+            return now
+        end
+        if waterStroking
+            ApplyWaterStroke(brushTerrain)
+            return now
+        end
+        if foliageStroking
+            // The Foliage tool adds or removes copies under the brush
+            // (Terrain plan F3); the ground doesn't change.
+            if brushTerrain:IsBrushOnGround()
+                number radius = brushTerrain:GetBrush():GetSize()
+                if foliageStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), radius, brushTerrain:GetFoliageDensityScale())
+                    brushTerrain:RefreshFoliage(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), radius)
+                end
+            end
             return now
         end
         if brushTerrain:IsBrushOnGround()
@@ -2310,6 +2407,751 @@ action Update(number seconds)
     end
 
     /*
+    This action starts a Foliage tool stroke (Terrain plan F3): it adds
+    copies of the chosen foliage asset, or with Ctrl held removes them, or
+    with Ctrl and Shift held removes every asset's copies under the brush.
+    */
+    private action BeginFoliageStroke(EditorTerrain terrain)
+        if terrain:GetFoliageAsset() < 0 or terrain:GetFoliageAsset() >= terrain:GetFoliageAssetCount()
+            terrain:SetFoliageAsset(0)
+        end
+        boolean control = strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_LEFT) or strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_RIGHT)
+        boolean shift = strokeMonitor:IsKeyPressed(modifierKeys:SHIFT_LEFT) or strokeMonitor:IsKeyPressed(modifierKeys:SHIFT_RIGHT)
+        FoliageStroke stroke
+        integer mode = stroke:ADD_COPIES
+        if control and shift
+            mode = stroke:REMOVE_ALL
+        elseif control
+            mode = stroke:REMOVE_ASSET
+        end
+        stroke:Begin(terrain:GetTerrainFoliage(), terrain:GetFoliageList(), terrain:GetFoliageAsset(), mode)
+        foliageStroke = stroke
+        foliageStroking = true
+    end
+
+    /*
+    This action finishes a Foliage tool stroke: it goes into the undo list,
+    the terrain is marked changed for the next save, and what it added or
+    removed is announced.
+    */
+    private action EndFoliageStroke
+        foliageStroking = false
+        boolean anything = foliageStroke:End()
+        if brushTerrain = undefined
+            return now
+        end
+        if not anything
+            NotifyAccessibility(brushTerrain, "Nothing changed")
+            return now
+        end
+        text name = ""
+        text message = ""
+        if foliageStroke:GetMode() = foliageStroke:ADD_COPIES
+            name = "add " + foliageStroke:GetAssetName()
+            message = "Added " + foliageStroke:GetAddedCount() + " " + foliageStroke:GetAssetName() + "."
+        else
+            name = "remove " + foliageStroke:GetAssetName()
+            message = "Removed " + foliageStroke:GetRemovedCount() + " " + foliageStroke:GetAssetName() + "."
+        end
+        SceneEditorFoliageEdit edit
+        edit:Create(me, brushTerrain, foliageStroke, name)
+        editManager:Add(edit)
+        brushTerrain:SetChanged(true)
+        if terrainFoliagePropertiesDialog:IsShowing()
+            terrainFoliagePropertiesDialog:Refresh()
+        end
+        NotifyAccessibility(brushTerrain, message + " Under the brush: " + brushTerrain:DescribeFoliageUnderBrush() + ".")
+    end
+
+    /*
+    This action draws the foliage a stroke touched again.
+    */
+    private action RefreshFoliageStrokeArea(EditorTerrain terrain, FoliageStroke stroke)
+        terrain:RefreshFoliage(stroke:GetAreaMiddleX(), stroke:GetAreaMiddleZ(), stroke:GetAreaRadius())
+    end
+
+    /*
+    This action is called after a Foliage tool stroke is undone or redone
+    (Terrain plan F3): the foliage there is drawn again, the terrain is
+    marked changed for the next save, and what happened is announced.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter stroke The stroke undone or redone
+    Attribute: Parameter message What happened, such as "Undid add Pine"
+    */
+    action FoliageEdited(EditorTerrain terrain, FoliageStroke stroke, text message)
+        if terrain = undefined
+            return now
+        end
+        if stroking
+            CancelTerrainStroke()
+        end
+        RefreshFoliageStrokeArea(terrain, stroke)
+        terrain:SetChanged(true)
+        if terrainFoliagePropertiesDialog:IsShowing()
+            terrainFoliagePropertiesDialog:Refresh()
+        end
+        NotifyAccessibility(terrain, message)
+    end
+
+    /*
+    This action places a lake on a terrain (Water plan W6): a square of
+    water, as wide as given, with its surface 1 unit above the ground at its
+    middle. The Lake tool calls it with the brush's place and width, and the
+    Water section's "Add lake" with the brush or the terrain's middle. It
+    can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter x The lake's middle along x
+    Attribute: Parameter z The lake's middle along z
+    Attribute: Parameter size How wide the lake is along x and z
+    */
+    action PlaceTerrainLake(EditorTerrain terrain, number x, number z, number size)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if not data:HasHeight(x, z)
+            NotifyAccessibility(terrain, "A lake needs ground under its middle.")
+            return now
+        end
+        if size < 1
+            size = 1
+        end
+        WaterState before
+        before:Copy(terrain)
+        number level = RoundTenth(data:GetSurfaceHeight(x, z) + 1)
+        TerrainWater water = terrain:GetWater()
+        TerrainLake lake = water:AddLake(RoundTenth(x), RoundTenth(z), RoundTenth(size), RoundTenth(size), level)
+        lake:SetName("Lake " + water:GetLakeCount())
+        terrain:WaterChanged()
+        RecordWaterChange(terrain, before, "add " + lake:GetName(), "Placed " + lake:GetName() + ", " + RoundTenth(size) + " units wide, water at height " + level + ".")
+    end
+
+    /*
+    This action pours water at a place on a terrain (Water plan W6), with
+    the Fill water tool: the water's level is the ground's height there plus
+    the terrain's water depth, and it fills the hollow it is poured in, as
+    far as the ground lower than the level reaches. Poured into a lake of
+    water cells, that lake is filled again at the new level. It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter x Where the water is poured, along x
+    Attribute: Parameter z Where the water is poured, along z
+    */
+    action FillTerrainWater(EditorTerrain terrain, number x, number z)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if not data:HasHeight(x, z)
+            NotifyAccessibility(terrain, "There is no ground there to pour water on.")
+            return now
+        end
+        WaterState before
+        before:Copy(terrain)
+        TerrainWater water = terrain:GetWater()
+        number level = RoundTenth(data:GetSurfaceHeight(x, z) + terrain:GetWaterDepth())
+        TerrainLake existing = water:GetMaskedLakeAt(x, z)
+        text oldName = ""
+        if existing not= undefined
+            oldName = existing:GetName()
+        end
+        TerrainLake lake = water:FillLake(x, z, level)
+        if lake = undefined
+            NotifyAccessibility(terrain, "The ground here is above that level, so nothing filled.")
+            return now
+        end
+        if lake:GetName() = ""
+            if oldName not= ""
+                lake:SetName(oldName)
+            else
+                lake:SetName("Lake " + water:GetLakeCount())
+            end
+        end
+        terrain:WaterChanged()
+        RecordWaterChange(terrain, before, "fill " + lake:GetName(), "Filled the hollow: water at " + level + ", " +
+            lake:GetWaterCellCount() + " cells, about " + RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + ".")
+    end
+
+    /*
+    This action starts a Paint water stroke (Water plan W6). It paints into
+    the lake under the brush, or a new lake of water cells whose level is
+    the ground's height under the brush plus the terrain's water depth. With
+    Ctrl held, it erases the water of the lake under the brush instead, and
+    does nothing where there is none.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Returns True if a stroke started
+    */
+    private action BeginWaterStroke(EditorTerrain terrain) returns boolean
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so its water can't be changed.")
+            return false
+        end
+        boolean control = strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_LEFT) or strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_RIGHT)
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        TerrainWater water = terrain:GetWater()
+        TerrainLake lake = water:GetLakeAt(x, z)
+        if control and lake = undefined
+            NotifyAccessibility(terrain, "There is no water under the brush to erase.")
+            return false
+        end
+        WaterState before
+        before:Copy(terrain)
+        waterStrokeBefore = before
+        waterStrokeAdds = not control
+        waterStrokeMadeLake = (lake = undefined)
+        if lake = undefined
+            // New painted water follows the ground, the water depth above
+            // it, so it never floats where the ground falls away.
+            lake = water:AddPaintedLake(terrain:GetWaterDepth())
+            lake:SetName("Lake " + water:GetLakeCount())
+        end
+        waterStrokeLake = lake
+        waterStrokeCells = 0
+        waterStrokeDabbed = false
+        waterStroking = true
+        ApplyWaterStroke(terrain)
+        return true
+    end
+
+    /*
+    This action paints or erases water under the brush during a Paint water
+    stroke, once the brush has moved a quarter of its size since the last
+    time.
+    */
+    private action ApplyWaterStroke(EditorTerrain terrain)
+        if not terrain:IsBrushOnGround()
+            return now
+        end
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        number radius = terrain:GetBrush():GetSize()
+        if waterStrokeDabbed
+            number movedX = x - waterStrokeX
+            number movedZ = z - waterStrokeZ
+            number step = radius / 4
+            if movedX * movedX + movedZ * movedZ < step * step
+                return now
+            end
+        end
+        waterStrokeDabbed = true
+        waterStrokeX = x
+        waterStrokeZ = z
+        integer changed = terrain:GetWater():PaintLake(waterStrokeLake, x, z, radius, waterStrokeAdds)
+        waterStrokeCells = waterStrokeCells + changed
+    end
+
+    /*
+    This action finishes a Paint water stroke: a lake left with no water is
+    removed, the change goes into the undo list, and what changed is
+    announced.
+    */
+    private action EndWaterStroke
+        waterStroking = false
+        if brushTerrain = undefined
+            return now
+        end
+        text name = waterStrokeLake:GetName()
+        if waterStrokeCells = 0
+            // A lake made for this stroke, which got no water, goes again.
+            if waterStrokeMadeLake
+                waterStrokeBefore:TakeOutLake(brushTerrain, waterStrokeLake)
+                brushTerrain:WaterChanged()
+            end
+            NotifyAccessibility(brushTerrain, "Nothing changed")
+            return now
+        end
+        boolean emptied = waterStrokeLake:IsMasked() and waterStrokeLake:GetWaterCellCount() = 0
+        if emptied
+            waterStrokeBefore:TakeOutLake(brushTerrain, waterStrokeLake)
+            brushTerrain:WaterChanged()
+        end
+        text message = ""
+        if emptied
+            message = "Erased all of " + name + ", so it was removed."
+        elseif waterStrokeAdds
+            message = "Painted water into " + name + ": " + waterStrokeLake:GetWaterCellCount() + " cells, water at " + waterStrokeLake:GetLevel() + "."
+        else
+            message = "Erased water from " + name + ": " + waterStrokeLake:GetWaterCellCount() + " cells left."
+        end
+        text changeName = "paint water"
+        if not waterStrokeAdds
+            changeName = "erase water"
+        end
+        RecordWaterChange(brushTerrain, waterStrokeBefore, changeName, message)
+    end
+
+    /*
+    This action shows the Water section again, if it is showing.
+    */
+    private action RefreshWaterSection
+        if terrainWaterPropertiesDialog:IsShowing()
+            terrainWaterPropertiesDialog:Refresh()
+        end
+    end
+
+    /*
+    This action turns a terrain's sea on at a level, or off (Water plan W6).
+    It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter wanted True for a sea
+    Attribute: Parameter level The sea's level
+    */
+    action SetTerrainSea(EditorTerrain terrain, boolean wanted, number level)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        boolean sameSea = (wanted = water:HasSea())
+        if sameSea and (not wanted or level = water:GetSeaLevel())
+            return now
+        end
+        WaterState before
+        before:Copy(terrain)
+        if wanted
+            water:SetSeaLevel(level)
+        else
+            water:RemoveSea()
+        end
+        terrain:WaterChanged()
+        if wanted
+            RecordWaterChange(terrain, before, "sea level", "Sea at height " + level + ".")
+        else
+            RecordWaterChange(terrain, before, "remove sea", "No sea.")
+        end
+    end
+
+    /*
+    This action changes one of a terrain's lakes: its place, size, level
+    and name (Water plan W6). It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter index The lake, from 0
+    Attribute: Parameter x Its middle along x
+    Attribute: Parameter z Its middle along z
+    Attribute: Parameter width Its size along x
+    Attribute: Parameter depth Its size along z
+    Attribute: Parameter level The water's height
+    Attribute: Parameter name Its name
+    */
+    action SetTerrainLake(EditorTerrain terrain, integer index, number x, number z, number width, number depth, number level, text name)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if index < 0 or index >= water:GetLakeCount() or width <= 0 or depth <= 0
+            return now
+        end
+        TerrainLake lake = water:GetLake(index)
+        WaterState before
+        before:Copy(terrain)
+        water:SetLake(lake, x, z, width, depth, level)
+        lake:SetName(name)
+        terrain:WaterChanged()
+        RecordWaterChange(terrain, before, "change " + name, name + ": water at height " + level + ", " + width + " by " + depth + " units, middle " + x + ", " + z + ".")
+    end
+
+    /*
+    This action removes one of a terrain's lakes (Water plan W6). It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter index The lake, from 0
+    */
+    action RemoveTerrainLake(EditorTerrain terrain, integer index)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if index < 0 or index >= water:GetLakeCount()
+            return now
+        end
+        WaterState before
+        before:Copy(terrain)
+        TerrainLake lake = water:GetLake(index)
+        text name = lake:GetName()
+        before:TakeOutLake(terrain, lake)
+        terrain:WaterChanged()
+        RecordWaterChange(terrain, before, "remove " + name, "Removed " + name + ".")
+    end
+
+    /*
+    This action changes one number of a terrain's water look (Water plan
+    W6): the shallow or deep color's red, green, blue or alpha, from 0 to 1,
+    or the clarity, shore fade, ripple size, ripple speed, roughness or
+    ripple strength. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter kind Which number: 0 to 3 the shallow color's parts, 4 to 7 the deep color's, then 8 clarity, 9 shore fade, 10 ripple size, 11 ripple speed, 12 roughness, 13 ripple strength
+    Attribute: Parameter value The new value
+    Attribute: Parameter label What the number is called, for speaking
+    */
+    action SetTerrainWaterLook(EditorTerrain terrain, integer kind, number value, text label)
+        if not CanChangeWater(terrain) or value < 0
+            return now
+        end
+        if kind < 8 and value > 1
+            return now
+        end
+        WaterShaderProgram program = terrain:GetWater():GetWaterProgram()
+        WaterState before
+        before:Copy(terrain)
+        if kind < 8
+            Color old = program:GetShallowColor()
+            if kind >= 4
+                old = program:GetDeepColor()
+            end
+            number red = old:GetRed()
+            number green = old:GetGreen()
+            number blue = old:GetBlue()
+            number alpha = old:GetAlpha()
+            integer part = kind mod 4
+            if part = 0
+                red = value
+            elseif part = 1
+                green = value
+            elseif part = 2
+                blue = value
+            else
+                alpha = value
+            end
+            Color made
+            made:SetColor(red, green, blue, alpha)
+            if kind >= 4
+                program:SetDeepColor(made)
+            else
+                program:SetShallowColor(made)
+            end
+        elseif kind = 8
+            program:SetClarity(value)
+        elseif kind = 9
+            program:SetShoreFade(value)
+        elseif kind = 10
+            program:SetWaveScale(value)
+        elseif kind = 11
+            program:SetWaveSpeed(value)
+        elseif kind = 12
+            program:SetRoughness(value)
+        elseif kind = 13
+            program:SetNormalStrength(value)
+        else
+            return now
+        end
+        terrain:WaterChanged()
+        RecordWaterChange(terrain, before, "water look", label + " " + value + ".")
+    end
+
+    /*
+    This action puts a water change in the undo list, if it changed
+    anything, and marks the terrain changed for the next save, which
+    writes its water.json.
+    */
+    private action RecordWaterChange(EditorTerrain terrain, WaterState before, text name, text message)
+        WaterState after
+        after:Copy(terrain)
+        if before:IsSameAs(after)
+            return now
+        end
+        SceneEditorWaterEdit edit
+        edit:Create(me, terrain, before, after, name)
+        editManager:Add(edit)
+        WaterEdited(terrain, message)
+    end
+
+    /*
+    This action is called after a terrain's water changed, or a change was
+    undone or redone (Water plan W6): the terrain is marked changed for the
+    next save, the Water section follows, and the message is announced.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action WaterEdited(EditorTerrain terrain, text message)
+        if terrain = undefined
+            return now
+        end
+        if stroking
+            CancelTerrainStroke()
+        end
+        terrain:SetChanged(true)
+        if terrainWaterPropertiesDialog:IsShowing()
+            terrainWaterPropertiesDialog:Refresh()
+        end
+        if message not= ""
+            NotifyAccessibility(terrain, message)
+        end
+    end
+
+    /*
+    This action returns true if a terrain's water can be changed.
+    */
+    private action CanChangeWater(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so its water can't be changed.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action adds a foliage asset to a terrain's foliage list (Terrain
+    plan F3): a model file (.glb, .gltf, .fbx or .obj) is drawn as itself,
+    and a picture (.png) as a card. A terrain with no foliage list is given
+    one first, in the project's Scenes/Foliage folder, named after the
+    terrain's folder. The asset is named after its file, and becomes the one
+    the Foliage tool paints. It can't be undone; Remove takes it out.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter chosen The model or picture file
+    */
+    action AddFoliageAsset(EditorTerrain terrain, File chosen)
+        if not CanChangeFoliage(terrain) or chosen = undefined or not chosen:Exists()
+            return now
+        end
+        FoliageList list = terrain:GetFoliageList()
+        if list = undefined
+            list = CreateFoliageList(terrain)
+            terrain:SetFoliageFile(GetProjectRelativePath(list:GetFile()))
+            terrain:SetFoliageList(list)
+        end
+        if list:GetAssetCount() >= list:MAXIMUM_ASSETS
+            NotifyAccessibility(terrain, "This foliage list has " + list:MAXIMUM_ASSETS + " assets, which is the most it can have.")
+            return now
+        end
+        text fileName = chosen:GetFileName()
+        text lower = fileName:ToLowerCase()
+        text name = fileName
+        integer dot = -1
+        integer found = fileName:IndexOf(".")
+        repeat while found >= 0
+            dot = found
+            found = fileName:IndexOf(".", found + 1)
+        end
+        if dot > 0
+            name = fileName:GetSubtext(0, dot)
+        end
+        Material paths
+        text listFolder = list:GetFile():GetParentDirectory():GetAbsolutePath()
+        text relative = paths:GetRelativePath(listFolder, chosen:GetAbsolutePath())
+        FoliageAsset asset
+        asset:SetName(name)
+        text kind = "model"
+        if lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg")
+            asset:SetCardPicturePath(relative)
+            // Grass and other cards usually cast no shadows.
+            asset:SetCastsShadows(false)
+            kind = "card"
+        else
+            asset:SetModelPath(relative)
+        end
+        integer assetNumber = list:AddAsset(asset)
+        terrain:SetFoliageAsset(assetNumber)
+        terrain:SetFoliageListChanged(true)
+        terrain:SetChanged(true)
+        terrain:FoliageChanged()
+        FoliageListEdited(terrain, "Added " + name + " as foliage asset " + (assetNumber + 1) + ", a " + kind + ". Paint it with the Foliage tool.")
+    end
+
+    /*
+    This action removes a foliage asset from a terrain's foliage list, and
+    every copy of it (Terrain plan F3). The assets after it move up one
+    place. It can't be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter asset The asset's number, from 0
+    */
+    action RemoveFoliageAsset(EditorTerrain terrain, integer asset)
+        if not CanChangeFoliage(terrain)
+            return now
+        end
+        FoliageList list = terrain:GetFoliageList()
+        if list = undefined or asset < 0 or asset >= list:GetAssetCount()
+            return now
+        end
+        text name = list:GetAsset(asset):GetName()
+        TerrainFoliage foliage = terrain:GetTerrainFoliage()
+        integer copies = foliage:GetCopyCount(asset)
+        foliage:RemoveAsset(asset)
+        list:RemoveAsset(asset)
+        if terrain:GetFoliageAsset() >= list:GetAssetCount() and list:GetAssetCount() > 0
+            terrain:SetFoliageAsset(list:GetAssetCount() - 1)
+        elseif terrain:GetFoliageAsset() > asset
+            terrain:SetFoliageAsset(terrain:GetFoliageAsset() - 1)
+        end
+        terrain:SetFoliageListChanged(true)
+        terrain:SetChanged(true)
+        terrain:FoliageChanged()
+        FoliageListEdited(terrain, "Removed " + name + " and its " + copies + " copies.")
+    end
+
+    /*
+    This action moves a foliage asset up or down one place in a terrain's
+    foliage list (Terrain plan F3). Every copy keeps its asset.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter asset The asset's number, from 0
+    Attribute: Parameter up True to move it up, false down
+    Attribute: Returns True if it moved
+    */
+    action MoveFoliageAsset(EditorTerrain terrain, integer asset, boolean up) returns boolean
+        if not CanChangeFoliage(terrain)
+            return false
+        end
+        FoliageList list = terrain:GetFoliageList()
+        if list = undefined
+            return false
+        end
+        integer target = asset + 1
+        if up
+            target = asset - 1
+        end
+        if asset < 0 or asset >= list:GetAssetCount() or target < 0 or target >= list:GetAssetCount()
+            return false
+        end
+        list:SwapAssets(asset, target)
+        terrain:GetTerrainFoliage():SwapAssets(asset, target)
+        if terrain:GetFoliageAsset() = asset
+            terrain:SetFoliageAsset(target)
+        elseif terrain:GetFoliageAsset() = target
+            terrain:SetFoliageAsset(asset)
+        end
+        terrain:SetFoliageListChanged(true)
+        terrain:SetChanged(true)
+        terrain:FoliageChanged()
+        text direction = "down"
+        if up
+            direction = "up"
+        end
+        FoliageListEdited(terrain, "Moved " + list:GetAsset(target):GetName() + " " + direction + " to place " + (target + 1) + ".")
+        return true
+    end
+
+    /*
+    This action chooses the foliage asset the Foliage tool paints (Terrain
+    plan F3).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter asset The asset's number, from 0
+    */
+    action ChooseFoliageAsset(EditorTerrain terrain, integer asset)
+        if terrain = undefined or asset < 0 or asset >= terrain:GetFoliageAssetCount()
+            return now
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        terrain:SetFoliageAsset(asset)
+        TerrainBrushChanged(terrain)
+        if terrainFoliagePropertiesDialog:IsShowing()
+            terrainFoliagePropertiesDialog:Refresh()
+        end
+        NotifyAccessibility(terrain, "The Foliage tool paints " + terrain:GetFoliageList():GetAsset(asset):GetName())
+    end
+
+    /*
+    This action is called after a foliage asset's settings were changed in
+    the Foliage section (Terrain plan F3): the list is marked changed for the
+    next save, and the foliage is drawn again with the new settings.
+
+    Attribute: Parameter terrain The terrain
+    */
+    action FoliageAssetSettingsChanged(EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        terrain:SetFoliageListChanged(true)
+        terrain:FoliageChanged()
+    end
+
+    /*
+    This action keeps the Foliage and Brush sections in step after a
+    terrain's foliage list changed, and announces what happened.
+    */
+    private action FoliageListEdited(EditorTerrain terrain, text message)
+        if terrainFoliagePropertiesDialog:IsShowing()
+            terrainFoliagePropertiesDialog:SetTerrain(terrain)
+        end
+        TerrainBrushChanged(terrain)
+        if message not= ""
+            NotifyAccessibility(terrain, message)
+        end
+    end
+
+    /*
+    This action returns true if a terrain's foliage can be changed.
+    */
+    private action CanChangeFoliage(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        if terrain:IsMissing()
+            NotifyAccessibility(terrain, "This terrain's files weren't found, so its foliage can't be changed.")
+            return false
+        end
+        if stroking
+            EndTerrainStroke()
+        end
+        return true
+    end
+
+    /*
+    This action makes a terrain's foliage list, with its file in the
+    project's Scenes/Foliage folder, named after the terrain's folder, such
+    as Scenes/Foliage/Terrain1.json (Terrain plan F3). The folder is made if
+    needed, and the empty list is written.
+    */
+    private action CreateFoliageList(EditorTerrain terrain) returns FoliageList
+        SceneProperties sceneProperties
+        text folderPath = sceneProperties:SCENES_FOLDER + "/Foliage"
+        File folder = ConvertToProjectFile(folderPath)
+        if not folder:Exists()
+            boolean made = folder:CreateDirectories()
+        end
+        text baseName = "Terrain"
+        text terrainPath = terrain:GetTerrainFile()
+        Array<text> parts = terrainPath:Split("/")
+        if parts:GetSize() >= 2
+            baseName = parts:Get(parts:GetSize() - 2)
+        end
+        text candidate = baseName
+        integer count = 2
+        File file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        repeat while file:Exists()
+            candidate = baseName + " " + count
+            count = count + 1
+            file = ConvertToProjectFile(folderPath + "/" + candidate + ".json")
+        end
+        FoliageList list
+        list:SetName(candidate)
+        list:Save(file)
+        return list
+    end
+
+    /*
+    This action returns a file's path as a scene names it: relative to the
+    project, with forward slashes.
+    */
+    private action GetProjectRelativePath(File file) returns text
+        if projectLocation = undefined
+            return file:GetPath()
+        end
+        Material paths
+        text relative = paths:GetRelativePath(projectLocation:GetAbsolutePath(), file:GetAbsolutePath())
+        return relative:Replace("\", "/")
+    end
+
+    /*
     This action finishes a stroke: it goes into the undo list, the terrain
     is marked changed for the next save, and what happened is announced.
     */
@@ -2318,6 +3160,14 @@ action Update(number seconds)
             return now
         end
         stroking = false
+        if foliageStroking
+            EndFoliageStroke()
+            return now
+        end
+        if waterStroking
+            EndWaterStroke()
+            return now
+        end
         TerrainStrokeEdit strokeEdit = terrainStroke:End()
         if brushTerrain = undefined
             return now
@@ -2386,6 +3236,27 @@ action Update(number seconds)
         if not stroking
             return false
         end
+        if foliageStroking
+            foliageStroking = false
+            stroking = false
+            boolean anything = foliageStroke:End()
+            foliageStroke:Undo()
+            if brushTerrain not= undefined
+                RefreshFoliageStrokeArea(brushTerrain, foliageStroke)
+                NotifyAccessibility(brushTerrain, "Stroke canceled")
+            end
+            return true
+        end
+        if waterStroking
+            waterStroking = false
+            stroking = false
+            if brushTerrain not= undefined
+                waterStrokeBefore:Apply(brushTerrain)
+                RefreshWaterSection()
+                NotifyAccessibility(brushTerrain, "Stroke canceled")
+            end
+            return true
+        end
         terrainStroke:Cancel()
         stroking = false
         if brushTerrain not= undefined
@@ -2413,6 +3284,14 @@ action Update(number seconds)
             // made again, and the selection's border fits the new size.
             terrain:RebuildRegionModels()
             RefreshTerrainHighlight(terrain)
+        end
+        // The foliage follows the ground (Terrain plan F4): under the brush
+        // during a stroke, and everywhere after anything else, such as an
+        // undo or a whole-terrain operation.
+        if stroking and terrain = brushTerrain
+            integer movedCells = terrain:FollowGround(terrain:GetBrushX(), terrain:GetBrushZ(), terrain:GetBrush():GetSize() + 1)
+        else
+            integer movedAll = terrain:FollowGround(0, 0, -1)
         end
         if terrain = brushTerrain
             // The ring follows the ground, so it is placed again.

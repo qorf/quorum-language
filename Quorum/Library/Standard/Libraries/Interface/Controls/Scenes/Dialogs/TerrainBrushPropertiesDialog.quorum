@@ -18,12 +18,15 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.FoliageList
+use Libraries.Interface.Controls.ToggleButton
 
 /*
     The TerrainBrushPropertiesDialog is a selected terrain's Brush section
     (step 7): which tool is chosen, then only what that tool uses (step 16):
     the paint layer for Paint; what Flatten evens the ground to, and its
-    height when it is a set height; and the Brush Settings (size, strength
+    height when it is a set height; the foliage asset for Foliage (Terrain
+    plan F3), with how to remove copies; and the Brush Settings (size, strength
     and falloff) for the tools that use them. Choosing a tool here does the
     same as its key: a ring shows the brush on the ground, and the arrow
     keys and pointer move it. "No tool" leaves the tool.
@@ -60,6 +63,21 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     Control strengthPart = undefined
     Control falloffPart = undefined
     Array<Control> partsShown
+
+    // The Foliage tool's part (Terrain plan F3): the asset it paints, one
+    // button per asset of the terrain's foliage list, made again when the
+    // list's names change, and a note on removing copies.
+    Control foliageLabelPart = undefined
+    Control foliagePart = undefined
+    ButtonGroup foliageGroup = undefined
+    Label foliageNote = undefined
+    Array<text> foliageNames
+
+    // The water tools' part (Water plan W6): how far above the ground under
+    // the brush the water's level goes.
+    Control waterLabelPart = undefined
+    Control waterPart = undefined
+    TextField waterDepthField = undefined
 
     // What the section's button does.
     public constant integer TAKE_HEIGHT = 0
@@ -126,6 +144,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddToolButton("Stamp")
         AddToolButton("Erode")
         AddToolButton("Auto paint")
+        // Paints foliage (EditorTerrain's FOLIAGE_TOOL, Terrain plan F3).
+        AddToolButton("Foliage")
+        // The water tools (EditorTerrain's FILL_WATER_TOOL and
+        // PAINT_WATER_TOOL, Water plan W6). Fill water uses only the water
+        // depth; Paint water uses it and the size.
+        AddToolButton("Fill water")
+        AddToolButton("Paint water")
         toolGroup:AddSelectionListener(me)
 
         toolLine:Add(toolGroup)
@@ -188,6 +213,48 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         takeHeightPart = takeLine
         focusArray:Add(takeButton)
 
+        // The Foliage tool's asset (Terrain plan F3): a title, then a card
+        // with a button per asset and a note on removing copies.
+        foliageLabelPart = MakeCardTitle("Foliage Asset")
+        panel:Add(foliageLabelPart)
+        Control foliageCard = MakeCard()
+        Control foliageLine = MakeCardLine()
+        ButtonGroup foliageChoices
+        foliageGroup = foliageChoices
+        foliageGroup:SetName("Foliage asset")
+        foliageGroup:SetDescription("The foliage asset the Foliage tool paints, from the Foliage section")
+        foliageGroup:SetHorizontalLayoutMode(foliageLine:FILL)
+        foliageGroup:SetVerticalLayoutMode(foliageLine:FIT_CONTENTS)
+        FlowLayout foliageLayout
+        foliageGroup:SetLayout(foliageLayout)
+        foliageGroup:AddSelectionListener(me)
+        foliageLine:Add(foliageGroup)
+        foliageCard:Add(foliageLine)
+        Control noteLine = MakeCardLine()
+        Label note
+        foliageNote = note
+        // One line, since a wrapped label draws outside its card.
+        foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
+        foliageNote:SetDescription("Hold Ctrl while painting to remove this asset's copies, or Ctrl and Shift to remove every asset's. Strength scales the asset's density.")
+        foliageNote:SetHorizontalLayoutMode(foliageNote:parent:Control:STANDARD)
+        foliageNote:SetPercentageWidth(1.0)
+        foliageNote:SetFocusable(true)
+        noteLine:Add(foliageNote)
+        foliageCard:Add(noteLine)
+        panel:Add(foliageCard)
+        foliagePart = foliageCard
+        focusArray:Add(foliageGroup)
+        focusArray:Add(foliageNote)
+
+        // The water tools' depth (Water plan W6), in a card titled Water.
+        waterLabelPart = MakeCardTitle("Water")
+        panel:Add(waterLabelPart)
+        Control waterCard = MakeCard()
+        panel:Add(waterCard)
+        waterPart = waterCard
+        waterDepthField = AddNumberField(waterCard, focusArray, "Water depth:", "Water depth")
+        waterDepthField:SetDescription("How far above the ground under the brush the water's level goes")
+
         // The ramp has no controls here: its ends are set with the Ramp
         // tool, by clicking or with the ramp point key (step 8).
 
@@ -212,6 +279,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         partsShown:Add(paintPart)
         partsShown:Add(flattenLabelPart)
         partsShown:Add(flattenPart)
+        partsShown:Add(foliageLabelPart)
+        partsShown:Add(foliagePart)
+        partsShown:Add(waterLabelPart)
+        partsShown:Add(waterPart)
         partsShown:Add(settingsLabelPart)
         partsShown:Add(settingsPart)
     end
@@ -234,9 +305,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         - Paint: the paint layer;
         - Flatten: what it flattens to, and the height when it is a set
           height;
+        - Foliage: the asset it paints, and how to remove copies;
         - the Brush Settings: the size for every tool but the region tools,
-          and the strength and falloff for raise, lower, smooth, flatten,
-          paint and blend paint.
+          the strength and falloff for raise, lower, smooth, flatten,
+          paint and blend paint, and the strength for foliage.
         No tool shows only the tool list.
     */
     private action ShowToolParts
@@ -246,8 +318,16 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             tool = terrain:GetToolNumber()
             flattensToStart = terrain:GetBrush():FlattensToStart()
         end
-        boolean usesSize = tool > 0 and tool not= 8 and tool not= 9
+        boolean waterTool = terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:PAINT_WATER_TOOL)
+        // Fill water fills the whole hollow, so it has no size.
+        boolean usesSize = tool > 0 and tool not= 8 and tool not= 9 and not (terrain not= undefined and tool = terrain:FILL_WATER_TOOL)
         boolean usesStrength = tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 6 or tool = 7
+        boolean usesFalloff = usesStrength
+        boolean foliageTool = terrain not= undefined and tool = terrain:FOLIAGE_TOOL
+        if foliageTool
+            // Strength scales the asset's density; there is no falloff.
+            usesStrength = true
+        end
 
         Array<Control> wanted
         Array<Control> chain
@@ -267,6 +347,19 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 chain:Add(takeButton)
             end
         end
+        if waterTool
+            wanted:Add(waterLabelPart)
+            wanted:Add(waterPart)
+            chain:Add(waterDepthField)
+        end
+        if foliageTool
+            wanted:Add(foliageLabelPart)
+            wanted:Add(foliagePart)
+            if foliageGroup:GetSize() > 0
+                chain:Add(foliageGroup)
+            end
+            chain:Add(foliageNote)
+        end
         // Inside their cards, the lines a tool doesn't use are hidden.
         ShowLine(flattenHeightPart, not flattensToStart)
         ShowLine(takeHeightPart, not flattensToStart)
@@ -277,10 +370,12 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         end
         if usesStrength
             chain:Add(strengthField)
+        end
+        if usesFalloff
             chain:Add(falloffField)
         end
         ShowLine(strengthPart, usesStrength)
-        ShowLine(falloffPart, usesStrength)
+        ShowLine(falloffPart, usesFalloff)
 
         boolean same = wanted:GetSize() = partsShown:GetSize()
         integer i = 0
@@ -453,6 +548,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 end
                 return now
             end
+            if choice:GetButtonGroup() = foliageGroup
+                integer asset = choice:GetIndex()
+                if asset >= 0 and asset not= terrain:GetFoliageAsset()
+                    GetSceneEditor():ChooseFoliageAsset(terrain, asset)
+                end
+                return now
+            end
             if choice:GetButtonGroup() = layerGroup
                 integer layer = choice:GetIndex()
                 if layer >= 0 and layer < 4 and layer not= terrain:GetBrush():GetLayer()
@@ -528,12 +630,76 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         else
             flattenGroup:GetButtonAt(1):SetToggleState(true)
         end
+        ShowFoliageAssets()
+        SetFieldText(waterDepthField, terrain:GetWaterDepth())
         SetFieldText(flattenHeightField, brush:GetTargetHeight())
         SetFieldText(sizeField, brush:GetSize())
         SetFieldText(strengthField, brush:GetStrength())
         SetFieldText(falloffField, brush:GetGamma())
         updating = false
         ShowToolParts()
+    end
+
+    /*
+        Shows a button for each of the terrain's foliage assets, the one the
+        Foliage tool paints chosen (Terrain plan F3). The buttons are made
+        again only when the assets' names changed.
+    */
+    private action ShowFoliageAssets
+        Array<text> names
+        FoliageList list = terrain:GetFoliageList()
+        if list not= undefined
+            integer i = 0
+            repeat while i < list:GetAssetCount()
+                names:Add(list:GetAsset(i):GetName())
+                i = i + 1
+            end
+        end
+        boolean same = names:GetSize() = foliageNames:GetSize()
+        integer index = 0
+        repeat while same and index < names:GetSize()
+            if names:Get(index) not= foliageNames:Get(index)
+                same = false
+            end
+            index = index + 1
+        end
+        if not same
+            Array<ToggleButton> old = foliageGroup:GetButtons()
+            Array<ToggleButton> copies
+            index = 0
+            repeat while index < old:GetSize()
+                copies:Add(old:Get(index))
+                index = index + 1
+            end
+            index = 0
+            repeat while index < copies:GetSize()
+                foliageGroup:RemoveFromGrouping(copies:Get(index))
+                index = index + 1
+            end
+            foliageGroup:Empty()
+            foliageNames:Empty()
+            index = 0
+            repeat while index < names:GetSize()
+                RadioButton button
+                button:SetName(names:Get(index))
+                foliageGroup:AddToGrouping(button)
+                AddHalfWidth(foliageGroup, button)
+                foliageNames:Add(names:Get(index))
+                index = index + 1
+            end
+        end
+        if names:IsEmpty()
+            foliageNote:SetText("No foliage assets yet.")
+            foliageNote:SetDescription("Add them in the Foliage section, then choose one here.")
+        else
+            // One line, since a wrapped label draws outside its card.
+            foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
+            foliageNote:SetDescription("Hold Ctrl while painting to remove this asset's copies, or Ctrl and Shift to remove every asset's. Strength scales the asset's density.")
+            integer chosen = terrain:GetFoliageAsset()
+            if chosen >= 0 and chosen < foliageGroup:GetSize()
+                foliageGroup:GetButtonAt(chosen):SetToggleState(true)
+            end
+        end
     end
 
     /*
@@ -581,6 +747,11 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 number value = strengthField:GetText():ParseNumber()
                 if value >= 0
                     brush:SetStrength(value)
+                end
+            elseif control:Equals(waterDepthField)
+                number value = waterDepthField:GetText():ParseNumber()
+                if value > 0
+                    terrain:SetWaterDepth(value)
                 end
             elseif control:Equals(falloffField)
                 number value = falloffField:GetText():ParseNumber()

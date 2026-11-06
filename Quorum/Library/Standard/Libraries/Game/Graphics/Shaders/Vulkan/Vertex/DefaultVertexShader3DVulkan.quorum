@@ -29,9 +29,16 @@ layout(location = 5) flat out uint v_textureOverrideIndex;
 layout(location = 6) out vec4 v_position;
 layout(location = 7) out mat3 v_tangentBitangentNormal;
 
+// The 3D camera uniform (Item 38). Only the matrix is used here; the rest
+// is for shaders that need time or the camera's position, such as water.
 layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
+    vec3 cameraPosition;
+    float time;
+    vec2 screenSize;
+    float nearPlane;
+    float farPlane;
 } camera;
 
 struct Vertex {

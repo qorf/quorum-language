@@ -2,6 +2,19 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 
 use Libraries.Game.Graphics.Shaders.Shader
 
+/*
+CopyFromSamplerFragmentShaderVulkan copies the 3D painter's lit image to
+the screen. On the way, it tone maps it (Lighting plan L2): the lit image
+can be brighter than white, and tone mapping fits it into the screen's
+range instead of clipping it. The exposure scales the light first. The
+painter sends both from the layer's EnvironmentVulkan as push constants.
+Alpha is copied as it is, so the sky still shows where nothing was drawn.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CopyFromSamplerFragmentShaderVulkan
+
+CopyFromSamplerFragmentShaderVulkan shader
+*/
 class CopyFromSamplerFragmentShaderVulkan is Shader
     
     public constant text DEFAULT_NAME = "Copy From Sampler Fragment Shader"
@@ -19,9 +32,44 @@ layout (location = 0) out vec4 outputColor;
 // The sampled image to copy out to the color attachment
 layout (set = 0, binding = 0) uniform sampler2D u_sampler;
 
+// How the light is fit to the screen: 0 none (clipped at white, as before),
+// 1 Reinhard, 2 ACES (filmic); and the exposure the light is scaled by.
+layout(push_constant) uniform ToneMapping {
+	float exposure;
+	float mode;
+} toneMapping;
+
+// Reinhard: gentle, never quite reaching white.
+vec3 reinhard(vec3 color)
+{
+	return color / (1.0 + color);
+}
+
+// Krzysztof Narkowicz's fit of the ACES filmic curve: a little more
+// contrast, and bright light rolls off to white.
+vec3 aces(vec3 color)
+{
+	const float a = 2.51;
+	const float b = 0.03;
+	const float c = 2.43;
+	const float d = 0.59;
+	const float e = 0.14;
+	return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
+}
+
 void main()
 {
-	outputColor = texture(u_sampler, v_samplerCoordinate);
+	vec4 lit = texture(u_sampler, v_samplerCoordinate);
+	vec3 color = max(lit.rgb * toneMapping.exposure, vec3(0.0));
+	if (toneMapping.mode > 1.5)
+	{
+		color = aces(color);
+	}
+	else if (toneMapping.mode > 0.5)
+	{
+		color = reinhard(color);
+	}
+	outputColor = vec4(color, lit.a);
 }
 ")
     end

@@ -1,0 +1,63 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.FoliageStroke
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+
+/*
+    The SceneEditorFoliageEdit is one stroke of a terrain's Foliage tool in
+    the scene editor's undo list (Terrain plan F3). It puts the copies the
+    stroke added or removed back or forward, then has the scene editor draw
+    the foliage there again, mark the terrain changed, and say what
+    happened.
+*/
+class SceneEditorFoliageEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    FoliageStroke stroke = undefined
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain the stroke changed
+        Attribute: Parameter stroke The finished stroke
+        Attribute: Parameter strokeName What the stroke did, such as "add Pine"
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, FoliageStroke stroke, text strokeName)
+        me:controller = controller
+        me:terrain = terrain
+        me:stroke = stroke
+        name = strokeName
+    end
+
+    action Undo
+        stroke:Undo()
+        controller:FoliageEdited(terrain, stroke, "Undid " + name)
+    end
+
+    action Redo
+        stroke:Redo()
+        controller:FoliageEdited(terrain, stroke, "Redid " + name)
+    end
+
+    action CanUndo returns boolean
+        return true
+    end
+
+    action CanRedo returns boolean
+        return true
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

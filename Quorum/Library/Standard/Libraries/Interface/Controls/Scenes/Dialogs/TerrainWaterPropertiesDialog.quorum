@@ -1,0 +1,647 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Color
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TerrainWaterFieldListener
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainWaterButtonBehavior
+use Libraries.Game.Graphics.Worlds.TerrainWater
+use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.WaterShaderProgram
+
+/*
+    The TerrainWaterPropertiesDialog is a selected terrain's Water section
+    (Water plan W6): its sea, its lakes, and the water's look.
+
+    The Sea card turns the sea on or off and sets its level. Each lake is a
+    card titled with its name, level and size, holding its name, level,
+    middle and size, and "Remove". A lake of water cells, made with the
+    Brush section's Fill water and Paint water tools, has its shape from its
+    cells, so its card shows only its name and level, and its title says how
+    many cells it has and about how big it is. "Look..." opens the look every sheet of the terrain's
+    water shares: its shallow and deep colors (red, green, blue and alpha,
+    each from 0 to 1; alpha is how much ground the water hides), clarity,
+    shore fade, and its ripples' size, speed, roughness and strength.
+
+    A field's value is taken when the focus leaves it. Every change can be
+    undone.
+
+    It shows in the scene editor's Properties panel, after the Foliage
+    section.
+*/
+class TerrainWaterPropertiesDialog is PropertiesDialog
+    // What a button does.
+    public constant integer SEA = 0
+    public constant integer REMOVE_LAKE = 2
+    public constant integer LOOK = 3
+    public constant integer CLOSE_LOOK = 4
+
+    // How many lakes the section shows cards for.
+    constant integer LAKES_SHOWN = 16
+
+    // How wide the fields' labels are, so the fields line up.
+    constant number FIELD_LABEL_WIDTH = 120
+
+    // A lake's fields, by place in its row.
+    constant integer NAME_FIELD = 0
+    constant integer LEVEL_FIELD = 1
+    constant integer X_FIELD = 2
+    constant integer Z_FIELD = 3
+    constant integer WIDTH_FIELD = 4
+    constant integer DEPTH_FIELD = 5
+    constant integer LAKE_FIELDS = 6
+
+    Label statusLabel = undefined
+    Checkbox seaCheckbox = undefined
+    TextField seaLevelField = undefined
+    Control lakesPanel = undefined
+    Array<Control> lakesShown
+    Button lookButton = undefined
+
+    // Each lake's row and controls; the fields are LAKE_FIELDS per row.
+    Array<Control> rows
+    Array<Label> nameLabels
+    Array<TextField> lakeFields
+    Array<Button> removeButtons
+    integer rowsShown = 0
+
+    // The look: open or not, its panel, and its fields, in the order
+    // SceneEditor:SetTerrainWaterLook numbers them.
+    boolean lookOpen = false
+    Control lookPanel = undefined
+    Label lookTitle = undefined
+    Array<TextField> lookFields
+    Array<text> lookLabels
+    Button closeLookButton = undefined
+
+    EditorTerrain terrain = undefined
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Water")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Water")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        SetHeading(headingLabel)
+
+        Label status
+        statusLabel = status
+        statusLabel:SetText("")
+        statusLabel:SetHorizontalLayoutMode(statusLabel:parent:Control:STANDARD)
+        statusLabel:SetPercentageWidth(1.0)
+        statusLabel:SetLeftMargin(20)
+        statusLabel:SetRightMargin(20)
+        statusLabel:SetTopMargin(6)
+        statusLabel:SetBottomMargin(4)
+        statusLabel:SetFocusable(true)
+        panel:Add(statusLabel)
+        focusArray:Add(statusLabel)
+
+        // The sea.
+        Control seaCard = AddCard(panel, "Sea")
+        Control seaLine = MakeCardLine()
+        Checkbox sea
+        seaCheckbox = sea
+        seaCheckbox:SetName("Sea")
+        seaCheckbox:SetDescription("Water at one level all around, out to the horizon, hidden wherever the ground is higher")
+        TerrainWaterButtonBehavior seaBehavior
+        seaBehavior:Setup(me, SEA, 0)
+        seaBehavior:SetCheckbox(true)
+        seaCheckbox:SetBehavior(seaBehavior)
+        seaLine:Add(seaCheckbox)
+        seaCard:Add(seaLine)
+        seaLevelField = AddField(seaCard, "Sea level:", "Sea level")
+        focusArray:Add(seaCheckbox)
+        focusArray:Add(seaLevelField)
+
+        // The lakes.
+        Control lakes
+        lakesPanel = lakes
+        FlowLayout lakesLayout
+        lakesPanel:SetLayout(lakesLayout)
+        lakesPanel:SetPercentageWidth(1.0)
+        lakesPanel:SetVerticalLayoutMode(lakesPanel:FIT_CONTENTS)
+        panel:Add(lakesPanel)
+        integer index = 0
+        repeat while index < LAKES_SHOWN
+            MakeRow(index)
+            index = index + 1
+        end
+        MakeLook()
+
+        // Lakes are made with the Brush section's Fill water and Paint
+        // water tools, so there is no button to add one here.
+        Control buttonLine = MakeLine()
+        lookButton = MakeButton(buttonLine, "Look...", "Show the water's colors, clarity, shore and ripples", LOOK, 0)
+        panel:Add(buttonLine)
+        focusArray:Add(lookButton)
+    end
+
+    /*
+        Makes one lake's row: a card titled with its name, level and size,
+        holding its fields and Remove.
+    */
+    private action MakeRow(integer index)
+        Control row
+        FlowLayout rowLayout
+        row:SetLayout(rowLayout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+        Label nameLabel = MakeCardTitle("Lake " + (index + 1))
+        nameLabel:SetFocusable(true)
+        row:Add(nameLabel)
+        Control card = MakeCard()
+        row:Add(card)
+        lakeFields:Add(AddField(card, "Name:", "Lake " + (index + 1) + " name"))
+        lakeFields:Add(AddField(card, "Water level:", "Lake " + (index + 1) + " water level"))
+        lakeFields:Add(AddField(card, "Middle x:", "Lake " + (index + 1) + " middle along x"))
+        lakeFields:Add(AddField(card, "Middle z:", "Lake " + (index + 1) + " middle along z"))
+        lakeFields:Add(AddField(card, "Width:", "Lake " + (index + 1) + " width, along x"))
+        lakeFields:Add(AddField(card, "Depth:", "Lake " + (index + 1) + " size along z"))
+        Control buttonLine = MakeButtonRow()
+        Button removeButton = MakeButton(buttonLine, "Remove", "Remove lake " + (index + 1), REMOVE_LAKE, index)
+        card:Add(buttonLine)
+        rows:Add(row)
+        nameLabels:Add(nameLabel)
+        removeButtons:Add(removeButton)
+    end
+
+    /*
+        Makes the look's controls. They are put under the lakes when
+        Look... is pressed.
+    */
+    private action MakeLook
+        Control panel
+        lookPanel = panel
+        FlowLayout layout
+        lookPanel:SetLayout(layout)
+        lookPanel:SetPercentageWidth(1.0)
+        lookPanel:SetVerticalLayoutMode(lookPanel:FIT_CONTENTS)
+        lookTitle = MakeCardTitle("Water Look")
+        lookTitle:SetFocusable(true)
+        lookPanel:Add(lookTitle)
+        Control card = MakeCard()
+        lookPanel:Add(card)
+        AddLookField(card, "Shallow red:", "Shallow water's red, from 0 to 1")
+        AddLookField(card, "Shallow green:", "Shallow water's green, from 0 to 1")
+        AddLookField(card, "Shallow blue:", "Shallow water's blue, from 0 to 1")
+        AddLookField(card, "Shallow alpha:", "How much ground shallow water hides, from 0 to 1")
+        AddLookField(card, "Deep red:", "Deep water's red, from 0 to 1")
+        AddLookField(card, "Deep green:", "Deep water's green, from 0 to 1")
+        AddLookField(card, "Deep blue:", "Deep water's blue, from 0 to 1")
+        AddLookField(card, "Deep alpha:", "How much ground deep water hides, from 0 to 1")
+        AddLookField(card, "Clarity:", "How murky the water is: 0 is perfectly clear")
+        AddLookField(card, "Shore fade:", "How deep the water is where it stops fading in at the shore")
+        AddLookField(card, "Ripple size:", "How large the ripples are")
+        AddLookField(card, "Ripple speed:", "How fast the ripples move")
+        AddLookField(card, "Roughness:", "How rough the surface is, from 0 to 1")
+        AddLookField(card, "Ripple strength:", "How strongly the ripples bend the light")
+        Control closeLine = MakeCardLine()
+        closeLookButton = MakeButton(closeLine, "Close look", "Close the water's look", CLOSE_LOOK, 0)
+        card:Add(closeLine)
+    end
+
+    /*
+        Adds one of the look's fields.
+    */
+    private action AddLookField(Control card, text label, text name)
+        lookFields:Add(AddField(card, label, name))
+        lookLabels:Add(label:GetSubtext(0, label:GetSize() - 1))
+    end
+
+    /*
+        Adds a labelled field, taken when the focus leaves it.
+    */
+    private action AddField(Control card, text label, text name) returns TextField
+        Control line = MakeCardLine()
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(line:FILL)
+        TerrainWaterFieldListener listener
+        listener:Setup(me, field)
+        field:AddFocusListener(listener)
+        line:Add(field)
+        card:Add(line)
+        return field
+    end
+
+    /*
+        Adds a button to a line.
+    */
+    private action MakeButton(Control line, text name, text description, integer kind, integer lake) returns Button
+        Button button
+        button:SetName(name)
+        button:SetDescription(description)
+        button:SetRightMargin(10)
+        TerrainWaterButtonBehavior behavior
+        behavior:Setup(me, kind, lake)
+        button:SetBehavior(behavior)
+        line:Add(button)
+        return button
+    end
+
+    /*
+        Makes a container for one line of controls, the width of the
+        section.
+    */
+    private action MakeLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(20)
+        line:SetRightMargin(30)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's water: the sea, a card for each lake,
+        and the look if it is open.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        if terrain not= me:terrain
+            lookOpen = false
+        end
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        TerrainWater water = terrain:GetWater()
+        seaCheckbox:SetToggleState(water:HasSea())
+        SetText(seaLevelField, "" + water:GetSeaLevel())
+
+        integer count = water:GetLakeCount()
+        integer shown = count
+        if shown > LAKES_SHOWN
+            shown = LAKES_SHOWN
+        end
+        // The status stays one line, since a wrapped label draws over the
+        // controls below it; the description says more.
+        text status = ""
+        text more = ""
+        if not water:HasWater()
+            status = "No water yet."
+            more = "Turn on the sea, or make lakes with the Brush section's Fill water and Paint water tools."
+        elseif count = 0
+            status = "A sea, and no lakes."
+        else
+            status = "" + count + " lakes."
+            if water:HasSea()
+                status = "A sea and " + count + " lakes."
+            end
+            if count > LAKES_SHOWN
+                more = "The first " + LAKES_SHOWN + " lakes are shown here."
+            end
+        end
+        statusLabel:SetText(status)
+        statusLabel:SetDescription(more)
+
+        integer i = 0
+        repeat while i < shown
+            TerrainLake lake = water:GetLake(i)
+            // A lake of water cells has its shape from its cells, so only its
+            // name and level can be typed; its place and size are hidden.
+            boolean masked = lake:IsMasked()
+            if masked
+                nameLabels:Get(i):SetText(lake:GetName() + ", water at " + lake:GetLevel() + ", " + lake:GetWaterCellCount() + " cells, about " + Round(lake:GetWidth()) + " by " + Round(lake:GetDepth()))
+            else
+                nameLabels:Get(i):SetText(lake:GetName() + ", water at " + lake:GetLevel() + ", " + lake:GetWidth() + " by " + lake:GetDepth())
+            end
+            integer shapeField = X_FIELD
+            repeat while shapeField <= DEPTH_FIELD
+                Control line = cast(Control, lakeFields:Get(i * LAKE_FIELDS + shapeField):GetParent())
+                if masked
+                    line:Hide()
+                else
+                    line:Show()
+                end
+                line:RequestLayout()
+                shapeField = shapeField + 1
+            end
+            SetText(lakeFields:Get(i * LAKE_FIELDS + NAME_FIELD), lake:GetName())
+            SetText(lakeFields:Get(i * LAKE_FIELDS + LEVEL_FIELD), "" + lake:GetLevel())
+            SetText(lakeFields:Get(i * LAKE_FIELDS + X_FIELD), "" + lake:GetX())
+            SetText(lakeFields:Get(i * LAKE_FIELDS + Z_FIELD), "" + lake:GetZ())
+            SetText(lakeFields:Get(i * LAKE_FIELDS + WIDTH_FIELD), "" + lake:GetWidth())
+            SetText(lakeFields:Get(i * LAKE_FIELDS + DEPTH_FIELD), "" + lake:GetDepth())
+            removeButtons:Get(i):SetDescription("Remove " + lake:GetName())
+            i = i + 1
+        end
+
+        if lookOpen
+            WaterShaderProgram program = water:GetWaterProgram()
+            Color shallow = program:GetShallowColor()
+            Color deep = program:GetDeepColor()
+            SetText(lookFields:Get(0), "" + shallow:GetRed())
+            SetText(lookFields:Get(1), "" + shallow:GetGreen())
+            SetText(lookFields:Get(2), "" + shallow:GetBlue())
+            SetText(lookFields:Get(3), "" + shallow:GetAlpha())
+            SetText(lookFields:Get(4), "" + deep:GetRed())
+            SetText(lookFields:Get(5), "" + deep:GetGreen())
+            SetText(lookFields:Get(6), "" + deep:GetBlue())
+            SetText(lookFields:Get(7), "" + deep:GetAlpha())
+            SetText(lookFields:Get(8), "" + program:GetClarity())
+            SetText(lookFields:Get(9), "" + program:GetShoreFade())
+            SetText(lookFields:Get(10), "" + program:GetWaveScale())
+            SetText(lookFields:Get(11), "" + program:GetWaveSpeed())
+            SetText(lookFields:Get(12), "" + program:GetRoughness())
+            SetText(lookFields:Get(13), "" + program:GetNormalStrength())
+        end
+
+        ShowRows(shown)
+        statusLabel:RequestLayout()
+        LinkFocus(shown)
+        updating = false
+    end
+
+    /*
+        Puts text in a field unless it already says it.
+    */
+    private action SetText(TextField field, text value)
+        if field:GetText() not= value
+            field:SetText(value)
+        end
+    end
+
+    /*
+        Puts as many lake cards in the panel as are shown, then the look if
+        it is open.
+    */
+    private action ShowRows(integer count)
+        Array<Control> wanted
+        integer i = 0
+        repeat while i < count
+            wanted:Add(rows:Get(i))
+            i = i + 1
+        end
+        if lookOpen
+            wanted:Add(lookPanel)
+        end
+        boolean same = lakesShown:GetSize() = wanted:GetSize()
+        i = 0
+        repeat while same and i < wanted:GetSize()
+            if lakesShown:Get(i) not= wanted:Get(i)
+                same = false
+            end
+            i = i + 1
+        end
+        if not same
+            i = 0
+            repeat while i < lakesShown:GetSize()
+                boolean removed = lakesPanel:Remove(lakesShown:Get(i))
+                i = i + 1
+            end
+            lakesShown:Empty()
+            i = 0
+            repeat while i < wanted:GetSize()
+                lakesPanel:Add(wanted:Get(i))
+                lakesShown:Add(wanted:Get(i))
+                i = i + 1
+            end
+        end
+        rowsShown = count
+    end
+
+    /*
+        Links the Tab order through the controls shown: the status line, the
+        sea, each lake's title, fields shown and Remove, the look if open, then
+        "Look...".
+    */
+    private action LinkFocus(integer count)
+        Array<Control> chain
+        chain:Add(statusLabel)
+        chain:Add(seaCheckbox)
+        chain:Add(seaLevelField)
+        integer i = 0
+        repeat while i < count
+            chain:Add(nameLabels:Get(i))
+            // A lake of water cells shows only its name and level.
+            boolean masked = terrain:GetWater():GetLake(i):IsMasked()
+            integer field = 0
+            repeat while field < LAKE_FIELDS
+                if not masked or field = NAME_FIELD or field = LEVEL_FIELD
+                    chain:Add(lakeFields:Get(i * LAKE_FIELDS + field))
+                end
+                field = field + 1
+            end
+            chain:Add(removeButtons:Get(i))
+            i = i + 1
+        end
+        if lookOpen
+            chain:Add(lookTitle)
+            i = 0
+            repeat while i < lookFields:GetSize()
+                chain:Add(lookFields:Get(i))
+                i = i + 1
+            end
+            chain:Add(closeLookButton)
+        end
+        chain:Add(lookButton)
+        i = 0
+        repeat while i < chain:GetSize() - 1
+            chain:Get(i):SetNextFocus(chain:Get(i + 1))
+            chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
+            i = i + 1
+        end
+        SetFirstFocus(chain:Get(0))
+        SetLastFocus(chain:Get(chain:GetSize() - 1))
+    end
+
+    /*
+        Shows the terrain's water again, after it changed.
+    */
+    action Refresh
+        if terrain not= undefined
+            SetTerrain(terrain)
+        end
+    end
+
+    /*
+        This action is called by the section's buttons and the Sea checkbox.
+
+        Attribute: Parameter kind One of the button kinds, such as LOOK
+        Attribute: Parameter lake The lake, from 0, for REMOVE_LAKE
+    */
+    action ButtonActivated(integer kind, integer lake)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or editor = undefined or updating
+            return now
+        end
+        if kind = SEA
+            number level = ReadNumber(seaLevelField, terrain:GetWater():GetSeaLevel())
+            editor:SetTerrainSea(terrain, seaCheckbox:GetToggleState(), level)
+        elseif kind = REMOVE_LAKE
+            editor:RemoveTerrainLake(terrain, lake)
+            if rowsShown > 0
+                nameLabels:Get(0):Focus()
+            else
+                lookButton:Focus()
+            end
+        elseif kind = LOOK
+            lookOpen = true
+            SetTerrain(terrain)
+            lookTitle:Focus()
+        elseif kind = CLOSE_LOOK
+            lookOpen = false
+            SetTerrain(terrain)
+            lookButton:Focus()
+        end
+    end
+
+    /*
+        This action is called when the focus leaves one of the section's
+        fields: its value is taken. Text that isn't a number is ignored.
+
+        Attribute: Parameter field The field the focus left
+    */
+    action FieldLeft(TextField field)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or updating or editor = undefined
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if field:Equals(seaLevelField)
+            if water:HasSea()
+                number level = ReadNumber(seaLevelField, water:GetSeaLevel())
+                editor:SetTerrainSea(terrain, true, level)
+            end
+            return now
+        end
+        integer i = 0
+        repeat while i < lookFields:GetSize()
+            if field:Equals(lookFields:Get(i))
+                number value = ReadNumber(field, -1)
+                if value >= 0
+                    editor:SetTerrainWaterLook(terrain, i, value, lookLabels:Get(i))
+                end
+                return now
+            end
+            i = i + 1
+        end
+        integer place = 0
+        repeat while place < rowsShown * LAKE_FIELDS
+            if field:Equals(lakeFields:Get(place))
+                integer index = place / LAKE_FIELDS
+                if index < water:GetLakeCount()
+                    TerrainLake lake = water:GetLake(index)
+                    integer start = index * LAKE_FIELDS
+                    text name = lakeFields:Get(start + NAME_FIELD):GetText():Trim()
+                    if name = ""
+                        name = lake:GetName()
+                    end
+                    editor:SetTerrainLake(terrain, index,
+                        ReadNumber(lakeFields:Get(start + X_FIELD), lake:GetX()),
+                        ReadNumber(lakeFields:Get(start + Z_FIELD), lake:GetZ()),
+                        ReadNumber(lakeFields:Get(start + WIDTH_FIELD), lake:GetWidth()),
+                        ReadNumber(lakeFields:Get(start + DEPTH_FIELD), lake:GetDepth()),
+                        ReadNumber(lakeFields:Get(start + LEVEL_FIELD), lake:GetLevel()),
+                        name)
+                end
+                return now
+            end
+            place = place + 1
+        end
+    end
+
+    /*
+        Returns the number in a field, or a fallback if it doesn't hold one.
+    */
+    private action ReadNumber(TextField field, number fallback) returns number
+        number value = fallback
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            value = fallback
+        end
+        return value
+    end
+
+    /*
+        Rounds a number to one place after the point, for a title.
+    */
+    private action Round(number value) returns number
+        return cast(integer, value * 10 + 0.5) / 10.0
+    end
+
+    /*
+        Moves the focus to the Sea checkbox.
+    */
+    action FocusField
+        seaCheckbox:Focus()
+    end
+end

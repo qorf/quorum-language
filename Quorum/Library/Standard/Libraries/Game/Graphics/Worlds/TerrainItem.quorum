@@ -8,6 +8,10 @@ use Libraries.Game.Layer3D
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Texture
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
 
 /*
 A TerrainItem is a terrain as an item: it holds a WorldTerrain loaded from a
@@ -77,6 +81,31 @@ class TerrainItem is Item3D
     TerrainMaterial material = undefined
     text materialFile = ""
 
+    // Foliage (Terrain plan F1): the list of assets, its file's path as the
+    // scene names it, and where every copy stands, saved per region beside
+    // the heights.
+    FoliageList foliageList = undefined
+    text foliageFile = ""
+    TerrainFoliage foliage
+
+    // The foliage's drawing (Terrain plan F2): one FoliageCellItem per
+    // cell, as the item's children, by "asset/cellX/cellZ", and each card
+    // asset's picture, shared by its cells. They are made again on the next
+    // update after the foliage or its list changes.
+    HashTable<text, FoliageCellItem> foliageItems
+    HashTable<text, Texture> cardTextures
+    boolean foliageChanged = false
+    // How tall the tallest foliage reaches, for the render box.
+    number foliageReach = 0
+    // Cells are shown or hidden by their asset's draw distance a few times a
+    // second, not every frame.
+    number foliageCheckTime = 0
+    constant number FOLIAGE_CHECK_SECONDS = 0.25
+
+    // Water (Water plan W5): a sea and lakes, saved beside the heights in
+    // water.json, and drawn as the item's children.
+    TerrainWater water
+
     // How far above the highest ground and below the lowest the box the
     // layer culls the terrain by reaches, in world units, so small edits
     // stay inside it before it is refreshed.
@@ -114,12 +143,19 @@ class TerrainItem is Item3D
             return now
         end
         missing = false
+        // The water is small, so it loads whether the terrain streams or
+        // not (Water plan W5).
+        water:SetTerrainData(terrain:GetData())
+        water:Load(GetFolder(file))
         // A streaming terrain loads its regions as it starts, on its first
         // update in a layer (step 13).
         if streaming
             return now
         end
         terrain:GetData():Load(GetFolder(file))
+        foliage:SetTerrainData(terrain:GetData())
+        foliage:Load(GetFolder(file))
+        foliageChanged = true
         BuildModels()
     end
 
@@ -166,6 +202,8 @@ class TerrainItem is Item3D
             x = x + 1
         end
         data:Save(GetFolder(file))
+        foliage:SetTerrainData(data)
+        water:SetTerrainData(data)
         BuildModels()
     end
 
@@ -200,6 +238,88 @@ class TerrainItem is Item3D
             integer forgotten = terrain:GetData():ForgetRegionsNotLoaded()
         end
         terrain:GetData():Save(GetFolder(file))
+        // Each region with foliage, or that had a foliage file, writes it
+        // beside its heights (Terrain plan F1).
+        foliage:Save(GetFolder(file))
+        // The sea and lakes, if there are any, in water.json (Water plan W5).
+        water:Save(GetFolder(file))
+    end
+
+    /*
+    This action returns the terrain's water: its sea and lakes, and their
+    look (Water plan W5). After changing it, call WaterChanged so it is
+    drawn again. It is loaded and saved with the terrain.
+
+    Attribute: Returns The water.
+    */
+    action GetWater returns TerrainWater
+        return water
+    end
+
+    /*
+    This action draws the water again on the next update, after its sea,
+    lakes or look were changed.
+    */
+    action WaterChanged
+        water:Changed()
+    end
+
+    /*
+    This action puts a sea around the terrain at a height (Water plan W5):
+    water reaching the horizon, hidden wherever the ground is higher.
+
+    Attribute: Parameter level The sea's height.
+    */
+    action SetSeaLevel(number level)
+        water:SetSeaLevel(level)
+    end
+
+    /*
+    This action takes the sea away.
+    */
+    action RemoveSea
+        water:RemoveSea()
+    end
+
+    /*
+    This action adds a lake: a rectangle of water centered on a point, at a
+    level. It can be larger than its hollow, since the ground hides the
+    water wherever it rises above it.
+
+    Attribute: Parameter x The lake's middle along x.
+    Attribute: Parameter z The lake's middle along z.
+    Attribute: Parameter width Its size along x.
+    Attribute: Parameter depth Its size along z.
+    Attribute: Parameter level The water's height.
+    Attribute: Returns The lake.
+    */
+    action AddLake(number x, number z, number width, number depth, number level) returns TerrainLake
+        return water:AddLake(x, z, width, depth, level)
+    end
+
+    /*
+    This action returns the height of the water over a point, or
+    TerrainWater's NO_WATER where there is none.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns The water's height.
+    */
+    action GetWaterLevelAt(number x, number z) returns number
+        return water:GetWaterLevelAt(x, z)
+    end
+
+    /*
+    This action returns true if a point is in the water: below the water
+    there, and above the ground.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter y The point's height.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns True if the point is under water.
+    */
+    action IsUnderWater(number x, number y, number z) returns boolean
+        return water:IsUnderWater(x, y, z)
     end
 
     /*
@@ -302,6 +422,272 @@ class TerrainItem is Item3D
     end
 
     /*
+    This action gives the terrain its foliage list: the assets its copies
+    are of (Terrain plan F1). The copies themselves are in
+    GetTerrainFoliage, by each asset's number in the list.
+
+    Attribute: Parameter list The foliage list, or undefined for none.
+    */
+    action SetFoliageList(FoliageList list)
+        foliageList = list
+        cardTextures:Empty()
+        foliageChanged = true
+    end
+
+    /*
+    This action returns the terrain's foliage list.
+
+    Attribute: Returns The list, or undefined if it has none.
+    */
+    action GetFoliageList returns FoliageList
+        return foliageList
+    end
+
+    /*
+    This action loads a foliage list file and gives it to the terrain.
+
+    Attribute: Parameter file The foliage list file.
+    */
+    action LoadFoliageList(File file)
+        FoliageList loaded
+        loaded:Load(file)
+        foliageFile = file:GetPath()
+        foliageList = loaded
+        cardTextures:Empty()
+        foliageChanged = true
+    end
+
+    /*
+    This action makes the foliage's drawing again on the next update, after
+    copies were added or removed by code, or the foliage list's assets
+    changed (Terrain plan F2). The foliage brush in a scene editor calls
+    RefreshFoliage with the area it changed instead, which is quicker.
+    */
+    action FoliageChanged
+        foliageChanged = true
+    end
+
+    /*
+    This action makes the drawing of the foliage cells in an area again now,
+    after copies there were added, removed or moved, such as by a brush
+    stroke or by sculpting under them (Terrain plan F2 to F4).
+
+    Attribute: Parameter x The area's middle along x, in world units.
+    Attribute: Parameter z The area's middle along z, in world units.
+    Attribute: Parameter radius How far the area reaches from its middle.
+    */
+    action RefreshFoliage(number x, number z, number radius)
+        if foliageList = undefined or GetLayer() = undefined
+            foliageChanged = true
+            return now
+        end
+        integer i = 0
+        repeat while i < foliage:GetCellCount()
+            FoliageCell cell = foliage:GetCellAtIndex(i)
+            number size = cell:GetCellSize()
+            number lowX = cell:GetCellX() * size
+            number lowZ = cell:GetCellZ() * size
+            if lowX <= x + radius and lowX + size >= x - radius and lowZ <= z + radius and lowZ + size >= z - radius
+                RefreshFoliageCell(cell)
+            end
+            i = i + 1
+        end
+        RefreshRenderBounds()
+    end
+
+    /*
+    This action moves the foliage in an area onto the ground under it, after
+    the ground there was sculpted, keeping each asset's height offset
+    (Terrain plan F4). A scene editor calls it as the ground changes.
+
+    Attribute: Parameter x The area's middle along x, in world units.
+    Attribute: Parameter z The area's middle along z, in world units.
+    Attribute: Parameter radius How far the area reaches from its middle; a negative radius is the whole terrain.
+    Attribute: Returns How many cells of foliage moved.
+    */
+    action FollowGround(number x, number z, number radius) returns integer
+        Array<FoliageCell> moved = foliage:FollowGround(foliageList, x, z, radius)
+        integer i = 0
+        repeat while i < moved:GetSize()
+            FoliageCell cell = moved:Get(i)
+            text key = "" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ()
+            if foliageItems:HasKey(key)
+                foliageItems:GetValue(key):PlaceAgain()
+            end
+            i = i + 1
+        end
+        return moved:GetSize()
+    end
+
+    /*
+    This action makes every foliage cell's drawing again: the old cell items
+    are taken out, and one made for each cell with copies whose asset is in
+    the foliage list.
+    */
+    private action BuildFoliage
+        foliageChanged = false
+        Array<text> keys
+        Iterator<text> iterator = foliageItems:GetKeyIterator()
+        repeat while iterator:HasNext()
+            keys:Add(iterator:Next())
+        end
+        integer k = 0
+        repeat while k < keys:GetSize()
+            FoliageCellItem old = foliageItems:RemoveKey(keys:Get(k))
+            old:Clear()
+            boolean removed = Remove(old)
+            k = k + 1
+        end
+        foliageReach = 0
+        if foliageList not= undefined
+            integer i = 0
+            repeat while i < foliage:GetCellCount()
+                RefreshFoliageCell(foliage:GetCellAtIndex(i))
+                i = i + 1
+            end
+        end
+        foliageCheckTime = FOLIAGE_CHECK_SECONDS
+        RefreshRenderBounds()
+    end
+
+    /*
+    This action makes one cell's drawing again, adding its item the first
+    time, and taking it out if the cell is now empty.
+
+    Attribute: Parameter cell The cell.
+    */
+    private action RefreshFoliageCell(FoliageCell cell)
+        text key = "" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ()
+        FoliageCellItem item = undefined
+        if foliageItems:HasKey(key)
+            item = foliageItems:GetValue(key)
+        end
+        boolean usable = not cell:IsEmpty() and cell:GetAsset() >= 0 and cell:GetAsset() < foliageList:GetAssetCount()
+        if not usable
+            if item not= undefined
+                FoliageCellItem old = foliageItems:RemoveKey(key)
+                old:Clear()
+                boolean removed = Remove(old)
+            end
+            return now
+        end
+        FoliageAsset asset = foliageList:GetAsset(cell:GetAsset())
+        if item = undefined
+            FoliageCellItem made
+            made:SetAcceptsMouseInput(IsAcceptingMouseInput())
+            Add(made)
+            foliageItems:Add(key, made)
+            item = made
+        end
+        File assetFile = GetFoliageAssetFile(asset)
+        item:Set(cell, asset, assetFile)
+        if asset:IsCard() and assetFile:Exists()
+            text textureKey = assetFile:GetAbsolutePath()
+            if not cardTextures:HasKey(textureKey)
+                Texture texture
+                texture:LoadFromFile(assetFile)
+                cardTextures:Add(textureKey, texture)
+            end
+            item:SetCardTexture(cardTextures:GetValue(textureKey))
+        end
+        item:Build()
+        if item:GetReach() > foliageReach
+            foliageReach = item:GetReach()
+        end
+    end
+
+    /*
+    This action returns an asset's model file, or its card picture, whose
+    path is relative to the foliage list's file.
+
+    Attribute: Parameter asset The asset.
+    Attribute: Returns The file.
+    */
+    action GetFoliageAssetFile(FoliageAsset asset) returns File
+        text path = asset:GetModelPath()
+        if asset:IsCard()
+            path = asset:GetCardPicturePath()
+        end
+        File file
+        File listFile = undefined
+        if foliageList not= undefined
+            listFile = foliageList:GetFile()
+        end
+        if listFile = undefined or path:StartsWith("/") or path:Contains(":")
+            file:SetPath(path)
+            return file
+        end
+        file:SetWorkingDirectory(listFile:GetWorkingDirectory())
+        text listPath = listFile:GetPath()
+        // The list's folder: everything up to its last slash.
+        integer slash = -1
+        integer found = listPath:IndexOf("/")
+        repeat while found >= 0
+            slash = found
+            found = listPath:IndexOf("/", found + 1)
+        end
+        if slash < 0
+            file:SetPath(path)
+        else
+            file:SetPath(listPath:GetSubtext(0, slash + 1) + path)
+        end
+        return file
+    end
+
+    /*
+    This action shows the foliage cells within their asset's draw distance
+    of a place, and hides the others.
+
+    Attribute: Parameter x The place along x, such as the camera's.
+    Attribute: Parameter z The place along z.
+    */
+    private action ShowFoliageNear(number x, number z)
+        Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()
+        repeat while items:HasNext()
+            FoliageCellItem item = items:Next()
+            number offsetX = item:GetCellMiddleX() - x
+            number offsetZ = item:GetCellMiddleZ() - z
+            // Measured to the cell's nearest side, about: its middle less
+            // half its diagonal.
+            number reachOut = item:GetAsset():GetDrawDistance() + item:GetCell():GetCellSize() * 0.71
+            boolean near = offsetX * offsetX + offsetZ * offsetZ <= reachOut * reachOut
+            if near and not item:IsShowing()
+                item:Show()
+            elseif not near and item:IsShowing()
+                item:Hide()
+            end
+        end
+    end
+
+    /*
+    This action returns the foliage list file's path, as a scene names it.
+
+    Attribute: Returns The path, or an empty text for no foliage list.
+    */
+    action GetFoliageFile returns text
+        return foliageFile
+    end
+
+    /*
+    This action sets the foliage list file's path, as a scene names it.
+
+    Attribute: Parameter path The path, or an empty text for none.
+    */
+    action SetFoliageFile(text path)
+        foliageFile = path
+    end
+
+    /*
+    This action returns where every copy of the terrain's foliage stands.
+    It is loaded and saved with the terrain.
+
+    Attribute: Returns The terrain's foliage.
+    */
+    action GetTerrainFoliage returns TerrainFoliage
+        return foliage
+    end
+
+    /*
     This action returns the terrain.json file's path, as given to Load or
     CreateFlat.
 
@@ -329,6 +715,11 @@ class TerrainItem is Item3D
     */
     action Dispose
         terrain:ReleaseTexturePlaces()
+        water:Clear(me)
+        Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()
+        repeat while items:HasNext()
+            items:Next():Clear()
+        end
     end
 
     /*
@@ -467,6 +858,32 @@ class TerrainItem is Item3D
             return now
         end
         boolean changed = terrain:Update(layer, x, z)
+        UpdateWaterAndFoliage(layer, x, z, secondsSinceUpdate)
+    end
+
+    /*
+    This action keeps the water and foliage drawn: the water after it
+    changed, with the sea following a place (Water plan W5), and the
+    foliage after it changed, with its cells shown within their draw
+    distance of the camera (Terrain plan F2).
+
+    Attribute: Parameter layer The layer the terrain is in.
+    Attribute: Parameter x The place the sea follows, along x.
+    Attribute: Parameter z The place the sea follows, along z.
+    Attribute: Parameter seconds The time since this was last called.
+    */
+    private action UpdateWaterAndFoliage(Layer3D layer, number x, number z, number seconds)
+        if water:Update(me, layer, x, z)
+            RefreshRenderBounds()
+        end
+        if foliageChanged
+            BuildFoliage()
+        end
+        foliageCheckTime = foliageCheckTime + seconds
+        if foliageCheckTime >= FOLIAGE_CHECK_SECONDS and not foliageItems:IsEmpty()
+            foliageCheckTime = 0
+            ShowFoliageNear(layer:GetCamera():GetPosition():GetX(), layer:GetCamera():GetPosition():GetZ())
+        end
     end
 
     /*
@@ -502,7 +919,14 @@ class TerrainItem is Item3D
     Attribute: Returns True if anything about the terrain changed.
     */
     action Update(Layer3D layer, number x, number z) returns boolean
-        return terrain:Update(layer, x, z)
+        boolean changed = terrain:Update(layer, x, z)
+        // Its water and foliage too, as the frame update does. This may be
+        // called without the time, so the foliage's distances are checked
+        // each call.
+        if GetLayer() not= undefined and not missing
+            UpdateWaterAndFoliage(layer, x, z, FOLIAGE_CHECK_SECONDS)
+        end
+        return changed
     end
 
     /*
@@ -564,10 +988,66 @@ class TerrainItem is Item3D
             i = i + 1
         end
         number regionWidth = data:GetRegionSize() * data:GetVertexSpacing()
+        number minimumX = lowX * regionWidth
+        number minimumZ = lowZ * regionWidth
+        number maximumX = (highX + 1) * regionWidth
+        number maximumZ = (highZ + 1) * regionWidth
+        number lowest = data:GetLowestHeight()
+        number highest = data:GetHighestHeight()
+        // The water (Water plan W5): the sea's sheet reaches far past the
+        // regions, and water can stand above or below the ground.
+        if water:HasWater()
+            number waterLow = water:GetLowestLevel()
+            number waterHigh = water:GetHighestLevel()
+            if waterLow < lowest
+                lowest = waterLow
+            end
+            if waterHigh > highest
+                highest = waterHigh
+            end
+            WaterSurface sea = water:GetSea()
+            if sea not= undefined
+                number half = water:GetSeaSize() / 2
+                if sea:GetX() - half < minimumX
+                    minimumX = sea:GetX() - half
+                end
+                if sea:GetZ() - half < minimumZ
+                    minimumZ = sea:GetZ() - half
+                end
+                if sea:GetX() + half > maximumX
+                    maximumX = sea:GetX() + half
+                end
+                if sea:GetZ() + half > maximumZ
+                    maximumZ = sea:GetZ() + half
+                end
+            end
+            integer lakeIndex = 0
+            repeat while lakeIndex < water:GetLakeCount()
+                TerrainLake lake = water:GetLake(lakeIndex)
+                if lake:GetX() - lake:GetWidth() / 2 < minimumX
+                    minimumX = lake:GetX() - lake:GetWidth() / 2
+                end
+                if lake:GetZ() - lake:GetDepth() / 2 < minimumZ
+                    minimumZ = lake:GetZ() - lake:GetDepth() / 2
+                end
+                if lake:GetX() + lake:GetWidth() / 2 > maximumX
+                    maximumX = lake:GetX() + lake:GetWidth() / 2
+                end
+                if lake:GetZ() + lake:GetDepth() / 2 > maximumZ
+                    maximumZ = lake:GetZ() + lake:GetDepth() / 2
+                end
+                lakeIndex = lakeIndex + 1
+            end
+        end
         Vector3 minimum
-        minimum:Set(lowX * regionWidth, data:GetLowestHeight() - BOUNDS_PADDING, lowZ * regionWidth)
+        minimum:Set(minimumX, lowest - BOUNDS_PADDING, minimumZ)
         Vector3 maximum
-        maximum:Set((highX + 1) * regionWidth, data:GetHighestHeight() + BOUNDS_PADDING, (highZ + 1) * regionWidth)
+        // The foliage can stand taller than the padding.
+        number top = BOUNDS_PADDING
+        if foliageReach > top
+            top = foliageReach + BOUNDS_PADDING
+        end
+        maximum:Set(maximumX, highest + top, maximumZ)
         local:Set(minimum, maximum)
         return true
     end

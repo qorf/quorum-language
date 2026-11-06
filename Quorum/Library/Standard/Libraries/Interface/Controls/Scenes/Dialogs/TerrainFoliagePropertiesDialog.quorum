@@ -1,0 +1,768 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.FileChooser
+use Libraries.Interface.Controls.FileFilter
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Item
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.TerrainFoliageFieldListener
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.TerrainFoliageButtonBehavior
+use Libraries.Game.Graphics.Worlds.FoliageList
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+use Libraries.Game.Graphics.Worlds.TerrainFoliage
+use Libraries.System.File
+
+/*
+    The TerrainFoliagePropertiesDialog is a selected terrain's Foliage
+    section (Terrain plan F3): the foliage assets it can be covered with,
+    such as trees, rocks and grass. "Add asset..." adds a model file, drawn
+    as itself, or a picture, drawn as a card; a terrain with no foliage list
+    is given one in the project's Scenes/Foliage folder.
+
+    Each asset is a card titled with its name and how many copies it has,
+    with its buttons: "Paint" chooses it for the Foliage tool, "Settings..."
+    opens its settings below the cards, and "Remove" takes it out with its
+    copies. Two arrows on the title line move it up or down one place. The
+    settings are taken when the focus leaves a field.
+
+    It shows in the scene editor's Properties panel, after the Materials
+    section.
+*/
+class TerrainFoliagePropertiesDialog is PropertiesDialog
+    // What a button does.
+    public constant integer ADD = 0
+    public constant integer PAINT = 1
+    public constant integer SETTINGS = 2
+    public constant integer REMOVE = 3
+    public constant integer MOVE_UP = 4
+    public constant integer MOVE_DOWN = 5
+    public constant integer CLOSE_SETTINGS = 6
+    public constant integer RANDOM_TURN = 7
+    public constant integer CASTS_SHADOWS = 8
+
+    // How much of an asset's title line its arrows take, in pixels before
+    // the interface scale.
+    constant number ARROWS_WIDTH = 64
+
+    // How wide the settings' labels are, so the fields line up.
+    constant number FIELD_LABEL_WIDTH = 120
+
+    Control sectionPanel = undefined
+    Label statusLabel = undefined
+    Control assetsPanel = undefined
+    Button addButton = undefined
+
+    // Each asset's row, and the controls in it.
+    Array<Control> rows
+    Array<Label> nameLabels
+    Array<LayerMoveButton> upButtons
+    Array<LayerMoveButton> downButtons
+    Array<Button> paintButtons
+    Array<Button> settingsButtons
+    Array<Button> removeButtons
+    Array<Control> assetsShown
+    integer rowsShown = 0
+
+    // The settings: which asset they are open for, or -1, and their
+    // controls. The fields are in the order of the FIELD names below.
+    integer settingsAsset = -1
+    Control settingsPanel = undefined
+    Label settingsTitle = undefined
+    Array<TextField> settingsFields
+    Checkbox randomTurnCheckbox = undefined
+    Checkbox shadowsCheckbox = undefined
+    Button closeButton = undefined
+
+    // The settings fields, by place.
+    constant integer NAME_FIELD = 0
+    constant integer DENSITY_FIELD = 1
+    constant integer SCALE_FIELD = 2
+    constant integer RANDOM_SCALE_FIELD = 3
+    constant integer SHADE_FIELD = 4
+    constant integer LOWEST_SLOPE_FIELD = 5
+    constant integer STEEPEST_SLOPE_FIELD = 6
+    constant integer OFFSET_FIELD = 7
+    constant integer DISTANCE_FIELD = 8
+
+    // The terrain whose foliage is shown, or undefined.
+    EditorTerrain terrain = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as typing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Terrain Foliage")
+        sectionPanel = panel
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Foliage")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        SetHeading(headingLabel)
+
+        Label status
+        statusLabel = status
+        statusLabel:SetText("")
+        statusLabel:SetHorizontalLayoutMode(statusLabel:parent:Control:STANDARD)
+        statusLabel:SetPercentageWidth(1.0)
+        statusLabel:SetLeftMargin(20)
+        statusLabel:SetRightMargin(20)
+        statusLabel:SetTopMargin(6)
+        statusLabel:SetBottomMargin(4)
+        statusLabel:SetFocusable(true)
+        panel:Add(statusLabel)
+        focusArray:Add(statusLabel)
+
+        Control assets
+        assetsPanel = assets
+        FlowLayout assetsLayout
+        assetsPanel:SetLayout(assetsLayout)
+        assetsPanel:SetPercentageWidth(1.0)
+        assetsPanel:SetVerticalLayoutMode(assetsPanel:FIT_CONTENTS)
+        panel:Add(assetsPanel)
+
+        FoliageList sizes
+        integer index = 0
+        repeat while index < sizes:MAXIMUM_ASSETS
+            MakeRow(index)
+            index = index + 1
+        end
+
+        MakeSettings()
+
+        Control addLine = MakeLine()
+        addButton = MakeButton(addLine, "Add asset...", "Choose a model file, drawn as itself, or a picture, drawn as a card, to add as a foliage asset", ADD, 0)
+        panel:Add(addLine)
+        focusArray:Add(addButton)
+    end
+
+    /*
+        Makes one asset's row: a card titled with the asset's name and its
+        number of copies, with arrows on the title line, holding its Paint,
+        Settings and Remove buttons.
+    */
+    private action MakeRow(integer index)
+        Control row
+        FlowLayout rowLayout
+        row:SetLayout(rowLayout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+
+        Control titleLine
+        FlowLayout titleLayout
+        titleLine:SetLayout(titleLayout)
+        titleLine:SetPercentageWidth(1.0)
+        titleLine:SetVerticalLayoutMode(titleLine:FIT_CONTENTS)
+        titleLine:SetLeftMargin(22)
+        titleLine:SetRightMargin(20)
+        titleLine:SetTopMargin(8)
+        titleLine:SetBottomMargin(2)
+
+        Control nameBox
+        FlowLayout nameLayout
+        nameBox:SetLayout(nameLayout)
+        nameBox:SetPercentageWidth(1.0)
+        nameBox:SetPixelWidth(-ARROWS_WIDTH)
+        nameBox:SetVerticalLayoutMode(nameBox:FIT_CONTENTS)
+        Label nameLabel = MakeCardTitle("Asset " + (index + 1))
+        nameLabel:SetLeftMargin(0)
+        nameLabel:SetTopMargin(4)
+        nameLabel:SetBottomMargin(0)
+        nameLabel:SetFocusable(true)
+        nameBox:Add(nameLabel)
+        titleLine:Add(nameBox)
+
+        LayerMoveButton upButton
+        upButton:SetUp(true)
+        upButton:SetName("Move asset " + (index + 1) + " up")
+        upButton:SetDescription("Move this foliage asset up one place. Its copies keep it.")
+        upButton:SetRightMargin(4)
+        TerrainFoliageButtonBehavior upBehavior
+        upBehavior:Setup(me, MOVE_UP, index)
+        upButton:SetBehavior(upBehavior)
+        titleLine:Add(upButton)
+        LayerMoveButton downButton
+        downButton:SetUp(false)
+        downButton:SetName("Move asset " + (index + 1) + " down")
+        downButton:SetDescription("Move this foliage asset down one place. Its copies keep it.")
+        TerrainFoliageButtonBehavior downBehavior
+        downBehavior:Setup(me, MOVE_DOWN, index)
+        downButton:SetBehavior(downBehavior)
+        titleLine:Add(downButton)
+        row:Add(titleLine)
+
+        Control card = MakeCard()
+        row:Add(card)
+        Control buttonLine = MakeButtonRow()
+        Button paintButton = MakeButton(buttonLine, "Paint", "Paint this asset with the Foliage tool", PAINT, index)
+        Button settingsButton = MakeButton(buttonLine, "Settings...", "Show this asset's density, size, slopes and other settings", SETTINGS, index)
+        Button removeButton = MakeButton(buttonLine, "Remove", "Remove this asset and all its copies. It can't be undone.", REMOVE, index)
+        card:Add(buttonLine)
+
+        rows:Add(row)
+        nameLabels:Add(nameLabel)
+        upButtons:Add(upButton)
+        downButtons:Add(downButton)
+        paintButtons:Add(paintButton)
+        settingsButtons:Add(settingsButton)
+        removeButtons:Add(removeButton)
+    end
+
+    /*
+        Makes the settings' controls. They are put under the rows when
+        Settings... is pressed.
+    */
+    private action MakeSettings
+        Control panel
+        settingsPanel = panel
+        FlowLayout layout
+        settingsPanel:SetLayout(layout)
+        settingsPanel:SetPercentageWidth(1.0)
+        settingsPanel:SetVerticalLayoutMode(settingsPanel:FIT_CONTENTS)
+
+        settingsTitle = MakeCardTitle("Settings")
+        settingsTitle:SetFocusable(true)
+        settingsPanel:Add(settingsTitle)
+        Control card = MakeCard()
+        settingsPanel:Add(card)
+
+        AddSettingsField(card, "Name:", "Asset name")
+        AddSettingsField(card, "Density:", "Copies per square unit the brush places")
+        AddSettingsField(card, "Scale:", "Each copy's base scale")
+        AddSettingsField(card, "Size varies:", "How much each copy's size varies, as a share, such as 0.2")
+        AddSettingsField(card, "Shade varies:", "How much each copy's shade varies, from 0 to 1")
+        AddSettingsField(card, "Lowest slope:", "The least slope it grows on, in degrees")
+        AddSettingsField(card, "Steepest slope:", "The steepest slope it grows on, in degrees")
+        AddSettingsField(card, "Height offset:", "How far above the ground each copy stands")
+        AddSettingsField(card, "Draw distance:", "How far from the camera copies are drawn")
+
+        Control turnLine = MakeCardLine()
+        Checkbox turn
+        randomTurnCheckbox = turn
+        randomTurnCheckbox:SetName("Random turn")
+        randomTurnCheckbox:SetDescription("Turn each copy a random amount about the up axis")
+        TerrainFoliageButtonBehavior turnBehavior
+        turnBehavior:Setup(me, RANDOM_TURN, 0)
+        turnBehavior:SetCheckbox(true)
+        randomTurnCheckbox:SetBehavior(turnBehavior)
+        turnLine:Add(randomTurnCheckbox)
+        card:Add(turnLine)
+
+        Control shadowLine = MakeCardLine()
+        Checkbox shadows
+        shadowsCheckbox = shadows
+        shadowsCheckbox:SetName("Casts shadows")
+        shadowsCheckbox:SetDescription("Whether copies cast shadows. Grass usually doesn't.")
+        TerrainFoliageButtonBehavior shadowBehavior
+        shadowBehavior:Setup(me, CASTS_SHADOWS, 0)
+        shadowBehavior:SetCheckbox(true)
+        shadowsCheckbox:SetBehavior(shadowBehavior)
+        shadowLine:Add(shadowsCheckbox)
+        card:Add(shadowLine)
+
+        Control closeLine = MakeCardLine()
+        closeButton = MakeButton(closeLine, "Close settings", "Close this asset's settings", CLOSE_SETTINGS, 0)
+        card:Add(closeLine)
+    end
+
+    /*
+        Adds one labelled settings field, taken when the focus leaves it.
+    */
+    private action AddSettingsField(Control card, text label, text name)
+        Control line = MakeCardLine()
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(10)
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
+
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:SetRightMargin(8)
+        field:SetHorizontalLayoutMode(line:FILL)
+        TerrainFoliageFieldListener listener
+        listener:Setup(me, field)
+        field:AddFocusListener(listener)
+        line:Add(field)
+        card:Add(line)
+        settingsFields:Add(field)
+    end
+
+    /*
+        Adds a button to a line.
+    */
+    private action MakeButton(Control line, text name, text description, integer kind, integer asset) returns Button
+        Button button
+        button:SetName(name)
+        button:SetDescription(description)
+        button:SetRightMargin(10)
+        TerrainFoliageButtonBehavior behavior
+        behavior:Setup(me, kind, asset)
+        button:SetBehavior(behavior)
+        line:Add(button)
+        return button
+    end
+
+    /*
+        Makes a container for one line of controls, the width of the
+        section.
+    */
+    private action MakeLine returns Control
+        FlowLayout layout
+        Control line
+        line:SetLayout(layout)
+        line:SetPercentageWidth(1.0)
+        line:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        line:SetLeftMargin(20)
+        line:SetRightMargin(30)
+        line:SetTopMargin(4)
+        line:SetBottomMargin(4)
+        return line
+    end
+
+    /*
+        This action shows the dialog when a terrain is selected, and hides it
+        otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+        if selectedItem is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selectedItem)
+            SetTerrain(highlight:GetEditorTerrain())
+            if not IsShowing()
+                Show()
+            end
+        else
+            terrain = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action sets the fields from a selected terrain's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, item)
+            SetTerrain(highlight:GetEditorTerrain())
+        end
+    end
+
+    /*
+        This action shows a terrain's foliage assets: a row for each, and the
+        settings if they are open.
+
+        Attribute: Parameter terrain The terrain
+    */
+    action SetTerrain(EditorTerrain terrain)
+        if terrain not= me:terrain
+            settingsAsset = -1
+        end
+        me:terrain = terrain
+        if terrain = undefined
+            return now
+        end
+        updating = true
+        FoliageList list = terrain:GetFoliageList()
+        integer count = 0
+        if list not= undefined
+            count = list:GetAssetCount()
+        end
+        if settingsAsset >= count
+            settingsAsset = -1
+        end
+        ShowRows(count)
+
+        TerrainFoliage foliage = terrain:GetTerrainFoliage()
+        // The status stays one line, since a wrapped label draws over the
+        // controls below it; the description says more.
+        if list = undefined
+            if terrain:GetFoliageFile() not= ""
+                statusLabel:SetText("Foliage list not found.")
+                statusLabel:SetDescription("The foliage list " + terrain:GetFoliageFile() + " wasn't found.")
+            else
+                statusLabel:SetText("No foliage yet.")
+                statusLabel:SetDescription("Add a model or a picture, then paint it with the Foliage tool.")
+            end
+        elseif count = 0
+            statusLabel:SetText("No foliage assets yet.")
+            statusLabel:SetDescription("Add a model or a picture, then paint it with the Foliage tool.")
+        else
+            statusLabel:SetText("" + foliage:GetCopyCount() + " copies in all.")
+            statusLabel:SetDescription("")
+        end
+
+        integer i = 0
+        repeat while i < count
+            FoliageAsset asset = list:GetAsset(i)
+            text title = asset:GetName() + ", " + foliage:GetCopyCount(i) + " copies"
+            if asset:IsCard()
+                title = title + ", card"
+            end
+            if i = terrain:GetFoliageAsset()
+                title = title + ", painted by the Foliage tool"
+            end
+            nameLabels:Get(i):SetText(title)
+            upButtons:Get(i):SetName("Move " + asset:GetName() + " up")
+            downButtons:Get(i):SetName("Move " + asset:GetName() + " down")
+            if i > 0
+                upButtons:Get(i):Show()
+            else
+                upButtons:Get(i):Hide()
+            end
+            if i < count - 1
+                downButtons:Get(i):Show()
+            else
+                downButtons:Get(i):Hide()
+            end
+            i = i + 1
+        end
+        if settingsAsset >= 0
+            FillSettings(list:GetAsset(settingsAsset))
+        end
+        statusLabel:RequestLayout()
+        LinkFocus(count)
+        updating = false
+    end
+
+    /*
+        Puts as many rows in the panel as the list has assets, then the
+        settings if they are open.
+    */
+    private action ShowRows(integer count)
+        Array<Control> wanted
+        integer i = 0
+        repeat while i < count
+            wanted:Add(rows:Get(i))
+            i = i + 1
+        end
+        if settingsAsset >= 0
+            wanted:Add(settingsPanel)
+        end
+        boolean same = assetsShown:GetSize() = wanted:GetSize()
+        i = 0
+        repeat while same and i < wanted:GetSize()
+            if assetsShown:Get(i) not= wanted:Get(i)
+                same = false
+            end
+            i = i + 1
+        end
+        if not same
+            i = 0
+            repeat while i < assetsShown:GetSize()
+                boolean removed = assetsPanel:Remove(assetsShown:Get(i))
+                i = i + 1
+            end
+            assetsShown:Empty()
+            i = 0
+            repeat while i < wanted:GetSize()
+                assetsPanel:Add(wanted:Get(i))
+                assetsShown:Add(wanted:Get(i))
+                i = i + 1
+            end
+        end
+        rowsShown = count
+    end
+
+    /*
+        Fills the settings with an asset's values.
+    */
+    private action FillSettings(FoliageAsset asset)
+        settingsTitle:SetText(asset:GetName() + " settings")
+        SetTextIfDifferent(settingsFields:Get(NAME_FIELD), asset:GetName())
+        SetTextIfDifferent(settingsFields:Get(DENSITY_FIELD), "" + asset:GetDensity())
+        SetTextIfDifferent(settingsFields:Get(SCALE_FIELD), "" + asset:GetBaseScale())
+        SetTextIfDifferent(settingsFields:Get(RANDOM_SCALE_FIELD), "" + asset:GetRandomScale())
+        SetTextIfDifferent(settingsFields:Get(SHADE_FIELD), "" + asset:GetShadeVariation())
+        SetTextIfDifferent(settingsFields:Get(LOWEST_SLOPE_FIELD), "" + asset:GetMinimumSlope())
+        SetTextIfDifferent(settingsFields:Get(STEEPEST_SLOPE_FIELD), "" + asset:GetMaximumSlope())
+        SetTextIfDifferent(settingsFields:Get(OFFSET_FIELD), "" + asset:GetHeightOffset())
+        SetTextIfDifferent(settingsFields:Get(DISTANCE_FIELD), "" + asset:GetDrawDistance())
+        randomTurnCheckbox:SetToggleState(asset:HasRandomTurn())
+        shadowsCheckbox:SetToggleState(asset:CastsShadows())
+    end
+
+    /*
+        Puts text in a field unless it already says it, so a field being
+        typed in isn't disturbed.
+    */
+    private action SetTextIfDifferent(TextField field, text value)
+        if field:GetText() not= value
+            field:SetText(value)
+        end
+    end
+
+    /*
+        Links the Tab order through the controls shown: the status line,
+        each asset's name, arrows and buttons, the settings if open, then
+        "Add asset...".
+    */
+    private action LinkFocus(integer count)
+        Array<Control> chain
+        chain:Add(statusLabel)
+        integer i = 0
+        repeat while i < count
+            chain:Add(nameLabels:Get(i))
+            if i > 0
+                chain:Add(upButtons:Get(i))
+            end
+            if i < count - 1
+                chain:Add(downButtons:Get(i))
+            end
+            chain:Add(paintButtons:Get(i))
+            chain:Add(settingsButtons:Get(i))
+            chain:Add(removeButtons:Get(i))
+            i = i + 1
+        end
+        if settingsAsset >= 0
+            chain:Add(settingsTitle)
+            i = 0
+            repeat while i < settingsFields:GetSize()
+                chain:Add(settingsFields:Get(i))
+                i = i + 1
+            end
+            chain:Add(randomTurnCheckbox)
+            chain:Add(shadowsCheckbox)
+            chain:Add(closeButton)
+        end
+        chain:Add(addButton)
+        i = 0
+        repeat while i < chain:GetSize() - 1
+            chain:Get(i):SetNextFocus(chain:Get(i + 1))
+            chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
+            i = i + 1
+        end
+        SetFirstFocus(chain:Get(0))
+    end
+
+    /*
+        Shows the terrain's foliage again, after it changed.
+    */
+    action Refresh
+        if terrain not= undefined
+            SetTerrain(terrain)
+        end
+    end
+
+    /*
+        This action is called by the section's buttons and checkboxes.
+
+        Attribute: Parameter kind One of the button kinds, such as ADD
+        Attribute: Parameter asset The asset, from 0, for an asset's buttons
+    */
+    action ButtonActivated(integer kind, integer asset)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or editor = undefined or updating
+            return now
+        end
+        FoliageList list = terrain:GetFoliageList()
+        if kind = ADD
+            FileChooser chooser
+            FileFilter filter
+            filter:Add("glb")
+            filter:Add("gltf")
+            filter:Add("fbx")
+            filter:Add("obj")
+            filter:Add("png")
+            filter:SetAcceptAll(false)
+            File chosen = chooser:OpenFileDialog(editor:GetProjectLocation(), filter)
+            if chosen not= undefined
+                editor:AddFoliageAsset(terrain, chosen)
+            end
+            return now
+        elseif kind = PAINT
+            editor:ChooseFoliageAsset(terrain, asset)
+            return now
+        elseif kind = REMOVE
+            if settingsAsset = asset
+                settingsAsset = -1
+            elseif settingsAsset > asset
+                settingsAsset = settingsAsset - 1
+            end
+            editor:RemoveFoliageAsset(terrain, asset)
+            if rowsShown > 0
+                nameLabels:Get(0):Focus()
+            else
+                addButton:Focus()
+            end
+            return now
+        elseif kind = MOVE_UP or kind = MOVE_DOWN
+            MoveAsset(editor, asset, kind = MOVE_UP)
+            return now
+        elseif kind = SETTINGS
+            settingsAsset = asset
+            SetTerrain(terrain)
+            settingsTitle:Focus()
+            return now
+        elseif kind = CLOSE_SETTINGS
+            integer closed = settingsAsset
+            settingsAsset = -1
+            SetTerrain(terrain)
+            if closed >= 0 and closed < rowsShown
+                settingsButtons:Get(closed):Focus()
+            end
+            return now
+        end
+        if list = undefined or settingsAsset < 0 or settingsAsset >= list:GetAssetCount()
+            return now
+        end
+        FoliageAsset settings = list:GetAsset(settingsAsset)
+        if kind = RANDOM_TURN
+            settings:SetRandomTurn(randomTurnCheckbox:GetToggleState())
+            editor:FoliageAssetSettingsChanged(terrain)
+        elseif kind = CASTS_SHADOWS
+            settings:SetCastsShadows(shadowsCheckbox:GetToggleState())
+            editor:FoliageAssetSettingsChanged(terrain)
+        end
+    end
+
+    /*
+        Moves an asset up or down one place. The open settings follow their
+        asset, and the focus goes with the moved asset's arrow.
+    */
+    private action MoveAsset(SceneEditor editor, integer asset, boolean up)
+        integer target = asset + 1
+        if up
+            target = asset - 1
+        end
+        if target < 0 or target >= rowsShown
+            return now
+        end
+        integer settingsBefore = settingsAsset
+        if settingsAsset = asset
+            settingsAsset = target
+        elseif settingsAsset = target
+            settingsAsset = asset
+        end
+        if not editor:MoveFoliageAsset(terrain, asset, up)
+            settingsAsset = settingsBefore
+            return now
+        end
+        if up and target > 0
+            upButtons:Get(target):Focus()
+        elseif up
+            downButtons:Get(target):Focus()
+        elseif target < rowsShown - 1
+            downButtons:Get(target):Focus()
+        else
+            upButtons:Get(target):Focus()
+        end
+    end
+
+    /*
+        This action is called when the focus leaves one of the settings'
+        fields: its value is taken. A number out of range is ignored.
+
+        Attribute: Parameter field The field the focus left
+    */
+    action FieldLeft(TextField field)
+        SceneEditor editor = GetSceneEditor()
+        if terrain = undefined or updating or editor = undefined or settingsAsset < 0
+            return now
+        end
+        FoliageList list = terrain:GetFoliageList()
+        if list = undefined or settingsAsset >= list:GetAssetCount()
+            return now
+        end
+        FoliageAsset asset = list:GetAsset(settingsAsset)
+        integer place = -1
+        integer i = 0
+        repeat while i < settingsFields:GetSize()
+            if settingsFields:Get(i):Equals(field)
+                place = i
+            end
+            i = i + 1
+        end
+        if place < 0
+            return now
+        end
+        if place = NAME_FIELD
+            text name = field:GetText():Trim()
+            if name = "" or name = asset:GetName()
+                return now
+            end
+            asset:SetName(name)
+        else
+            number value = 0
+            boolean parsed = true
+            check
+                value = field:GetText():ParseNumber()
+            detect e is Error
+                // Not a number; ignored.
+                parsed = false
+            end
+            if not parsed
+                return now
+            end
+            if value < 0 and place not= OFFSET_FIELD
+                return now
+            end
+            if place = DENSITY_FIELD and value > 0
+                asset:SetDensity(value)
+            elseif place = SCALE_FIELD and value > 0
+                asset:SetBaseScale(value)
+            elseif place = RANDOM_SCALE_FIELD and value <= 1
+                asset:SetRandomScale(value)
+            elseif place = SHADE_FIELD and value <= 1
+                asset:SetShadeVariation(value)
+            elseif place = LOWEST_SLOPE_FIELD and value <= 90
+                asset:SetMinimumSlope(value)
+            elseif place = STEEPEST_SLOPE_FIELD and value <= 90
+                asset:SetMaximumSlope(value)
+            elseif place = OFFSET_FIELD
+                asset:SetHeightOffset(value)
+            elseif place = DISTANCE_FIELD and value > 0
+                asset:SetDrawDistance(value)
+            else
+                return now
+            end
+        end
+        editor:FoliageAssetSettingsChanged(terrain)
+        SetTerrain(terrain)
+    end
+
+    /*
+        Moves the focus to the first asset's name, or to "Add asset..." when
+        there are none.
+    */
+    action FocusField
+        if rowsShown > 0
+            nameLabels:Get(0):Focus()
+        else
+            addButton:Focus()
+        end
+    end
+end

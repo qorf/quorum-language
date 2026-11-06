@@ -1,0 +1,803 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+
+/*
+A TerrainLake is one lake on a terrain (Water plan W5): water at a level.
+TerrainWater holds a terrain's lakes, saves them, and draws each with a
+WaterSurface. The ground hides the water wherever it rises above it, so the
+shore follows the ground.
+
+A lake is one of two shapes:
+- a rectangle, centered on a point, set with Set;
+- a grid of water cells (W6): square cells the terrain's sample spacing
+  wide, each holding water or not. Fill makes one by filling a hollow from
+  a point, as poured water would, up to the level; Paint adds or removes
+  cells under a brush. Only the cells with water are drawn, so water never
+  shows in a neighboring hollow. Its rectangle is kept around its cells.
+
+Painting into a lake with a level adds water only where the ground is below
+that level, so it never floats. A lake started by painting (StartFollowing)
+has no single level: it follows the ground, its water depth above it,
+thinning to the ground at its edge, like a stream or a puddle.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainLake
+
+TerrainLake pond
+pond:Set(40, -20, 30, 24, 3.5)
+pond:SetName("Mill pond")
+*/
+class TerrainLake
+    text name = ""
+    number x = 0
+    number z = 0
+    number width = 20
+    number depth = 20
+    number level = 0
+
+    // The sheet drawing the lake, made by TerrainWater.
+    WaterSurface surface = undefined
+
+    // The water cells, if the lake has them (Water plan W6): cell (column,
+    // row) covers world x from column * cellSize to the next column, and the
+    // same along z. The grid holds columns × rows cells from firstColumn and
+    // firstRow, a row at a time.
+    boolean masked = false
+    number cellSize = 1
+    integer firstColumn = 0
+    integer firstRow = 0
+    integer columns = 0
+    integer rows = 0
+    Array<boolean> cells
+
+    // The most cells Fill searches, so a level above the whole terrain
+    // doesn't fill forever.
+    public constant integer MAXIMUM_FILL_CELLS = 250000
+
+    // True for a lake that follows the ground (started by painting): its
+    // water stands waterDepth above the ground in each cell. Its level is
+    // then the highest its water reaches, for the terrain's render box.
+    boolean followsGround = false
+    number waterDepth = 2
+    boolean levelSet = false
+
+    /*
+    This action sets where the lake is, how big, and its water's height. For
+    a lake of water cells (Fill and Paint), only the level is used.
+
+    Attribute: Parameter middleX The lake's middle along x, in world units.
+    Attribute: Parameter middleZ The lake's middle along z, in world units.
+    Attribute: Parameter sizeX Its size along x.
+    Attribute: Parameter sizeZ Its size along z.
+    Attribute: Parameter height The water's height.
+    */
+    action Set(number middleX, number middleZ, number sizeX, number sizeZ, number height)
+        // A lake of cells keeps its cells; its rectangle follows them, so
+        // only its level changes.
+        if masked
+            level = height
+            return now
+        end
+        x = middleX
+        z = middleZ
+        width = sizeX
+        depth = sizeZ
+        level = height
+    end
+
+    /*
+    This action returns the lake's name, such as "Mill pond".
+
+    Attribute: Returns The name, or "" for none.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the lake's name.
+
+    Attribute: Parameter value The name.
+    */
+    action SetName(text value)
+        name = value
+    end
+
+    /*
+    This action returns the lake's middle along x.
+
+    Attribute: Returns The x, in world units.
+    */
+    action GetX returns number
+        return x
+    end
+
+    /*
+    This action returns the lake's middle along z.
+
+    Attribute: Returns The z, in world units.
+    */
+    action GetZ returns number
+        return z
+    end
+
+    /*
+    This action returns the lake's size along x.
+
+    Attribute: Returns The width, in world units.
+    */
+    action GetWidth returns number
+        return width
+    end
+
+    /*
+    This action returns the lake's size along z.
+
+    Attribute: Returns The depth, in world units.
+    */
+    action GetDepth returns number
+        return depth
+    end
+
+    /*
+    This action returns the water's height.
+
+    Attribute: Returns The level, in world units.
+    */
+    action GetLevel returns number
+        return level
+    end
+
+    /*
+    This action returns true if the lake's rectangle reaches over a point,
+    seen from above.
+
+    Attribute: Parameter pointX The point along x.
+    Attribute: Parameter pointZ The point along z.
+    Attribute: Returns True if the lake covers it.
+    */
+    action Covers(number pointX, number pointZ) returns boolean
+        if masked
+            return IsWater(GetColumnAt(pointX), GetColumnAt(pointZ))
+        end
+        number offsetX = pointX - x
+        number offsetZ = pointZ - z
+        if offsetX < 0
+            offsetX = -offsetX
+        end
+        if offsetZ < 0
+            offsetZ = -offsetZ
+        end
+        return offsetX <= width / 2 and offsetZ <= depth / 2
+    end
+
+    /*
+    This action returns true if the lake is a grid of water cells, made by
+    Fill or Paint, rather than a rectangle.
+
+    Attribute: Returns True for a grid of cells.
+    */
+    action IsMasked returns boolean
+        return masked
+    end
+
+    /*
+    This action returns how wide each water cell is.
+
+    Attribute: Returns The width, in world units.
+    */
+    action GetCellSize returns number
+        return cellSize
+    end
+
+    /*
+    This action returns the column or row holding a world position, along x
+    or z.
+
+    Attribute: Parameter world The position.
+    Attribute: Returns The column or row.
+    */
+    action GetColumnAt(number world) returns integer
+        Math math
+        return cast(integer, math:Floor(world / cellSize))
+    end
+
+    /*
+    This action returns the grid's first column.
+
+    Attribute: Returns The column.
+    */
+    action GetFirstColumn returns integer
+        return firstColumn
+    end
+
+    /*
+    This action returns the grid's first row.
+
+    Attribute: Returns The row.
+    */
+    action GetFirstRow returns integer
+        return firstRow
+    end
+
+    /*
+    This action returns how many columns the grid has.
+
+    Attribute: Returns The count.
+    */
+    action GetColumnCount returns integer
+        return columns
+    end
+
+    /*
+    This action returns how many rows the grid has.
+
+    Attribute: Returns The count.
+    */
+    action GetRowCount returns integer
+        return rows
+    end
+
+    /*
+    This action returns true if a cell holds water.
+
+    Attribute: Parameter column The cell's column, counted in cells from the world's origin along x.
+    Attribute: Parameter row The cell's row, along z.
+    Attribute: Returns True for water.
+    */
+    action IsWater(integer column, integer row) returns boolean
+        if not masked
+            return false
+        end
+        integer localColumn = column - firstColumn
+        integer localRow = row - firstRow
+        if localColumn < 0 or localRow < 0 or localColumn >= columns or localRow >= rows
+            return false
+        end
+        return cells:Get(localRow * columns + localColumn)
+    end
+
+    /*
+    This action returns how many cells hold water.
+
+    Attribute: Returns The count.
+    */
+    action GetWaterCellCount returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < cells:GetSize()
+            if cells:Get(i)
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action makes the lake a grid of water cells by filling a hollow
+    from a point, as water poured there would: every cell connected to it
+    whose ground is below the level gets water, and the water stops at the
+    rim. The lake's level becomes the level given. Cells off the terrain
+    stop the water too, so a hollow open to the terrain's edge fills only
+    what is on the terrain.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter startX Where the water is poured, along x.
+    Attribute: Parameter startZ Where the water is poured, along z.
+    Attribute: Parameter height The water's level.
+    Attribute: Returns How many cells got water: 0 if the ground there is above the level.
+    */
+    action Fill(TerrainData data, number startX, number startZ, number height) returns integer
+        followsGround = false
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+        cellSize = spacing
+        level = height
+        integer startColumn = GetColumnAt(startX)
+        integer startRow = GetColumnAt(startZ)
+        if not IsBelow(data, startColumn, startRow, height)
+            return 0
+        end
+
+        // The cells found so far, by column and row, in a table, while the
+        // search spreads out from the start.
+        HashTable<text, boolean> seen
+        Array<integer> waiting
+        waiting:Add(startColumn)
+        waiting:Add(startRow)
+        seen:Add("" + startColumn + "/" + startRow, true)
+        Array<integer> found
+        integer lowColumn = startColumn
+        integer highColumn = startColumn
+        integer lowRow = startRow
+        integer highRow = startRow
+        integer reading = 0
+        repeat while reading < waiting:GetSize() and found:GetSize() / 2 < MAXIMUM_FILL_CELLS
+            integer column = waiting:Get(reading)
+            integer row = waiting:Get(reading + 1)
+            reading = reading + 2
+            found:Add(column)
+            found:Add(row)
+            if column < lowColumn
+                lowColumn = column
+            end
+            if column > highColumn
+                highColumn = column
+            end
+            if row < lowRow
+                lowRow = row
+            end
+            if row > highRow
+                highRow = row
+            end
+            integer side = 0
+            repeat while side < 4
+                integer nextColumn = column
+                integer nextRow = row
+                if side = 0
+                    nextColumn = column + 1
+                elseif side = 1
+                    nextColumn = column - 1
+                elseif side = 2
+                    nextRow = row + 1
+                else
+                    nextRow = row - 1
+                end
+                text key = "" + nextColumn + "/" + nextRow
+                if not seen:HasKey(key)
+                    seen:Add(key, true)
+                    if IsBelow(data, nextColumn, nextRow, height)
+                        waiting:Add(nextColumn)
+                        waiting:Add(nextRow)
+                    end
+                end
+                side = side + 1
+            end
+        end
+
+        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        integer i = 0
+        repeat while i < found:GetSize()
+            cells:Set((found:Get(i + 1) - firstRow) * columns + found:Get(i) - firstColumn, true)
+            i = i + 2
+        end
+        masked = true
+        FitRectangle()
+        return found:GetSize() / 2
+    end
+
+    /*
+    This action adds or removes water in the cells within a distance of a
+    point, as a brush does (Water plan W6). A lake that was a rectangle
+    becomes a grid of cells first, holding the rectangle's water.
+
+    Attribute: Parameter data The terrain's data, for its sample spacing.
+    Attribute: Parameter pointX The brush's middle along x.
+    Attribute: Parameter pointZ The brush's middle along z.
+    Attribute: Parameter radius The brush's radius, in world units.
+    Attribute: Parameter add True to add water, false to remove it.
+    Attribute: Returns How many cells changed.
+    */
+    action Paint(TerrainData data, number pointX, number pointZ, number radius, boolean add) returns integer
+        if not masked
+            MaskRectangle(data)
+        end
+        integer lowColumn = GetColumnAt(pointX - radius)
+        integer highColumn = GetColumnAt(pointX + radius)
+        integer lowRow = GetColumnAt(pointZ - radius)
+        integer highRow = GetColumnAt(pointZ + radius)
+        if add
+            Grow(lowColumn, lowRow, highColumn, highRow)
+        end
+        integer changed = 0
+        number radiusSquared = radius * radius
+        integer row = lowRow
+        repeat while row <= highRow
+            integer column = lowColumn
+            repeat while column <= highColumn
+                number offsetX = (column + 0.5) * cellSize - pointX
+                number offsetZ = (row + 0.5) * cellSize - pointZ
+                if offsetX * offsetX + offsetZ * offsetZ <= radiusSquared
+                    integer localColumn = column - firstColumn
+                    integer localRow = row - firstRow
+                    // Added water needs ground under it, and below the level
+                    // for a lake with one, so it never floats.
+                    boolean allowed = true
+                    if add
+                        if followsGround
+                            allowed = data:HasHeight((column + 0.5) * cellSize, (row + 0.5) * cellSize)
+                        else
+                            allowed = IsBelow(data, column, row, level)
+                        end
+                    end
+                    if allowed and localColumn >= 0 and localRow >= 0 and localColumn < columns and localRow < rows
+                        if add and followsGround
+                            number top = data:GetSurfaceHeight((column + 0.5) * cellSize, (row + 0.5) * cellSize) + waterDepth
+                            if not levelSet or top > level
+                                level = top
+                                levelSet = true
+                            end
+                        end
+                        integer place = localRow * columns + localColumn
+                        if cells:Get(place) not= add
+                            cells:Set(place, add)
+                            changed = changed + 1
+                        end
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        if changed > 0
+            FitRectangle()
+        end
+        return changed
+    end
+
+    /*
+    This action makes a rectangle lake a grid of cells holding the same
+    water.
+    */
+    /*
+    This action makes the lake an empty grid of cells that follows the
+    ground: painted water stands a depth above the ground in each cell,
+    and thins to the ground at the lake's edge.
+
+    Attribute: Parameter data The terrain's data, for its sample spacing.
+    Attribute: Parameter standing How far above the ground the water stands.
+    */
+    action StartFollowing(TerrainData data, number standing)
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+        cellSize = spacing
+        waterDepth = standing
+        followsGround = true
+        levelSet = false
+        masked = true
+        MakeGrid(0, 0, 0, 0)
+        width = 0
+        depth = 0
+    end
+
+    /*
+    This action marks a lake being loaded as one that follows the ground,
+    before its cells are set from the file.
+
+    Attribute: Parameter standing How far above the ground the water stands.
+    */
+    action StartFollowingSaved(number standing)
+        followsGround = true
+        waterDepth = standing
+        levelSet = true
+    end
+
+    /*
+    This action returns true if the lake follows the ground, its water
+    depth above it, instead of having one level.
+
+    Attribute: Returns True for a lake that follows the ground.
+    */
+    action IsFollowingGround returns boolean
+        return followsGround
+    end
+
+    /*
+    This action returns how far above the ground a lake that follows the
+    ground stands.
+
+    Attribute: Returns The depth.
+    */
+    action GetWaterDepth returns number
+        return waterDepth
+    end
+
+    /*
+    This action sets how far above the ground a lake that follows the
+    ground stands.
+
+    Attribute: Parameter value The depth.
+    */
+    action SetWaterDepth(number value)
+        waterDepth = value
+    end
+
+    /*
+    This action returns the water's height at a point: the level, or for a
+    lake that follows the ground, its depth above the ground there.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter pointX The point along x.
+    Attribute: Parameter pointZ The point along z.
+    Attribute: Returns The height.
+    */
+    action GetLevelAt(TerrainData data, number pointX, number pointZ) returns number
+        if followsGround and data not= undefined and data:HasHeight(pointX, pointZ)
+            return data:GetSurfaceHeight(pointX, pointZ) + waterDepth
+        end
+        return level
+    end
+
+    private action MaskRectangle(TerrainData data)
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+        cellSize = spacing
+        integer lowColumn = GetColumnAt(x - width / 2)
+        integer lowRow = GetColumnAt(z - depth / 2)
+        integer highColumn = GetColumnAt(x + width / 2)
+        integer highRow = GetColumnAt(z + depth / 2)
+        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        integer i = 0
+        repeat while i < cells:GetSize()
+            cells:Set(i, true)
+            i = i + 1
+        end
+        masked = true
+    end
+
+    /*
+    This action makes the grid empty, at a place and size.
+    */
+    private action MakeGrid(integer column, integer row, integer columnCount, integer rowCount)
+        firstColumn = column
+        firstRow = row
+        columns = columnCount
+        rows = rowCount
+        Array<boolean> made
+        integer i = 0
+        repeat while i < columns * rows
+            made:Add(false)
+            i = i + 1
+        end
+        cells = made
+    end
+
+    /*
+    This action makes the grid larger, if needed, to reach from one cell to
+    another, keeping its water.
+    */
+    private action Grow(integer lowColumn, integer lowRow, integer highColumn, integer highRow)
+        if columns > 0 and rows > 0
+            if lowColumn >= firstColumn and lowRow >= firstRow and highColumn < firstColumn + columns and highRow < firstRow + rows
+                return now
+            end
+            if firstColumn < lowColumn
+                lowColumn = firstColumn
+            end
+            if firstRow < lowRow
+                lowRow = firstRow
+            end
+            if firstColumn + columns - 1 > highColumn
+                highColumn = firstColumn + columns - 1
+            end
+            if firstRow + rows - 1 > highRow
+                highRow = firstRow + rows - 1
+            end
+        end
+        Array<boolean> old = cells
+        integer oldColumn = firstColumn
+        integer oldRow = firstRow
+        integer oldColumns = columns
+        integer oldRows = rows
+        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        integer row = 0
+        repeat while row < oldRows
+            integer column = 0
+            repeat while column < oldColumns
+                if old:Get(row * oldColumns + column)
+                    cells:Set((oldRow + row - firstRow) * columns + oldColumn + column - firstColumn, true)
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+    end
+
+    /*
+    This action sets the lake's rectangle around its water cells, for its
+    middle, its size, and the terrain's render box.
+    */
+    private action FitRectangle
+        integer lowColumn = 0
+        integer highColumn = -1
+        integer lowRow = 0
+        integer highRow = -1
+        boolean any = false
+        integer row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                if cells:Get(row * columns + column)
+                    if not any
+                        lowColumn = column
+                        highColumn = column
+                        lowRow = row
+                        highRow = row
+                        any = true
+                    end
+                    if column < lowColumn
+                        lowColumn = column
+                    end
+                    if column > highColumn
+                        highColumn = column
+                    end
+                    if row > highRow
+                        highRow = row
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        if not any
+            width = 0
+            depth = 0
+            return now
+        end
+        number left = (firstColumn + lowColumn) * cellSize
+        number right = (firstColumn + highColumn + 1) * cellSize
+        number near = (firstRow + lowRow) * cellSize
+        number far = (firstRow + highRow + 1) * cellSize
+        x = (left + right) / 2
+        z = (near + far) / 2
+        width = right - left
+        depth = far - near
+    end
+
+    /*
+    This action returns true if the ground in a cell's middle is below a
+    level. Off the terrain counts as not below, so water stops there.
+    */
+    private action IsBelow(TerrainData data, integer column, integer row, number height) returns boolean
+        number middleX = (column + 0.5) * cellSize
+        number middleZ = (row + 0.5) * cellSize
+        if not data:HasHeight(middleX, middleZ)
+            return false
+        end
+        return data:GetSurfaceHeight(middleX, middleZ) < height
+    end
+
+    /*
+    This action returns the grid's water as runs, for saving: three numbers
+    per run of water along a row, its row, first column and length.
+
+    Attribute: Returns The runs.
+    */
+    action GetRuns returns Array<integer>
+        Array<integer> runs
+        integer row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                if cells:Get(row * columns + column)
+                    integer runStart = column
+                    repeat while column < columns and cells:Get(row * columns + column)
+                        column = column + 1
+                    end
+                    runs:Add(firstRow + row)
+                    runs:Add(firstColumn + runStart)
+                    runs:Add(column - runStart)
+                else
+                    column = column + 1
+                end
+            end
+            row = row + 1
+        end
+        return runs
+    end
+
+    /*
+    This action makes the lake a grid of water cells from saved runs.
+
+    Attribute: Parameter size How wide each cell is.
+    Attribute: Parameter runs Three numbers per run: its row, first column and length.
+    */
+    action SetRuns(number size, Array<integer> runs)
+        cellSize = size
+        if cellSize <= 0
+            cellSize = 1
+        end
+        masked = true
+        if runs:IsEmpty()
+            MakeGrid(0, 0, 0, 0)
+            FitRectangle()
+            return now
+        end
+        integer lowColumn = runs:Get(1)
+        integer highColumn = runs:Get(1) + runs:Get(2) - 1
+        integer lowRow = runs:Get(0)
+        integer highRow = runs:Get(0)
+        integer i = 0
+        repeat while i + 2 < runs:GetSize()
+            if runs:Get(i) < lowRow
+                lowRow = runs:Get(i)
+            end
+            if runs:Get(i) > highRow
+                highRow = runs:Get(i)
+            end
+            if runs:Get(i + 1) < lowColumn
+                lowColumn = runs:Get(i + 1)
+            end
+            if runs:Get(i + 1) + runs:Get(i + 2) - 1 > highColumn
+                highColumn = runs:Get(i + 1) + runs:Get(i + 2) - 1
+            end
+            i = i + 3
+        end
+        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        i = 0
+        repeat while i + 2 < runs:GetSize()
+            integer step = 0
+            repeat while step < runs:Get(i + 2)
+                cells:Set((runs:Get(i) - firstRow) * columns + runs:Get(i + 1) + step - firstColumn, true)
+                step = step + 1
+            end
+            i = i + 3
+        end
+        FitRectangle()
+    end
+
+    /*
+    This action makes this lake the same as another: its name, level,
+    shape and cells, but not its sheet. Undo uses it.
+
+    Attribute: Parameter other The lake to copy.
+    */
+    action CopyFrom(TerrainLake other)
+        name = other:GetName()
+        x = other:GetX()
+        z = other:GetZ()
+        width = other:GetWidth()
+        depth = other:GetDepth()
+        level = other:GetLevel()
+        followsGround = other:IsFollowingGround()
+        waterDepth = other:GetWaterDepth()
+        levelSet = true
+        masked = other:IsMasked()
+        if masked
+            SetRuns(other:GetCellSize(), other:GetRuns())
+            x = other:GetX()
+            z = other:GetZ()
+            width = other:GetWidth()
+            depth = other:GetDepth()
+        end
+    end
+
+    /*
+    This action sets the water's height, keeping the lake's shape. A filled
+    lake keeps its cells; fill it again to follow the hollow at the new
+    level.
+
+    Attribute: Parameter height The level.
+    */
+    action SetLevel(number height)
+        level = height
+    end
+
+    /*
+    This action returns the sheet drawing the lake.
+
+    Attribute: Returns The surface, or undefined until it is drawn.
+    */
+    action GetSurface returns WaterSurface
+        return surface
+    end
+
+    /*
+    This action sets the sheet drawing the lake. TerrainWater calls it.
+
+    Attribute: Parameter value The surface, or undefined.
+    */
+    action SetSurface(WaterSurface value)
+        surface = value
+    end
+end

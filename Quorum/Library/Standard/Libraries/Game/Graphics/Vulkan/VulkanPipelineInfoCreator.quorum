@@ -778,7 +778,8 @@ class VulkanPipelineInfoCreator
 1. Positions (no blending)
 2. Albedo (allow blending)
 3. Normals (no blending)
-4. PBR Properties (no blending)*/
+4. PBR Properties (no blending)
+5. Emissive light (no blending; Lighting plan L1)*/
         AddOpaqueColorBlendAttachmentState()
         
         VulkanPipelineColorBlendAttachmentState albedoBlend
@@ -794,13 +795,17 @@ class VulkanPipelineInfoCreator
         
         AddOpaqueColorBlendAttachmentState()
         AddOpaqueColorBlendAttachmentState()
+        AddOpaqueColorBlendAttachmentState()
 
             // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
         AddDynamicViewport()
         AddDynamicScissor()
 
-        // Add a uniform for the camera, used during the vertex shader stage.
-        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        // Add a uniform for the camera: the projection-view matrix, and the
+        // camera's position, time, screen size and near and far planes, for
+        // vertex and fragment shaders (Item 38). This must match the 3D
+        // painter's camera layout.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 
         // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
         VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
@@ -827,6 +832,90 @@ class VulkanPipelineInfoCreator
         SetPushConstantRange(pushConstants)
     end
     
+
+    /*
+    This action adds the resources for a forward 3D program (Item 39): one
+    drawn by the VulkanPainter3D after the deferred lighting, over the lit
+    image, such as water. It uses the default 3D vertex data, so the
+    default 3D vertex shader works with it. Its layout is:
+    - set 0: the camera uniform and the immutable sampler, as in
+      AddDefaultInfo3D;
+    - set 1: the global textures;
+    - set 2: the G-buffer: position, albedo, normal, PBR and emissive
+      samplers (emissive is Lighting plan L1);
+    - set 3: the lights (a storage buffer) and the scene data (a uniform).
+    Its push constants are 128 bytes: the instance buffer address, then 18
+    numbers from the mapping's FillForwardData, then 12 numbers of scene
+    data from the painter. It blends over the lit image, with no depth test
+    and no culling.
+
+    The program's mapping must also say UseDefaultResources3D(true) and
+    UseForwardPass(true).
+    */
+    action AddForwardInfo3D
+        CheckHasBegun()
+
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
+
+        VulkanConstants constants
+
+        // One color attachment, the lit image. Color blends by the source's
+        // alpha; alpha only grows, so the water over the sky stays as
+        // opaque as the water.
+        VulkanPipelineColorBlendAttachmentState litBlend
+        litBlend:SetBlendEnable(true)
+        litBlend:SetSourceColorBlendFactor(constants:BLEND_FACTOR_SOURCE_ALPHA)
+        litBlend:SetDestinationColorBlendFactor(constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA)
+        litBlend:SetColorBlendOp(constants:BLEND_OP_ADD)
+        litBlend:SetSourceAlphaBlendFactor(constants:BLEND_FACTOR_ONE)
+        litBlend:SetDestinationAlphaBlendFactor(constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA)
+        litBlend:SetAlphaBlendOp(constants:BLEND_OP_ADD)
+        colorBlendAttachments:Add(litBlend)
+
+        AddDynamicViewport()
+        AddDynamicScissor()
+
+        // Set 0: the camera uniform (Item 38) and the immutable sampler,
+        // exactly as AddDefaultInfo3D, so the painter's camera set binds.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
+        Array<VulkanSampler> immutableSamplers
+        immutableSamplers:Add(textureManager:GetDefaultSampler())
+        samplerBinding:SetImmutableSamplers(immutableSamplers)
+
+        // Set 1: the global textures.
+        AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
+
+        // Set 2: the G-buffer, with the same bindings as the lighting pass's
+        // set 0, so the painter binds the same descriptor sets: position,
+        // albedo, normals, PBR and emissive (the painter's G_BUFFER_COUNT).
+        repeat 5 times
+            AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        end
+        FinishDescriptorSetLayout()
+
+        // Set 3: the lights and scene data, as the lighting pass's set 1.
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
+        FinishDescriptorSetLayout()
+
+        // 128 bytes: the address, the program's 18 numbers, and the
+        // painter's 12. The painter's buffer is exactly this size.
+        VulkanPushConstantRange pushConstants
+        pushConstants:SetSize(128)
+        pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+        pushConstants:Create()
+        SetPushConstantRange(pushConstants)
+
+        // The lighting pass has no depth; the shader compares with the
+        // G-buffer position instead. Water is seen from below too.
+        info:SetDepthTestEnable(false)
+        info:SetDepthWriteEnable(false)
+        info:SetCullMode(constants:CULL_MODE_NONE)
+    end
+
     action SetPushConstantRange(VulkanPushConstantRange pushConstantRange)
         me:pushConstantRange = pushConstantRange
     end
