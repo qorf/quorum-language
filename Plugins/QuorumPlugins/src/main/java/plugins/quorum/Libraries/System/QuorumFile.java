@@ -58,20 +58,26 @@ public class QuorumFile {
      * a newline.
      */
     public String GetDirectoryListingNative() {
-        String listing = "";
         String newline = System.getProperty("line.separator");
         String[] list = file.list();
-        
+        // The folder was deleted (or can't be read) after the caller checked
+        // it was one, such as while a build or git changes files: an empty
+        // listing. File.list returns null then (found 2026-11-06).
+        if (list == null) {
+            return "";
+        }
+
         // Add our current path onto the end of each file name.
         String prefix = file.getAbsolutePath();
         if (!path.endsWith(File.separator))
             prefix = prefix + File.separator;
-        
+
+        StringBuilder listing = new StringBuilder();
         for (int x = 0; x < list.length; x++) {
-            listing = listing + prefix + list[x] + newline;
+            listing.append(prefix).append(list[x]).append(newline);
         }
-        
-        return listing;
+
+        return listing.toString();
     }
 
 

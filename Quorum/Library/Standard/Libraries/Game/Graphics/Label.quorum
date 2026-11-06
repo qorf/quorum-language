@@ -481,7 +481,17 @@ class Label is Control
         end
     */
     action SetColor(ColorGroup color)
+        // The glyphs are recolored here, so a new color needs no new glyphs
+        // (Studio plan TeamTabSpeed.md, 2026-11-06). Setting the font color
+        // marks the properties as needing rendering, which would make every
+        // glyph again on the next layout (each selection change in a list
+        // did); the mark is put back as it was.
+        LayoutProperties colorProperties = GetDefaultLayoutProperties()
+        boolean neededRendering = colorProperties:NeedsRendering()
         parent:Control:SetFontColor(color)
+        if not neededRendering
+            colorProperties:SetRenderingFlag(false)
+        end
         ResetDrawableColors()
     end
 

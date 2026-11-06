@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,8 +45,21 @@ import java.util.concurrent.TimeUnit;
  * has been quiet for the settle time. Changes to the same path in that time
  * are merged (see Combine). Only the watcher thread uses the pending maps.
  *
+ * How changes are found (Studio plan FileWatching.md, 2026-11-06):
+ * - macOS, with Mac.so loaded: FSEvents (MacFileEvents and
+ *   quorum-natives/src/mac/FileWatcherMac.c), one stream per watched
+ *   folder and everything in it. The JDK's WatchService polls on macOS:
+ *   every 2 seconds it lists every registered folder, which made Studio
+ *   slow with large projects open.
+ * - Windows: the WatchService with com.sun.nio.file's FILE_TREE modifier
+ *   (found by reflection), one registration per recursive watched folder.
+ * - Otherwise (Linux, Android, macOS without Mac.so), and whenever the above
+ *   can't be used: the WatchService, one registration per folder.
+ * The merging, settle time and ignoring below are the same for all.
+ *
  * Uses only Java 7 APIs, so it builds with the plugins' Java 8 toolchain.
- * No com.sun.nio.file modifiers (sensitivity or FILE_TREE) are used.
+ * FILE_TREE is the only com.sun.nio.file modifier, on Windows only, and it
+ * is looked up by reflection (no sensitivity modifier).
  */
 final class QuorumFileWatcher implements FileWatcherImplementation {
     // The same values as the constants in FileChangeEvent.quorum.
@@ -58,6 +72,27 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
     private static final int NOTHING = -1;
 
     private static final long JOIN_MILLISECONDS = 1000;
+
+    // How long FSEvents gathers events before passing them on, in seconds.
+    // The settle time does the rest of the merging.
+    private static final double MAC_LATENCY = 0.05;
+    // How many FSEvents events one Take can return.
+    private static final int MAC_BATCH = 512;
+    // How long a path reported as CREATED is remembered. FSEvents keeps
+    // "created" on a path's later events for a while, so a remembered path
+    // that is written again is reported as MODIFIED.
+    private static final long CREATED_MEMORY_MILLISECONDS = 60000;
+    // A file whose creation time is older than this, with "created" on its
+    // event, was made before the event's change (creation times are whole
+    // seconds on macOS).
+    private static final long MADE_BEFORE_MILLISECONDS = 2000;
+
+    // Windows' FILE_TREE modifier, or null on other systems or if the JDK
+    // doesn't have it.
+    private static final WatchEvent.Modifier TREE_MODIFIER = FindTreeModifier();
+
+    // Numbers the watched folders, so FSEvents' events can name theirs.
+    private final AtomicInteger nextRootId = new AtomicInteger(1);
 
     private final Object lock = new Object();
     private Session session = null; // guarded by lock
@@ -96,18 +131,22 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
                 RemoveReady(old);
             }
 
-            Root root = new Root(folder, text, recursive);
+            Root root = new Root(folder, text, recursive, nextRootId.getAndIncrement());
             s.roots.put(folder, root);
             try {
-                // The first level is registered here, so its errors reach the caller.
-                s.Register(folder, root);
+                // FSEvents (macOS) or FILE_TREE (Windows) watch the whole
+                // tree with one registration. Otherwise the first level is
+                // registered here, so its errors reach the caller.
+                if (!s.StartTree(root)) {
+                    s.Register(folder, root);
+                    if (recursive) {
+                        // The folders inside are registered on the watcher thread.
+                        s.walks.add(root);
+                    }
+                }
             } catch (IOException ex) {
                 s.RemoveRoot(root);
                 throw ex;
-            }
-            if (recursive) {
-                // The folders inside are registered on the watcher thread.
-                s.walks.add(root);
             }
         }
     }
@@ -217,6 +256,55 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
         return name != null && excluded.contains(name.toString());
     }
 
+    /**
+     * True if any folder or file name from the watched folder down to the
+     * path is excluded. A tree watch (FSEvents, FILE_TREE) sees changes in
+     * excluded folders too, so every name is checked, not only the last.
+     */
+    private boolean IsExcludedUnder(Root root, Path path) {
+        if (excluded.isEmpty()) {
+            return false;
+        }
+        Path relative;
+        if (path.startsWith(root.path)) {
+            relative = root.path.relativize(path);
+        } else {
+            relative = path;
+        }
+        int count = relative.getNameCount();
+        for (int i = 0; i < count; i++) {
+            if (excluded.contains(relative.getName(i).toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Windows' FILE_TREE modifier, by reflection, or null. */
+    private static WatchEvent.Modifier FindTreeModifier() {
+        String system = System.getProperty("os.name", "");
+        if (!system.toLowerCase().startsWith("windows")) {
+            return null;
+        }
+        try {
+            Class<?> type = Class.forName("com.sun.nio.file.ExtendedWatchEventModifier");
+            Object[] values = type.getEnumConstants();
+            if (values == null) {
+                return null;
+            }
+            for (Object value : values) {
+                if (value instanceof WatchEvent.Modifier && "FILE_TREE".equals(((Enum<?>) value).name())) {
+                    return (WatchEvent.Modifier) value;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            // Not in this JDK.
+        } catch (RuntimeException ex) {
+            // Not accessible: use one registration per folder.
+        }
+        return null;
+    }
+
     private boolean IsIgnored(Path path, long time) {
         Long until = ignoreUntil.get(path.toString());
         return until != null && time <= until.longValue();
@@ -269,17 +357,30 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
         final Path path;
         final String text; // exactly as passed to Watch, sent back as the watched folder
         final boolean recursive;
+        final int id;
         volatile boolean active = true;
+
+        // How the tree is watched (FileWatching.md): an FSEvents stream, or
+        // one FILE_TREE registration on Windows. Neither: one per folder.
+        volatile long macStream = 0;
+        volatile boolean tree = false;
+        // The folder's real path, as FSEvents names it (without links such
+        // as /tmp to /private/tmp).
+        volatile Path realPath;
 
         // Watcher thread only.
         final Map<Path, Pending> pending = new LinkedHashMap<Path, Pending>();
+        // FSEvents: paths reported as CREATED lately, oldest first, with when.
+        final Map<Path, Long> recentlyCreated = new LinkedHashMap<Path, Long>();
         long overflowTime = -1; // when an OVERFLOW started waiting, or -1
         boolean rewalk = false; // walk the tree again to register missed folders
 
-        Root(Path path, String text, boolean recursive) {
+        Root(Path path, String text, boolean recursive, int id) {
             this.path = path;
             this.text = text;
             this.recursive = recursive;
+            this.id = id;
+            this.realPath = path;
         }
     }
 
@@ -298,8 +399,24 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
         final Map<WatchKey, List<Root>> keyRoots = new ConcurrentHashMap<WatchKey, List<Root>>();
         final Queue<Root> walks = new ConcurrentLinkedQueue<Root>();
 
+        // FSEvents (macOS): the event queue, or 0 when not used; the roots
+        // with a stream, by id; and the roots whose stream the watcher thread
+        // must remove. Guarded by this session's lock, except macQueue's
+        // reads on the watcher thread.
+        volatile long macQueue = 0;
+        boolean macClosed = false;
+        final Map<Integer, Root> macRoots = new ConcurrentHashMap<Integer, Root>();
+        final Queue<Root> macRemovals = new ConcurrentLinkedQueue<Root>();
+        // Watcher thread only: where Take puts events.
+        final String[] macPaths = new String[MAC_BATCH];
+        final int[] macFlags = new int[MAC_BATCH];
+        final int[] macIds = new int[MAC_BATCH];
+
         Session() throws IOException {
             service = FileSystems.getDefault().newWatchService();
+            if (MacFileEvents.IsAvailable()) {
+                macQueue = MacFileEvents.CreateQueue();
+            }
             thread = new Thread(this, "Quorum File Watcher");
             thread.setDaemon(true);
             thread.start();
@@ -327,11 +444,71 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
             }
         }
 
+        /**
+         * Watches a root's whole tree with one registration: an FSEvents
+         * stream on macOS, or FILE_TREE on Windows for a recursive root.
+         * Returns false if neither can be used, and the caller registers
+         * folder by folder. Either thread.
+         */
+        boolean StartTree(Root root) throws IOException {
+            synchronized (this) {
+                if (!root.active || !running) {
+                    return true;
+                }
+                if (macQueue != 0 && !macClosed) {
+                    Path real = root.path;
+                    try {
+                        real = root.path.toRealPath();
+                    } catch (IOException ex) {
+                        // Use the path as given.
+                    }
+                    long stream = MacFileEvents.AddStream(macQueue, real.toString(), MAC_LATENCY, root.id);
+                    if (stream != 0) {
+                        root.realPath = real;
+                        root.macStream = stream;
+                        macRoots.put(Integer.valueOf(root.id), root);
+                        return true;
+                    }
+                }
+                if (TREE_MODIFIER != null && root.recursive) {
+                    WatchKey key;
+                    try {
+                        key = root.path.register(service,
+                                new WatchEvent.Kind<?>[] {
+                                    StandardWatchEventKinds.ENTRY_CREATE,
+                                    StandardWatchEventKinds.ENTRY_DELETE,
+                                    StandardWatchEventKinds.ENTRY_MODIFY },
+                                TREE_MODIFIER);
+                    } catch (UnsupportedOperationException ex) {
+                        return false;
+                    } catch (IllegalArgumentException ex) {
+                        return false;
+                    }
+                    folders.put(key, root.path);
+                    List<Root> list = keyRoots.get(key);
+                    if (list == null) {
+                        list = new CopyOnWriteArrayList<Root>();
+                        keyRoots.put(key, list);
+                    }
+                    if (!list.contains(root)) {
+                        list.add(root);
+                    }
+                    root.tree = true;
+                    return true;
+                }
+                return false;
+            }
+        }
+
         /** Stops watching one root. Keys shared with another root stay. Either thread. */
         void RemoveRoot(Root root) {
             synchronized (this) {
                 root.active = false;
                 roots.remove(root.path, root);
+                if (root.macStream != 0 && macRoots.remove(Integer.valueOf(root.id)) != null) {
+                    // Streams are removed on the watcher thread.
+                    macRemovals.add(root);
+                }
                 Iterator<Map.Entry<WatchKey, List<Root>>> iterator = keyRoots.entrySet().iterator();
                 while (iterator.hasNext()) {
                     Map.Entry<WatchKey, List<Root>> entry = iterator.next();
@@ -386,14 +563,21 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
                         walk = walks.poll();
                     }
 
-                    WatchKey key = service.poll(Tick(), TimeUnit.MILLISECONDS);
+                    WatchKey key;
+                    if (macQueue != 0) {
+                        RemoveFinishedStreams();
+                        TakeMacEvents((int) Tick());
+                        key = service.poll();
+                    } else {
+                        key = service.poll(Tick(), TimeUnit.MILLISECONDS);
+                    }
                     while (key != null && running) {
                         Process(key);
                         key = service.poll();
                     }
 
                     for (Root root : roots.values()) {
-                        if (root.active && root.rewalk) {
+                        if (root.active && root.rewalk && !root.tree) {
                             root.rewalk = false;
                             RegisterTree(root.path, root, false);
                         }
@@ -405,6 +589,174 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
                 // Stop interrupts the thread: end.
             } catch (ClosedWatchServiceException ex) {
                 // Stop closes the service: end.
+            } finally {
+                CloseMac();
+            }
+        }
+
+        /** Removes the FSEvents streams of roots no longer watched. Watcher thread. */
+        private void RemoveFinishedStreams() {
+            Root root = macRemovals.poll();
+            while (root != null) {
+                long stream = root.macStream;
+                if (stream != 0) {
+                    root.macStream = 0;
+                    MacFileEvents.RemoveStream(stream);
+                }
+                root = macRemovals.poll();
+            }
+        }
+
+        /** Waits for FSEvents' events and handles them. Watcher thread. */
+        private void TakeMacEvents(int milliseconds) {
+            int count = MacFileEvents.Take(macQueue, milliseconds, macPaths, macFlags, macIds);
+            if (count < 0) {
+                // Events were lost: every FSEvents root looks again.
+                for (Root root : macRoots.values()) {
+                    if (root.active) {
+                        Overflow(root);
+                    }
+                }
+                return;
+            }
+            for (int i = 0; i < count; i++) {
+                String text = macPaths[i];
+                macPaths[i] = null;
+                Root root = macRoots.get(Integer.valueOf(macIds[i]));
+                if (root != null && root.active && text != null) {
+                    try {
+                        HandleMac(root, text, macFlags[i]);
+                    } catch (RuntimeException ex) {
+                        // Unexpected (such as a path Java can't read): look again.
+                        Overflow(root);
+                    }
+                }
+            }
+        }
+
+        /**
+         * One FSEvents event. Its flags may hold several things that happened
+         * to the path (created, then modified, then removed), so whether the
+         * path exists now decides what is reported.
+         */
+        private void HandleMac(Root root, String text, int flags) {
+            int lost = MacFileEvents.MUST_SCAN_SUBFOLDERS | MacFileEvents.USER_DROPPED | MacFileEvents.KERNEL_DROPPED;
+            if ((flags & lost) != 0) {
+                Overflow(root);
+                return;
+            }
+            if ((flags & MacFileEvents.ROOT_CHANGED) != 0) {
+                if (!Files.exists(root.path, LinkOption.NOFOLLOW_LINKS)) {
+                    Merge(root, root.path, DELETED);
+                }
+                return;
+            }
+
+            // FSEvents names the real path; report it under the folder as
+            // it was given to Watch.
+            Path real = Paths.get(text);
+            if (!real.startsWith(root.realPath)) {
+                return;
+            }
+            Path relative = root.realPath.relativize(real);
+            if (relative.toString().isEmpty()) {
+                // The watched folder's own attributes changed.
+                return;
+            }
+            if (!root.recursive && relative.getNameCount() > 1) {
+                return;
+            }
+            Path child = root.path.resolve(relative);
+            if (IsExcludedUnder(root, child)) {
+                return;
+            }
+
+            boolean exists = Files.exists(child, LinkOption.NOFOLLOW_LINKS);
+            boolean isFolder = exists && Files.isDirectory(child, LinkOption.NOFOLLOW_LINKS);
+            int gone = MacFileEvents.ITEM_REMOVED | MacFileEvents.ITEM_RENAMED;
+            int changed = MacFileEvents.ITEM_MODIFIED | MacFileEvents.ITEM_INODE_META_MOD
+                    | MacFileEvents.ITEM_XATTR_MOD | MacFileEvents.ITEM_CHANGE_OWNER
+                    | MacFileEvents.ITEM_FINDER_INFO_MOD;
+            // FSEvents keeps "created" (and "renamed") on a path's later
+            // events for a while, measured at 5 to 30 seconds, so:
+            // - a path reported as created in the last minute and written
+            //   again is a change;
+            // - a path that arrived by a rename is new;
+            // - "created" on a file made more than 2 seconds ago (this JDK
+            //   gives creation times in whole seconds on macOS) and written
+            //   is a change: its creation was before the watch.
+            long now = System.currentTimeMillis();
+            ForgetOldCreations(root, now);
+            boolean written = (flags & changed) != 0 && !isFolder;
+            if (!exists) {
+                if ((flags & gone) != 0) {
+                    root.recentlyCreated.remove(child);
+                    Merge(root, child, DELETED);
+                }
+            } else if (root.recentlyCreated.containsKey(child)) {
+                if (written) {
+                    Merge(root, child, MODIFIED);
+                }
+            } else if ((flags & MacFileEvents.ITEM_RENAMED) != 0
+                    || ((flags & MacFileEvents.ITEM_CREATED) != 0 && !(written && MadeBefore(child, now - MADE_BEFORE_MILLISECONDS)))) {
+                root.recentlyCreated.put(child, Long.valueOf(now));
+                Merge(root, child, CREATED);
+                if (isFolder && root.recursive) {
+                    // Files may already be in it, such as a folder moved in:
+                    // report those as created too.
+                    RegisterTree(child, root, true, false);
+                }
+            } else if (written) {
+                // A folder's entries changed: its children report that themselves.
+                Merge(root, child, MODIFIED);
+            }
+        }
+
+        /** True if a file's creation time is before a time; false if unknown. */
+        private boolean MadeBefore(Path path, long time) {
+            try {
+                BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                return attributes.creationTime().toMillis() < time;
+            } catch (IOException ex) {
+                return false;
+            }
+        }
+
+        /** Forgets paths reported as CREATED longer ago than the memory. */
+        private void ForgetOldCreations(Root root, long now) {
+            Iterator<Map.Entry<Path, Long>> iterator = root.recentlyCreated.entrySet().iterator();
+            while (iterator.hasNext()) {
+                if (now - iterator.next().getValue().longValue() > CREATED_MEMORY_MILLISECONDS) {
+                    iterator.remove();
+                } else {
+                    // Oldest first: the rest are newer.
+                    break;
+                }
+            }
+        }
+
+        /**
+         * At the end of the session, removes every FSEvents stream, then the
+         * queue. Watcher thread. New streams can't start once this begins.
+         */
+        private void CloseMac() {
+            synchronized (this) {
+                macClosed = true;
+                if (macQueue == 0) {
+                    return;
+                }
+                for (Root root : macRoots.values()) {
+                    long stream = root.macStream;
+                    if (stream != 0) {
+                        root.macStream = 0;
+                        MacFileEvents.RemoveStream(stream);
+                    }
+                }
+                macRoots.clear();
+                RemoveFinishedStreams();
+                long queue = macQueue;
+                macQueue = 0;
+                MacFileEvents.DestroyQueue(queue);
             }
         }
 
@@ -436,7 +788,7 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
                         for (Root root : list) {
                             if (root.active) {
                                 Overflow(root);
-                                if (root.recursive) {
+                                if (root.recursive && !root.tree) {
                                     root.rewalk = true;
                                 }
                             }
@@ -473,7 +825,8 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
         }
 
         private void Handle(Root root, Path child, WatchEvent.Kind<?> kind) {
-            if (IsExcluded(child)) {
+            // A FILE_TREE watch also sees changes inside excluded folders.
+            if (root.tree ? IsExcludedUnder(root, child) : IsExcluded(child)) {
                 return;
             }
 
@@ -486,8 +839,9 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
             } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                 Merge(root, child, CREATED);
                 if (isFolder && root.recursive) {
-                    // Files may already be in it: report those as created too.
-                    RegisterTree(child, root, true);
+                    // Files may already be in it: report those as created
+                    // too. A FILE_TREE watch already covers the new folder.
+                    RegisterTree(child, root, true, !root.tree);
                 }
             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                 Merge(root, child, DELETED);
@@ -515,6 +869,14 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
          * and folder found inside is reported as CREATED.
          */
         private void RegisterTree(final Path start, final Root root, final boolean report) {
+            RegisterTree(start, root, report, true);
+        }
+
+        /**
+         * The same, with register false only reporting: a tree watch
+         * (FSEvents or FILE_TREE) needs no registration per folder.
+         */
+        private void RegisterTree(final Path start, final Root root, final boolean report, final boolean register) {
             try {
                 Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
                     @Override
@@ -526,7 +888,9 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
                             return FileVisitResult.SKIP_SUBTREE;
                         }
                         try {
-                            Register(folder, root);
+                            if (register) {
+                                Register(folder, root);
+                            }
                         } catch (NoSuchFileException ex) {
                             // Deleted while walking: its DELETED comes from its parent.
                             return FileVisitResult.SKIP_SUBTREE;
