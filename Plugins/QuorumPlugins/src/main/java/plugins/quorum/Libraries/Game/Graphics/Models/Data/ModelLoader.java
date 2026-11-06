@@ -11,6 +11,8 @@ import quorum.Libraries.Language.Object_;
 import quorum.Libraries.System.File_;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.lang.Math;
 import java.nio.IntBuffer;
 import java.nio.file.Path;
@@ -68,10 +70,13 @@ public class ModelLoader {
         boolean isAnimatedModel = aiScene.mNumAnimations() > 0;
         ModelData_ data = new ModelData();
         Array_ materials = data.GetMaterials();
+        // Textures stored inside the file, as a .glb does, are written out
+        // once so they load like any texture (Lighting plan L4).
+        String[] embeddedPaths = ExtractEmbeddedTextures(aiScene, path);
         int numMaterials = aiScene.mNumMaterials();
         for (int i = 0; i < numMaterials; i++) {
             AIMaterial aiMaterial = AIMaterial.create(aiScene.mMaterials().get(i));
-            Material_ material = ProcessMaterial(aiMaterial, textures);
+            Material_ material = ProcessMaterial(aiMaterial, textures, embeddedPaths);
             materials.Add(material);
         }
 
@@ -491,7 +496,126 @@ public class ModelLoader {
         mesh.SetNormals(normals);
         mesh.SetTangents(tangents);
         mesh.SetBitangents(bitangents);
+        // Vertex colors, when the file has them (Lighting plan L4).
+        AIColor4D.Buffer aiColors = aiMesh.mColors(0);
+        if (aiColors != null && aiColors.remaining() > 0) {
+            Number32BitArray_ colors = new Number32BitArray();
+            colors.SetSize(aiColors.remaining() * 4);
+            int index = 0;
+            while (aiColors.remaining() > 0) {
+                AIColor4D color = aiColors.get();
+                colors.Set(index, color.r());
+                colors.Set(index + 1, color.g());
+                colors.Set(index + 2, color.b());
+                colors.Set(index + 3, color.a());
+                index = index + 4;
+            }
+            mesh.SetColors(colors);
+        }
         return mesh;
+    }
+
+    /*
+     * Writes each texture stored inside a model file (such as a .glb) to a
+     * folder of its own in the temporary folder, once, and returns their
+     * paths in order, so a material naming "*0" can load the first. A file
+     * with no stored textures gives an empty array. The folder's name comes
+     * from the model's path and when it last changed, so a changed model
+     * writes its textures again.
+     */
+    private static String[] ExtractEmbeddedTextures(AIScene aiScene, String modelPath) {
+        int count = aiScene.mNumTextures();
+        String[] paths = new String[count];
+        if (count == 0) {
+            return paths;
+        }
+        File modelFile = new File(modelPath);
+        String folderName = Integer.toHexString((modelFile.getAbsolutePath() + ":" + modelFile.lastModified()).hashCode());
+        File folder = new File(new File(System.getProperty("java.io.tmpdir"), "QuorumModelTextures"), folderName);
+        folder.mkdirs();
+        PointerBuffer aiTextures = aiScene.mTextures();
+        for (int i = 0; i < count; i++) {
+            AITexture texture = AITexture.create(aiTextures.get(i));
+            try {
+                if (texture.mHeight() == 0) {
+                    // Compressed: the bytes of a .png or .jpg file.
+                    String extension = texture.achFormatHintString();
+                    if (extension == null || extension.length() == 0) {
+                        extension = "png";
+                    }
+                    File out = new File(folder, "texture_" + i + "." + extension);
+                    if (!out.exists()) {
+                        ByteBuffer bytes = texture.pcDataCompressed();
+                        byte[] data = new byte[texture.mWidth()];
+                        bytes.get(data);
+                        Files.write(out.toPath(), data);
+                    }
+                    paths[i] = out.getAbsolutePath();
+                } else {
+                    // Uncompressed: width by height texels, written as a .png.
+                    File out = new File(folder, "texture_" + i + ".png");
+                    if (!out.exists()) {
+                        int width = texture.mWidth();
+                        int height = texture.mHeight();
+                        AITexel.Buffer texels = texture.pcData();
+                        java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        for (int y = 0; y < height; y++) {
+                            for (int x = 0; x < width; x++) {
+                                AITexel texel = texels.get(y * width + x);
+                                int argb = ((texel.a() & 0xFF) << 24) | ((texel.r() & 0xFF) << 16) | ((texel.g() & 0xFF) << 8) | (texel.b() & 0xFF);
+                                image.setRGB(x, y, argb);
+                            }
+                        }
+                        javax.imageio.ImageIO.write(image, "png", out);
+                    }
+                    paths[i] = out.getAbsolutePath();
+                }
+            } catch (java.io.IOException exception) {
+                paths[i] = "";
+            }
+        }
+        return paths;
+    }
+
+    /*
+     * Turns a texture path from a model file into one Quorum can load: a
+     * stored texture ("*0") becomes its written-out file, and a file path
+     * becomes relative to the working directory, as before. An empty path
+     * stays empty.
+     */
+    private static String ResolveTexturePath(String rawPath, String texturesDir, String[] embeddedPaths) {
+        if (rawPath == null || rawPath.length() == 0) {
+            return "";
+        }
+        if (rawPath.startsWith("*")) {
+            try {
+                int index = Integer.parseInt(rawPath.substring(1));
+                if (index >= 0 && index < embeddedPaths.length && embeddedPaths[index] != null) {
+                    return embeddedPaths[index];
+                }
+            } catch (NumberFormatException exception) {
+                // Not a stored texture's number; treated as a file name.
+            }
+            return "";
+        }
+        java.nio.file.Path workingDirectoryPath = java.nio.file.Paths.get(System.getProperty("user.dir"));
+        java.nio.file.Path thePathObject = new java.io.File(
+                texturesDir + File.separator + rawPath).toPath().toAbsolutePath();
+        return workingDirectoryPath.relativize(thePathObject).toString();
+    }
+
+    /*
+     * Returns the path of a material's first texture of a type, resolved as
+     * ResolveTexturePath does, or "" if it has none.
+     */
+    private static String GetTexturePath(AIMaterial aiMaterial, int type, String texturesDir, String[] embeddedPaths, MemoryStack stack) {
+        AIString aiPath = AIString.calloc(stack);
+        int result = aiGetMaterialTexture(aiMaterial, type, 0, aiPath, (IntBuffer) null,
+                null, null, null, null, null);
+        if (result != aiReturn_SUCCESS) {
+            return "";
+        }
+        return ResolveTexturePath(aiPath.dataString(), texturesDir, embeddedPaths);
     }
 
     private static Number32BitArray_ ProcessTextureCoordinates(AIMesh aiMesh) {
@@ -614,7 +738,7 @@ public class ModelLoader {
         return array;
     }
 
-    private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir) {
+    private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir, String[] embeddedPaths) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             AIColor4D colour = AIColor4D.create();
 
@@ -624,41 +748,36 @@ public class ModelLoader {
             if (result == aiReturn_SUCCESS) {
                 diffuse.Set(colour.r(), colour.g(), colour.b(), colour.a());
             }
-            AIString aiTexturePath = AIString.calloc(stack);
-            result = aiGetMaterialTexture(aiMaterial, aiTextureType_DIFFUSE, 0, aiTexturePath, (IntBuffer) null,
-                    null, null, null, null, null);
-
-            String texturePath = aiTexturePath.dataString();
-            String workingDirectory = System.getProperty("user.dir");
-            java.nio.file.Path workingDirectoryPath = java.nio.file.Paths.get(workingDirectory);
-            if (texturePath != null && texturePath.length() > 0) {
-                java.nio.file.Path thePathObject = new java.io.File(
-                        texturesDir + File.separator + texturePath).toPath().toAbsolutePath();
-                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
-                texturePath = relative.toString();
+            String texturePath = GetTexturePath(aiMaterial, aiTextureType_DIFFUSE, texturesDir, embeddedPaths, stack);
+            if (texturePath.length() == 0) {
+                texturePath = GetTexturePath(aiMaterial, aiTextureType_BASE_COLOR, texturesDir, embeddedPaths, stack);
+            }
+            if (texturePath.length() > 0) {
+                // The texture is the color. A glTF base color factor tints it
+                // (Lighting plan L4); other files' diffuse colors, often a
+                // gray left by the exporter, don't, as before.
                 diffuse.Set(1.0, 1.0, 1.0, 1.0);
+                result = aiGetMaterialColor(aiMaterial, AI_MATKEY_BASE_COLOR, aiTextureType_NONE, 0, colour);
+                if (result == aiReturn_SUCCESS) {
+                    diffuse.Set(colour.r(), colour.g(), colour.b(), colour.a());
+                }
             }
 
-            AIString aiNormalMapPath = AIString.calloc(stack);
-            Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_NORMALS, 0, aiNormalMapPath, (IntBuffer) null,
-                    null, null, null, null, null);
-            String normalMapPath = aiNormalMapPath.dataString();
-            if (normalMapPath != null && normalMapPath.length() > 0) {
-                java.nio.file.Path thePathObject = new java.io.File(
-                        texturesDir + File.separator + normalMapPath).toPath().toAbsolutePath();
-                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
-                normalMapPath = relative.toString();
-            }
+            String normalMapPath = GetTexturePath(aiMaterial, aiTextureType_NORMALS, texturesDir, embeddedPaths, stack);
 
             AIString aiMetallicRoughnessPath = AIString.calloc(stack);
             Assimp.aiGetMaterialTexture(aiMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, 0, aiMetallicRoughnessPath, (IntBuffer) null,
                     null, null, null, null, null);
-            String metallicRoughnessPath = aiMetallicRoughnessPath.dataString();
-            if (metallicRoughnessPath != null && metallicRoughnessPath.length() > 0) {
-                java.nio.file.Path thePathObject = new java.io.File(
-                        texturesDir + File.separator + metallicRoughnessPath).toPath().toAbsolutePath();
-                java.nio.file.Path relative = workingDirectoryPath.relativize(thePathObject);
-                metallicRoughnessPath = relative.toString();
+            String metallicRoughnessPath = ResolveTexturePath(aiMetallicRoughnessPath.dataString(), texturesDir, embeddedPaths);
+
+            // Lighting plan L1 and L4.
+            String emissiveMapPath = GetTexturePath(aiMaterial, aiTextureType_EMISSIVE, texturesDir, embeddedPaths, stack);
+            if (emissiveMapPath.length() == 0) {
+                emissiveMapPath = GetTexturePath(aiMaterial, aiTextureType_EMISSION_COLOR, texturesDir, embeddedPaths, stack);
+            }
+            String occlusionMapPath = GetTexturePath(aiMaterial, aiTextureType_AMBIENT_OCCLUSION, texturesDir, embeddedPaths, stack);
+            if (occlusionMapPath.length() == 0) {
+                occlusionMapPath = GetTexturePath(aiMaterial, aiTextureType_LIGHTMAP, texturesDir, embeddedPaths, stack);
             }
 
             float[] metallicArr = new float[]{0.0f};
@@ -699,6 +818,40 @@ public class ModelLoader {
                 bumpScalingArr[0] = 1.0f;
             }
 
+            float[] emissiveStrengthArr = new float[]{1.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_EMISSIVE_INTENSITY, aiTextureType_NONE, 0, emissiveStrengthArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                emissiveStrengthArr[0] = 1.0f;
+            }
+
+            int[] twoSidedArr = new int[]{0};
+            result = aiGetMaterialIntegerArray(aiMaterial, AI_MATKEY_TWOSIDED, aiTextureType_NONE, 0, twoSidedArr, pMax);
+            boolean twoSided = result == aiReturn_SUCCESS && twoSidedArr[0] != 0;
+
+            // Only glTF files say; others keep "", the cut out below half
+            // the texture's alpha that every model had before.
+            String alphaMode = "";
+            AIString aiAlphaMode = AIString.calloc(stack);
+            result = aiGetMaterialString(aiMaterial, AI_MATKEY_GLTF_ALPHAMODE, aiTextureType_NONE, 0, aiAlphaMode);
+            if (result == aiReturn_SUCCESS && aiAlphaMode.dataString().length() > 0) {
+                alphaMode = aiAlphaMode.dataString();
+            }
+
+            float[] alphaCutoffArr = new float[]{0.5f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_GLTF_ALPHACUTOFF, aiTextureType_NONE, 0, alphaCutoffArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                alphaCutoffArr[0] = 0.5f;
+            }
+
+            int[] shadingArr = new int[]{0};
+            result = aiGetMaterialIntegerArray(aiMaterial, AI_MATKEY_SHADING_MODEL, aiTextureType_NONE, 0, shadingArr, pMax);
+            boolean unlit = result == aiReturn_SUCCESS && shadingArr[0] == aiShadingMode_Unlit;
+
+            // The color texture's transform (glTF KHR_texture_transform).
+            AIUVTransform transform = AIUVTransform.calloc(stack);
+            result = aiGetMaterialUVTransform(aiMaterial, _AI_MATKEY_UVTRANSFORM_BASE, aiTextureType_DIFFUSE, 0, transform);
+            boolean hasTransform = result == aiReturn_SUCCESS;
+
             Material_ material = new Material();
             material.SetTexturePath(texturePath);
             material.SetDiffuse(diffuse);
@@ -710,6 +863,17 @@ public class ModelLoader {
             material.SetOpaque(opacityArr[0]);
             material.SetRefractiveIndex(refractiveIndexArr[0]);
             material.SetBumpShading(bumpScalingArr[0]);
+            material.SetEmissiveMapPath(emissiveMapPath);
+            material.SetEmissiveStrength(emissiveStrengthArr[0]);
+            material.SetAmbientOcclusionMapPath(occlusionMapPath);
+            material.SetTwoSided(twoSided);
+            material.SetAlphaMode(alphaMode);
+            material.SetAlphaCutoff(alphaCutoffArr[0]);
+            material.SetUnlit(unlit);
+            if (hasTransform) {
+                material.SetTextureTransform(transform.mTranslation().x(), transform.mTranslation().y(),
+                        transform.mScaling().x(), transform.mScaling().y(), transform.mRotation());
+            }
 
 
             return material;
