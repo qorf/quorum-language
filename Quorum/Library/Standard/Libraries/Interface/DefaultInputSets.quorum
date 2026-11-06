@@ -1564,6 +1564,8 @@ InputSet shiftF10SetTextBox
         OpenSceneEditorFindDialogBehavior openFindDialogBehavior
         CloseSceneEditorFindDialogBehavior closeFindDialogBehavior
         CursorSelectItemsBehavior cursorSelectItemsBehavior
+        CursorSelectItemsBehavior cursorAddItemsBehavior
+        cursorAddItemsBehavior:SetAddToSelection(true)
         CursorIncreaseSizeBehavior cursorIncreaseSizeBehavior
         CursorDecreaseSizeBehavior cursorDecreaseSizeBehavior
 
@@ -1749,6 +1751,13 @@ InputSet shiftF10SetTextBox
 
         table:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
+        // Shift+Enter adds the items at the cursor to the selection without removing anything.
+        // Focus stays on the cursor so more items can be added, and Enter confirms the selection.
+        InputSet cursorAddItemsInput
+        cursorAddItemsInput:SetKeyboardInput(keys:ENTER)
+        cursorAddItemsInput = AddShiftModifier(cursorAddItemsInput)
+        table:Add(cursorAddItemsInput, cursorAddItemsBehavior)
+
         table:Add(selectionScaleUpSet, cursorIncreaseSizeBehavior)
         table:Add(selectionScaleDownSet, cursorDecreaseSizeBehavior)
 
@@ -1789,6 +1798,8 @@ InputSet shiftF10SetTextBox
         InputSet selectionCancelSet
         selectionCancelSet:SetKeyboardInput(keys:ESCAPE)
         cameraItemTable2D:Add(selectionCancelSet, selectionCancelBehavior)
+        // Escape on the editor clears a selection still being built with Shift+Enter.
+        table:Add(selectionCancelSet, selectionCancelBehavior)
 
         // 3D camera set
         cameraItemTable3D:Add(reportLocation, reportLocationBehavior)
@@ -1945,6 +1956,18 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionCopySet, selectionCopyBehavior)
         selectionTable:Add(selectionPasteSet, selectionPasteBehavior)
 
+        // Ctrl+A (Cmd+A on a Mac) selects every item in the layer, from a selected item or the editor.
+        SelectAllItemsBehavior selectAllItemsBehavior
+        InputSet selectAllSet
+        selectAllSet:SetKeyboardInput(keys:A)
+        if ShouldUseMacKeys()
+            selectAllSet = AddMetaModifier(selectAllSet)
+        else
+            selectAllSet = AddControlModifier(selectAllSet)
+        end
+        selectionTable:Add(selectAllSet, selectAllItemsBehavior)
+        selectionTable2D:Add(selectAllSet, selectAllItemsBehavior)
+
         // Undo and redo while a selected item has focus, using the same keys as Quorum Studio.
         SelectionUndoBehavior selectionUndoBehavior
         SelectionUndoBehavior selectionRedoBehavior
@@ -2094,6 +2117,10 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         dragOffSet:SetInputTrigger(dragOffSet:FINISH_UNCAUGHT)
 
         table:Add3D(selectionPasteSet, selectionPasteBehavior)
+        // Copy also works from the editor, so items selected with Shift+Enter can be copied right away.
+        table:Add3D(selectionCopySet, selectionCopyBehavior)
+        table:Add2D(selectAllSet, selectAllItemsBehavior)
+        table:Add3D(selectAllSet, selectAllItemsBehavior)
         table:Add2D(dragIntoSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragIntoContinueSet, sceneEditorAcceptDragBehavior)
         table:Add2D(dragIntoFinishSet, sceneEditorAcceptDragBehavior)

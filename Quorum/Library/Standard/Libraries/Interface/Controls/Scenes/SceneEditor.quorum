@@ -198,8 +198,18 @@ class SceneEditor is Control, DefaultSceneManager
     */
     Array<Item> filteredItems = undefined
 
+    /*
+    True while a selection is being built from the keyboard with Shift+Enter on the cursor. Focus
+    stays on the cursor until Enter confirms the selection. Any other change to the selection ends it.
+    */
+    boolean keyboardSelectionPending = false
+
     // The last items copied with CopyItems, stored as JSON so they can be pasted with PasteCopiedItem.
     Array<JavaScriptObjectNotation> copiedItemsJson
+
+    // The items that copiedItemsJson was made from, in the same order. When several items are pasted,
+    // each copy is placed where its original is at the time of pasting.
+    Array<Item3D> copiedOriginals
 
     // The 3D item grabbed with the mouse, or undefined if the mouse is not dragging an item.
     Item3D mouseDragItem = undefined
@@ -749,6 +759,7 @@ action Update(number seconds)
                     workVector3:Set(focus:GetYaw(), focus:GetPitch(), focus:GetRoll())
                     workVector3:Add(seconds * selectionYawDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionPitchDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_3D)
                     focus:SetRotation(workVector3)
+                    RotateOtherSelectedItems3D(focus, seconds * selectionYawDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionPitchDirection * SELECTION_ROTATIONAL_SPEED_3D, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_3D)
                 end
             end
 
@@ -806,6 +817,7 @@ action Update(number seconds)
     
                     if moved
                         target:Move(workVector2)
+                        MoveOtherSelectedItems2D(target, workVector2:GetX(), workVector2:GetY())
                     end
                 else
                     if selectionXDirection not= 0 or selectionYDirection not= 0
@@ -827,7 +839,10 @@ action Update(number seconds)
                                 y = layer:GetNextGridCoordinate(y)
                             end
     
-                            target:Move(x - target:GetGlobalX(), y - target:GetGlobalY())
+                            number deltaX2D = x - target:GetGlobalX()
+                            number deltaY2D = y - target:GetGlobalY()
+                            target:Move(deltaX2D, deltaY2D)
+                            MoveOtherSelectedItems2D(target, deltaX2D, deltaY2D)
                             moved = true
                         else
                             gridMoveTimer = gridMoveTimer - seconds
@@ -845,6 +860,7 @@ action Update(number seconds)
                     number angle = target:GetRotation()
                     angle = angle + (seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_2D)
                     target:SetRotation(angle)
+                    RotateOtherSelectedItems2D(target, seconds * selectionRollDirection * SELECTION_ROTATIONAL_SPEED_2D)
                 end
             end
         end
@@ -881,6 +897,139 @@ action Update(number seconds)
     focused one moved, so a group of selected items moves together and keeps its layout. Nothing
     happens if the focused item is not one of the selection highlights, such as the cursor.
     */
+    /*
+    This action returns the selection highlights other than the focused one, when the focused item
+    is part of the selection. Otherwise, such as when the cursor has focus, it returns an empty array.
+    It is used so that rotating and scaling the focused item also applies to the rest of a group.
+    */
+    private action GetOtherSelectedHighlights(Item focus) returns Array<SelectionHighlight>
+        Array<SelectionHighlight> others
+        if focus = undefined or not (focus is SelectionHighlight)
+            return others
+        end
+
+        SelectionHighlight focusHighlight = cast(SelectionHighlight, focus)
+        if GetSelectionHighlight(focusHighlight:GetItem()) = undefined
+            return others
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight not= focusHighlight
+                others:Add(highlight)
+            end
+            counter = counter + 1
+        end
+        return others
+    end
+
+    /*
+    This action rotates every other selected 3D item by the same amounts as the focused one. Each
+    item turns around its own center.
+    */
+    private action RotateOtherSelectedItems3D(Item focus, number yaw, number pitch, number roll)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, others:Get(counter))
+                highlight3D:SetRotation(highlight3D:GetYaw() + yaw, highlight3D:GetPitch() + pitch, highlight3D:GetRoll() + roll)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action rotates every other selected 2D item by the same angle as the focused one. Each
+    item turns around its own center.
+    */
+    private action RotateOtherSelectedItems2D(Item focus, number angle)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, others:Get(counter))
+                highlight2D:SetRotation(highlight2D:GetRotation() + angle)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action scales every other selected item by the same amounts as the focused one, which has
+    already been scaled. 2D items use only the X and Y amounts. It is used by the scale shortcuts.
+    */
+    action ScaleOtherSelectedItems(Item focus, number x, number y, number z)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            if others:Get(counter) is SelectionHighlight3D
+                SelectionHighlight3D highlight3D = cast(SelectionHighlight3D, others:Get(counter))
+                Vector3 amount
+                amount:Set(x, y, z)
+                highlight3D:Scale(amount)
+            elseif others:Get(counter) is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, others:Get(counter))
+                highlight2D:Scale(x, y)
+            end
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action resets the scale of every other selected item, after the focused one has been reset.
+    */
+    action ResetScaleOfOtherSelectedItems(Item focus)
+        Array<SelectionHighlight> others = GetOtherSelectedHighlights(focus)
+        integer counter = 0
+        repeat while counter < others:GetSize()
+            others:Get(counter):ResetScale()
+            counter = counter + 1
+        end
+    end
+
+    /*
+    This action deselects every selected item, including a selection still being built with
+    Shift+Enter. If moveFocus is true, focus moves to the scene editor. It is used by Escape.
+    */
+    action ClearSelection(boolean moveFocus)
+        boolean hadSelection = filteredItems not= undefined and filteredItems:IsEmpty() = false
+        Array<Item> empty
+        SetFilteredItems(empty, moveFocus)
+        if hadSelection
+            AnnounceAfterFocus("Selection cleared")
+        end
+    end
+
+    /*
+    This action moves every other selected 2D item by the same amount as the focused one, so a
+    group selection moves together with the arrow keys. Nothing happens if the focused item is
+    not one of the selection highlights, such as the cursor.
+    */
+    private action MoveOtherSelectedItems2D(Item2D focus, number x, number y)
+        if not (focus is SelectionHighlight2D)
+            return now
+        end
+
+        SelectionHighlight2D focusHighlight = cast(SelectionHighlight2D, focus)
+        if GetSelectionHighlight(focusHighlight:GetItem()) = undefined
+            return now
+        end
+
+        integer counter = 0
+        repeat while counter < filterHighlights:GetSize()
+            SelectionHighlight highlight = filterHighlights:Get(counter)
+            if highlight is SelectionHighlight2D
+                SelectionHighlight2D highlight2D = cast(SelectionHighlight2D, highlight)
+                if highlight2D not= focusHighlight
+                    highlight2D:Move(x, y)
+                end
+            end
+            counter = counter + 1
+        end
+    end
+
     private action MoveOtherSelectedItems(EditorItem3D focus, number x, number y, number z)
         if not (focus is SelectionHighlight3D)
             return now
@@ -1210,6 +1359,7 @@ action Update(number seconds)
     end
 
     action SetFilteredItems(Array<Item> items, boolean moveFocus)
+        keyboardSelectionPending = false
         filteredItems = items
 
         // Remove previous highlights.
@@ -1320,6 +1470,184 @@ action Update(number seconds)
                 highlight:Focus()
             end
         end
+    end
+
+    /*
+    This action adds the given items to the current selection, keeping the items that are already
+    selected. Items that are already selected stay selected; this never removes anything. Focus is
+    not moved, so the cursor keeps focus and more items can be added from other places in the
+    scene. Pressing Enter afterward confirms the selection and moves focus to it, so the selected
+    items can be moved with the keyboard. It is used by Shift+Enter on the cursor, and the change
+    is announced to screen readers.
+    */
+    action AddSelectedItems(Array<Item> items)
+        if items = undefined or items:IsEmpty()
+            AnnounceToFocusedItem("There is nothing at the cursor to select")
+            return now
+        end
+
+        Array<Item> result
+        // A selection left over from a layer of the other kind (2D or 3D) is dropped rather than mixed in.
+        boolean sameKind = true
+        if filteredItems not= undefined and filteredItems:IsEmpty() = false
+            sameKind = (filteredItems:Get(0) is Item3D) = (items:Get(0) is Item3D)
+        end
+        if filteredItems not= undefined and sameKind
+            integer index = 0
+            repeat while index < filteredItems:GetSize()
+                result:Add(filteredItems:Get(index))
+                index = index + 1
+            end
+        end
+
+        integer added = 0
+        text addedName = ""
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            if ContainsItem(result, items:Get(counter)) = false
+                result:Add(items:Get(counter))
+                addedName = items:Get(counter):GetName()
+                added = added + 1
+            end
+            counter = counter + 1
+        end
+
+        boolean wasPending = keyboardSelectionPending
+        // Changing the editor's selected item moves the cursor onto that item, so the cursor's
+        // position is saved here and put back afterward. The cursor stays where the user left it.
+        Item cursorItem = cast(Item, cast(Object, GetCursor()))
+        number cursorX = 0
+        number cursorY = 0
+        number cursorZ = 0
+        if cursorItem is Item3D
+            Item3D cursor3D = cast(Item3D, cursorItem)
+            cursorX = cursor3D:GetX()
+            cursorY = cursor3D:GetY()
+            cursorZ = cursor3D:GetZ()
+        elseif cursorItem is Item2D
+            Item2D cursor2D = cast(Item2D, cursorItem)
+            cursorX = cursor2D:GetX()
+            cursorY = cursor2D:GetY()
+        end
+
+        if added > 0
+            SetFilteredItems(result, false)
+        end
+        // Focus stays on the cursor until Enter confirms the selection. The editor's selected item
+        // is cleared as well: while an item is the selected item, the editor hides the cube cursor
+        // and points the camera at that item, which would look like focus had left the cursor.
+        SetSelectedItem(undefined)
+
+        if cursorItem is Item3D
+            Item3D restore3D = cast(Item3D, cursorItem)
+            restore3D:SetPosition(cursorX, cursorY, cursorZ)
+        elseif cursorItem is Item2D
+            Item2D restore2D = cast(Item2D, cursorItem)
+            restore2D:SetPosition(cursorX, cursorY)
+        end
+        UpdateEditorCameraTarget()
+        keyboardSelectionPending = true
+
+        text hint = ""
+        if wasPending = false
+            hint = ". Press Enter to confirm"
+        end
+        if added = 0
+            if items:GetSize() = 1
+                AnnounceToFocusedItem(items:Get(0):GetName() + " is already selected, " + GetSelectedCountText(result:GetSize()) + hint)
+            else
+                AnnounceToFocusedItem("Already selected, " + GetSelectedCountText(result:GetSize()) + hint)
+            end
+        elseif added = 1
+            AnnounceToFocusedItem("Selected " + addedName + ", " + GetSelectedCountText(result:GetSize()) + hint)
+        else
+            AnnounceToFocusedItem("Selected " + added + " items, " + GetSelectedCountText(result:GetSize()) + hint)
+        end
+    end
+
+    /*
+    This action returns true while a selection is being built from the keyboard with Shift+Enter
+    and has not been confirmed with Enter yet.
+    */
+    action IsKeyboardSelectionPending returns boolean
+        return keyboardSelectionPending
+    end
+
+    /*
+    This action confirms a selection built with Shift+Enter. Every selected item stays selected and
+    focus moves from the cursor to the first one, so the arrow keys move all of the selected items
+    together and Tab moves through them. It is used by Enter on the cursor.
+    */
+    action ConfirmKeyboardSelection
+        keyboardSelectionPending = false
+        if filterHighlights:IsEmpty()
+            return now
+        end
+        SetSelectedItem(filterHighlights:Get(0))
+        filterHighlights:Get(0):Focus()
+        UpdateEditorCameraTarget()
+        AnnounceAfterFocus("Selection confirmed, " + GetSelectedCountText(filterHighlights:GetSize()))
+    end
+
+    /*
+    This action selects every item in the selected layer and moves focus to the first one, so the
+    items can be moved through with Tab like any other selection. It is used by Ctrl+A.
+    */
+    action SelectAllItems
+        EditorLayer layer = GetSelectedLayer()
+        SceneConstants constants
+        Array<Item> items
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Iterator<Item3D> iterator3D = layer3D:GetIterator()
+            repeat while iterator3D:HasNext()
+                Item3D item3D = iterator3D:Next()
+                if item3D:HasProperty(constants:EDITOR_TAG) = false
+                    items:Add(item3D)
+                end
+            end
+        elseif layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Iterator<Item2D> iterator2D = layer2D:GetIterator()
+            repeat while iterator2D:HasNext()
+                Item2D item2D = iterator2D:Next()
+                if item2D:HasProperty(constants:EDITOR_TAG) = false
+                    items:Add(item2D)
+                end
+            end
+        end
+
+        if items:IsEmpty()
+            AnnounceToFocusedItem("There are no items to select")
+            return now
+        end
+
+        SetFilteredItems(items, true)
+        AnnounceAfterFocus("Selected all, " + GetSelectedCountText(items:GetSize()))
+    end
+
+    /*
+    This action returns true if the exact item is in the array.
+    */
+    private action ContainsItem(Array<Item> items, Item item) returns boolean
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            if items:Get(counter) = item
+                return true
+            end
+            counter = counter + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns text such as "1 item selected" or "3 items selected".
+    */
+    private action GetSelectedCountText(integer count) returns text
+        if count = 1
+            return "1 item selected"
+        end
+        return count + " items selected"
     end
 
     private action EmptyFilteredItems(boolean moveFocus)
@@ -1645,28 +1973,32 @@ action Update(number seconds)
         end
 
         Array<JavaScriptObjectNotation> copies
+        Array<Item3D> originals
         integer counter = 0
         repeat while counter < items:GetSize()
             Item item = items:Get(counter)
             if item is Item3D
                 Item3D original = cast(Item3D, item)
                 copies:Add(WrapArrayProperties(SaveItem3D(original)))
+                originals:Add(original)
             end
             counter = counter + 1
         end
 
         if copies:IsEmpty() = false
             copiedItemsJson = copies
+            copiedOriginals = originals
         end
     end
 
     /*
-    This action pastes the last copied items into the selected 3D layer. The pasted items are
+    This action pastes the last copied items into the selected 3D layer. A single pasted item is
     placed at the selected item, or at the cursor if no item is selected. When several items are
-    pasted, the center of the group is placed there and the items keep their positions relative
-    to each other. The selection and focus stay on whatever was selected before pasting. The
-    pasted items are recorded as a single insert edit so one undo removes all of them.
-    Nothing happens if no items have been copied or the selected layer is not 3D.
+    pasted, each copy is placed where its original is now, so the copies sit on top of the items
+    they were copied from. If an original has been deleted since it was copied, its copy goes where
+    the original was when it was copied. The selection and focus stay on whatever was selected
+    before pasting. The pasted items are recorded as a single insert edit so one undo removes all
+    of them. Nothing happens if no items have been copied or the selected layer is not 3D.
     */
     action PasteCopiedItem
         EditorLayer layer = GetSelectedLayer()
@@ -1712,7 +2044,7 @@ action Update(number seconds)
         number shiftX = 0
         number shiftY = 0
         number shiftZ = 0
-        if target not= undefined
+        if target not= undefined and copies:GetSize() = 1
             shiftX = target:GetGlobalX() - (minX + maxX) * 0.5
             shiftY = target:GetGlobalY() - (minY + maxY) * 0.5
             shiftZ = target:GetGlobalZ() - (minZ + maxZ) * 0.5
@@ -1724,7 +2056,16 @@ action Update(number seconds)
             Item3D copy3D = copies:Get(counter)
             // Each pasted item is added before the next is named, so items pasted together get different numbers.
             copy3D:SetName(GetCopyName(layer, copy3D:GetName()))
-            copy3D:SetPosition(copy3D:GetX() + shiftX, copy3D:GetY() + shiftY, copy3D:GetZ() + shiftZ)
+            if copies:GetSize() > 1
+                // Several items: each copy goes on its original. A deleted original has no layer, so its
+                // copy keeps the position saved when it was copied.
+                if counter < copiedOriginals:GetSize() and copiedOriginals:Get(counter):GetLayer() not= undefined
+                    Item3D original = copiedOriginals:Get(counter)
+                    copy3D:SetPosition(original:GetX(), original:GetY(), original:GetZ())
+                end
+            else
+                copy3D:SetPosition(copy3D:GetX() + shiftX, copy3D:GetY() + shiftY, copy3D:GetZ() + shiftZ)
+            end
             AddToLayer(layer, copy3D)
             pasted:Add(copy3D)
             counter = counter + 1

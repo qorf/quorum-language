@@ -8,7 +8,8 @@ use Libraries.Interface.Behaviors.Behavior
 /*
     This behavior is used by the selection system in the scene editor to copy items in a scene.
     All of the selected items are saved so they can be pasted with the paste behavior. The
-    original items are not changed.
+    original items are not changed. It also works while the scene editor itself has focus, such as
+    after selecting items with Shift+Enter on the cursor, in which case the selected items are copied.
 */
 class SelectionCopyBehavior is Behavior
     action Run(BehaviorEvent event)
@@ -19,6 +20,11 @@ class SelectionCopyBehavior is Behavior
                 editor:CopyItems(editor:GetFilteredItems())
             else
                 editor:CopyItem(highlight:GetItem())
+            end
+        elseif event:GetItem() is SceneEditor
+            SceneEditor sceneEditor = cast(SceneEditor, event:GetItem())
+            if sceneEditor:GetFilteredItems() not= undefined and sceneEditor:GetFilteredItems():IsEmpty() = false
+                sceneEditor:CopyItems(sceneEditor:GetFilteredItems())
             end
         end
     end
