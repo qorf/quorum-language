@@ -1,0 +1,54 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+
+/*
+BloomUpShaderMappingVulkan describes the pipeline for one step up the
+bloom chain (Lighting plan L3): descriptor set 0 holds the step down of the same size (binding 0) and the smaller step (binding 1), each a
+combined sampler; the push constants are 16 bytes: the smaller image's texel size, the tent's reach, and a spare. It writes its image as it is
+(no blending), with a dynamic viewport and scissor. The Vulkan 3D painter
+makes its descriptor sets with the same layout.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.BloomUpShaderMappingVulkan
+
+BloomUpShaderMappingVulkan mapping
+*/
+class BloomUpShaderMappingVulkan is VulkanShaderMapping
+
+    /*
+    This action makes the pipeline description for the bloom step.
+
+    Attribute: Parameter program The program.
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Returns The pipeline description.
+    */
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanConstants constants
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddOpaqueColorBlendAttachmentState()
+        creator:AddDynamicViewport()
+        creator:AddDynamicScissor()
+        repeat 2 times
+            creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        end
+
+        VulkanPushConstantRange pushConstants
+        pushConstants:SetSize(16)
+        pushConstants:SetStage(constants:SHADER_STAGE_FRAGMENT_BIT)
+        pushConstants:Create()
+        creator:SetPushConstantRange(pushConstants)
+
+        VulkanPipelineInfo info = creator:Finish()
+        info:SetDepthTestEnable(false)
+        info:SetDepthWriteEnable(false)
+        info:SetCullMode(constants:CULL_MODE_NONE)
+        return info
+    end
+end

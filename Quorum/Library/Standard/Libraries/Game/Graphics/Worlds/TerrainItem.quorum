@@ -7,6 +7,7 @@ use Libraries.System.File
 use Libraries.Game.Layer3D
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
+use Libraries.Compute.Math
 use Libraries.Game.Graphics.Trees.RenderTree3D
 use Libraries.Game.Graphics.Texture
 use Libraries.Containers.Array
@@ -101,6 +102,8 @@ class TerrainItem is Item3D
     // second, not every frame.
     number foliageCheckTime = 0
     constant number FOLIAGE_CHECK_SECONDS = 0.25
+    // For the cells' distances from the camera (Foliage plan F5).
+    Math foliageMath
 
     // Water (Water plan W5): a sea and lakes, saved beside the heights in
     // water.json, and drawn as the item's children.
@@ -590,6 +593,21 @@ class TerrainItem is Item3D
             end
             item:SetCardTexture(cardTextures:GetValue(textureKey))
         end
+        // Levels of detail (Foliage plan F6): their files, and a card
+        // level's picture, shared like the asset's own.
+        integer level = 1
+        repeat while level <= asset:MAXIMUM_LEVELS
+            File levelFile = undefined
+            Texture levelTexture = undefined
+            if asset:HasLevel(level)
+                levelFile = GetFoliagePathFile(asset:GetLevelPath(level))
+                if asset:IsLevelCard(level) and levelFile:Exists()
+                    levelTexture = GetCardTexture(levelFile)
+                end
+            end
+            item:SetLevelSource(level, levelFile, levelTexture)
+            level = level + 1
+        end
         item:Build()
         if item:GetReach() > foliageReach
             foliageReach = item:GetReach()
@@ -608,6 +626,37 @@ class TerrainItem is Item3D
         if asset:IsCard()
             path = asset:GetCardPicturePath()
         end
+        return GetFoliagePathFile(path)
+    end
+
+    /*
+    This action returns a card picture's texture, loading it the first time
+    and sharing it with every cell after (Foliage plan F6 uses it for card
+    levels of detail).
+
+    Attribute: Parameter file The picture.
+    Attribute: Returns The texture.
+    */
+    private action GetCardTexture(File file) returns Texture
+        text textureKey = file:GetAbsolutePath()
+        if not cardTextures:HasKey(textureKey)
+            Texture texture
+            texture:LoadFromFile(file)
+            cardTextures:Add(textureKey, texture)
+        end
+        return cardTextures:GetValue(textureKey)
+    end
+
+    /*
+    This action returns the file for a path in the foliage list, such as an
+    asset's model or a level of detail's picture: a full path as it is,
+    and any other relative to the foliage list's file (Foliage plan F6
+    split it out of GetFoliageAssetFile).
+
+    Attribute: Parameter path The path.
+    Attribute: Returns The file.
+    */
+    action GetFoliagePathFile(text path) returns File
         File file
         File listFile = undefined
         if foliageList not= undefined
@@ -655,6 +704,20 @@ class TerrainItem is Item3D
                 item:Show()
             elseif not near and item:IsShowing()
                 item:Hide()
+            end
+            // A shown cell picks its level of detail and thins its copies
+            // near the draw distance (Foliage plan F5 and F6); it only
+            // draws again when either changes.
+            if near
+                number distance = foliageMath:SquareRoot(offsetX * offsetX + offsetZ * offsetZ) - item:GetCell():GetCellSize() * 0.71
+                if distance < 0
+                    distance = 0
+                end
+                boolean changed = item:UpdateForDistance(distance)
+                if changed and item:GetReach() > foliageReach
+                    foliageReach = item:GetReach()
+                    RefreshRenderBounds()
+                end
             end
         end
     end

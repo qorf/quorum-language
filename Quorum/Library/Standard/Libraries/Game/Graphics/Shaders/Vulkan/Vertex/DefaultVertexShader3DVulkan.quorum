@@ -11,6 +11,9 @@ class DefaultVertexShader3DVulkan is Shader
         GameStateManager gameState
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_3D_VERTEX_SHADER)
+        // The material and the wind's sway, shared with the shadow vertex
+        // shaders (Foliage plan F6).
+        SwayVertexShaderPartVulkan sway
 
         SetCode(GetVersionHeader() +
 "
@@ -57,11 +60,11 @@ layout(std430, buffer_reference, buffer_reference_align=4) buffer IndexBuffer {
 	uint[] indices;
 };
 
+" + sway:GetMaterialCode() + sway:GetSwayFunction() + "
 struct InstanceData {
    VertexBuffer vertexBuffer;
    IndexBuffer indexBuffer;
-   uint padding1;
-   uint padding2;
+   Materials materials;
    uint textureOverride;
    uint textureIndex;
    uint diffuseColorOverride;
@@ -94,6 +97,8 @@ void main()
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
+	// A swaying material moves in the wind (Foliage plan F6).
+	worldPosition.xyz += swayOffset(instanceData.materials, modelTransform[3].xyz, worldPosition.xyz, camera.time);
 
 	v_textureCoords = vertex.textureCoordinates;
 	v_hasDiffuseOverride = instanceData.diffuseColorOverride;

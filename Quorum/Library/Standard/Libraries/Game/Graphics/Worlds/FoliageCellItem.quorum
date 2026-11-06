@@ -3,21 +3,29 @@ package Libraries.Game.Graphics.Worlds
 use Libraries.Interface.Item3D
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Texture
-use Libraries.Game.Graphics.Color
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 use Libraries.System.File
 
 /*
-A FoliageCellItem draws the copies in one FoliageCell (Terrain plan F2,
-phase 1): one model per copy, or for a card asset, one upright two-sided
-picture per plane of each copy. A TerrainItem makes one per cell and holds
-them as children, and hides the cells farther from the camera than their
-asset's draw distance.
+A FoliageCellItem draws the copies in one FoliageCell. Since Foliage plan
+F5 it draws them all with one model that has copies (Model:SetCopies), so
+the renderer draws every copy in one instanced draw: the asset's model, or
+for a card asset, one upright two-sided picture, copied once per plane of
+each copy. A TerrainItem makes one per cell and holds them as children,
+hides the cells farther from the camera than their asset's draw distance,
+and tells the shown ones how far away they are (UpdateForDistance), which
+picks the level of detail and thins the copies near the draw distance
+(Foliage plan F6).
 
 The item stands at the origin, so each copy's place is its world place. The
-models share their asset's blueprint, so the asset's model file is loaded
-once however many copies there are.
+model shares its file's blueprint, so the file is loaded once however many
+cells use it.
 
 Attribute: Example
 use Libraries.Game.Graphics.Worlds.FoliageCellItem
@@ -40,19 +48,65 @@ class FoliageCellItem is Item3D
     FoliageCell cell = undefined
     FoliageAsset asset = undefined
 
-    // The asset's model file, or for a card, its picture's file.
-    File assetFile = undefined
+    // Each level of detail's model file or card picture, and a card
+    // level's picture, by level (Foliage plan F6). Level 0 is the asset's
+    // own mesh; levels 1 to 3 match FoliageAsset's MAXIMUM_LEVELS. Entries
+    // are undefined when not given.
+    Array<File> levelFiles
+    Array<Texture> levelTextures
 
-    // A card's picture, shared by every card of the asset.
-    Texture cardTexture = undefined
+    // The level of detail wanted at the camera's distance, the one drawn
+    // (0 when the wanted one's file is missing), and the thinning band: 0
+    // draws every copy, each higher band fewer (Foliage plan F5 and F6).
+    integer level = 0
+    integer drawnLevel = 0
+    integer band = 0
+
+    // The model drawing the copies, or undefined, and whether it is one of
+    // the item's children (it isn't while thinning leaves no copy).
+    Model drawn = undefined
+    boolean drawnAdded = false
+
+    // The drawn level's copies (Foliage plan F5): every copy's transform,
+    // 16 numbers each, its shade, and a number from 0 to 1 fixed by where it
+    // stands, which thinning compares with the share it keeps. A card has
+    // one entry per plane of each copy, sharing the copy's number.
+    Number32BitArray fullTransforms
+    Number32BitArray fullShades
+    Number32BitArray fullHashes
+    integer fullCount = 0
 
     // How tall the tallest copy reaches above where it stands, found by
     // Build, for the terrain's render box.
     number reach = 0
 
+    // Kept to work out copies' transforms without making objects.
+    Matrix4 rotation
+    Quaternion angles
+    Math hashMath
+
+    // Thinning (Foliage plan F5): past this share of the draw distance,
+    // copies thin out in this many bands, each keeping fewer.
+    constant number THINNING_START = 0.8
+    constant integer THINNING_BANDS = 4
+
+    on create
+        integer i = 0
+        repeat while i <= 3
+            levelFiles:Add(undefined)
+            levelTextures:Add(undefined)
+            i = i + 1
+        end
+        // A Number32BitArray has no storage until SetSize, and GetSize
+        // fails before it; the copies' arrays are resized as needed.
+        fullTransforms:SetSize(16)
+        fullShades:SetSize(1)
+        fullHashes:SetSize(1)
+    end
+
     /*
     This action sets the cell to draw, its asset, and the asset's model or
-    card picture file.
+    card picture file. Levels of detail are given with SetLevelSource.
 
     Attribute: Parameter foliageCell The cell.
     Attribute: Parameter foliageAsset The cell's asset.
@@ -61,7 +115,7 @@ class FoliageCellItem is Item3D
     action Set(FoliageCell foliageCell, FoliageAsset foliageAsset, File file)
         cell = foliageCell
         asset = foliageAsset
-        assetFile = file
+        levelFiles:Set(0, file)
     end
 
     /*
@@ -71,7 +125,24 @@ class FoliageCellItem is Item3D
     Attribute: Parameter texture The card picture.
     */
     action SetCardTexture(Texture texture)
-        cardTexture = texture
+        levelTextures:Set(0, texture)
+    end
+
+    /*
+    This action sets a level of detail's file (Foliage plan F6): its model,
+    or for a card level, its picture, with the picture's texture if it is
+    already loaded.
+
+    Attribute: Parameter levelNumber The level, from 1 to 3.
+    Attribute: Parameter file The model or picture file, or undefined for none.
+    Attribute: Parameter cardTexture The card's picture, or undefined to load it when needed.
+    */
+    action SetLevelSource(integer levelNumber, File file, Texture cardTexture)
+        if levelNumber < 1 or levelNumber >= levelFiles:GetSize()
+            alert("A foliage cell's levels of detail are numbered from 1 to " + (levelFiles:GetSize() - 1) + ", but was given " + levelNumber + ".")
+        end
+        levelFiles:Set(levelNumber, file)
+        levelTextures:Set(levelNumber, cardTexture)
     end
 
     /*
@@ -93,61 +164,107 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action makes the item's models again from its cell's copies, after
-    copies were added, removed or moved. The old models are taken out and
-    disposed.
+    This action returns the level of detail drawn (Foliage plan F6): 0 for
+    the asset's own mesh.
+
+    Attribute: Returns The level.
     */
-    action Build
-        Clear()
-        if cell = undefined or asset = undefined or assetFile = undefined
-            return now
-        end
-        if not assetFile:Exists()
-            return now
-        end
-        if asset:IsCard()
-            BuildCards()
-        else
-            BuildModels()
-        end
+    action GetLevel returns integer
+        return drawnLevel
     end
 
     /*
-    This action moves the models up or down to their copies' heights, after
-    the copies followed the ground (Terrain plan F4). It is quicker than
-    Build, since nothing is loaded again. If the copies were added or
-    removed, it builds instead.
+    This action returns the model drawing the copies (Foliage plan F5).
+
+    Attribute: Returns The model, or undefined before Build.
+    */
+    action GetModel returns Model
+        return drawn
+    end
+
+    /*
+    This action returns how many copies are drawn after thinning (Foliage
+    plan F5). A card's planes count as one copy each.
+
+    Attribute: Returns The count.
+    */
+    action GetDrawnCopyCount returns integer
+        if drawn = undefined or not drawnAdded
+            return 0
+        end
+        return drawn:GetCopyCount()
+    end
+
+    /*
+    This action makes the item's model again from its cell's copies, after
+    copies were added, removed or moved, or the asset changed (Foliage plan
+    F5). The old model is taken out and disposed.
+    */
+    action Build
+        Clear()
+        if cell = undefined or asset = undefined
+            return now
+        end
+        BuildLevel()
+    end
+
+    /*
+    This action moves the copies up or down to their heights, after they
+    followed the ground (Terrain plan F4). It is quicker than Build, since
+    nothing is loaded again; it works out the copies again, so copies added
+    or removed are right too (Foliage plan F5).
     */
     action PlaceAgain
         if cell = undefined or asset = undefined
             return now
         end
-        integer perCopy = 1
-        if asset:IsCard()
-            perCopy = asset:GetCardPlanes()
-        end
-        if GetItemCount() not= cell:GetCount() * perCopy
+        if drawn = undefined
             Build()
             return now
         end
-        integer i = 0
-        repeat while i < cell:GetCount()
-            number y = cell:GetY(i)
-            if asset:IsCard()
-                y = y + cell:GetScale(i) / 2
-            end
-            integer part = 0
-            repeat while part < perCopy
-                Item3D child = GetItem(i * perCopy + part)
-                child:SetY(y)
-                part = part + 1
-            end
-            i = i + 1
+        boolean card = asset:IsLevelCard(drawnLevel)
+        number height = 1
+        if not card
+            height = drawn:GetHeight()
         end
+        MakeCopies(card, height)
+        Thin()
     end
 
     /*
-    This action takes out and disposes every model.
+    This action tells the item how far the camera is from the cell's
+    nearest side (Foliage plan F5 and F6). It picks the level of detail for
+    that distance, and how much the copies thin out near the draw distance,
+    and draws them again only if either changed, so calling it a few times
+    a second costs little.
+
+    Attribute: Parameter distance How far the camera is, in world units.
+    Attribute: Returns True if what is drawn changed.
+    */
+    action UpdateForDistance(number distance) returns boolean
+        if cell = undefined or asset = undefined
+            return false
+        end
+        integer newLevel = asset:GetLevelForDistance(distance)
+        integer newBand = GetBandFor(distance)
+        if newLevel not= level
+            level = newLevel
+            band = newBand
+            Build()
+            return true
+        end
+        if newBand not= band
+            band = newBand
+            if drawn not= undefined
+                Thin()
+            end
+            return true
+        end
+        return false
+    end
+
+    /*
+    This action takes out and disposes the model.
     */
     action Clear
         repeat while GetItemCount() > 0
@@ -157,6 +274,12 @@ class FoliageCellItem is Item3D
                 model:Dispose()
             end
         end
+        if drawn not= undefined and not drawnAdded
+            drawn:Dispose()
+        end
+        drawn = undefined
+        drawnAdded = false
+        fullCount = 0
         reach = 0
     end
 
@@ -189,87 +312,248 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action makes one model per copy, from the asset's model file.
+    This action returns true if a level of detail can be drawn: the asset
+    uses it and its file exists (Foliage plan F6).
     */
-    private action BuildModels
-        integer i = 0
-        repeat while i < cell:GetCount()
-            Model copy
-            copy:Load(assetFile)
-            // Its height before scaling, from its blueprint.
-            number top = copy:GetHeight() * cell:GetScale(i)
-            copy:SetCastsShadows(asset:CastsShadows())
-            copy:SetAcceptsMouseInput(IsAcceptingMouseInput())
-            number scale = cell:GetScale(i)
-            copy:SetScale(scale, scale, scale)
-            copy:SetYawPitchRoll(cell:GetTurn(i), 0, 0)
-            copy:SetPosition(cell:GetX(i), cell:GetY(i), cell:GetZ(i))
-            Shade(copy, cell:GetShade(i))
-            Add(copy)
-            if top > reach
-                reach = top
-            end
-            i = i + 1
+    private action IsLevelUsable(integer levelNumber) returns boolean
+        if levelNumber < 0 or levelNumber >= levelFiles:GetSize()
+            return false
         end
+        if not asset:HasLevel(levelNumber)
+            return false
+        end
+        File file = levelFiles:Get(levelNumber)
+        if file = undefined
+            return false
+        end
+        return file:Exists()
     end
 
     /*
-    This action makes the cards: for each copy, its asset's number of
-    upright two-sided pictures, crossed about the copy's middle. A card is
-    one unit tall, and as wide as its picture's shape, before the copy's
-    scale.
+    This action makes the model for the wanted level of detail, or the
+    asset's own mesh if that level can't be drawn, with one copy per copy
+    in the cell (and per plane, for a card), and adds it (Foliage plan F5
+    and F6). The model sways with the asset's wind.
     */
-    private action BuildCards
-        if cardTexture = undefined
-            Texture texture
-            texture:LoadFromFile(assetFile)
-            cardTexture = texture
+    private action BuildLevel
+        integer chosen = level
+        if not IsLevelUsable(chosen)
+            chosen = 0
         end
-        number width = 1
-        if cardTexture:GetHeight() > 0
-            width = cardTexture:GetWidth() / cast(number, cardTexture:GetHeight())
-        end
-        integer planes = asset:GetCardPlanes()
-        integer i = 0
-        repeat while i < cell:GetCount()
-            number scale = cell:GetScale(i)
-            integer plane = 0
-            repeat while plane < planes
-                Model card
-                card:LoadPlane(width, 1, cardTexture, true)
-                card:SetCastsShadows(asset:CastsShadows())
-                card:SetAcceptsMouseInput(IsAcceptingMouseInput())
-                card:SetScale(scale, scale, scale)
-                // The plane lies flat; pitching it stands it up. Each plane
-                // of a copy is turned an equal share of half a circle.
-                card:SetYawPitchRoll(cell:GetTurn(i) + plane * 180.0 / planes, 90, 0)
-                card:SetPosition(cell:GetX(i), cell:GetY(i) + scale / 2, cell:GetZ(i))
-                Shade(card, cell:GetShade(i))
-                Add(card)
-                plane = plane + 1
-            end
-            if scale > reach
-                reach = scale
-            end
-            i = i + 1
-        end
-    end
-
-    /*
-    This action darkens a copy by its shade. A shade of 1 leaves the
-    model's own colors alone; a darker shade replaces its color with gray,
-    which its textures are multiplied by.
-
-    Attribute: Parameter model The copy.
-    Attribute: Parameter shade Its shade, 1 for the asset's own color.
-    */
-    private action Shade(Model model, number shade)
-        if shade >= 0.999
+        if not IsLevelUsable(chosen)
             return now
         end
-        Color color
-        color:SetColor(shade, shade, shade, 1)
-        model:SetColor(color)
+        File file = levelFiles:Get(chosen)
+        boolean card = asset:IsLevelCard(chosen)
+        Model model
+        number height = 1
+        if card
+            Texture texture = levelTextures:Get(chosen)
+            if texture = undefined
+                Texture loaded
+                loaded:LoadFromFile(file)
+                levelTextures:Set(chosen, loaded)
+                texture = loaded
+            end
+            number width = 1
+            if texture:GetHeight() > 0
+                width = texture:GetWidth() / cast(number, texture:GetHeight())
+            end
+            // A card is one unit tall, and as wide as its picture's shape,
+            // before the copy's scale.
+            model:LoadPlane(width, 1, texture, true)
+        else
+            model:Load(file)
+            // Its height before scaling, from its blueprint.
+            height = model:GetHeight()
+        end
+        model:SetCastsShadows(asset:CastsShadows())
+        model:SetAcceptsMouseInput(IsAcceptingMouseInput())
+        model:SetSway(asset:GetWind(), asset:GetWindDirection())
+        drawn = model
+        drawnAdded = false
+        drawnLevel = chosen
+        MakeCopies(card, height)
+        Thin()
+    end
+
+    /*
+    This action works out every copy's transform, shade and thinning number
+    for the drawn level (Foliage plan F5), and the tallest copy's reach. A
+    copy stands at its place, turned about the up axis and scaled. A card
+    has one entry per plane: the plane lies flat, so it is pitched up 90
+    degrees, raised by half its height, and each plane is turned an equal
+    share of half a circle.
+
+    Attribute: Parameter card True for a card level.
+    Attribute: Parameter height The model's height before scaling, 1 for a card.
+    */
+    private action MakeCopies(boolean card, number height)
+        integer planes = 1
+        if card
+            planes = asset:GetCardPlanes()
+        end
+        integer count = cell:GetCount()
+        integer total = count * planes
+        if fullTransforms:GetSize() not= total * 16
+            fullTransforms:SetSize(total * 16)
+        end
+        if fullShades:GetSize() not= total
+            fullShades:SetSize(total)
+        end
+        if fullHashes:GetSize() not= total
+            fullHashes:SetSize(total)
+        end
+        fullCount = total
+        reach = 0
+        integer entry = 0
+        integer i = 0
+        repeat while i < count
+            number scale = cell:GetScale(i)
+            number x = cell:GetX(i)
+            number y = cell:GetY(i)
+            number z = cell:GetZ(i)
+            number shade = cell:GetShade(i)
+            number hash = GetHash(x, z)
+            integer plane = 0
+            repeat while plane < planes
+                if card
+                    WriteTransform(entry, cell:GetTurn(i) + plane * 180.0 / planes, 90, scale, x, y + scale / 2, z)
+                else
+                    WriteTransform(entry, cell:GetTurn(i), 0, scale, x, y, z)
+                end
+                fullShades:Set(entry, shade)
+                fullHashes:Set(entry, hash)
+                entry = entry + 1
+                plane = plane + 1
+            end
+            if height * scale > reach
+                reach = height * scale
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes one copy's transform into fullTransforms, column by
+    column, as Item3D builds a transform: its rotation from yaw and pitch,
+    times its scale, then its place.
+    */
+    private action WriteTransform(integer entry, number yaw, number pitch, number scale, number x, number y, number z)
+        angles:SetEulerAngles(yaw, pitch, 0)
+        rotation:IdentityMatrix()
+        rotation:Rotate(angles)
+        integer base = entry * 16
+        fullTransforms:Set(base, rotation:row0column0 * scale)
+        fullTransforms:Set(base + 1, rotation:row1column0 * scale)
+        fullTransforms:Set(base + 2, rotation:row2column0 * scale)
+        fullTransforms:Set(base + 3, 0)
+        fullTransforms:Set(base + 4, rotation:row0column1 * scale)
+        fullTransforms:Set(base + 5, rotation:row1column1 * scale)
+        fullTransforms:Set(base + 6, rotation:row2column1 * scale)
+        fullTransforms:Set(base + 7, 0)
+        fullTransforms:Set(base + 8, rotation:row0column2 * scale)
+        fullTransforms:Set(base + 9, rotation:row1column2 * scale)
+        fullTransforms:Set(base + 10, rotation:row2column2 * scale)
+        fullTransforms:Set(base + 11, 0)
+        fullTransforms:Set(base + 12, x)
+        fullTransforms:Set(base + 13, y)
+        fullTransforms:Set(base + 14, z)
+        fullTransforms:Set(base + 15, 1)
+    end
+
+    /*
+    This action returns a number from 0 to 1 fixed by where a copy stands,
+    so the same copies thin out each time (Foliage plan F5).
+    */
+    private action GetHash(number x, number z) returns number
+        number value = hashMath:Sine(x * 12.9898 + z * 78.233) * 43758.5453
+        return value - hashMath:Floor(value)
+    end
+
+    /*
+    This action returns the thinning band for a distance from the camera
+    (Foliage plan F5): 0 within THINNING_START of the draw distance, then
+    1 to THINNING_BANDS out to the draw distance.
+    */
+    private action GetBandFor(number distance) returns integer
+        number far = asset:GetDrawDistance()
+        number start = far * THINNING_START
+        if distance <= start or far <= start
+            return 0
+        end
+        integer result = 1 + cast(integer, (distance - start) / (far - start) * THINNING_BANDS)
+        if result > THINNING_BANDS
+            result = THINNING_BANDS
+        end
+        return result
+    end
+
+    /*
+    This action gives the model the copies its band keeps (Foliage plan
+    F5): every copy in band 0, and in each higher band a smaller share
+    (4 in 5, then 3, 2 and 1 in 5), those whose thinning number is below
+    it. It runs only when the band or the copies change, not every frame.
+    */
+    private action Thin
+        if drawn = undefined
+            return now
+        end
+        if band <= 0
+            SetDrawnCopies(fullTransforms, fullShades, fullCount)
+            return now
+        end
+        number share = 1 - band / cast(number, THINNING_BANDS + 1)
+        integer kept = 0
+        integer i = 0
+        repeat while i < fullCount
+            if fullHashes:Get(i) < share
+                kept = kept + 1
+            end
+            i = i + 1
+        end
+        Number32BitArray transforms
+        transforms:SetSize(kept * 16)
+        Number32BitArray shades
+        shades:SetSize(kept)
+        integer keptIndex = 0
+        i = 0
+        repeat while i < fullCount
+            if fullHashes:Get(i) < share
+                integer source = i * 16
+                integer target = keptIndex * 16
+                integer k = 0
+                repeat while k < 16
+                    transforms:Set(target + k, fullTransforms:Get(source + k))
+                    k = k + 1
+                end
+                shades:Set(keptIndex, fullShades:Get(i))
+                keptIndex = keptIndex + 1
+            end
+            i = i + 1
+        end
+        SetDrawnCopies(transforms, shades, kept)
+    end
+
+    /*
+    This action gives the model its copies, and adds it to the item, or
+    takes it out when there are none, since a model without copies would be
+    drawn once at the origin (Foliage plan F5).
+    */
+    private action SetDrawnCopies(Number32BitArray transforms, Number32BitArray shades, integer count)
+        if count <= 0
+            if drawnAdded
+                boolean removed = Remove(drawn)
+                drawnAdded = false
+            end
+            drawn:ClearCopies()
+            return now
+        end
+        drawn:SetCopies(transforms, shades)
+        if not drawnAdded
+            Add(drawn)
+            drawnAdded = true
+        end
     end
 
     /*

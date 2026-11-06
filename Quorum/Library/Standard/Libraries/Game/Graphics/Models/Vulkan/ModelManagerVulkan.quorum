@@ -214,6 +214,8 @@ end
         ModelBlueprintVulkan result
         result:SetKey(data:GetID())
         result:SetData(data)
+        // The file's lights go with the blueprint (Lighting plan L8).
+        result:SetLights(data:GetLights())
         
         boolean hasAnimations = data:GetAnimations() not= undefined
         

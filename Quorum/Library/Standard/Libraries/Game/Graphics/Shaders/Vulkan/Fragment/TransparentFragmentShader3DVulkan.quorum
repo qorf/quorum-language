@@ -1,0 +1,465 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+/*
+TransparentFragmentShader3DVulkan colors see-through models, such as glass
+and alpha-blended materials (Lighting plan L6). It is a forward shader:
+drawn after the deferred lighting and water, over the lit image, back to
+front. It reads the model's material as the default 3D fragment shader does,
+lights it with every light (no shadows are received yet) and the light from
+the sky (Lighting plan L5), and blends it by its alpha: the texture's alpha
+times the material's (or the model's color's) alpha. Reflections and glints
+aren't faded with the alpha, so clear glass still shines. It compares its
+distance with the G-buffer's position, so models in front hide it.
+
+The painter fills its push constants: the instance address, 18 unused
+numbers, then the forward scene data (the sky's rotation and whether there
+is a sky), as for water.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.TransparentFragmentShader3DVulkan
+
+TransparentFragmentShader3DVulkan shader
+*/
+class TransparentFragmentShader3DVulkan is Shader
+
+    public constant text DEFAULT_NAME = "Transparent 3D Fragment Shader"
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName(DEFAULT_NAME)
+        SetCode(GetVersionHeader() +
+"
+" +
+"// Adds support for nonuniformEXT and unsized descriptor arrays.
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_EXT_buffer_reference: require
+#extension GL_EXT_buffer_reference2: enable
+#extension GL_EXT_scalar_block_layout: require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
+const float PI = 3.14159265359;
+
+// The 3D camera uniform (library item 38).
+layout(set = 0, binding = 0) uniform Camera
+{
+    mat4 projectionViewMatrix;
+    vec3 cameraPosition;
+    float time;
+    vec2 screenSize;
+    float nearPlane;
+    float farPlane;
+} camera;
+
+layout(set = 0, binding = 1) uniform sampler immutableSampler;
+layout(set = 1, binding = 0) uniform texture2D globalTextures[];
+
+// The G-buffer's position: what is drawn behind or in front.
+layout(set = 2, binding = 0) uniform sampler2D positionSampler;
+
+struct Light
+{
+	vec3 positionDirection;
+	uint lightType;
+	float intensity;
+	vec3 color;
+	vec3 spotDirection;
+	float range;
+	float cosInner;
+	float cosOuter;
+	vec2 spare;
+};
+
+layout(scalar, set = 3, binding = 0) readonly buffer Lights
+{
+	Light array[];
+} lights;
+
+layout(scalar, set = 3, binding = 1) uniform SceneInfo
+{
+	vec3 cameraPosition;
+	float ambientIntensity;
+	vec3 ambientColor;
+	uint lightsCount;
+	mat4 cameraViewMatrix;
+	vec3 fogColor;
+	float fogStart;
+	float fogEnd;
+	float fogAmount;
+	float fogBaseHeight;
+	float fogHeightFalloff;
+	// The light from the sky (Lighting plan L5).
+	vec4 skyLight;
+	vec4 skyTint;
+	vec4 skyRotation[3];
+	vec4 skyIrradiance[9];
+} sceneInfo;
+
+// The sky's own cube (Water plan W4), for what shows behind over the sky.
+layout(set = 4, binding = 0) uniform samplerCube skyCube;
+
+// The sky light's cubes (Lighting plan L5): the sky, then four blurrier.
+layout(set = 5, binding = 0) uniform samplerCube skyLightCube0;
+layout(set = 5, binding = 1) uniform samplerCube skyLightCube1;
+layout(set = 5, binding = 2) uniform samplerCube skyLightCube2;
+layout(set = 5, binding = 3) uniform samplerCube skyLightCube3;
+layout(set = 5, binding = 4) uniform samplerCube skyLightCube4;
+
+// The GPU material (MaterialVulkan), 24 words.
+struct Material {
+	uint diffuseColor;
+	uint textureIndex;
+	uint hasNormalMap;
+	uint hasRoughMap;
+	uint normalMapIndex;
+	uint roughMapIndex;
+	float roughness;
+	float metallic;
+	uint flags;
+	float textureScale;
+	uint emissiveColor;
+	uint emissiveMapIndex;
+	float emissiveStrength;
+	uint occlusionMapIndex;
+	float alphaCutoff;
+	float normalStrength;
+	float uvOffsetX;
+	float uvOffsetY;
+	float uvScaleX;
+	float uvScaleY;
+	float uvRotation;
+	uint reserved1;
+	uint reserved2;
+	uint reserved3;
+};
+
+layout(scalar, buffer_reference) buffer Materials
+{
+	Material data;
+};
+
+struct InstanceData {
+   uint vertexPadding1;
+   uint vertexPadding2;
+   uint indexPadding1;
+   uint indexPadding2;
+   Materials materials;
+   uint textureOverride;
+   uint textureIndex;
+   uint diffuseColorOverride;
+   uint diffuseColor;
+   mat4 modelTransform;
+};
+
+layout(scalar, buffer_reference) buffer Instances {
+   InstanceData[] data;
+};
+
+// 128 bytes (library item 39): the instance address, 18 numbers the
+// program doesn't use, then the painter's 12 numbers of forward scene data.
+layout(scalar, push_constant) uniform PushConstants {
+   Instances instances;
+   float programData[18];
+   vec3 skyColumn0;
+   vec3 skyColumn1;
+   vec3 skyColumn2;
+   float skyInverter;
+   float hasSky;
+   float sceneSpare;
+} pushConstants;
+
+layout(location = 0) in vec2 v_textureCoords;
+layout(location = 1) flat in uint v_entityID;
+layout(location = 2) flat in uint v_hasDiffuseOverride;
+layout(location = 3) flat in uint v_diffuseOverride;
+layout(location = 4) flat in uint v_hasTextureOverride;
+layout(location = 5) flat in uint v_textureOverrideIndex;
+layout(location = 6) in vec4 v_position;
+layout(location = 7) in mat3 v_tangentBitangentNormal;
+
+layout(location = 0) out vec4 outputColor;
+
+// How much of a light's strength reaches a distance (library item 37).
+float rangeAttenuation(float distance, float range)
+{
+    float inverseSquare = 1.0 / max(distance * distance, 0.0001);
+    if (range <= 0.0)
+        return inverseSquare;
+    float ratio = distance / range;
+    float window = clamp(1.0 - ratio * ratio * ratio * ratio, 0.0, 1.0);
+    return inverseSquare * window * window;
+}
+
+// One light on the surface (Cook-Torrance, as the lighting pass). The
+// diffuse part goes to diffuseLight, the reflected part to glint.
+void lightSurface(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness, inout vec3 diffuseLight, inout vec3 glint)
+{
+    float NdotL = max(dot(N, L), 0.0);
+    if (NdotL <= 0.0)
+        return;
+    vec3 H = normalize(V + L);
+    float NdotV = max(dot(N, V), 0.0001);
+    float NdotH = max(dot(N, H), 0.0);
+
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
+    float distribution = a2 / (PI * d * d + 0.0000001);
+    float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
+    float geometry = (NdotV / (NdotV * (1.0 - k) + k)) * (NdotL / (NdotL * (1.0 - k) + k));
+    vec3 F = F0 + (1.0 - F0) * pow(clamp(1.0 - max(dot(H, V), 0.0), 0.0, 1.0), 5.0);
+
+    vec3 specular = distribution * geometry * F / (4.0 * NdotV * NdotL + 0.0001);
+    vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
+    diffuseLight += kD * albedo / PI * radiance * NdotL;
+    glint += specular * radiance * NdotL;
+}
+
+// A direction turned into the sky cube's own directions (Lighting plan L5).
+vec3 skyTurn(vec3 direction)
+{
+	return vec3(dot(direction, sceneInfo.skyRotation[0].xyz), dot(direction, sceneInfo.skyRotation[1].xyz), dot(direction, sceneInfo.skyRotation[2].xyz));
+}
+
+// The sky's diffuse light on a surface facing a direction, divided by pi.
+vec3 skyIrradiance(vec3 normal)
+{
+	vec3 d = skyTurn(normal);
+	vec3 light = sceneInfo.skyIrradiance[0].rgb * 0.282095
+		+ sceneInfo.skyIrradiance[1].rgb * (0.488603 * d.y)
+		+ sceneInfo.skyIrradiance[2].rgb * (0.488603 * d.z)
+		+ sceneInfo.skyIrradiance[3].rgb * (0.488603 * d.x)
+		+ sceneInfo.skyIrradiance[4].rgb * (1.092548 * d.x * d.y)
+		+ sceneInfo.skyIrradiance[5].rgb * (1.092548 * d.y * d.z)
+		+ sceneInfo.skyIrradiance[6].rgb * (0.315392 * (3.0 * d.z * d.z - 1.0))
+		+ sceneInfo.skyIrradiance[7].rgb * (1.092548 * d.x * d.z)
+		+ sceneInfo.skyIrradiance[8].rgb * (0.546274 * (d.x * d.x - d.y * d.y));
+	return max(light, vec3(0.0));
+}
+
+vec3 skyCubeLevel(int level, vec3 direction)
+{
+	if (level <= 0)
+		return textureLod(skyLightCube0, direction, 0.0).rgb;
+	if (level == 1)
+		return textureLod(skyLightCube1, direction, 0.0).rgb;
+	if (level == 2)
+		return textureLod(skyLightCube2, direction, 0.0).rgb;
+	if (level == 3)
+		return textureLod(skyLightCube3, direction, 0.0).rgb;
+	return textureLod(skyLightCube4, direction, 0.0).rgb;
+}
+
+vec3 skyReflection(vec3 direction, float roughness)
+{
+	vec3 turned = skyTurn(direction);
+	float level = clamp(roughness, 0.0, 1.0) * 4.0;
+	float lower = floor(level);
+	int first = int(lower);
+	int second = min(first + 1, 4);
+	return mix(skyCubeLevel(first, turned), skyCubeLevel(second, turned), level - lower);
+}
+
+// Karis's fit of the environment BRDF for mobile (Lighting plan L5).
+vec3 environmentBRDF(vec3 F0, float roughness, float NdotV)
+{
+	const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+	const vec4 c1 = vec4(1.0, 0.0425, 1.04, -0.04);
+	vec4 r = roughness * c0 + c1;
+	float a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+	vec2 AB = vec2(-1.04, 1.04) * a004 + r.zw;
+	return F0 * AB.x + AB.y;
+}
+
+// The sky seen behind, as the skybox draws it (Water plan W4).
+vec3 skyBehind(vec3 direction)
+{
+    vec3 turned = vec3(dot(direction, pushConstants.skyColumn0), dot(direction, pushConstants.skyColumn1), dot(direction, pushConstants.skyColumn2));
+    turned.x = turned.x * pushConstants.skyInverter;
+    return textureLod(skyCube, turned, 0.0).rgb;
+}
+
+// Fades a color into the fog, as the lighting pass does (library item 40).
+vec3 applyFog(vec3 color, vec3 worldPosition)
+{
+	if (sceneInfo.fogAmount <= 0.0)
+		return color;
+	float distance = length(worldPosition - sceneInfo.cameraPosition);
+	float fog = smoothstep(sceneInfo.fogStart, sceneInfo.fogEnd, distance);
+	if (sceneInfo.fogHeightFalloff > 0.0)
+	{
+		float above = max(worldPosition.y - sceneInfo.fogBaseHeight, 0.0);
+		fog *= exp(-above * sceneInfo.fogHeightFalloff);
+	}
+	return mix(color, sceneInfo.fogColor, fog * sceneInfo.fogAmount);
+}
+
+void main()
+{
+    Instances instances = pushConstants.instances;
+    InstanceData instanceData = instances.data[v_entityID];
+    Materials materials = instanceData.materials;
+    Material material = materials.data;
+    bool textureSet = (material.flags & 1u) != 0u;
+    bool twoSided = (material.flags & 16u) != 0u;
+
+    // The pipeline doesn't cull, so the backs of one-sided faces are
+    // hidden here.
+    if (!gl_FrontFacing && !twoSided)
+        discard;
+
+    // What was drawn at this pixel: a model in front hides this one.
+    vec3 surface = v_position.xyz;
+    vec3 toSurface = surface - camera.cameraPosition;
+    float surfaceDistance = length(toSurface);
+    vec3 V = -toSurface / max(surfaceDistance, 0.0001);
+    vec4 behind = texelFetch(positionSampler, ivec2(gl_FragCoord.xy), 0);
+    bool hasGround = behind.w > 0.0001;
+    if (hasGround)
+    {
+        vec3 ground = behind.xyz / behind.w;
+        if (length(ground - camera.cameraPosition) <= surfaceDistance)
+            discard;
+    }
+
+    // The texture transform (glTF's KHR_texture_transform).
+    vec2 coordinates = v_textureCoords;
+    if ((material.flags & 32u) != 0u)
+    {
+        float turnCos = cos(material.uvRotation);
+        float turnSin = sin(material.uvRotation);
+        vec2 scaled = coordinates * vec2(material.uvScaleX, material.uvScaleY);
+        coordinates = vec2(turnCos * scaled.x + turnSin * scaled.y, -turnSin * scaled.x + turnCos * scaled.y) + vec2(material.uvOffsetX, material.uvOffsetY);
+    }
+
+    uint textureIndex = material.textureIndex;
+    if (v_hasTextureOverride == 1u)
+        textureIndex = v_textureOverrideIndex;
+    vec4 diffuse = unpackUnorm4x8(material.diffuseColor);
+    if (v_hasDiffuseOverride == 1u)
+        diffuse = unpackUnorm4x8(v_diffuseOverride);
+    vec4 sampled = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), coordinates);
+    vec4 color = sampled * diffuse;
+    // A texture set keeps height in its alpha, not opacity.
+    if (textureSet)
+        color.a = diffuse.a;
+    float alpha = clamp(color.a, 0.0, 1.0);
+    vec3 albedo = color.rgb;
+
+    // The normal, roughness, metal and ambient occlusion, as the default 3D
+    // fragment shader works them out.
+    vec3 N = v_tangentBitangentNormal[2];
+    float roughness = material.roughness;
+    float metallic = material.metallic;
+    float occlusion = 1.0;
+    if (textureSet)
+    {
+        vec4 normalRoughness = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), coordinates);
+        vec3 packedNormal = normalRoughness.rgb * 2.0 - 1.0;
+        occlusion = clamp(length(packedNormal) * 2.0 - 1.0, 0.0, 1.0);
+        N = v_tangentBitangentNormal * normalize(packedNormal);
+        roughness = normalRoughness.a;
+    }
+    else
+    {
+        if (material.hasNormalMap > 0u)
+        {
+            vec3 mapped = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), coordinates).rgb * 2.0 - 1.0;
+            mapped.xy *= material.normalStrength;
+            N = v_tangentBitangentNormal * normalize(mapped);
+        }
+        if (material.hasRoughMap > 0u)
+        {
+            vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), coordinates);
+            roughness = pbrValues.g;
+            metallic = pbrValues.b;
+        }
+        if ((material.flags & 4u) != 0u)
+            occlusion = texture(nonuniformEXT(sampler2D(globalTextures[material.occlusionMapIndex], immutableSampler)), coordinates).r;
+    }
+    N = normalize(N);
+    if (!gl_FrontFacing)
+        N = -N;
+    roughness = clamp(roughness, 0.02, 1.0);
+
+    vec3 emissive = unpackUnorm4x8(material.emissiveColor).rgb * material.emissiveStrength;
+    if ((material.flags & 2u) != 0u)
+        emissive *= texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb;
+
+    vec3 diffuseLight = vec3(0.0);
+    vec3 glint = vec3(0.0);
+    if ((material.flags & 8u) != 0u)
+    {
+        // Unlit: its color as it is.
+        emissive += albedo;
+    }
+    else
+    {
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
+        for (uint i = 0u; i < sceneInfo.lightsCount; i++)
+        {
+            Light light = lights.array[i];
+            if (light.lightType == 1u)
+            {
+                lightSurface(normalize(-light.positionDirection), light.color * light.intensity, V, N, F0, albedo, metallic, roughness, diffuseLight, glint);
+            }
+            else
+            {
+                vec3 toLight = light.positionDirection - surface;
+                float distance = length(toLight);
+                vec3 L = toLight / max(distance, 0.0001);
+                float strength = light.intensity * rangeAttenuation(distance, light.range);
+                if (light.lightType == 2u)
+                {
+                    float cosAngle = dot(-L, light.spotDirection);
+                    float cone = clamp((cosAngle - light.cosOuter) / max(light.cosInner - light.cosOuter, 0.0001), 0.0, 1.0);
+                    strength *= cone * cone;
+                }
+                if (strength > 0.0)
+                    lightSurface(L, light.color * strength, V, N, F0, albedo, metallic, roughness, diffuseLight, glint);
+            }
+        }
+
+        // The flat ambient light, and the light from the sky taking its
+        // place as its strength grows to 1 (Lighting plan L5).
+        vec3 ambient = sceneInfo.ambientColor * sceneInfo.ambientIntensity * albedo;
+        float skyStrength = sceneInfo.skyLight.x;
+        if (skyStrength > 0.0)
+        {
+            float NdotV = clamp(dot(N, V), 0.0001, 1.0);
+            vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+            vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
+            vec3 tint = sceneInfo.skyTint.rgb * skyStrength;
+            ambient = ambient * (1.0 - min(skyStrength, 1.0)) + skyIrradiance(N) * albedo * kD * tint;
+            if (sceneInfo.skyLight.y > 0.5)
+                glint += skyReflection(reflect(-V, N), roughness) * environmentBRDF(F0, roughness, NdotV) * tint * occlusion;
+        }
+        diffuseLight += ambient * occlusion;
+    }
+
+    // The surface's own light is covered by its alpha; the glints and
+    // reflections are not, so clear glass still shines. The blend gives
+    // color times alpha plus what is behind times one minus alpha, so the
+    // color is divided by the alpha here.
+    vec3 covered = (diffuseLight + emissive) * alpha + glint;
+    float glintAlpha = clamp(max(glint.r, max(glint.g, glint.b)), 0.0, 1.0);
+    float outAlpha = clamp(alpha + glintAlpha * (1.0 - alpha), 0.0, 1.0);
+    if (outAlpha <= 0.002)
+        discard;
+    vec3 result = covered / outAlpha;
+    result = applyFog(result, surface);
+
+    // Over the sky nothing is behind in the lit image, and the result pass
+    // blends the lit image over the sky by its alpha, so the sky is mixed in
+    // here and the pixel made opaque.
+    if (!hasGround && pushConstants.hasSky > 0.5)
+    {
+        result = result * outAlpha + skyBehind(-V) * (1.0 - outAlpha);
+        outAlpha = 1.0;
+    }
+    outputColor = vec4(result, outAlpha);
+}"
+        )
+    end
+end

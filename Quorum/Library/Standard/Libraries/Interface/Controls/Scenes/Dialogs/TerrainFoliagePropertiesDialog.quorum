@@ -94,6 +94,11 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     constant integer STEEPEST_SLOPE_FIELD = 6
     constant integer OFFSET_FIELD = 7
     constant integer DISTANCE_FIELD = 8
+    // The wind and the levels of detail (Foliage plan F6): each level has a
+    // file field and a distance field, level 1's first.
+    constant integer WIND_FIELD = 9
+    constant integer FIRST_LEVEL_FIELD = 10
+    constant integer LEVEL_FIELD_COUNT = 3
 
     // The terrain whose foliage is shown, or undefined.
     EditorTerrain terrain = undefined
@@ -251,6 +256,13 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         AddSettingsField(card, "Steepest slope:", "The steepest slope it grows on, in degrees")
         AddSettingsField(card, "Height offset:", "How far above the ground each copy stands")
         AddSettingsField(card, "Draw distance:", "How far from the camera copies are drawn")
+        AddSettingsField(card, "Wind:", "How much copies sway in the wind: how far a point moves sideways per unit of height, such as 0.05, or 0 for none")
+        integer level = 1
+        repeat while level <= LEVEL_FIELD_COUNT
+            AddSettingsField(card, "Level " + level + " file:", "Level of detail " + level + ": a model, or a card picture (png or jpg), relative to the foliage list's file, or empty for none")
+            AddSettingsField(card, "Level " + level + " from:", "The distance from the camera level of detail " + level + " is used from")
+            level = level + 1
+        end
 
         Control turnLine = MakeCardLine()
         Checkbox turn
@@ -511,6 +523,19 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         SetTextIfDifferent(settingsFields:Get(STEEPEST_SLOPE_FIELD), "" + asset:GetMaximumSlope())
         SetTextIfDifferent(settingsFields:Get(OFFSET_FIELD), "" + asset:GetHeightOffset())
         SetTextIfDifferent(settingsFields:Get(DISTANCE_FIELD), "" + asset:GetDrawDistance())
+        SetTextIfDifferent(settingsFields:Get(WIND_FIELD), "" + asset:GetWind())
+        integer level = 1
+        repeat while level <= LEVEL_FIELD_COUNT
+            integer place = FIRST_LEVEL_FIELD + (level - 1) * 2
+            if asset:HasLevel(level)
+                SetTextIfDifferent(settingsFields:Get(place), asset:GetLevelPath(level))
+                SetTextIfDifferent(settingsFields:Get(place + 1), "" + asset:GetLevelDistance(level))
+            else
+                SetTextIfDifferent(settingsFields:Get(place), "")
+                SetTextIfDifferent(settingsFields:Get(place + 1), "")
+            end
+            level = level + 1
+        end
         randomTurnCheckbox:SetToggleState(asset:HasRandomTurn())
         shadowsCheckbox:SetToggleState(asset:CastsShadows())
     end
@@ -715,6 +740,10 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
                 return now
             end
             asset:SetName(name)
+        elseif place >= FIRST_LEVEL_FIELD and place < FIRST_LEVEL_FIELD + LEVEL_FIELD_COUNT * 2
+            if not TakeLevelField(asset, place, field)
+                return now
+            end
         else
             number value = 0
             boolean parsed = true
@@ -746,12 +775,74 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
                 asset:SetHeightOffset(value)
             elseif place = DISTANCE_FIELD and value > 0
                 asset:SetDrawDistance(value)
+            elseif place = WIND_FIELD
+                if value = asset:GetWind()
+                    return now
+                end
+                asset:SetWind(value)
             else
                 return now
             end
         end
         editor:FoliageAssetSettingsChanged(terrain)
         SetTerrain(terrain)
+    end
+
+    /*
+        Takes a level of detail's file or distance field (Foliage plan F6).
+        A file ending in .png, .jpg, .jpeg, .bmp or .tga is a card picture,
+        any other a model; an empty file leaves the level unused. A level
+        given a file before its distance is used from the draw distance's
+        half, until a distance is typed.
+
+        Attribute: Parameter asset The asset whose settings are open.
+        Attribute: Parameter place The field's place.
+        Attribute: Parameter field The field.
+        Attribute: Returns True if the asset changed.
+    */
+    private action TakeLevelField(FoliageAsset asset, integer place, TextField field) returns boolean
+        integer level = (place - FIRST_LEVEL_FIELD) / 2 + 1
+        boolean isFile = (place - FIRST_LEVEL_FIELD) mod 2 = 0
+        text value = field:GetText():Trim()
+        if isFile
+            if value = ""
+                if not asset:HasLevel(level)
+                    return false
+                end
+                asset:ClearLevel(level)
+                return true
+            end
+            if asset:HasLevel(level) and asset:GetLevelPath(level) = value
+                return false
+            end
+            boolean hadLevel = asset:HasLevel(level)
+            text lower = value:ToLowerCase()
+            if lower:EndsWith(".png") or lower:EndsWith(".jpg") or lower:EndsWith(".jpeg") or lower:EndsWith(".bmp") or lower:EndsWith(".tga")
+                asset:SetLevelCardPicture(level, value)
+            else
+                asset:SetLevelModel(level, value)
+            end
+            if not hadLevel
+                asset:SetLevelDistance(level, asset:GetDrawDistance() / 2)
+            end
+            return true
+        end
+        if not asset:HasLevel(level)
+            return false
+        end
+        number distance = 0
+        boolean parsed = true
+        check
+            distance = value:ParseNumber()
+        detect e is Error
+            // Not a number; ignored.
+            parsed = false
+        end
+        if not parsed or distance < 0 or distance = asset:GetLevelDistance(level)
+            return false
+        end
+        asset:SetLevelDistance(level, distance)
+        return true
     end
 
     /*

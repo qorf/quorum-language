@@ -272,6 +272,23 @@ public class PixelMap {
     {
         if (pixelPointer == null)
             throw new GameRuntimeError("The PixelMap wasn't initialized yet! Use LoadPixelMap() or CreatePixelMap() first.");
+        // Under Vulkan, a picture without alpha (such as a JPG or an RGB
+        // PNG) is converted to RGBA8888 in Java's memory and has no native
+        // pixel map (basePointer is -1), so its pixels are read here, as
+        // the native code would give them: red, green, blue and alpha, a
+        // byte each, red highest. Reading it natively crashed (found by the
+        // sky light, Lighting plan L5, 2026-11-06).
+        if (basePointer == -1)
+        {
+            if (x < 0 || y < 0 || x >= width || y >= height)
+                return 0;
+            int index = (y * width + x) * 4;
+            int red = pixelPointer.get(index) & 0xFF;
+            int green = pixelPointer.get(index + 1) & 0xFF;
+            int blue = pixelPointer.get(index + 2) & 0xFF;
+            int alpha = pixelPointer.get(index + 3) & 0xFF;
+            return (red << 24) | (green << 16) | (blue << 8) | alpha;
+        }
         return GetPixel(basePointer, x, y);
     }
 

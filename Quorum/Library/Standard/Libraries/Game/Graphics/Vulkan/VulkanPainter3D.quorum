@@ -51,6 +51,12 @@ use Libraries.Compute.Vector4
 use Libraries.Game.Graphics.PixelMap
 use Libraries.Game.Graphics.Format
 use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.SkyLight
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Shaders.Programs.TransparentShaderProgram3D
+use Libraries.Game.Graphics.Shaders.Programs.BloomDownShaderProgram
+use Libraries.Game.Graphics.Shaders.Programs.BloomUpShaderProgram
 
 class VulkanPainter3D is Painter3D
     
@@ -66,6 +72,48 @@ class VulkanPainter3D is Painter3D
     // Draws models with a two-sided material without culling (Lighting
     // plan L4), made the first time one is drawn.
     ShaderProgram twoSidedProgram = undefined
+
+    // Draws see-through models in the lighting pass, after the lighting and
+    // water, back to front (Lighting plan L6), made the first time one is
+    // drawn. Their models wait here each frame until End sorts them by
+    // their distance from the camera.
+    ShaderProgram transparentProgram = undefined
+    Array<Model> seeThroughModels
+    Array<VulkanPainter3DBatch> seeThroughBatches
+    Number32BitArray seeThroughDistances
+    // For each blueprint seen, whether a material is see-through: alpha
+    // mode "BLEND", or opacity below 1.
+    HashTable<ModelBlueprint, boolean> seeThroughBlueprints
+
+    // The light from the sky (Lighting plan L5), made from the layer's
+    // skybox when it is set or changes, and given to the environment. Each
+    // frame slot has a descriptor set for its five cubes (the sky's own and
+    // four smaller ones), linked again when a cube's view changes, as
+    // skyboxDescriptors are.
+    SkyLight madeSkyLight = undefined
+    Array<VulkanDescriptorSet> skyLightDescriptors
+    Array<VulkanImageView> skyLightLinkedViews
+
+    // Bloom (Lighting plan L3): for each frame slot, BLOOM_LEVELS steps down
+    // (each half the size of the last, from half the window's size), then
+    // BLOOM_LEVELS - 1 steps up, each with its own image and framebuffer
+    // (made with the lighting pass, which has the same single RGBA16F
+    // attachment), and a descriptor set per step. They are made the first
+    // frame bloom is on, at the window's size, and again after a resize.
+    constant integer BLOOM_LEVELS = 5
+    ShaderProgram bloomDownProgram = undefined
+    ShaderProgram bloomUpProgram = undefined
+    VulkanDescriptorSetLayout bloomDownLayout = undefined
+    VulkanDescriptorSetLayout bloomUpLayout = undefined
+    VulkanPushConstantBuffer bloomDownPushConstants = undefined
+    VulkanPushConstantBuffer bloomUpPushConstants = undefined
+    Array<Array<VulkanFramebuffer>> bloomFramebuffers
+    Array<Array<VulkanDescriptorSet>> bloomDescriptors
+    integer bloomWidth = 0
+    integer bloomHeight = 0
+    // The view linked at each frame slot's result set, binding 1: the
+    // bloom, or the lit image when bloom is off.
+    Array<VulkanImageView> resultBloomViews
     
     // The clear value for the scene-space is not the same background clear value used for the swapchain.
     // It must be fully transparent to ensure proper blending with other layers.
@@ -241,6 +289,9 @@ on create
         //Create the push constants buffer with a size of 8 bytes (one 64-bit pointer). 
         pushConstants:Create(8)
         forwardProgramData:SetSize(FORWARD_PROGRAM_DATA_SIZE)
+        // A Number32BitArray has no storage until SetSize, and GetSize
+        // fails before it; QueueSeeThroughModels grows this as needed.
+        seeThroughDistances:SetSize(16)
     end
 
     action AreRenderPassesValid returns boolean
@@ -269,6 +320,19 @@ on create
                 lightFramebuffers:RemoveFromEnd():Dispose()
             end
         end
+        // The bloom's framebuffers too (Lighting plan L3); its images are
+        // among the sized images freed below. They are made again the next
+        // frame bloom is on.
+        integer bloomSlot = 0
+        repeat while bloomSlot < bloomFramebuffers:GetSize()
+            Array<VulkanFramebuffer> slotFramebuffers = bloomFramebuffers:Get(bloomSlot)
+            repeat until slotFramebuffers:IsEmpty()
+                slotFramebuffers:RemoveFromEnd():Dispose()
+            end
+            bloomSlot = bloomSlot + 1
+        end
+        bloomWidth = 0
+        bloomHeight = 0
 
         // The images behind those framebuffers go too (Item 28).
         ReleaseSizedImages()
@@ -564,6 +628,14 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
             resultsBindings:Add(samplerBinding)
 
+            // The bloom (Lighting plan L3), as CopyFromSamplerShaderMappingVulkan.
+            VulkanDescriptorSetLayoutBinding bloomBinding
+            bloomBinding:SetBinding(1)
+            bloomBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            bloomBinding:SetDescriptorCount(1)
+            bloomBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            resultsBindings:Add(bloomBinding)
+
             resultsLayout:Create(device, resultsBindings)
         end
         
@@ -739,6 +811,13 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
             resultResources:SetImageInfo(resultImages)
             resultResources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
             resultSet:LinkResources(resultResources)
+
+            // Binding 1, the bloom, is the lit image itself until bloom is
+            // on; the copy doesn't read it then (Lighting plan L3).
+            repeat while resultBloomViews:GetSize() <= i
+                resultBloomViews:Add(undefined)
+            end
+            LinkResultBloom(i, lightImageViews:Get(0))
             
             i = i + 1
         end
@@ -979,7 +1058,9 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
     cascade for a directional light, six per cascade for a point light.
     Maps that no longer fit their light are replaced, and maps past the
     light count are freed once unused for a while. Old maps are freed when
-    no frame still draws with them (Item 35).
+    no frame still draws with them (Item 35). Spotlights, after point
+    lights, have one layer per cascade, as directional lights (Lighting plan
+    L7).
 
     Attribute: Parameter resourceIndex The frame slot.
     */
@@ -989,10 +1070,8 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
         integer cascades = lightProperties:GetShadowMapCascadeCount()
 
         integer directionalCount = environment:GetDirectionalLightCount()
-        integer totalLights = directionalCount + environment:GetPointLightCount()
-        if totalLights > environment:GetMaxLights()
-            totalLights = environment:GetMaxLights()
-        end
+        integer pointEnd = directionalCount + environment:GetPointLightCount()
+        integer totalLights = environment:GetShadowLightCount()
 
         repeat while shadowMapViews:GetSize() <= resourceIndex
             Array<VulkanImageView> newViews
@@ -1003,9 +1082,11 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
 
         integer i = 0
         repeat while i < totalLights
-            integer layers = cascades * 6
-            if i < directionalCount
-                layers = cascades
+            // Six layers per cascade for a point light, one for a
+            // directional light or a spotlight.
+            integer layers = cascades
+            if i >= directionalCount and i < pointEnd
+                layers = cascades * 6
             end
             if i >= framebuffers:GetSize()
                 VulkanFramebuffer made = MakeShadowMap(layers)
@@ -1140,13 +1221,15 @@ Array<VulkanAttachmentReference> resolveReferences) returns boolean
                 renderCascadesSeparately = false
                 
                 // The shadows need a pointer to a buffer (8-bytes) plus two additional uints (4-bytes each).
-        shadowPushConstants:Create(16)
+        // And the shader time, for swaying materials (Foliage plan F6).
+        shadowPushConstants:Create(20)
             elseif features:HasShaderOutputLayer()
                 defaultShadowProgram = shaders:GetTwoStageShadowShaderProgram()
                 renderCascadesSeparately = true
                 
                 // If there's no available geometry shader, the push constants need to store two additional uints (4-bytes each).
-                shadowPushConstants:Create(24)
+                // And the shader time, for swaying materials (Foliage plan F6).
+                shadowPushConstants:Create(28)
             else
                 return undefined
             end
@@ -1233,6 +1316,11 @@ if batches:HasKey(schematic)
         ShaderProgram program = model:GetShaderProgram()
         ShaderProgram defaultOne = GetDefaultProgram()
         if program = undefined or program = defaultOne
+            // A see-through model is drawn after the lighting, back to front
+            // (Lighting plan L6). "MASK" materials stay in the scene pass.
+            if IsSeeThrough(model)
+                return GetTransparentProgram()
+            end
             // A model with a two-sided material is drawn without culling
             // (Lighting plan L4).
             ModelBlueprintVulkan modelSchematic = cast(ModelBlueprintVulkan, model:GetModelBlueprint())
@@ -1257,6 +1345,64 @@ if batches:HasKey(schematic)
             twoSidedProgram = program
         end
         return twoSidedProgram
+    end
+
+    /*
+    This action returns the program for see-through models (Lighting plan
+    L6), making it the first time.
+
+    Attribute: Returns The see-through program.
+    */
+    private action GetTransparentProgram returns ShaderProgram
+        if transparentProgram = undefined
+            TransparentShaderProgram3D program
+            program:Compile()
+            transparentProgram = program
+        end
+        return transparentProgram
+    end
+
+    /*
+    This action returns true if a model is drawn see-through (Lighting plan
+    L6): its color's alpha is below 1 (or it was told it has transparency),
+    or one of its blueprint's materials has the alpha mode "BLEND" or an
+    opacity below 1. What the blueprint's materials say is found once per
+    blueprint.
+
+    Attribute: Parameter model The model.
+    Attribute: Returns True if the model is drawn see-through.
+    */
+    private action IsSeeThrough(Model model) returns boolean
+        if model:HasTransparency()
+            return true
+        end
+        ModelBlueprint modelBlueprint = model:GetModelBlueprint()
+        if seeThroughBlueprints:HasKey(modelBlueprint)
+            return seeThroughBlueprints:GetValue(modelBlueprint)
+        end
+        boolean seeThrough = false
+        ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+        ModelData data = vulkanBlueprint:GetData()
+        if data not= undefined and data:GetMaterials() not= undefined
+            Array<Material> materials = data:GetMaterials()
+            integer i = 0
+            repeat while i < materials:GetSize()
+                Material material = materials:Get(i)
+                if material not= undefined
+                    text alphaMode = material:GetAlphaMode()
+                    if material:GetOpaque() < 1
+                        seeThrough = true
+                    elseif alphaMode not= undefined
+                        if alphaMode = "BLEND"
+                            seeThrough = true
+                        end
+                    end
+                end
+                i = i + 1
+            end
+        end
+        seeThroughBlueprints:Add(modelBlueprint, seeThrough)
+        return seeThrough
     end
     
     /*
@@ -1326,11 +1472,13 @@ if batches:HasKey(schematic)
 
     /*
     This action draws the forward programs' models, such as water, in the
-    lighting pass, after the lighting (Item 39). Each program's pipeline is
-    made for the lighting pass. The camera and textures are bound as in the
-    scene pass, the G-buffer and light data as in the lighting pass, and
-    the push constants carry the instance address, the program's own data
-    and the forward scene data.
+    lighting pass, after the lighting (Item 39). See-through models (Lighting
+    plan L6) are drawn last, over the water, already sorted back to front.
+    Each program's pipeline is made for the lighting pass. The camera and
+    textures are bound as in the scene pass, the G-buffer and light data as
+    in the lighting pass, the sky's cube as set 4 and the sky light's cubes
+    as set 5 (Lighting plan L5), and the push constants carry the instance
+    address, the program's own data and the forward scene data.
 
     Attribute: Parameter commandBuffer The frame's command buffer, in the lighting pass.
     Attribute: Parameter swapchain The swapchain.
@@ -1338,119 +1486,149 @@ if batches:HasKey(schematic)
     Attribute: Parameter cameraDescriptor The frame's camera descriptor set.
     */
     private action RecordForwardPrograms(VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain, integer resourceIndex, VulkanDescriptorSet cameraDescriptor)
-        VulkanConstants constants
-        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
-        VulkanTextureManager textureManager = graphics:GetTextureManager()
-
         // The sky's cube for reflections (Water plan W4): the skybox's, if
-        // it is drawn this frame, or else a plain cube. Until the plain
-        // cube is uploaded, a frame after it is asked for, forward
-        // programs wait. The plain cube is only asked for when a forward
-        // program has something to draw.
-        boolean hasSky = false
+        // it is drawn this frame, or else a plain cube, made at the start
+        // of End.
+        boolean hasSky = CanDrawSky()
         VulkanImageView skyView = undefined
-        boolean skyChosen = false
+        if hasSky
+            skyView = skybox:GetCubeMap():GetVulkanImageView()
+        else
+            skyView = GetFallbackSkyView()
+        end
+        if skyView = undefined
+            return now
+        end
 
         integer programIndex = 0
         repeat while programIndex < customPrograms:GetSize()
             ShaderProgram program = customPrograms:Get(programIndex)
-            Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
-            if IsForwardProgram(program) and HasDrawCommands(programQueues) and not skyChosen
-                skyChosen = true
-                hasSky = CanDrawSky()
-                if hasSky
-                    skyView = skybox:GetCubeMap():GetVulkanImageView()
-                else
-                    skyView = GetFallbackSkyView()
-                end
-            end
-            if IsForwardProgram(program) and HasDrawCommands(programQueues) and skyView not= undefined
-                VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
-                if NeedsPipeline(strategy:GetPipeline(), lightRenderPass:GetSampleCount())
-                    strategy:CreatePipeline(lightRenderPass)
-                end
-                VulkanPipeline pipeline = strategy:GetPipeline()
-                VulkanPipelineLayout layout = pipeline:GetInfo():GetLayout()
-
-                BindPipelineCommand bindPipeline
-                bindPipeline:SetPipeline(pipeline)
-                commandBuffer:Record(bindPipeline)
-                // The scene pass's viewport, so the water lands on the same
-                // pixels as the G-buffer it is compared with.
-                SetViewportAndScissor(commandBuffer, swapchain)
-
-                BindDescriptorSetCommand cameraBind
-                cameraBind:SetPipelineLayout(layout)
-                cameraBind:SetDescriptorSet(cameraDescriptor)
-                commandBuffer:Record(cameraBind)
-
-                BindDescriptorSetCommand gBufferBind
-                gBufferBind:SetPipelineLayout(layout)
-                gBufferBind:SetDescriptorSet(lightDescriptors:Get(resourceIndex))
-                gBufferBind:SetSetIndex(2)
-                commandBuffer:Record(gBufferBind)
-
-                BindDescriptorSetCommand lightDataBind
-                lightDataBind:SetPipelineLayout(layout)
-                lightDataBind:SetDescriptorSet(environment:GetLightDataDescriptorSet(resourceIndex))
-                lightDataBind:SetSetIndex(3)
-                commandBuffer:Record(lightDataBind)
-
-                BindDescriptorSetCommand skyBind
-                skyBind:SetPipelineLayout(layout)
-                skyBind:SetDescriptorSet(GetSkyboxDescriptor(resourceIndex, skyView))
-                skyBind:SetSetIndex(4)
-                commandBuffer:Record(skyBind)
-
-                // The program's own numbers, the same for all its queues.
-                integer slot = 0
-                repeat while slot < FORWARD_PROGRAM_DATA_SIZE
-                    forwardProgramData:Set(slot, 0)
-                    slot = slot + 1
-                end
-                strategy:GetShaderMapping():FillForwardData(program, forwardProgramData)
-
-                if forwardPushConstants = undefined
-                    VulkanPushConstantBuffer buffer
-                    buffer:Create(FORWARD_PUSH_CONSTANT_SIZE)
-                    forwardPushConstants = buffer
-                end
-
-                integer group = 0
-                repeat while group < programQueues:GetSize()
-                    VulkanDrawQueue3D queue = programQueues:Get(group)
-                    if queue not= undefined and queue:GetDrawCommandCount() > 0
-                        BindDescriptorSetCommand texturesBind
-                        texturesBind:SetPipelineLayout(layout)
-                        texturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(group))
-                        texturesBind:SetSetIndex(1)
-                        commandBuffer:Record(texturesBind)
-
-                        forwardPushConstants:ResetWritePosition()
-                        forwardPushConstants:AddBufferPointer(queue:GetInstanceDataBuffer())
-                        slot = 0
-                        repeat while slot < FORWARD_PROGRAM_DATA_SIZE
-                            forwardPushConstants:AddNumber32Bit(forwardProgramData:Get(slot))
-                            slot = slot + 1
-                        end
-                        // The forward scene data: the sky's rotation (W4).
-                        AddForwardSceneData(hasSky)
-
-                        SetPushConstantsCommand setPushConstants
-                        setPushConstants:SetData(forwardPushConstants)
-                        setPushConstants:SetPipelineLayout(layout)
-                        setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
-                        commandBuffer:Record(setPushConstants)
-
-                        DrawIndirectCommand draw
-                        draw:SetDrawCommands(queue:GetDrawCommandBuffer())
-                        draw:SetDrawCount(queue:GetDrawCommandCount())
-                        commandBuffer:Record(draw)
-                    end
-                    group = group + 1
-                end
+            if program not= transparentProgram
+                RecordForwardProgram(program, commandBuffer, swapchain, resourceIndex, cameraDescriptor, hasSky, skyView)
             end
             programIndex = programIndex + 1
+        end
+        if transparentProgram not= undefined
+            RecordForwardProgram(transparentProgram, commandBuffer, swapchain, resourceIndex, cameraDescriptor, hasSky, skyView)
+        end
+    end
+
+    /*
+    This action draws one forward program's models in the lighting pass, if
+    it is a forward program and has something to draw (Item 39).
+
+    Attribute: Parameter program The program.
+    Attribute: Parameter commandBuffer The frame's command buffer, in the lighting pass.
+    Attribute: Parameter swapchain The swapchain.
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter cameraDescriptor The frame's camera descriptor set.
+    Attribute: Parameter hasSky True if the sky's cube is the skybox's.
+    Attribute: Parameter skyView The sky's cube, or the plain cube.
+    */
+    private action RecordForwardProgram(ShaderProgram program, VulkanCommandBuffer commandBuffer, VulkanSwapchain swapchain,
+            integer resourceIndex, VulkanDescriptorSet cameraDescriptor, boolean hasSky, VulkanImageView skyView)
+        if not IsForwardProgram(program)
+            return now
+        end
+        Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(program)
+        if not HasDrawCommands(programQueues)
+            return now
+        end
+
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanTextureManager textureManager = graphics:GetTextureManager()
+
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        if NeedsPipeline(strategy:GetPipeline(), lightRenderPass:GetSampleCount())
+            strategy:CreatePipeline(lightRenderPass)
+        end
+        VulkanPipeline pipeline = strategy:GetPipeline()
+        VulkanPipelineLayout layout = pipeline:GetInfo():GetLayout()
+
+        BindPipelineCommand bindPipeline
+        bindPipeline:SetPipeline(pipeline)
+        commandBuffer:Record(bindPipeline)
+        // The scene pass's viewport, so the water lands on the same
+        // pixels as the G-buffer it is compared with.
+        SetViewportAndScissor(commandBuffer, swapchain)
+
+        BindDescriptorSetCommand cameraBind
+        cameraBind:SetPipelineLayout(layout)
+        cameraBind:SetDescriptorSet(cameraDescriptor)
+        commandBuffer:Record(cameraBind)
+
+        BindDescriptorSetCommand gBufferBind
+        gBufferBind:SetPipelineLayout(layout)
+        gBufferBind:SetDescriptorSet(lightDescriptors:Get(resourceIndex))
+        gBufferBind:SetSetIndex(2)
+        commandBuffer:Record(gBufferBind)
+
+        BindDescriptorSetCommand lightDataBind
+        lightDataBind:SetPipelineLayout(layout)
+        lightDataBind:SetDescriptorSet(environment:GetLightDataDescriptorSet(resourceIndex))
+        lightDataBind:SetSetIndex(3)
+        commandBuffer:Record(lightDataBind)
+
+        BindDescriptorSetCommand skyBind
+        skyBind:SetPipelineLayout(layout)
+        skyBind:SetDescriptorSet(GetSkyboxDescriptor(resourceIndex, skyView))
+        skyBind:SetSetIndex(4)
+        commandBuffer:Record(skyBind)
+
+        // The sky light's cubes (Lighting plan L5).
+        BindDescriptorSetCommand skyLightBind
+        skyLightBind:SetPipelineLayout(layout)
+        skyLightBind:SetDescriptorSet(GetSkyLightDescriptor(resourceIndex))
+        skyLightBind:SetSetIndex(5)
+        commandBuffer:Record(skyLightBind)
+
+        // The program's own numbers, the same for all its queues.
+        integer slot = 0
+        repeat while slot < FORWARD_PROGRAM_DATA_SIZE
+            forwardProgramData:Set(slot, 0)
+            slot = slot + 1
+        end
+        strategy:GetShaderMapping():FillForwardData(program, forwardProgramData)
+
+        if forwardPushConstants = undefined
+            VulkanPushConstantBuffer buffer
+            buffer:Create(FORWARD_PUSH_CONSTANT_SIZE)
+            forwardPushConstants = buffer
+        end
+
+        integer group = 0
+        repeat while group < programQueues:GetSize()
+            VulkanDrawQueue3D queue = programQueues:Get(group)
+            if queue not= undefined and queue:GetDrawCommandCount() > 0
+                BindDescriptorSetCommand texturesBind
+                texturesBind:SetPipelineLayout(layout)
+                texturesBind:SetDescriptorSet(textureManager:GetGlobalTextureDescriptorSet(group))
+                texturesBind:SetSetIndex(1)
+                commandBuffer:Record(texturesBind)
+
+                forwardPushConstants:ResetWritePosition()
+                forwardPushConstants:AddBufferPointer(queue:GetInstanceDataBuffer())
+                slot = 0
+                repeat while slot < FORWARD_PROGRAM_DATA_SIZE
+                    forwardPushConstants:AddNumber32Bit(forwardProgramData:Get(slot))
+                    slot = slot + 1
+                end
+                // The forward scene data: the sky's rotation (W4).
+                AddForwardSceneData(hasSky)
+
+                SetPushConstantsCommand setPushConstants
+                setPushConstants:SetData(forwardPushConstants)
+                setPushConstants:SetPipelineLayout(layout)
+                setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
+                commandBuffer:Record(setPushConstants)
+
+                DrawIndirectCommand draw
+                draw:SetDrawCommands(queue:GetDrawCommandBuffer())
+                draw:SetDrawCount(queue:GetDrawCommandCount())
+                commandBuffer:Record(draw)
+            end
+            group = group + 1
         end
     end
 
@@ -1662,8 +1840,12 @@ Layer layer = layers:Next()
         if lightClearValues:IsEmpty()
             lightClearValues:AddColor(0, 0, 0, 0)
         end
+
+        // The sky light and the plain cube (Lighting plan L5), loaded now,
+        // before any pass begins, if they were just made.
+        PrepareSkyTextures(textureManager)
         
-        if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty()
+        if not pendingBatches:IsEmpty() or not pendingTransparentBatches:IsEmpty() or not seeThroughModels:IsEmpty()
             // After ending the batches, we need to wait for data transfers to complete before any drawing can occur.
             // Create a memory barrier that ensures that all commands after this must wait for the transfer stage of
             // the pipeline to complete before operations in the vertex input stage can begin.
@@ -1743,6 +1925,10 @@ VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentS
             releasesSeen = releaseManager:GetReleaseCount()
             RemoveReleasedBatches()
         end
+
+        // See-through models join their batches farthest first (Lighting
+        // plan L6), now the camera is up to date.
+        QueueSeeThroughModels()
 
         Array<VulkanPainter3DBatch> currentBatches = pendingBatches
         repeat until currentBatches = undefined
@@ -1908,8 +2094,11 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         Array<VulkanFramebuffer> shadowFramebuffers = shadowCubemapFramebuffers:Get(resourceIndex)
         
         // Perform the shadow rendering phase.
+        // Directional lights, then point lights, then spotlights (Lighting
+        // plan L7), as EnsureShadowMaps made their maps.
         integer directionalLightCount = environment:GetDirectionalLightCount()
-            integer totalLightCount = directionalLightCount + environment:GetPointLightCount()
+        integer pointLightEnd = directionalLightCount + environment:GetPointLightCount()
+            integer totalLightCount = environment:GetShadowLightCount()
             if totalLightCount > lightProperties:GetMaximumLights()
                 totalLightCount = lightProperties:GetMaximumLights()
             end
@@ -1941,7 +2130,10 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         programIndex = 0
         repeat while programIndex < customPrograms:GetSize()
             // Forward models, such as water, cast no shadows (Item 39).
-            if not IsForwardProgram(customPrograms:Get(programIndex))
+            // See-through models do, as they did when drawn in the scene
+            // pass (Lighting plan L6).
+            ShaderProgram shadowCaster = customPrograms:Get(programIndex)
+            if not IsForwardProgram(shadowCaster) or shadowCaster = transparentProgram
                 Array<VulkanDrawQueue3D> programQueues = GetCurrentProgramQueues(customPrograms:Get(programIndex))
                 queueCounter = 0
                 repeat while queueCounter < programQueues:GetSize()
@@ -1988,8 +2180,10 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
             shadowDescriptorBind:SetDescriptorSet(shadowProjectionDescriptors:Get(resourceIndex))
             commandBuffer:Record(shadowDescriptorBind)
             
+            // Only point lights have six faces; spotlights have one, as
+            // directional lights (Lighting plan L7).
             integer isPointLight = 0
-            if i >= directionalLightCount
+            if i >= directionalLightCount and i < pointLightEnd
                 isPointLight = 1
             end
             
@@ -2042,6 +2236,8 @@ their default clear values, which is functionally equivalent to there being no s
                                 setPushConstants:SetStageFlags(constants:SHADER_STAGE_VERTEX_BIT + 
 constants:SHADER_STAGE_GEOMETRY_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)
                             end
+                            // The shader time, last, for swaying materials (Foliage plan F6).
+                            shadowPushConstants:AddNumber32Bit(shaderTime)
                             
         commandBuffer:Record(setPushConstants)
                 
@@ -2133,6 +2329,14 @@ BindDescriptorSetCommand lightDescriptorBind
         lightShadowDescriptorBind:SetSetIndex(2)
         commandBuffer:Record(lightShadowDescriptorBind)
 
+        // The sky light's cubes (Lighting plan L5): plain cubes, unused,
+        // when there is no sky light.
+        BindDescriptorSetCommand skyLightDescriptorBind
+        skyLightDescriptorBind:SetPipelineLayout(lightPipelineLayout)
+        skyLightDescriptorBind:SetDescriptorSet(GetSkyLightDescriptor(resourceIndex))
+        skyLightDescriptorBind:SetSetIndex(3)
+        commandBuffer:Record(skyLightDescriptorBind)
+
         DrawCommand lightDrawCommand
         lightDrawCommand:SetVertexCount(3)
         commandBuffer:Record(lightDrawCommand)
@@ -2149,6 +2353,17 @@ BindDescriptorSetCommand lightDescriptorBind
         // First, ensure all writing to the light's output attachment is done before we proceed.
         VulkanImage lightAttachmentImage = lightFramebuffer:GetImageViews():Get(0):GetImage()
         AttachmentWriteBarrier(commandBuffer, lightAttachmentImage)
+
+        // Bloom (Lighting plan L3): from the lit image, down and up its
+        // chain, before the result pass. Without it, the result set's
+        // binding 1 is the lit image, and the copy doesn't read it.
+        VulkanImageView bloomView = lightFramebuffer:GetImageViews():Get(0)
+        number bloomStrength = 0
+        if environment:HasBloom()
+            bloomView = RecordBloom(commandBuffer, resourceIndex, bloomView)
+            bloomStrength = environment:GetBloomStrength()
+        end
+        LinkResultBloom(resourceIndex, bloomView)
         
         // Now, begin the render pass for the copy draw phase. Get the resources we'll need and create the command.
         VulkanFramebuffer resultFramebuffer = graphics:GetCurrentFramebuffer()
@@ -2190,15 +2405,17 @@ BindDescriptorSetCommand resultDescriptorBind
             resultDescriptorBind:SetDescriptorSet(resultDescriptors:Get(resourceIndex))
             commandBuffer:Record(resultDescriptorBind)
 
-        // The exposure and tone mapping the copy applies (Lighting plan L2).
+        // The exposure and tone mapping the copy applies (Lighting plan L2),
+        // and the bloom's strength (L3): 12 bytes.
         if toneMappingPushConstants = undefined
             VulkanPushConstantBuffer toneBuffer
-            toneBuffer:Create(8)
+            toneBuffer:Create(12)
             toneMappingPushConstants = toneBuffer
         end
         toneMappingPushConstants:ResetWritePosition()
         toneMappingPushConstants:AddNumber32Bit(environment:GetExposure())
         toneMappingPushConstants:AddNumber32Bit(environment:GetToneMapping())
+        toneMappingPushConstants:AddNumber32Bit(bloomStrength)
         SetPushConstantsCommand tonePushConstants
         tonePushConstants:SetData(toneMappingPushConstants)
         tonePushConstants:SetPipelineLayout(resultPipelineLayout)
@@ -2563,6 +2780,608 @@ BindDescriptorSetCommand resultDescriptorBind
         return false
     end
     
+    /*
+    This action sorts the see-through models drawn this frame, farthest from
+    the camera first, and adds them to their batches in that order, so they
+    are drawn back to front (Lighting plan L6). A batch draws all its models
+    together, so it goes in at its farthest model's place, and its models in
+    order within it. Their distance is from the camera to each model's
+    origin.
+    */
+    private action QueueSeeThroughModels
+        integer count = seeThroughModels:GetSize()
+        if count = 0
+            return now
+        end
+        if seeThroughDistances:GetSize() < count
+            seeThroughDistances:SetSize(count)
+        end
+        Vector3 eye = camera:GetPosition()
+        integer i = 0
+        repeat while i < count
+            Matrix4 transform = seeThroughModels:Get(i):GetTransform()
+            number dx = transform:row0column3 - eye:GetX()
+            number dy = transform:row1column3 - eye:GetY()
+            number dz = transform:row2column3 - eye:GetZ()
+            seeThroughDistances:Set(i, dx * dx + dy * dy + dz * dz)
+            i = i + 1
+        end
+
+        // Farthest first: an insertion sort, which is quick for the few
+        // see-through models a scene usually has.
+        i = 1
+        repeat while i < count
+            number distance = seeThroughDistances:Get(i)
+            Model model = seeThroughModels:Get(i)
+            VulkanPainter3DBatch batch = seeThroughBatches:Get(i)
+            integer j = i - 1
+            boolean moving = true
+            repeat while moving
+                if j < 0
+                    moving = false
+                elseif seeThroughDistances:Get(j) < distance
+                    seeThroughDistances:Set(j + 1, seeThroughDistances:Get(j))
+                    seeThroughModels:Set(j + 1, seeThroughModels:Get(j))
+                    seeThroughBatches:Set(j + 1, seeThroughBatches:Get(j))
+                    j = j - 1
+                else
+                    moving = false
+                end
+            end
+            seeThroughDistances:Set(j + 1, distance)
+            seeThroughModels:Set(j + 1, model)
+            seeThroughBatches:Set(j + 1, batch)
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < count
+            VulkanPainter3DBatch sortedBatch = seeThroughBatches:Get(i)
+            if sortedBatch:IsPending() = false
+                sortedBatch:SetPending(true)
+                pendingTransparentBatches:Add(sortedBatch)
+                sortedBatch:ResetAge()
+            end
+            sortedBatch:Add(seeThroughModels:Get(i))
+            i = i + 1
+        end
+        seeThroughModels:Empty()
+        seeThroughBatches:Empty()
+    end
+
+    /*
+    This action makes sure the cubes the sky light needs are on the GPU
+    before any pass begins (Lighting plan L5): the plain cube, the first
+    time, and the sky light's cubes when it is made again. Textures asked
+    for here are loaded into this frame's command buffer at once, so they
+    can be bound this frame.
+
+    Attribute: Parameter textureManager The texture manager.
+    */
+    private action PrepareSkyTextures(VulkanTextureManager textureManager)
+        boolean requested = false
+        if fallbackSkyCube = undefined
+            GetFallbackSkyView()
+            requested = true
+        end
+        if UpdateSkyLight()
+            requested = true
+        end
+        if requested
+            textureManager:ProcessPendingTextures()
+        end
+    end
+
+    /*
+    This action makes the light from the sky when the layer's skybox is set
+    or changes (Lighting plan L5), and gives it to the environment, unless
+    the environment was given another sky light. With no skybox, the light
+    made before is taken away. It is not made again while the skybox and its
+    six files stay the same.
+
+    Attribute: Returns True if a new sky light asked for its cubes.
+    */
+    private action UpdateSkyLight returns boolean
+        if skybox = undefined or not skybox:IsLoaded()
+            if madeSkyLight not= undefined
+                if environment:GetSkyLight() = madeSkyLight
+                    environment:SetSkyLight(undefined)
+                end
+                madeSkyLight:Dispose()
+                madeSkyLight = undefined
+            end
+            return false
+        end
+        if madeSkyLight not= undefined
+            if madeSkyLight:IsMadeFrom(skybox)
+                return false
+            end
+        end
+
+        SkyLight light
+        boolean made = light:Load(skybox)
+        SkyLight old = madeSkyLight
+        madeSkyLight = light
+        SkyLight current = environment:GetSkyLight()
+        if current = undefined or current = old
+            if made
+                environment:SetSkyLight(light)
+            else
+                environment:SetSkyLight(undefined)
+            end
+        end
+        if old not= undefined
+            old:Dispose()
+        end
+        return made
+    end
+
+    /*
+    This action returns one of the sky light's cubes' views (Lighting plan
+    L5): 0 is the sky's own cube, 1 to 4 the smaller ones.
+
+    Attribute: Parameter level Which cube, from 0 to 4.
+    Attribute: Returns The view, or undefined if there is no sky light or the cube isn't loaded.
+    */
+    private action GetSkyLightView(integer level) returns VulkanImageView
+        SkyLight light = environment:GetSkyLight()
+        if light = undefined
+            return undefined
+        end
+        if not light:IsLoaded() or light:GetSkybox() = undefined
+            return undefined
+        end
+        Texture cube = undefined
+        if level = 0
+            cube = light:GetSkybox():GetCubeMap()
+        elseif level - 1 < light:GetReflectionCubeCount()
+            cube = light:GetReflectionCube(level - 1)
+        end
+        if cube = undefined
+            return undefined
+        end
+        return cube:GetVulkanImageView()
+    end
+
+    /*
+    This action returns a frame slot's descriptor set for the sky light's
+    cubes (Lighting plan L5), making it the first time, and linking each
+    cube again when its view changes. Cubes that aren't there are the plain
+    cube; the shaders don't read them then. The lighting pass binds it as
+    set 3, forward programs as set 5.
+
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Returns The descriptor set.
+    */
+    private action GetSkyLightDescriptor(integer resourceIndex) returns VulkanDescriptorSet
+        VulkanConstants constants
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanLightingProperties properties = graphics:GetLightingProperties()
+        integer count = properties:GetSkyLightCubeCount()
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        repeat while skyLightDescriptors:GetSize() <= resourceIndex
+            VulkanDescriptorSet newSet = descriptorSetManager:CreateDescriptorSet(properties:GetSkyLightDescriptorSetLayout())
+            skyLightDescriptors:Add(newSet)
+            repeat count times
+                skyLightLinkedViews:Add(undefined)
+            end
+        end
+
+        VulkanDescriptorSet set = skyLightDescriptors:Get(resourceIndex)
+        VulkanImageView fallback = GetFallbackSkyView()
+        integer level = 0
+        repeat while level < count
+            VulkanImageView view = GetSkyLightView(level)
+            if view = undefined
+                view = fallback
+            end
+            integer linkIndex = resourceIndex * count + level
+            if view not= undefined and skyLightLinkedViews:Get(linkIndex) not= view
+                LinkImage(set, level, view, resultSampler)
+                skyLightLinkedViews:Set(linkIndex, view)
+            end
+            level = level + 1
+        end
+        return set
+    end
+
+    /*
+    This action links an image view, with a sampler, to one binding of a
+    descriptor set, as a combined image sampler read by fragment shaders.
+
+    Attribute: Parameter set The descriptor set.
+    Attribute: Parameter binding The binding.
+    Attribute: Parameter view The image view, in the shader read layout.
+    Attribute: Parameter sampler The sampler.
+    */
+    private action LinkImage(VulkanDescriptorSet set, integer binding, VulkanImageView view, VulkanSampler sampler)
+        VulkanConstants constants
+        VulkanDescriptorResourcesInfo resources
+        VulkanDescriptorImageInfo image
+        image:SetImageView(view)
+        image:SetSampler(sampler)
+        image:SetImageLayout(constants:IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+        Array<VulkanDescriptorImageInfo> images
+        images:Add(image)
+        resources:SetImageInfo(images)
+        resources:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+        resources:SetDestinationBinding(binding)
+        set:LinkResources(resources)
+    end
+
+    /*
+    This action links the bloom, or the lit image when bloom is off, to a
+    frame slot's result set, binding 1 (Lighting plan L3), if it isn't
+    linked already. A slot's set is only changed after its previous frame
+    has finished with it.
+
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter view The bloom's view, or the lit image's.
+    */
+    private action LinkResultBloom(integer resourceIndex, VulkanImageView view)
+        if resourceIndex >= resultDescriptors:GetSize()
+            return now
+        end
+        repeat while resultBloomViews:GetSize() <= resourceIndex
+            resultBloomViews:Add(undefined)
+        end
+        if resultBloomViews:Get(resourceIndex) = view
+            return now
+        end
+        // Clamped at the edges, so the glow doesn't wrap around the screen.
+        LinkImage(resultDescriptors:Get(resourceIndex), 1, view, shadowSampler)
+        resultBloomViews:Set(resourceIndex, view)
+    end
+
+    /*
+    This action returns the size of one bloom level along one side
+    (Lighting plan L3): the window's size halved once for level 0, twice for
+    level 1, and so on, at least 1.
+
+    Attribute: Parameter full The window's size along that side.
+    Attribute: Parameter level The level, from 0.
+    Attribute: Returns The size, in pixels.
+    */
+    private action GetBloomLevelSize(integer full, integer level) returns integer
+        integer size = full
+        repeat level + 1 times
+            size = size / 2
+        end
+        if size < 1
+            size = 1
+        end
+        return size
+    end
+
+    /*
+    This action makes one bloom image (Lighting plan L3): RGBA16F, drawn
+    into and then read, its view, and a framebuffer for it with the
+    lighting pass, which has the same single attachment. The image and view
+    are freed with the other sized images.
+
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Parameter width The width in pixels.
+    Attribute: Parameter height The height in pixels.
+    Attribute: Returns The framebuffer.
+    */
+    private action MakeBloomFramebuffer(VulkanDevice device, integer width, integer height) returns VulkanFramebuffer
+        VulkanConstants constants
+        VulkanImageInfo imageInfo
+        imageInfo:SetWidth(width)
+        imageInfo:SetHeight(height)
+        imageInfo:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        imageInfo:SetUsage(constants:IMAGE_USAGE_COLOR_ATTACHMENT_BIT + constants:IMAGE_USAGE_SAMPLED_BIT)
+        VulkanImage image
+        image:Create(device, imageInfo)
+
+        VulkanImageViewInfo viewInfo
+        viewInfo:SetFormat(imageInfo:GetFormat())
+        VulkanImageView view
+        view:Create(device, image, viewInfo)
+        KeepSizedImage(image, view)
+
+        Array<VulkanImageView> views
+        views:Add(view)
+        VulkanFramebuffer framebuffer
+        framebuffer:Create(device, views, lightRenderPass)
+        return framebuffer
+    end
+
+    /*
+    This action makes the bloom's images, framebuffers and descriptor sets
+    for every frame slot (Lighting plan L3), if they aren't made yet at the
+    window's size. For each slot: BLOOM_LEVELS steps down, then BLOOM_LEVELS
+    - 1 steps up, the up step at place BLOOM_LEVELS + n having the size of
+    down step n. Down step 0 reads the lit image, down step n the one
+    before; up step n reads down step n and the step above it (up step n +
+    1, or the last down step).
+    */
+    private action EnsureBloomResources
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        VulkanSwapchain swapchain = graphics:GetSwapchain()
+        VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+        integer slotCount = swapchain:GetImageCount()
+        integer stepCount = BLOOM_LEVELS * 2 - 1
+
+        if bloomWidth = framebufferWidth and bloomHeight = framebufferHeight and bloomFramebuffers:GetSize() >= slotCount
+            if bloomFramebuffers:Get(slotCount - 1):GetSize() = stepCount
+                return now
+            end
+        end
+
+        if bloomDownLayout = undefined
+            Array<VulkanDescriptorSetLayoutBinding> downBindings
+            VulkanDescriptorSetLayoutBinding sourceBinding
+            sourceBinding:SetBinding(0)
+            sourceBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+            sourceBinding:SetDescriptorCount(1)
+            sourceBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            downBindings:Add(sourceBinding)
+            VulkanDescriptorSetLayout downLayout
+            downLayout:Create(device, downBindings)
+            bloomDownLayout = downLayout
+
+            Array<VulkanDescriptorSetLayoutBinding> upBindings
+            integer binding = 0
+            repeat while binding < 2
+                VulkanDescriptorSetLayoutBinding upBinding
+                upBinding:SetBinding(binding)
+                upBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                upBinding:SetDescriptorCount(1)
+                upBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+                upBindings:Add(upBinding)
+                binding = binding + 1
+            end
+            VulkanDescriptorSetLayout upLayout
+            upLayout:Create(device, upBindings)
+            bloomUpLayout = upLayout
+        end
+
+        VulkanDescriptorSetManager descriptorSetManager = graphics:GetDescriptorSetManager()
+        integer slot = 0
+        repeat while slot < slotCount
+            repeat while bloomFramebuffers:GetSize() <= slot
+                Array<VulkanFramebuffer> newFramebuffers
+                bloomFramebuffers:Add(newFramebuffers)
+            end
+            repeat while bloomDescriptors:GetSize() <= slot
+                Array<VulkanDescriptorSet> newSets
+                bloomDescriptors:Add(newSets)
+            end
+            Array<VulkanFramebuffer> frames = bloomFramebuffers:Get(slot)
+            Array<VulkanDescriptorSet> sets = bloomDescriptors:Get(slot)
+
+            // Normally emptied when the passes were made again; anything
+            // left is freed once no frame uses it.
+            repeat until frames:IsEmpty()
+                graphics:Retire(frames:RemoveFromEnd())
+            end
+
+            integer level = 0
+            repeat while level < BLOOM_LEVELS
+                frames:Add(MakeBloomFramebuffer(device, GetBloomLevelSize(framebufferWidth, level), GetBloomLevelSize(framebufferHeight, level)))
+                level = level + 1
+            end
+            level = 0
+            repeat while level < BLOOM_LEVELS - 1
+                frames:Add(MakeBloomFramebuffer(device, GetBloomLevelSize(framebufferWidth, level), GetBloomLevelSize(framebufferHeight, level)))
+                level = level + 1
+            end
+
+            repeat while sets:GetSize() < BLOOM_LEVELS
+                sets:Add(descriptorSetManager:CreateDescriptorSet(bloomDownLayout))
+            end
+            repeat while sets:GetSize() < stepCount
+                sets:Add(descriptorSetManager:CreateDescriptorSet(bloomUpLayout))
+            end
+
+            // Down: the lit image, then each step down.
+            LinkImage(sets:Get(0), 0, lightFramebuffers:Get(slot):GetImageViews():Get(0), shadowSampler)
+            level = 1
+            repeat while level < BLOOM_LEVELS
+                LinkImage(sets:Get(level), 0, frames:Get(level - 1):GetImageViews():Get(0), shadowSampler)
+                level = level + 1
+            end
+            // Up: the step down of the same size, and the step above.
+            level = 0
+            repeat while level < BLOOM_LEVELS - 1
+                VulkanDescriptorSet upSet = sets:Get(BLOOM_LEVELS + level)
+                LinkImage(upSet, 0, frames:Get(level):GetImageViews():Get(0), shadowSampler)
+                VulkanImageView smallerView = undefined
+                if level = BLOOM_LEVELS - 2
+                    smallerView = frames:Get(BLOOM_LEVELS - 1):GetImageViews():Get(0)
+                else
+                    smallerView = frames:Get(BLOOM_LEVELS + level + 1):GetImageViews():Get(0)
+                end
+                LinkImage(upSet, 1, smallerView, shadowSampler)
+                level = level + 1
+            end
+            slot = slot + 1
+        end
+        bloomWidth = framebufferWidth
+        bloomHeight = framebufferHeight
+    end
+
+    /*
+    This action returns a bloom program's pipeline, made for the lighting
+    pass the first time (Lighting plan L3).
+
+    Attribute: Parameter program The bloom down or up program.
+    Attribute: Returns The pipeline.
+    */
+    private action GetBloomPipeline(ShaderProgram program) returns VulkanPipeline
+        VulkanShaderProgram strategy = cast(VulkanShaderProgram, program:GetShaderProgramStrategy())
+        if NeedsPipeline(strategy:GetPipeline(), lightRenderPass:GetSampleCount())
+            strategy:CreatePipeline(lightRenderPass)
+        end
+        return strategy:GetPipeline()
+    end
+
+    /*
+    This action begins one bloom step (Lighting plan L3): its pass, the
+    pipeline, a viewport and scissor covering its image (flipped as the
+    lighting pass's, so images line up), the dummy vertex buffer and the
+    step's descriptor set.
+
+    Attribute: Parameter commandBuffer The frame's command buffer.
+    Attribute: Parameter framebuffer The step's framebuffer.
+    Attribute: Parameter width The step's width.
+    Attribute: Parameter height The step's height.
+    Attribute: Parameter pipeline The bloom down or up pipeline.
+    Attribute: Parameter set The step's descriptor set.
+    */
+    private action BeginBloomStep(VulkanCommandBuffer commandBuffer, VulkanFramebuffer framebuffer, integer width, integer height,
+            VulkanPipeline pipeline, VulkanDescriptorSet set)
+        BeginRenderPassCommand beginPass
+        beginPass:SetRenderPass(lightRenderPass)
+        beginPass:SetClearValues(lightClearValues)
+        beginPass:SetFramebuffer(framebuffer)
+        beginPass:SetRenderArea(width, height)
+        commandBuffer:Record(beginPass)
+
+        BindPipelineCommand bindPipeline
+        bindPipeline:SetPipeline(pipeline)
+        commandBuffer:Record(bindPipeline)
+
+        SetViewportCommand setViewport
+        setViewport:SetPosition(0, height)
+        setViewport:SetSize(width, -height)
+        commandBuffer:Record(setViewport)
+        SetScissorCommand setScissor
+        setScissor:SetPosition(0, 0)
+        setScissor:SetSize(width, height)
+        commandBuffer:Record(setScissor)
+
+        BindVertexBufferCommand bindVertex
+        bindVertex:SetBuffer(dummyVertexBuffer)
+        commandBuffer:Record(bindVertex)
+
+        BindDescriptorSetCommand bindSet
+        bindSet:SetPipelineLayout(pipeline:GetInfo():GetLayout())
+        bindSet:SetDescriptorSet(set)
+        commandBuffer:Record(bindSet)
+    end
+
+    /*
+    This action ends one bloom step (Lighting plan L3): it draws the
+    full-screen triangle, ends the pass, and waits for the image to be
+    written before it is read.
+
+    Attribute: Parameter commandBuffer The frame's command buffer.
+    Attribute: Parameter framebuffer The step's framebuffer.
+    */
+    private action EndBloomStep(VulkanCommandBuffer commandBuffer, VulkanFramebuffer framebuffer)
+        DrawCommand draw
+        draw:SetVertexCount(3)
+        commandBuffer:Record(draw)
+        EndRenderPassCommand endPass
+        commandBuffer:Record(endPass)
+        AttachmentWriteBarrier(commandBuffer, framebuffer:GetImageViews():Get(0):GetImage())
+    end
+
+    /*
+    This action draws the bloom (Lighting plan L3), after the lighting pass
+    and before the result pass: the lit image's bright parts into a half
+    size image, then down BLOOM_LEVELS - 1 more halvings, then back up,
+    each step up adding a tent blur of the step above to the step down of
+    its size. Each step is its own pass with one full-screen triangle, and
+    a barrier after it.
+
+    Attribute: Parameter commandBuffer The frame's command buffer, outside any pass.
+    Attribute: Parameter resourceIndex The frame slot.
+    Attribute: Parameter litView The lit image's view, already readable.
+    Attribute: Returns The bloom's view: the last step up, half the window's size.
+    */
+    private action RecordBloom(VulkanCommandBuffer commandBuffer, integer resourceIndex, VulkanImageView litView) returns VulkanImageView
+        EnsureBloomResources()
+        VulkanConstants constants
+        Array<VulkanFramebuffer> frames = bloomFramebuffers:Get(resourceIndex)
+        Array<VulkanDescriptorSet> sets = bloomDescriptors:Get(resourceIndex)
+
+        if bloomDownProgram = undefined
+            BloomDownShaderProgram downProgram
+            downProgram:Compile()
+            bloomDownProgram = downProgram
+            VulkanPushConstantBuffer downBuffer
+            downBuffer:Create(24)
+            bloomDownPushConstants = downBuffer
+        end
+        if bloomUpProgram = undefined
+            BloomUpShaderProgram upProgram
+            upProgram:Compile()
+            bloomUpProgram = upProgram
+            VulkanPushConstantBuffer upBuffer
+            upBuffer:Create(16)
+            bloomUpPushConstants = upBuffer
+        end
+        VulkanPipeline downPipeline = GetBloomPipeline(bloomDownProgram)
+        VulkanPipeline upPipeline = GetBloomPipeline(bloomUpProgram)
+
+        number threshold = environment:GetBloomThreshold()
+        integer sourceWidth = framebufferWidth
+        integer sourceHeight = framebufferHeight
+        integer level = 0
+        repeat while level < BLOOM_LEVELS
+            VulkanFramebuffer downFrame = frames:Get(level)
+            integer width = GetBloomLevelSize(framebufferWidth, level)
+            integer height = GetBloomLevelSize(framebufferHeight, level)
+            BeginBloomStep(commandBuffer, downFrame, width, height, downPipeline, sets:Get(level))
+
+            // 24 bytes: the source's texel size, the threshold, the knee,
+            // whether this is the bright pass, and a spare.
+            bloomDownPushConstants:ResetWritePosition()
+            bloomDownPushConstants:AddNumber32Bit(1.0 / sourceWidth)
+            bloomDownPushConstants:AddNumber32Bit(1.0 / sourceHeight)
+            bloomDownPushConstants:AddNumber32Bit(threshold)
+            bloomDownPushConstants:AddNumber32Bit(threshold * 0.5)
+            if level = 0
+                bloomDownPushConstants:AddNumber32Bit(1)
+            else
+                bloomDownPushConstants:AddNumber32Bit(0)
+            end
+            bloomDownPushConstants:AddNumber32Bit(0)
+            SetPushConstantsCommand downPush
+            downPush:SetData(bloomDownPushConstants)
+            downPush:SetPipelineLayout(downPipeline:GetInfo():GetLayout())
+            downPush:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            commandBuffer:Record(downPush)
+
+            EndBloomStep(commandBuffer, downFrame)
+            sourceWidth = width
+            sourceHeight = height
+            level = level + 1
+        end
+
+        // Up, from the smallest: the step above starts as the last step down.
+        level = BLOOM_LEVELS - 2
+        repeat while level >= 0
+            VulkanFramebuffer upFrame = frames:Get(BLOOM_LEVELS + level)
+            integer width = GetBloomLevelSize(framebufferWidth, level)
+            integer height = GetBloomLevelSize(framebufferHeight, level)
+            integer smallerWidth = GetBloomLevelSize(framebufferWidth, level + 1)
+            integer smallerHeight = GetBloomLevelSize(framebufferHeight, level + 1)
+            BeginBloomStep(commandBuffer, upFrame, width, height, upPipeline, sets:Get(BLOOM_LEVELS + level))
+
+            // 16 bytes: the smaller image's texel size, the tent's reach, a spare.
+            bloomUpPushConstants:ResetWritePosition()
+            bloomUpPushConstants:AddNumber32Bit(1.0 / smallerWidth)
+            bloomUpPushConstants:AddNumber32Bit(1.0 / smallerHeight)
+            bloomUpPushConstants:AddNumber32Bit(1)
+            bloomUpPushConstants:AddNumber32Bit(0)
+            SetPushConstantsCommand upPush
+            upPush:SetData(bloomUpPushConstants)
+            upPush:SetPipelineLayout(upPipeline:GetInfo():GetLayout())
+            upPush:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+            commandBuffer:Record(upPush)
+
+            EndBloomStep(commandBuffer, upFrame)
+            level = level - 1
+        end
+
+        return frames:Get(BLOOM_LEVELS):GetImageViews():Get(0)
+    end
+
     action SetSkybox(Skybox skybox)
         me:skybox = skybox
     end
@@ -2591,9 +3410,10 @@ BindDescriptorSetCommand resultDescriptorBind
 
     /*
     This action returns the view of a plain 1 by 1 cube, bound for forward
-    programs when there is no sky (Water plan W4). It is made the first
-    time, and is ready once the texture manager has uploaded it, a frame
-    later. Its grey is never shown: the shaders are told there is no sky.
+    programs when there is no sky (Water plan W4), and in place of the sky
+    light's cubes when there is no sky light (Lighting plan L5). It is made
+    the first time, and End loads it at once (PrepareSkyTextures). Its grey
+    is never shown: the shaders are told there is no sky.
 
     Attribute: Returns The cube's view, or undefined until it is uploaded.
     */
@@ -2794,6 +3614,24 @@ BindDescriptorSetCommand resultDescriptorBind
     blueprint has been released (Item 33).
     */
     private action RemoveReleasedBatches
+        // Forget what released blueprints' materials said (Lighting plan L6).
+        Array<ModelBlueprint> releasedBlueprints
+        Iterator<ModelBlueprint> seen = seeThroughBlueprints:GetKeyIterator()
+        repeat while seen:HasNext()
+            ModelBlueprint seenKey = seen:Next()
+            if seenKey is ModelBlueprintVulkan
+                ModelBlueprintVulkan seenVulkan = cast(ModelBlueprintVulkan, seenKey)
+                if seenVulkan:IsReleased()
+                    releasedBlueprints:Add(seenKey)
+                end
+            end
+        end
+        integer releasedIndex = 0
+        repeat while releasedIndex < releasedBlueprints:GetSize()
+            seeThroughBlueprints:RemoveKey(releasedBlueprints:Get(releasedIndex))
+            releasedIndex = releasedIndex + 1
+        end
+
         RemoveReleasedBatches(batches)
         RemoveReleasedBatches(transparentBatches)
         Iterator<HashTable<ModelBlueprint, VulkanPainter3DBatch>> tables = programBatches:GetValueIterator()
@@ -2844,16 +3682,22 @@ BindDescriptorSetCommand resultDescriptorBind
         end
         
         VulkanPainter3DBatch batch = GetBatch(model)
-        if batch:IsPending() = false
-            batch:SetPending(true)
-            if batch:IsTransparent()
-                pendingTransparentBatches:Add(batch)
-            else
-                pendingBatches:Add(batch)
+        if transparentProgram not= undefined and batch:GetProgram() = transparentProgram
+            // See-through models wait to be sorted in End (Lighting plan L6).
+            seeThroughModels:Add(model)
+            seeThroughBatches:Add(batch)
+        else
+            if batch:IsPending() = false
+                batch:SetPending(true)
+                if batch:IsTransparent()
+                    pendingTransparentBatches:Add(batch)
+                else
+                    pendingBatches:Add(batch)
+                end
+                batch:ResetAge()
             end
-            batch:ResetAge()
+            batch:Add(model)
         end
-        batch:Add(model)
         
         if model:HasAnimations()
             animatedModels:Add(model)

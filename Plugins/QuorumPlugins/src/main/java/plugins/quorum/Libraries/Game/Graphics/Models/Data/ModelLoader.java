@@ -45,9 +45,13 @@ public class ModelLoader {
             throw new RuntimeException("Error loading model: " + path + ", with error:" + Assimp.aiGetErrorString());
         }
         boolean hasAnimations = aiSceneCheck.mNumAnimations() > 0;
+        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
+        // Lights are read from this import, where the node tree is intact;
+        // aiProcess_PreTransformVertices drops them below (Lighting plan L8).
+        Array_ fileLights = new Array();
+        ProcessLights(aiSceneCheck, vulkanLoading, fileLights);
         aiReleaseImport(aiSceneCheck);
 
-        boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
         // Most model files are right-handed and the world is left-handed, so z is
         // flipped and each triangle's winding reversed, which keeps front faces
         // clockwise. aiProcess_ConvertToLeftHanded is not used because it also
@@ -69,6 +73,7 @@ public class ModelLoader {
 
         boolean isAnimatedModel = aiScene.mNumAnimations() > 0;
         ModelData_ data = new ModelData();
+        data.SetLights(fileLights);
         Array_ materials = data.GetMaterials();
         // Textures stored inside the file, as a .glb does, are written out
         // once so they load like any texture (Lighting plan L4).
@@ -457,6 +462,222 @@ public class ModelLoader {
         mesh.SetBoneIDs(boneIds);
         mesh.SetWeights(weights);
         return mesh;
+    }
+
+    /*
+    Reads the lights in a model file into ModelLightData objects (Lighting
+    plan L8). The scene must come from an import that keeps the node tree, as
+    each light's position and direction are in its node's space: they are
+    multiplied by the node's transforms up to the root, so they land in the
+    same space as meshes flattened by aiProcess_PreTransformVertices. Under
+    Vulkan, z is negated, as aiProcess_MakeLeftHanded does to the meshes.
+    Area lights are read as point lights; ambient and unknown lights are
+    skipped.
+    */
+    private static void ProcessLights(AIScene aiScene, boolean leftHanded, Array_ lights) {
+        int numLights = aiScene.mNumLights();
+        if (numLights <= 0) {
+            return;
+        }
+        PointerBuffer aiLights = aiScene.mLights();
+        if (aiLights == null) {
+            return;
+        }
+        AINode root = aiScene.mRootNode();
+
+        for (int i = 0; i < numLights; i++) {
+            AILight aiLight = AILight.create(aiLights.get(i));
+            int type = aiLight.mType();
+            int quorumType;
+            if (type == aiLightSource_DIRECTIONAL) {
+                quorumType = 1; // ModelLightData:DIRECTIONAL
+            } else if (type == aiLightSource_SPOT) {
+                quorumType = 2; // ModelLightData:SPOT
+            } else if (type == aiLightSource_POINT || type == aiLightSource_AREA) {
+                quorumType = 0; // ModelLightData:POINT
+            } else {
+                continue;
+            }
+
+            String name = aiLight.mName().dataString();
+
+            // The light's node: its global transform, and for glTF, its
+            // range, which assimp keeps in the node's metadata.
+            AINode[] found = new AINode[1];
+            double[] global = null;
+            if (root != null) {
+                global = FindNodeTransform(root, name, IdentityArray(), found);
+            }
+            if (global == null) {
+                global = IdentityArray();
+            }
+
+            AIVector3D localPosition = aiLight.mPosition();
+            AIVector3D localDirection = aiLight.mDirection();
+            double px = localPosition.x();
+            double py = localPosition.y();
+            double pz = localPosition.z();
+            double dx = localDirection.x();
+            double dy = localDirection.y();
+            double dz = localDirection.z();
+            if (dx * dx + dy * dy + dz * dz < 1e-12) {
+                // glTF lights point down their node's -z.
+                dx = 0;
+                dy = 0;
+                dz = -1;
+            }
+
+            double x = global[0] * px + global[1] * py + global[2] * pz + global[3];
+            double y = global[4] * px + global[5] * py + global[6] * pz + global[7];
+            double z = global[8] * px + global[9] * py + global[10] * pz + global[11];
+            double directionX = global[0] * dx + global[1] * dy + global[2] * dz;
+            double directionY = global[4] * dx + global[5] * dy + global[6] * dz;
+            double directionZ = global[8] * dx + global[9] * dy + global[10] * dz;
+            if (leftHanded) {
+                z = -z;
+                directionZ = -directionZ;
+            }
+
+            // Assimp gives the color times the strength (glTF's importer
+            // multiplies them), so the brightest part becomes the intensity
+            // and the color is kept with its brightest part at 1.
+            AIColor3D aiColor = aiLight.mColorDiffuse();
+            double red = aiColor.r();
+            double green = aiColor.g();
+            double blue = aiColor.b();
+            double brightest = Math.max(red, Math.max(green, blue));
+            double intensity = 0;
+            if (brightest > 0) {
+                intensity = brightest;
+                red = red / brightest;
+                green = green / brightest;
+                blue = blue / brightest;
+            } else {
+                red = 1;
+                green = 1;
+                blue = 1;
+            }
+
+            double range = 0;
+            if (found[0] != null) {
+                range = ReadLightRange(found[0]);
+            }
+
+            ModelLightData_ light = new ModelLightData();
+            light.SetType(quorumType);
+            light.SetName(name);
+            light.SetColor(red, green, blue);
+            light.SetIntensity(intensity);
+            light.SetRange(range);
+            if (quorumType == 2) {
+                // Half-angles in radians, measured from the direction.
+                light.SetConeAngles(Math.toDegrees(aiLight.mAngleInnerCone()),
+                        Math.toDegrees(aiLight.mAngleOuterCone()));
+            }
+            light.SetPosition(x, y, z);
+            light.SetDirection(directionX, directionY, directionZ);
+            lights.Add(light);
+        }
+    }
+
+    /*
+    Looks for the node with the given name below (and including) the given
+    node, and returns its global transform as 16 numbers, row by row, or null
+    if there is no such node (Lighting plan L8). The node found is put in
+    found[0].
+    */
+    private static double[] FindNodeTransform(AINode node, String name, double[] parentTransform, AINode[] found) {
+        double[] global = MultiplyArrays(parentTransform, ToArray(node.mTransformation()));
+        if (name.equals(node.mName().dataString())) {
+            found[0] = node;
+            return global;
+        }
+        int count = node.mNumChildren();
+        if (count > 0) {
+            PointerBuffer children = node.mChildren();
+            if (children != null) {
+                for (int i = 0; i < count; i++) {
+                    double[] result = FindNodeTransform(AINode.create(children.get(i)), name, global, found);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /*
+    Reads a glTF light's range, which assimp puts in its node's metadata as
+    "PBR_LightRange", or returns 0 if there is none (Lighting plan L8).
+    */
+    private static double ReadLightRange(AINode node) {
+        AIMetaData metadata = node.mMetadata();
+        if (metadata == null) {
+            return 0;
+        }
+        int count = metadata.mNumProperties();
+        if (count <= 0) {
+            return 0;
+        }
+        AIString.Buffer keys = metadata.mKeys();
+        AIMetaDataEntry.Buffer values = metadata.mValues();
+        if (keys == null || values == null) {
+            return 0;
+        }
+        for (int i = 0; i < count; i++) {
+            if (!"PBR_LightRange".equals(keys.get(i).dataString())) {
+                continue;
+            }
+            AIMetaDataEntry entry = values.get(i);
+            if (entry.mType() == AI_FLOAT) {
+                ByteBuffer bytes = entry.mData(4);
+                if (bytes != null) {
+                    return bytes.order(java.nio.ByteOrder.nativeOrder()).getFloat(0);
+                }
+            } else if (entry.mType() == AI_DOUBLE) {
+                ByteBuffer bytes = entry.mData(8);
+                if (bytes != null) {
+                    return bytes.order(java.nio.ByteOrder.nativeOrder()).getDouble(0);
+                }
+            }
+        }
+        return 0;
+    }
+
+    // An identity transform as 16 numbers, row by row (Lighting plan L8).
+    private static double[] IdentityArray() {
+        return new double[] {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        };
+    }
+
+    // An assimp matrix as 16 numbers, row by row (Lighting plan L8).
+    private static double[] ToArray(AIMatrix4x4 m) {
+        return new double[] {
+            m.a1(), m.a2(), m.a3(), m.a4(),
+            m.b1(), m.b2(), m.b3(), m.b4(),
+            m.c1(), m.c2(), m.c3(), m.c4(),
+            m.d1(), m.d2(), m.d3(), m.d4()
+        };
+    }
+
+    // The product a times b of two 4 by 4 matrices, row by row (Lighting plan L8).
+    private static double[] MultiplyArrays(double[] a, double[] b) {
+        double[] result = new double[16];
+        for (int row = 0; row < 4; row++) {
+            for (int column = 0; column < 4; column++) {
+                double sum = 0;
+                for (int k = 0; k < 4; k++) {
+                    sum += a[row * 4 + k] * b[k * 4 + column];
+                }
+                result[row * 4 + column] = sum;
+            }
+        }
+        return result;
     }
 
     private static Matrix4_ ToMatrix (AIMatrix4x4 aiMatrix) {

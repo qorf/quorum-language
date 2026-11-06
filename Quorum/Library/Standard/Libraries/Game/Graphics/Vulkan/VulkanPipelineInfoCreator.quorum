@@ -844,7 +844,10 @@ class VulkanPipelineInfoCreator
     - set 2: the G-buffer: position, albedo, normal, PBR and emissive
       samplers (emissive is Lighting plan L1);
     - set 3: the lights (a storage buffer) and the scene data (a uniform);
-    - set 4: the sky's cube, a combined sampler (Water plan W4).
+    - set 4: the sky's cube, a combined sampler (Water plan W4);
+    - set 5: the sky light's five cubes (Lighting plan L5), the layout from
+      VulkanLightingProperties:GetSkyLightDescriptorSetLayout, as the
+      lighting pass's set 3.
     Its push constants are 128 bytes: the instance buffer address, then 18
     numbers from the mapping's FillForwardData, then 12 numbers of scene
     data from the painter: the sky's rotation (W4). It blends over the lit image, with no depth test
@@ -906,6 +909,10 @@ class VulkanPipelineInfoCreator
         // the skybox's own set, so the painter binds that set.
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         FinishDescriptorSetLayout()
+
+        // Set 5: the sky light's cubes (Lighting plan L5), the same layout
+        // as the lighting pass's set 3, so the painter binds the same sets.
+        AddDescriptorSetLayout(graphics:GetLightingProperties():GetSkyLightDescriptorSetLayout())
 
         // 128 bytes: the address, the program's 18 numbers, and the
         // painter's 12 (the sky's rotation, W4). The painter's buffer is

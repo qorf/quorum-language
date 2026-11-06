@@ -1,6 +1,8 @@
 package Libraries.Game.Graphics.Worlds
 
 use Libraries.Containers.Iterator
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
 use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
@@ -58,6 +60,33 @@ class FoliageAsset
 
     // How far from the camera copies are drawn, in world units.
     number drawDistance = 200
+
+    // Levels of detail (Foliage plan F6): up to MAXIMUM_LEVELS more meshes,
+    // numbered from 1, each a model or a card picture (relative to the
+    // foliage list's file, "" when unused) and the distance from the camera
+    // it is used from. Level 0 is the asset's own mesh. Index 0 of each
+    // array is unused, so a level's number is its place.
+    Array<text> levelModelPaths
+    Array<text> levelCardPicturePaths
+    Number32BitArray levelDistances
+    public constant integer MAXIMUM_LEVELS = 3
+
+    // The wind (Foliage plan F6): how far a copy's points move sideways per
+    // unit of height above where it stands, and the wind's direction about
+    // the up axis, in degrees from +x toward +z.
+    number wind = 0
+    number windDirection = 0
+
+    on create
+        levelDistances:SetSize(MAXIMUM_LEVELS + 1)
+        integer i = 0
+        repeat while i <= MAXIMUM_LEVELS
+            levelModelPaths:Add("")
+            levelCardPicturePaths:Add("")
+            levelDistances:Set(i, 0)
+            i = i + 1
+        end
+    end
 
     /*
     This action returns the asset's name, such as "Pine".
@@ -357,6 +386,243 @@ class FoliageAsset
     end
 
     /*
+    This action makes a level of detail a model (Foliage plan F6), used from
+    its distance on instead of the asset's own mesh.
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    Attribute: Parameter path The model, relative to the foliage list's file, such as "Models/PineLow.glb"; "" leaves the level unused.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset pine
+    pine:SetModelPath("Models/Pine.glb")
+    pine:SetDrawDistance(400)
+    pine:SetLevelModel(1, "Models/PineLow.glb")
+    pine:SetLevelDistance(1, 80)
+    pine:SetLevelCardPicture(2, "Pictures/PineCard.png")
+    pine:SetLevelDistance(2, 200)
+    */
+    action SetLevelModel(integer level, text path)
+        CheckLevel(level)
+        levelModelPaths:Set(level, path)
+        levelCardPicturePaths:Set(level, "")
+    end
+
+    /*
+    This action makes a level of detail a card (Foliage plan F6): crossed
+    upright pictures, as many planes as the asset's cards have.
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    Attribute: Parameter path The picture, relative to the foliage list's file; "" leaves the level unused.
+    */
+    action SetLevelCardPicture(integer level, text path)
+        CheckLevel(level)
+        levelCardPicturePaths:Set(level, path)
+        levelModelPaths:Set(level, "")
+    end
+
+    /*
+    This action sets the distance from the camera a level of detail is used
+    from (Foliage plan F6).
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    Attribute: Parameter distance The distance, in world units.
+    */
+    action SetLevelDistance(integer level, number distance)
+        CheckLevel(level)
+        levelDistances:Set(level, distance)
+    end
+
+    /*
+    This action leaves a level of detail unused (Foliage plan F6).
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    */
+    action ClearLevel(integer level)
+        CheckLevel(level)
+        levelModelPaths:Set(level, "")
+        levelCardPicturePaths:Set(level, "")
+        levelDistances:Set(level, 0)
+    end
+
+    /*
+    This action returns true if a level of detail is used: it has a model
+    or a card picture (Foliage plan F6). Level 0, the asset's own mesh, is
+    always used.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+    Attribute: Returns True if the level is used.
+    */
+    action HasLevel(integer level) returns boolean
+        if level = 0
+            return true
+        end
+        if level < 0 or level > MAXIMUM_LEVELS
+            return false
+        end
+        return levelModelPaths:Get(level) not= "" or levelCardPicturePaths:Get(level) not= ""
+    end
+
+    /*
+    This action returns true if a level of detail is a card (Foliage plan
+    F6). Level 0 is the asset's own mesh.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+    Attribute: Returns True for a card.
+    */
+    action IsLevelCard(integer level) returns boolean
+        if level = 0
+            return IsCard()
+        end
+        CheckLevel(level)
+        return levelModelPaths:Get(level) = ""
+    end
+
+    /*
+    This action returns a level of detail's model or card picture, relative
+    to the foliage list's file (Foliage plan F6). Level 0 gives the asset's
+    own model or card picture.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+    Attribute: Returns The path, or "" for an unused level.
+    */
+    action GetLevelPath(integer level) returns text
+        if level = 0
+            if IsCard()
+                return cardPicturePath
+            end
+            return modelPath
+        end
+        CheckLevel(level)
+        if levelModelPaths:Get(level) not= ""
+            return levelModelPaths:Get(level)
+        end
+        return levelCardPicturePaths:Get(level)
+    end
+
+    /*
+    This action returns a level of detail's model path (Foliage plan F6).
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    Attribute: Returns The path, or "" if the level isn't a model.
+    */
+    action GetLevelModelPath(integer level) returns text
+        CheckLevel(level)
+        return levelModelPaths:Get(level)
+    end
+
+    /*
+    This action returns a level of detail's card picture (Foliage plan F6).
+
+    Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
+    Attribute: Returns The path, or "" if the level isn't a card.
+    */
+    action GetLevelCardPicturePath(integer level) returns text
+        CheckLevel(level)
+        return levelCardPicturePaths:Get(level)
+    end
+
+    /*
+    This action returns the distance from the camera a level of detail is
+    used from (Foliage plan F6). Level 0 is used from 0.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+    Attribute: Returns The distance, in world units.
+    */
+    action GetLevelDistance(integer level) returns number
+        if level = 0
+            return 0
+        end
+        CheckLevel(level)
+        return levelDistances:Get(level)
+    end
+
+    /*
+    This action returns the level of detail to draw at a distance from the
+    camera (Foliage plan F6): the used level with the greatest distance
+    that is no farther than it, or 0 for the asset's own mesh.
+
+    Attribute: Parameter distance The distance from the camera, in world units.
+    Attribute: Returns The level, from 0 to MAXIMUM_LEVELS.
+    */
+    action GetLevelForDistance(number distance) returns integer
+        integer chosen = 0
+        number chosenDistance = 0
+        integer level = 1
+        repeat while level <= MAXIMUM_LEVELS
+            if HasLevel(level)
+                number start = levelDistances:Get(level)
+                if start <= distance and (chosen = 0 or start > chosenDistance)
+                    chosen = level
+                    chosenDistance = start
+                end
+            end
+            level = level + 1
+        end
+        return chosen
+    end
+
+    /*
+    This action stops a level number out of range.
+    */
+    private action CheckLevel(integer level)
+        if level < 1 or level > MAXIMUM_LEVELS
+            alert("A foliage asset's levels of detail are numbered from 1 to " + MAXIMUM_LEVELS + ", but was given " + level + ".")
+        end
+    end
+
+    /*
+    This action returns how much copies sway in the wind (Foliage plan F6).
+
+    Attribute: Returns How far a point moves sideways per unit of height above where the copy stands, 0 for none.
+    */
+    action GetWind returns number
+        return wind
+    end
+
+    /*
+    This action sets how much copies sway in the wind (Foliage plan F6).
+    The terrain's cells give it to the asset's models' materials when they
+    are built, so a terrain shows a change after its FoliageChanged. The
+    materials belong to the model file or card picture, so other models
+    from the same file sway the same.
+
+    Attribute: Parameter strength How far a point moves sideways per unit of height above where the copy stands, such as 0.03 for grass; 0 for none.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset grass
+    grass:SetCardPicturePath("Pictures/Grass.png")
+    grass:SetWind(0.08)
+    */
+    action SetWind(number strength)
+        if strength < 0
+            alert("A foliage asset's wind must be 0 or more, but was given " + strength + ".")
+        end
+        wind = strength
+    end
+
+    /*
+    This action returns the wind's direction (Foliage plan F6).
+
+    Attribute: Returns Degrees about the up axis, from +x toward +z.
+    */
+    action GetWindDirection returns number
+        return windDirection
+    end
+
+    /*
+    This action sets the wind's direction (Foliage plan F6).
+
+    Attribute: Parameter degrees Degrees about the up axis, from +x toward +z.
+    */
+    action SetWindDirection(number degrees)
+        windDirection = degrees
+    end
+
+    /*
     This action returns a copy of the asset.
 
     Attribute: Returns The copy.
@@ -387,6 +653,15 @@ class FoliageAsset
         density = other:GetDensity()
         castsShadows = other:CastsShadows()
         drawDistance = other:GetDrawDistance()
+        integer level = 1
+        repeat while level <= MAXIMUM_LEVELS
+            levelModelPaths:Set(level, other:GetLevelModelPath(level))
+            levelCardPicturePaths:Set(level, other:GetLevelCardPicturePath(level))
+            levelDistances:Set(level, other:GetLevelDistance(level))
+            level = level + 1
+        end
+        wind = other:GetWind()
+        windDirection = other:GetWindDirection()
     end
 
     /*
@@ -413,6 +688,27 @@ class FoliageAsset
         json:Add("Density", density)
         json:Add("Casts Shadows", castsShadows)
         json:Add("Draw Distance", drawDistance)
+        // Levels of detail and wind (Foliage plan F6), written only when
+        // used, so older files and readers are unaffected.
+        integer level = 1
+        repeat while level <= MAXIMUM_LEVELS
+            if HasLevel(level)
+                text prefix = "Level " + level + " "
+                if levelModelPaths:Get(level) not= ""
+                    json:Add(prefix + "Model", levelModelPaths:Get(level))
+                else
+                    json:Add(prefix + "Card Picture", levelCardPicturePaths:Get(level))
+                end
+                json:Add(prefix + "Distance", levelDistances:Get(level))
+            end
+            level = level + 1
+        end
+        if wind not= 0
+            json:Add("Wind", wind)
+        end
+        if windDirection not= 0
+            json:Add("Wind Direction", windDirection)
+        end
         return json
     end
 
@@ -464,6 +760,30 @@ class FoliageAsset
         end
         if HasNumber(json, "Draw Distance")
             drawDistance = ReadNumber(json, "Draw Distance")
+        end
+        // Levels of detail and wind (Foliage plan F6); files without them
+        // have none.
+        integer level = 1
+        repeat while level <= MAXIMUM_LEVELS
+            text prefix = "Level " + level + " "
+            levelModelPaths:Set(level, "")
+            levelCardPicturePaths:Set(level, "")
+            levelDistances:Set(level, 0)
+            if json:HasValue(prefix + "Model")
+                levelModelPaths:Set(level, json:GetValue(prefix + "Model"))
+            elseif json:HasValue(prefix + "Card Picture")
+                levelCardPicturePaths:Set(level, json:GetValue(prefix + "Card Picture"))
+            end
+            if HasNumber(json, prefix + "Distance")
+                levelDistances:Set(level, ReadNumber(json, prefix + "Distance"))
+            end
+            level = level + 1
+        end
+        if HasNumber(json, "Wind")
+            wind = ReadNumber(json, "Wind")
+        end
+        if HasNumber(json, "Wind Direction")
+            windDirection = ReadNumber(json, "Wind Direction")
         end
     end
 

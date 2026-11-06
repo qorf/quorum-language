@@ -14,6 +14,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Vulkan.VulkanSampler
 use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineColorBlendAttachmentState
 
 class CopyFromSamplerShaderMappingVulkan is VulkanShaderMapping
     
@@ -29,8 +30,18 @@ any Vulkan resources that will be needed to send or change shader data.*/
         
         VulkanConstants constants
             
-        // Use transparency for color blending for this pipeline.    
-        creator:AddTransparentColorBlendAttachmentState()
+        // The shader writes its color already multiplied by its alpha
+        // (Lighting plan L3), so color blends with one and one minus the
+        // alpha. Alpha blends as the default transparency did.
+        VulkanPipelineColorBlendAttachmentState blend
+        blend:SetBlendEnable(true)
+        blend:SetSourceColorBlendFactor(constants:BLEND_FACTOR_ONE)
+        blend:SetDestinationColorBlendFactor(constants:BLEND_FACTOR_ONE_MINUS_SOURCE_ALPHA)
+        blend:SetColorBlendOp(constants:BLEND_OP_ADD)
+        blend:SetSourceAlphaBlendFactor(constants:BLEND_FACTOR_ONE)
+        blend:SetDestinationAlphaBlendFactor(constants:BLEND_FACTOR_ZERO)
+        blend:SetAlphaBlendOp(constants:BLEND_OP_ADD)
+        creator:AddColorBlendAttachmentState(blend)
 
             // Define the dynamic states permitted by the pipeline. For our case, we want to be able to dynamically adjust viewport and scissor values.
         creator:AddDynamicViewport()
@@ -40,9 +51,14 @@ any Vulkan resources that will be needed to send or change shader data.*/
         VulkanDescriptorSetLayoutBinding samplerBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         samplerBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
 
-        // The exposure and tone mapping (Lighting plan L2): two numbers.
+        // The bloom (Lighting plan L3), binding 1. The painter's result
+        // layout has the same two bindings.
+        creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+
+        // The exposure and tone mapping (Lighting plan L2), and the bloom's
+        // strength (L3): three numbers.
         VulkanPushConstantRange pushConstants
-        pushConstants:SetSize(8)
+        pushConstants:SetSize(12)
         pushConstants:SetStage(constants:SHADER_STAGE_FRAGMENT_BIT)
         pushConstants:Create()
         creator:SetPushConstantRange(pushConstants)

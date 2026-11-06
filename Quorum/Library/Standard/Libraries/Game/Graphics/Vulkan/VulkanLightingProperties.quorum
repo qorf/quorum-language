@@ -17,7 +17,12 @@ class VulkanLightingProperties
     integer shadowMapSize = 4096
     
     VulkanDescriptorSetLayout shadowCubemapsLayout = undefined
-    
+
+    // The sky light's cubes (Lighting plan L5): the sky's own, then four
+    // smaller ones. Their set's layout is made the first time it is asked for.
+    constant integer SKY_LIGHT_CUBE_COUNT = 5
+    VulkanDescriptorSetLayout skyLightLayout = undefined
+
     action Create(VulkanDevice device, DesktopConfiguration configuration)
         me:device = device
         
@@ -62,8 +67,49 @@ class VulkanLightingProperties
         layout:CreateUpdateAfterBind(device, bindings)
         shadowCubemapsLayout = layout
         end
-        
+
         return shadowCubemapsLayout
+    end
+
+    /*
+    This action returns how many cubes the sky light's descriptor set holds
+    (Lighting plan L5): the sky's own cube, then four smaller, blurrier
+    ones (64, 32, 16 and 8 pixels a side).
+
+    Attribute: Returns The number of cubes, 5.
+    */
+    action GetSkyLightCubeCount returns integer
+        return SKY_LIGHT_CUBE_COUNT
+    end
+
+    /*
+    This action returns the layout of the sky light's descriptor set
+    (Lighting plan L5): SKY_LIGHT_CUBE_COUNT bindings, 0 to 4, each one
+    cube sampler for the fragment shader. The lighting pass uses it as set
+    3, and forward programs, such as water and see-through models, as set
+    5. It is made the first time.
+
+    Attribute: Returns The layout.
+    */
+    action GetSkyLightDescriptorSetLayout returns VulkanDescriptorSetLayout
+        if skyLightLayout = undefined
+            VulkanConstants constants
+            Array<VulkanDescriptorSetLayoutBinding> bindings
+            integer i = 0
+            repeat while i < SKY_LIGHT_CUBE_COUNT
+                VulkanDescriptorSetLayoutBinding cubeBinding
+                cubeBinding:SetBinding(i)
+                cubeBinding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                cubeBinding:SetDescriptorCount(1)
+                cubeBinding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+                bindings:Add(cubeBinding)
+                i = i + 1
+            end
+            VulkanDescriptorSetLayout layout
+            layout:Create(device, bindings)
+            skyLightLayout = layout
+        end
+        return skyLightLayout
     end
 
 end

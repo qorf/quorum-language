@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Models.Data.MeshData
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.Data.Animations
+use Libraries.Game.Graphics.Models.Data.ModelLightData
 
 class ModelBlueprintVulkan is ModelBlueprint
     text key = undefined
@@ -31,6 +32,10 @@ class ModelBlueprintVulkan is ModelBlueprint
 
     // True once the blueprint's GPU memory has been freed (Item 33).
     boolean released = false
+
+    // The lights read from the model file, kept after the data is released
+    // (Lighting plan L8).
+    Array<ModelLightData> lights = undefined
     
     on create
         boundingBox:Invalidate()
@@ -79,6 +84,27 @@ Animations animations = data:GetAnimations()
 
     action SetData(ModelData data)
         me:data = data
+    end
+
+    /*
+    This action returns the lights read from the model file the blueprint
+    was made from, or undefined if it has none (Lighting plan L8). Model:Load
+    turns each into a light on the model.
+
+    Attribute: Returns The file's lights, or undefined.
+    */
+    action GetLights returns Array<ModelLightData>
+        return lights
+    end
+
+    /*
+    This action sets the lights read from the model file (Lighting plan L8).
+    The model manager calls it when it makes the blueprint.
+
+    Attribute: Parameter lights The file's lights, or undefined.
+    */
+    action SetLights(Array<ModelLightData> lights)
+        me:lights = lights
     end
     
     action GetDimensions returns Vector3

@@ -39,6 +39,13 @@ layout (set = 0, binding = 3) uniform sampler2D pbrSampler;
 // The light surfaces give off (Lighting plan L1).
 layout (set = 0, binding = 4) uniform sampler2D emissiveSampler;
 layout (set = 2, binding = 1) uniform sampler2DArray shadowSamplers[];
+// The light from the sky (Lighting plan L5): the sky's own cube, then four
+// smaller, blurrier ones (64, 32, 16 and 8 pixels a side).
+layout (set = 3, binding = 0) uniform samplerCube skyLightCube0;
+layout (set = 3, binding = 1) uniform samplerCube skyLightCube1;
+layout (set = 3, binding = 2) uniform samplerCube skyLightCube2;
+layout (set = 3, binding = 3) uniform samplerCube skyLightCube3;
+layout (set = 3, binding = 4) uniform samplerCube skyLightCube4;
 
 struct Light
 {
@@ -82,6 +89,13 @@ layout(scalar, set = 1, binding = 1) uniform SceneInfo
 	float fogAmount;
 	float fogBaseHeight;
 	float fogHeightFalloff;
+	// The light from the sky (Lighting plan L5): strength (0 for none) and
+	// whether there are reflections; its tint; the sky's rotation as three
+	// columns; nine diffuse light coefficients (rgb).
+	vec4 skyLight;
+	vec4 skyTint;
+	vec4 skyRotation[3];
+	vec4 skyIrradiance[9];
 } sceneInfo;
 
 layout(set = 2, binding = 0) uniform CascadeShadows
@@ -136,6 +150,21 @@ float calculateDirectionalVisibility(vec4 worldPosition, uint lightIndex, uint c
 
 	float visibility = chebyshevUpperBound(moments, depth);
     return visibility;
+}
+
+// A spotlight's map is one perspective view per cascade (Lighting plan
+// L7). Outside the view there is no map, and the cone gives no light there.
+float calculateSpotVisibility(vec4 worldPosition, uint lightIndex, uint cascadeIndex)
+{
+	vec4 shadowMapPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + cascadeIndex].matrix[0] * worldPosition;
+	if (shadowMapPosition.w <= 0.0001)
+		return 1.0;
+	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
+	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
+	if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
+		return 1.0;
+	vec2 moments = textureLod(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, cascadeIndex), 0.0).rg;
+	return chebyshevUpperBound(moments, shadowMapXYZ.z);
 }
 
 float calculatePointVisibility(vec4 worldPosition, vec3 lightPosition, uint lightIndex, uint cascadeIndex) 
@@ -273,6 +302,86 @@ vec3 calculateDirectionalLight(Light light, vec3 V, vec3 N, vec3 F0, vec3 albedo
     return lightContribution(L, radiance, V, N, F0, albedo, metallic, roughness);
 }
 
+// A direction turned into the sky cube's own directions, as the skybox is
+// drawn (Lighting plan L5).
+vec3 skyTurn(vec3 direction)
+{
+	return vec3(dot(direction, sceneInfo.skyRotation[0].xyz), dot(direction, sceneInfo.skyRotation[1].xyz), dot(direction, sceneInfo.skyRotation[2].xyz));
+}
+
+// The sky's diffuse light reaching a surface facing a direction, divided by
+// pi: the nine spherical harmonics (Lighting plan L5).
+vec3 skyIrradiance(vec3 normal)
+{
+	vec3 d = skyTurn(normal);
+	vec3 light = sceneInfo.skyIrradiance[0].rgb * 0.282095
+		+ sceneInfo.skyIrradiance[1].rgb * (0.488603 * d.y)
+		+ sceneInfo.skyIrradiance[2].rgb * (0.488603 * d.z)
+		+ sceneInfo.skyIrradiance[3].rgb * (0.488603 * d.x)
+		+ sceneInfo.skyIrradiance[4].rgb * (1.092548 * d.x * d.y)
+		+ sceneInfo.skyIrradiance[5].rgb * (1.092548 * d.y * d.z)
+		+ sceneInfo.skyIrradiance[6].rgb * (0.315392 * (3.0 * d.z * d.z - 1.0))
+		+ sceneInfo.skyIrradiance[7].rgb * (1.092548 * d.x * d.z)
+		+ sceneInfo.skyIrradiance[8].rgb * (0.546274 * (d.x * d.x - d.y * d.y));
+	return max(light, vec3(0.0));
+}
+
+// One of the sky light's cubes: 0 is the sky itself, 4 the blurriest.
+vec3 skyCubeLevel(int level, vec3 direction)
+{
+	if (level <= 0)
+		return textureLod(skyLightCube0, direction, 0.0).rgb;
+	if (level == 1)
+		return textureLod(skyLightCube1, direction, 0.0).rgb;
+	if (level == 2)
+		return textureLod(skyLightCube2, direction, 0.0).rgb;
+	if (level == 3)
+		return textureLod(skyLightCube3, direction, 0.0).rgb;
+	return textureLod(skyLightCube4, direction, 0.0).rgb;
+}
+
+// The sky seen along a reflection, blurrier for rougher surfaces: the two
+// nearest cubes, mixed (Lighting plan L5).
+vec3 skyReflection(vec3 direction, float roughness)
+{
+	vec3 turned = skyTurn(direction);
+	float level = clamp(roughness, 0.0, 1.0) * 4.0;
+	float lower = floor(level);
+	int first = int(lower);
+	int second = min(first + 1, 4);
+	return mix(skyCubeLevel(first, turned), skyCubeLevel(second, turned), level - lower);
+}
+
+// How much of the reflected light reaches the eye, for a surface's base
+// reflectance, roughness and angle: Karis's fit for mobile, so no lookup
+// image is needed (Lighting plan L5).
+vec3 environmentBRDF(vec3 F0, float roughness, float NdotV)
+{
+	const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+	const vec4 c1 = vec4(1.0, 0.0425, 1.04, -0.04);
+	vec4 r = roughness * c0 + c1;
+	float a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+	vec2 AB = vec2(-1.04, 1.04) * a004 + r.zw;
+	return F0 * AB.x + AB.y;
+}
+
+// The light from the sky on a surface (Lighting plan L5): its diffuse light,
+// less what the surface reflects, and the reflected sky.
+vec3 skyLighting(vec3 N, vec3 V, vec3 F0, vec3 albedo, float metallic, float roughness)
+{
+	float NdotV = clamp(dot(N, V), 0.0001, 1.0);
+	vec3 F = F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - NdotV, 5.0);
+	vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
+	vec3 diffuse = skyIrradiance(N) * albedo * kD;
+	vec3 specular = vec3(0.0);
+	if (sceneInfo.skyLight.y > 0.5)
+	{
+		vec3 R = reflect(-V, N);
+		specular = skyReflection(R, roughness) * environmentBRDF(F0, roughness, NdotV);
+	}
+	return (diffuse + specular) * sceneInfo.skyTint.rgb;
+}
+
 // Fades a color into the fog by its distance from the camera, and less
 // above the fog's base height (Item 40).
 vec3 applyFog(vec3 color, vec3 worldPosition)
@@ -305,7 +414,14 @@ void main()
 	// against the sky are lit correctly and have no dark halo. Without MSAA,
 	// coverage is exactly 1 or 0, and nothing changes.
 	float coverage = rawWorldPosition.w;
-	float uncover = coverage > 0.0001 ? 1.0 / coverage : 0.0;
+	// Where nothing was drawn, there is nothing to light (and no normal to
+	// light it by), so it stays clear, as the blend left it before.
+	if (coverage <= 0.0001)
+	{
+		outputColor = vec4(0.0);
+		return;
+	}
+	float uncover = 1.0 / coverage;
 	albedo = albedo * uncover;
 	worldPosition = worldPosition * uncover;
 	pbr = pbr * uncover;
@@ -344,8 +460,19 @@ void main()
         }
         else if (light.lightType == 2u)
 		{
-			// Spotlights cast no shadows yet (Item 37).
-            Lo += calculateSpotLight(light, worldPosition, V, N, F0, albedo, metallic, roughness);
+			// Spotlights' maps split the distance along the spot's direction
+			// into cascades (Lighting plan L7).
+			float along = dot(worldPosition - light.positionDirection, light.spotDirection);
+			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
+			{
+				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
+				if (along > currentShadow.splitDistance.x)
+				{
+					cascadeIndex = j + 1;
+				}
+			}
+			float shadow = calculateSpotVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+            Lo += calculateSpotLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow;
 		}
 		else
 		{
@@ -369,6 +496,14 @@ void main()
     // The PBR image's first channel is ambient occlusion (1 for none), so
     // cracks and hollows get less ambient light. Direct light is unchanged.
     vec3 ambient = sceneInfo.ambientColor * albedo * sceneInfo.ambientIntensity * pbr.r;
+    // The light from the sky (Lighting plan L5) takes the flat ambient
+    // light's place as its strength grows to 1. At 0 nothing changes.
+    float skyStrength = sceneInfo.skyLight.x;
+    if (skyStrength > 0.0)
+    {
+        vec3 sky = skyLighting(N, V, F0, albedo, metallic, roughness) * skyStrength;
+        ambient = (ambient * (1.0 - min(skyStrength, 1.0)) + sky * pbr.r);
+    }
     // Emissive light isn't lit or shadowed; it is added as it is (L1).
     vec3 color = ambient + Lo + emissive;
     color = applyFog(color, worldPosition);

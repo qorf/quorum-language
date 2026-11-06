@@ -1,0 +1,41 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+
+/*
+TransparentShaderMapping3DVulkan describes the pipeline for see-through
+models (Lighting plan L6): a forward program (library item 39), drawn after
+the deferred lighting, over the lit image, with the default 3D vertex data,
+the G-buffer, the lights, the sky and the sky light (sets 0 to 5, see
+VulkanPipelineInfoCreator:AddForwardInfo3D). It blends by alpha, with no
+depth test and no culling; the fragment shader hides back faces of one-sided
+materials. The program's own 18 push constant numbers are unused (zeros).
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.TransparentShaderMapping3DVulkan
+
+TransparentShaderMapping3DVulkan mapping
+*/
+class TransparentShaderMapping3DVulkan is VulkanShaderMapping
+    on create
+        UseDefaultResources3D(true)
+        UseForwardPass(true)
+    end
+
+    /*
+    This action makes the pipeline description for see-through models.
+
+    Attribute: Parameter program The program.
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Returns The pipeline description.
+    */
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddForwardInfo3D()
+        return creator:Finish()
+    end
+end

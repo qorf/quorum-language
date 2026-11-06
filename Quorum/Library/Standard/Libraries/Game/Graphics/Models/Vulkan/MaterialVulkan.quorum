@@ -46,7 +46,13 @@ Ambient occlusion map index (uint, 4 bytes); its red channel is used
 Alpha cutoff (float, 4 bytes): pixels with less alpha aren't drawn
 Normal strength (float, 4 bytes): how strongly the normal map bends light
 Texture offset x and y, scale x and y, and turn in radians (5 floats)
-Three reserved words (uint, 4 bytes each), 0
+Sway strength (float, 4 bytes): with the SWAY flag, how far a point moves
+sideways per unit of height above its model's origin (Foliage plan F6)
+Sway direction (float, 4 bytes): the wind's direction about the up axis, in
+radians from +x toward +z (Foliage plan F6). A per-material angle was chosen
+over two packed halves: it is one number, and the shader turns it with cos
+and sin.
+One reserved word (uint, 4 bytes), 0
 The emissive and later words are Lighting plan L1 and L4.*/
     constant integer DIFFUSE_INDEX = 0
     constant integer TEXTURE_INDEX = 1
@@ -69,8 +75,8 @@ The emissive and later words are Lighting plan L1 and L4.*/
     constant integer UV_SCALE_X_INDEX = 18
     constant integer UV_SCALE_Y_INDEX = 19
     constant integer UV_ROTATION_INDEX = 20
-    constant integer RESERVED_INDEX_1 = 21
-    constant integer RESERVED_INDEX_2 = 22
+    constant integer SWAY_STRENGTH_INDEX = 21
+    constant integer SWAY_DIRECTION_INDEX = 22
     constant integer RESERVED_INDEX_3 = 23
 
     // The flags. The shaders test the same numbers.
@@ -81,6 +87,9 @@ The emissive and later words are Lighting plan L1 and L4.*/
     constant integer TWO_SIDED_FLAG = 16
     constant integer TEXTURE_TRANSFORM_FLAG = 32
     constant integer ALPHA_RELATIVE_FLAG = 64
+    // The vertex shaders move the material's points sideways in the wind
+    // (Foliage plan F6).
+    constant integer SWAY_FLAG = 128
 
     constant integer MATERIAL_BYTE_SIZE = 4 * 24
     
@@ -120,12 +129,24 @@ The emissive and later words are Lighting plan L1 and L4.*/
     PixelMap packedNormalRoughness = undefined
 
     boolean released = false
+
+    // The wind's sway (Foliage plan F6): its strength, its direction in
+    // radians, the flags without the sway's, and the words last loaded, so
+    // a change of sway can send the material again.
+    number swayStrength = 0
+    number swayDirection = 0
+    integer loadedFlags = 0
+    Number32BitArray loadedWords = undefined
     
     // Ensures all data in the material that needs to be pre-processed, such as textures, are sent to their appropriate managers.
     action Preload(VulkanDevice device, Material data)
         me:device = device
         preloadData = data
         twoSided = data:IsTwoSided()
+        // The wind's sway (Foliage plan F6).
+        Math swayMath
+        swayStrength = data:GetSway()
+        swayDirection = data:GetSwayDirection() * swayMath:pi / 180
 
         if data:UsesTextureSet()
             PreloadTextureSet(data)
@@ -439,10 +460,12 @@ default material loading system, as part of the model load system).*/
         dataArray:Set(UV_SCALE_Y_INDEX, data:GetTextureScaleY())
         dataArray:Set(UV_ROTATION_INDEX, data:GetTextureRotation())
 
-        dataArray:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(flags))
-        dataArray:Set(RESERVED_INDEX_1, utility:EncodeIntegerAsNumber(0))
-        dataArray:Set(RESERVED_INDEX_2, utility:EncodeIntegerAsNumber(0))
         dataArray:Set(RESERVED_INDEX_3, utility:EncodeIntegerAsNumber(0))
+        // The flags, with the sway's flag and its two words (Foliage plan
+        // F6). The words are kept so SetSway can send them again.
+        loadedFlags = flags
+        WriteSwayWords(dataArray)
+        loadedWords = dataArray
         
         VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
         mapping:Set(dataArray)
@@ -512,6 +535,16 @@ default material loading system, as part of the model load system).*/
     action TransferBuffers(VulkanCommandBuffer commandBuffer)
         if dataTransferred
             return now
+        end
+
+        // A material sent again after its sway changed (Foliage plan F6)
+        // gets a new buffer; frames already recorded may still read the
+        // old one, so it is retired.
+        if materialBuffer not= undefined
+            GameStateManager retireState
+            VulkanGraphics retireGraphics = cast(VulkanGraphics, retireState:GetGameGraphics())
+            retireGraphics:Retire(materialBuffer)
+            materialBuffer = undefined
         end
         
         VulkanBuffer destination
@@ -617,6 +650,72 @@ default material loading system, as part of the model load system).*/
         end
         usedTextures:Add(texture)
         return texture
+    end
+
+    /*
+    This action writes the flags and the sway's two words into the
+    material's words (Foliage plan F6): the SWAY flag is added when the
+    strength is more than 0.
+
+    Attribute: Parameter words The material's 24 words.
+    */
+    private action WriteSwayWords(Number32BitArray words)
+        NumberUtilities utility
+        integer flags = loadedFlags
+        if swayStrength > 0
+            flags = flags + SWAY_FLAG
+        end
+        words:Set(FLAGS_INDEX, utility:EncodeIntegerAsNumber(flags))
+        words:Set(SWAY_STRENGTH_INDEX, swayStrength)
+        words:Set(SWAY_DIRECTION_INDEX, swayDirection)
+    end
+
+    /*
+    This action sets how the material sways in the wind (Foliage plan F6).
+    The 3D and shadow vertex shaders move a point sideways by the strength
+    times its height above its model's origin, back and forth over time,
+    along the direction. A material already on the GPU is sent again, with
+    a new buffer from the next frame; setting the same values does nothing.
+
+    Attribute: Parameter strength How far a point moves sideways per unit of height, such as 0.05; 0 for none.
+    Attribute: Parameter directionDegrees The wind's direction about the up axis, in degrees from +x toward +z.
+    */
+    action SetSway(number strength, number directionDegrees)
+        Math math
+        number direction = directionDegrees * math:pi / 180
+        if strength = swayStrength and direction = swayDirection
+            return now
+        end
+        swayStrength = strength
+        swayDirection = direction
+        if loadedWords = undefined or released
+            // Not loaded yet: Load writes these values.
+            return now
+        end
+
+        WriteSwayWords(loadedWords)
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        // A staging buffer not yet copied was never used by the GPU, but
+        // retiring it is safe either way.
+        graphics:Retire(stagingBuffer)
+        VulkanBuffer staging
+        stagingBuffer = staging
+        stagingBuffer:CreateTransferSourceBuffer(device, MATERIAL_BYTE_SIZE)
+        VulkanNumber32BitMappedMemory mapping = stagingBuffer:MapToNumber32BitMemory()
+        mapping:Set(loadedWords)
+        stagingBuffer:StopMapping()
+        dataTransferred = false
+        graphics:GetModelManager():GetMaterialManager():AddPendingMaterial(me)
+    end
+
+    /*
+    This action returns how much the material sways (Foliage plan F6).
+
+    Attribute: Returns The strength, 0 for none.
+    */
+    action GetSway returns number
+        return swayStrength
     end
 
     /*

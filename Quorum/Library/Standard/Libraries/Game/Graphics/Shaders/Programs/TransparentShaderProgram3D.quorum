@@ -1,0 +1,39 @@
+package Libraries.Game.Graphics.Shaders.Programs
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Shader
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.TransparentShaderMapping3DVulkan
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.TransparentFragmentShader3DVulkan
+
+/*
+TransparentShaderProgram3D draws see-through models (Lighting plan L6): those
+with a color whose alpha is below 1, or a material whose alpha mode is
+"BLEND" or whose opacity is below 1. It is a forward program: drawn after
+the deferred lighting and water, over the lit image, back to front, lit by
+the same lights and the light from the sky, with no shadows received yet.
+The Vulkan painter uses it on its own; programs don't need to set it. It is
+Vulkan only.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Programs.TransparentShaderProgram3D
+
+TransparentShaderProgram3D program
+program:Compile()
+*/
+class TransparentShaderProgram3D is ShaderProgram
+
+    on create
+        GameStateManager gameState
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName("Transparent 3D Shader Program")
+
+        Shader vertex = manager:GetDefaultVertexShader3D()
+        TransparentFragmentShader3DVulkan fragment
+        Add(vertex)
+        Add(fragment)
+
+        TransparentShaderMapping3DVulkan mapping
+        SetShaderMapping(mapping)
+    end
+end

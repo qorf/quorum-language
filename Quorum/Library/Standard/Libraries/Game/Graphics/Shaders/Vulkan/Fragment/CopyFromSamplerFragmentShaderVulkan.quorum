@@ -10,6 +10,12 @@ range instead of clipping it. The exposure scales the light first. The
 painter sends both from the layer's EnvironmentVulkan as push constants.
 Alpha is copied as it is, so the sky still shows where nothing was drawn.
 
+With bloom on (Lighting plan L3), the bloom image (binding 1) times its
+strength is added to the light before the exposure and tone mapping. The
+color is written already multiplied by its alpha, and the pipeline blends
+it with one and one minus the alpha, which is the same as before; where
+there is sky, the glow is added over the sky as well.
+
 Attribute: Example
 use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CopyFromSamplerFragmentShaderVulkan
 
@@ -31,12 +37,17 @@ layout (location = 0) out vec4 outputColor;
 
 // The sampled image to copy out to the color attachment
 layout (set = 0, binding = 0) uniform sampler2D u_sampler;
+// The bloom (Lighting plan L3), half the size; the lit image when bloom is
+// off, unused then.
+layout (set = 0, binding = 1) uniform sampler2D u_bloom;
 
 // How the light is fit to the screen: 0 none (clipped at white, as before),
 // 1 Reinhard, 2 ACES (filmic); and the exposure the light is scaled by.
+// Then how much of the bloom is added; 0 when bloom is off.
 layout(push_constant) uniform ToneMapping {
 	float exposure;
 	float mode;
+	float bloomStrength;
 } toneMapping;
 
 // Reinhard: gentle, never quite reaching white.
@@ -57,10 +68,10 @@ vec3 aces(vec3 color)
 	return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
 }
 
-void main()
+// The exposure, then the tone mapping.
+vec3 mapLight(vec3 light)
 {
-	vec4 lit = texture(u_sampler, v_samplerCoordinate);
-	vec3 color = max(lit.rgb * toneMapping.exposure, vec3(0.0));
+	vec3 color = max(light * toneMapping.exposure, vec3(0.0));
 	if (toneMapping.mode > 1.5)
 	{
 		color = aces(color);
@@ -68,6 +79,20 @@ void main()
 	else if (toneMapping.mode > 0.5)
 	{
 		color = reinhard(color);
+	}
+	return color;
+}
+
+void main()
+{
+	vec4 lit = texture(u_sampler, v_samplerCoordinate);
+	vec3 color = mapLight(lit.rgb) * lit.a;
+	if (toneMapping.bloomStrength > 0.0)
+	{
+		vec3 glow = texture(u_bloom, v_samplerCoordinate).rgb * toneMapping.bloomStrength;
+		// On what was drawn, the glow joins its light; over the sky, it is
+		// added on its own.
+		color = mapLight(lit.rgb + glow) * lit.a + mapLight(glow) * (1.0 - lit.a);
 	}
 	outputColor = vec4(color, lit.a);
 }

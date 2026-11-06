@@ -12,6 +12,9 @@ class TwoStageShadowVertexShaderVulkan is Shader
         GameStateManager gameState
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:TWO_STAGE_SHADOW_VERTEX_SHADER)
+        // The material and the wind's sway, shared with the 3D vertex
+        // shader (Foliage plan F6).
+        SwayVertexShaderPartVulkan sway
 		
 		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
 		VulkanLightingProperties lights = graphics:GetLightingProperties()
@@ -60,11 +63,11 @@ layout(std430, buffer_reference, buffer_reference_align=4) buffer IndexBuffer {
 	uint[] indices;
 };
 
+" + sway:GetMaterialCode() + sway:GetSwayFunction() + "
 struct InstanceData {
    VertexBuffer vertexBuffer;
    IndexBuffer indexBuffer;
-   uint padding1;
-   uint padding2;
+   Materials materials;
    uint textureOverride;
    uint textureIndex;
    uint diffuseColorOverride;
@@ -82,6 +85,8 @@ layout(push_constant) uniform PushConstants {
    uint lightIndex;
    uint targetCascade;
    uint targetFace;
+   // The shader time, for swaying materials (Foliage plan F6).
+   float time;
 } pushConstants;
 		
 void main()
@@ -101,6 +106,8 @@ void main()
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
+	// Shadows sway as their models do (Foliage plan F6).
+	worldPosition.xyz += swayOffset(instanceData.materials, modelTransform[3].xyz, worldPosition.xyz, pushConstants.time);
 	
 	v_textureCoords = vertex.textureCoordinates;
 	v_entityID = entityID;

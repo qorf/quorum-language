@@ -95,6 +95,12 @@ class Material
     number uvScaleY = 1
     number uvRotation = 0
 
+    // The wind's sway (Foliage plan F6): how far a point moves sideways per
+    // unit of height above its model's origin, and the wind's direction
+    // about the up axis, in degrees from +x toward +z. 0 sways not at all.
+    number sway = 0
+    number swayDirection = 0
+
     // The material's name, and the file it was loaded from or saved to
     // (step 9).
     text name = ""
@@ -939,8 +945,50 @@ class Material
         uvScaleX = other:GetTextureScaleX()
         uvScaleY = other:GetTextureScaleY()
         uvRotation = other:GetTextureRotation()
+        sway = other:GetSway()
+        swayDirection = other:GetSwayDirection()
         name = other:GetName()
         file = other:GetFile()
+    end
+
+    /*
+    This action returns how much the material sways in the wind (Foliage
+    plan F6): how far a point moves sideways per unit of height above its
+    model's origin.
+
+    Attribute: Returns The strength, 0 for none.
+    */
+    action GetSway returns number
+        return sway
+    end
+
+    /*
+    This action sets how much the material sways in the wind (Foliage plan
+    F6), as grass and leaves do. Set it before the model loads; for a model
+    already drawn, use Model:SetSway.
+
+    Attribute: Parameter strength How far a point moves sideways per unit of height above its model's origin, such as 0.05; 0 for none.
+    */
+    action SetSway(number strength)
+        sway = strength
+    end
+
+    /*
+    This action returns the wind's direction for the sway (Foliage plan F6).
+
+    Attribute: Returns Degrees about the up axis, from +x toward +z.
+    */
+    action GetSwayDirection returns number
+        return swayDirection
+    end
+
+    /*
+    This action sets the wind's direction for the sway (Foliage plan F6).
+
+    Attribute: Parameter degrees Degrees about the up axis, from +x toward +z.
+    */
+    action SetSwayDirection(number degrees)
+        swayDirection = degrees
     end
 
     /*
