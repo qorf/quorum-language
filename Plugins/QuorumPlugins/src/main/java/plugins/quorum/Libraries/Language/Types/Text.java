@@ -482,7 +482,7 @@ public class Text {
     }
     
     public String GetSubtext(int startIndex, int endIndex) {
-        return text.substring(startIndex);
+        return text.substring(startIndex, endIndex);
     }
     
     public static String PrimitiveGetSubtext(String self, int startIndex) {
