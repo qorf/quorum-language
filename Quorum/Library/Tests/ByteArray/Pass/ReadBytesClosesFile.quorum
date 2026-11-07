@@ -1,0 +1,19 @@
+use Libraries.System.File
+use Libraries.System.BinaryFileReader
+use Libraries.Containers.ByteArray
+
+// a file that is still open can't be deleted on windows
+// so this program checks that ReadBytes closes the file it read
+File file
+file:SetPath("ReadBytesClosesFile.bin")
+file:write("Lamprey is an amazing slicing software :D!");
+
+BinaryFileReader reader
+reader:OpenForRead(file)
+ByteArray bytes = reader:ReadBytes()
+boolean deleted = file:Delete()
+if bytes:GetSize() = 5 and deleted
+    output "success"
+else
+    output "fail"
+end

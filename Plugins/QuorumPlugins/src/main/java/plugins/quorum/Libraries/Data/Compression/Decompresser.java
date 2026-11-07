@@ -30,7 +30,7 @@ import java.util.zip.ZipFile;
 public class Decompresser {
     public java.lang.Object me_ = null;
     boolean isGZip = true;
-    
+
     public void DecompressGZip(File_ input, File_ output) {
         try {
             String path = input.GetAbsolutePath();
@@ -44,7 +44,7 @@ public class Decompresser {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void DecompressZip(File_ input) {
         File myFile = new File(input.GetAbsolutePath());
         String parent = myFile.getParent() + "/";
@@ -77,16 +77,20 @@ public class Decompresser {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void write(String outFilePath, InputStream inputStream) {
         try {
+            File folder = new File(outFilePath).getParentFile();
+            if(folder != null){
+                folder.mkdirs();
+            }
             OutputStream out = new FileOutputStream(outFilePath);
             byte[] buf = new byte[1024];
             int len;
             while ((len = inputStream.read(buf)) > 0) {
                 out.write(buf, 0, len);
             }
-            
+
             out.close();
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,7 +98,7 @@ public class Decompresser {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public static String Unzip(String inFilePath) throws Exception {
         ZipInputStream gzipInputStream = new ZipInputStream(new FileInputStream(inFilePath));
         String outFilePath = inFilePath.replace(".gz", ".xml");
@@ -124,14 +128,14 @@ public class Decompresser {
             input.SetPath("test.xml.gz");
             //input.SetPath("Final.pdf.gz");
             //input.SetPath("test.zip");
-            
+
             quorum.Libraries.System.File output = new quorum.Libraries.System.File();
             output.SetWorkingDirectory("/Users/Nicole/Desktop");
             //file.SetPath("472 Fall.odt.zip");
             output.SetPath("Test.xml");
             // TODO code application logic here
             Decompresser decompress = new Decompresser();
-            decompress.DecompressGZip(input, output);          
+            decompress.DecompressGZip(input, output);
 
         } catch (Exception ex) {
             Logger.getLogger(Decompresser.class.getName()).log(Level.SEVERE, null, ex);
