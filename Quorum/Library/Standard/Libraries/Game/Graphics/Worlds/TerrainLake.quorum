@@ -14,7 +14,8 @@ A lake is one of two shapes:
 - a rectangle, centered on a point, set with Set;
 - a grid of water cells (W6): square cells the terrain's sample spacing
   wide, each holding water or not. Fill makes one by filling a hollow from
-  a point, as poured water would, up to the level; Paint adds or removes
+  a point, as poured water would, up to the level or the hollow's rim,
+  whichever is lower, so it never spills or floats; Paint adds or removes
   cells under a brush. Only the cells with water are drawn, so water never
   shows in a neighboring hollow. Its rectangle is kept around its cells.
 
@@ -56,6 +57,20 @@ class TerrainLake
     // The most cells Fill searches, so a level above the whole terrain
     // doesn't fill forever.
     public constant integer MAXIMUM_FILL_CELLS = 250000
+
+    // The most cells poured water runs downhill before it starts to rise,
+    // so water poured on a long slope doesn't travel to a distant valley.
+    public constant integer MAXIMUM_DESCENT = 64
+
+    // True if the last Fill stopped at its hollow's rim or the terrain's
+    // edge, below the level it was given (IsSpilled).
+    boolean spilled = false
+
+    // The cells waiting to be covered while Fill runs, as a heap by the
+    // ground's height, lowest first.
+    Array<number> heapHeights
+    Array<integer> heapColumns
+    Array<integer> heapRows
 
     // True for a lake that follows the ground (started by painting): its
     // water stands waterDepth above the ground in each cell. Its level is
@@ -279,97 +294,289 @@ class TerrainLake
 
     /*
     This action makes the lake a grid of water cells by filling a hollow
-    from a point, as water poured there would: every cell connected to it
-    whose ground is below the level gets water, and the water stops at the
-    rim. The lake's level becomes the level given. Cells off the terrain
-    stop the water too, so a hollow open to the terrain's edge fills only
-    what is on the terrain.
+    from a point, as water poured there would. The water first runs
+    downhill from the point to the bottom of its hollow, then rises,
+    covering the lowest ground first. It stops at whichever comes first:
+    - the level given;
+    - the hollow's rim: the lowest place on its edge, where more water
+      would spill over and run away downhill;
+    - the terrain's edge, where the water would run off.
+    The lake's level is where it stopped, so it never floats over ground
+    that falls away. On a slope with no hollow, nothing fills.
+    IsSpilled says whether the rim or edge stopped it below the level given.
 
     Attribute: Parameter data The terrain's data.
     Attribute: Parameter startX Where the water is poured, along x.
     Attribute: Parameter startZ Where the water is poured, along z.
-    Attribute: Parameter height The water's level.
-    Attribute: Returns How many cells got water: 0 if the ground there is above the level.
+    Attribute: Parameter height The highest the water may rise.
+    Attribute: Returns How many cells got water: 0 if none could hold any.
     */
     action Fill(TerrainData data, number startX, number startZ, number height) returns integer
         followsGround = false
+        spilled = false
         number spacing = data:GetVertexSpacing()
         if spacing <= 0
             spacing = 1
         end
         cellSize = spacing
         level = height
-        integer startColumn = GetColumnAt(startX)
-        integer startRow = GetColumnAt(startZ)
-        if not IsBelow(data, startColumn, startRow, height)
+        integer bottomColumn = GetColumnAt(startX)
+        integer bottomRow = GetColumnAt(startZ)
+        if not HasGround(data, bottomColumn, bottomRow)
             return 0
         end
 
-        // The cells found so far, by column and row, in a table, while the
-        // search spreads out from the start.
-        HashTable<text, boolean> seen
-        Array<integer> waiting
-        waiting:Add(startColumn)
-        waiting:Add(startRow)
-        seen:Add("" + startColumn + "/" + startRow, true)
-        Array<integer> found
-        integer lowColumn = startColumn
-        integer highColumn = startColumn
-        integer lowRow = startRow
-        integer highRow = startRow
-        integer reading = 0
-        repeat while reading < waiting:GetSize() and found:GetSize() / 2 < MAXIMUM_FILL_CELLS
-            integer column = waiting:Get(reading)
-            integer row = waiting:Get(reading + 1)
-            reading = reading + 2
-            found:Add(column)
-            found:Add(row)
-            if column < lowColumn
-                lowColumn = column
-            end
-            if column > highColumn
-                highColumn = column
-            end
-            if row < lowRow
-                lowRow = row
-            end
-            if row > highRow
-                highRow = row
-            end
-            integer side = 0
-            repeat while side < 4
-                integer nextColumn = column
-                integer nextRow = row
-                if side = 0
-                    nextColumn = column + 1
-                elseif side = 1
-                    nextColumn = column - 1
-                elseif side = 2
-                    nextRow = row + 1
-                else
-                    nextRow = row - 1
-                end
-                text key = "" + nextColumn + "/" + nextRow
-                if not seen:HasKey(key)
-                    seen:Add(key, true)
-                    if IsBelow(data, nextColumn, nextRow, height)
-                        waiting:Add(nextColumn)
-                        waiting:Add(nextRow)
+        // The water runs downhill to the bottom of its hollow, but only so
+        // far: on a long slope it doesn't travel to a distant valley.
+        number bottom = GetGround(data, bottomColumn, bottomRow)
+        integer steps = 0
+        boolean moving = true
+        repeat while moving and steps < MAXIMUM_DESCENT
+            moving = false
+            integer bestColumn = bottomColumn
+            integer bestRow = bottomRow
+            number best = bottom
+            integer downSide = 0
+            repeat while downSide < 4
+                integer downColumn = NextColumn(bottomColumn, downSide)
+                integer downRow = NextRow(bottomRow, downSide)
+                if HasGround(data, downColumn, downRow)
+                    number downGround = GetGround(data, downColumn, downRow)
+                    if downGround < best
+                        best = downGround
+                        bestColumn = downColumn
+                        bestRow = downRow
                     end
                 end
-                side = side + 1
+                downSide = downSide + 1
             end
+            if best < bottom
+                bottom = best
+                bottomColumn = bestColumn
+                bottomRow = bestRow
+                moving = true
+            end
+            steps = steps + 1
+        end
+        if bottom >= height
+            return 0
         end
 
-        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        // The water rises from the bottom: the lowest cell next to the
+        // water is always covered next. When that cell is lower than the
+        // water already is, the water has gone over the rim and would run
+        // away, so it stops at the rim.
+        heapHeights:Empty()
+        heapColumns:Empty()
+        heapRows:Empty()
+        HashTable<text, boolean> seen
+        seen:Add("" + bottomColumn + "/" + bottomRow, true)
+        HeapAdd(bottom, bottomColumn, bottomRow)
+        Array<integer> found
+        number rim = bottom
+        boolean stopped = false
+        repeat while not stopped and heapHeights:GetSize() > 0 and found:GetSize() / 2 < MAXIMUM_FILL_CELLS
+            number cellHeight = heapHeights:Get(0)
+            integer column = heapColumns:Get(0)
+            integer row = heapRows:Get(0)
+            if cellHeight >= height
+                // Risen to the level given.
+                stopped = true
+            elseif cellHeight < rim
+                // Over the rim and downhill: it would spill.
+                level = rim
+                spilled = true
+                stopped = true
+            else
+                HeapRemoveLowest()
+                rim = cellHeight
+                found:Add(column)
+                found:Add(row)
+                integer side = 0
+                repeat while side < 4
+                    integer nextColumn = NextColumn(column, side)
+                    integer nextRow = NextRow(row, side)
+                    text key = "" + nextColumn + "/" + nextRow
+                    if not seen:HasKey(key)
+                        seen:Add(key, true)
+                        if HasGround(data, nextColumn, nextRow)
+                            HeapAdd(GetGround(data, nextColumn, nextRow), nextColumn, nextRow)
+                        else
+                            // The water reached the terrain's edge and
+                            // would run off it.
+                            level = rim
+                            spilled = true
+                            stopped = true
+                        end
+                    end
+                    side = side + 1
+                end
+            end
+        end
+        if not stopped and heapHeights:GetSize() > 0
+            // The most cells were searched: the water stops where it is.
+            level = rim
+            spilled = true
+        end
+        heapHeights:Empty()
+        heapColumns:Empty()
+        heapRows:Empty()
+
+        // Only cells whose ground is below the water get it; ground at the
+        // water's height, such as the rim, stays dry.
+        integer lowColumn = 0
+        integer highColumn = 0
+        integer lowRow = 0
+        integer highRow = 0
+        integer wet = 0
         integer i = 0
         repeat while i < found:GetSize()
-            cells:Set((found:Get(i + 1) - firstRow) * columns + found:Get(i) - firstColumn, true)
+            integer wetColumn = found:Get(i)
+            integer wetRow = found:Get(i + 1)
+            if GetGround(data, wetColumn, wetRow) < level
+                if wet = 0 or wetColumn < lowColumn
+                    lowColumn = wetColumn
+                end
+                if wet = 0 or wetColumn > highColumn
+                    highColumn = wetColumn
+                end
+                if wet = 0 or wetRow < lowRow
+                    lowRow = wetRow
+                end
+                if wet = 0 or wetRow > highRow
+                    highRow = wetRow
+                end
+                wet = wet + 1
+            end
+            i = i + 2
+        end
+        if wet = 0
+            return 0
+        end
+        MakeGrid(lowColumn, lowRow, highColumn - lowColumn + 1, highRow - lowRow + 1)
+        i = 0
+        repeat while i < found:GetSize()
+            integer setColumn = found:Get(i)
+            integer setRow = found:Get(i + 1)
+            if GetGround(data, setColumn, setRow) < level
+                cells:Set((setRow - firstRow) * columns + setColumn - firstColumn, true)
+            end
             i = i + 2
         end
         masked = true
         FitRectangle()
-        return found:GetSize() / 2
+        return wet
+    end
+
+    /*
+    This action returns true if the last Fill stopped below the level it was
+    given: at its hollow's rim, where more water would spill, or at the
+    terrain's edge.
+
+    Attribute: Returns True if the water would have spilled.
+    */
+    action IsSpilled returns boolean
+        return spilled
+    end
+
+    /*
+    This action returns true if there is ground in a cell's middle.
+    */
+    private action HasGround(TerrainData data, integer column, integer row) returns boolean
+        return data:HasHeight((column + 0.5) * cellSize, (row + 0.5) * cellSize)
+    end
+
+    /*
+    This action returns the ground's height in a cell's middle.
+    */
+    private action GetGround(TerrainData data, integer column, integer row) returns number
+        return data:GetSurfaceHeight((column + 0.5) * cellSize, (row + 0.5) * cellSize)
+    end
+
+    /*
+    This action returns the column of a cell's neighbor: side 0 is the
+    next column, 1 the one before, and 2 and 3 the same column.
+    */
+    private action NextColumn(integer column, integer side) returns integer
+        if side = 0
+            return column + 1
+        elseif side = 1
+            return column - 1
+        end
+        return column
+    end
+
+    /*
+    This action returns the row of a cell's neighbor: side 2 is the next
+    row, 3 the one before, and 0 and 1 the same row.
+    */
+    private action NextRow(integer row, integer side) returns integer
+        if side = 2
+            return row + 1
+        elseif side = 3
+            return row - 1
+        end
+        return row
+    end
+
+    /*
+    This action adds a cell to the cells waiting to be covered, kept as a
+    heap so the lowest is always first.
+    */
+    private action HeapAdd(number cellHeight, integer column, integer row)
+        heapHeights:Add(cellHeight)
+        heapColumns:Add(column)
+        heapRows:Add(row)
+        integer child = heapHeights:GetSize() - 1
+        repeat while child > 0
+            integer parentIndex = (child - 1) / 2
+            if heapHeights:Get(parentIndex) <= heapHeights:Get(child)
+                return now
+            end
+            HeapSwap(parentIndex, child)
+            child = parentIndex
+        end
+    end
+
+    /*
+    This action takes the lowest waiting cell off the heap.
+    */
+    private action HeapRemoveLowest
+        integer last = heapHeights:GetSize() - 1
+        HeapSwap(0, last)
+        number removedHeight = heapHeights:RemoveFromEnd()
+        integer removedColumn = heapColumns:RemoveFromEnd()
+        integer removedRow = heapRows:RemoveFromEnd()
+        integer size = heapHeights:GetSize()
+        integer place = 0
+        repeat while true
+            integer left = place * 2 + 1
+            integer right = left + 1
+            integer lowest = place
+            if left < size and heapHeights:Get(left) < heapHeights:Get(lowest)
+                lowest = left
+            end
+            if right < size and heapHeights:Get(right) < heapHeights:Get(lowest)
+                lowest = right
+            end
+            if lowest = place
+                return now
+            end
+            HeapSwap(place, lowest)
+            place = lowest
+        end
+    end
+
+    private action HeapSwap(integer first, integer second)
+        number swapHeight = heapHeights:Get(first)
+        integer swapColumn = heapColumns:Get(first)
+        integer swapRow = heapRows:Get(first)
+        heapHeights:Set(first, heapHeights:Get(second))
+        heapColumns:Set(first, heapColumns:Get(second))
+        heapRows:Set(first, heapRows:Get(second))
+        heapHeights:Set(second, swapHeight)
+        heapColumns:Set(second, swapColumn)
+        heapRows:Set(second, swapRow)
     end
 
     /*
@@ -770,6 +977,62 @@ class TerrainLake
             width = other:GetWidth()
             depth = other:GetDepth()
         end
+    end
+
+    /*
+    This action fills a lake of water cells again at a new level, as Fill
+    does, from its lowest cell: it spreads or shrinks to match the hollow,
+    and stops at the hollow's rim, so raising the level never leaves water
+    hanging over ground that falls away. The lake keeps its name. Nothing
+    changes if no cell could hold water at that level, or for a lake that
+    is a rectangle or follows the ground.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter height The highest the water may rise.
+    Attribute: Returns How many cells have water, or 0 if nothing changed.
+    */
+    action Refill(TerrainData data, number height) returns integer
+        if not masked or followsGround or data = undefined
+            return 0
+        end
+        boolean any = false
+        number lowest = 0
+        number lowestX = 0
+        number lowestZ = 0
+        integer row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                if cells:Get(row * columns + column)
+                    number middleX = (firstColumn + column + 0.5) * cellSize
+                    number middleZ = (firstRow + row + 0.5) * cellSize
+                    if data:HasHeight(middleX, middleZ)
+                        number ground = data:GetSurfaceHeight(middleX, middleZ)
+                        if not any or ground < lowest
+                            any = true
+                            lowest = ground
+                            lowestX = middleX
+                            lowestZ = middleZ
+                        end
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        if not any
+            return 0
+        end
+        TerrainLake trial
+        integer count = trial:Fill(data, lowestX, lowestZ, height)
+        if count = 0
+            return 0
+        end
+        text keptName = name
+        CopyFrom(trial)
+        name = keptName
+        spilled = trial:IsSpilled()
+        return count
     end
 
     /*

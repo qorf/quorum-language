@@ -86,6 +86,10 @@ class TerrainWater
     // water was all removed (saving never deletes files).
     boolean hadFile = false
 
+    // True if the last FillLake stopped at its hollow's rim or the
+    // terrain's edge (DidLastFillSpill).
+    boolean lastFillSpilled = false
+
     /* GetWaterLevelAt's answer where there is no water: below anything. */
     public constant number NO_WATER = -1000000
 
@@ -194,7 +198,10 @@ class TerrainWater
     end
 
     /*
-    This action changes a lake's place, size or level.
+    This action changes a lake's place, size or level. A lake filled into a
+    hollow is filled again at the new level (TerrainLake:Refill), so it
+    follows the hollow and stops at its rim; its place and size follow its
+    water. DidLastFillSpill then says whether the rim stopped it.
 
     Attribute: Parameter lake The lake.
     Attribute: Parameter x Its middle along x.
@@ -204,6 +211,14 @@ class TerrainWater
     Attribute: Parameter level The water's height.
     */
     action SetLake(TerrainLake lake, number x, number z, number width, number depth, number level)
+        lastFillSpilled = false
+        if lake:IsMasked() and not lake:IsFollowingGround() and data not= undefined
+            if lake:GetLevel() not= level and lake:Refill(data, level) > 0
+                lastFillSpilled = lake:IsSpilled()
+                LakeChanged(lake)
+                return now
+            end
+        end
         lake:Set(x, z, width, depth, level)
         changed = true
     end
@@ -246,23 +261,27 @@ class TerrainWater
 
     /*
     This action fills a hollow with water from a point, as water poured
-    there would, up to a level (Water plan W6). If a lake made of cells
-    already has water there, it is filled again at the new level; otherwise
-    a new lake is made. Nothing happens where the ground is above the level.
+    there would, up to a level or the hollow's rim, whichever is lower, so
+    it never floats or runs away downhill (TerrainLake:Fill). If a lake
+    made of cells already has water there, it is filled again; otherwise a
+    new lake is made. Nothing happens where no hollow can hold water.
 
     Attribute: Parameter x Where the water is poured, along x.
     Attribute: Parameter z Where the water is poured, along z.
-    Attribute: Parameter level The water's level.
-    Attribute: Returns The lake filled, or undefined if the ground there is above the level.
+    Attribute: Parameter level The highest the water may rise.
+    Attribute: Returns The lake filled, or undefined if nothing could hold water there.
     */
     action FillLake(number x, number z, number level) returns TerrainLake
+        lastFillSpilled = false
         if data = undefined
             return undefined
         end
         TerrainLake existing = GetMaskedLakeAt(x, z)
         if existing not= undefined
             TerrainLake trial
-            if trial:Fill(data, x, z, level) = 0
+            integer trialCells = trial:Fill(data, x, z, level)
+            lastFillSpilled = trial:IsSpilled()
+            if trialCells = 0
                 return undefined
             end
             existing:CopyFrom(trial)
@@ -270,12 +289,26 @@ class TerrainWater
             return existing
         end
         TerrainLake lake
-        if lake:Fill(data, x, z, level) = 0
+        integer cellCount = lake:Fill(data, x, z, level)
+        lastFillSpilled = lake:IsSpilled()
+        if cellCount = 0
             return undefined
         end
         lakes:Add(lake)
         LakeChanged(lake)
         return lake
+    end
+
+    /*
+    This action returns true if the last FillLake stopped below the level
+    it was given, at its hollow's rim or the terrain's edge, where more
+    water would spill. With no lake made, it means there was no hollow to
+    hold water there.
+
+    Attribute: Returns True if the water would have spilled.
+    */
+    action DidLastFillSpill returns boolean
+        return lastFillSpilled
     end
 
     /*

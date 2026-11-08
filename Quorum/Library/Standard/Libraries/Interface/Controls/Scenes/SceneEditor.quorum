@@ -3296,40 +3296,6 @@ action Update(number seconds)
     end
 
     /*
-    This action places a lake on a terrain (Water plan W6): a square of
-    water, as wide as given, with its surface 1 unit above the ground at its
-    middle. The Lake tool calls it with the brush's place and width, and the
-    Water section's "Add lake" with the brush or the terrain's middle. It
-    can be undone.
-
-    Attribute: Parameter terrain The terrain
-    Attribute: Parameter x The lake's middle along x
-    Attribute: Parameter z The lake's middle along z
-    Attribute: Parameter size How wide the lake is along x and z
-    */
-    action PlaceTerrainLake(EditorTerrain terrain, number x, number z, number size)
-        if not CanChangeWater(terrain)
-            return now
-        end
-        TerrainData data = terrain:GetWorldTerrain():GetData()
-        if not data:HasHeight(x, z)
-            NotifyAccessibility(terrain, "A lake needs ground under its middle.")
-            return now
-        end
-        if size < 1
-            size = 1
-        end
-        WaterState before
-        before:Copy(terrain)
-        number level = RoundTenth(data:GetSurfaceHeight(x, z) + 1)
-        TerrainWater water = terrain:GetWater()
-        TerrainLake lake = water:AddLake(RoundTenth(x), RoundTenth(z), RoundTenth(size), RoundTenth(size), level)
-        lake:SetName("Lake " + water:GetLakeCount())
-        terrain:WaterChanged()
-        RecordWaterChange(terrain, before, "add " + lake:GetName(), "Placed " + lake:GetName() + ", " + RoundTenth(size) + " units wide, water at height " + level + ".")
-    end
-
-    /*
     This action pours water at a place on a terrain (Water plan W6), with
     the Fill water tool: the water's level is the ground's height there plus
     the terrain's water depth, and it fills the hollow it is poured in, as
@@ -3361,7 +3327,7 @@ action Update(number seconds)
         end
         TerrainLake lake = water:FillLake(x, z, level)
         if lake = undefined
-            NotifyAccessibility(terrain, "The ground here is above that level, so nothing filled.")
+            NotifyAccessibility(terrain, "There is no hollow here to hold water: the ground slopes away, so the water would run off.")
             return now
         end
         if lake:GetName() = ""
@@ -3372,7 +3338,11 @@ action Update(number seconds)
             end
         end
         terrain:WaterChanged()
-        RecordWaterChange(terrain, before, "fill " + lake:GetName(), "Filled the hollow: water at " + level + ", " +
+        text stoppedAt = "water at " + level
+        if water:DidLastFillSpill()
+            stoppedAt = "water at " + RoundTenth(lake:GetLevel()) + ", the hollow's rim"
+        end
+        RecordWaterChange(terrain, before, "fill " + lake:GetName(), "Filled the hollow: " + stoppedAt + ", " +
             lake:GetWaterCellCount() + " cells, about " + RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + ".")
     end
 
@@ -3554,7 +3524,15 @@ action Update(number seconds)
         water:SetLake(lake, x, z, width, depth, level)
         lake:SetName(name)
         terrain:WaterChanged()
-        RecordWaterChange(terrain, before, "change " + name, name + ": water at height " + level + ", " + width + " by " + depth + " units, middle " + x + ", " + z + ".")
+        text message = name + ": water at height " + level + ", " + width + " by " + depth + " units, middle " + x + ", " + z + "."
+        if water:DidLastFillSpill()
+            message = name + ": the hollow spills over its rim at height " + RoundTenth(lake:GetLevel()) + ", so the water stops there, about " +
+                RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + "."
+        elseif lake:IsMasked()
+            message = name + ": water at height " + RoundTenth(lake:GetLevel()) + ", filling its hollow, about " +
+                RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + "."
+        end
+        RecordWaterChange(terrain, before, "change " + name, message)
     end
 
     /*
