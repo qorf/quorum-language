@@ -1,25 +1,29 @@
 use Libraries.System.File
-use Libraries.Data.Compression.Decompressor
+use Libraries.Data.Compression.Decompresser
 
-File inputFile
-inputFile:SetWorkingDirectory("../../Library/Tests/Decompressor/Resources/")
-inputFile:SetPath("folders.zip")
-
-Decompressor decompress
-decompress:DecompressZip(inputFile)
-
-File outputFile
-outputFile:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
-outputFile:SetPath("folder/inner.txt")
-text result = "fail"
-if outputFile:Exists()
-    if outputFile:Read() = "inside a folder"
-        result = "success"
+class Main
+    action Main
+        File inputFile
+        inputFile:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+        inputFile:SetPath("zipfolders.zip")
+        
+        Decompresser decompress
+        decompress:DecompressZip(inputFile)
+        
+        File outputFile
+        outputFile:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+        outputFile:SetPath("folder/input.txt")
+        text result = "fail"
+        if outputFile:Exists()
+            if outputFile:Read():Trim() = "inside a folder"
+                result = "success"
+            end
+        end
+        output result
+        
+        File folder
+        folder:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+        folder:SetPath("folder")
+        folder:Delete(true)
     end
 end
-output result
-
-File folder
-folder:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
-folder:SetPath("folder")
-folder:Delete(true)

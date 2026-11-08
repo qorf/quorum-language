@@ -69,7 +69,7 @@ class DecompresserTester
         File main
         main:SetPath(path + "DecompressZipFolders.quorum")
         files:Add(main)
-        results:Add("success")
+        results:Add(0, "success")
         suite:Test(files, results)
         //suite:TestJavaScript(files, results)
     end

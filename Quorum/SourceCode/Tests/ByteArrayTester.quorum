@@ -267,7 +267,7 @@ class ByteArrayTester
         File main
         main:SetPath(path + "ReadBytesClosesFile.quorum")
         files:Add(main)
-        files:Add("success)
+        results:Add(0, "success")
         suite:Test(files, results)
     end
 end
