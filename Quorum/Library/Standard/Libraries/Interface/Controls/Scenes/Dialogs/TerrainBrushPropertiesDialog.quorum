@@ -151,6 +151,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         // depth; Paint water uses it and the size.
         AddToolButton("Fill water")
         AddToolButton("Paint water")
+        // Draws rivers along a path of points (EditorTerrain's RIVER_TOOL,
+        // River plan R5). Its width and depth are in the Water section.
+        AddToolButton("River")
         toolGroup:AddSelectionListener(me)
 
         toolLine:Add(toolGroup)
@@ -320,7 +323,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         end
         boolean waterTool = terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:PAINT_WATER_TOOL)
         // Fill water fills the whole hollow, so it has no size.
-        boolean usesSize = tool > 0 and tool not= 8 and tool not= 9 and not (terrain not= undefined and tool = terrain:FILL_WATER_TOOL)
+        // The River tool's width is the river's, set in the Water section.
+        boolean usesSize = tool > 0 and tool not= 8 and tool not= 9 and not (terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:RIVER_TOOL))
         boolean usesStrength = tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 6 or tool = 7
         boolean usesFalloff = usesStrength
         boolean foliageTool = terrain not= undefined and tool = terrain:FOLIAGE_TOOL

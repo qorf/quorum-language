@@ -1,0 +1,284 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+/*
+The TerrainPathLine is the scene editor's line for a river's path (River
+plan R5 and R6): a thin strip over the ground from point to point,
+following the hills, with a small square at each point. The point being
+moved or just added has a larger square. While a river is drawn, the last
+stretch reaches to where the mouse is, to show where the next click would
+add a point. It is an editor helper, not a scene item, and lets clicks
+through.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.TerrainPathLine
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Containers.Array
+
+TerrainData data
+Array<number> xs
+Array<number> zs
+xs:Add(0)
+zs:Add(0)
+xs:Add(10)
+zs:Add(5)
+TerrainPathLine line
+line:Place(data, xs, zs, 1)
+*/
+class TerrainPathLine is Model
+    SceneConstants constants
+    Math math
+    integer builds = 0
+
+    // How far above the ground the line sits, how wide it is, the size of
+    // a point's square and of the chosen point's, and the length of each
+    // piece of the line.
+    constant number LIFT = 0.08
+    constant number LINE_WIDTH = 0.15
+    constant number POINT_SIZE = 0.6
+    constant number CHOSEN_SIZE = 1.2
+    constant number PIECE = 0.5
+    // How far a point must move before the line is made again, so moving
+    // the mouse a little doesn't make a new model each time.
+    constant number MOVE_NEEDED = 0.1
+
+    // The points and chosen point the line was last made with.
+    Array<number> lastX
+    Array<number> lastZ
+    integer lastChosen = -2
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+    end
+
+    /*
+    This action lays the line over the ground through points, with a
+    square at each.
+
+    Attribute: Parameter data The terrain's data
+    Attribute: Parameter pointsX The points along x, in order
+    Attribute: Parameter pointsZ The points along z
+    Attribute: Parameter chosen The point with the larger square, or -1 for none
+    */
+    action Place(TerrainData data, Array<number> pointsX, Array<number> pointsZ, integer chosen)
+        integer count = pointsX:GetSize()
+        if count = 0
+            return now
+        end
+        if IsSameAsLast(pointsX, pointsZ, chosen)
+            return now
+        end
+        lastX:Empty()
+        lastZ:Empty()
+        integer copied = 0
+        repeat while copied < count
+            lastX:Add(pointsX:Get(copied))
+            lastZ:Add(pointsZ:Get(copied))
+            copied = copied + 1
+        end
+        lastChosen = chosen
+        // Count the pieces first, to size the mesh.
+        integer quads = count
+        integer stretch = 0
+        repeat while stretch < count - 1
+            quads = quads + PieceCount(pointsX, pointsZ, stretch)
+            stretch = stretch + 1
+        end
+        Number32BitArray vertices
+        vertices:SetSize(quads * 4 * 3)
+        Number32BitArray normals
+        normals:SetSize(quads * 4 * 3)
+        Number32BitArray tangents
+        tangents:SetSize(quads * 4 * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(quads * 4 * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(quads * 4 * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        number originX = pointsX:Get(0)
+        number originZ = pointsZ:Get(0)
+        integer quad = 0
+        stretch = 0
+        repeat while stretch < count - 1
+            number startX = pointsX:Get(stretch)
+            number startZ = pointsZ:Get(stretch)
+            number endX = pointsX:Get(stretch + 1)
+            number endZ = pointsZ:Get(stretch + 1)
+            number alongX = endX - startX
+            number alongZ = endZ - startZ
+            number length = math:SquareRoot(alongX * alongX + alongZ * alongZ)
+            if length < 0.0001
+                length = 0.0001
+            end
+            // Across the line, half its width each way.
+            number acrossX = -alongZ / length * LINE_WIDTH / 2
+            number acrossZ = alongX / length * LINE_WIDTH / 2
+            integer pieces = PieceCount(pointsX, pointsZ, stretch)
+            integer piece = 0
+            repeat while piece < pieces
+                number fromShare = cast(number, piece) / pieces
+                number toShare = cast(number, piece + 1) / pieces
+                number fromX = startX + alongX * fromShare
+                number fromZ = startZ + alongZ * fromShare
+                number toX = startX + alongX * toShare
+                number toZ = startZ + alongZ * toShare
+                SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4, data, fromX + acrossX, fromZ + acrossZ, originX, originZ)
+                SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 1, data, fromX - acrossX, fromZ - acrossZ, originX, originZ)
+                SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 2, data, toX + acrossX, toZ + acrossZ, originX, originZ)
+                SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 3, data, toX - acrossX, toZ - acrossZ, originX, originZ)
+                SetQuad(indices, quad)
+                quad = quad + 1
+                piece = piece + 1
+            end
+            stretch = stretch + 1
+        end
+
+        // A square at each point.
+        integer point = 0
+        repeat while point < count
+            number half = POINT_SIZE / 2
+            if point = chosen
+                half = CHOSEN_SIZE / 2
+            end
+            number pointX = pointsX:Get(point)
+            number pointZ = pointsZ:Get(point)
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4, data, pointX - half, pointZ - half, originX, originZ)
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 1, data, pointX + half, pointZ - half, originX, originZ)
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 2, data, pointX - half, pointZ + half, originX, originZ)
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 3, data, pointX + half, pointZ + half, originX, originZ)
+            SetQuad(indices, quad)
+            quad = quad + 1
+            point = point + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        // Light blue and unlit, so it shows on any ground and in shadow,
+        // and seen from both sides.
+        Material material
+        Vector4 color
+        color:Set(0.55, 0.85, 1, 0.9)
+        material:SetDiffuse(color)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        Array<Material> materials
+        materials:Add(material)
+
+        builds = builds + 1
+        ModelData modelData
+        modelData:SetID("Terrain path line " + GetHashCode() + " build " + builds)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+        SetPosition(originX, 0, originZ)
+    end
+
+    /*
+    This action returns true if the points and chosen point are the same as
+    the line was last made with, each within MOVE_NEEDED.
+    */
+    private action IsSameAsLast(Array<number> pointsX, Array<number> pointsZ, integer chosen) returns boolean
+        if chosen not= lastChosen or pointsX:GetSize() not= lastX:GetSize()
+            return false
+        end
+        integer i = 0
+        repeat while i < pointsX:GetSize()
+            if math:AbsoluteValue(pointsX:Get(i) - lastX:Get(i)) > MOVE_NEEDED or math:AbsoluteValue(pointsZ:Get(i) - lastZ:Get(i)) > MOVE_NEEDED
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+    This action makes the line again the next time it is placed, such as
+    after the ground under it changed.
+    */
+    action Forget
+        lastChosen = -2
+        lastX:Empty()
+        lastZ:Empty()
+    end
+
+    /*
+    This action returns how many pieces a stretch between two points is
+    drawn in, so it follows the ground.
+    */
+    private action PieceCount(Array<number> pointsX, Array<number> pointsZ, integer stretch) returns integer
+        number alongX = pointsX:Get(stretch + 1) - pointsX:Get(stretch)
+        number alongZ = pointsZ:Get(stretch + 1) - pointsZ:Get(stretch)
+        integer pieces = cast(integer, math:Ceiling(math:SquareRoot(alongX * alongX + alongZ * alongZ) / PIECE))
+        if pieces < 1
+            pieces = 1
+        end
+        return pieces
+    end
+
+    /*
+    This action sets one corner: on the ground, a little above it, facing
+    up.
+    */
+    private action SetCorner(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
+            Number32BitArray coordinates, integer vertex, TerrainData data, number worldX, number worldZ, number originX, number originZ)
+        number ground = 0
+        if data:HasHeight(worldX, worldZ)
+            ground = data:GetSurfaceHeight(worldX, worldZ)
+        end
+        vertices:Set(vertex * 3, worldX - originX)
+        vertices:Set(vertex * 3 + 1, ground + LIFT)
+        vertices:Set(vertex * 3 + 2, worldZ - originZ)
+        normals:Set(vertex * 3, 0)
+        normals:Set(vertex * 3 + 1, 1)
+        normals:Set(vertex * 3 + 2, 0)
+        tangents:Set(vertex * 3, 1)
+        tangents:Set(vertex * 3 + 1, 0)
+        tangents:Set(vertex * 3 + 2, 0)
+        bitangents:Set(vertex * 3, 0)
+        bitangents:Set(vertex * 3 + 1, 0)
+        bitangents:Set(vertex * 3 + 2, 1)
+        coordinates:Set(vertex * 2, 0)
+        coordinates:Set(vertex * 2 + 1, 0)
+    end
+
+    /*
+    This action sets one square's two triangles.
+    */
+    private action SetQuad(Integer32BitArray indices, integer quad)
+        integer first = quad * 4
+        indices:Set(quad * 6, first)
+        indices:Set(quad * 6 + 1, first + 2)
+        indices:Set(quad * 6 + 2, first + 1)
+        indices:Set(quad * 6 + 3, first + 1)
+        indices:Set(quad * 6 + 4, first + 2)
+        indices:Set(quad * 6 + 5, first + 3)
+    end
+end

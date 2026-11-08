@@ -44,6 +44,9 @@ class WaterSurface is Model
     // How many times LoadCells has built this surface, for unique names.
     integer cellBuilds = 0
 
+    // The flow speed LoadSheetMesh is given for still water.
+    constant number NOT_FLOWING = -1
+
     /*
     This action makes the water a flat sheet, width along x and depth along
     z, centered on its position, drawn with a water program.
@@ -166,7 +169,7 @@ class WaterSurface is Model
             quad = quad + 1
         end
 
-        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program)
+        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program, NOT_FLOWING)
         SetPosition(cornerX, lake:GetLevel(), cornerZ)
     end
 
@@ -262,17 +265,111 @@ class WaterSurface is Model
             end
             row = row + 1
         end
-        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program)
+        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program, NOT_FLOWING)
         // The heights are the water's own, so the sheet stands at 0.
         SetPosition(cornerX, 0, cornerZ)
     end
 
     /*
+    This action makes the water a river's (River plan R2): a strip along
+    the river's line, as wide as the river, at its water's height, sloping
+    down where the river does. Its ripples flow downstream at the river's
+    speed (R3): each corner's texture coordinates are how far across and
+    along the river it is, in world units, and its tangent and bitangent
+    point across and downstream, which the water shader follows.
+
+    Attribute: Parameter river A river, after its Compute.
+    Attribute: Parameter program An installed water program.
+    */
+    action LoadRiver(TerrainRiver river, WaterShaderProgram program)
+        if program = undefined
+            alert("A WaterSurface needs an installed WaterShaderProgram. Call the program's Install action first.")
+        end
+        waterProgram = program
+        if program:GetNormalMap() = undefined
+            return now
+        end
+        integer samples = river:GetSampleCount()
+        if samples < 2
+            return now
+        end
+        integer vertexCount = samples * 2
+        Number32BitArray vertices
+        vertices:SetSize(vertexCount * 3)
+        Number32BitArray normals
+        normals:SetSize(vertexCount * 3)
+        Number32BitArray tangents
+        tangents:SetSize(vertexCount * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(vertexCount * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(vertexCount * 2)
+        Integer32BitArray indices
+        indices:SetSize((samples - 1) * 6)
+
+        // The strip is placed at the river's first sample, so its numbers
+        // stay small.
+        number originX = river:GetSampleX(0)
+        number originZ = river:GetSampleZ(0)
+        integer sample = 0
+        repeat while sample < samples
+            number flowX = river:GetFlowX(sample)
+            number flowZ = river:GetFlowZ(sample)
+            // Across the river, to the right of the flow.
+            number acrossX = -flowZ
+            number acrossZ = flowX
+            number half = river:GetSampleWidth(sample) / 2
+            integer side = 0
+            repeat while side < 2
+                // The first side is across the flow, the second opposite,
+                // so the strip's triangles face up, as a lake's do.
+                number sign = 1
+                if side = 1
+                    sign = -1
+                end
+                integer vertex = sample * 2 + side
+                vertices:Set(vertex * 3, river:GetSampleX(sample) + acrossX * half * sign - originX)
+                vertices:Set(vertex * 3 + 1, river:GetSampleSurface(sample))
+                vertices:Set(vertex * 3 + 2, river:GetSampleZ(sample) + acrossZ * half * sign - originZ)
+                normals:Set(vertex * 3, 0)
+                normals:Set(vertex * 3 + 1, 1)
+                normals:Set(vertex * 3 + 2, 0)
+                tangents:Set(vertex * 3, acrossX)
+                tangents:Set(vertex * 3 + 1, 0)
+                tangents:Set(vertex * 3 + 2, acrossZ)
+                bitangents:Set(vertex * 3, flowX)
+                bitangents:Set(vertex * 3 + 1, 0)
+                bitangents:Set(vertex * 3 + 2, flowZ)
+                coordinates:Set(vertex * 2, half * sign)
+                coordinates:Set(vertex * 2 + 1, river:GetSampleDistance(sample))
+                side = side + 1
+            end
+            if sample < samples - 1
+                integer first = sample * 2
+                integer index = sample * 6
+                indices:Set(index, first)
+                indices:Set(index + 1, first + 2)
+                indices:Set(index + 2, first + 1)
+                indices:Set(index + 3, first + 1)
+                indices:Set(index + 4, first + 2)
+                indices:Set(index + 5, first + 3)
+            end
+            sample = sample + 1
+        end
+        LoadSheetMesh(vertices, normals, tangents, bitangents, coordinates, indices, program, river:GetSpeed())
+        SetPosition(originX, 0, originZ)
+    end
+
+    /*
     This action turns a water sheet's mesh into a model, drawn with the
-    water program.
+    water program. A flowing sheet, a river's, gives its speed; still
+    water gives NOT_FLOWING. A flowing sheet's material has a texture
+    transform: its scale across is the flow speed, and it is moved up by
+    one whole texture, which changes nothing but marks it as flowing for
+    the water shader (River plan R3).
     */
     private action LoadSheetMesh(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
-            Number32BitArray coordinates, Integer32BitArray indices, WaterShaderProgram program)
+            Number32BitArray coordinates, Integer32BitArray indices, WaterShaderProgram program, number flowSpeed)
         MeshData mesh
         mesh:SetVertices(vertices)
         mesh:SetIndices(indices)
@@ -288,6 +385,9 @@ class WaterSurface is Model
         Vector4 white
         white:Set(1, 1, 1, 1)
         material:SetDiffuse(white)
+        if flowSpeed not= NOT_FLOWING
+            material:SetTextureTransform(0, 1, flowSpeed, 1, 0)
+        end
         Array<Material> materials
         materials:Add(material)
 

@@ -61,7 +61,14 @@ class EditorTerrain is TerrainItem
     // the brush (Water plan W6).
     public constant integer FILL_WATER_TOOL = 14
     public constant integer PAINT_WATER_TOOL = 15
-    public constant integer LAST_TOOL = 15
+    // Draws a river along a path of points (River plan R5).
+    public constant integer RIVER_TOOL = 16
+    public constant integer LAST_TOOL = 16
+
+    // A new river's width and depth, set in the Water section (River plan
+    // R6).
+    number riverWidth = 4
+    number riverDepth = 1.5
 
     // How far above the ground under the brush the Fill water and Paint
     // water tools put the water's level (Water plan W6).
@@ -341,6 +348,42 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Returns how wide a new river is (River plan R6).
+
+        Attribute: Returns The width
+    */
+    action GetRiverWidth returns number
+        return riverWidth
+    end
+
+    /*
+        Sets how wide a new river is.
+
+        Attribute: Parameter width The width
+    */
+    action SetRiverWidth(number width)
+        riverWidth = width
+    end
+
+    /*
+        Returns how deep a new river is in its middle.
+
+        Attribute: Returns The depth
+    */
+    action GetRiverDepth returns number
+        return riverDepth
+    end
+
+    /*
+        Sets how deep a new river is in its middle.
+
+        Attribute: Parameter depth The depth
+    */
+    action SetRiverDepth(number depth)
+        riverDepth = depth
+    end
+
+    /*
         Sets how far above the ground under the brush the water tools put
         the water's level.
 
@@ -556,10 +599,10 @@ class EditorTerrain is TerrainItem
         2 lower, 3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add
         region, 9 remove region; then, in the scene editor only, 10 stamp,
         11 erode and 12 auto paint, which act once per click, 13 foliage,
-        14 fill water and 15 paint water; or 0 for none. The first time a tool is chosen, the brush starts at
+        14 fill water, 15 paint water and 16 river; or 0 for none. The first time a tool is chosen, the brush starts at
         the terrain's middle.
 
-        Attribute: Parameter number The tool's number, from 0 to 15
+        Attribute: Parameter number The tool's number, from 0 to 16
     */
     action SetToolNumber(integer tool)
         if tool < 0 or tool > LAST_TOOL
@@ -590,10 +633,10 @@ class EditorTerrain is TerrainItem
             brush:SetTool(tools:SCULPT, tools:ADD)
         elseif tool = AUTO_PAINT_TOOL
             brush:SetTool(tools:TEXTURE, tools:ADD)
-        elseif tool = FOLIAGE_TOOL or tool = FILL_WATER_TOOL or tool = PAINT_WATER_TOOL
-            // The Foliage and water tools don't change the ground; the scene
-            // editor places copies and water itself (Terrain plan F3, Water
-            // plan W6).
+        elseif tool = FOLIAGE_TOOL or tool = FILL_WATER_TOOL or tool = PAINT_WATER_TOOL or tool = RIVER_TOOL
+            // The Foliage and water tools don't change the ground with the
+            // brush; the scene editor places copies and water itself
+            // (Terrain plan F3, Water plan W6, River plan R5).
             brush:SetTool(tools:TEXTURE, tools:ADD)
         end
         if tool > 0 and not brushPlaced
@@ -602,7 +645,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Returns the chosen tool's number, from 1 to 15, or 0 for none.
+        Returns the chosen tool's number, from 1 to 16, or 0 for none.
 
         Attribute: Returns The tool's number
     */
@@ -623,7 +666,7 @@ class EditorTerrain is TerrainItem
         Remembers the tool that was chosen when the user left this terrain,
         so the scene editor can choose it again when they return (Round 2).
 
-        Attribute: Parameter tool The tool's number, from 0 to 15
+        Attribute: Parameter tool The tool's number, from 0 to 16
     */
     action SetSavedToolNumber(integer tool)
         savedToolNumber = tool
@@ -633,7 +676,7 @@ class EditorTerrain is TerrainItem
         Returns the tool that was chosen when the user last left this
         terrain, or 0.
 
-        Attribute: Returns The tool's number, from 0 to 15
+        Attribute: Returns The tool's number, from 0 to 16
     */
     action GetSavedToolNumber returns integer
         return savedToolNumber
@@ -642,7 +685,7 @@ class EditorTerrain is TerrainItem
     /*
         Returns a tool's name, by its number.
 
-        Attribute: Parameter number The tool's number, from 0 to 15
+        Attribute: Parameter number The tool's number, from 0 to 16
         Attribute: Returns Its name, such as "Raise", or "No tool" for 0
     */
     action GetToolName(integer tool) returns text
@@ -676,6 +719,8 @@ class EditorTerrain is TerrainItem
             return "Fill water"
         elseif tool = PAINT_WATER_TOOL
             return "Paint water"
+        elseif tool = RIVER_TOOL
+            return "River"
         end
         return "No tool"
     end

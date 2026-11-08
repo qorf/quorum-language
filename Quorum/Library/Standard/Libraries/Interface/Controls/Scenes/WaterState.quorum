@@ -5,14 +5,16 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Game.Graphics.Worlds.WaterSurface
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 
 /*
     A WaterState is a copy of everything about a terrain's water at one
     moment (Water plan W6): whether it has a sea and the sea's level, its
-    lakes in order with their places, sizes, levels and names, and the
-    water's look. The scene editor keeps one from before and one from after
+    lakes in order with their places, sizes, levels and names, its rivers
+    in order with their points and the ground they carved (River plan R4),
+    and the water's look. The scene editor keeps one from before and one from after
     each water change, so the change can be undone and redone.
 
     Attribute: Example
@@ -35,6 +37,11 @@ class WaterState
     // CopyFrom).
     Array<TerrainLake> lakes
     Array<TerrainLake> lakeCopies
+
+    // The rivers, in order, and a copy of each as it was (TerrainRiver's
+    // CopyFrom).
+    Array<TerrainRiver> rivers
+    Array<TerrainRiver> riverCopies
 
     // The look: the two colors' red, green, blue and alpha, then clarity,
     // shore fade, ripple size, ripple speed, roughness, ripple strength
@@ -60,6 +67,17 @@ class WaterState
             copy:CopyFrom(lake)
             lakeCopies:Add(copy)
             i = i + 1
+        end
+        rivers:Empty()
+        riverCopies:Empty()
+        integer riverIndex = 0
+        repeat while riverIndex < water:GetRiverCount()
+            TerrainRiver river = water:GetRiver(riverIndex)
+            rivers:Add(river)
+            TerrainRiver riverCopy
+            riverCopy:CopyFrom(river)
+            riverCopies:Add(riverCopy)
+            riverIndex = riverIndex + 1
         end
         WaterShaderProgram program = water:GetWaterProgram()
         look:Empty()
@@ -108,6 +126,16 @@ class WaterState
             lake:CopyFrom(lakeCopies:Get(i))
             water:AddLake(i, lake)
             i = i + 1
+        end
+        repeat while water:GetRiverCount() > 0
+            boolean removedRiver = water:RemoveRiver(water:GetRiver(water:GetRiverCount() - 1))
+        end
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            river:CopyFrom(riverCopies:Get(riverIndex))
+            water:AddRiver(riverIndex, river)
+            riverIndex = riverIndex + 1
         end
         if look:GetSize() >= 14
             WaterShaderProgram program = water:GetWaterProgram()
@@ -163,7 +191,45 @@ class WaterState
         if seaOn not= other:HasSea() or seaLevel not= other:GetSeaLevel()
             return false
         end
-        return SameNumbers(look, other:GetLook()) and SameLakes(other:GetLakes()) and SameCopies(other:GetLakeCopies())
+        return SameNumbers(look, other:GetLook()) and SameLakes(other:GetLakes()) and SameCopies(other:GetLakeCopies()) and SameRivers(other)
+    end
+
+    /*
+        Returns true if two states hold the same rivers, in order, each the
+        same as it was kept.
+    */
+    private action SameRivers(WaterState other) returns boolean
+        Array<TerrainRiver> otherRivers = other:GetRivers()
+        Array<TerrainRiver> otherCopies = other:GetRiverCopies()
+        if rivers:GetSize() not= otherRivers:GetSize()
+            return false
+        end
+        integer i = 0
+        repeat while i < rivers:GetSize()
+            if rivers:Get(i) not= otherRivers:Get(i) or not riverCopies:Get(i):IsSameAs(otherCopies:Get(i))
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+        Returns the rivers, in order.
+
+        Attribute: Returns The rivers
+    */
+    action GetRivers returns Array<TerrainRiver>
+        return rivers
+    end
+
+    /*
+        Returns the kept copies of the rivers, in order.
+
+        Attribute: Returns The copies
+    */
+    action GetRiverCopies returns Array<TerrainRiver>
+        return riverCopies
     end
 
     /*

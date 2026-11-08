@@ -30,6 +30,10 @@ class TerrainBrushMouseListener is MouseMovementListener
         // would move it.
         if editor:HasActivePreview()
             editor:MovePreviewGhostToPointer(event:GetX(), event:GetY())
+        elseif editor:IsRiverToolActive()
+            // The River tool shows the next stretch of the river being
+            // drawn instead (River plan R5).
+            editor:MoveRiverLineToPointer(event:GetX(), event:GetY())
         else
             editor:MoveTerrainGhostToPointer(event:GetX(), event:GetY())
         end
@@ -39,6 +43,10 @@ class TerrainBrushMouseListener is MouseMovementListener
     action DraggedMouse(MouseEvent event)
         if editor not= undefined and editor:IsTerrainStroking()
             editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
+        elseif editor not= undefined and editor:IsDraggingRiverPoint()
+            // A river's point being moved follows the pointer (River plan
+            // R6).
+            editor:DragRiverPoint(event:GetX(), event:GetY())
         end
     end
 end

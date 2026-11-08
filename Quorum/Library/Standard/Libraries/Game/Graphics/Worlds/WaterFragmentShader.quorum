@@ -9,7 +9,8 @@ see what is behind the water: deeper water is darker, the edge fades into
 the shore, and water behind the ground is hidden. Two layers of ripples
 move with time, and every light shines and glints on the surface. The sky
 is reflected in it, strongly at low angles and hardly looking down (Water
-plan W4). It needs the camera data of library item 38.
+plan W4). A river's ripples flow downstream instead (River plan R3). It
+needs the camera data of library item 38.
 
 Its settings come from WaterShaderProgram, through the push constants,
 after the instance buffer address.
@@ -169,6 +170,10 @@ layout(location = 1) flat in uint v_entityID;
 layout(location = 4) flat in uint v_hasTextureOverride;
 layout(location = 5) flat in uint v_textureOverrideIndex;
 layout(location = 6) in vec4 v_position;
+// A river's sheet (River plan R3): how far across and along the river, in
+// world units, and its across and downstream directions.
+layout(location = 0) in vec2 v_textureCoords;
+layout(location = 7) in mat3 v_tangentBitangentNormal;
 
 layout(location = 0) out vec4 outputColor;
 
@@ -199,6 +204,29 @@ vec3 waterNormal(uint normalMap, vec3 surface)
     // is up.
     vec2 slope = (a.xy + b.xy) * water.detail.x;
     return normalize(vec3(slope.x, a.z * b.z, slope.y));
+}
+
+// A river's normal (River plan R3): the ripples move downstream along the
+// river at its speed. Moving a texture forever would stretch it, so two
+// copies move half a cycle apart, each starting over while it is faded
+// out, and they are blended. The slopes are then turned from across and
+// along the river into the world's x and z.
+vec3 riverNormal(uint normalMap, vec2 riverCoordinates, vec2 acrossDirection, vec2 downstream, float speed)
+{
+    float scale = max(water.waves.x, 0.01);
+    float cycle = 2.0;
+    float phaseA = fract(camera.time / cycle);
+    float phaseB = fract(camera.time / cycle + 0.5);
+    float blendB = abs(1.0 - 2.0 * phaseA);
+    vec2 coordinatesA = (riverCoordinates - vec2(0.0, speed * cycle * phaseA)) / scale;
+    vec2 coordinatesB = (riverCoordinates - vec2(0.0, speed * cycle * phaseB)) / scale + vec2(0.37, 0.21);
+    vec3 a = readRipples(normalMap, coordinatesA);
+    vec3 b = readRipples(normalMap, coordinatesB);
+    vec3 small = readRipples(normalMap, (riverCoordinates - vec2(0.0, speed * camera.time * 0.5)) / (scale * 0.43));
+    vec3 ripple = mix(a, b, blendB);
+    vec2 slope = (ripple.xy + small.xy * 0.5) * water.detail.x;
+    vec2 worldSlope = slope.x * acrossDirection + slope.y * downstream;
+    return normalize(vec3(worldSlope.x, ripple.z * small.z, worldSlope.y));
 }
 
 // How much of a light's strength reaches a distance, as in the lighting
@@ -320,7 +348,21 @@ void main()
     if (!hasGround)
         opacity = 1.0;
 
-    vec3 N = waterNormal(normalMap, surface);
+    vec3 N;
+    // A flowing sheet, a river's, has a texture transform: its scale
+    // across is its speed (WaterSurface's LoadSheetMesh).
+    if ((material.flags & 32u) != 0u)
+    {
+        vec2 acrossDirection = v_tangentBitangentNormal[0].xz;
+        vec2 downstream = v_tangentBitangentNormal[1].xz;
+        if (dot(acrossDirection, acrossDirection) < 0.0001)
+            acrossDirection = vec2(1.0, 0.0);
+        if (dot(downstream, downstream) < 0.0001)
+            downstream = vec2(0.0, 1.0);
+        N = riverNormal(normalMap, v_textureCoords, normalize(acrossDirection), normalize(downstream), material.uvScaleX);
+    }
+    else
+        N = waterNormal(normalMap, surface);
     // Seen from below, the surface faces down.
     if (V.y < 0.0)
         N.y = -N.y;

@@ -123,6 +123,9 @@ use Libraries.Interface.Behaviors.Scenes.Camera.ReportCameraDirectionBehavior
 use Libraries.Interface.Behaviors.Scenes.Camera.ReportItemsInViewBehavior
 use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.TerrainRiver
+use Libraries.Interface.Controls.Scenes.Items.TerrainPathLine
+use Libraries.Interface.Undo.SceneEditorRiverEdit
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainWaterPropertiesDialog
 use Libraries.Interface.Events.KeyboardEvent
@@ -418,6 +421,24 @@ class SceneEditor is Control, DefaultSceneManager
     // it, for undo, and where it last painted.
     boolean waterStroking = false
     TerrainLake waterStrokeLake = undefined
+
+    // The River tool (River plan R5 and R6): the points of a river being
+    // drawn, the river and point chosen to edit, a point being dragged, and
+    // the line that shows the path over the ground.
+    boolean riverDrawing = false
+    EditorTerrain riverTerrain = undefined
+    Array<number> riverDraftX
+    Array<number> riverDraftZ
+    TerrainRiver chosenRiver = undefined
+    integer chosenRiverPoint = -1
+    boolean riverDragging = false
+    boolean riverDragMoved = false
+    number riverDragX = 0
+    number riverDragZ = 0
+    TerrainPathLine riverLine = undefined
+    boolean riverLineShown = false
+    // How close to a river's point a click must be to choose it, at least.
+    constant number RIVER_POINT_REACH = 1.5
     boolean waterStrokeAdds = true
     WaterState waterStrokeBefore = undefined
     integer waterStrokeCells = 0
@@ -946,6 +967,7 @@ action Update(number seconds)
         end
         UpdateTerrainStroke(seconds)
         UpdatePointerHold(seconds)
+        UpdateRiverDrag()
         UpdateTerrainGridPatch()
         // A click in the view gives the scene editor the focus; a preview
         // being placed takes it back, so Enter and the arrow keys reach it.
@@ -1964,7 +1986,7 @@ action Update(number seconds)
     announced, and the Brush section of the Properties panel follows.
 
     Attribute: Parameter terrain The terrain
-    Attribute: Parameter tool The tool's number, from 0 to 13
+    Attribute: Parameter tool The tool's number, from 0 to 16
     */
     action SetTerrainTool(EditorTerrain terrain, integer tool)
         if terrain = undefined
@@ -1974,11 +1996,16 @@ action Update(number seconds)
         if stroking
             EndTerrainStroke()
         end
+        // A river being drawn is left, unfinished (River plan R5).
+        LeaveRiverTool()
         if brushTerrain not= undefined and brushTerrain not= terrain
             brushTerrain:SetToolNumber(0)
         end
         terrain:SetToolNumber(tool)
-        if tool > 0
+        if tool = terrain:RIVER_TOOL
+            brushTerrain = terrain
+            NotifyAccessibility(terrain, "River tool. Click, or press Space, to start a river and add its points; press Enter to finish it, or Escape to stop. Click a river's point to drag it, or press Delete to remove it. " + terrain:DescribeBrush())
+        elseif tool > 0
             brushTerrain = terrain
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
         else
@@ -2123,6 +2150,7 @@ action Update(number seconds)
             if stroking
                 EndTerrainStroke()
             end
+            LeaveRiverTool()
             terrain:SetSavedToolNumber(terrain:GetToolNumber())
             terrain:SetToolNumber(0)
             brushTerrain = undefined
@@ -2854,6 +2882,15 @@ action Update(number seconds)
             return now
         end
         HideTerrainGhost()
+        // The River tool adds, chooses or moves points where the click is
+        // (River plan R5 and R6).
+        if terrain:GetToolNumber() = terrain:RIVER_TOOL
+            terrainCursorMovedByPointer = true
+            terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+            UpdateBrushPreview()
+            PressRiverTool(terrain, hit:GetX(), hit:GetZ(), true)
+            return now
+        end
         if terrain:HasTool() and IsInsideRing(terrain, hit)
             BeginTerrainStroke(terrain, true, 0)
             return now
@@ -3040,6 +3077,12 @@ action Update(number seconds)
             return now
         end
         integer tool = terrain:GetToolNumber()
+        if tool = terrain:RIVER_TOOL
+            // Not a stroke: Space adds a point at the cursor, or chooses the
+            // river point there (River plan R5).
+            PressRiverTool(terrain, terrain:GetBrushX(), terrain:GetBrushZ(), false)
+            return now
+        end
         if (tool = 6 or tool = 7) and terrain:GetLayerCount() < 2
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " needs two or more materials. Add them in the Materials section.")
             return now
@@ -3344,6 +3387,618 @@ action Update(number seconds)
         end
         RecordWaterChange(terrain, before, "fill " + lake:GetName(), "Filled the hollow: " + stoppedAt + ", " +
             lake:GetWaterCellCount() + " cells, about " + RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + ".")
+    end
+
+    /*
+    This action returns true while the River tool is chosen on a terrain
+    (River plan R5).
+
+    Attribute: Returns True while the River tool is in use
+    */
+    action IsRiverToolActive returns boolean
+        return brushTerrain not= undefined and brushTerrain:GetToolNumber() = brushTerrain:RIVER_TOOL
+    end
+
+    /*
+    This action returns true while a river is being drawn.
+
+    Attribute: Returns True while drawing a river
+    */
+    action IsDrawingRiver returns boolean
+        return riverDrawing
+    end
+
+    /*
+    This action returns true while a river's point is being dragged with
+    the mouse (River plan R6).
+
+    Attribute: Returns True while dragging
+    */
+    action IsDraggingRiverPoint returns boolean
+        return riverDragging
+    end
+
+    /*
+    This action is a click with the River tool, or Space, at a place on the
+    ground (River plan R5 and R6):
+    - while a river is being drawn, it adds the next point there;
+    - on one of a river's points, it chooses it, and with the mouse, holding
+      the button and moving drags it;
+    - on a river's water, between points, it adds a point there;
+    - anywhere else, it starts a new river there.
+    */
+    private action PressRiverTool(EditorTerrain terrain, number x, number z, boolean byMouse)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if not data:HasHeight(x, z)
+            NotifyAccessibility(terrain, "A river needs ground under its points.")
+            return now
+        end
+        if riverDrawing
+            AddRiverDraftPoint(terrain, x, z)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        // A river's point: chosen, and dragged while the button is held.
+        integer i = water:GetRiverCount() - 1
+        repeat while i >= 0
+            TerrainRiver river = water:GetRiver(i)
+            number reach = river:GetWidth() / 2
+            if reach < RIVER_POINT_REACH
+                reach = RIVER_POINT_REACH
+            end
+            integer point = river:GetPointNear(x, z, reach)
+            if point >= 0
+                ChooseRiverPoint(terrain, river, point)
+                if byMouse
+                    riverDragging = true
+                    riverDragMoved = false
+                    riverDragX = river:GetPointX(point)
+                    riverDragZ = river:GetPointZ(point)
+                end
+                NotifyAccessibility(terrain, "Point " + (point + 1) + " of " + river:GetPointCount() + " of " + river:GetName() + ". Drag it to move it, or press Delete to remove it.")
+                return now
+            end
+            i = i - 1
+        end
+        // A river's water, between points: a new point there.
+        TerrainRiver under = water:GetRiverAt(x, z)
+        if under not= undefined
+            integer index = under:GetInsertIndexAt(x, z)
+            if index > 0 and index < under:GetPointCount()
+                InsertRiverPoint(terrain, under, index, x, z)
+                return now
+            end
+        end
+        // Anywhere else: a new river starts here.
+        riverDrawing = true
+        riverTerrain = terrain
+        riverDraftX:Empty()
+        riverDraftZ:Empty()
+        riverDraftX:Add(x)
+        riverDraftZ:Add(z)
+        chosenRiver = undefined
+        chosenRiverPoint = -1
+        ShowRiverLine(terrain, riverDraftX, riverDraftZ, 0)
+        NotifyAccessibility(terrain, "Started a river at " + RoundTenth(x) + ", " + RoundTenth(z) + ", ground height " + RoundTenth(data:GetSurfaceHeight(x, z)) +
+            ". Click, or move the cursor and press Space, to add its next point. Press Enter to finish it, or Escape to stop.")
+    end
+
+    /*
+    This action adds the next point to the river being drawn, and says how
+    far it is from the last and how much the ground drops.
+    */
+    private action AddRiverDraftPoint(EditorTerrain terrain, number x, number z)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer last = riverDraftX:GetSize() - 1
+        number lastX = riverDraftX:Get(last)
+        number lastZ = riverDraftZ:Get(last)
+        number apartX = x - lastX
+        number apartZ = z - lastZ
+        number apart = math:SquareRoot(apartX * apartX + apartZ * apartZ)
+        if apart < 0.5
+            NotifyAccessibility(terrain, "That is where the last point is. Move farther to add the next point.")
+            return now
+        end
+        riverDraftX:Add(x)
+        riverDraftZ:Add(z)
+        ShowRiverLine(terrain, riverDraftX, riverDraftZ, riverDraftX:GetSize() - 1)
+        number drop = data:GetSurfaceHeight(lastX, lastZ) - data:GetSurfaceHeight(x, z)
+        text slope = "the ground drops " + RoundTenth(drop)
+        if drop < 0
+            slope = "the ground rises " + RoundTenth(-drop) + ", so the river will cut into it there"
+        elseif drop = 0
+            slope = "the ground is level"
+        end
+        NotifyAccessibility(terrain, "Point " + riverDraftX:GetSize() + ", " + RoundTenth(apart) + " units from the last; " + slope + ". Press Enter to finish the river.")
+    end
+
+    /*
+    This action finishes the river being drawn: it becomes one of the
+    terrain's rivers, its water runs downhill along its points, and its bed
+    is carved into the ground, as one change that can be undone (River plan
+    R4 and R5). A river needs two points or more.
+
+    Attribute: Returns True if a river was being drawn, so Enter did this
+    */
+    action FinishRiverDrawing returns boolean
+        if not riverDrawing
+            return false
+        end
+        EditorTerrain terrain = riverTerrain
+        if riverDraftX:GetSize() < 2
+            NotifyAccessibility(terrain, "A river needs two points or more. Add another point, or press Escape to stop.")
+            return true
+        end
+        if not CanChangeWater(terrain)
+            return true
+        end
+        riverDrawing = false
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainWater water = terrain:GetWater()
+        WaterState before
+        before:Copy(terrain)
+        TerrainRiver river = water:AddRiver()
+        river:SetName(water:GetNewRiverName())
+        integer i = 0
+        repeat while i < riverDraftX:GetSize()
+            river:AddPoint(RoundTenth(riverDraftX:Get(i)), RoundTenth(riverDraftZ:Get(i)), terrain:GetRiverWidth(), terrain:GetRiverDepth())
+            i = i + 1
+        end
+        riverDraftX:Empty()
+        riverDraftZ:Empty()
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        water:RiverChanged(river)
+        CarveRiverGround(terrain, river, operation)
+        chosenRiver = river
+        chosenRiverPoint = river:GetPointCount() - 1
+        ShowChosenRiverLine(terrain)
+        FinishRiverChange(terrain, before, operation, "draw " + river:GetName(), "Drew " + DescribeRiver(terrain, river))
+        return true
+    end
+
+    /*
+    This action stops drawing a river, without making it.
+
+    Attribute: Returns True if a river was being drawn, so Escape did this
+    */
+    action CancelRiverDrawing returns boolean
+        if not riverDrawing
+            return false
+        end
+        EditorTerrain terrain = riverTerrain
+        riverDrawing = false
+        riverDraftX:Empty()
+        riverDraftZ:Empty()
+        HideRiverLine()
+        NotifyAccessibility(terrain, "Stopped drawing the river. Nothing was added.")
+        return true
+    end
+
+    /*
+    This action removes the chosen point of a river (River plan R6), or the
+    whole river if it would have fewer than two points left. The ground it
+    carved is put back where it wasn't changed since. It can be undone.
+
+    Attribute: Returns True if a river's point was chosen, so Delete did this
+    */
+    action RemoveChosenRiverPoint returns boolean
+        if not IsRiverToolActive()
+            return false
+        end
+        EditorTerrain terrain = brushTerrain
+        // While drawing, Delete takes back the last point added.
+        if riverDrawing
+            if riverDraftX:GetSize() <= 1
+                return CancelRiverDrawing()
+            end
+            number removedX = riverDraftX:RemoveFromEnd()
+            number removedZ = riverDraftZ:RemoveFromEnd()
+            ShowRiverLine(terrain, riverDraftX, riverDraftZ, riverDraftX:GetSize() - 1)
+            NotifyAccessibility(terrain, "Took back the last point. The river has " + riverDraftX:GetSize() + " points so far.")
+            return true
+        end
+        if chosenRiver = undefined or chosenRiverPoint < 0
+            NotifyAccessibility(terrain, "Click a river's point first to choose it. Escape leaves the terrain.")
+            return true
+        end
+        if not CanChangeWater(terrain)
+            return true
+        end
+        TerrainRiver river = chosenRiver
+        if river:GetPointCount() <= 2
+            RemoveTerrainRiver(terrain, terrain:GetWater():GetRiverIndex(river))
+            return true
+        end
+        WaterState before
+        before:Copy(terrain)
+        integer removedPoint = chosenRiverPoint
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        river:RemovePoint(removedPoint)
+        terrain:GetWater():RiverChanged(river)
+        CarveRiverGround(terrain, river, operation)
+        chosenRiverPoint = removedPoint - 1
+        if chosenRiverPoint < 0
+            chosenRiverPoint = 0
+        end
+        ShowChosenRiverLine(terrain)
+        FinishRiverChange(terrain, before, operation, "remove a point of " + river:GetName(), "Removed point " + (removedPoint + 1) + " of " + river:GetName() + ". " + DescribeRiver(terrain, river))
+        return true
+    end
+
+    /*
+    This action adds a point to a river where its water is, between two of
+    its points, with the width and depth between theirs. It can be undone.
+    */
+    private action InsertRiverPoint(EditorTerrain terrain, TerrainRiver river, integer index, number x, number z)
+        WaterState before
+        before:Copy(terrain)
+        number width = (river:GetPointWidth(index - 1) + river:GetPointWidth(index)) / 2
+        number depth = (river:GetPointDepth(index - 1) + river:GetPointDepth(index)) / 2
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        river:InsertPoint(index, RoundTenth(x), RoundTenth(z), width, depth)
+        terrain:GetWater():RiverChanged(river)
+        CarveRiverGround(terrain, river, operation)
+        ChooseRiverPoint(terrain, river, index)
+        FinishRiverChange(terrain, before, operation, "add a point to " + river:GetName(), "Added point " + (index + 1) + " to " + river:GetName() + ". Drag it to move it, or press Delete to remove it.")
+    end
+
+    /*
+    This action makes a river's point the chosen one, and shows the river's
+    path with it larger.
+    */
+    private action ChooseRiverPoint(EditorTerrain terrain, TerrainRiver river, integer point)
+        chosenRiver = river
+        chosenRiverPoint = point
+        ShowChosenRiverLine(terrain)
+    end
+
+    /*
+    This action moves the dragged point of a river to the ground under the
+    pointer; the river follows when the button is let go (River plan R6).
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action DragRiverPoint(number x, number y)
+        if not riverDragging or chosenRiver = undefined or brushTerrain = undefined
+            return now
+        end
+        Vector3 hit = PickPointerGround(brushTerrain, x, y)
+        if hit = undefined or not brushTerrain:GetWorldTerrain():GetData():HasHeight(hit:GetX(), hit:GetZ())
+            return now
+        end
+        riverDragX = hit:GetX()
+        riverDragZ = hit:GetZ()
+        riverDragMoved = true
+        Array<number> xs
+        Array<number> zs
+        integer i = 0
+        repeat while i < chosenRiver:GetPointCount()
+            if i = chosenRiverPoint
+                xs:Add(riverDragX)
+                zs:Add(riverDragZ)
+            else
+                xs:Add(chosenRiver:GetPointX(i))
+                zs:Add(chosenRiver:GetPointZ(i))
+            end
+            i = i + 1
+        end
+        ShowRiverLine(brushTerrain, xs, zs, chosenRiverPoint)
+    end
+
+    /*
+    This action finishes a drag when the button is let go: the point moves,
+    the river's water and bed follow, as one change that can be undone.
+    */
+    private action UpdateRiverDrag
+        if not riverDragging
+            return now
+        end
+        if strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+            return now
+        end
+        riverDragging = false
+        if not riverDragMoved or chosenRiver = undefined or brushTerrain = undefined
+            return now
+        end
+        EditorTerrain terrain = brushTerrain
+        if not CanChangeWater(terrain)
+            ShowChosenRiverLine(terrain)
+            return now
+        end
+        TerrainRiver river = chosenRiver
+        WaterState before
+        before:Copy(terrain)
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        river:MovePoint(chosenRiverPoint, RoundTenth(riverDragX), RoundTenth(riverDragZ))
+        terrain:GetWater():RiverChanged(river)
+        CarveRiverGround(terrain, river, operation)
+        ShowChosenRiverLine(terrain)
+        FinishRiverChange(terrain, before, operation, "move a point of " + river:GetName(), "Moved point " + (chosenRiverPoint + 1) + " of " + river:GetName() + " to " +
+            RoundTenth(riverDragX) + ", " + RoundTenth(riverDragZ) + ". " + DescribeRiver(terrain, river))
+    end
+
+    /*
+    This action follows the pointer with the River tool: while a river is
+    drawn, the line reaches from its last point to the ground under the
+    pointer, to show where the next point would go (River plan R5).
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action MoveRiverLineToPointer(number x, number y)
+        HideTerrainGhost()
+        if not riverDrawing or riverTerrain = undefined
+            return now
+        end
+        Vector3 hit = PickPointerGround(riverTerrain, x, y)
+        if hit = undefined or not riverTerrain:GetWorldTerrain():GetData():HasHeight(hit:GetX(), hit:GetZ())
+            return now
+        end
+        Array<number> xs
+        Array<number> zs
+        integer i = 0
+        repeat while i < riverDraftX:GetSize()
+            xs:Add(riverDraftX:Get(i))
+            zs:Add(riverDraftZ:Get(i))
+            i = i + 1
+        end
+        xs:Add(hit:GetX())
+        zs:Add(hit:GetZ())
+        ShowRiverLine(riverTerrain, xs, zs, riverDraftX:GetSize() - 1)
+    end
+
+    /*
+    This action leaves the River tool's work: a river being drawn is
+    dropped, unfinished, a drag stops, and the path line is hidden.
+    */
+    private action LeaveRiverTool
+        riverDrawing = false
+        riverDragging = false
+        riverDraftX:Empty()
+        riverDraftZ:Empty()
+        chosenRiver = undefined
+        chosenRiverPoint = -1
+        HideRiverLine()
+    end
+
+    /*
+    This action shows the chosen river's path, with its chosen point
+    larger.
+    */
+    private action ShowChosenRiverLine(EditorTerrain terrain)
+        if chosenRiver = undefined
+            HideRiverLine()
+            return now
+        end
+        Array<number> xs
+        Array<number> zs
+        integer i = 0
+        repeat while i < chosenRiver:GetPointCount()
+            xs:Add(chosenRiver:GetPointX(i))
+            zs:Add(chosenRiver:GetPointZ(i))
+            i = i + 1
+        end
+        ShowRiverLine(terrain, xs, zs, chosenRiverPoint)
+    end
+
+    /*
+    This action shows the path line through points over a terrain's ground.
+    */
+    private action ShowRiverLine(EditorTerrain terrain, Array<number> xs, Array<number> zs, integer chosen)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D) or xs:IsEmpty()
+            return now
+        end
+        if riverLine = undefined
+            TerrainPathLine line
+            line:SetName("River Path")
+            riverLine = line
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(line)
+        end
+        riverLine:Place(terrain:GetWorldTerrain():GetData(), xs, zs, chosen)
+        if not riverLineShown
+            riverLine:Show()
+            riverLineShown = true
+        end
+    end
+
+    /*
+    This action hides the path line.
+    */
+    private action HideRiverLine
+        if riverLine not= undefined and riverLineShown
+            riverLine:Hide()
+        end
+        riverLineShown = false
+    end
+
+    /*
+    This action starts a river change's ground edit: the ground under the
+    river now is kept for undoing, and the bed it carved is put back, so the
+    river can be carved again where it goes now (River plan R4).
+    */
+    private action StartRiverGround(EditorTerrain terrain, TerrainRiver river) returns TerrainStroke
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainStroke operation
+        operation:BeginOperation(data, "river", true, false)
+        Array<integer> area = river:GetCarveArea(data)
+        if area:GetSize() = 4
+            operation:CopyArea(area:Get(0), area:Get(1), area:Get(2), area:Get(3))
+        end
+        integer kept = river:Uncarve(data)
+        return operation
+    end
+
+    /*
+    This action carves a river's bed where it goes now, keeping the ground
+    there for undoing first. Call the water's RiverChanged before it, so
+    the river's line is found.
+    */
+    private action CarveRiverGround(EditorTerrain terrain, TerrainRiver river, TerrainStroke operation)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        Array<integer> area = river:GetCarveArea(data)
+        if area:GetSize() = 4
+            operation:CopyArea(area:Get(0), area:Get(1), area:Get(2), area:Get(3))
+        end
+        integer carved = river:Carve(data)
+    end
+
+    /*
+    This action finishes a river change: the water and the ground's edit go
+    into the undo list as one step, the terrain is redrawn and marked
+    changed, and what happened is said.
+    */
+    private action FinishRiverChange(EditorTerrain terrain, WaterState before, TerrainStroke operation, text name, text message)
+        TerrainStrokeEdit groundEdit = operation:End()
+        WaterState after
+        after:Copy(terrain)
+        SceneEditorRiverEdit edit
+        edit:Create(me, terrain, before, after, groundEdit, name)
+        editManager:Add(edit)
+        RiverEdited(terrain, groundEdit not= undefined, message)
+    end
+
+    /*
+    This action is called after a river changed, or a change was undone or
+    redone (River plan R4): the ground is redrawn if it changed, the
+    terrain is marked changed for the next save, the Water section follows,
+    and what happened is said.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter groundChanged True if the river's bed changed the ground
+    Attribute: Parameter message What happened
+    */
+    action RiverEdited(EditorTerrain terrain, boolean groundChanged, text message)
+        if terrain = undefined
+            return now
+        end
+        if stroking
+            CancelTerrainStroke()
+        end
+        if groundChanged
+            RedrawTerrain(terrain)
+            TerrainFactsChanged(terrain)
+            if riverLine not= undefined
+                riverLine:Forget()
+            end
+        end
+        terrain:WaterChanged()
+        terrain:SetChanged(true)
+        // A chosen river or point that an undo took away is let go.
+        if chosenRiver not= undefined
+            integer index = terrain:GetWater():GetRiverIndex(chosenRiver)
+            if index < 0
+                chosenRiver = undefined
+                chosenRiverPoint = -1
+                HideRiverLine()
+            else
+                if chosenRiverPoint >= chosenRiver:GetPointCount()
+                    chosenRiverPoint = chosenRiver:GetPointCount() - 1
+                end
+                if riverLineShown
+                    ShowChosenRiverLine(terrain)
+                end
+            end
+        end
+        if terrainWaterPropertiesDialog:IsShowing()
+            terrainWaterPropertiesDialog:Refresh()
+        end
+        if message not= ""
+            NotifyAccessibility(terrain, message)
+        end
+    end
+
+    /*
+    This action describes a river: its points, length, the water's height
+    at its start and end, what water it starts from or ends in, and where
+    it cuts into the ground.
+    */
+    private action DescribeRiver(EditorTerrain terrain, TerrainRiver river) returns text
+        TerrainWater water = terrain:GetWater()
+        integer count = river:GetPointCount()
+        text result = river:GetName() + ": " + count + " points, " + RoundTenth(river:GetLength()) + " units long, water from height " +
+            RoundTenth(river:GetStartLevel()) + " down to " + RoundTenth(river:GetEndLevel()) + "."
+        if count >= 2
+            if water:GetStillWaterLevelAt(river:GetPointX(0), river:GetPointZ(0)) not= water:NO_WATER
+                result = result + " It starts from still water."
+            end
+            if water:GetStillWaterLevelAt(river:GetPointX(count - 1), river:GetPointZ(count - 1)) not= water:NO_WATER
+                result = result + " It ends in still water."
+            end
+        end
+        if river:GetDeepestCut() >= 0.5 and river:GetDeepestCutPoint() >= 0
+            integer cutPoint = river:GetDeepestCutPoint()
+            result = result + " The river cuts " + RoundTenth(river:GetDeepestCut()) + " units into the ground between points " + (cutPoint + 1) + " and " + (cutPoint + 2) + ", where the ground rises."
+        end
+        return result
+    end
+
+    /*
+    This action changes a river's name, width, depth and speed, from the
+    Water section (River plan R6). The width and depth are set at every
+    point, and the bed is carved again. It can be undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter index The river, from 0
+    Attribute: Parameter name Its name
+    Attribute: Parameter width How wide it is
+    Attribute: Parameter depth How deep it is in the middle
+    Attribute: Parameter speed How fast its ripples flow, in units a second
+    */
+    action SetTerrainRiver(EditorTerrain terrain, integer index, text name, number width, number depth, number speed)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if index < 0 or index >= water:GetRiverCount() or width <= 0 or depth <= 0 or speed < 0
+            return now
+        end
+        TerrainRiver river = water:GetRiver(index)
+        WaterState before
+        before:Copy(terrain)
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        river:SetName(name)
+        river:SetWidth(width)
+        river:SetDepth(depth)
+        river:SetSpeed(speed)
+        water:RiverChanged(river)
+        CarveRiverGround(terrain, river, operation)
+        FinishRiverChange(terrain, before, operation, "change " + name, name + ": " + RoundTenth(width) + " units wide, " + RoundTenth(depth) + " deep, flowing at " + RoundTenth(speed) + ". " + DescribeRiver(terrain, river))
+    end
+
+    /*
+    This action removes one of a terrain's rivers, putting back the ground
+    it carved where it wasn't changed since (River plan R6). It can be
+    undone.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter index The river, from 0
+    */
+    action RemoveTerrainRiver(EditorTerrain terrain, integer index)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if index < 0 or index >= water:GetRiverCount()
+            return now
+        end
+        TerrainRiver river = water:GetRiver(index)
+        text riverName = river:GetName()
+        WaterState before
+        before:Copy(terrain)
+        TerrainStroke operation = StartRiverGround(terrain, river)
+        boolean removed = water:RemoveRiver(river)
+        if chosenRiver = river
+            chosenRiver = undefined
+            chosenRiverPoint = -1
+            HideRiverLine()
+        end
+        FinishRiverChange(terrain, before, operation, "remove " + riverName, "Removed " + riverName + ". Its bed was filled back in where the ground wasn't changed since.")
     end
 
     /*

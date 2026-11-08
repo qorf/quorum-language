@@ -23,7 +23,8 @@ terrain follows, in steps of 100 units, so it always reaches the horizon.
 Where the ground is higher than the water, the ground hides it, so the
 shore follows the ground by itself. Past the terrain's edge, the sea is open
 deep water. Lakes are rectangles at their own level; they too are hidden
-where the ground rises above them.
+where the ground rises above them. Rivers (River plan) run downhill along
+a path, from or into a lake or the sea, their ripples flowing downstream.
 
 The sea and the lakes share one WaterShaderProgram, so they share one look,
 which GetWaterProgram changes. Water needs Vulkan; under OpenGL it isn't
@@ -70,6 +71,11 @@ class TerrainWater
     constant number SEA_STEP = 100
 
     Array<TerrainLake> lakes
+
+    // The rivers (River plan R1), and those whose sheet must be made again
+    // on the next update.
+    Array<TerrainRiver> rivers
+    Array<TerrainRiver> changedRivers
 
     // True when the sheets must be made again, on the next update.
     boolean changed = false
@@ -402,6 +408,19 @@ class TerrainWater
         if not changedLakes:Has(lake)
             changedLakes:Add(lake)
         end
+        // A river starting from, or ending in, this lake follows its new
+        // level (River plan R7).
+        integer i = 0
+        repeat while i < rivers:GetSize()
+            TerrainRiver river = rivers:Get(i)
+            integer count = river:GetPointCount()
+            if count >= 2
+                if lake:Covers(river:GetPointX(0), river:GetPointZ(0)) or lake:Covers(river:GetPointX(count - 1), river:GetPointZ(count - 1))
+                    RiverChanged(river)
+                end
+            end
+            i = i + 1
+        end
     end
 
     /*
@@ -410,7 +429,222 @@ class TerrainWater
     Attribute: Returns True if there is water.
     */
     action HasWater returns boolean
-        return seaOn or not lakes:IsEmpty()
+        return seaOn or not lakes:IsEmpty() or not rivers:IsEmpty()
+    end
+
+    /*
+    This action adds a new river with no points (River plan R1). Add its
+    points with the river's AddPoint, then call RiverChanged.
+
+    Attribute: Returns The river.
+    */
+    action AddRiver returns TerrainRiver
+        TerrainRiver river
+        rivers:Add(river)
+        return river
+    end
+
+    /*
+    This action adds a river made elsewhere, such as one being put back by
+    an undo, at a place in the list.
+
+    Attribute: Parameter index Its place in the list, from 0.
+    Attribute: Parameter river The river.
+    */
+    action AddRiver(integer index, TerrainRiver river)
+        river:SetSurface(undefined)
+        rivers:Add(index, river)
+        RiverChanged(river)
+    end
+
+    /*
+    This action takes a river away, with its sheet. The ground it carved
+    stays carved; call the river's Uncarve first to put it back.
+
+    Attribute: Parameter river The river.
+    Attribute: Returns True if it was one of the terrain's rivers.
+    */
+    action RemoveRiver(TerrainRiver river) returns boolean
+        boolean removed = rivers:Remove(river)
+        if removed
+            WaterSurface sheet = river:GetSurface()
+            if sheet not= undefined
+                if drawnOwner not= undefined
+                    boolean removedSheet = drawnOwner:Remove(sheet)
+                end
+                sheet:Dispose()
+                river:SetSurface(undefined)
+            end
+            changed = true
+        end
+        return removed
+    end
+
+    /*
+    This action returns how many rivers there are.
+
+    Attribute: Returns The count.
+    */
+    action GetRiverCount returns integer
+        return rivers:GetSize()
+    end
+
+    /*
+    This action returns one of the rivers.
+
+    Attribute: Parameter index The river, from 0.
+    Attribute: Returns The river.
+    */
+    action GetRiver(integer index) returns TerrainRiver
+        TerrainRiver river = rivers:Get(index)
+        ComputeIfNeeded(river)
+        return river
+    end
+
+    /*
+    This action returns a name for a new river, "River" and the first
+    number no river has.
+
+    Attribute: Returns The name, such as "River 3".
+    */
+    action GetNewRiverName returns text
+        integer suffix = 1
+        repeat while true
+            text candidate = "River " + suffix
+            boolean used = false
+            integer i = 0
+            repeat while i < rivers:GetSize()
+                if rivers:Get(i):GetName() = candidate
+                    used = true
+                end
+                i = i + 1
+            end
+            if not used
+                return candidate
+            end
+            suffix = suffix + 1
+        end
+        return "River"
+    end
+
+    /*
+    This action returns a river's place in the list, or -1.
+
+    Attribute: Parameter river The river.
+    Attribute: Returns Its place, from 0, or -1.
+    */
+    action GetRiverIndex(TerrainRiver river) returns integer
+        integer i = 0
+        repeat while i < rivers:GetSize()
+            if rivers:Get(i) = river
+                return i
+            end
+            i = i + 1
+        end
+        return -1
+    end
+
+    /*
+    This action returns the river whose water is at a point, or undefined.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns The river.
+    */
+    action GetRiverAt(number x, number z) returns TerrainRiver
+        integer i = rivers:GetSize() - 1
+        repeat while i >= 0
+            TerrainRiver river = rivers:Get(i)
+            ComputeIfNeeded(river)
+            if river:Covers(x, z)
+                return river
+            end
+            i = i - 1
+        end
+        return undefined
+    end
+
+    /*
+    This action finds a river's line and water again, after its points
+    changed, and draws it again on the next update. A river whose first
+    point is in a lake or the sea starts at that water's level, and one
+    whose last point is in one ends at its level (River plan R7).
+
+    Attribute: Parameter river The river.
+    */
+    action RiverChanged(TerrainRiver river)
+        ComputeRiver(river)
+        if not changedRivers:Has(river)
+            changedRivers:Add(river)
+        end
+    end
+
+    /*
+    This action finds a river's line and water from its points and the
+    ground, joining it to the still water at its ends.
+    */
+    private action ComputeRiver(TerrainRiver river)
+        number startLevel = river:NO_LEVEL
+        number endLevel = river:NO_LEVEL
+        integer count = river:GetPointCount()
+        if count >= 1
+            number first = GetStillWaterLevelAt(river:GetPointX(0), river:GetPointZ(0))
+            if first not= NO_WATER
+                startLevel = first
+            end
+            number last = GetStillWaterLevelAt(river:GetPointX(count - 1), river:GetPointZ(count - 1))
+            if last not= NO_WATER and count >= 2
+                endLevel = last
+            end
+        end
+        river:Compute(data, startLevel, endLevel)
+        // Ending in water higher than where it starts can't run downhill:
+        // the end is left free instead.
+        if startLevel not= river:NO_LEVEL and endLevel not= river:NO_LEVEL and endLevel > startLevel
+            river:Compute(data, startLevel, river:NO_LEVEL)
+        end
+    end
+
+    /*
+    This action finds a river's line if its points changed since.
+    */
+    private action ComputeIfNeeded(TerrainRiver river)
+        if not river:IsComputed() and data not= undefined
+            ComputeRiver(river)
+        end
+    end
+
+    /*
+    This action returns the level of the still water at a point: the sea,
+    where the ground is below it or there is no ground, or a lake covering
+    it, whichever is higher; NO_WATER where there is none. Rivers join
+    still water at their ends (River plan R7).
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns The level.
+    */
+    action GetStillWaterLevelAt(number x, number z) returns number
+        number level = NO_WATER
+        if seaOn
+            if data = undefined or not data:HasHeight(x, z) or data:GetSurfaceHeight(x, z) < seaLevel
+                level = seaLevel
+            end
+        end
+        integer i = 0
+        repeat while i < lakes:GetSize()
+            TerrainLake lake = lakes:Get(i)
+            if lake:Covers(x, z)
+                number lakeLevel = lake:GetLevelAt(data, x, z)
+                if data = undefined or not data:HasHeight(x, z) or data:GetSurfaceHeight(x, z) < lakeLevel
+                    if lakeLevel > level
+                        level = lakeLevel
+                    end
+                end
+            end
+            i = i + 1
+        end
+        return level
     end
 
     /*
@@ -434,7 +668,8 @@ class TerrainWater
 
     /*
     This action returns the height of the water over a point: the highest
-    of the sea and the lakes covering it, or NO_WATER where there is none.
+    of the sea and the lakes and rivers covering it, or NO_WATER where there
+    is none.
 
     Attribute: Parameter x The point along x.
     Attribute: Parameter z The point along z.
@@ -455,6 +690,16 @@ class TerrainWater
                 end
             end
             i = i + 1
+        end
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            ComputeIfNeeded(river)
+            number riverLevel = river:GetLevelAt(x, z)
+            if riverLevel not= river:NO_LEVEL and riverLevel > level
+                level = riverLevel
+            end
+            riverIndex = riverIndex + 1
         end
         return level
     end
@@ -517,9 +762,10 @@ class TerrainWater
         if changed
             changed = false
             changedLakes:Empty()
+            changedRivers:Empty()
             Rebuild(owner, layer)
             moved = true
-        elseif not changedLakes:IsEmpty()
+        elseif not changedLakes:IsEmpty() or not changedRivers:IsEmpty()
             integer i = 0
             repeat while i < changedLakes:GetSize()
                 TerrainLake changedLake = changedLakes:Get(i)
@@ -529,6 +775,15 @@ class TerrainWater
                 i = i + 1
             end
             changedLakes:Empty()
+            integer riverIndex = 0
+            repeat while riverIndex < changedRivers:GetSize()
+                TerrainRiver changedRiver = changedRivers:Get(riverIndex)
+                if rivers:Has(changedRiver)
+                    RebuildRiver(owner, changedRiver)
+                end
+                riverIndex = riverIndex + 1
+            end
+            changedRivers:Empty()
             moved = true
         end
         if seaOn and sea not= undefined
@@ -566,6 +821,48 @@ class TerrainWater
             MakeLakeSheet(owner, lakes:Get(i))
             i = i + 1
         end
+        // Rivers are found again first, so one starting from or ending in a
+        // lake or the sea follows that water's level now (River plan R7).
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            if data not= undefined
+                ComputeRiver(river)
+            end
+            MakeRiverSheet(owner, river)
+            riverIndex = riverIndex + 1
+        end
+    end
+
+    /*
+    This action makes one river's sheet again, taking out the old one.
+    */
+    private action RebuildRiver(Item3D owner, TerrainRiver river)
+        WaterSurface old = river:GetSurface()
+        if old not= undefined
+            boolean removedOld = owner:Remove(old)
+            old:Dispose()
+            river:SetSurface(undefined)
+        end
+        if InstallProgram()
+            MakeRiverSheet(owner, river)
+        end
+    end
+
+    /*
+    This action makes a river's sheet: a strip along its line whose
+    ripples flow downstream (River plans R2 and R3).
+    */
+    private action MakeRiverSheet(Item3D owner, TerrainRiver river)
+        ComputeIfNeeded(river)
+        if river:GetSampleCount() < 2
+            return now
+        end
+        WaterSurface riverSurface
+        riverSurface:LoadRiver(river, program)
+        riverSurface:SetAcceptsMouseInput(owner:IsAcceptingMouseInput())
+        owner:Add(riverSurface)
+        river:SetSurface(riverSurface)
     end
 
     /*
@@ -633,6 +930,17 @@ class TerrainWater
             end
             i = i + 1
         end
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            WaterSurface riverSheet = river:GetSurface()
+            if riverSheet not= undefined
+                boolean removedRiver = owner:Remove(riverSheet)
+                riverSheet:Dispose()
+                river:SetSurface(undefined)
+            end
+            riverIndex = riverIndex + 1
+        end
     end
 
     /*
@@ -682,6 +990,16 @@ class TerrainWater
             end
             i = i + 1
         end
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            ComputeIfNeeded(river)
+            number riverLow = river:GetLowestLevel()
+            if riverLow not= river:NO_LEVEL and (lowest = NO_WATER or riverLow < lowest)
+                lowest = riverLow
+            end
+            riverIndex = riverIndex + 1
+        end
         return lowest
     end
 
@@ -703,6 +1021,16 @@ class TerrainWater
                 highest = level
             end
             i = i + 1
+        end
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            ComputeIfNeeded(river)
+            number riverHigh = river:GetHighestLevel()
+            if riverHigh not= river:NO_LEVEL and riverHigh > highest
+                highest = riverHigh
+            end
+            riverIndex = riverIndex + 1
         end
         return highest
     end
@@ -781,11 +1109,63 @@ class TerrainWater
                 i = i + 1
             end
         end
+        // Rivers (River plan R1): name, speed, points as four numbers each
+        // (x, z, width, depth), and the ground each carved, four numbers
+        // per sample (x, z, height before, height after).
+        rivers:Empty()
+        JavaScriptObjectNotation riverHolder = json:GetObject("Rivers")
+        if riverHolder not= undefined
+            JavaScriptObjectNotation riverList = riverHolder
+            if riverHolder:IsArrayObject()
+                riverList = riverHolder:GetArray()
+            end
+            integer riverIndex = 0
+            repeat while riverIndex < riverList:GetSize()
+                JavaScriptObjectNotation riverItem = riverList:Get(riverIndex)
+                TerrainRiver river
+                if riverItem:HasValue("Name")
+                    river:SetName(riverItem:GetValue("Name"))
+                end
+                if riverItem:HasValue("Speed")
+                    river:SetSpeed(ReadNumber(riverItem, "Speed"))
+                end
+                Array<number> points = ReadNumberList(riverItem, "Points")
+                integer pointIndex = 0
+                repeat while pointIndex + 3 < points:GetSize()
+                    river:AddPoint(points:Get(pointIndex), points:Get(pointIndex + 1), points:Get(pointIndex + 2), points:Get(pointIndex + 3))
+                    pointIndex = pointIndex + 4
+                end
+                river:SetCarvedList(ReadNumberList(riverItem, "Carved"))
+                rivers:Add(river)
+                riverIndex = riverIndex + 1
+            end
+        end
         JavaScriptObjectNotation look = json:GetObject("Look")
         if look not= undefined
             ReadLook(look)
         end
         changed = true
+    end
+
+    /*
+    This action reads a list of numbers under a key, or an empty list.
+    */
+    private action ReadNumberList(JavaScriptObjectNotation json, text key) returns Array<number>
+        Array<number> result
+        JavaScriptObjectNotation holder = json:GetObject(key)
+        if holder = undefined
+            return result
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        integer i = 0
+        repeat while i < list:GetSize()
+            result:Add(ReadArrayNumber(list, i))
+            i = i + 1
+        end
+        return result
     end
 
     /*
@@ -838,6 +1218,39 @@ class TerrainWater
             i = i + 1
         end
         json:Add("Lakes", list)
+        JavaScriptObjectNotation riverList
+        riverList:SetPrettyPrint(true)
+        riverList:SetArray()
+        integer riverIndex = 0
+        repeat while riverIndex < rivers:GetSize()
+            TerrainRiver river = rivers:Get(riverIndex)
+            JavaScriptObjectNotation riverItem
+            riverItem:Add("Name", river:GetName())
+            riverItem:Add("Speed", river:GetSpeed())
+            JavaScriptObjectNotation points
+            points:SetArray()
+            integer pointIndex = 0
+            repeat while pointIndex < river:GetPointCount()
+                points:Add(river:GetPointX(pointIndex))
+                points:Add(river:GetPointZ(pointIndex))
+                points:Add(river:GetPointWidth(pointIndex))
+                points:Add(river:GetPointDepth(pointIndex))
+                pointIndex = pointIndex + 1
+            end
+            riverItem:Add("Points", points)
+            JavaScriptObjectNotation carved
+            carved:SetArray()
+            Array<number> carvedList = river:GetCarvedList()
+            integer carvedIndex = 0
+            repeat while carvedIndex < carvedList:GetSize()
+                carved:Add(carvedList:Get(carvedIndex))
+                carvedIndex = carvedIndex + 1
+            end
+            riverItem:Add("Carved", carved)
+            riverList:Add(riverItem)
+            riverIndex = riverIndex + 1
+        end
+        json:Add("Rivers", riverList)
         json:Add("Look", WriteLook())
         File file = GetFileInFolder(folder, "water.json")
         file:Write(json:ToText())

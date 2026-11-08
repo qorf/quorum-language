@@ -410,15 +410,15 @@ class SceneEditorKeys
         3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
         9 remove region; then the scene editor's own: 10 stamp, 11 erode,
         12 auto paint, 13 foliage (Terrain plan F3), 14 fill water and 15
-        paint water (Water plan W6). Default: Alt+1 to Alt+9, then
-        Shift+Alt+1 to Shift+Alt+6.
+        paint water (Water plan W6), and 16 river (River plan R5). Default:
+        Alt+1 to Alt+9, then Shift+Alt+1 to Shift+Alt+7.
 
-        Attribute: Parameter tool The tool's number, from 1 to 15.
+        Attribute: Parameter tool The tool's number, from 1 to 16.
         Attribute: Returns The key that chooses it.
     */
     action GetTerrainToolKey(integer tool) returns InputSet
-        if tool < 1 or tool > 15
-            alert("A terrain tool's number is from 1 to 15, but was given " + tool + ".")
+        if tool < 1 or tool > 16
+            alert("A terrain tool's number is from 1 to 16, but was given " + tool + ".")
         end
         if tool > 9
             return WithModifiers(keys:NUM_1 + tool - 10, false, false, true, true)

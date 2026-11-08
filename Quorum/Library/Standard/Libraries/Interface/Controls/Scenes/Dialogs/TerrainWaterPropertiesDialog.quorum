@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlig
 use Libraries.Interface.Behaviors.Scenes.Properties.TerrainWaterButtonBehavior
 use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 
 /*
@@ -30,7 +31,10 @@ use Libraries.Game.Graphics.Worlds.WaterShaderProgram
     middle and size, and "Remove". A lake of water cells, made with the
     Brush section's Fill water and Paint water tools, has its shape from its
     cells, so its card shows only its name and level, and its title says how
-    many cells it has and about how big it is. "Look..." opens the look every sheet of the terrain's
+    many cells it has and about how big it is. Each river (River plan R6)
+    is a card titled with its name, points, length and its water's heights,
+    holding its name, width, depth and speed, and "Remove"; the New rivers
+    card sets the width and depth the River tool draws with. "Look..." opens the look every sheet of the terrain's
     water shares: its shallow and deep colors (red, green, blue and alpha,
     each from 0 to 1; alpha is how much ground the water hides), clarity,
     shore fade, and its ripples' size, speed, roughness and strength.
@@ -47,6 +51,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     public constant integer REMOVE_LAKE = 2
     public constant integer LOOK = 3
     public constant integer CLOSE_LOOK = 4
+    public constant integer REMOVE_RIVER = 5
 
     // How many lakes the section shows cards for.
     constant integer LAKES_SHOWN = 16
@@ -63,6 +68,15 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     constant integer DEPTH_FIELD = 5
     constant integer LAKE_FIELDS = 6
 
+    // How many rivers the section shows cards for, and a river's fields,
+    // by place in its row (River plan R6).
+    constant integer RIVERS_SHOWN = 8
+    constant integer RIVER_NAME_FIELD = 0
+    constant integer RIVER_WIDTH_FIELD = 1
+    constant integer RIVER_DEPTH_FIELD = 2
+    constant integer RIVER_SPEED_FIELD = 3
+    constant integer RIVER_FIELDS = 4
+
     Label statusLabel = undefined
     Checkbox seaCheckbox = undefined
     TextField seaLevelField = undefined
@@ -76,6 +90,16 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     Array<TextField> lakeFields
     Array<Button> removeButtons
     integer rowsShown = 0
+
+    // Each river's row and controls; the fields are RIVER_FIELDS per row.
+    // The New rivers card's fields set the River tool's width and depth.
+    Array<Control> riverRows
+    Array<Label> riverNameLabels
+    Array<TextField> riverFields
+    Array<Button> riverRemoveButtons
+    integer riverRowsShown = 0
+    TextField newRiverWidthField = undefined
+    TextField newRiverDepthField = undefined
 
     // The look: open or not, its panel, and its fields, in the order
     // SceneEditor:SetTerrainWaterLook numbers them.
@@ -145,7 +169,19 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             MakeRow(index)
             index = index + 1
         end
+        index = 0
+        repeat while index < RIVERS_SHOWN
+            MakeRiverRow(index)
+            index = index + 1
+        end
         MakeLook()
+
+        // The width and depth the River tool draws new rivers with.
+        Control riverCard = AddCard(panel, "New rivers")
+        newRiverWidthField = AddField(riverCard, "Width:", "A new river's width")
+        newRiverDepthField = AddField(riverCard, "Depth:", "A new river's depth in its middle")
+        focusArray:Add(newRiverWidthField)
+        focusArray:Add(newRiverDepthField)
 
         // Lakes are made with the Brush section's Fill water and Paint
         // water tools, so there is no button to add one here.
@@ -182,6 +218,34 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         rows:Add(row)
         nameLabels:Add(nameLabel)
         removeButtons:Add(removeButton)
+    end
+
+    /*
+        Makes one river's row (River plan R6): a card titled with its name,
+        points, length and water heights, holding its name, width, depth,
+        speed and Remove.
+    */
+    private action MakeRiverRow(integer index)
+        Control row
+        FlowLayout rowLayout
+        row:SetLayout(rowLayout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+        Label nameLabel = MakeCardTitle("River " + (index + 1))
+        nameLabel:SetFocusable(true)
+        row:Add(nameLabel)
+        Control card = MakeCard()
+        row:Add(card)
+        riverFields:Add(AddField(card, "Name:", "River " + (index + 1) + " name"))
+        riverFields:Add(AddField(card, "Width:", "River " + (index + 1) + " width"))
+        riverFields:Add(AddField(card, "Depth:", "River " + (index + 1) + " depth in its middle"))
+        riverFields:Add(AddField(card, "Speed:", "How fast river " + (index + 1) + " flows, in units a second"))
+        Control buttonLine = MakeButtonRow()
+        Button removeButton = MakeButton(buttonLine, "Remove", "Remove river " + (index + 1), REMOVE_RIVER, index)
+        card:Add(buttonLine)
+        riverRows:Add(row)
+        riverNameLabels:Add(nameLabel)
+        riverRemoveButtons:Add(removeButton)
     end
 
     /*
@@ -357,9 +421,11 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         text more = ""
         if not water:HasWater()
             status = "No water yet."
-            more = "Turn on the sea, or make lakes with the Brush section's Fill water and Paint water tools."
-        elseif count = 0
+            more = "Turn on the sea, make lakes with the Brush section's Fill water and Paint water tools, or draw rivers with the River tool."
+        elseif count = 0 and water:HasSea()
             status = "A sea, and no lakes."
+        elseif count = 0
+            status = "No lakes."
         else
             status = "" + count + " lakes."
             if water:HasSea()
@@ -369,8 +435,36 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
                 more = "The first " + LAKES_SHOWN + " lakes are shown here."
             end
         end
+        integer riverCount = water:GetRiverCount()
+        integer riversShown = riverCount
+        if riversShown > RIVERS_SHOWN
+            riversShown = RIVERS_SHOWN
+        end
+        if riverCount = 1
+            status = status + " 1 river."
+        elseif riverCount > 1
+            status = status + " " + riverCount + " rivers."
+        end
+        if riverCount > RIVERS_SHOWN
+            more = more + " The first " + RIVERS_SHOWN + " rivers are shown here."
+        end
         statusLabel:SetText(status)
         statusLabel:SetDescription(more)
+        SetText(newRiverWidthField, "" + terrain:GetRiverWidth())
+        SetText(newRiverDepthField, "" + terrain:GetRiverDepth())
+
+        integer riverIndex = 0
+        repeat while riverIndex < riversShown
+            TerrainRiver river = water:GetRiver(riverIndex)
+            riverNameLabels:Get(riverIndex):SetText(river:GetName() + ", " + river:GetPointCount() + " points, " + Round(river:GetLength()) + " long, water from " +
+                Round(river:GetStartLevel()) + " down to " + Round(river:GetEndLevel()))
+            SetText(riverFields:Get(riverIndex * RIVER_FIELDS + RIVER_NAME_FIELD), river:GetName())
+            SetText(riverFields:Get(riverIndex * RIVER_FIELDS + RIVER_WIDTH_FIELD), "" + river:GetWidth())
+            SetText(riverFields:Get(riverIndex * RIVER_FIELDS + RIVER_DEPTH_FIELD), "" + river:GetDepth())
+            SetText(riverFields:Get(riverIndex * RIVER_FIELDS + RIVER_SPEED_FIELD), "" + river:GetSpeed())
+            riverRemoveButtons:Get(riverIndex):SetDescription("Remove " + river:GetName())
+            riverIndex = riverIndex + 1
+        end
 
         integer i = 0
         repeat while i < shown
@@ -425,9 +519,9 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             SetText(lookFields:Get(14), "" + program:GetReflectionStrength())
         end
 
-        ShowRows(shown)
+        ShowRows(shown, riversShown)
         statusLabel:RequestLayout()
-        LinkFocus(shown)
+        LinkFocus(shown, riversShown)
         updating = false
     end
 
@@ -444,11 +538,16 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         Puts as many lake cards in the panel as are shown, then the look if
         it is open.
     */
-    private action ShowRows(integer count)
+    private action ShowRows(integer count, integer riverCount)
         Array<Control> wanted
         integer i = 0
         repeat while i < count
             wanted:Add(rows:Get(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < riverCount
+            wanted:Add(riverRows:Get(i))
             i = i + 1
         end
         if lookOpen
@@ -477,6 +576,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             end
         end
         rowsShown = count
+        riverRowsShown = riverCount
     end
 
     /*
@@ -484,7 +584,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         sea, each lake's title, fields shown and Remove, the look if open, then
         "Look...".
     */
-    private action LinkFocus(integer count)
+    private action LinkFocus(integer count, integer riverCount)
         Array<Control> chain
         chain:Add(statusLabel)
         chain:Add(seaCheckbox)
@@ -504,6 +604,17 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             chain:Add(removeButtons:Get(i))
             i = i + 1
         end
+        i = 0
+        repeat while i < riverCount
+            chain:Add(riverNameLabels:Get(i))
+            integer riverField = 0
+            repeat while riverField < RIVER_FIELDS
+                chain:Add(riverFields:Get(i * RIVER_FIELDS + riverField))
+                riverField = riverField + 1
+            end
+            chain:Add(riverRemoveButtons:Get(i))
+            i = i + 1
+        end
         if lookOpen
             chain:Add(lookTitle)
             i = 0
@@ -513,6 +624,8 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             end
             chain:Add(closeLookButton)
         end
+        chain:Add(newRiverWidthField)
+        chain:Add(newRiverDepthField)
         chain:Add(lookButton)
         i = 0
         repeat while i < chain:GetSize() - 1
@@ -551,6 +664,14 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             editor:RemoveTerrainLake(terrain, lake)
             if rowsShown > 0
                 nameLabels:Get(0):Focus()
+            else
+                lookButton:Focus()
+            end
+        elseif kind = REMOVE_RIVER
+            // For a river, the number is the river's, from 0.
+            editor:RemoveTerrainRiver(terrain, lake)
+            if riverRowsShown > 0
+                riverNameLabels:Get(0):Focus()
             else
                 lookButton:Focus()
             end
@@ -595,6 +716,41 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             end
             i = i + 1
         end
+        if field:Equals(newRiverWidthField)
+            number riverWidthValue = ReadNumber(field, terrain:GetRiverWidth())
+            if riverWidthValue > 0
+                terrain:SetRiverWidth(riverWidthValue)
+            end
+            return now
+        elseif field:Equals(newRiverDepthField)
+            number riverDepthValue = ReadNumber(field, terrain:GetRiverDepth())
+            if riverDepthValue > 0
+                terrain:SetRiverDepth(riverDepthValue)
+            end
+            return now
+        end
+        integer riverPlace = 0
+        repeat while riverPlace < riverRowsShown * RIVER_FIELDS
+            if field:Equals(riverFields:Get(riverPlace))
+                integer riverIndex = riverPlace / RIVER_FIELDS
+                if riverIndex < water:GetRiverCount()
+                    TerrainRiver river = water:GetRiver(riverIndex)
+                    integer riverStart = riverIndex * RIVER_FIELDS
+                    text riverName = riverFields:Get(riverStart + RIVER_NAME_FIELD):GetText():Trim()
+                    if riverName = ""
+                        riverName = river:GetName()
+                    end
+                    number newWidth = ReadNumber(riverFields:Get(riverStart + RIVER_WIDTH_FIELD), river:GetWidth())
+                    number newDepth = ReadNumber(riverFields:Get(riverStart + RIVER_DEPTH_FIELD), river:GetDepth())
+                    number newSpeed = ReadNumber(riverFields:Get(riverStart + RIVER_SPEED_FIELD), river:GetSpeed())
+                    if riverName not= river:GetName() or newWidth not= river:GetWidth() or newDepth not= river:GetDepth() or newSpeed not= river:GetSpeed()
+                        editor:SetTerrainRiver(terrain, riverIndex, riverName, newWidth, newDepth, newSpeed)
+                    end
+                end
+                return now
+            end
+            riverPlace = riverPlace + 1
+        end
         integer place = 0
         repeat while place < rowsShown * LAKE_FIELDS
             if field:Equals(lakeFields:Get(place))
@@ -637,6 +793,9 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         Rounds a number to one place after the point, for a title.
     */
     private action Round(number value) returns number
+        if value < 0
+            return -Round(-value)
+        end
         return cast(integer, value * 10 + 0.5) / 10.0
     end
 

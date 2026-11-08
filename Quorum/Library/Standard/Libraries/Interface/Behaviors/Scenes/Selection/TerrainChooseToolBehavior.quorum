@@ -8,7 +8,7 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlig
 /*
     The TerrainChooseToolBehavior chooses one of a selected terrain's tools
     in the scene editor (step 7). The scene editor's input tables give it the
-    keys Alt+1 to Alt+9, then Shift+Alt+1 to Shift+Alt+6, by default (SceneEditorKeys:GetTerrainToolKey). With
+    keys Alt+1 to Alt+9, then Shift+Alt+1 to Shift+Alt+7, by default (SceneEditorKeys:GetTerrainToolKey). With
     anything but a terrain selected, it does nothing.
 */
 class TerrainChooseToolBehavior is Behavior
@@ -20,7 +20,7 @@ class TerrainChooseToolBehavior is Behavior
         6 paint, 7 blend paint, 8 add region, 9 remove region, then the
         scene editor's own: 10 stamp, 11 erode, 12 auto paint, 13 foliage, 14 fill water, 15 paint water.
 
-        Attribute: Parameter toolNumber The tool's number, from 1 to 15
+        Attribute: Parameter toolNumber The tool's number, from 1 to 16
     */
     action SetTool(integer toolNumber)
         tool = toolNumber
@@ -29,7 +29,7 @@ class TerrainChooseToolBehavior is Behavior
     /*
         Returns which tool this behavior chooses.
 
-        Attribute: Returns The tool's number, from 1 to 15
+        Attribute: Returns The tool's number, from 1 to 16
     */
     action GetTool returns integer
         return tool

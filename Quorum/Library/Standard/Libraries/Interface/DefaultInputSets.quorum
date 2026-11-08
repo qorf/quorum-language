@@ -1981,6 +1981,9 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionDeleteSet, selectionDeleteBehavior)
         selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
         selectionTable:Add(selectionCancelSet, selectionCancelBehavior)
+        // Enter on a selected terrain finishes a river being drawn with the
+        // River tool (River plan R5); otherwise it does nothing there.
+        selectionTable:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
         selectionTable:Add(toggleGridInput, toggleGridBehavior)
         selectionTable:Add(increaseGridUnitInput, increaseGridUnitBehavior)
@@ -1995,10 +1998,10 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
 
         // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7),
-        // then stamp, erode, auto paint, foliage, fill water and paint water,
-        // Shift+Alt+1 to Shift+Alt+6.
+        // then stamp, erode, auto paint, foliage, fill water, paint water and
+        // river, Shift+Alt+1 to Shift+Alt+7.
         integer toolNumber = 1
-        repeat while toolNumber <= 15
+        repeat while toolNumber <= 16
             AddTerrainToolKey(selectionTable, sceneKeys, toolNumber)
             toolNumber = toolNumber + 1
         end
