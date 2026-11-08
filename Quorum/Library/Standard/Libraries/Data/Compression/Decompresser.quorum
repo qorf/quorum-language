@@ -5,10 +5,10 @@ use Libraries.System.File
 
 
 /*
-The Decompresser class can decompress files that have been compressed using zip 
+The Decompresser class can decompress files that have been compressed using zip
 (have the extention .zip) or gzip (have the extention .gz) compression formats.
 
-Most math functions call down to Java's java.util.zip library. 
+Most math functions call down to Java's java.util.zip library.
 
 Attribute: Example
 
@@ -28,7 +28,7 @@ Attribute: Example
 class Decompresser
 
     /*
-    This decompresses a file that has been compressed using gzip compression 
+    This decompresses a file that has been compressed using gzip compression
     format (has the extention .gz).
 
     Attribute: Parameter inputFile The file to decompress.
@@ -56,7 +56,7 @@ class Decompresser
     system action DecompressGZip(File inputFile, File outputFile)
 
     /*
-    This decompresses a file that has been compressed using zip compression 
+    This decompresses a file that has been compressed using zip compression
     format (has the extention .zip).
 
     Attribute: Parameter inputFile The file to decompress.
@@ -77,5 +77,54 @@ class Decompresser
 
     */
     system action DecompressZip(File inputFile)
+
+    /*
+    This action checks whether a ZIP archive has a file entry, without
+    unpacking anything.
+
+    Attribute: Parameter inputFile The archive.
+    Attribute: Parameter entryName The entry's name inside the archive, such as "folder/input.txt".
+    Attribute: Returns true if the archive has a file entry with that name.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Data.Compression.Decompresser
+
+    class Main
+    	action Main
+     		File inputFile
+       		inputFile:SetPath("zipfile.zip")
+
+         	Decompresser decompress
+          	decompress:HasZipEntry(inputFile, "zipfile.txt")
+     	end
+    end
+    */
+    system action HasZipEntry(File inputFile, text entryName) returns boolean
+
+    /*
+    This action reads one entry of a ZIP archive as UTF-8 text, without unpacking
+    the archive. If the archive does not exist, a FileNotFoundError is raised; if
+    it is not a ZIP archive or has no such entry, an InputOutputError is raised.
+
+    Attribute: Parameter inputFile The Archive.
+    Attribute: Parameter entryName The entry's name inside the archive.
+    Attribute: Returns The text of the entry.
+
+    Attribute: Example
+    use Libraries.System.File
+    use Libraries.Data.Compression.Decompresser
+
+    class Main
+    	action Main
+     		File inputFile
+       		inputFile:SetPath("zipfile.zip")
+
+         	Decompresser decompress
+          	output decompress:ReadZipEntry(inputFile, "zipfile.txt")
+     	end
+    end
+    */
+    system action ReadZipEntry(File inputFile, text entryName) returns text
 
 end
