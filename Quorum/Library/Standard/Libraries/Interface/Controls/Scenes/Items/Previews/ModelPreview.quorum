@@ -96,7 +96,10 @@ class ModelPreview is ItemPreview3D
         EditorModel model
         model:SetName(GetName())
         
-        Color color = schematic:GetColor():Copy()
+        // The preview's own color, which the Properties panel may have
+        // changed before the item was placed. The preview is drawn see-through
+        // (Load), so the placed item gets its color fully opaque.
+        Color color = GetColor():Copy()
         color:SetAlpha(1.0)
         integer modelType = schematic:GetModelType()
         SceneProperties properties

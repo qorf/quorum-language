@@ -243,6 +243,17 @@ class EditorTerrain is TerrainItem
     end
 
     /*
+        Returns whether any of the terrain's own files (its heights and
+        painting, its foliage list, or its material) have changes that the
+        next save of the scene would write.
+
+        Attribute: Returns True if the terrain has unsaved changes
+    */
+    action HasUnsavedChanges returns boolean
+        return changed or foliageListChanged or materialChanged
+    end
+
+    /*
         Saves the terrain's own files, if they have changed, and marks it
         unchanged. The scene editor calls it when the scene is saved.
     */

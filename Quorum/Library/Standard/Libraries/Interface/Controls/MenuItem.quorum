@@ -29,6 +29,7 @@ use Libraries.Game.InputTable
 use Libraries.Interface.Behaviors.Controls.MenuItemShortcutBehavior
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Views.ChevronTexture
 
 class MenuItem is Control
     
@@ -391,6 +392,11 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action SetParentMenu(MenuItem menu)
         parentMenu = menu
+        // A submenu given its items before it was put in its menu shows its
+        // arrow now, as one given them after does (Add).
+        if menu not= undefined and not menuItems:IsEmpty()
+            arrow:Show()
+        end
     end
 
     action SetBehavior(Behavior behavior)
@@ -796,8 +802,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
         arrow:SetColor(properties:GetFontColor())
 
+        // A submenu's arrow is a chevron, ">", the same as a tree's,
+        // drawn for half the font's line height, the arrow's size.
         if arrow:IsLoaded() = false
-            arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100)
+            integer chevronSize = cast(integer, properties:GetFont():GetLineHeight() / 2)
+            if chevronSize < 8
+                chevronSize = 8
+            end
+            ChevronTexture chevrons
+            arrow:Load(chevrons:GetTexture(chevronSize))
         end
 
         arrow:SetColor(properties:GetFontColor():GetBottomLeft())

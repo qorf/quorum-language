@@ -20,16 +20,24 @@ class TerrainBrushMouseListener is MouseMovementListener
         me:editor = editor
     end
 
+    // Hovering no longer moves the brush: the gray ghost ring shows where a
+    // click would move the terrain cursor.
     action MovedMouse(MouseEvent event)
-        if editor not= undefined
-            editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
+        if editor = undefined
+            return now
+        end
+        // A new item's preview has its own ghost, showing where a click
+        // would move it.
+        if editor:HasActivePreview()
+            editor:MovePreviewGhostToPointer(event:GetX(), event:GetY())
+        else
+            editor:MoveTerrainGhostToPointer(event:GetX(), event:GetY())
         end
     end
 
-    // During a stroke with the mouse, the brush follows the pointer too
-    // (step 8).
+    // During a stroke with the mouse, the brush follows the pointer (step 8).
     action DraggedMouse(MouseEvent event)
-        if editor not= undefined
+        if editor not= undefined and editor:IsTerrainStroking()
             editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
         end
     end

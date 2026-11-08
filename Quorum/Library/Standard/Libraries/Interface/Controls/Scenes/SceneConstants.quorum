@@ -43,6 +43,91 @@ class SceneConstants
     // Additional properties used for custom scene loading.
     public constant text EULER_ANGLES = "Euler Angles"
 
+    // The 3D camera's moves, for SceneEditor:StartCameraMove and the camera
+    // keys: turning where it stands, sliding across its view, circling what
+    // it looks at, and moving toward or away from it.
+    public constant integer CAMERA_LOOK = 1
+    public constant integer CAMERA_SLIDE = 2
+    public constant integer CAMERA_ORBIT = 3
+    public constant integer CAMERA_ZOOM = 4
+
+    // Commands for SceneEditor:RunCommand, which Quorum Studio's Scenes menu
+    // uses: each does one step of what a scene key does. The camera:
+    public constant integer COMMAND_LOOK_LEFT = 101
+    public constant integer COMMAND_LOOK_RIGHT = 102
+    public constant integer COMMAND_LOOK_UP = 103
+    public constant integer COMMAND_LOOK_DOWN = 104
+    public constant integer COMMAND_SLIDE_LEFT = 105
+    public constant integer COMMAND_SLIDE_RIGHT = 106
+    public constant integer COMMAND_SLIDE_UP = 107
+    public constant integer COMMAND_SLIDE_DOWN = 108
+    public constant integer COMMAND_ORBIT_LEFT = 109
+    public constant integer COMMAND_ORBIT_RIGHT = 110
+    public constant integer COMMAND_ORBIT_UP = 111
+    public constant integer COMMAND_ORBIT_DOWN = 112
+    public constant integer COMMAND_ZOOM_IN = 113
+    public constant integer COMMAND_ZOOM_OUT = 114
+    public constant integer COMMAND_POINT_AT_SELECTION = 115
+    // The cursor:
+    public constant integer COMMAND_CURSOR_LEFT = 201
+    public constant integer COMMAND_CURSOR_RIGHT = 202
+    public constant integer COMMAND_CURSOR_FORWARD = 203
+    public constant integer COMMAND_CURSOR_BACKWARD = 204
+    public constant integer COMMAND_CURSOR_UP = 205
+    public constant integer COMMAND_CURSOR_DOWN = 206
+    public constant integer COMMAND_CURSOR_LARGER = 207
+    public constant integer COMMAND_CURSOR_SMALLER = 208
+    public constant integer COMMAND_CURSOR_SELECT = 209
+    // The selection:
+    public constant integer COMMAND_SELECTION_LEFT = 301
+    public constant integer COMMAND_SELECTION_RIGHT = 302
+    public constant integer COMMAND_SELECTION_FORWARD = 303
+    public constant integer COMMAND_SELECTION_BACKWARD = 304
+    public constant integer COMMAND_SELECTION_UP = 305
+    public constant integer COMMAND_SELECTION_DOWN = 306
+    public constant integer COMMAND_SELECTION_TURN_LEFT = 307
+    public constant integer COMMAND_SELECTION_TURN_RIGHT = 308
+    public constant integer COMMAND_SELECTION_TURN_UP = 309
+    public constant integer COMMAND_SELECTION_TURN_DOWN = 310
+    public constant integer COMMAND_SELECTION_ROLL_LEFT = 311
+    public constant integer COMMAND_SELECTION_ROLL_RIGHT = 312
+    public constant integer COMMAND_SELECTION_LARGER = 313
+    public constant integer COMMAND_SELECTION_SMALLER = 314
+    public constant integer COMMAND_SELECTION_STRETCH_X = 315
+    public constant integer COMMAND_SELECTION_SHRINK_X = 316
+    public constant integer COMMAND_SELECTION_STRETCH_Y = 317
+    public constant integer COMMAND_SELECTION_SHRINK_Y = 318
+    public constant integer COMMAND_SELECTION_STRETCH_Z = 319
+    public constant integer COMMAND_SELECTION_SHRINK_Z = 320
+    public constant integer COMMAND_SELECTION_RESET_SCALE = 321
+    public constant integer COMMAND_SELECTION_DROP = 322
+    public constant integer COMMAND_SELECTION_DELETE = 323
+    public constant integer COMMAND_SELECTION_LEAVE = 324
+    // A selected terrain: COMMAND_TERRAIN_TOOL plus a tool's number (0 for
+    // no tool) chooses that tool; then the brush's commands.
+    public constant integer COMMAND_TERRAIN_TOOL = 400
+    public constant integer COMMAND_TERRAIN_USE_BRUSH = 420
+    public constant integer COMMAND_TERRAIN_STRONGER = 421
+    public constant integer COMMAND_TERRAIN_WEAKER = 422
+    public constant integer COMMAND_TERRAIN_NEXT_LAYER = 423
+    public constant integer COMMAND_TERRAIN_RAMP_POINT = 424
+    public constant integer COMMAND_TERRAIN_TAKE_HEIGHT = 425
+    public constant integer COMMAND_TERRAIN_LARGER = 426
+    public constant integer COMMAND_TERRAIN_SMALLER = 427
+    // The grid:
+    public constant integer COMMAND_GRID_TOGGLE = 501
+    public constant integer COMMAND_GRID_LARGER = 502
+    public constant integer COMMAND_GRID_SMALLER = 503
+    // The panels:
+    public constant integer COMMAND_PROPERTIES_FOCUS = 601
+    public constant integer COMMAND_PROPERTIES_CLOSE_SECTION = 602
+    public constant integer COMMAND_PROPERTIES_OPEN_SECTION = 603
+    public constant integer COMMAND_FIND = 604
+    // Reports read aloud:
+    public constant integer COMMAND_SAY_LOCATION = 701
+    public constant integer COMMAND_SAY_CAMERA_DIRECTION = 702
+    public constant integer COMMAND_SAY_ITEMS_IN_VIEW = 703
+
     on create
         SELECTION_HIGHLIGHT_SELECTED_COLOR:SetColor(1, 1, 0.2, 0.75)
         SELECTION_HIGHLIGHT_UNSELECTED_COLOR:SetColor(0.8, 0.8, 0.8, 0.6)

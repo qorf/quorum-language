@@ -78,6 +78,7 @@ use Libraries.Game.Layer
 use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.Number32BitArray
 use Libraries.Interface.Controls.Scenes.Items.Grid3D
+use Libraries.Interface.Controls.Scenes.Items.TerrainGridPatch
 use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Camera2DPropertiesDialog
@@ -110,6 +111,16 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Undo.SceneEditorTerrainEdit
 use Libraries.Interface.Undo.SceneEditorFoliageEdit
 use Libraries.Interface.Undo.SceneEditorWaterEdit
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Behaviors.Scenes.Selection.SelectionScaleBehavior
+use Libraries.Interface.Behaviors.Scenes.Grid.ToggleGridBehavior
+use Libraries.Interface.Behaviors.Scenes.Grid.IncreaseGridUnitBehavior
+use Libraries.Interface.Behaviors.Scenes.Grid.DecreaseGridUnitBehavior
+use Libraries.Interface.Behaviors.Scenes.Controls.OpenSceneEditorFindDialogBehavior
+use Libraries.Interface.Behaviors.Scenes.Controls.ReportLocationBehavior
+use Libraries.Interface.Behaviors.Scenes.Camera.ReportCameraDirectionBehavior
+use Libraries.Interface.Behaviors.Scenes.Camera.ReportItemsInViewBehavior
 use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
@@ -157,6 +168,10 @@ class SceneEditor is Control, DefaultSceneManager
 
     SceneEditorEditManager editManager
 
+    // The scene's file text as it was last loaded or saved, to tell whether
+    // it has changed since (HasUnsavedChanges).
+    text savedText = ""
+
     // The rotational speed measured in degrees,
     // and the directional speed, measured in 3D world units.
     public constant number CAMERA_ROTATIONAL_SPEED_3D = 15
@@ -175,6 +190,34 @@ class SceneEditor is Control, DefaultSceneManager
     Directions are always -1, 0, or 1, and are multiplied by either the rotational
     or directional speed during the Update to produce the per-frame velocity.
     */
+    // The 3D camera's moves while their keys are held: look, slide, orbit
+    // and zoom, each -1, 0 or 1 on x (left, right) and y (down or out, up
+    // or in). StartCameraMove and StopCameraMove set them; the update
+    // moves the camera through EditorCamera3D, as the mouse does.
+    integer cameraLookX = 0
+    integer cameraLookY = 0
+    integer cameraSlideX = 0
+    integer cameraSlideY = 0
+    integer cameraOrbitX = 0
+    integer cameraOrbitY = 0
+    integer cameraZoom = 0
+
+    // How fast held camera keys move it: turns and orbits in radians a
+    // second (90 degrees), slides as a share of the view distance a second,
+    // and zoom steps a second. A tap moves TAP_SECONDS' worth at once.
+    constant number CAMERA_KEY_TURN_SPEED = 1.5708
+    constant number CAMERA_KEY_SLIDE_SHARE = 0.75
+    constant number CAMERA_KEY_ZOOM_STEPS = 10
+    constant number CAMERA_KEY_TAP_SECONDS = 0.1
+
+    // One step of RunCommand (Quorum Studio's Scenes menu): turns of 15
+    // degrees, slides of a tenth of the view distance, and a brush stroke
+    // as long as a short press.
+    constant number COMMAND_TURN_RADIANS = 0.2618
+    constant number COMMAND_TURN_DEGREES = 15
+    constant number COMMAND_SLIDE_SHARE = 0.1
+    constant number COMMAND_STROKE_SECONDS = 0.1
+
     integer yawDirection = 0
     integer pitchDirection = 0
     integer rollDirection = 0
@@ -184,6 +227,9 @@ class SceneEditor is Control, DefaultSceneManager
 
     // The velocity of the currently selected item on each axis.
     integer selectionXDirection = 0
+    // The camera's forward over the ground, for the move keys (FindMoveAxes).
+    number moveForwardX = 0
+    number moveForwardZ = 1
     integer selectionYDirection = 0
     integer selectionZDirection = 0
     integer selectionYawDirection = 0
@@ -259,6 +305,53 @@ class SceneEditor is Control, DefaultSceneManager
     EditorTerrain brushTerrain = undefined
     TerrainBrushPreview brushPreview = undefined
     boolean brushPreviewShown = false
+
+    // The ghost ring: a gray ring under the pointer, showing where a click
+    // would move the terrain cursor. Hidden over the cursor's own ring,
+    // where a click applies instead, and during a stroke.
+    TerrainBrushPreview ghostPreview = undefined
+    boolean ghostPreviewShown = false
+
+    // A click outside the ring moved the cursor; holding the button past
+    // HOLD_SECONDS then starts a stroke there.
+    boolean pointerHolding = false
+    number pointerHoldSeconds = 0
+    constant number HOLD_SECONDS = 0.25
+
+    // The new item's preview being placed, if any: a click on it places
+    // it, a click elsewhere moves it there, and a fainter ghost of it
+    // follows the pointer to show where a click would move it.
+    ItemPreview3D activePreview = undefined
+    // True while placing selects the new item, so the camera stays put.
+    boolean keepCameraAfterPlacing = false
+    // True while a click selects an item: the camera follows it from where
+    // it is, without moving.
+    boolean keepCameraOnSelection = false
+    EditorModel previewGhost = undefined
+    boolean previewGhostShown = false
+    // True after the preview's focus went into the Properties panel: the
+    // next click in the view only gives the preview the focus back, so going
+    // back and forth doesn't move it.
+    boolean previewInProperties = false
+    // How see-through the ghost is, as a share of the preview's alpha.
+    constant number GHOST_ALPHA_SHARE = 0.35
+
+    // The 3D grid's size: a patch under a selected item (option D), or the
+    // large floor for the scene's cursor, in grid squares across.
+    constant integer GRID_PATCH_SQUARES = 9
+    constant integer GRID_FLOOR_SQUARES = 64
+
+    // The grid on a terrain (option C): lines over the ground around the
+    // terrain cursor, this many squares out each way. The flat grid hides
+    // while it shows.
+    TerrainGridPatch terrainGridPatch = undefined
+    boolean terrainGridPatchShown = false
+    boolean flatGridHiddenForPatch = false
+    constant integer TERRAIN_GRID_SQUARES_OUT = 4
+
+    // The terrain whose cursor a new item's preview starts at, recorded
+    // before the preview takes the focus, so the ring stays shown with it.
+    EditorTerrain previewStartTerrain = undefined
     // The ring blinks like a text cursor: solid for a second after it
     // moves, then on and off (TextField's caretIdleTime and caretBlinkTime).
     number ringBlinkTimer = 0
@@ -479,6 +572,59 @@ class SceneEditor is Control, DefaultSceneManager
         scene:Load(file)
         SetName(file:GetPath())
         Load(scene)
+        SelectStartingLayer()
+        savedText = GetSceneText()
+    end
+
+    /*
+    This action picks the layer a scene opens on. Each layer is selected as
+    it loads, so the last one in the file is selected, usually the 2D layer.
+    A scene with nothing in its 2D layer but something in a 3D layer opens
+    on that 3D layer instead. An empty scene keeps the 2D layer.
+    */
+    private action SelectStartingLayer
+        EditorLayer selected = GetSelectedLayer()
+        if selected = undefined or not (selected is EditorLayer2D) or HasSceneItems(selected)
+            return now
+        end
+        integer i = 0
+        repeat while i < layers:GetSize()
+            EditorLayer layer = layers:Get(i)
+            if layer is EditorLayer3D and HasSceneItems(layer)
+                SetSelectedLayer(layer)
+                return now
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns true if a layer holds any of the scene's own items,
+    as the Scene tree lists them: not the editor's grids, cursors and
+    other helpers, which have the editor's tag.
+
+    Attribute: Parameter layer The layer
+    Attribute: Returns True if the layer has scene items
+    */
+    private action HasSceneItems(EditorLayer layer) returns boolean
+        if layer is EditorLayer2D
+            EditorLayer2D layer2D = cast(EditorLayer2D, layer)
+            Iterator<Item2D> items2D = layer2D:GetIterator()
+            repeat while items2D:HasNext()
+                if items2D:Next():HasProperty(constants:EDITOR_TAG) = false
+                    return true
+                end
+            end
+        elseif layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            Iterator<Item3D> items3D = layer3D:GetIterator()
+            repeat while items3D:HasNext()
+                if items3D:Next():HasProperty(constants:EDITOR_TAG) = false
+                    return true
+                end
+            end
+        end
+        return false
     end
 
     /*
@@ -726,6 +872,14 @@ class SceneEditor is Control, DefaultSceneManager
             return now
         end
 
+        // A new item's preview, and the item just placed from it, leave the
+        // camera where it is: jumping to them while placing is distracting,
+        // and could put the camera inside the preview.
+        if item is ItemPreview3D or keepCameraAfterPlacing
+            keepCameraAfterPlacing = false
+            return now
+        end
+
         if item = undefined and IsFocused()
             // The cursor becomes the target without the camera jumping to
             // it, such as after a click in the view; moving the cursor with
@@ -736,7 +890,22 @@ class SceneEditor is Control, DefaultSceneManager
             return now
         end
         
+        if keepCameraOnSelection
+            layer3D:GetEditorCamera():SetTargetWithoutMoving(cast(Item3D, item))
+            return now
+        end
         layer3D:GetEditorCamera():SetTarget(cast(Item3D, item))
+    end
+
+    /*
+    This action sets whether selecting an item keeps the camera where it is,
+    such as while a click in the view selects one. The camera still follows
+    the item from there when it moves.
+
+    Attribute: Parameter keep True to keep the camera still on selection
+    */
+    action SetKeepCameraOnSelection(boolean keep)
+        keepCameraOnSelection = keep
     end
 
     action UpdateEditorCameraPosition
@@ -776,6 +945,16 @@ action Update(number seconds)
             end
         end
         UpdateTerrainStroke(seconds)
+        UpdatePointerHold(seconds)
+        UpdateTerrainGridPatch()
+        // A click in the view gives the scene editor the focus; a preview
+        // being placed takes it back, so Enter and the arrow keys reach it.
+        if HasActivePreview() and IsFocused()
+            activePreview:Focus()
+        end
+        if HasActivePreview() and activePreview:IsFocused()
+            previewInProperties = false
+        end
         UpdateBrushPreview()
         BlinkBrushPreview(seconds)
 
@@ -787,6 +966,7 @@ action Update(number seconds)
         if GetSelectedLayer() is EditorLayer3D
 
             EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+            MoveCameraByKeys(layer:GetEditorCamera(), seconds)
 
             if (yawDirection not= 0 or pitchDirection not= 0 or rollDirection not= 0)
                 number yaw = layer:GetCameraYaw() + (yawDirection * CAMERA_ROTATIONAL_SPEED_3D * seconds)
@@ -834,9 +1014,29 @@ action Update(number seconds)
     
                 boolean gridSnapEnabled = IsGridSnapping()
     
-                if gridSnapEnabled = false
-                    if selectionXDirection not= 0
-                        workVector3:SetX(selectionXDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                // Left, right, forward and back are the camera's, over the
+                // ground: Up moves away from the camera, Right to its right.
+                // With the grid on, they are the world axes nearest the
+                // camera's, so items step along the grid.
+                FindMoveAxes(camera, gridSnapEnabled)
+                number moveRightX = moveForwardZ
+                number moveRightZ = -moveForwardX
+                number alongX = moveRightX * selectionXDirection + moveForwardX * selectionZDirection
+                number alongZ = moveRightZ * selectionXDirection + moveForwardZ * selectionZDirection
+
+                // A new item started at a terrain's cursor moves as that
+                // cursor does, and takes the cursor (and its ring) with it.
+                boolean followsCursor = focus is ItemPreview3D and placementTerrain not= undefined and placementTerrain = cursorTerrain
+
+                if gridSnapEnabled = false and followsCursor
+                    if selectionXDirection not= 0 or selectionZDirection not= 0
+                        MoveTerrainBrush(placementTerrain, selectionXDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds, selectionZDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        MoveFocusToTerrainCursor(focus, placementTerrain)
+                    end
+                elseif gridSnapEnabled = false
+                    if selectionXDirection not= 0 or selectionZDirection not= 0
+                        workVector3:SetX(alongX * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        workVector3:SetZ(alongZ * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
                         moved = true
                     end
     
@@ -845,13 +1045,15 @@ action Update(number seconds)
                         moved = true
                     end
     
-                    if selectionZDirection not= 0
-                        workVector3:SetZ(selectionZDirection * -SELECTION_DIRECTIONAL_SPEED_3D * seconds)
-                        moved = true
-                    end
-    
                     if moved
+                        // A preview that follows the ground keeps its height
+                        // above it, unless its height is being changed.
+                        number aboveBefore = -GetGroundChange(focus)
+                        boolean groundBefore = lastGround not= undefined
                         focus:Move(workVector3)
+                        if selectionYDirection = 0
+                            FollowGroundAfterMove(focus, aboveBefore, groundBefore)
+                        end
                     end
                 else
                     if selectionXDirection not= 0 or selectionYDirection not= 0 or selectionZDirection not= 0
@@ -864,6 +1066,9 @@ action Update(number seconds)
                                 // the terrain stays where it is.
                                 TerrainSelectionHighlight cursorHighlight = cast(TerrainSelectionHighlight, focus)
                                 StepTerrainCursor(cursorHighlight:GetEditorTerrain(), selectionXDirection, selectionZDirection)
+                            elseif followsCursor and (selectionXDirection not= 0 or selectionZDirection not= 0)
+                                StepTerrainCursor(placementTerrain, selectionXDirection, selectionZDirection)
+                                MoveFocusToTerrainCursor(focus, placementTerrain)
                             elseif focus is CameraItem3D
                                 CameraItem3D cameraItem = cast(CameraItem3D, focus)
                                 if selectionXDirection not= 0
@@ -883,9 +1088,9 @@ action Update(number seconds)
                                 number y = focus:GetGlobalY()
                                 number z = focus:GetGlobalZ()
         
-                                if selectionXDirection < 0
+                                if alongX < 0
                                     x = layer:GetPreviousGridCoordinate(x)
-                                elseif selectionXDirection > 0
+                                elseif alongX > 0
                                     x = layer:GetNextGridCoordinate(x)
                                 end
         
@@ -895,17 +1100,19 @@ action Update(number seconds)
                                     y = layer:GetNextGridCoordinate(y)
                                 end
         
-                                if selectionZDirection < 0
+                                if alongZ < 0
                                     z = layer:GetPreviousGridCoordinate(z)
-                                elseif selectionZDirection > 0
+                                elseif alongZ > 0
                                     z = layer:GetNextGridCoordinate(z)
                                 end
         
+                                number aboveStep = -GetGroundChange(focus)
+                                boolean groundStep = lastGround not= undefined
                                 focus:Move(x - focus:GetGlobalX(), y - focus:GetGlobalY(), z - focus:GetGlobalZ())
-                                Grid3D grid = layer:GetGrid()
-                                grid:SetPosition(grid:GetNearestGridCoordinate(focus:GetGlobalX()),
-                                    0,
-                                    grid:GetNearestGridCoordinate(focus:GetGlobalZ()))
+                                if selectionYDirection = 0
+                                    FollowGroundAfterMove(focus, aboveStep, groundStep)
+                                end
+                                PlaceGridUnder(focus)
                             end
                         else
                             gridMoveTimer = gridMoveTimer - seconds
@@ -1026,7 +1233,10 @@ action Update(number seconds)
         if moved
             if movedItem not= undefined and movedItem is EditorItem
                 UpdateActivePropertiesDialog(cast(EditorItem, movedItem))
-                UpdateEditorCameraPosition()
+                // A new item's preview moves on its own; the camera stays.
+                if not (movedItem is ItemPreview3D)
+                    UpdateEditorCameraPosition()
+                end
             end
 
             if isCursor
@@ -1306,8 +1516,10 @@ action Update(number seconds)
     end
 
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
-        // Set again below if the new item starts at the terrain cursor.
+        // Set again below if the new item starts at the terrain cursor. The
+        // terrain is recorded now, before the preview takes the focus.
         placementTerrain = undefined
+        previewStartTerrain = cursorTerrain
 
         // A terrain has no preview to place: it is added flat, at the
         // origin, at once.
@@ -1418,6 +1630,7 @@ action Update(number seconds)
             // runs before the preview gets the focus, which ends the
             // terrain's selection, while the terrain cursor is still known.
             text groundMessage = StartPreviewOnGround(preview)
+            activePreview = preview
             preview:Focus()
             if groundMessage not= ""
                 NotifyAccessibility(preview, groundMessage)
@@ -1436,6 +1649,223 @@ action Update(number seconds)
             ItemPreview2D preview2D = cast(ItemPreview2D, preview)
             EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
             layer:Remove(preview2D)
+        end
+        EndActivePreview()
+        ReleasePlacementRing()
+    end
+
+    /*
+    This action forgets the new item's preview being placed, and takes its
+    ghost away, once it is placed or canceled.
+    */
+    private action EndActivePreview
+        activePreview = undefined
+        previewInProperties = false
+        if previewGhost not= undefined
+            if GetSelectedLayer() is EditorLayer3D
+                EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+                layer3D:Remove(previewGhost)
+            end
+            previewGhost:Dispose()
+            previewGhost = undefined
+        end
+        previewGhostShown = false
+    end
+
+    /*
+    This action notes that the focus went from the new item's preview into
+    the Properties panel, so the next click in the view only returns to it.
+    ItemPreview calls it.
+    */
+    action PreviewWentToProperties
+        if HasActivePreview()
+            previewInProperties = true
+        end
+    end
+
+    /*
+    This action returns true while a new item's preview is being placed in
+    the 3D view.
+
+    Attribute: Returns True while a preview is out
+    */
+    action HasActivePreview returns boolean
+        return activePreview not= undefined and GetSelectedLayer() is EditorLayer3D
+    end
+
+    /*
+    This action returns where the pointer points, for moving a preview: the
+    ground of the nearest terrain under it, or else the level plane at a
+    height. It returns undefined if the pointer points away from the plane.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    Attribute: Parameter height The plane's height, when no ground is under the pointer
+    Attribute: Returns The point
+    */
+    private action PickPreviewPoint(number x, number y, number height) returns Vector3
+        Vector3 ground = PickGround(x, y)
+        if ground not= undefined
+            return ground
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        Vector3 origin = ray:GetOrigin()
+        Vector3 direction = ray:GetDirection()
+        if math:AbsoluteValue(direction:GetY()) < 0.0001
+            return undefined
+        end
+        number distance = (height - origin:GetY()) / direction:GetY()
+        if distance <= 0
+            return undefined
+        end
+        Vector3 point
+        point:Set(origin:GetX() + direction:GetX() * distance, height, origin:GetZ() + direction:GetZ() * distance)
+        return point
+    end
+
+    /*
+    This action returns true if a point is on the preview, seen from above:
+    within half its larger width or depth of its middle, and at least half
+    a unit.
+    */
+    private action IsOnPreview(Vector3 point) returns boolean
+        number half = activePreview:GetWidth() * activePreview:GetScaleX()
+        number depthAcross = activePreview:GetDepth() * activePreview:GetScaleZ()
+        if depthAcross > half
+            half = depthAcross
+        end
+        half = half / 2
+        if half < 0.5
+            half = 0.5
+        end
+        number offsetX = point:GetX() - activePreview:GetGlobalX()
+        number offsetZ = point:GetZ() - activePreview:GetGlobalZ()
+        return offsetX * offsetX + offsetZ * offsetZ <= half * half
+    end
+
+    /*
+    This action handles a click in the 3D view while a new item's preview
+    is out: on the preview it places it, as Enter does; anywhere else it
+    moves the preview there, on the ground if a terrain is under the
+    pointer, or at its height if not. The preview keeps the focus.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action PressPreview(number x, number y)
+        if not HasActivePreview()
+            return now
+        end
+        // Back from the Properties panel: the first click only returns to
+        // the preview, with its settings, where it was.
+        if previewInProperties
+            previewInProperties = false
+            activePreview:Focus()
+            NotifyAccessibility(activePreview, "Back to " + activePreview:GetName())
+            return now
+        end
+        Vector3 point = PickPreviewPoint(x, y, activePreview:GetGlobalY())
+        if point = undefined
+            activePreview:Focus()
+            return now
+        end
+        if IsOnPreview(point)
+            ItemPreview3D placing = activePreview
+            ConfirmItemPreview(placing)
+            return now
+        end
+        HidePreviewGhost()
+        activePreview:SetPosition(point:GetX(), activePreview:GetY(), point:GetZ())
+        text message = "Moved " + activePreview:GetName()
+        if PutOnGround(activePreview, activePreview)
+            message = message + " onto " + lastGround:GetName()
+        end
+        // A preview started at a terrain's cursor takes the cursor with it.
+        if placementTerrain not= undefined and placementTerrain = cursorTerrain
+            placementTerrain:SetBrushPosition(activePreview:GetGlobalX(), activePreview:GetGlobalZ())
+            UpdateBrushPreview()
+        end
+        activePreview:Focus()
+        NotifyAccessibility(activePreview, message)
+    end
+
+    /*
+    This action follows the pointer while a new item's preview is out: a
+    fainter ghost of the preview shows where a click would move it, on the
+    ground if a terrain is under the pointer. Over the preview itself, where
+    a click places it, the ghost hides.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action MovePreviewGhostToPointer(number x, number y)
+        if not HasActivePreview()
+            HidePreviewGhost()
+            return now
+        end
+        Vector3 point = PickPreviewPoint(x, y, activePreview:GetGlobalY())
+        if point = undefined or IsOnPreview(point)
+            HidePreviewGhost()
+            return now
+        end
+        if previewGhost = undefined
+            if activePreview:GetModelBlueprint() = undefined
+                return now
+            end
+            EditorModel ghost
+            ghost:Load(activePreview:GetModelBlueprint())
+            ghost:SetName("Placement Ghost")
+            ghost:SetProperty(constants:EDITOR_TAG, undefined)
+            ghost:SetAcceptsMouseInput(false)
+            ghost:SetCastsShadows(false)
+            ghost:SetScale(activePreview:GetScaleX(), activePreview:GetScaleY(), activePreview:GetScaleZ())
+            ghost:SetRotation(activePreview:GetYaw(), activePreview:GetPitch(), activePreview:GetRoll())
+            Color shade = activePreview:GetColor()
+            if shade not= undefined
+                Color faint = shade:Copy()
+                faint:SetAlpha(shade:GetAlpha() * GHOST_ALPHA_SHARE)
+                ghost:SetColor(faint)
+            end
+            previewGhost = ghost
+            EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+            layer3D:Add(ghost)
+            previewGhostShown = true
+        end
+        previewGhost:SetPosition(point:GetX(), activePreview:GetGlobalY(), point:GetZ())
+        // The ghost isn't a scene item, so it moves itself by the same
+        // ground rule PutOnGround uses: its base onto the ground.
+        number groundChange = GetGroundChange(previewGhost)
+        if lastGround not= undefined and groundChange not= 0
+            previewGhost:MoveY(groundChange)
+        end
+        if not previewGhostShown
+            previewGhost:Show()
+            previewGhostShown = true
+        end
+    end
+
+    /*
+    This action hides the preview's ghost.
+    */
+    action HidePreviewGhost
+        if previewGhost not= undefined and previewGhostShown
+            previewGhost:Hide()
+        end
+        previewGhostShown = false
+    end
+
+    /*
+    This action hides the ring a new item's preview kept shown, once the
+    preview is placed or canceled, unless its terrain is selected again
+    (ReturnToPlacementTerrain shows it again then).
+    */
+    private action ReleasePlacementRing
+        if cursorTerrain not= undefined and cursorTerrain = placementTerrain and not (GetSelectedItem() is TerrainSelectionHighlight)
+            cursorTerrain = undefined
+            UpdateBrushPreview()
         end
     end
 
@@ -1698,9 +2128,12 @@ action Update(number seconds)
             brushTerrain = undefined
             TerrainBrushChanged(terrain)
         end
-        if cursorTerrain = terrain
+        // A new item started at this cursor keeps the ring shown, at the
+        // item, until it is placed or canceled.
+        if cursorTerrain = terrain and previewStartTerrain not= terrain and placementTerrain not= terrain
             cursorTerrain = undefined
         end
+        HideTerrainGhost()
         UpdateBrushPreview()
     end
 
@@ -1750,6 +2183,151 @@ action Update(number seconds)
     Attribute: Parameter right 1 for right, -1 for left, 0 for neither
     Attribute: Parameter forward 1 for away from the camera, -1 for toward it, 0 for neither
     */
+    /*
+    This action finds the camera's forward direction over the ground, for
+    the move keys, into moveForwardX and moveForwardZ: a unit direction, or
+    with snapping, the world axis nearest it (one of them 1 or -1, the
+    other 0). Looking straight down, forward is the camera's up.
+    */
+    private action FindMoveAxes(Camera camera, boolean snap)
+        Vector3 direction = camera:GetDirection()
+        number forwardX = direction:GetX()
+        number forwardZ = direction:GetZ()
+        if math:AbsoluteValue(forwardX) < 0.0001 and math:AbsoluteValue(forwardZ) < 0.0001
+            Vector3 up = camera:GetUp()
+            forwardX = up:GetX()
+            forwardZ = up:GetZ()
+        end
+        if snap
+            if math:AbsoluteValue(forwardX) >= math:AbsoluteValue(forwardZ)
+                forwardZ = 0
+                if forwardX >= 0
+                    forwardX = 1
+                else
+                    forwardX = -1
+                end
+            else
+                forwardX = 0
+                if forwardZ >= 0
+                    forwardZ = 1
+                else
+                    forwardZ = -1
+                end
+            end
+        else
+            number flat = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+            if flat < 0.0001
+                forwardX = 0
+                forwardZ = 1
+            else
+                forwardX = forwardX / flat
+                forwardZ = forwardZ / flat
+            end
+        end
+        moveForwardX = forwardX
+        moveForwardZ = forwardZ
+    end
+
+    /*
+    This action keeps the grid on a terrain (option C): with the grid on and
+    a terrain's cursor shown on the ground, grid lines lie over the ground
+    around it, and the flat grid hides; otherwise the lines hide and the
+    flat grid comes back.
+    */
+    private action UpdateTerrainGridPatch
+        if not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+        Grid3D grid = layer3D:GetGrid()
+        EditorTerrain shown = undefined
+        if IsTerrainBrushActive()
+            shown = brushTerrain
+        elseif cursorTerrain not= undefined
+            shown = cursorTerrain
+        end
+        boolean usePatch = IsGridSnapping() and shown not= undefined and shown:IsBrushOnGround()
+        if usePatch
+            if terrainGridPatch = undefined
+                TerrainGridPatch patch
+                terrainGridPatch = patch
+                terrainGridPatch:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), GetGridUnitSize(), TERRAIN_GRID_SQUARES_OUT)
+                layer3D:Add(terrainGridPatch)
+                terrainGridPatchShown = true
+            else
+                terrainGridPatch:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), GetGridUnitSize(), TERRAIN_GRID_SQUARES_OUT)
+            end
+            if not terrainGridPatchShown
+                terrainGridPatch:Show()
+                terrainGridPatchShown = true
+            end
+            if grid:IsShowing()
+                grid:Hide()
+                flatGridHiddenForPatch = true
+            end
+        else
+            if terrainGridPatch not= undefined and terrainGridPatchShown
+                terrainGridPatch:Hide()
+                terrainGridPatchShown = false
+            end
+            if flatGridHiddenForPatch
+                flatGridHiddenForPatch = false
+                if IsGridSnapping()
+                    grid:Show()
+                end
+            end
+        end
+    end
+
+    /*
+    This action puts the 3D grid under an item (grid option D): a patch of
+    GRID_PATCH_SQUARES squares at the height of the item's base, so the grid
+    is the plane the item steps across, on a hill or in the air. For the
+    scene's own cursor, it is the large floor at height 0, as before.
+
+    Attribute: Parameter item The selected item, a new item's preview, or the scene's cursor
+    */
+    action PlaceGridUnder(Item3D item)
+        if item = undefined or not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+        Grid3D grid = layer3D:GetGrid()
+        number x = grid:GetNearestGridCoordinate(item:GetGlobalX())
+        number z = grid:GetNearestGridCoordinate(item:GetGlobalZ())
+        if item is EditorModel and not (item is EditorCursor)
+            EditorModel model = cast(EditorModel, item)
+            if grid:GetExtent() not= GRID_PATCH_SQUARES
+                grid:SetExtent(GRID_PATCH_SQUARES)
+            end
+            grid:SetPosition(x, GetBaseHeight(model), z)
+        else
+            if grid:GetExtent() not= GRID_FLOOR_SQUARES
+                grid:SetExtent(GRID_FLOOR_SQUARES)
+            end
+            grid:SetPosition(x, 0, z)
+        end
+    end
+
+    /*
+    This action returns the height of the bottom of a model's box, as it
+    stands, the same base GetGroundChange puts on the ground.
+    */
+    private action GetBaseHeight(EditorModel model) returns number
+        number base = model:GetGlobalY()
+        if model:GetModelBlueprint() not= undefined
+            model:CalculateBoundingBox(shapeBox)
+            Vector3 low = shapeBox:GetMinimum()
+            Vector3 high = shapeBox:GetMaximum()
+            if low:GetX() <= high:GetX() and low:GetY() <= high:GetY() and low:GetZ() <= high:GetZ()
+                groundBox:Invalidate()
+                groundBox:Extend(shapeBox, model:GetTransform())
+                base = groundBox:GetMinimum():GetY()
+            end
+        end
+        return base
+    end
+
     action StepTerrainCursor(EditorTerrain terrain, integer right, integer forward)
         EditorLayer layer = GetSelectedLayer()
         if terrain = undefined or not (layer is EditorLayer3D)
@@ -1844,6 +2422,9 @@ action Update(number seconds)
         terrain:SetBrushPosition(x, z)
         PlaceTerrainCursorTarget(terrain)
         UpdateEditorCameraPosition()
+        // The ring follows at once. The update placed it earlier this frame,
+        // before the keys moved the cursor, so it trailed by a frame.
+        UpdateBrushPreview()
         if speak
             if hadHeight
                 NotifyAccessibility(terrain, terrain:DescribeHeightChange(before))
@@ -2032,9 +2613,16 @@ action Update(number seconds)
     Attribute: Returns What to say, such as "On Terrain1", or "" if it isn't on the ground
     */
     private action StartPreviewOnGround(ItemPreview3D preview) returns text
-        if cursorTerrain not= undefined and cursorTerrain:IsBrushPlaced()
-            placementTerrain = cursorTerrain
-            preview:SetPosition(cursorTerrain:GetBrushX(), preview:GetY(), cursorTerrain:GetBrushZ())
+        EditorTerrain startTerrain = previewStartTerrain
+        if startTerrain = undefined
+            startTerrain = cursorTerrain
+        end
+        previewStartTerrain = undefined
+        if startTerrain not= undefined and startTerrain:IsBrushPlaced()
+            placementTerrain = startTerrain
+            cursorTerrain = startTerrain
+            preview:SetPosition(startTerrain:GetBrushX(), preview:GetY(), startTerrain:GetBrushZ())
+            UpdateBrushPreview()
         end
         if PutOnGround(preview, preview)
             return "On " + lastGround:GetName()
@@ -2164,35 +2752,242 @@ action Update(number seconds)
             return now
         end
         terrainCursorMovedByPointer = true
-        EditorLayer layer = GetSelectedLayer()
-        if not (layer is EditorLayer3D)
-            return now
-        end
-        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
-        EditorCamera3D camera = layer3D:GetEditorCamera()
-        // The same pick ray the selection click uses.
-        // GetPickRay mirrors x across the view (the world is left-handed),
-        // so the pointer's x is mirrored first, as the in-game terrain
-        // editor does; otherwise the brush moves opposite the pointer.
-        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
-        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
-        Vector3 hit = brushTerrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
-        if hit = undefined and brushTerrain:GetToolNumber() = 8
-            // Add region works past the edge of the ground, so the pointer
-            // finds where it meets the level of the ground's base, height 0
-            // (step 11).
-            Vector3 direction = ray:GetDirection()
-            Vector3 origin = ray:GetOrigin()
-            if direction:GetY() < -0.0001
-                number distance = -origin:GetY() / direction:GetY()
-                brushTerrain:SetBrushPosition(origin:GetX() + direction:GetX() * distance, origin:GetZ() + direction:GetZ() * distance)
-                return now
-            end
-        end
+        Vector3 hit = PickPointerGround(brushTerrain, x, y)
         if hit = undefined
             brushTerrain:SetBrushOffGround()
         else
             brushTerrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+        end
+    end
+
+    /*
+    This action returns where the pointer meets a terrain's ground, in the
+    same screen coordinates as mouse events, or undefined. With the Add
+    region tool it reaches past the ground's edge, to the level of its base,
+    height 0 (step 11).
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    Attribute: Returns The point, or undefined
+    */
+    action PickPointerGround(EditorTerrain terrain, number x, number y) returns Vector3
+        EditorLayer layer = GetSelectedLayer()
+        if terrain = undefined or not (layer is EditorLayer3D)
+            return undefined
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // The same pick ray the selection click uses. GetPickRay mirrors x
+        // across the view (the world is left-handed), so the pointer's x is
+        // mirrored first; otherwise the brush moves opposite the pointer.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        Vector3 hit = terrain:GetWorldTerrain():GetData():RayCast(ray:GetOrigin(), ray:GetDirection(), camera:GetFar())
+        if hit = undefined and terrain:GetToolNumber() = 8
+            Vector3 direction = ray:GetDirection()
+            Vector3 origin = ray:GetOrigin()
+            if direction:GetY() < -0.0001
+                number distance = -origin:GetY() / direction:GetY()
+                Vector3 level
+                level:Set(origin:GetX() + direction:GetX() * distance, 0, origin:GetZ() + direction:GetZ() * distance)
+                return level
+            end
+        end
+        return hit
+    end
+
+    /*
+    This action returns the terrain whose cursor the mouse moves: the one
+    whose tool is chosen, or else the selected terrain, or undefined.
+
+    Attribute: Returns The terrain
+    */
+    action GetPointerTerrain returns EditorTerrain
+        if IsTerrainBrushActive()
+            return brushTerrain
+        end
+        if cursorTerrain not= undefined and GetSelectedItem() is TerrainSelectionHighlight
+            return cursorTerrain
+        end
+        return undefined
+    end
+
+    /*
+    This action returns true while a click in the 3D view belongs to a
+    terrain's cursor: a terrain is selected, with or without a tool.
+
+    Attribute: Returns True when the mouse moves a terrain's cursor
+    */
+    action IsTerrainCursorActive returns boolean
+        return GetPointerTerrain() not= undefined and GetSelectedLayer() is EditorLayer3D
+    end
+
+    /*
+    This action returns true if a point is within a terrain's ring: its
+    brush's size from the brush, across the ground.
+    */
+    private action IsInsideRing(EditorTerrain terrain, Vector3 point) returns boolean
+        if not terrain:IsBrushOnGround()
+            return false
+        end
+        number offsetX = point:GetX() - terrain:GetBrushX()
+        number offsetZ = point:GetZ() - terrain:GetBrushZ()
+        number size = terrain:GetBrush():GetSize()
+        return offsetX * offsetX + offsetZ * offsetZ <= size * size
+    end
+
+    /*
+    This action handles a press of the left mouse button on a selected
+    terrain. Inside the ring, with a tool, it applies, as Space does, and
+    goes on as a stroke while the button is held. Anywhere else it moves the
+    cursor there and applies nothing; holding the button past HOLD_SECONDS
+    then starts a stroke there. With no tool, it only moves the cursor.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action PressTerrainCursor(number x, number y)
+        EditorTerrain terrain = GetPointerTerrain()
+        Vector3 hit = PickPointerGround(terrain, x, y)
+        if hit = undefined
+            return now
+        end
+        HideTerrainGhost()
+        if terrain:HasTool() and IsInsideRing(terrain, hit)
+            BeginTerrainStroke(terrain, true, 0)
+            return now
+        end
+        terrainCursorMovedByPointer = true
+        terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+        UpdateBrushPreview()
+        if terrain:IsBrushOnGround()
+            NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
+        end
+        if terrain:HasTool()
+            pointerHolding = true
+            pointerHoldSeconds = 0
+        end
+    end
+
+    /*
+    This action starts a stroke once the button pressed outside the ring has
+    been held past HOLD_SECONDS, and forgets the press when it is let go.
+    */
+    private action UpdatePointerHold(number seconds)
+        if not pointerHolding
+            return now
+        end
+        if not strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+            pointerHolding = false
+            return now
+        end
+        pointerHoldSeconds = pointerHoldSeconds + seconds
+        if pointerHoldSeconds >= HOLD_SECONDS
+            pointerHolding = false
+            EditorTerrain terrain = GetPointerTerrain()
+            if terrain not= undefined and terrain:HasTool()
+                BeginTerrainStroke(terrain, true, 0)
+            end
+        end
+    end
+
+    /*
+    This action follows the pointer as it moves without a button held:
+    while a selected terrain's cursor is in use, the gray ghost ring shows
+    where a click would move the cursor. Over the cursor's own ring, where a
+    click applies, and during a stroke, it hides.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action MoveTerrainGhostToPointer(number x, number y)
+        if stroking or pointerHolding or not IsTerrainCursorActive()
+            HideTerrainGhost()
+            return now
+        end
+        EditorTerrain terrain = GetPointerTerrain()
+        Vector3 hit = PickPointerGround(terrain, x, y)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if hit = undefined or not data:HasHeight(hit:GetX(), hit:GetZ()) or IsInsideRing(terrain, hit)
+            HideTerrainGhost()
+            return now
+        end
+        number size = terrain:GetBrush():GetSize()
+        if ghostPreview = undefined
+            TerrainBrushPreview ghost
+            ghost:SetName("Terrain Brush Ghost")
+            ghost:SetProperty(constants:EDITOR_TAG, undefined)
+            // The ghost lets clicks through to the scene editor.
+            ghost:SetAcceptsMouseInput(false)
+            ghost:SetRingColor(0.6, 0.6, 0.6)
+            ghost:Place(data, hit:GetX(), hit:GetZ(), size)
+            ghostPreview = ghost
+            EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+            layer3D:Add(ghost)
+        else
+            ghostPreview:Place(data, hit:GetX(), hit:GetZ(), size)
+        end
+        if not ghostPreviewShown
+            ghostPreview:Show()
+            ghostPreviewShown = true
+        end
+    end
+
+    /*
+    This action hides the ghost ring.
+    */
+    action HideTerrainGhost
+        if ghostPreview not= undefined and ghostPreviewShown
+            ghostPreview:Hide()
+        end
+        ghostPreviewShown = false
+    end
+
+    /*
+    This action moves the focused item, a new item's preview started at a
+    terrain's cursor, to where that cursor is now, on the ground, so the
+    preview and the ring move together.
+    */
+    private action MoveFocusToTerrainCursor(EditorItem3D focus, EditorTerrain terrain)
+        if not (focus is ItemPreview3D)
+            return now
+        end
+        ItemPreview3D preview = cast(ItemPreview3D, focus)
+        // With "Follow the ground" on, the keyboard keeps the preview's
+        // height above the ground; off (the default), it keeps its height.
+        // Only the mouse snaps it onto the ground.
+        number above = -GetGroundChange(preview)
+        boolean hadGround = lastGround not= undefined
+        preview:SetPosition(terrain:GetBrushX(), preview:GetY(), terrain:GetBrushZ())
+        FollowGroundAfterMove(preview, above, hadGround)
+    end
+
+    /*
+    This action keeps a preview that follows the ground at the height above
+    the ground it had before a move, if it had ground under it before and
+    has now. Other items, and previews that don't follow, are left as they
+    are.
+
+    Attribute: Parameter focus The item that moved
+    Attribute: Parameter above How far its base was above the ground before the move
+    Attribute: Parameter hadGround True if there was ground under it before the move
+    */
+    private action FollowGroundAfterMove(EditorItem3D focus, number above, boolean hadGround)
+        if not (focus is ItemPreview3D)
+            return now
+        end
+        ItemPreview3D preview = cast(ItemPreview3D, focus)
+        if not preview:IsFollowingGround()
+            return now
+        end
+        number change = GetGroundChange(preview)
+        if lastGround not= undefined
+            if hadGround
+                preview:MoveY(change + above)
+            else
+                preview:MoveY(change)
+            end
         end
     end
 
@@ -3398,6 +4193,10 @@ action Update(number seconds)
             // made again, and the selection's border fits the new size.
             terrain:RebuildRegionModels()
             RefreshTerrainHighlight(terrain)
+        end
+        // The grid's lines over the ground follow it too (option C).
+        if terrainGridPatch not= undefined and terrainGridPatchShown
+            terrainGridPatch:Refresh(terrain:GetWorldTerrain():GetData())
         end
         // The foliage follows the ground (Terrain plan F4): under the brush
         // during a stroke, and everywhere after anything else, such as an
@@ -4852,7 +5651,9 @@ action Update(number seconds)
     Attribute: Parameter stronger True to strengthen the brush, false to weaken it
     */
     action ChangeTerrainStrength(EditorTerrain terrain, boolean stronger)
-        if terrain = undefined or not terrain:HasTool()
+        // The strength is the brush's, as its size is, so it changes with or
+        // without a tool chosen; the Brush section shows it either way.
+        if terrain = undefined
             return now
         end
         TerrainBrush brush = terrain:GetBrush()
@@ -5171,6 +5972,8 @@ action Update(number seconds)
     end
 
     action ConfirmItemPreview(ItemPreview newItem)
+        // Placing selects the new item; the camera stays where it is.
+        keepCameraAfterPlacing = true
         Item result = undefined
         EditorLayer resultLayer = undefined
 
@@ -5225,6 +6028,8 @@ action Update(number seconds)
         SceneEditorInsertEdit edit
         edit:Create(me, resultLayer, result)
         editManager:Add(edit)
+        EndActivePreview()
+        ReleasePlacementRing()
     end
 
     action Add(EditorLayer layer, Item item)
@@ -5292,6 +6097,566 @@ action Update(number seconds)
 
     action GetRollDirection returns integer
         return rollDirection
+    end
+
+    /*
+    This action starts one of the 3D camera's moves, while its key is held:
+    SceneConstants' CAMERA_LOOK, CAMERA_SLIDE, CAMERA_ORBIT or CAMERA_ZOOM,
+    with x -1 for left
+    and 1 for right, and y -1 for down (or out) and 1 for up (or in). It
+    moves a small step at once, so a tap moves a little.
+
+    Attribute: Parameter move One of the CAMERA_ moves
+    Attribute: Parameter x -1, 0 or 1
+    Attribute: Parameter y -1, 0 or 1
+    */
+    action StartCameraMove(integer move, integer x, integer y)
+        if not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if move = constants:CAMERA_LOOK
+            if x not= 0
+                cameraLookX = x
+            end
+            if y not= 0
+                cameraLookY = y
+            end
+        elseif move = constants:CAMERA_SLIDE
+            if x not= 0
+                cameraSlideX = x
+            end
+            if y not= 0
+                cameraSlideY = y
+            end
+        elseif move = constants:CAMERA_ORBIT
+            if cameraOrbitX = 0 and cameraOrbitY = 0
+                camera:StartOrbit()
+            end
+            if x not= 0
+                cameraOrbitX = x
+            end
+            if y not= 0
+                cameraOrbitY = y
+            end
+        elseif move = constants:CAMERA_ZOOM
+            cameraZoom = y
+        end
+        MoveCameraByKeys(camera, CAMERA_KEY_TAP_SECONDS)
+    end
+
+    /*
+    This action stops one of the 3D camera's moves, when its key comes up.
+    It only stops the move if it is still going the key's way, so letting go
+    of Left while Right is held keeps the camera going right.
+
+    Attribute: Parameter move One of the CAMERA_ moves
+    Attribute: Parameter x The key's x: -1, 0 or 1
+    Attribute: Parameter y The key's y: -1, 0 or 1
+    */
+    action StopCameraMove(integer move, integer x, integer y)
+        if move = constants:CAMERA_LOOK
+            if x not= 0 and cameraLookX = x
+                cameraLookX = 0
+            end
+            if y not= 0 and cameraLookY = y
+                cameraLookY = 0
+            end
+        elseif move = constants:CAMERA_SLIDE
+            if x not= 0 and cameraSlideX = x
+                cameraSlideX = 0
+            end
+            if y not= 0 and cameraSlideY = y
+                cameraSlideY = 0
+            end
+        elseif move = constants:CAMERA_ORBIT
+            if x not= 0 and cameraOrbitX = x
+                cameraOrbitX = 0
+            end
+            if y not= 0 and cameraOrbitY = y
+                cameraOrbitY = 0
+            end
+            if cameraOrbitX = 0 and cameraOrbitY = 0 and GetSelectedLayer() is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+                layer:GetEditorCamera():EndOrbit()
+            end
+        elseif move = constants:CAMERA_ZOOM
+            if cameraZoom = y
+                cameraZoom = 0
+            end
+        end
+    end
+
+    /*
+    This action moves the 3D camera by its held keys, for a time.
+    */
+    private action MoveCameraByKeys(EditorCamera3D camera, number seconds)
+        if camera = undefined
+            return now
+        end
+        if cameraLookX not= 0 or cameraLookY not= 0
+            camera:LookBy(cameraLookX * CAMERA_KEY_TURN_SPEED * seconds, cameraLookY * CAMERA_KEY_TURN_SPEED * seconds)
+        end
+        if cameraSlideX not= 0 or cameraSlideY not= 0
+            number slide = camera:GetViewDistance() * CAMERA_KEY_SLIDE_SHARE * seconds
+            camera:SlideBy(cameraSlideX * slide, cameraSlideY * slide)
+        end
+        if cameraOrbitX not= 0 or cameraOrbitY not= 0
+            camera:OrbitBy(cameraOrbitX * CAMERA_KEY_TURN_SPEED * seconds, cameraOrbitY * CAMERA_KEY_TURN_SPEED * seconds)
+        end
+        if cameraZoom not= 0
+            camera:ZoomBy(cameraZoom * CAMERA_KEY_ZOOM_STEPS * seconds)
+        end
+    end
+
+    /*
+    This action runs one step of a scene key's action, such as Quorum
+    Studio's Scenes menu asks for: one of SceneConstants' COMMAND_ numbers.
+    It uses the same code as the keys. A key held down keeps going; a
+    command does one step: the cursor or selection moves one grid unit, the
+    selection turns 15 degrees, the camera looks or orbits 15 degrees,
+    slides a tenth of the distance to what it looks at, or zooms one step.
+    A command that doesn't apply, such as a selection command with nothing
+    selected, or a camera command in a 2D layer, does nothing.
+
+    Attribute: Parameter command One of SceneConstants' COMMAND_ numbers
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.SceneEditor
+    use Libraries.Interface.Controls.Scenes.SceneConstants
+
+    SceneEditor editor
+    SceneConstants constants
+    editor:RunCommand(constants:COMMAND_ZOOM_IN)
+    */
+    action RunCommand(integer command)
+        if layers:IsEmpty() or GetSelectedLayer() = undefined
+            return now
+        end
+        if command >= constants:COMMAND_LOOK_LEFT and command <= constants:COMMAND_POINT_AT_SELECTION
+            RunCameraCommand(command)
+        elseif command >= constants:COMMAND_CURSOR_LEFT and command <= constants:COMMAND_CURSOR_SELECT
+            RunCursorCommand(command)
+        elseif command >= constants:COMMAND_SELECTION_LEFT and command <= constants:COMMAND_SELECTION_LEAVE
+            RunSelectionCommand(command)
+        elseif command >= constants:COMMAND_TERRAIN_TOOL and command <= constants:COMMAND_TERRAIN_TAKE_HEIGHT
+            RunTerrainCommand(command)
+        elseif command = constants:COMMAND_GRID_TOGGLE
+            ToggleGridBehavior toggle
+            RunBehaviorOn(toggle, me)
+        elseif command = constants:COMMAND_GRID_LARGER
+            IncreaseGridUnitBehavior larger
+            RunBehaviorOn(larger, me)
+        elseif command = constants:COMMAND_GRID_SMALLER
+            DecreaseGridUnitBehavior smaller
+            RunBehaviorOn(smaller, me)
+        elseif command = constants:COMMAND_PROPERTIES_FOCUS
+            FocusItemProperties()
+        elseif command = constants:COMMAND_PROPERTIES_CLOSE_SECTION
+            if propertiesPanel not= undefined
+                propertiesPanel:CloseFocusedSection()
+            end
+        elseif command = constants:COMMAND_PROPERTIES_OPEN_SECTION
+            if propertiesPanel not= undefined
+                propertiesPanel:OpenFocusedSection()
+            end
+        elseif command = constants:COMMAND_FIND
+            OpenSceneEditorFindDialogBehavior find
+            RunBehaviorOn(find, me)
+        elseif command = constants:COMMAND_SAY_LOCATION
+            // Where the selection is, or the camera with nothing selected,
+            // as the report key says.
+            ReportLocationBehavior where
+            if GetSelectedItem() not= undefined
+                RunBehaviorOn(where, GetSelectedItem())
+            else
+                RunBehaviorOn(where, me)
+            end
+        elseif command = constants:COMMAND_SAY_CAMERA_DIRECTION
+            ReportCameraDirectionBehavior direction
+            RunBehaviorOn(direction, me)
+        elseif command = constants:COMMAND_SAY_ITEMS_IN_VIEW
+            if GetSelectedLayer() is EditorLayer3D
+                ReportItemsInViewBehavior inView
+                RunBehaviorOn(inView, me)
+            end
+        end
+    end
+
+    /*
+    This action runs a key's behavior once, as if its key were pressed with
+    an item focused.
+    */
+    private action RunBehaviorOn(Behavior behavior, Item item)
+        BehaviorEvent event
+        event:SetItem(item)
+        behavior:Run(event)
+    end
+
+    /*
+    This action runs one step of a camera command, in a 3D layer.
+    */
+    private action RunCameraCommand(integer command)
+        if not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined
+            return now
+        end
+        number turn = COMMAND_TURN_RADIANS
+        number slide = camera:GetViewDistance() * COMMAND_SLIDE_SHARE
+        if command = constants:COMMAND_LOOK_LEFT
+            camera:LookBy(-turn, 0)
+        elseif command = constants:COMMAND_LOOK_RIGHT
+            camera:LookBy(turn, 0)
+        elseif command = constants:COMMAND_LOOK_UP
+            camera:LookBy(0, turn)
+        elseif command = constants:COMMAND_LOOK_DOWN
+            camera:LookBy(0, -turn)
+        elseif command = constants:COMMAND_SLIDE_LEFT
+            camera:SlideBy(-slide, 0)
+        elseif command = constants:COMMAND_SLIDE_RIGHT
+            camera:SlideBy(slide, 0)
+        elseif command = constants:COMMAND_SLIDE_UP
+            camera:SlideBy(0, slide)
+        elseif command = constants:COMMAND_SLIDE_DOWN
+            camera:SlideBy(0, -slide)
+        elseif command >= constants:COMMAND_ORBIT_LEFT and command <= constants:COMMAND_ORBIT_DOWN
+            camera:StartOrbit()
+            if command = constants:COMMAND_ORBIT_LEFT
+                camera:OrbitBy(-turn, 0)
+            elseif command = constants:COMMAND_ORBIT_RIGHT
+                camera:OrbitBy(turn, 0)
+            elseif command = constants:COMMAND_ORBIT_UP
+                camera:OrbitBy(0, turn)
+            else
+                camera:OrbitBy(0, -turn)
+            end
+            camera:EndOrbit()
+        elseif command = constants:COMMAND_ZOOM_IN
+            camera:ZoomBy(1)
+        elseif command = constants:COMMAND_ZOOM_OUT
+            camera:ZoomBy(-1)
+        elseif command = constants:COMMAND_POINT_AT_SELECTION
+            EditorItem selected = GetSelectedItem()
+            if selected = undefined or not (selected is Item3D)
+                NotifyAccessibility(me, "Nothing is selected to point the camera at.")
+                return now
+            end
+            if selected is TerrainSelectionHighlight
+                NotifyAccessibility(me, "A terrain is too big to point the camera at.")
+                return now
+            end
+            // Pointing again at the same item still turns the camera to it.
+            // EditorItem is an interface, so it is cast through Object.
+            Object selectedObject = selected
+            Item3D selected3D = cast(Item3D, selectedObject)
+            camera:SetTarget(selected3D)
+            camera:UpdateCameraPosition()
+        end
+    end
+
+    /*
+    This action runs one step of a cursor command.
+    */
+    private action RunCursorCommand(integer command)
+        EditorLayer layer = GetSelectedLayer()
+        Item cursorItem = layer:GetCursor()
+        if command = constants:COMMAND_CURSOR_LARGER
+            GetCursor():IncreaseSize()
+            return now
+        elseif command = constants:COMMAND_CURSOR_SMALLER
+            GetCursor():DecreaseSize()
+            return now
+        elseif command = constants:COMMAND_CURSOR_SELECT
+            SetFilteredItems(GetCursor():GetItemsAtCursor(), true)
+            return now
+        end
+        integer x = 0
+        integer y = 0
+        integer z = 0
+        if command = constants:COMMAND_CURSOR_LEFT
+            x = -1
+        elseif command = constants:COMMAND_CURSOR_RIGHT
+            x = 1
+        elseif command = constants:COMMAND_CURSOR_FORWARD
+            z = 1
+        elseif command = constants:COMMAND_CURSOR_BACKWARD
+            z = -1
+        elseif command = constants:COMMAND_CURSOR_UP
+            y = 1
+        elseif command = constants:COMMAND_CURSOR_DOWN
+            y = -1
+        end
+        if StepItem(cursorItem, x, y, z)
+            UpdateEditorCameraPosition()
+            NotifyAccessibility(me, GetDescription())
+        end
+    end
+
+    /*
+    This action runs one step of a selection command, on the selected item.
+    */
+    private action RunSelectionCommand(integer command)
+        EditorItem selected = GetSelectedItem()
+        if selected = undefined
+            return now
+        end
+        if command = constants:COMMAND_SELECTION_LEAVE
+            if selected is TerrainSelectionHighlight
+                ExitTerrainCursor(cast(TerrainSelectionHighlight, selected))
+            else
+                Array<Item> nothing
+                SetFilteredItems(nothing, true)
+            end
+            return now
+        elseif command = constants:COMMAND_SELECTION_DELETE
+            if selected is SelectionHighlight
+                Delete(cast(SelectionHighlight, selected))
+            end
+            return now
+        elseif command = constants:COMMAND_SELECTION_DROP
+            if selected is EditorItem3D
+                DropOnGround(cast(EditorItem3D, selected))
+            end
+            return now
+        elseif command = constants:COMMAND_SELECTION_RESET_SCALE
+            selected:ResetScale()
+            selected:NotifyAccessibility("Reset scale")
+            return now
+        elseif command >= constants:COMMAND_SELECTION_LARGER and command <= constants:COMMAND_SELECTION_SHRINK_Z
+            SelectionScaleBehavior scaler
+            number up = 1.1
+            number down = 1.0 / 1.1
+            if command = constants:COMMAND_SELECTION_LARGER
+                scaler:SetScale(up, up, up)
+            elseif command = constants:COMMAND_SELECTION_SMALLER
+                scaler:SetScale(down, down, down)
+            elseif command = constants:COMMAND_SELECTION_STRETCH_X
+                scaler:SetScale(up, 1, 1)
+            elseif command = constants:COMMAND_SELECTION_SHRINK_X
+                scaler:SetScale(down, 1, 1)
+            elseif command = constants:COMMAND_SELECTION_STRETCH_Y
+                scaler:SetScale(1, up, 1)
+            elseif command = constants:COMMAND_SELECTION_SHRINK_Y
+                scaler:SetScale(1, down, 1)
+            elseif command = constants:COMMAND_SELECTION_STRETCH_Z
+                scaler:SetScale(1, 1, up)
+            else
+                scaler:SetScale(1, 1, down)
+            end
+            RunBehaviorOn(scaler, selected)
+            UpdateActivePropertiesDialog(selected)
+            return now
+        elseif command >= constants:COMMAND_SELECTION_TURN_LEFT and command <= constants:COMMAND_SELECTION_ROLL_RIGHT
+            TurnItem(selected, command)
+            UpdateActivePropertiesDialog(selected)
+            return now
+        end
+        integer x = 0
+        integer y = 0
+        integer z = 0
+        if command = constants:COMMAND_SELECTION_LEFT
+            x = -1
+        elseif command = constants:COMMAND_SELECTION_RIGHT
+            x = 1
+        elseif command = constants:COMMAND_SELECTION_FORWARD
+            z = 1
+        elseif command = constants:COMMAND_SELECTION_BACKWARD
+            z = -1
+        elseif command = constants:COMMAND_SELECTION_UP
+            y = 1
+        elseif command = constants:COMMAND_SELECTION_DOWN
+            y = -1
+        end
+        if StepItem(selected, x, y, z)
+            UpdateActivePropertiesDialog(selected)
+            UpdateEditorCameraPosition()
+            ReportLocationBehavior where
+            RunBehaviorOn(where, selected)
+        end
+    end
+
+    /*
+    This action turns an item one step, as the selection's turn and roll
+    keys do while held: 15 degrees. In a 2D layer, only rolling turns it.
+    */
+    private action TurnItem(Item item, integer command)
+        number yaw = 0
+        number pitch = 0
+        number roll = 0
+        // The keys' directions: left is -1 yaw, up is -1 pitch, roll left
+        // is 1.
+        if command = constants:COMMAND_SELECTION_TURN_LEFT
+            yaw = -1
+        elseif command = constants:COMMAND_SELECTION_TURN_RIGHT
+            yaw = 1
+        elseif command = constants:COMMAND_SELECTION_TURN_UP
+            pitch = -1
+        elseif command = constants:COMMAND_SELECTION_TURN_DOWN
+            pitch = 1
+        elseif command = constants:COMMAND_SELECTION_ROLL_LEFT
+            roll = 1
+        elseif command = constants:COMMAND_SELECTION_ROLL_RIGHT
+            roll = -1
+        end
+        if item is EditorItem3D and GetSelectedLayer() is EditorLayer3D
+            EditorItem3D focus = cast(EditorItem3D, item)
+            Vector3 angles
+            angles:Set(focus:GetYaw() + yaw * COMMAND_TURN_DEGREES, focus:GetPitch() + pitch * COMMAND_TURN_DEGREES, focus:GetRoll() + roll * COMMAND_TURN_DEGREES)
+            focus:SetRotation(angles)
+        elseif item is EditorItem2D and roll not= 0
+            EditorItem2D target = cast(EditorItem2D, item)
+            target:SetRotation(target:GetRotation() + roll * COMMAND_TURN_DEGREES)
+        end
+    end
+
+    /*
+    This action moves an item one step, as the move keys do with the grid:
+    one grid unit along each axis given, or for a terrain's cursor, a step
+    over the ground. It returns true if something moved.
+    */
+    private action StepItem(Item item, integer x, integer y, integer z) returns boolean
+        if x = 0 and y = 0 and z = 0
+            return false
+        end
+        if GetSelectedLayer() is EditorLayer3D
+            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+            EditorItem3D focus = cast(EditorItem3D, cast(Object, item))
+            if focus is TerrainSelectionHighlight
+                TerrainSelectionHighlight cursorHighlight = cast(TerrainSelectionHighlight, focus)
+                StepTerrainCursor(cursorHighlight:GetEditorTerrain(), x, z)
+                return true
+            elseif focus is CameraItem3D
+                CameraItem3D cameraItem = cast(CameraItem3D, focus)
+                if x not= 0
+                    cameraItem:SetYaw(cameraItem:GetYaw() + x * CAMERA_ROTATIONAL_SPEED_3D)
+                end
+                if y not= 0
+                    cameraItem:SetPitch(cameraItem:GetPitch() + y * CAMERA_ROTATIONAL_SPEED_3D)
+                end
+                if z not= 0
+                    cameraItem:SetDistance(cameraItem:GetDistance() - z * CAMERA_DIRECTIONAL_SPEED_3D)
+                end
+                return true
+            end
+            number newX = focus:GetGlobalX()
+            number newY = focus:GetGlobalY()
+            number newZ = focus:GetGlobalZ()
+            if x < 0
+                newX = layer:GetPreviousGridCoordinate(newX)
+            elseif x > 0
+                newX = layer:GetNextGridCoordinate(newX)
+            end
+            if y < 0
+                newY = layer:GetPreviousGridCoordinate(newY)
+            elseif y > 0
+                newY = layer:GetNextGridCoordinate(newY)
+            end
+            if z < 0
+                newZ = layer:GetPreviousGridCoordinate(newZ)
+            elseif z > 0
+                newZ = layer:GetNextGridCoordinate(newZ)
+            end
+            focus:Move(newX - focus:GetGlobalX(), newY - focus:GetGlobalY(), newZ - focus:GetGlobalZ())
+            PlaceGridUnder(focus)
+            return true
+        elseif GetSelectedLayer() is EditorLayer2D
+            // In 2D, forward and up both go up the screen.
+            EditorLayer2D layer2D = cast(EditorLayer2D, GetSelectedLayer())
+            Item2D target = cast(Item2D, cast(Object, item))
+            integer upward = y + z
+            number newX2D = target:GetGlobalX()
+            number newY2D = target:GetGlobalY()
+            if x < 0
+                newX2D = layer2D:GetPreviousGridCoordinate(newX2D)
+            elseif x > 0
+                newX2D = layer2D:GetNextGridCoordinate(newX2D)
+            end
+            if upward < 0
+                newY2D = layer2D:GetPreviousGridCoordinate(newY2D)
+            elseif upward > 0
+                newY2D = layer2D:GetNextGridCoordinate(newY2D)
+            end
+            target:Move(newX2D - target:GetGlobalX(), newY2D - target:GetGlobalY())
+            return true
+        end
+        return false
+    end
+
+    /*
+    This action runs one terrain command on the selected terrain: choosing
+    a tool, or one use of its brush's keys. It does nothing unless a
+    terrain is selected.
+    */
+    private action RunTerrainCommand(integer command)
+        EditorItem selected = GetSelectedItem()
+        if not (selected is TerrainSelectionHighlight)
+            return now
+        end
+        TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, selected)
+        EditorTerrain terrain = highlight:GetEditorTerrain()
+        if terrain = undefined
+            return now
+        end
+        if command <= constants:COMMAND_TERRAIN_TOOL + terrain:LAST_TOOL
+            SetTerrainTool(terrain, command - constants:COMMAND_TERRAIN_TOOL)
+            return now
+        end
+        // The brush's size and strength change with or without a tool.
+        if command = constants:COMMAND_TERRAIN_STRONGER
+            ChangeTerrainStrength(terrain, true)
+            return now
+        elseif command = constants:COMMAND_TERRAIN_WEAKER
+            ChangeTerrainStrength(terrain, false)
+            return now
+        elseif command = constants:COMMAND_TERRAIN_LARGER
+            ResizeTerrainBrush(terrain, true)
+            return now
+        elseif command = constants:COMMAND_TERRAIN_SMALLER
+            ResizeTerrainBrush(terrain, false)
+            return now
+        end
+        if not terrain:HasTool()
+            highlight:NotifyAccessibility("Choose a tool first, from the Tools menu or with Alt and a number, to place the brush.")
+            return now
+        end
+        if command = constants:COMMAND_TERRAIN_USE_BRUSH
+            UseTerrainBrushOnce(terrain)
+        elseif command = constants:COMMAND_TERRAIN_NEXT_LAYER
+            NextTerrainPaintLayer(terrain)
+        elseif command = constants:COMMAND_TERRAIN_RAMP_POINT
+            SetNextTerrainRampPoint(terrain)
+        elseif command = constants:COMMAND_TERRAIN_TAKE_HEIGHT
+            TakeTerrainFlattenHeight(terrain)
+        end
+    end
+
+    /*
+    This action uses a terrain's brush once, as a short press of its key
+    does: tools that act on a click act; a stroke makes one dab and ends,
+    as one undo step.
+    */
+    private action UseTerrainBrushOnce(EditorTerrain terrain)
+        BeginTerrainStroke(terrain, false, 0)
+        if not stroking
+            return now
+        end
+        if terrain:IsBrushOnGround()
+            if foliageStroking
+                number radius = terrain:GetBrush():GetSize()
+                if foliageStroke:Apply(terrain:GetBrushX(), terrain:GetBrushZ(), radius, terrain:GetFoliageDensityScale())
+                    terrain:RefreshFoliage(terrain:GetBrushX(), terrain:GetBrushZ(), radius)
+                end
+            elseif not waterStroking
+                terrainStroke:Apply(terrain:GetBrushX(), terrain:GetBrushZ(), COMMAND_STROKE_SECONDS)
+                RedrawTerrain(terrain)
+            end
+        end
+        EndTerrainStroke()
     end
 
     action IsCameraRotating returns boolean
@@ -5405,6 +6770,8 @@ action Update(number seconds)
             end
             cursor:SetPosition(x, y)
         elseif item is EditorItem3D
+            // The grid patch sits under the newly selected item (option D).
+            PlaceGridUnder(cast(Item3D, cast(Object, item)))
             EditorCursor3D cursor = cast(EditorCursor3D, GetCursor())
             number x = item:GetGlobalX()
             number y = item:GetGlobalY()
@@ -5907,10 +7274,49 @@ action Update(number seconds)
         // A terrain's heights and painting live in its own files.
         SaveChangedTerrains()
 
-        Array<EditorLayer> layers = GetSceneLayers()
-        Scene scene = Save(layers)
+        text sceneText = GetSceneText()
+        file:Write(sceneText)
+        savedText = sceneText
+    end
+
+    /*
+    This action returns true if the scene has changes that saving would
+    write: its own file would come out different from when it was last
+    loaded or saved, or one of its terrains has changed files. Studio asks
+    before closing when this is true, and only saves scenes for which it is.
+
+    Attribute: Returns True if the scene has unsaved changes
+    */
+    action HasUnsavedChanges returns boolean
+        integer counter = 0
+        repeat while counter < layers:GetSize()
+            EditorLayer editorLayer = layers:Get(counter)
+            if editorLayer is EditorLayer3D
+                EditorLayer3D layer = cast(EditorLayer3D, editorLayer)
+                Iterator<Item3D> items = layer:GetIterator()
+                repeat while items:HasNext()
+                    Item3D item = items:Next()
+                    if item is EditorTerrain
+                        EditorTerrain terrain = cast(EditorTerrain, item)
+                        if terrain:HasUnsavedChanges()
+                            return true
+                        end
+                    end
+                end
+            end
+            counter = counter + 1
+        end
+        return GetSceneText() not= savedText
+    end
+
+    /*
+    This action returns the scene's file text as saving would write it.
+    */
+    private action GetSceneText returns text
+        Array<EditorLayer> sceneLayers = GetSceneLayers()
+        Scene scene = Save(sceneLayers)
         scene:GetData():SetPrettyPrint(true)
-        file:Write(scene:GetData():ToText())
+        return scene:GetData():ToText()
     end
 
     // We override the particular save item calls to ignore items with the editor tag.

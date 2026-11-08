@@ -1,0 +1,36 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
+
+/*
+    This behavior is the "Follow the ground" checkbox in a new item's
+    preview's Properties: checked, the arrow keys keep the preview at its
+    height above the ground. A checkbox runs its behavior when checked and
+    calls Dispose when unchecked, so both pass the change on.
+*/
+class PropertiesFollowGroundBehavior is Behavior
+    Item3DPropertiesDialog dialog = undefined
+
+    /*
+        Sets the dialog the checkbox is in.
+
+        Attribute: Parameter properties The dialog
+    */
+    action SetDialog(Item3DPropertiesDialog properties)
+        dialog = properties
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog not= undefined
+            dialog:SetFollowGround(true)
+        end
+    end
+
+    action Dispose
+        if dialog not= undefined
+            dialog:SetFollowGround(false)
+        end
+    end
+end

@@ -37,6 +37,20 @@ class EditorCamera3D is PerspectiveCamera
     number pitch = 45
     number roll = 0
 
+    // An orbit's point, distance and angles (StartOrbit, OrbitBy).
+    Vector3 orbitPoint
+    number orbitDistance = 10
+    number orbitYaw = 0
+    number orbitPitch = 0
+    boolean orbitStarted = false
+
+    // Zooming (ZoomBy): the share of the view distance one step moves, the
+    // smallest step, and how close to the target the camera may come.
+    constant number ZOOM_SHARE = 0.12
+    constant number SMALLEST_ZOOM_STEP = 0.5
+    constant number CLOSEST_ZOOM = 0.5
+    constant number PITCH_OFFSET = 0.001
+
     on create
         calcQuaternion:SetEulerAngles(yaw, pitch, roll)
         rotationMatrix:Set(calcQuaternion)
@@ -159,6 +173,62 @@ class EditorCamera3D is PerspectiveCamera
     end
 
     /*
+        LookAlong turns the camera to look along a direction, keeping it
+        level: its up is worked out again from the world's up, so turning
+        never tips the horizon (roll). Setting only the direction kept the
+        old up, which leaned once the camera was pitched, so the mouse's
+        turns rolled the view.
+
+        Attribute: Parameter newDirection The direction to look along
+    */
+    action LookAlong(Vector3 newDirection)
+        Vector3 look = newDirection:Copy()
+        look:Normalize()
+        SetDirection(look)
+        // Right is the look crossed with the world's up; up is right
+        // crossed with the look. Straight up or down has no right, so the
+        // up stays as it was.
+        Vector3 worldUp
+        worldUp:Set(0, 1, 0)
+        Vector3 right = look:Copy():CrossProduct(worldUp)
+        if right:Length() > 0.0001
+            right:Normalize()
+            Vector3 level = right:Copy():CrossProduct(look)
+            level:Normalize()
+            SetUp(level)
+        end
+    end
+
+    /*
+        GetViewDistance returns how far the camera is from what it looks at,
+        for scaling how far the mouse moves it: the distance ahead to its
+        target if it has one, else its height above the ground (height 0),
+        kept between 2 and 400.
+
+        Attribute: Returns The distance, in world units
+    */
+    action GetViewDistance returns number
+        Math math
+        number reference = 0
+        Vector3 position = GetPosition()
+        if target not= undefined
+            Vector3 direction = GetDirection()
+            Vector3 targetPosition = target:GetPosition()
+            reference = (targetPosition:GetX() - position:GetX()) * direction:GetX() +
+                (targetPosition:GetY() - position:GetY()) * direction:GetY() +
+                (targetPosition:GetZ() - position:GetZ()) * direction:GetZ()
+        else
+            reference = math:AbsoluteValue(position:GetY())
+        end
+        if reference < 2
+            reference = 2
+        elseif reference > 400
+            reference = 400
+        end
+        return reference
+    end
+
+    /*
         This actiopn takes the yaw, pitch, and roll to calculate the rotation matrix of the camera and
         rotates it properly.
     */
@@ -268,6 +338,166 @@ class EditorCamera3D is PerspectiveCamera
         me:pitch = pitch
         me:roll = roll
         UpdateCameraRotation()
+    end
+
+
+    /*
+        LookBy turns the camera from where it stands: left and right (yaw)
+        and up and down (pitch), staying level. The mouse's right drag, the
+        look keys and the Scenes menu use it.
+
+        Attribute: Parameter yawChange How far to turn left or right, in radians
+        Attribute: Parameter pitchChange How far to turn up or down, in radians
+    */
+    action LookBy(number yawChange, number pitchChange)
+        Math math
+        Vector3 look = GetDirection():Copy()
+        number turnYaw = math:InverseTangent2(look:GetX(), look:GetZ()) + yawChange
+        number turnPitch = math:InverseSine(ClampUnit(look:GetY())) + pitchChange
+        turnPitch = ClampPitch(turnPitch)
+        look:SetX(math:Cosine(turnPitch) * math:Sine(turnYaw))
+        look:SetY(math:Sine(turnPitch))
+        look:SetZ(math:Cosine(turnPitch) * math:Cosine(turnYaw))
+        LookAlong(look)
+        MatchView()
+    end
+
+    /*
+        SlideBy moves the camera across its view without turning it: right
+        and left, and up and down as the view sees them.
+
+        Attribute: Parameter rightAmount How far to move right, in world units; negative is left
+        Attribute: Parameter upAmount How far to move up, in world units; negative is down
+    */
+    action SlideBy(number rightAmount, number upAmount)
+        Vector3 look = GetDirection():Copy()
+        Vector3 worldUp
+        worldUp:Set(0, 1, 0)
+        Vector3 right = look:Copy():CrossProduct(worldUp)
+        if right:Length() < 0.0001
+            return now
+        end
+        right:Normalize()
+        Vector3 viewUp = right:Copy():CrossProduct(look)
+        viewUp:Normalize()
+        Vector3 moved = GetPosition():Copy()
+        moved:SetX(moved:GetX() + right:GetX() * rightAmount + viewUp:GetX() * upAmount)
+        moved:SetY(moved:GetY() + right:GetY() * rightAmount + viewUp:GetY() * upAmount)
+        moved:SetZ(moved:GetZ() + right:GetZ() * rightAmount + viewUp:GetZ() * upAmount)
+        SetPosition(moved)
+        MatchView()
+    end
+
+    /*
+        StartOrbit picks the point an orbit circles: straight ahead, as far
+        as the camera is from what it looks at (GetViewDistance).
+    */
+    action StartOrbit
+        Math math
+        Vector3 position = GetPosition()
+        Vector3 look = GetDirection()
+        orbitDistance = GetViewDistance()
+        orbitYaw = math:InverseTangent2(look:GetX(), look:GetZ()) + math:pi
+        orbitPitch = -math:InverseSine(ClampUnit(look:GetY()))
+        orbitPoint:SetX(position:GetX() + look:GetX() * orbitDistance)
+        orbitPoint:SetY(position:GetY() + look:GetY() * orbitDistance)
+        orbitPoint:SetZ(position:GetZ() + look:GetZ() * orbitDistance)
+        orbitStarted = true
+    end
+
+    /*
+        OrbitBy circles the camera around the point StartOrbit picked, still
+        looking at it, and level. Without StartOrbit first, it starts one.
+
+        Attribute: Parameter yawChange How far around, left or right, in radians
+        Attribute: Parameter pitchChange How far over, up or down, in radians
+    */
+    action OrbitBy(number yawChange, number pitchChange)
+        Math math
+        if not orbitStarted
+            StartOrbit()
+        end
+        orbitYaw = orbitYaw + yawChange
+        orbitPitch = ClampPitch(orbitPitch + pitchChange)
+        Vector3 moved
+        moved:SetX(orbitPoint:GetX() + (orbitDistance * math:Cosine(orbitPitch) * math:Sine(orbitYaw)))
+        moved:SetY(orbitPoint:GetY() + (orbitDistance * math:Sine(orbitPitch)))
+        moved:SetZ(orbitPoint:GetZ() + (orbitDistance * math:Cosine(orbitPitch) * math:Cosine(orbitYaw)))
+        SetPosition(moved)
+        Vector3 toPoint
+        toPoint:Set(orbitPoint:GetX() - moved:GetX(), orbitPoint:GetY() - moved:GetY(), orbitPoint:GetZ() - moved:GetZ())
+        LookAlong(toPoint)
+        MatchView()
+    end
+
+    /*
+        EndOrbit forgets the orbit's point, so the next orbit picks a new
+        one.
+    */
+    action EndOrbit
+        orbitStarted = false
+    end
+
+    /*
+        ZoomBy moves the camera toward what it looks at, or away: each step
+        moves 12% of GetViewDistance, at least half a unit, and never closer
+        than half a unit to the camera's target. The mouse wheel, the zoom
+        keys and the Scenes menu use it.
+
+        Attribute: Parameter steps How many steps in; negative steps zoom out
+    */
+    action ZoomBy(number steps)
+        Math math
+        if steps = 0
+            return now
+        end
+        number reference = GetViewDistance()
+        number size = math:AbsoluteValue(steps)
+        number moveAmount = reference * ZOOM_SHARE * size
+        // The floor scales with the steps, so held keys, which zoom a part
+        // of a step each frame, move as smoothly as the wheel.
+        if moveAmount < SMALLEST_ZOOM_STEP * size
+            moveAmount = SMALLEST_ZOOM_STEP * size
+        end
+        if steps < 0
+            moveAmount = -moveAmount
+        end
+        if target not= undefined and moveAmount > reference - CLOSEST_ZOOM
+            moveAmount = reference - CLOSEST_ZOOM
+        end
+        Vector3 look = GetDirection()
+        Vector3 moved = GetPosition():Copy()
+        moved:SetX(moved:GetX() + look:GetX() * moveAmount)
+        moved:SetY(moved:GetY() + look:GetY() * moveAmount)
+        moved:SetZ(moved:GetZ() + look:GetZ() * moveAmount)
+        SetPosition(moved)
+        MatchView()
+    end
+
+    /*
+        This action keeps a sine between -1 and 1.
+    */
+    private action ClampUnit(number value) returns number
+        if value > 1
+            return 1
+        elseif value < -1
+            return -1
+        end
+        return value
+    end
+
+    /*
+        This action keeps a pitch just short of straight up or down, where
+        the camera's level would be lost.
+    */
+    private action ClampPitch(number value) returns number
+        Math math
+        if value > math:piOver2 - PITCH_OFFSET
+            return math:piOver2 - PITCH_OFFSET
+        elseif value < -math:piOver2 + PITCH_OFFSET
+            return -math:piOver2 + PITCH_OFFSET
+        end
+        return value
     end
 
 end

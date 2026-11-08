@@ -3,110 +3,41 @@ package Libraries.Interface.Behaviors.Scenes.Camera
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
-use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.MouseEvent
-use Libraries.Interface.Events.DragAndDropEvent
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
-use Libraries.Compute.Vector3
-use Libraries.Compute.Math
-use Libraries.Game.InputSet
 
+/*
+The CameraMouseMoveDirectionBehavior moves the scene editor's 3D camera with
+the mouse:
+- dragging with the right button turns it to look around, left and right
+  (yaw) and up and down (pitch), from where it stands, without tipping the
+  horizon (roll);
+- dragging with the middle button slides it across the view: drag right and
+  it moves right, drag up and it moves up, without turning. It slides
+  farther the farther the camera is from what it looks at.
+Shift and the middle button orbit around a point ahead
+(CameraMousePanBehavior). The keys and the Scenes menu make the same moves
+through the same EditorCamera3D actions.
+*/
 class CameraMouseMoveDirectionBehavior is Behavior
-    Math math
+    // How far the view turns per pixel the mouse moves, in radians.
     constant number SENSITIVITY = 0.002
-    constant number PITCH_OFFSET = 0.001
-    
-    // used for orbit
-    Vector3 pivotPoint
-    number pivotDistance = 10.0
-    number orbitYaw = 0
-    number orbitPitch = 0
+    // How far the camera slides per pixel, as a share of its distance from
+    // what it looks at (EditorCamera3D:GetViewDistance).
+    constant number SLIDE_SHARE = 0.0015
 
     action Run(BehaviorEvent event)
         SceneEditor editor = cast(SceneEditor, event:GetItem())
         EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
         EditorCamera3D camera = layer:GetEditorCamera()
-        
-        
-        MouseEvent mouseEvent = event:GetMouseEvent()    
-    
+        MouseEvent mouseEvent = event:GetMouseEvent()
+
         if mouseEvent:eventType = mouseEvent:DRAGGED_MOUSE and mouseEvent:mouseButton = mouseEvent:RIGHT
-            integer deltaX = mouseEvent:GetMovementX()
-            integer deltaY = mouseEvent:GetMovementY()
-            Vector3 cameraDirection = camera:GetDirection():Copy()
-            number yaw = math:InverseTangent2(cameraDirection:GetX(), cameraDirection:GetZ())
-            number pitch = math:InverseSine(cameraDirection:GetY())
-            
-            yaw = yaw + (deltaX * SENSITIVITY)
-            pitch = pitch + (deltaY * SENSITIVITY)
-            if pitch > math:piOver2 - PITCH_OFFSET
-                pitch = math:piOver2 - PITCH_OFFSET
-            end
-            if pitch < -math:piOver2 + PITCH_OFFSET
-                pitch = -math:piOver2 + PITCH_OFFSET
-            end
-            
-            cameraDirection:SetX(math:Cosine(pitch) * math:Sine(yaw))
-            cameraDirection:SetY(math:Sine(pitch))
-            cameraDirection:SetZ(math:Cosine(pitch) * math:Cosine(yaw))
-            camera:SetDirection(cameraDirection)
-            // The new angle stays when the camera moves to a target later.
-            camera:MatchView()
-        elseif mouseEvent:mouseButton = mouseEvent:MIDDLE
-if mouseEvent:IsClicked() 
-                Vector3 cameraPosition = camera:GetPosition():Copy()
-                Vector3 cameraDirection = camera:GetDirection():Copy()
-                me:orbitYaw = math:InverseTangent2(cameraDirection:GetX(), cameraDirection:GetZ()) + math:pi
-            me:orbitPitch = -math:InverseSine(cameraDirection:GetY())
-                //pivotPoint = cameraPosition:Add(cameraDirection:Scale(pivotDistance))
-                number dirX = cameraDirection:GetX()
-number dirY = cameraDirection:GetY()
-number dirZ = cameraDirection:GetZ()
-
-pivotPoint:SetX(cameraPosition:GetX() + dirX * pivotDistance)
-pivotPoint:SetY(cameraPosition:GetY() + dirY * pivotDistance)
-pivotPoint:SetZ(cameraPosition:GetZ() + dirZ * pivotDistance)
-                cameraPosition = camera:GetPosition():Copy()
-                cameraDirection= camera:GetDirection():Copy()
-            elseif mouseEvent:IsDragged()
-                integer deltaX = mouseEvent:GetMovementX()
-            integer deltaY = mouseEvent:GetMovementY()
-            
-                Vector3 newCameraPosition
-            
-            me:orbitYaw = orbitYaw + (deltaX * SENSITIVITY)
-            me:orbitPitch = orbitPitch + (deltaY * SENSITIVITY)
-            if orbitPitch > math:piOver2 - PITCH_OFFSET
-                orbitPitch = math:piOver2 - PITCH_OFFSET
-            end
-            if orbitPitch < -math:piOver2 + PITCH_OFFSET
-                orbitPitch = -math:piOver2 + PITCH_OFFSET
-            end
-            
-                newCameraPosition:SetX(pivotPoint:GetX() + (pivotDistance * math:Cosine(orbitPitch) * math:Sine(orbitYaw)))
-                newCameraPosition:SetY(pivotPoint:GetY() + (pivotDistance * math:Sine(orbitPitch)))
-                newCameraPosition:SetZ(pivotPoint:GetZ() + (pivotDistance * math:Cosine(orbitPitch) * math:Cosine(orbitYaw)))
-                camera:SetPosition(newCameraPosition)
-                
-                number dirX = pivotPoint:GetX() - newCameraPosition:GetX()
-number dirY = pivotPoint:GetY() - newCameraPosition:GetY()
-number dirZ = pivotPoint:GetZ() - newCameraPosition:GetZ()
-
-// normalize
-number length = math:SquareRoot(dirX*dirX + dirY*dirY + dirZ*dirZ)
-dirX = dirX / length
-dirY = dirY / length
-dirZ = dirZ / length
-
-Vector3 newCameraDirection
-newCameraDirection:SetX(dirX)
-newCameraDirection:SetY(dirY)
-newCameraDirection:SetZ(dirZ)
-camera:SetDirection(newCameraDirection)
-            camera:MatchView()
-            end
+            camera:LookBy(mouseEvent:GetMovementX() * SENSITIVITY, mouseEvent:GetMovementY() * SENSITIVITY)
+        elseif mouseEvent:mouseButton = mouseEvent:MIDDLE and mouseEvent:IsDragged()
+            number unitsPerPixel = camera:GetViewDistance() * SLIDE_SHARE
+            camera:SlideBy(mouseEvent:GetMovementX() * unitsPerPixel, mouseEvent:GetMovementY() * unitsPerPixel)
         end
-        
     end
 end

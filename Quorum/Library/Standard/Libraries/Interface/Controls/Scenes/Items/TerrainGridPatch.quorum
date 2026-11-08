@@ -1,0 +1,219 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+/*
+The TerrainGridPatch is the scene editor's grid on a terrain (grid option
+C): thin lines on the grid's units, laid over the ground around the terrain
+cursor and following its hills, a few squares out each way. The arrow keys
+step the cursor along these lines. It is an editor helper, not a scene item,
+and lets clicks through.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.TerrainGridPatch
+use Libraries.Game.Graphics.Worlds.TerrainData
+
+TerrainData data
+TerrainGridPatch patch
+patch:Place(data, 10, 20, 1, 4)
+*/
+class TerrainGridPatch is Model
+    SceneConstants constants
+    Math math
+    integer builds = 0
+
+    // Where the patch was last placed, so it is only made again when that
+    // changes.
+    number placedX = 0
+    number placedZ = 0
+    number placedUnit = 0
+    integer placedOut = 0
+    boolean placed = false
+
+    // How far above the ground the lines sit, and how wide they are, as a
+    // share of a grid unit.
+    constant number LIFT = 0.05
+    constant number LINE_SHARE = 0.04
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+    end
+
+    /*
+    This action lays the grid's lines over the ground around a point: the
+    lines on the grid units nearest it, a number of squares out each way,
+    each following the ground.
+
+    Attribute: Parameter data The terrain's data
+    Attribute: Parameter centerX The middle along x, such as the terrain cursor's
+    Attribute: Parameter centerZ The middle along z
+    Attribute: Parameter unit The grid's unit, in world units
+    Attribute: Parameter squaresOut How many squares out from the middle, each way
+    */
+    action Place(TerrainData data, number centerX, number centerZ, number unit, integer squaresOut)
+        if unit <= 0
+            unit = 1
+        end
+        number middleX = math:Round(centerX / unit) * unit
+        number middleZ = math:Round(centerZ / unit) * unit
+        if placed and middleX = placedX and middleZ = placedZ and unit = placedUnit and squaresOut = placedOut
+            return now
+        end
+        placed = true
+        placedX = middleX
+        placedZ = middleZ
+        placedUnit = unit
+        placedOut = squaresOut
+        Build(data, middleX, middleZ, unit, squaresOut)
+    end
+
+    /*
+    This action makes the patch's mesh again after the ground under it
+    changed, such as after sculpting.
+
+    Attribute: Parameter data The terrain's data
+    */
+    action Refresh(TerrainData data)
+        if placed
+            Build(data, placedX, placedZ, placedUnit, placedOut)
+        end
+    end
+
+    /*
+    This action makes the lines: for each grid line, a thin strip over the
+    ground, in pieces half a unit long, each piece a flat square of two
+    triangles at the ground's height at its ends.
+    */
+    private action Build(TerrainData data, number middleX, number middleZ, number unit, integer squaresOut)
+        integer lines = squaresOut * 2 + 1
+        integer pieces = squaresOut * 4
+        number half = squaresOut * unit
+        number width = unit * LINE_SHARE
+        if width < 0.02
+            width = 0.02
+        end
+        integer quads = lines * 2 * pieces
+        Number32BitArray vertices
+        vertices:SetSize(quads * 4 * 3)
+        Number32BitArray normals
+        normals:SetSize(quads * 4 * 3)
+        Number32BitArray tangents
+        tangents:SetSize(quads * 4 * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(quads * 4 * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(quads * 4 * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        integer quad = 0
+        integer direction = 0
+        repeat while direction < 2
+            integer line = 0
+            repeat while line < lines
+                number across = -half + line * unit
+                integer piece = 0
+                repeat while piece < pieces
+                    number along = -half + piece * unit / 2
+                    number alongNext = along + unit / 2
+                    integer corner = 0
+                    repeat while corner < 4
+                        number cornerAlong = along
+                        if corner = 2 or corner = 3
+                            cornerAlong = alongNext
+                        end
+                        number cornerAcross = across - width / 2
+                        if corner = 1 or corner = 3
+                            cornerAcross = across + width / 2
+                        end
+                        number localX = cornerAcross
+                        number localZ = cornerAlong
+                        if direction = 1
+                            localX = cornerAlong
+                            localZ = cornerAcross
+                        end
+                        number worldX = middleX + localX
+                        number worldZ = middleZ + localZ
+                        number ground = 0
+                        if data:HasHeight(worldX, worldZ)
+                            ground = data:GetSurfaceHeight(worldX, worldZ)
+                        end
+                        integer vertex = quad * 4 + corner
+                        vertices:Set(vertex * 3, localX)
+                        vertices:Set(vertex * 3 + 1, ground + LIFT)
+                        vertices:Set(vertex * 3 + 2, localZ)
+                        normals:Set(vertex * 3, 0)
+                        normals:Set(vertex * 3 + 1, 1)
+                        normals:Set(vertex * 3 + 2, 0)
+                        tangents:Set(vertex * 3, 1)
+                        tangents:Set(vertex * 3 + 1, 0)
+                        tangents:Set(vertex * 3 + 2, 0)
+                        bitangents:Set(vertex * 3, 0)
+                        bitangents:Set(vertex * 3 + 1, 0)
+                        bitangents:Set(vertex * 3 + 2, 1)
+                        coordinates:Set(vertex * 2, 0)
+                        coordinates:Set(vertex * 2 + 1, 0)
+                        corner = corner + 1
+                    end
+                    integer first = quad * 4
+                    indices:Set(quad * 6, first)
+                    indices:Set(quad * 6 + 1, first + 2)
+                    indices:Set(quad * 6 + 2, first + 1)
+                    indices:Set(quad * 6 + 3, first + 1)
+                    indices:Set(quad * 6 + 4, first + 2)
+                    indices:Set(quad * 6 + 5, first + 3)
+                    quad = quad + 1
+                    piece = piece + 1
+                end
+                line = line + 1
+            end
+            direction = direction + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        // White, a little see-through, and unlit, so it shows on light and
+        // dark ground and in shadow alike; seen from both sides.
+        Material material
+        Vector4 white
+        white:Set(1, 1, 1, 0.45)
+        material:SetDiffuse(white)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        Array<Material> materials
+        materials:Add(material)
+
+        builds = builds + 1
+        ModelData modelData
+        modelData:SetID("Terrain grid patch " + GetHashCode() + " build " + builds)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+        SetPosition(middleX, 0, middleZ)
+    end
+end
