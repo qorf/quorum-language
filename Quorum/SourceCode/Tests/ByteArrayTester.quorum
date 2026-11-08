@@ -269,6 +269,7 @@ class ByteArrayTester
         files:Add(main)
         results:Add(0, "success")
         suite:Test(files, results)
-        suite:TestJavaScript(files, results)
+        // cannot run on javaScript since you cannot delete files from browser
+        //suite:TestJavaScript(files, results)
     end
 end
