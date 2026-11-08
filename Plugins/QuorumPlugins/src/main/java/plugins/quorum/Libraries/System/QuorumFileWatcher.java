@@ -641,6 +641,21 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
          */
         private void HandleMac(Root root, String text, int flags) {
             int lost = MacFileEvents.MUST_SCAN_SUBFOLDERS | MacFileEvents.USER_DROPPED | MacFileEvents.KERNEL_DROPPED;
+            // "Look again" for a folder inside an excluded folder asks for
+            // nothing this watcher reports, so it isn't an OVERFLOW. Heavy
+            // writing in an excluded Build or Run folder made one, and the
+            // program then checked everything (Studio plan 11b, 2026-11-07).
+            // A path outside the root, or the root itself, still overflows.
+            if ((flags & lost) != 0 && text != null) {
+                Path lostReal = Paths.get(text);
+                if (lostReal.startsWith(root.realPath)) {
+                    Path lostRelative = root.realPath.relativize(lostReal);
+                    if (!lostRelative.toString().isEmpty()
+                            && IsExcludedUnder(root, root.path.resolve(lostRelative))) {
+                        return;
+                    }
+                }
+            }
             if ((flags & lost) != 0) {
                 Overflow(root);
                 return;
