@@ -79,6 +79,8 @@ use Libraries.Data.Formats.JavaScriptObjectNotation
 use Libraries.Containers.Number32BitArray
 use Libraries.Interface.Controls.Scenes.Items.Grid3D
 use Libraries.Interface.Controls.Scenes.Items.TerrainGridPatch
+use Libraries.Interface.Controls.Scenes.Items.TerrainCursorBeam
+use Libraries.Interface.Controls.Scenes.Items.TerrainCursorCrosshair
 use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Camera2DPropertiesDialog
@@ -365,6 +367,24 @@ class SceneEditor is Control, DefaultSceneManager
     number previewZ = 0
     number previewSize = 0
     TerrainBrushMouseListener brushMouseListener
+
+    // The terrain cursor's beam and crosshair, which can be seen from far
+    // away, and the settings they follow. Quorum Studio gives every scene
+    // editor the same settings (SetTerrainCursorSettings).
+    TerrainCursorSettings cursorSettings
+    TerrainCursorBeam cursorBeam = undefined
+    TerrainCursorCrosshair cursorCrosshair = undefined
+    boolean cursorBeamShown = false
+    boolean cursorCrosshairShown = false
+    number markX = 0
+    number markZ = 0
+    // Seconds since the cursor last moved, for After Moving, and a clock
+    // for Breathing.
+    number markSecondsSinceMove = 100
+    number markClock = 0
+    constant number MARK_FLASH_TIME = 2.0
+    constant number MARK_FLASH_PERIOD = 0.5
+    constant number MARK_BREATH_PERIOD = 1.8
 
     // The terrain cursor: the terrain whose highlight has the focus, whose
     // brush position the arrow keys move with or without a tool; an unsaved
@@ -983,6 +1003,7 @@ action Update(number seconds)
         end
         UpdateBrushPreview()
         BlinkBrushPreview(seconds)
+        UpdateCursorMarks(seconds)
 
         Camera camera = GetSelectedLayer():GetCamera()
         boolean moved = false
@@ -4990,6 +5011,10 @@ action Update(number seconds)
         if terrainGridPatch not= undefined and terrainGridPatchShown
             terrainGridPatch:Refresh(terrain:GetWorldTerrain():GetData())
         end
+        // The crosshair's lines follow the ground too.
+        if cursorCrosshair not= undefined and cursorCrosshairShown
+            cursorCrosshair:Refresh(terrain:GetWorldTerrain():GetData(), terrain:GetMinimumX(), terrain:GetMaximumX(), terrain:GetMinimumZ(), terrain:GetMaximumZ())
+        end
         // The foliage follows the ground (Terrain plan F4): under the brush
         // during a stroke, and everywhere after anything else, such as an
         // undo or a whole-terrain operation.
@@ -6487,8 +6512,9 @@ action Update(number seconds)
     */
     private action UpdateBrushPreview
         // The ring shows the brush of the terrain whose tool is chosen, or,
-        // with no tool, the terrain cursor, as a cyan ring. Either way it
-        // is the brush's size, so the size keys show (Round 2).
+        // with no tool, the terrain cursor, in the color of its beam and
+        // crosshair (TerrainCursorSettings). Either way it is the brush's
+        // size, so the size keys show (Round 2).
         EditorTerrain shown = undefined
         boolean cursorOnly = false
         number size = 0
@@ -6536,7 +6562,7 @@ action Update(number seconds)
             ResetRingBlink()
         end
         if cursorOnly
-            brushPreview:SetRingColor(0.2, 0.8, 1)
+            brushPreview:SetRingColor(cursorSettings:GetRed(), cursorSettings:GetGreen(), cursorSettings:GetBlue())
         elseif brushTerrain:GetToolNumber() = 5 and brushTerrain:HasRampStart()
             // The brush turns red while it marks a ramp's end.
             brushPreview:SetRingColor(0.95, 0.15, 0.1)
@@ -6573,7 +6599,9 @@ action Update(number seconds)
             ringBlinkHidden = false
             return now
         end
-        if stroking
+        // With the pulse set to None, nothing about the cursor moves on its
+        // own, so the ring stays solid (WCAG 2.2.2).
+        if stroking or cursorSettings:GetPulse() = cursorSettings:PULSE_NONE
             ResetRingBlink()
             return now
         end
@@ -6587,6 +6615,142 @@ action Update(number seconds)
                 brushPreview:Hide()
                 ringBlinkHidden = true
             end
+        end
+    end
+
+    /*
+    This action sets how the terrain cursor is marked: its beam, crosshair,
+    color and pulse. Quorum Studio gives every scene editor the same
+    settings, so a change shows in every scene.
+
+    Attribute: Parameter settings The terrain cursor's settings
+    */
+    action SetTerrainCursorSettings(TerrainCursorSettings settings)
+        if settings not= undefined
+            cursorSettings = settings
+        end
+    end
+
+    /*
+    This action returns how the terrain cursor is marked.
+
+    Attribute: Returns The terrain cursor's settings
+    */
+    action GetTerrainCursorSettings returns TerrainCursorSettings
+        return cursorSettings
+    end
+
+    /*
+    This action shows the beam and crosshair wherever the ring shows: at
+    the brush of the terrain whose tool is chosen, or at the terrain cursor.
+    They are sized for the camera's distance each frame, so they stay about
+    the same size on screen, and pulse as the settings say.
+    */
+    private action UpdateCursorMarks(number seconds)
+        EditorTerrain shown = undefined
+        if IsTerrainBrushActive()
+            shown = brushTerrain
+        elseif cursorTerrain not= undefined
+            shown = cursorTerrain
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if shown = undefined or not shown:IsBrushOnGround() or not (layer is EditorLayer3D)
+            HideCursorMarks()
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        TerrainData data = shown:GetWorldTerrain():GetData()
+        number x = shown:GetBrushX()
+        number z = shown:GetBrushZ()
+        number ground = 0
+        if data:HasHeight(x, z)
+            ground = data:GetSurfaceHeight(x, z)
+        end
+        Camera camera = layer3D:GetCamera()
+        Vector3 eye = camera:GetPosition()
+        number distance = eye:Distance(x, ground, z)
+
+        if x not= markX or z not= markZ
+            markSecondsSinceMove = 0
+            markX = x
+            markZ = z
+        else
+            markSecondsSinceMove = markSecondsSinceMove + seconds
+        end
+        markClock = markClock + seconds
+        if markClock > 1000
+            markClock = 0
+        end
+
+        // How strong the marks are now: steady; a flash twice a second for
+        // two seconds after a move (under WCAG's three a second); or the
+        // beam's slow breath.
+        number linePulse = 1
+        number beamPulse = 1
+        number beamSpread = 1
+        integer pulse = cursorSettings:GetPulse()
+        if pulse = cursorSettings:PULSE_AFTER_MOVING and markSecondsSinceMove < MARK_FLASH_TIME
+            number wave = math:Cosine(markSecondsSinceMove / MARK_FLASH_PERIOD * 2 * math:pi) * 0.5 + 0.5
+            linePulse = 0.4 + 0.6 * wave
+            beamPulse = linePulse
+        elseif pulse = cursorSettings:PULSE_BREATHING
+            // The glow swells around the beam and settles back. It changes
+            // mostly in width: a larger change in brightness would move the
+            // faded top of the glow up and down, which looks like sliding.
+            number breath = math:Cosine(markClock / MARK_BREATH_PERIOD * 2 * math:pi) * 0.5 + 0.5
+            beamPulse = 0.9 + 0.1 * breath
+            beamSpread = 0.82 + 0.33 * breath
+        end
+
+        if cursorSettings:IsShowingBeam()
+            if cursorBeam = undefined
+                TerrainCursorBeam beam
+                beam:SetName("Terrain Cursor Beam")
+                cursorBeam = beam
+                layer3D:Add(beam)
+                cursorBeamShown = true
+            end
+            cursorBeam:Place(x, ground, z, eye, distance, cursorSettings)
+            cursorBeam:Recolor(cursorSettings, beamPulse)
+            cursorBeam:SetSpread(beamSpread)
+            if not cursorBeamShown
+                cursorBeam:Show()
+                cursorBeamShown = true
+            end
+        elseif cursorBeam not= undefined and cursorBeamShown
+            cursorBeam:Hide()
+            cursorBeamShown = false
+        end
+
+        if cursorSettings:IsShowingCrosshair()
+            if cursorCrosshair = undefined
+                TerrainCursorCrosshair crosshair
+                crosshair:SetName("Terrain Cursor Crosshair")
+                cursorCrosshair = crosshair
+                layer3D:Add(crosshair)
+                cursorCrosshairShown = true
+            end
+            cursorCrosshair:Place(data, x, z, shown:GetMinimumX(), shown:GetMaximumX(), shown:GetMinimumZ(), shown:GetMaximumZ(), distance)
+            cursorCrosshair:Recolor(cursorSettings:GetRed(), cursorSettings:GetGreen(), cursorSettings:GetBlue(), cursorSettings:GetCrosshairOpacity() / 100.0 * linePulse)
+            if not cursorCrosshairShown
+                cursorCrosshair:Show()
+                cursorCrosshairShown = true
+            end
+        elseif cursorCrosshair not= undefined and cursorCrosshairShown
+            cursorCrosshair:Hide()
+            cursorCrosshairShown = false
+        end
+    end
+
+    // Hides the beam and crosshair while there is no cursor on the ground.
+    private action HideCursorMarks
+        if cursorBeam not= undefined and cursorBeamShown
+            cursorBeam:Hide()
+            cursorBeamShown = false
+        end
+        if cursorCrosshair not= undefined and cursorCrosshairShown
+            cursorCrosshair:Hide()
+            cursorCrosshairShown = false
         end
     end
 

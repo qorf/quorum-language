@@ -450,14 +450,9 @@ void main()
     vec3 result = covered / outAlpha;
     result = applyFog(result, surface);
 
-    // Over the sky nothing is behind in the lit image, and the result pass
-    // blends the lit image over the sky by its alpha, so the sky is mixed in
-    // here and the pixel made opaque.
-    if (!hasGround && pushConstants.hasSky > 0.5)
-    {
-        result = result * outAlpha + skyBehind(-V) * (1.0 - outAlpha);
-        outAlpha = 1.0;
-    }
+    // The lit image is premultiplied, so blending leaves color times alpha
+    // over the sky, and the copy to the screen lays that over the sky. Over
+    // open water, which isn't in the G-buffer, this blends onto the water.
     outputColor = vec4(result, outAlpha);
 }"
         )

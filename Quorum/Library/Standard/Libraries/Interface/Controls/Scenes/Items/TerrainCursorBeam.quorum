@@ -1,0 +1,319 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.TerrainCursorSettings
+
+/*
+The TerrainCursorBeam is a column of light rising from a scene editor's
+terrain cursor, so the cursor can be found from far away. Like a
+lightsaber, it has a white core, a pale band of its color around that, and
+a glow of its color that rolls off smoothly to nothing; it fades toward
+its top and ends softly. It is one flat strip that turns to face the
+camera, with a texture made from the settings, so its edges are smooth at
+any zoom. Its width is set in screen terms, from the camera's distance.
+
+It is an editor helper, not a scene item: it isn't saved, listed or picked,
+and lets clicks through.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.TerrainCursorBeam
+use Libraries.Interface.Controls.Scenes.TerrainCursorSettings
+use Libraries.Compute.Vector3
+
+TerrainCursorSettings settings
+TerrainCursorBeam beam
+Vector3 eye
+eye:Set(0, 30, -40)
+beam:Place(10, 2, 20, eye, 50, settings)
+beam:Recolor(settings, 1)
+*/
+class TerrainCursorBeam is Model
+    SceneConstants constants
+    Math math
+
+    // One screen pixel at the usual zoom, as a share of the camera's
+    // distance, and the beam's height, as a share of it too.
+    constant number PIXEL_SHARE = 0.0012
+    constant number HEIGHT_SHARE = 0.6
+
+    // The core's width in pixels, the pale band's as a share of the core's,
+    // and the widest breathing makes the beam (SetSpread).
+    constant number CORE_WIDTH = 3
+    constant number BAND_SHARE = 3.6
+    constant number MOST_SPREAD = 1.15
+
+    // The texture's size: across the beam, and up it.
+    constant integer TEXTURE_WIDTH = 128
+    constant integer TEXTURE_HEIGHT = 64
+
+    boolean loaded = false
+    MeshVulkan stripMesh = undefined
+    Texture beamTexture = undefined
+    Color tint
+    Integer32BitArray indices
+    Number32BitArray vertices
+    Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray coordinates
+
+    // What the strip and texture were last made with.
+    number builtHalfWidth = 0
+    number builtHeight = 0
+    integer builtVersion = -1
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+        vertices:SetSize(4 * 3)
+        normals:SetSize(4 * 3)
+        tangents:SetSize(4 * 3)
+        bitangents:SetSize(4 * 3)
+        coordinates:SetSize(4 * 2)
+        integer i = 0
+        repeat while i < 4
+            normals:Set(i * 3, 0)
+            normals:Set(i * 3 + 1, 0)
+            normals:Set(i * 3 + 2, 1)
+            tangents:Set(i * 3, 1)
+            tangents:Set(i * 3 + 1, 0)
+            tangents:Set(i * 3 + 2, 0)
+            bitangents:Set(i * 3, 0)
+            bitangents:Set(i * 3 + 1, 1)
+            bitangents:Set(i * 3 + 2, 0)
+            i = i + 1
+        end
+        // Corners: 0 bottom left, 1 bottom right, 2 top left, 3 top right.
+        // The texture's first row is the beam's top.
+        coordinates:Set(0, 0)
+        coordinates:Set(1, 1)
+        coordinates:Set(2, 1)
+        coordinates:Set(3, 1)
+        coordinates:Set(4, 0)
+        coordinates:Set(5, 0)
+        coordinates:Set(6, 1)
+        coordinates:Set(7, 0)
+        indices:SetSize(6)
+        indices:Set(0, 0)
+        indices:Set(1, 2)
+        indices:Set(2, 1)
+        indices:Set(3, 1)
+        indices:Set(4, 2)
+        indices:Set(5, 3)
+    end
+
+    /*
+    This action puts the beam's foot at a place on the ground, sizes it for
+    the camera's distance, and turns it to face the camera.
+
+    Attribute: Parameter x The cursor's place along x
+    Attribute: Parameter ground The ground's height at the cursor
+    Attribute: Parameter z The cursor's place along z
+    Attribute: Parameter eye The camera's position
+    Attribute: Parameter distance The camera's distance from the cursor
+    Attribute: Parameter settings The cursor's settings, for the glow's width
+    */
+    action Place(number x, number ground, number z, Vector3 eye, number distance, TerrainCursorSettings settings)
+        number pixel = math:MaximumOf(0.001, distance * PIXEL_SHARE)
+        builtHeight = math:MaximumOf(1, distance * HEIGHT_SHARE)
+        number glowPixels = math:MaximumOf(settings:GetGlowWidth(), CORE_WIDTH * BAND_SHARE)
+        builtHalfWidth = glowPixels * pixel / 2
+
+        // Across the strip: level, at right angles to the way to the camera.
+        number towardX = eye:GetX() - x
+        number towardZ = eye:GetZ() - z
+        number flat = math:SquareRoot(towardX * towardX + towardZ * towardZ)
+        number acrossX = 1
+        number acrossZ = 0
+        if flat > 0.0001
+            acrossX = -towardZ / flat
+            acrossZ = towardX / flat
+        end
+        number half = builtHalfWidth
+        number low = -builtHeight / 2
+        number high = builtHeight / 2
+        SetCorner(0, -acrossX * half, low, -acrossZ * half)
+        SetCorner(1, acrossX * half, low, acrossZ * half)
+        SetCorner(2, -acrossX * half, high, -acrossZ * half)
+        SetCorner(3, acrossX * half, high, acrossZ * half)
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        if not loaded
+            LoadStrip(mesh)
+            loaded = true
+        else
+            stripMesh:UpdateVertices(mesh)
+        end
+        SetPosition(x, ground + builtHeight / 2, z)
+        number widest = 2 * builtHalfWidth * MOST_SPREAD
+        SetWidth(widest)
+        SetHeight(builtHeight)
+        SetDepth(widest)
+    end
+
+    /*
+    This action makes the texture again if a setting changed, and sets how
+    strong the beam is now, from 0 to 1, for pulsing.
+
+    Attribute: Parameter settings The cursor's settings
+    Attribute: Parameter pulse How strong the beam is now, from 0 to 1
+    */
+    action Recolor(TerrainCursorSettings settings, number pulse)
+        if not loaded
+            return now
+        end
+        if settings:GetVersion() not= builtVersion or beamTexture = undefined
+            MakeTexture(settings)
+            builtVersion = settings:GetVersion()
+        end
+        tint:SetColor(1, 1, 1, pulse)
+        SetColor(0, tint)
+    end
+
+    /*
+    This action widens or narrows the beam around its middle without
+    building it again, for breathing: 1 is its usual width.
+
+    Attribute: Parameter spread How wide, as a share of its usual width
+    */
+    action SetSpread(number spread)
+        SetScale(spread, 1, spread, false)
+    end
+
+    private action SetCorner(integer corner, number x, number y, number z)
+        vertices:Set(corner * 3, x)
+        vertices:Set(corner * 3 + 1, y)
+        vertices:Set(corner * 3 + 2, z)
+    end
+
+    /*
+    This action makes the beam's texture from the settings. Across, from the
+    middle out: a white core, a pale band, and the glow, which rolls off
+    smoothly to nothing at the edge. Up: the top fade, and a soft end. A
+    pixel with no alpha still has the glow's color, so filtering doesn't
+    darken the edge.
+    */
+    private action MakeTexture(TerrainCursorSettings settings)
+        number red = settings:GetRed()
+        number green = settings:GetGreen()
+        number blue = settings:GetBlue()
+        number strength = settings:GetGlowStrength() / 100.0
+        number fade = settings:GetTopFade() / 100.0
+        number glowPixels = math:MaximumOf(settings:GetGlowWidth(), CORE_WIDTH * BAND_SHARE)
+        // The core's and band's half widths, as shares of the strip's half width.
+        number core = CORE_WIDTH / glowPixels
+        number band = core * BAND_SHARE
+        number bandRed = red + (1 - red) * 0.65
+        number bandGreen = green + (1 - green) * 0.65
+        number bandBlue = blue + (1 - blue) * 0.65
+
+        Format format
+        format:SetValue(format:RGBA8888)
+        PixelMap map
+        map:CreatePixelMap(TEXTURE_WIDTH, TEXTURE_HEIGHT, format)
+        Color pixelColor
+        integer row = 0
+        repeat while row < TEXTURE_HEIGHT
+            // Row 0 is the top. The fade grows toward it, and the last
+            // tenth fades out completely, so the top isn't cut off.
+            number up = 1 - (row + 0.5) / TEXTURE_HEIGHT
+            number lift = (1 - fade * up) * (1 - Smooth(0.9, 1.0, up))
+            integer column = 0
+            repeat while column < TEXTURE_WIDTH
+                number out = math:AbsoluteValue((column + 0.5) / TEXTURE_WIDTH * 2 - 1)
+                number glowAlpha = strength * 0.65 * math:RaiseToPower(2.718281828, -5 * out * out) * (1 - out)
+                number bandAlpha = 0.9 * (1 - Smooth(band * 0.5, band * 1.1, out))
+                number coreAlpha = 1 - Smooth(core * 0.6, core * 1.3, out)
+                // The band over the glow, then the core over both.
+                number alpha = bandAlpha + glowAlpha * (1 - bandAlpha)
+                number r = red
+                number g = green
+                number b = blue
+                if alpha > 0.0001
+                    r = (bandRed * bandAlpha + red * glowAlpha * (1 - bandAlpha)) / alpha
+                    g = (bandGreen * bandAlpha + green * glowAlpha * (1 - bandAlpha)) / alpha
+                    b = (bandBlue * bandAlpha + blue * glowAlpha * (1 - bandAlpha)) / alpha
+                end
+                number total = coreAlpha + alpha * (1 - coreAlpha)
+                if total > 0.0001
+                    r = (coreAlpha + r * alpha * (1 - coreAlpha)) / total
+                    g = (coreAlpha + g * alpha * (1 - coreAlpha)) / total
+                    b = (coreAlpha + b * alpha * (1 - coreAlpha)) / total
+                end
+                pixelColor:SetColor(r, g, b, total * lift)
+                map:SetPixel(column, row, pixelColor:GetColorCode())
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        Texture made
+        made:LoadFromPixelMap(map)
+        beamTexture = made
+        ModelResourcesVulkan resources = cast(ModelResourcesVulkan, GetResources())
+        resources:SetTexture(0, beamTexture)
+    end
+
+    // 0 at or below low, 1 at or above high, and a smooth curve between.
+    private action Smooth(number low, number high, number value) returns number
+        if value <= low
+            return 0
+        elseif value >= high
+            return 1
+        end
+        number t = (value - low) / (high - low)
+        return t * t * (3 - 2 * t)
+    end
+
+    /*
+    This action loads the strip as a model: unlit, seen from both sides,
+    see-through. Its texture is set separately (MakeTexture).
+    */
+    private action LoadStrip(MeshData mesh)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        Material material
+        Vector4 white
+        white:Set(1, 1, 1, 1)
+        material:SetDiffuse(white)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        Array<Material> materials
+        materials:Add(material)
+        ModelData modelData
+        modelData:SetID("Terrain cursor beam " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+        EnableTransparency(true)
+        stripMesh = schematic:GetMeshes():Get(0)
+    end
+end

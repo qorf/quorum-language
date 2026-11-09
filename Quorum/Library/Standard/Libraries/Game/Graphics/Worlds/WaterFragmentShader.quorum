@@ -184,7 +184,12 @@ vec3 readRipples(uint normalMap, vec2 coordinates)
 
 // The surface's normal: two layers of ripples, a larger one moving with
 // the wind and a smaller one moving a little across it, added as slopes.
-vec3 waterNormal(uint normalMap, vec3 surface)
+// footprint is how many world units one pixel covers on the water. A
+// ripple layer fades out as a pixel grows past a quarter of its size, so
+// far water is calm instead of one sharp ripple per pixel (which looks like
+// an even grid, and glints). Anisotropic filtering keeps the texture sharp
+// at low angles, so its mipmaps alone don't do this.
+vec3 waterNormal(uint normalMap, vec3 surface, float footprint)
 {
     float scale = max(water.waves.x, 0.01);
     vec2 direction = water.waves.zw;
@@ -200,18 +205,23 @@ vec3 waterNormal(uint normalMap, vec3 surface)
     vec3 a = readRipples(normalMap, coordinatesA);
     vec3 b = readRipples(normalMap, coordinatesB);
 
+    float keepA = 1.0 - smoothstep(scale * 0.08, scale * 0.25, footprint);
+    float keepB = 1.0 - smoothstep(smallScale * 0.08, smallScale * 0.25, footprint);
+
     // The map's red is the slope along x and its green along z, and blue
-    // is up.
-    vec2 slope = (a.xy + b.xy) * water.detail.x;
-    return normalize(vec3(slope.x, a.z * b.z, slope.y));
+    // is up. Up is 1: with the slopes faded, the map's up would tilt far
+    // water, and close up it is near 1 anyway.
+    vec2 slope = (a.xy * keepA + b.xy * keepB) * water.detail.x;
+    return normalize(vec3(slope.x, 1.0, slope.y));
 }
 
 // A river's normal (River plan R3): the ripples move downstream along the
 // river at its speed. Moving a texture forever would stretch it, so two
 // copies move half a cycle apart, each starting over while it is faded
 // out, and they are blended. The slopes are then turned from across and
-// along the river into the world's x and z.
-vec3 riverNormal(uint normalMap, vec2 riverCoordinates, vec2 acrossDirection, vec2 downstream, float speed)
+// along the river into the world's x and z. The layers fade by the
+// pixel's footprint, as waterNormal's do.
+vec3 riverNormal(uint normalMap, vec2 riverCoordinates, vec2 acrossDirection, vec2 downstream, float speed, float footprint)
 {
     float scale = max(water.waves.x, 0.01);
     float cycle = 2.0;
@@ -224,9 +234,11 @@ vec3 riverNormal(uint normalMap, vec2 riverCoordinates, vec2 acrossDirection, ve
     vec3 b = readRipples(normalMap, coordinatesB);
     vec3 small = readRipples(normalMap, (riverCoordinates - vec2(0.0, speed * camera.time * 0.5)) / (scale * 0.43));
     vec3 ripple = mix(a, b, blendB);
-    vec2 slope = (ripple.xy + small.xy * 0.5) * water.detail.x;
+    float keep = 1.0 - smoothstep(scale * 0.08, scale * 0.25, footprint);
+    float keepSmall = 1.0 - smoothstep(scale * 0.43 * 0.08, scale * 0.43 * 0.25, footprint);
+    vec2 slope = (ripple.xy * keep + small.xy * 0.5 * keepSmall) * water.detail.x;
     vec2 worldSlope = slope.x * acrossDirection + slope.y * downstream;
-    return normalize(vec3(worldSlope.x, ripple.z * small.z, worldSlope.y));
+    return normalize(vec3(worldSlope.x, 1.0, worldSlope.y));
 }
 
 // How much of a light's strength reaches a distance, as in the lighting
@@ -314,6 +326,35 @@ void main()
     float surfaceDistance = length(toSurface);
     vec3 V = -toSurface / max(surfaceDistance, 0.0001);
 
+    // The normal, worked out before anything is discarded: the footprint
+    // and the normal's change use the neighboring pixels.
+    float footprint = length(fwidth(surface.xz));
+    vec3 N;
+    // A flowing sheet, a river's, has a texture transform: its scale
+    // across is its speed (WaterSurface's LoadSheetMesh).
+    if ((material.flags & 32u) != 0u)
+    {
+        vec2 acrossDirection = v_tangentBitangentNormal[0].xz;
+        vec2 downstream = v_tangentBitangentNormal[1].xz;
+        if (dot(acrossDirection, acrossDirection) < 0.0001)
+            acrossDirection = vec2(1.0, 0.0);
+        if (dot(downstream, downstream) < 0.0001)
+            downstream = vec2(0.0, 1.0);
+        N = riverNormal(normalMap, v_textureCoords, normalize(acrossDirection), normalize(downstream), material.uvScaleX, footprint);
+    }
+    else
+        N = waterNormal(normalMap, surface, footprint);
+
+    // Specular anti-aliasing (Tokuyoshi and Kaplanyan, 2019): where the
+    // normal changes fast from pixel to pixel, the glint is spread out, so
+    // a far pixel can't flash white on one ripple that faces the sun.
+    vec3 normalChangeX = dFdx(N);
+    vec3 normalChangeY = dFdy(N);
+    float variance = 0.25 * (dot(normalChangeX, normalChangeX) + dot(normalChangeY, normalChangeY));
+    float widening = min(2.0 * variance, 0.18);
+    float baseRoughness = clamp(water.look.z, 0.02, 1.0);
+    float roughness = sqrt(clamp(baseRoughness * baseRoughness + widening, 0.0, 1.0));
+
     // What was drawn at this pixel. The position's w is how much of the
     // pixel was covered (MSAA, library item 27), so dividing by it gives
     // the position back at the edges of models.
@@ -348,25 +389,9 @@ void main()
     if (!hasGround)
         opacity = 1.0;
 
-    vec3 N;
-    // A flowing sheet, a river's, has a texture transform: its scale
-    // across is its speed (WaterSurface's LoadSheetMesh).
-    if ((material.flags & 32u) != 0u)
-    {
-        vec2 acrossDirection = v_tangentBitangentNormal[0].xz;
-        vec2 downstream = v_tangentBitangentNormal[1].xz;
-        if (dot(acrossDirection, acrossDirection) < 0.0001)
-            acrossDirection = vec2(1.0, 0.0);
-        if (dot(downstream, downstream) < 0.0001)
-            downstream = vec2(0.0, 1.0);
-        N = riverNormal(normalMap, v_textureCoords, normalize(acrossDirection), normalize(downstream), material.uvScaleX);
-    }
-    else
-        N = waterNormal(normalMap, surface);
     // Seen from below, the surface faces down.
     if (V.y < 0.0)
         N.y = -N.y;
-    float roughness = clamp(water.look.z, 0.02, 1.0);
 
     vec3 body = sceneInfo.ambientColor * sceneInfo.ambientIntensity * waterColor;
     vec3 glint = vec3(0.0);

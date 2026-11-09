@@ -1,0 +1,347 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Containers.Array
+
+/*
+The TerrainCursorSettings class holds how a scene editor marks its terrain
+cursor, beyond its ring: a beam of light rising from it, crosshair lines
+through it to the terrain's edges, their color and glow, and whether they
+pulse. A pulse of None also stops the ring's blink, so nothing about the
+cursor moves on its own. Quorum Studio keeps one of these in its options and
+gives it to every scene editor, so a change shows in every scene at once.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.TerrainCursorSettings
+
+TerrainCursorSettings settings
+settings:SetShowBeam(false)
+settings:SetPulse(settings:PULSE_NONE)
+*/
+class TerrainCursorSettings
+    // How the marks pulse: not at all, for two seconds after each move, or
+    // a slow swell of the beam's glow the whole time.
+    public constant integer PULSE_NONE = 0
+    public constant integer PULSE_AFTER_MOVING = 1
+    public constant integer PULSE_BREATHING = 2
+
+    boolean showBeam = true
+    boolean showCrosshair = true
+    text colorName = "Magenta"
+    integer glowStrength = 55
+    integer glowWidth = 56
+    integer topFade = 75
+    integer crosshairOpacity = 50
+    integer pulse = 2
+
+    // Counts every change, so a scene editor can tell when to draw again.
+    integer version = 0
+
+    Array<text> colorNames
+    Array<text> pulseNames
+
+    on create
+        colorNames:Add("Magenta")
+        colorNames:Add("Blue")
+        colorNames:Add("Green")
+        colorNames:Add("Red")
+        colorNames:Add("Violet")
+        pulseNames:Add("None")
+        pulseNames:Add("After Moving")
+        pulseNames:Add("Breathing")
+    end
+
+    /*
+    This action returns the names of the colors the marks can be, in the
+    order a list of choices shows them.
+
+    Attribute: Returns The color names
+    */
+    action GetColorNames returns Array<text>
+        return colorNames
+    end
+
+    /*
+    This action returns the names of the pulse choices, in the order of
+    PULSE_NONE, PULSE_AFTER_MOVING and PULSE_BREATHING.
+
+    Attribute: Returns The pulse names
+    */
+    action GetPulseNames returns Array<text>
+        return pulseNames
+    end
+
+    /*
+    This action returns true if the beam of light shows at the cursor.
+
+    Attribute: Returns True if the beam shows
+    */
+    action IsShowingBeam returns boolean
+        return showBeam
+    end
+
+    /*
+    This action sets whether the beam of light shows at the cursor.
+
+    Attribute: Parameter show True to show the beam
+    */
+    action SetShowBeam(boolean show)
+        if show not= showBeam
+            showBeam = show
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns true if the crosshair lines show through the cursor.
+
+    Attribute: Returns True if the crosshair shows
+    */
+    action IsShowingCrosshair returns boolean
+        return showCrosshair
+    end
+
+    /*
+    This action sets whether the crosshair lines show through the cursor.
+
+    Attribute: Parameter show True to show the crosshair
+    */
+    action SetShowCrosshair(boolean show)
+        if show not= showCrosshair
+            showCrosshair = show
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns the marks' color, such as "Magenta".
+
+    Attribute: Returns The color's name
+    */
+    action GetColorName returns text
+        return colorName
+    end
+
+    /*
+    This action sets the marks' color by name. A name that isn't one of
+    GetColorNames is ignored.
+
+    Attribute: Parameter name The color's name, such as "Magenta"
+    */
+    action SetColorName(text name)
+        if name not= colorName and colorNames:Has(name)
+            colorName = name
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns how strong the beam's glow is, from 0 to 100.
+
+    Attribute: Returns The glow's strength
+    */
+    action GetGlowStrength returns integer
+        return glowStrength
+    end
+
+    /*
+    This action sets how strong the beam's glow is, from 0 to 100.
+
+    Attribute: Parameter strength The glow's strength
+    */
+    action SetGlowStrength(integer strength)
+        integer value = Clamp(strength, 0, 100)
+        if value not= glowStrength
+            glowStrength = value
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns how wide the beam's glow is, from 10 to 80, in
+    screen pixels at the usual zoom.
+
+    Attribute: Returns The glow's width
+    */
+    action GetGlowWidth returns integer
+        return glowWidth
+    end
+
+    /*
+    This action sets how wide the beam's glow is, from 10 to 80.
+
+    Attribute: Parameter width The glow's width
+    */
+    action SetGlowWidth(integer width)
+        integer value = Clamp(width, 10, 80)
+        if value not= glowWidth
+            glowWidth = value
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns how much the beam fades toward its top, from 0 (not
+    at all) to 100.
+
+    Attribute: Returns The fade
+    */
+    action GetTopFade returns integer
+        return topFade
+    end
+
+    /*
+    This action sets how much the beam fades toward its top, from 0 to 100.
+
+    Attribute: Parameter fade The fade
+    */
+    action SetTopFade(integer fade)
+        integer value = Clamp(fade, 0, 100)
+        if value not= topFade
+            topFade = value
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns how opaque the crosshair's lines are, from 10 to 100.
+
+    Attribute: Returns The opacity
+    */
+    action GetCrosshairOpacity returns integer
+        return crosshairOpacity
+    end
+
+    /*
+    This action sets how opaque the crosshair's lines are, from 10 to 100.
+
+    Attribute: Parameter opacity The opacity
+    */
+    action SetCrosshairOpacity(integer opacity)
+        integer value = Clamp(opacity, 10, 100)
+        if value not= crosshairOpacity
+            crosshairOpacity = value
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns how the marks pulse: PULSE_NONE, PULSE_AFTER_MOVING
+    or PULSE_BREATHING.
+
+    Attribute: Returns The pulse
+    */
+    action GetPulse returns integer
+        return pulse
+    end
+
+    /*
+    This action sets how the marks pulse: PULSE_NONE, PULSE_AFTER_MOVING or
+    PULSE_BREATHING. Any other value is ignored.
+
+    Attribute: Parameter value The pulse
+    */
+    action SetPulse(integer value)
+        if value >= PULSE_NONE and value <= PULSE_BREATHING and value not= pulse
+            pulse = value
+            version = version + 1
+        end
+    end
+
+    /*
+    This action returns the pulse's name, such as "Breathing", for saving.
+
+    Attribute: Returns The pulse's name
+    */
+    action GetPulseName returns text
+        return pulseNames:Get(pulse)
+    end
+
+    /*
+    This action sets the pulse by its name. A name that isn't one of
+    GetPulseNames is ignored.
+
+    Attribute: Parameter name The pulse's name, such as "Breathing"
+    */
+    action SetPulseName(text name)
+        integer index = pulseNames:GetFirstLocation(name)
+        if index >= 0
+            SetPulse(index)
+        end
+    end
+
+    /*
+    This action returns a number that changes whenever a setting does.
+
+    Attribute: Returns The settings' version
+    */
+    action GetVersion returns integer
+        return version
+    end
+
+    /*
+    This action puts every setting back to its default.
+    */
+    action Reset
+        SetShowBeam(true)
+        SetShowCrosshair(true)
+        SetColorName("Magenta")
+        SetGlowStrength(55)
+        SetGlowWidth(56)
+        SetTopFade(75)
+        SetCrosshairOpacity(50)
+        SetPulse(PULSE_BREATHING)
+    end
+
+    /*
+    This action returns the red part of the marks' color, from 0 to 1.
+
+    Attribute: Returns The red
+    */
+    action GetRed returns number
+        if colorName = "Blue" or colorName = "Green"
+            return 0.17
+        elseif colorName = "Violet"
+            return 0.63
+        end
+        return 1
+    end
+
+    /*
+    This action returns the green part of the marks' color, from 0 to 1.
+
+    Attribute: Returns The green
+    */
+    action GetGreen returns number
+        if colorName = "Green"
+            return 1
+        elseif colorName = "Blue"
+            return 0.48
+        end
+        return 0.17
+    end
+
+    /*
+    This action returns the blue part of the marks' color, from 0 to 1.
+
+    Attribute: Returns The blue
+    */
+    action GetBlue returns number
+        if colorName = "Magenta"
+            return 0.84
+        elseif colorName = "Blue" or colorName = "Violet"
+            return 1
+        elseif colorName = "Green"
+            return 0.35
+        end
+        return 0.17
+    end
+
+    private action Clamp(integer value, integer low, integer high) returns integer
+        if value < low
+            return low
+        elseif value > high
+            return high
+        end
+        return value
+    end
+end

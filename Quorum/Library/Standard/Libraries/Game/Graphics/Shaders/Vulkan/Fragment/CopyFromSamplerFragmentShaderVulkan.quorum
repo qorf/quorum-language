@@ -9,6 +9,9 @@ can be brighter than white, and tone mapping fits it into the screen's
 range instead of clipping it. The exposure scales the light first. The
 painter sends both from the layer's EnvironmentVulkan as push constants.
 Alpha is copied as it is, so the sky still shows where nothing was drawn.
+The lit image is premultiplied: the lighting pass and the forward programs
+blend by alpha onto a cleared image, so its color is already times its
+alpha. The light is divided by the alpha before tone mapping.
 
 With bloom on (Lighting plan L3), the bloom image (binding 1) times its
 strength is added to the light before the exposure and tone mapping. The
@@ -86,13 +89,16 @@ vec3 mapLight(vec3 light)
 void main()
 {
 	vec4 lit = texture(u_sampler, v_samplerCoordinate);
-	vec3 color = mapLight(lit.rgb) * lit.a;
+	// The lit image is premultiplied; its light is divided by its alpha
+	// for the tone mapping, then multiplied again.
+	vec3 light = lit.a > 0.0001 ? lit.rgb / lit.a : vec3(0.0);
+	vec3 color = mapLight(light) * lit.a;
 	if (toneMapping.bloomStrength > 0.0)
 	{
 		vec3 glow = texture(u_bloom, v_samplerCoordinate).rgb * toneMapping.bloomStrength;
 		// On what was drawn, the glow joins its light; over the sky, it is
 		// added on its own.
-		color = mapLight(lit.rgb + glow) * lit.a + mapLight(glow) * (1.0 - lit.a);
+		color = mapLight(light + glow) * lit.a + mapLight(glow) * (1.0 - lit.a);
 	}
 	outputColor = vec4(color, lit.a);
 }
