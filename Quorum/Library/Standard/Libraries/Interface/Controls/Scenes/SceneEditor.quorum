@@ -437,6 +437,10 @@ class SceneEditor is Control, DefaultSceneManager
     number riverDragZ = 0
     TerrainPathLine riverLine = undefined
     boolean riverLineShown = false
+    // The other rivers' paths, shown while the River tool is chosen, so
+    // their points can be found and clicked; and how many are shown.
+    Array<TerrainPathLine> allRiverLines
+    integer allRiverLinesShown = 0
     // How close to a river's point a click must be to choose it, at least.
     constant number RIVER_POINT_REACH = 1.5
     boolean waterStrokeAdds = true
@@ -2004,7 +2008,8 @@ action Update(number seconds)
         terrain:SetToolNumber(tool)
         if tool = terrain:RIVER_TOOL
             brushTerrain = terrain
-            NotifyAccessibility(terrain, "River tool. Click, or press Space, to start a river and add its points; press Enter to finish it, or Escape to stop. Click a river's point to drag it, or press Delete to remove it. " + terrain:DescribeBrush())
+            ShowAllRiverLines(terrain)
+            NotifyAccessibility(terrain, "River tool. " + DescribeRiversForTool(terrain) + "Click, or press Space, to start a river and add its points; press Enter to finish it, or Escape to stop. " + terrain:DescribeBrush())
         elseif tool > 0
             brushTerrain = terrain
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
@@ -3425,7 +3430,8 @@ action Update(number seconds)
     - on one of a river's points, it chooses it, and with the mouse, holding
       the button and moving drags it;
     - on a river's water, between points, it adds a point there;
-    - anywhere else, it starts a new river there.
+    - anywhere else, it lets go of the chosen river, if one is chosen, or
+      starts a new river there.
     */
     private action PressRiverTool(EditorTerrain terrain, number x, number z, boolean byMouse)
         if not CanChangeWater(terrain)
@@ -3471,6 +3477,16 @@ action Update(number seconds)
                 InsertRiverPoint(terrain, under, index, x, z)
                 return now
             end
+        end
+        // Anywhere else while a river is chosen: it is let go, so a stray
+        // click while editing doesn't start a new river.
+        if chosenRiver not= undefined
+            chosenRiver = undefined
+            chosenRiverPoint = -1
+            HideRiverLine()
+            ShowAllRiverLines(terrain)
+            NotifyAccessibility(terrain, "No river chosen. Click empty ground again to start a new river.")
+            return now
         end
         // Anywhere else: a new river starts here.
         riverDrawing = true
@@ -3653,6 +3669,10 @@ action Update(number seconds)
         chosenRiver = river
         chosenRiverPoint = point
         ShowChosenRiverLine(terrain)
+        // The other rivers keep their paths shown.
+        if IsRiverToolActive()
+            ShowAllRiverLines(terrain)
+        end
     end
 
     /*
@@ -3763,6 +3783,140 @@ action Update(number seconds)
         chosenRiver = undefined
         chosenRiverPoint = -1
         HideRiverLine()
+        HideAllRiverLines()
+    end
+
+    /*
+    This action says which rivers a terrain has, for choosing the River
+    tool: "2 rivers: River 1, 7 points, and River 2, 3 points. Their paths
+    are shown; click a point to choose it, then drag it, or press Delete.",
+    or nothing for a terrain with none.
+    */
+    private action DescribeRiversForTool(EditorTerrain terrain) returns text
+        TerrainWater water = terrain:GetWater()
+        integer count = water:GetRiverCount()
+        if count = 0
+            return ""
+        end
+        text result = "1 river: "
+        if count > 1
+            result = "" + count + " rivers: "
+        end
+        integer i = 0
+        repeat while i < count
+            TerrainRiver river = water:GetRiver(i)
+            if i > 0 and i = count - 1
+                result = result + ", and "
+            elseif i > 0
+                result = result + ", "
+            end
+            result = result + river:GetName() + ", " + river:GetPointCount() + " points"
+            i = i + 1
+        end
+        if count = 1
+            return result + ". Its path is shown; click a point to choose it, then drag it, or press Delete. "
+        end
+        return result + ". Their paths are shown; click a point to choose it, then drag it, or press Delete. "
+    end
+
+    /*
+    This action shows the path of every river on a terrain but the chosen
+    one, whose path has its own line, so their points can be found and
+    clicked (River plan R6).
+    */
+    private action ShowAllRiverLines(EditorTerrain terrain)
+        EditorLayer layer = GetSelectedLayer()
+        if terrain = undefined or not (layer is EditorLayer3D)
+            HideAllRiverLines()
+            return now
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        TerrainWater water = terrain:GetWater()
+        integer used = 0
+        integer i = 0
+        repeat while i < water:GetRiverCount()
+            TerrainRiver river = water:GetRiver(i)
+            if river not= chosenRiver and river:GetPointCount() > 0
+                if used >= allRiverLines:GetSize()
+                    TerrainPathLine line
+                    line:SetName("River Path")
+                    layer3D:Add(line)
+                    allRiverLines:Add(line)
+                end
+                Array<number> xs
+                Array<number> zs
+                integer point = 0
+                repeat while point < river:GetPointCount()
+                    xs:Add(river:GetPointX(point))
+                    zs:Add(river:GetPointZ(point))
+                    point = point + 1
+                end
+                TerrainPathLine pathLine = allRiverLines:Get(used)
+                pathLine:Place(data, xs, zs, -1)
+                pathLine:Show()
+                used = used + 1
+            end
+            i = i + 1
+        end
+        // Lines no river needs now are hidden.
+        integer extra = used
+        repeat while extra < allRiverLines:GetSize()
+            allRiverLines:Get(extra):Hide()
+            extra = extra + 1
+        end
+        allRiverLinesShown = used
+    end
+
+    /*
+    This action hides every river's path but the chosen one's.
+    */
+    private action HideAllRiverLines
+        integer i = 0
+        repeat while i < allRiverLines:GetSize()
+            allRiverLines:Get(i):Hide()
+            i = i + 1
+        end
+        allRiverLinesShown = 0
+    end
+
+    /*
+    This action is the Water section's Edit path for a river (River plan
+    R6): the River tool is chosen, the river's first point is chosen and
+    the terrain cursor moves to it, and every river's path shows, so the
+    river's points can be clicked, dragged or removed.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter index The river, from 0
+    */
+    action EditTerrainRiver(EditorTerrain terrain, integer index)
+        if not CanChangeWater(terrain)
+            return now
+        end
+        TerrainWater water = terrain:GetWater()
+        if index < 0 or index >= water:GetRiverCount()
+            return now
+        end
+        TerrainRiver river = water:GetRiver(index)
+        if terrain:GetToolNumber() not= terrain:RIVER_TOOL
+            SetTerrainTool(terrain, terrain:RIVER_TOOL)
+        end
+        // A river being drawn is dropped first, so the clicks that follow
+        // edit this river, not the drawing.
+        if riverDrawing
+            riverDrawing = false
+            riverDraftX:Empty()
+            riverDraftZ:Empty()
+        end
+        if river:GetPointCount() > 0
+            terrain:SetBrushPosition(river:GetPointX(0), river:GetPointZ(0))
+            UpdateBrushPreview()
+        end
+        ChooseRiverPoint(terrain, river, 0)
+        if terrainWaterPropertiesDialog:IsShowing()
+            terrainWaterPropertiesDialog:OpenRiverPart(index)
+        end
+        NotifyAccessibility(terrain, "Editing " + river:GetName() + ", point 1 of " + river:GetPointCount() + " chosen. In the scene, click a point to choose it, drag it to move it, click the water between points to add one, or press Delete to remove the chosen point.")
     end
 
     /*
@@ -3886,6 +4040,11 @@ action Update(number seconds)
             if riverLine not= undefined
                 riverLine:Forget()
             end
+            integer lineIndex = 0
+            repeat while lineIndex < allRiverLines:GetSize()
+                allRiverLines:Get(lineIndex):Forget()
+                lineIndex = lineIndex + 1
+            end
         end
         terrain:WaterChanged()
         terrain:SetChanged(true)
@@ -3904,6 +4063,10 @@ action Update(number seconds)
                     ShowChosenRiverLine(terrain)
                 end
             end
+        end
+        // Every river's path follows, while the River tool is chosen.
+        if IsRiverToolActive() and terrain = brushTerrain
+            ShowAllRiverLines(terrain)
         end
         if terrainWaterPropertiesDialog:IsShowing()
             terrainWaterPropertiesDialog:Refresh()

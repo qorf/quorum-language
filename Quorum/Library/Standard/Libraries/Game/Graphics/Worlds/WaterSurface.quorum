@@ -341,7 +341,10 @@ class WaterSurface is Model
                 bitangents:Set(vertex * 3 + 1, 0)
                 bitangents:Set(vertex * 3 + 2, flowZ)
                 coordinates:Set(vertex * 2, half * sign)
-                coordinates:Set(vertex * 2 + 1, river:GetSampleDistance(sample))
+                // Vulkan meshes store this coordinate as 1 minus it
+                // (MeshVulkan), so it is given negated: the shader then sees
+                // the distance downstream, and the ripples flow downhill.
+                coordinates:Set(vertex * 2 + 1, -river:GetSampleDistance(sample))
                 side = side + 1
             end
             if sample < samples - 1
