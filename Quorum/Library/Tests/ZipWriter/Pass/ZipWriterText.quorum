@@ -1,0 +1,17 @@
+use Libraries.System.File
+use Libraries.Data.Compression.ZipWriter
+use Libraries.Data.Compression.Decompresser
+
+ZipWriter zip
+zip:Open("ZipWriterText.zip")
+zip:AddText("a.txt", "plain text")
+zip:AddText("Metadata/b.txt", "in a folder")
+zip:AddCopy("c.txt", "a.txt")
+zip:Close()
+
+File archive
+archive:SetPath("ZipWriterText.zip")
+Decompresser decompress
+output decompress:ReadZipEntry(archive, "a.txt")
+output decompress:ReadZipEntry(archive, "Metadata/b.txt")
+output decompress:ReadZipEntry(archive, "c.txt")

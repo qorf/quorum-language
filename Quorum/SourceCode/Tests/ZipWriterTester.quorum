@@ -1,0 +1,76 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Containers.Array
+use Libraries.System.File
+
+class ZipWriterTester
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/ZipWriter/"
+    text passPath = path + "Pass/"
+
+    action Test
+        path = passPath
+        ZipWriterText()
+        ZipWriterImage()
+        ZipWriterMd5()
+        ZipWriterErrors()
+    end
+
+    action GetName returns text
+        return "Zip Writer Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action ZipWriterText
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ZipWriterText.quorum")
+        files:Add(main)
+        results:Add(0, "plain text")
+        results:Add(1, "in a folder")
+        results:Add(2, "plain text")
+        suite:Test(files, results)
+    end
+
+    action ZipWriterImage
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ZipWriterImage.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "true")
+        suite:Test(files, results)
+    end
+
+    action ZipWriterMd5
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ZipWriterMd5.quorum")
+        files:Add(main)
+        results:Add(0, "D41D8CD98F00B204E9800998ECF8427E")
+        results:Add(1, "5D41402ABC4B2A76B9719D911017C592")
+        suite:Test(files, results)
+    end
+
+    action ZipWriterErrors
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ZipWriterErrors.quorum")
+        files:Add(main)
+        results:Add(0, "added before Open")
+        results:Add(1, "the same entry twice")
+        results:Add(2, "a copy of an entry never added")
+        suite:Test(files, results)
+    end
+end

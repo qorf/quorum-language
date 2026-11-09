@@ -1,0 +1,27 @@
+use Libraries.Data.Compression.ZipWriter
+use Libraries.Language.Errors.InputOutputError
+
+ZipWriter notOpen
+check
+    notOpen:AddText("a.txt", "x")
+    output "no error"
+detect beforeOpen is InputOutputError
+    output "added before Open"
+end
+
+ZipWriter zip
+zip:Open("ZipWriterErrors.zip")
+zip:AddText("a.txt", "x")
+check
+    zip:AddText("a.txt", "y")
+    output "no error"
+detect duplicate is InputOutputError
+    output "the same entry twice"
+end
+check
+    zip:AddCopy("b.txt", "never-added.txt")
+    output "no error"
+detect badCopy is InputOutputError
+    output "a copy of an entry never added"
+end
+zip:Close()
