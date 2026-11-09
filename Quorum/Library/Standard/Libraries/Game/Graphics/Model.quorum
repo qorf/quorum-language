@@ -76,6 +76,11 @@ class Model is Item3D
     ModelBlueprint modelBlueprint = undefined
 	ModelResources resources = undefined
 
+    // The box around this model's meshes, and the blueprint it was
+    // measured from, so it is measured again only when that changes.
+    BoundingBox meshBounds
+    ModelBlueprint meshBoundsBlueprint = undefined
+
     integer modelType = 0
 
     // The color of this Model. Used only if a primitive shape has been loaded.
@@ -189,6 +194,34 @@ return modelBlueprint:GetAnimationsSize()
     */
     action GetModelBlueprint returns ModelBlueprint
         return modelBlueprint
+    end
+
+    /*
+    This action fills in the box around the model's meshes, in its own
+    coordinates, measured once for each blueprint (ModelBlueprintVulkan
+    walks every vertex). It returns false if the blueprint can't give it:
+    no blueprint, an OpenGL one, or one whose mesh data was freed.
+    */
+    private action GetMeshBounds(BoundingBox local) returns boolean
+        if not (modelBlueprint is ModelBlueprintVulkan)
+            return false
+        end
+        if meshBoundsBlueprint not= modelBlueprint
+            ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+            if vulkanBlueprint:IsReleased() or vulkanBlueprint:GetData() = undefined
+                return false
+            end
+            meshBounds:Invalidate()
+            vulkanBlueprint:ExtendBoundingBox(meshBounds)
+            meshBoundsBlueprint = modelBlueprint
+        end
+        Vector3 minimum = meshBounds:GetMinimum()
+        Vector3 maximum = meshBounds:GetMaximum()
+        if minimum:GetX() <= maximum:GetX() and minimum:GetY() <= maximum:GetY() and minimum:GetZ() <= maximum:GetZ()
+            local:Set(minimum, maximum)
+            return true
+        end
+        return false
     end
 
     /*
@@ -3013,15 +3046,23 @@ end
 
     /*
     This action fills in the box around the model, in its own coordinates,
-    for a layer that culls what it draws. A model with copies (Foliage plan
-    F5) gives a box around every copy: their places, widened by the model's
-    size times the largest copy's scale, whichever way it is turned.
+    for a layer that culls what it draws, and for screen readers
+    (Item3D:GetScreenBounds). A model with copies (Foliage plan F5) gives a
+    box around every copy: their places, widened by the model's size times
+    the largest copy's scale, whichever way it is turned. Otherwise it is
+    the box around the model's meshes, when the blueprint can give it: a
+    mesh often doesn't sit centered on its model (a wall piece's base is
+    usually at the model's position). Failing that, it is the box of the
+    model's width, height and depth, centered on it.
 
     Attribute: Parameter local The box to fill in.
     Attribute: Returns True if the box was filled in, false if there is none.
     */
     action GetRenderBounds(BoundingBox local) returns boolean
         if copyCount <= 0
+            if GetMeshBounds(local)
+                return true
+            end
             return parent:Item3D:GetRenderBounds(local)
         end
         Math boundsMath

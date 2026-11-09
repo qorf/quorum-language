@@ -26,6 +26,10 @@ class List is ScrollableLineControl, FirstLetterNavigator
     // True if screen readers should treat the list as a tree (SetTreeAccessibility).
     boolean treeAccessibility = false
 
+    // What opens and closes a row for a screen reader (SetAccessibilityExpandBehaviors).
+    Behavior accessibilityExpandBehavior = undefined
+    Behavior accessibilityCollapseBehavior = undefined
+
     // A thick accent line along the list's left edge while it has the
     // focus (LS5), like a focused text field's (FD).
     Control focusLine = undefined
@@ -245,6 +249,54 @@ class List is ScrollableLineControl, FirstLetterNavigator
     */
     action HasTreeAccessibility returns boolean
         return treeAccessibility
+    end
+
+    /*
+    This action gives a list treated as a tree (SetTreeAccessibility) the
+    behaviors that open and close one of its rows, so a screen reader can
+    open and close rows itself, such as with VoiceOver's VO-\ on the Mac.
+    Each behavior runs with the row as the event's item, and only when the
+    row's state is the other one (ListItem:IsAccessibilityExpanded): the
+    expand behavior on a closed row, the collapse behavior on an open one.
+    Without them, screen readers can only read whether a row is open.
+
+    Attribute: Parameter expand The behavior that opens a row, or undefined.
+    Attribute: Parameter collapse The behavior that closes a row, or undefined.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.List
+        use Libraries.Interface.Behaviors.Behavior
+
+        List results
+        Behavior openFile
+        Behavior closeFile
+        results:SetTreeAccessibility(true)
+        results:SetAccessibilityExpandBehaviors(openFile, closeFile)
+    */
+    action SetAccessibilityExpandBehaviors(Behavior expand, Behavior collapse)
+        accessibilityExpandBehavior = expand
+        accessibilityCollapseBehavior = collapse
+    end
+
+    /*
+    This action returns the behavior that opens a row for a screen reader
+    (see SetAccessibilityExpandBehaviors), or undefined.
+
+    Attribute: Returns The behavior, or undefined.
+    */
+    action GetAccessibilityExpandBehavior returns Behavior
+        return accessibilityExpandBehavior
+    end
+
+    /*
+    This action returns the behavior that closes a row for a screen reader
+    (see SetAccessibilityExpandBehaviors), or undefined.
+
+    Attribute: Returns The behavior, or undefined.
+    */
+    action GetAccessibilityCollapseBehavior returns Behavior
+        return accessibilityCollapseBehavior
     end
 
     action GetIndexOf(ListItem item) returns integer

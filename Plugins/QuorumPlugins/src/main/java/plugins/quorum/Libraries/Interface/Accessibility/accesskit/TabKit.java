@@ -5,7 +5,7 @@ import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 import quorum.Libraries.Interface.Controls.Tab_;
 import quorum.Libraries.Interface.Item_;
 
-public class TabKit extends ItemKit {
+public class TabKit extends ClickableKit {
     public TabKit() {
         SetRole(Role.TAB);
     }

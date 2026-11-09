@@ -4,7 +4,7 @@ import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import quorum.Libraries.Interface.Controls.Checkbox_;
 import quorum.Libraries.Interface.Item_;
 
-public class CheckboxKit extends ItemKit{
+public class CheckboxKit extends ClickableKit {
     public CheckboxKit() {
         SetRole(Role.CHECK_BOX);
     }

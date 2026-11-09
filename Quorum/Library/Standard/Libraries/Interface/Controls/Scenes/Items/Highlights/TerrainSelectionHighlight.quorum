@@ -19,6 +19,10 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 use Libraries.Compute.Vector4
 use Libraries.Compute.Math
+use Libraries.Game.BoundingBox
+use Libraries.Game.Shapes.Rectangle
+use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.TerrainDescriber
 
 /*
     TerrainSelectionHighlight is the SelectionHighlight for a terrain. It is
@@ -39,10 +43,36 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     // a terrain stays at the origin.
     boolean told = false
 
+    // How far above the ground the cursor's ring is outlined for screen readers, in world units.
+    constant number CURSOR_OUTLINE_LIFT = 0.25
+
+    // How many short pieces the ring is cut into for its outline.
+    constant integer CURSOR_OUTLINE_PIECES = 16
+
+    // Says what the terrain and the spot under the cursor are like.
+    TerrainDescriber describer
+
+    // The cursor's reading (GetAccessibilityCursor), made again only when
+    // the cursor moves, changes size or reaches the edge: where it was
+    // made, and which piece the reading starts with: the place along x or
+    // z, whichever changed last, or the size.
+    text reading = ""
+    boolean readPlaced = false
+    number readX = 0
+    number readZ = 0
+    number readSize = 0
+    boolean readEdge = false
+    integer lead = 0
+    constant integer LEAD_X = 0
+    constant integer LEAD_Z = 1
+    constant integer LEAD_SIZE = 2
+
     on create
         // The border spans the whole terrain, so it lets clicks through to
         // the scene editor, which picks the ground itself.
         SetAcceptsMouseInput(false)
+        // What screen readers call it, instead of a generic item.
+        SetAccessibilityRoleDescription("terrain")
     end
 
     // How many straight pieces make up each edge of the border.
@@ -295,14 +325,221 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     /*
-        A screen reader reads the terrain cursor, with the tool if one is
-        chosen, rather than the terrain as a whole.
+        A screen reader reads this as the terrain's help, after its name:
+        what the whole terrain is like (TerrainDescriber:DescribeTerrain,
+        measured again only after the terrain changes), then the cursor's
+        size, its step with the grid on, and the tool if one is chosen.
+        Where the cursor is, is read from its row instead
+        (GetAccessibilityCursor).
     */
     action GetDescription returns text
         if terrain = undefined or GetSceneEditor() = undefined
             return parent:Item:GetDescription()
         end
-        return terrain:DescribeCursor()
+        SceneEditor sceneEditor = GetSceneEditor()
+        text settings = "Cursor size " + describer:FormatAmount(terrain:GetBrush():GetSize()) + "."
+        if sceneEditor:IsGridSnapping()
+            settings = settings + " Step " + describer:FormatAmount(sceneEditor:GetTerrainCursorStep(terrain)) + "."
+        end
+        if terrain:HasTool()
+            settings = settings + " " + terrain:GetToolName(terrain:GetToolNumber()) + " tool."
+        end
+        text whole = describer:DescribeTerrain(terrain)
+        if whole = ""
+            return settings
+        end
+        return whole + " " + settings
+    end
+
+    /*
+        Returns the terrain cursor's reading, which a screen reader reads as
+        a newly selected row each time it changes while the terrain has the
+        focus, with no message: "where am I" first, starting with what just
+        changed, such as "13 x, 40 z. 18 high, grass, hillside" after a move
+        along x, "41 z, 13 x. ..." after a move along z, and "Edge, 13 x,
+        40 z. ..." when a move was stopped by the edge. It is made again only when
+        the cursor moves, changes size or reaches the edge, so it is cheap
+        to ask every frame, and an edit under a still cursor doesn't make it
+        read again.
+
+        Attribute: Returns The reading, or an empty text while the cursor isn't in use.
+    */
+    action GetAccessibilityCursor returns text
+        if not CursorInUse() or not terrain:IsBrushPlaced()
+            return ""
+        end
+        SceneEditor sceneEditor = GetSceneEditor()
+        number x = terrain:GetBrushX()
+        number z = terrain:GetBrushZ()
+        TerrainBrush cursorBrush = terrain:GetBrush()
+        number size = cursorBrush:GetSize()
+        boolean atEdge = sceneEditor:IsTerrainCursorAtEdge()
+        if readPlaced and x = readX and z = readZ and size = readSize and atEdge = readEdge
+            return reading
+        end
+        if readPlaced
+            Math leadMath
+            number changeX = leadMath:AbsoluteValue(x - readX)
+            number changeZ = leadMath:AbsoluteValue(z - readZ)
+            if changeX > 0 or changeZ > 0
+                if changeZ > changeX
+                    lead = LEAD_Z
+                else
+                    lead = LEAD_X
+                end
+            elseif size not= readSize
+                lead = LEAD_SIZE
+            elseif lead = LEAD_SIZE
+                // Only the edge changed: it leads, then the place.
+                lead = LEAD_X
+            end
+        end
+        readPlaced = true
+        readX = x
+        readZ = z
+        readSize = size
+        readEdge = atEdge
+        reading = BuildCursorReading()
+        return reading
+    end
+
+    /*
+        Puts the cursor's reading together from its pieces, in the order
+        they are heard: the edge if a move was stopped by it, the size if
+        that is what changed, the place (GetCursorPlace), then what the spot
+        is like (TerrainDescriber:DescribeSpot). Any piece that doesn't
+        apply is left out.
+    */
+    private action BuildCursorReading returns text
+        text result = ""
+        if readEdge
+            result = "Edge, "
+        end
+        if lead = LEAD_SIZE
+            result = result + describer:FormatAmount(readSize) + " size, "
+        end
+        result = result + GetCursorPlace(lead = LEAD_Z)
+        text spot = describer:DescribeSpot(terrain, readX, readZ)
+        if spot not= ""
+            result = result + ". " + spot
+        elseif not terrain:IsBrushOnGround()
+            result = result + ". No ground"
+        end
+        return result
+    end
+
+    /*
+        Returns where the cursor is, as its place along x and z, value first,
+        with the one that just changed first, such as "13 x, 40 z" or
+        "41 z, 13 x". This is the one piece to change to say the place
+        another way, such as by grid cell.
+    */
+    private action GetCursorPlace(boolean zFirst) returns text
+        text placeX = describer:FormatAmount(readX) + " x"
+        text placeZ = describer:FormatAmount(readZ) + " z"
+        if zFirst
+            return placeZ + ", " + placeX
+        end
+        return placeX + ", " + placeZ
+    end
+
+    /*
+        Returns the part of the window a screen reader outlines: while the
+        terrain cursor is in use and on the ground, the cursor's ring, so
+        the outline follows the cursor; otherwise the border around the
+        whole terrain, as for any item.
+
+        Attribute: Returns The rectangle, or undefined if none of it shows.
+    */
+    action GetScreenBounds returns Rectangle
+        if not CursorInUse() or not terrain:IsBrushPlaced() or not terrain:IsBrushOnGround()
+            return parent:Item3D:GetScreenBounds()
+        end
+        return GetCursorScreenBounds()
+    end
+
+    /*
+        Returns the part of the window the cursor's ring covers. The ring is
+        cut into short pieces around its outside edge, at the ground's
+        height as TerrainBrushPreview:Place draws it, and the boxes of the
+        pieces are projected and joined. A square box around the whole ring
+        reaches past it at the corners, which the camera's perspective
+        widens further: about half as wide again as the ring.
+    */
+    private action GetCursorScreenBounds returns Rectangle
+        Math ringMath
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number centerX = terrain:GetBrushX()
+        number centerZ = terrain:GetBrushZ()
+        TerrainBrush cursorBrush = terrain:GetBrush()
+        number radius = cursorBrush:GetSize()
+        // The ring's outside edge, with its dark border, as drawn.
+        number outer = radius + ringMath:MaximumOf(0.08, radius * 0.03) * 1.1
+        number centerHeight = 0
+        if data:HasHeight(centerX, centerZ)
+            centerHeight = data:GetSurfaceHeight(centerX, centerZ)
+        end
+
+        number left = 0
+        number bottom = 0
+        number right = 0
+        number top = 0
+        boolean found = false
+        number lastX = centerX + outer
+        number lastZ = centerZ
+        number lastHeight = GetGroundAt(data, lastX, lastZ, centerHeight)
+        integer piece = 1
+        repeat while piece <= CURSOR_OUTLINE_PIECES
+            number angle = 2 * ringMath:pi * piece / CURSOR_OUTLINE_PIECES
+            number pieceX = centerX + outer * ringMath:Cosine(angle)
+            number pieceZ = centerZ + outer * ringMath:Sine(angle)
+            number pieceHeight = GetGroundAt(data, pieceX, pieceZ, centerHeight)
+            Vector3 minimum
+            minimum:Set(ringMath:MinimumOf(lastX, pieceX), ringMath:MinimumOf(lastHeight, pieceHeight), ringMath:MinimumOf(lastZ, pieceZ))
+            Vector3 maximum
+            maximum:Set(ringMath:MaximumOf(lastX, pieceX), ringMath:MaximumOf(lastHeight, pieceHeight) + CURSOR_OUTLINE_LIFT, ringMath:MaximumOf(lastZ, pieceZ))
+            BoundingBox pieceBox
+            pieceBox:Set(minimum, maximum)
+            Rectangle pieceBounds = GetScreenBoundsOfBox(pieceBox)
+            if pieceBounds not= undefined
+                number pieceRight = pieceBounds:GetX() + pieceBounds:GetWidth()
+                number pieceTop = pieceBounds:GetY() + pieceBounds:GetHeight()
+                if not found or pieceBounds:GetX() < left
+                    left = pieceBounds:GetX()
+                end
+                if not found or pieceBounds:GetY() < bottom
+                    bottom = pieceBounds:GetY()
+                end
+                if not found or pieceRight > right
+                    right = pieceRight
+                end
+                if not found or pieceTop > top
+                    top = pieceTop
+                end
+                found = true
+            end
+            lastX = pieceX
+            lastZ = pieceZ
+            lastHeight = pieceHeight
+            piece = piece + 1
+        end
+        if not found
+            return undefined
+        end
+        Rectangle bounds
+        bounds:SetRectangle(left, bottom, right - left, top - bottom)
+        return bounds
+    end
+
+    /*
+        Returns the ground's height at a place, or the fallback where there
+        is no ground, as the ring is drawn there.
+    */
+    private action GetGroundAt(TerrainData data, number x, number z, number fallback) returns number
+        if data:HasHeight(x, z)
+            return data:GetSurfaceHeight(x, z)
+        end
+        return fallback
     end
 
     /*

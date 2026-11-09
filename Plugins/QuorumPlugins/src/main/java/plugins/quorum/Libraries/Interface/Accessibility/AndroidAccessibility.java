@@ -21,7 +21,9 @@ import plugins.quorum.Libraries.Interface.Mobile.AndroidTextInput;
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Events.*;
 import quorum.Libraries.Interface.Item2D_;
+import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
+import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
 
@@ -409,6 +411,17 @@ public class AndroidAccessibility {
         touches the same way).
      */
     private Rect BoundsOf(Item_ item) {
+        if (item instanceof Item3D_) {
+            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+            if (rectangle == null) {
+                return new Rect();
+            }
+            int height = GameStateManager.display.GetHeight();
+            return new Rect((int) rectangle.GetX(),
+                    height - (int) (rectangle.GetY() + rectangle.GetHeight()),
+                    (int) (rectangle.GetX() + rectangle.GetWidth()),
+                    height - (int) rectangle.GetY());
+        }
         if (!(item instanceof Item2D_)) {
             return new Rect();
         }

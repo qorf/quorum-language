@@ -27,6 +27,11 @@ use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
 */
 class ModelPreview is ItemPreview3D
 
+    on create
+        // What screen readers call it while it is placed, as for the item itself.
+        SetAccessibilityRoleDescription("model")
+    end
+
     File modelFile = undefined
 
     /*

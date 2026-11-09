@@ -2083,9 +2083,8 @@ action Update(number seconds)
         number speed = terrain:GetBrush():GetSize() * CURSOR_GLIDE_RATE / SELECTION_DIRECTIONAL_SPEED_3D
         number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
         number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
-        // With the grid off, the cursor glides while a key is held, so it
-        // speaks only when the key is let go (SetSelectionXDirection).
-        MoveTerrainCursorTo(terrain, x, z, false)
+        // With the grid off, the cursor glides while a key is held.
+        MoveTerrainCursorTo(terrain, x, z)
     end
 
     /*
@@ -2399,7 +2398,7 @@ action Update(number seconds)
         Grid3D grid = layer3D:GetGrid()
         number x = grid:GetNearestGridCoordinate(terrain:GetBrushX() + moveX * step)
         number z = grid:GetNearestGridCoordinate(terrain:GetBrushZ() + moveZ * step)
-        MoveTerrainCursorTo(terrain, x, z, true)
+        MoveTerrainCursorTo(terrain, x, z)
     end
 
     /*
@@ -2426,26 +2425,19 @@ action Update(number seconds)
     /*
     This action puts the terrain cursor at a place, if there is ground there,
     or anywhere in the grid of regions with the Add region tool. The camera
-    follows it. A step can say the new height; a move past the edge says so
-    once.
+    follows it. Nothing is spoken: a screen reader reads the cursor's new
+    place as the terrain's selected row
+    (TerrainSelectionHighlight:GetAccessibilityCursor). A move past the edge
+    leaves the cursor where it is and marks it at the edge, which the
+    reading then starts with (IsTerrainCursorAtEdge).
     */
-    private action MoveTerrainCursorTo(EditorTerrain terrain, number x, number z, boolean speak)
+    private action MoveTerrainCursorTo(EditorTerrain terrain, number x, number z)
         boolean onGround = terrain:GetWorldTerrain():GetData():HasHeight(x, z)
         if not onGround and terrain:GetToolNumber() not= 8
-            if not terrainCursorAtEdge
-                terrainCursorAtEdge = true
-                NotifyAccessibility(terrain, "Edge of the terrain")
-            end
+            terrainCursorAtEdge = true
             return now
         end
         terrainCursorAtEdge = false
-        // The height where the step began, so the step can say the change.
-        TerrainData groundData = terrain:GetWorldTerrain():GetData()
-        boolean hadHeight = groundData:HasHeight(terrain:GetBrushX(), terrain:GetBrushZ())
-        number before = 0
-        if hadHeight
-            before = groundData:GetSurfaceHeight(terrain:GetBrushX(), terrain:GetBrushZ())
-        end
         if terrainCursorMovedByPointer
             // The pointer moved the cursor last: the camera takes it as its
             // target from where it is now, rather than jumping to it.
@@ -2458,13 +2450,17 @@ action Update(number seconds)
         // The ring follows at once. The update placed it earlier this frame,
         // before the keys moved the cursor, so it trailed by a frame.
         UpdateBrushPreview()
-        if speak
-            if hadHeight
-                NotifyAccessibility(terrain, terrain:DescribeHeightChange(before))
-            else
-                NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
-            end
-        end
+    end
+
+    /*
+    This action returns true if the last move of the terrain cursor was
+    stopped by the edge of the ground, until it moves again or the terrain
+    gets the focus again.
+
+    Attribute: Returns True if the cursor is held at the edge
+    */
+    action IsTerrainCursorAtEdge returns boolean
+        return terrainCursorAtEdge
     end
 
     /*
@@ -2740,8 +2736,10 @@ action Update(number seconds)
 
     /*
     This action makes a terrain's brush, which is also its cursor's ring,
-    larger or smaller by one step, with or without a tool, and says its new
-    size and, with the grid on, the arrow keys' new step (step 7, Round 2).
+    larger or smaller by one step, with or without a tool (step 7, Round 2).
+    Nothing is spoken: the new size and, with the grid on, the arrow keys'
+    new step are in the terrain cursor's description
+    (TerrainSelectionHighlight:GetDescription).
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter larger True to grow the brush, false to shrink it
@@ -2763,11 +2761,6 @@ action Update(number seconds)
             size = BRUSH_LARGEST
         end
         brush:SetSize(size)
-        text message = "Brush size " + RoundTenth(size)
-        if IsGridSnapping()
-            message = message + ", step " + RoundTenth(GetTerrainCursorStep(terrain))
-        end
-        NotifyAccessibility(terrain, message)
         TerrainBrushChanged(terrain)
     end
 
@@ -2903,9 +2896,6 @@ action Update(number seconds)
         terrainCursorMovedByPointer = true
         terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
         UpdateBrushPreview()
-        if terrain:IsBrushOnGround()
-            NotifyAccessibility(terrain, terrain:DescribeBrushHeight())
-        end
         if terrain:HasTool()
             pointerHolding = true
             pointerHoldSeconds = 0
@@ -4986,8 +4976,14 @@ action Update(number seconds)
             terrain:RefreshRenderBounds()
         else
             // Regions were added or removed (step 11), so the models are
-            // made again, and the selection's border fits the new size.
+            // made again.
             terrain:RebuildRegionModels()
+        end
+        // The selection's border follows the ground's heights at its edge
+        // and the terrain's size, after Generate, Erode, an undo or anything
+        // else that reshapes it. During a stroke it waits for the stroke's
+        // end, which redraws again.
+        if not stroking
             RefreshTerrainHighlight(terrain)
         end
         // The grid's lines over the ground follow it too (option C).
@@ -7579,16 +7575,6 @@ action Update(number seconds)
     // Used when moving an InteractableItem into a grid space to give information about what's under the item.
     // Doesn't include the item itself in the description.
     private action GetDescriptionAtItemPosition(EditorItem item) returns text
-        // With a terrain tool chosen, the arrows move its brush: say where
-        // the brush is and the ground's height there (step 7).
-        if item is TerrainSelectionHighlight
-            TerrainSelectionHighlight terrainHighlight = cast(TerrainSelectionHighlight, item)
-            EditorTerrain highlighted = terrainHighlight:GetEditorTerrain()
-            if highlighted not= undefined
-                return highlighted:DescribeCursor()
-            end
-        end
-
         SetCursorToItem(item)
 
         Item ignoredItem = undefined
@@ -7686,8 +7672,10 @@ action Update(number seconds)
     action SetSelectionXDirection(integer direction)
         selectionXDirection = direction
 
+        // The terrain cursor isn't spoken: its description is read as the
+        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem
+            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
             end
@@ -7701,8 +7689,10 @@ action Update(number seconds)
     action SetSelectionYDirection(integer direction)
         selectionYDirection = direction
 
+        // The terrain cursor isn't spoken: its description is read as the
+        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem
+            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
             end
@@ -7716,8 +7706,10 @@ action Update(number seconds)
     action SetSelectionZDirection(integer direction)
         selectionZDirection = direction
 
+        // The terrain cursor isn't spoken: its description is read as the
+        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem
+            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
                 EditorItem focus = cast(EditorItem, manager:GetFocus())
                 NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
             end

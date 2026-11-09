@@ -18,6 +18,7 @@ use Libraries.Game.Graphics.Light
 use Libraries.Game.Graphics.PointLight
 use Libraries.Game.Graphics.SpotLight
 use Libraries.Game.Graphics.Camera
+use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Game.Layer3D
 use Libraries.Game.GameStateManager
 use Libraries.Game.FocusManager
@@ -3654,159 +3655,321 @@ class Item3D is Item
     end
 
     /*
-    This action returns a 2D rectangle describing the approximate bounds of this
-    Item3D on the screen. The rectangle isn't rotated (i.e. the rectangle's
-    edges are aligned with the screen's edges), so the rectangle may be
-    significantly larger than the space taken by the Item3D on the screen in
-    some cases.
+    This action returns the part of the window this item covers on the
+    screen: the rectangle around its box, and the boxes of its children,
+    as its layer's camera shows them. The rectangle is in pixels from the
+    bottom left corner of the window, like an Item2D's screen position, and
+    includes the position of the layer's viewport. It is clipped to the
+    viewport. Any part of a box nearer than the camera's near plane, or
+    behind the camera, is left out. The boxes come from GetRenderBounds,
+    the same boxes the layer culls by. Screen readers outline the item with
+    it.
+
+    It returns undefined if the item is not on a layer with a camera, or if
+    no part of it shows in the viewport.
+
+    Attribute: Returns The rectangle the item covers, or undefined if it
+    doesn't show.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.Graphics.Color
+        use Libraries.Game.Shapes.Rectangle
+
+        class Main is Game
+            Model box
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Color color
+                box:LoadBox(1, 1, 1, color:Red())
+                box:SetPosition(2, 0, 0)
+                Add(box)
+            end
+
+            action Update(number seconds)
+                Rectangle bounds = box:GetScreenBounds()
+            end
+        end
     */
     action GetScreenBounds returns Rectangle
-        if layer = undefined or layer:GetCamera() = undefined
+        if layer = undefined
+            return undefined
+        end
+        Camera camera = layer:GetCamera()
+        if camera = undefined
+            return undefined
+        end
+        Array<number> edges = NewScreenEdges()
+        AddToScreenBounds(me, camera, edges)
+        return FinishScreenBounds(edges)
+    end
+
+    /*
+    This action returns the part of the window a box in the world covers,
+    as this item's layer's camera shows it, in the same way as
+    GetScreenBounds. An item whose screen reader outline should be only a
+    part of it, such as a terrain's cursor, can return this from its own
+    GetScreenBounds.
+
+    Attribute: Parameter box A box in world coordinates.
+    Attribute: Returns The rectangle the box covers, or undefined if it
+    doesn't show or the item is not on a layer with a camera.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Model
+        use Libraries.Game.BoundingBox
+        use Libraries.Compute.Vector3
+        use Libraries.Game.Shapes.Rectangle
+
+        Model box
+        Vector3 low
+        low:Set(0, 0, 0)
+        Vector3 high
+        high:Set(1, 1, 1)
+        BoundingBox corner
+        corner:Set(low, high)
+        Rectangle bounds = box:GetScreenBoundsOfBox(corner)
+    */
+    action GetScreenBoundsOfBox(BoundingBox box) returns Rectangle
+        if layer = undefined or box = undefined
+            return undefined
+        end
+        Camera camera = layer:GetCamera()
+        if camera = undefined
+            return undefined
+        end
+        Array<number> edges = NewScreenEdges()
+        AddBoxToScreenBounds(box:GetMinimum(), box:GetMaximum(), undefined, camera, edges)
+        return FinishScreenBounds(edges)
+    end
+
+    /*
+    This action returns what a screen reader reads for a keyboard cursor
+    inside this item: a place in the item that the keys move, such as a
+    terrain's cursor in the scene editor. It should say where the cursor is
+    first, then what is there. While the item has the focus, each new
+    reading is read the way a newly selected row of a list is, with the
+    focus staying on the item. An empty text, the default, means the item
+    has no such cursor.
+
+    Attribute: Returns The cursor's reading, or an empty text if there is none.
+
+    Attribute: Example
+
+        use Libraries.Game.Graphics.Model
+
+        Model board
+        text reading = board:GetAccessibilityCursor()
+    */
+    action GetAccessibilityCursor returns text
+        return ""
+    end
+
+    /*
+    This action returns the left, bottom, right and top edges of an empty
+    screen rectangle, to be widened by AddPointToScreenBounds.
+    */
+    private action NewScreenEdges returns Array<number>
+        number positive = 0
+        positive = positive:GetPositiveInfinityValue()
+        number negative = 0
+        negative = negative:GetNegativeInfinityValue()
+        Array<number> edges
+        edges:Add(positive)
+        edges:Add(positive)
+        edges:Add(negative)
+        edges:Add(negative)
+        return edges
+    end
+
+    /*
+    This action clips the edges found to the layer's viewport and returns
+    them as a rectangle, or undefined if nothing is left.
+    */
+    private action FinishScreenBounds(Array<number> edges) returns Rectangle
+        number viewportLeft = layer:GetViewportX()
+        number viewportBottom = layer:GetViewportY()
+        number viewportRight = viewportLeft + layer:GetViewportWidth()
+        number viewportTop = viewportBottom + layer:GetViewportHeight()
+
+        number left = edges:Get(0)
+        number bottom = edges:Get(1)
+        number right = edges:Get(2)
+        number top = edges:Get(3)
+        if left < viewportLeft
+            left = viewportLeft
+        end
+        if bottom < viewportBottom
+            bottom = viewportBottom
+        end
+        if right > viewportRight
+            right = viewportRight
+        end
+        if top > viewportTop
+            top = viewportTop
+        end
+
+        // Nothing found, or nothing inside the viewport.
+        if right <= left or top <= bottom
             return undefined
         end
 
-        Camera camera = layer:GetCamera()
-
-        number minX = 0
-        number minY = 0
-        number maxX = 0
-        number maxY = 0
-        number width = camera:GetWidth()
-        Vector3 calcVector
-        Vector3 minimum = undefined
-        Vector3 maximum = undefined
-
         Rectangle rectangle
-
-        if not nodes:IsEmpty()
-            BoundingBox box = GetBoundingBox(0)
-            minimum = box:GetMinimum()
-            maximum = box:GetMaximum()
-        else
-            Vector3 minVector
-            minVector:Set(GetGlobalX() - GetWidth() / 2.0, GetGlobalY() - GetHeight() / 2.0, GetGlobalZ() - GetDepth() / 2.0)
-            minimum = minVector
-            
-            Vector3 maxVector
-            maxVector:Set(GetGlobalX() + GetWidth() / 2.0, GetGlobalY() + GetHeight() / 2.0, GetGlobalZ() + GetDepth() / 2.0)
-            maximum = maxVector
-        end
-
-        calcVector:Set(minimum:GetX(), minimum:GetY(), minimum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        minX = width - calcVector:GetX()
-        minY = calcVector:GetY()
-        maxX = minX
-        maxY = minY
-
-        calcVector:Set(minimum:GetX(), minimum:GetY(), maximum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(minimum:GetX(), maximum:GetY(), minimum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(minimum:GetX(), maximum:GetY(), maximum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(maximum:GetX(), minimum:GetY(), minimum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(maximum:GetX(), minimum:GetY(), maximum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(maximum:GetX(), maximum:GetY(), minimum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        calcVector:Set(maximum:GetX(), maximum:GetY(), maximum:GetZ())
-        camera:WorldToScreenCoordinates(calcVector)
-        if (width - calcVector:GetX()) < minX
-            minX = width - calcVector:GetX()
-        end
-        if (width - calcVector:GetX()) > maxX
-            maxX = width - calcVector:GetX()
-        end
-        if calcVector:GetY() < minY
-            minY = calcVector:GetY()
-        end
-        if calcVector:GetY() > maxY
-            maxY = calcVector:GetY()
-        end
-
-        rectangle:SetRectangle(minX, minY, maxX - minX, maxY - minY)
-
+        rectangle:SetRectangle(left, bottom, right - left, top - bottom)
         return rectangle
+    end
+
+    /*
+    This action adds the screen rectangle of an item's box, and of the boxes
+    of its children, to the edges found so far.
+    */
+    private action AddToScreenBounds(Item3D item, Camera camera, Array<number> edges)
+        BoundingBox local
+        if item:GetRenderBounds(local)
+            AddBoxToScreenBounds(local:GetMinimum(), local:GetMaximum(), item:GetTransform(), camera, edges)
+        end
+
+        integer index = 0
+        repeat item:GetItemCount() times
+            AddToScreenBounds(item:GetItem(index), camera, edges)
+            index = index + 1
+        end
+    end
+
+    /*
+    This action adds the screen rectangle of one box to the edges found so
+    far. The box's corners are moved into the world by boxTransform, or are
+    in the world already if it is undefined. For a perspective camera, the
+    part of the box nearer than the near plane is cut off first, since a
+    point behind the camera has no place on the screen.
+    */
+    private action AddBoxToScreenBounds(Vector3 minimum, Vector3 maximum, Matrix4 boxTransform, Camera camera, Array<number> edges)
+        // Corner i uses the maximum x if bit 1 of i is set, the maximum y
+        // if bit 2 is, and the maximum z if bit 4 is.
+        Array<Vector3> corners
+        integer i = 0
+        repeat 8 times
+            number cornerX = minimum:GetX()
+            if i mod 2 = 1
+                cornerX = maximum:GetX()
+            end
+            number cornerY = minimum:GetY()
+            if i mod 4 >= 2
+                cornerY = maximum:GetY()
+            end
+            number cornerZ = minimum:GetZ()
+            if i >= 4
+                cornerZ = maximum:GetZ()
+            end
+            Vector3 corner
+            corner:Set(cornerX, cornerY, cornerZ)
+            if boxTransform not= undefined
+                corner:Multiply(boxTransform)
+            end
+            corners:Add(corner)
+            i = i + 1
+        end
+
+        boolean cutNear = camera is PerspectiveCamera
+        number nearDistance = math:AbsoluteValue(camera:GetNear())
+        if nearDistance < 0.0001
+            nearDistance = 0.0001
+        end
+        Vector3 cameraPosition = camera:GetPosition()
+        Vector3 cameraDirection = camera:GetDirection()
+
+        // How far in front of the camera each corner is.
+        Array<number> distances
+        i = 0
+        repeat 8 times
+            Vector3 cornerAt = corners:Get(i)
+            number distance = cameraDirection:GetX() * (cornerAt:GetX() - cameraPosition:GetX())
+                + cameraDirection:GetY() * (cornerAt:GetY() - cameraPosition:GetY())
+                + cameraDirection:GetZ() * (cornerAt:GetZ() - cameraPosition:GetZ())
+            distances:Add(distance)
+            if not cutNear or distance >= nearDistance
+                AddPointToScreenBounds(cornerAt, camera, edges)
+            end
+            i = i + 1
+        end
+
+        if not cutNear
+            return now
+        end
+
+        // Where an edge of the box crosses the near plane, that point is on
+        // the screen too. These are the box's 12 edges.
+        AddNearCrossing(corners, distances, 0, 1, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 2, 3, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 4, 5, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 6, 7, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 0, 2, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 1, 3, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 4, 6, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 5, 7, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 0, 4, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 1, 5, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 2, 6, nearDistance, camera, edges)
+        AddNearCrossing(corners, distances, 3, 7, nearDistance, camera, edges)
+    end
+
+    /*
+    If the edge between two corners crosses the near plane, this action adds
+    the point where it crosses to the edges found so far.
+    */
+    private action AddNearCrossing(Array<Vector3> corners, Array<number> distances, integer first, integer second,
+            number nearDistance, Camera camera, Array<number> edges)
+        number firstDistance = distances:Get(first)
+        number secondDistance = distances:Get(second)
+        boolean firstShows = firstDistance >= nearDistance
+        boolean secondShows = secondDistance >= nearDistance
+        if firstShows = secondShows
+            return now
+        end
+
+        number fraction = (nearDistance - firstDistance) / (secondDistance - firstDistance)
+        Vector3 firstCorner = corners:Get(first)
+        Vector3 secondCorner = corners:Get(second)
+        Vector3 crossing
+        crossing:Set(firstCorner:GetX() + fraction * (secondCorner:GetX() - firstCorner:GetX()),
+            firstCorner:GetY() + fraction * (secondCorner:GetY() - firstCorner:GetY()),
+            firstCorner:GetZ() + fraction * (secondCorner:GetZ() - firstCorner:GetZ()))
+        AddPointToScreenBounds(crossing, camera, edges)
+    end
+
+    /*
+    This action projects a point in the world onto the screen, in pixels
+    from the bottom left of the window, and widens the edges found so far
+    to hold it. There is no left-right flip: the camera doesn't mirror x
+    (the scene editor's picking flips the pointer before GetPickRay, which
+    flips it back).
+    */
+    private action AddPointToScreenBounds(Vector3 point, Camera camera, Array<number> edges)
+        Vector3 screenPoint
+        screenPoint:Set(point)
+        camera:WorldToScreenCoordinates(screenPoint, layer:GetViewportX(), layer:GetViewportY(),
+            layer:GetViewportWidth(), layer:GetViewportHeight())
+        number screenX = screenPoint:GetX()
+        number screenY = screenPoint:GetY()
+        if screenX < edges:Get(0)
+            edges:Set(0, screenX)
+        end
+        if screenY < edges:Get(1)
+            edges:Set(1, screenY)
+        end
+        if screenX > edges:Get(2)
+            edges:Set(2, screenX)
+        end
+        if screenY > edges:Get(3)
+            edges:Set(3, screenY)
+        end
     end
 
     /*

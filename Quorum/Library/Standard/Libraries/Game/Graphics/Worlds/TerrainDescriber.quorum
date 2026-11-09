@@ -1,0 +1,672 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Compute.Math
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+
+/*
+TerrainDescriber says what a terrain is like, in words, for a screen reader.
+DescribeTerrain gives a sense of the whole land in a few sentences: its
+shape and size, its mountains or hills, its rivers and lakes, and its
+paint, such as "A hilly island, 512 by 512. 3 mountains; the tallest is 87
+high, at high x, high z. 1 river runs from high x, high z to low z, into
+the sea. 2 lakes. Mostly grass, with rock on the steep slopes." Anything a
+terrain doesn't have is left out. DescribeSpot says what one place is
+like, such as "18 high, grass, hillside". There are no units and no
+compass: places are said along x and z, as the scene editor shows them.
+
+The whole terrain is measured once after it changes, not each time it is
+asked: a change is noticed by the terrain's build and paint counts and its
+water, and the description is made again once they stop changing, so a
+stroke being painted doesn't make it again every frame.
+
+The cutoffs between flat, hilly and mountainous, and the categories of a
+spot, are first guesses, kept together in the constants below so they can
+be tuned by listening.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainDescriber
+
+TerrainItem terrain
+TerrainDescriber describer
+text words = describer:DescribeTerrain(terrain)
+*/
+class TerrainDescriber
+    // How many points along each side the whole terrain is measured at.
+    constant integer GRID_POINTS = 64
+
+    // The whole terrain's shape, by how far its highest ground is above its
+    // lowest, in world units: below FLAT_RELIEF it is flat, below
+    // HILLY_RELIEF hilly, otherwise mountainous.
+    constant number FLAT_RELIEF = 8
+    constant number HILLY_RELIEF = 40
+
+    // A top is the highest measured point within TOP_REACH points each way.
+    // It is a mountain if it stands MOUNTAIN_RISE above the lowest ground
+    // within twice that reach, and a hill if it stands HILL_RISE above it.
+    constant integer TOP_REACH = 6
+    constant number MOUNTAIN_RISE = 25
+    constant number HILL_RISE = 6
+
+    // With a sea: an island if this share of the terrain's edge is under
+    // the sea, a coast if this share of all of it is.
+    constant number ISLAND_EDGE_SHARE = 0.6
+    constant number COAST_SHARE = 0.1
+
+    // Paint: "Mostly" a material on this share of the land, another named
+    // after it if it covers this share, "on the steep slopes" if this share
+    // of its places is at least STEEP_SLOPE degrees.
+    constant number MOSTLY_SHARE = 0.5
+    constant number SECOND_SHARE = 0.15
+    constant number STEEP_PLACE_SHARE = 0.5
+    constant number STEEP_SLOPE = 30
+
+    // A spot (DescribeSpot): water shallower than this isn't said; a beach
+    // is less than BEACH_HEIGHT above the sea. Of the terrain's range of
+    // heights, a peak is in the top PEAK_SHARE, a mountain above
+    // MOUNTAIN_SHARE, a valley below VALLEY_SHARE. A hillside is at least
+    // HILLSIDE_SLOPE degrees, a plain less than PLAIN_SLOPE.
+    constant number SHOWN_DEPTH = 0.05
+    constant number BEACH_HEIGHT = 1.5
+    constant number PEAK_SHARE = 0.9
+    constant number MOUNTAIN_SHARE = 0.6
+    constant number VALLEY_SHARE = 0.2
+    constant number HILLSIDE_SLOPE = 15
+    constant number PLAIN_SLOPE = 5
+
+    // The description last made, the terrain's change key it was made for,
+    // and the key seen the last time it was asked for.
+    text description = ""
+    text describedKey = ""
+    text seenKey = ""
+
+    // The measured points (Measure): their heights, whether each has ground,
+    // and the part of the world they cover.
+    Number32BitArray heights
+    Integer32BitArray grounded
+    number lowX = 0
+    number highX = 0
+    number lowZ = 0
+    number highZ = 0
+
+    Math math
+
+    /*
+    This action describes the whole terrain in a few sentences: its shape
+    and size, mountains or hills, rivers, lakes and paint, leaving out what
+    it doesn't have. The terrain is measured again only after it changed
+    and the change is over (see the class), so asking every frame is cheap.
+
+    Attribute: Parameter terrain The terrain.
+    Attribute: Returns The description, or an empty text if terrain is undefined.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.Game.Graphics.Worlds.TerrainDescriber
+
+    TerrainItem terrain
+    TerrainDescriber describer
+    text words = describer:DescribeTerrain(terrain)
+    */
+    action DescribeTerrain(TerrainItem terrain) returns text
+        if terrain = undefined or terrain:GetWorldTerrain() = undefined
+            return ""
+        end
+        text key = GetChangeKey(terrain)
+        if key = describedKey
+            seenKey = key
+            return description
+        end
+        // A new key is used once it is asked for twice in a row, so a
+        // terrain changing every frame keeps its last description.
+        if key = seenKey or describedKey = ""
+            description = Measure(terrain)
+            describedKey = key
+        end
+        seenKey = key
+        return description
+    end
+
+    /*
+    This action describes one place on a terrain in a few words: the
+    ground's height there, as "18 high", or the water's depth, as "3 deep";
+    the strongest paint; and what kind of place it is, such as "hillside",
+    "peak", "lake" or "beach". Any part that doesn't apply is left out.
+
+    Attribute: Parameter terrain The terrain.
+    Attribute: Parameter x The place along x, in world units.
+    Attribute: Parameter z The place along z, in world units.
+    Attribute: Returns The description, or an empty text where there is no ground.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.Game.Graphics.Worlds.TerrainDescriber
+
+    TerrainItem terrain
+    TerrainDescriber describer
+    text words = describer:DescribeSpot(terrain, 12, 30)
+    */
+    action DescribeSpot(TerrainItem terrain, number x, number z) returns text
+        if terrain = undefined or terrain:GetWorldTerrain() = undefined
+            return ""
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if not data:HasHeight(x, z)
+            return ""
+        end
+        number ground = data:GetSurfaceHeight(x, z)
+        TerrainWater water = terrain:GetWater()
+        number waterDepth = 0
+        if water not= undefined
+            waterDepth = water:GetWaterDepthAt(x, z)
+        end
+        text result = ""
+        if waterDepth >= SHOWN_DEPTH
+            result = FormatAmount(waterDepth) + " deep"
+        else
+            result = FormatAmount(ground) + " high"
+        end
+        text paint = GetPaintAt(terrain, x, z)
+        if paint not= ""
+            result = result + ", " + paint
+        end
+        text kind = GetSpotKind(terrain, x, z, ground, waterDepth)
+        if kind not= ""
+            result = result + ", " + kind
+        end
+        return result
+    end
+
+    /*
+    This action returns a number for speaking: rounded to one place after
+    the point, and without the point for a whole number, such as "13" or
+    "12.5".
+
+    Attribute: Parameter value The number.
+    Attribute: Returns The number as text.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainDescriber
+
+    TerrainDescriber describer
+    text words = describer:FormatAmount(12.04)
+    */
+    action FormatAmount(number value) returns text
+        number rounded = math:Round(value, 1)
+        integer whole = cast(integer, rounded)
+        if rounded = cast(number, whole)
+            return "" + whole
+        end
+        return "" + rounded
+    end
+
+    /*
+    This action returns a text that changes whenever the terrain's shape,
+    paint or water does: its region count, how many times its models were
+    built and its paint updated, and its sea, lakes and rivers.
+    */
+    private action GetChangeKey(TerrainItem terrain) returns text
+        WorldTerrain world = terrain:GetWorldTerrain()
+        TerrainData data = world:GetData()
+        text key = "" + data:GetRegionCount() + " " + world:GetInPlaceBuildCount() + " " + world:GetNewMeshBuildCount()
+            + " " + world:GetSplatUpdateCount() + " " + world:GetSplatTextureCount()
+        TerrainWater water = terrain:GetWater()
+        if water not= undefined
+            if water:HasSea()
+                key = key + " sea " + water:GetSeaLevel()
+            end
+            key = key + " lakes " + water:GetLakeCount()
+            integer lakeIndex = 0
+            repeat while lakeIndex < water:GetLakeCount()
+                TerrainLake lake = water:GetLake(lakeIndex)
+                key = key + " " + lake:GetX() + " " + lake:GetZ() + " " + lake:GetLevel()
+                lakeIndex = lakeIndex + 1
+            end
+            key = key + " rivers " + water:GetRiverCount()
+            integer riverIndex = 0
+            repeat while riverIndex < water:GetRiverCount()
+                TerrainRiver river = water:GetRiver(riverIndex)
+                integer pointCount = river:GetPointCount()
+                key = key + " " + pointCount
+                if pointCount > 0
+                    key = key + " " + river:GetPointX(0) + " " + river:GetPointZ(0)
+                        + " " + river:GetPointX(pointCount - 1) + " " + river:GetPointZ(pointCount - 1)
+                end
+                riverIndex = riverIndex + 1
+            end
+        end
+        TerrainMaterial material = terrain:GetMaterial()
+        if material not= undefined
+            key = key + " layers " + material:GetLayerCount()
+        end
+        return key
+    end
+
+    /*
+    This action measures the whole terrain at GRID_POINTS by GRID_POINTS
+    places and puts what it found into sentences.
+    */
+    private action Measure(TerrainItem terrain) returns text
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if data:GetRegionCount() = 0
+            return "An empty terrain, with no ground yet."
+        end
+
+        // The part of the world the regions cover, side by side.
+        number regionLength = data:GetRegionSize() * data:GetVertexSpacing()
+        integer firstRegionX = 0
+        integer lastRegionX = 0
+        integer firstRegionZ = 0
+        integer lastRegionZ = 0
+        integer regionIndex = 0
+        repeat while regionIndex < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(regionIndex)
+            if regionIndex = 0 or region:GetLocationX() < firstRegionX
+                firstRegionX = region:GetLocationX()
+            end
+            if regionIndex = 0 or region:GetLocationX() > lastRegionX
+                lastRegionX = region:GetLocationX()
+            end
+            if regionIndex = 0 or region:GetLocationZ() < firstRegionZ
+                firstRegionZ = region:GetLocationZ()
+            end
+            if regionIndex = 0 or region:GetLocationZ() > lastRegionZ
+                lastRegionZ = region:GetLocationZ()
+            end
+            regionIndex = regionIndex + 1
+        end
+        lowX = firstRegionX * regionLength
+        highX = (lastRegionX + 1) * regionLength
+        lowZ = firstRegionZ * regionLength
+        highZ = (lastRegionZ + 1) * regionLength
+        number stepX = (highX - lowX) / GRID_POINTS
+        number stepZ = (highZ - lowZ) / GRID_POINTS
+
+        TerrainWater water = terrain:GetWater()
+        boolean hasSea = water not= undefined and water:HasSea()
+        number seaLevel = 0
+        if hasSea
+            seaLevel = water:GetSeaLevel()
+        end
+        TerrainMaterial material = terrain:GetMaterial()
+        integer layerCount = 0
+        if material not= undefined
+            layerCount = material:GetLayerCount()
+        end
+
+        // What each paint channel is strongest on, and how much of that is steep.
+        Integer32BitArray paintCounts
+        Integer32BitArray steepCounts
+        paintCounts:SetSize(4)
+        steepCounts:SetSize(4)
+        integer channelIndex = 0
+        repeat 4 times
+            paintCounts:Set(channelIndex, 0)
+            steepCounts:Set(channelIndex, 0)
+            channelIndex = channelIndex + 1
+        end
+
+        heights:SetSize(GRID_POINTS * GRID_POINTS)
+        grounded:SetSize(GRID_POINTS * GRID_POINTS)
+        integer groundCount = 0
+        integer seaCount = 0
+        integer edgeCount = 0
+        integer edgeSeaCount = 0
+        integer paintedCount = 0
+        number lowest = 0
+        number highest = 0
+        integer row = 0
+        repeat while row < GRID_POINTS
+            integer column = 0
+            repeat while column < GRID_POINTS
+                integer index = row * GRID_POINTS + column
+                number pointX = lowX + (column + 0.5) * stepX
+                number pointZ = lowZ + (row + 0.5) * stepZ
+                if data:HasHeight(pointX, pointZ)
+                    number height = data:GetSurfaceHeight(pointX, pointZ)
+                    heights:Set(index, height)
+                    grounded:Set(index, 1)
+                    if groundCount = 0 or height < lowest
+                        lowest = height
+                    end
+                    if groundCount = 0 or height > highest
+                        highest = height
+                    end
+                    groundCount = groundCount + 1
+                    boolean underSea = hasSea and height < seaLevel
+                    if underSea
+                        seaCount = seaCount + 1
+                    end
+                    if row = 0 or column = 0 or row = GRID_POINTS - 1 or column = GRID_POINTS - 1
+                        edgeCount = edgeCount + 1
+                        if underSea
+                            edgeSeaCount = edgeSeaCount + 1
+                        end
+                    end
+                    if layerCount > 0 and not underSea
+                        integer code = data:GetSampleSplat(data:GetSampleX(pointX), data:GetSampleZ(pointZ))
+                        integer channel = GetMainChannel(data, code)
+                        paintCounts:Set(channel, paintCounts:Get(channel) + 1)
+                        if data:GetSlope(pointX, pointZ) >= STEEP_SLOPE
+                            steepCounts:Set(channel, steepCounts:Get(channel) + 1)
+                        end
+                        paintedCount = paintedCount + 1
+                    end
+                else
+                    heights:Set(index, 0)
+                    grounded:Set(index, 0)
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        if groundCount = 0
+            return "A terrain with no ground yet."
+        end
+
+        // Shape and size.
+        number relief = highest - lowest
+        text shape = "mountainous"
+        if relief < FLAT_RELIEF
+            shape = "flat"
+        elseif relief < HILLY_RELIEF
+            shape = "hilly"
+        end
+        text land = "terrain"
+        if hasSea and edgeCount > 0 and edgeSeaCount >= ISLAND_EDGE_SHARE * edgeCount
+            land = "island"
+        elseif hasSea and seaCount >= COAST_SHARE * groundCount
+            land = "coast"
+        end
+        text result = "A " + shape + " " + land + ", " + FormatAmount(highX - lowX) + " by " + FormatAmount(highZ - lowZ) + "."
+
+        result = result + DescribeTops(hasSea, seaLevel)
+        result = result + DescribeWater(terrain, water, seaLevel)
+        if layerCount > 0 and paintedCount > 0
+            result = result + DescribePaint(material, layerCount, paintCounts, steepCounts, paintedCount)
+        end
+        return result
+    end
+
+    /*
+    This action finds the mountains and hills among the measured points and
+    returns a sentence about them, starting with a space, or an empty text
+    if there are none.
+    */
+    private action DescribeTops(boolean hasSea, number seaLevel) returns text
+        integer mountains = 0
+        integer hills = 0
+        number tallest = 0
+        integer tallestIndex = -1
+        integer index = 0
+        repeat while index < GRID_POINTS * GRID_POINTS
+            if grounded:Get(index) = 1 and (not hasSea or heights:Get(index) > seaLevel)
+                number rise = GetTopRise(index)
+                if rise >= MOUNTAIN_RISE
+                    mountains = mountains + 1
+                    if tallestIndex < 0 or heights:Get(index) > tallest
+                        tallest = heights:Get(index)
+                        tallestIndex = index
+                    end
+                elseif rise >= HILL_RISE
+                    hills = hills + 1
+                end
+            end
+            index = index + 1
+        end
+        text result = ""
+        if mountains = 1
+            result = " 1 mountain, " + FormatAmount(tallest) + " high, at " + GetPointPlace(tallestIndex) + "."
+        elseif mountains > 1
+            result = " " + mountains + " mountains; the tallest is " + FormatAmount(tallest) + " high, at " + GetPointPlace(tallestIndex) + "."
+        end
+        if hills = 1
+            result = result + " 1 hill."
+        elseif hills > 1
+            result = result + " " + hills + " hills."
+        end
+        return result
+    end
+
+    /*
+    This action returns how far a measured point stands above the lowest
+    ground within twice TOP_REACH points, if it is the highest point within
+    TOP_REACH points (the first one, of equal ones), or -1 if it isn't.
+    */
+    private action GetTopRise(integer index) returns number
+        integer row = index / GRID_POINTS
+        integer column = index mod GRID_POINTS
+        number height = heights:Get(index)
+        number lowestAround = height
+        integer reach = TOP_REACH * 2
+        integer otherRow = row - reach
+        repeat while otherRow <= row + reach
+            integer otherColumn = column - reach
+            repeat while otherColumn <= column + reach
+                if otherRow >= 0 and otherRow < GRID_POINTS and otherColumn >= 0 and otherColumn < GRID_POINTS
+                    integer other = otherRow * GRID_POINTS + otherColumn
+                    if grounded:Get(other) = 1 and other not= index
+                        number otherHeight = heights:Get(other)
+                        boolean near = math:AbsoluteValue(otherRow - row) <= TOP_REACH and math:AbsoluteValue(otherColumn - column) <= TOP_REACH
+                        if near and (otherHeight > height or (otherHeight = height and other < index))
+                            return -1
+                        end
+                        if otherHeight < lowestAround
+                            lowestAround = otherHeight
+                        end
+                    end
+                end
+                otherColumn = otherColumn + 1
+            end
+            otherRow = otherRow + 1
+        end
+        return height - lowestAround
+    end
+
+    /*
+    This action returns sentences about the rivers and lakes, each starting
+    with a space, or an empty text if there are none. The sea is in the
+    first sentence (an island or a coast).
+    */
+    private action DescribeWater(TerrainItem terrain, TerrainWater water, number seaLevel) returns text
+        if water = undefined
+            return ""
+        end
+        text result = ""
+        integer rivers = water:GetRiverCount()
+        if rivers = 1
+            TerrainRiver river = water:GetRiver(0)
+            integer pointCount = river:GetPointCount()
+            if pointCount >= 2
+                number startX = river:GetPointX(0)
+                number startZ = river:GetPointZ(0)
+                number endX = river:GetPointX(pointCount - 1)
+                number endZ = river:GetPointZ(pointCount - 1)
+                text ending = GetPlace(endX, endZ)
+                TerrainData data = terrain:GetWorldTerrain():GetData()
+                if water:HasSea() and data:HasHeight(endX, endZ) and data:GetSurfaceHeight(endX, endZ) < seaLevel
+                    ending = ending + ", into the sea"
+                end
+                result = " 1 river runs from " + GetPlace(startX, startZ) + " to " + ending + "."
+            else
+                result = " 1 river."
+            end
+        elseif rivers > 1
+            result = " " + rivers + " rivers."
+        end
+        integer lakes = water:GetLakeCount()
+        if lakes = 1
+            result = result + " 1 lake."
+        elseif lakes > 1
+            result = result + " " + lakes + " lakes."
+        end
+        return result
+    end
+
+    /*
+    This action returns a sentence about the paint, starting with a space:
+    the material on most of the land, and a second one if it covers enough,
+    with where it is if that is mostly steep.
+    */
+    private action DescribePaint(TerrainMaterial material, integer layerCount, Integer32BitArray paintCounts,
+            Integer32BitArray steepCounts, integer paintedCount) returns text
+        integer first = -1
+        integer second = -1
+        integer channel = 0
+        repeat 4 times
+            if channel < layerCount and paintCounts:Get(channel) > 0
+                if first < 0 or paintCounts:Get(channel) > paintCounts:Get(first)
+                    second = first
+                    first = channel
+                elseif second < 0 or paintCounts:Get(channel) > paintCounts:Get(second)
+                    second = channel
+                end
+            end
+            channel = channel + 1
+        end
+        if first < 0
+            return ""
+        end
+        number firstShare = paintCounts:Get(first) / cast(number, paintedCount)
+        text firstName = material:GetLayerName(first)
+        text result = " " + firstName
+        if firstShare >= MOSTLY_SHARE
+            result = " Mostly " + firstName:ToLowerCase()
+        end
+        if second >= 0 and paintCounts:Get(second) >= SECOND_SHARE * paintedCount
+            text secondName = material:GetLayerName(second)
+            if firstShare >= MOSTLY_SHARE
+                result = result + ", with " + secondName:ToLowerCase()
+            else
+                result = result + " and " + secondName:ToLowerCase()
+            end
+            if steepCounts:Get(second) >= STEEP_PLACE_SHARE * paintCounts:Get(second)
+                result = result + " on the steep slopes"
+            end
+        end
+        return result + "."
+    end
+
+    /*
+    This action returns the strongest paint at a place, as its material's
+    name in lower case, or an empty text where there is no material.
+    */
+    private action GetPaintAt(TerrainItem terrain, number x, number z) returns text
+        TerrainMaterial material = terrain:GetMaterial()
+        if material = undefined or material:GetLayerCount() = 0
+            return ""
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer channel = GetMainChannel(data, data:GetSampleSplat(data:GetSampleX(x), data:GetSampleZ(z)))
+        if channel >= material:GetLayerCount()
+            return ""
+        end
+        text paintName = material:GetLayerName(channel)
+        return paintName:ToLowerCase()
+    end
+
+    /*
+    This action returns what kind of place a spot is, such as "river",
+    "lake", "sea", "beach", "peak", "mountain", "hillside", "valley" or
+    "plain", or an empty text if none fits.
+    */
+    private action GetSpotKind(TerrainItem terrain, number x, number z, number ground, number waterDepth) returns text
+        TerrainWater water = terrain:GetWater()
+        boolean hasSea = water not= undefined and water:HasSea()
+        if waterDepth >= SHOWN_DEPTH and water not= undefined
+            if water:GetRiverAt(x, z) not= undefined
+                return "river"
+            elseif water:GetLakeAt(x, z) not= undefined
+                return "lake"
+            elseif hasSea and ground < water:GetSeaLevel()
+                return "sea"
+            end
+            return ""
+        end
+        if hasSea and ground - water:GetSeaLevel() < BEACH_HEIGHT
+            return "beach"
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number lowest = data:GetLowestHeight()
+        number relief = data:GetHighestHeight() - lowest
+        number slope = data:GetSlope(x, z)
+        if relief < FLAT_RELIEF
+            if slope < PLAIN_SLOPE
+                return "plain"
+            end
+            return ""
+        end
+        number share = (ground - lowest) / relief
+        if share >= PEAK_SHARE
+            return "peak"
+        elseif share >= MOUNTAIN_SHARE
+            return "mountain"
+        elseif slope >= HILLSIDE_SLOPE
+            return "hillside"
+        elseif share <= VALLEY_SHARE
+            return "valley"
+        elseif slope < PLAIN_SLOPE
+            return "plain"
+        end
+        return ""
+    end
+
+    // The paint channel, 0 to 3, with the most weight in packed splat weights.
+    private action GetMainChannel(TerrainData data, integer code) returns integer
+        integer best = 0
+        number bestWeight = data:GetSplatWeight(code, 0)
+        integer channel = 1
+        repeat while channel < 4
+            number weight = data:GetSplatWeight(code, channel)
+            if weight > bestWeight
+                best = channel
+                bestWeight = weight
+            end
+            channel = channel + 1
+        end
+        return best
+    end
+
+    // Where a measured point is, as GetPlace says it.
+    private action GetPointPlace(integer index) returns text
+        integer row = index / GRID_POINTS
+        integer column = index mod GRID_POINTS
+        number stepX = (highX - lowX) / GRID_POINTS
+        number stepZ = (highZ - lowZ) / GRID_POINTS
+        return GetPlace(lowX + (column + 0.5) * stepX, lowZ + (row + 0.5) * stepZ)
+    end
+
+    /*
+    This action returns which ninth of the measured terrain a place is in,
+    along x and z, with no compass: "high x, low z", "high x" (z in the
+    middle third), "low z", or "the middle". Each axis is cut into thirds:
+    low, middle and high.
+    */
+    private action GetPlace(number x, number z) returns text
+        text alongX = ""
+        if x >= lowX + (highX - lowX) * 2 / 3
+            alongX = "high x"
+        elseif x < lowX + (highX - lowX) / 3
+            alongX = "low x"
+        end
+        text alongZ = ""
+        if z >= lowZ + (highZ - lowZ) * 2 / 3
+            alongZ = "high z"
+        elseif z < lowZ + (highZ - lowZ) / 3
+            alongZ = "low z"
+        end
+        if alongX = "" and alongZ = ""
+            return "the middle"
+        elseif alongX = ""
+            return alongZ
+        elseif alongZ = ""
+            return alongX
+        end
+        return alongX + ", " + alongZ
+    end
+end

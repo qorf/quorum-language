@@ -21,6 +21,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 */
 class Audio3DPreview is ItemPreview3D, EditorAudio3D
 
+    on create
+        // What screen readers call it while it is placed, as for the item itself.
+        SetAccessibilityRoleDescription("sound")
+    end
+
     action Load(SceneEditor controller, Audio3DBlueprint schematic)
         SetSceneEditor(controller)
         SetItemBlueprint(schematic)
