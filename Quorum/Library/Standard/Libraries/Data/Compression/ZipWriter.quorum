@@ -1,0 +1,182 @@
+package Libraries.Data.Compression
+
+/*
+The ZipWriter class writes a ZIP archive entry by entry. Entries are written
+in the order they are added, text is stored as UTF-8, PNG images can be drawn
+pixel by pixel and added as entries, and an entry can hold the MD5 checksum of
+some text. ZipWriter creates archives, the work is done by java.util.zip and javax.imageio
+through the plugin plugins.quorum.Libraries.Data.Compression.ZipWriter.
+
+Attribute: Example
+
+	use Libraries.Data.Compression.ZipWriter
+
+	class Main
+		action Main
+			ZipWriter zip
+			zip:Open("Outputs/example.zip")
+			zip:AddText("readme.txt", "Hello")
+			zip:BeginImage(2, 2)
+			zip:SetPixel(0, 0, 255, 0, 0, 255)
+			zip:AddImage("red-dot.png")
+			zip:AddCopy("copy-of-red-dot.png", "red-dot.png")
+			zip:AddMd5("readme.txt.md5", "hello")
+			zip:Close()
+		end
+	end
+*/
+class ZipWriter
+    /*
+    Creates (or overwrites) the archive, creating its folder if needed. An
+    archive that was still open is finished first.
+
+    Attribute: Parameter path Where to write the archive.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/notes.zip")
+        zip:AddText("notes.txt", "Hello")
+        zip:Close()
+    */
+    system action Open(text path)
+
+    /*
+    Adds one entry whose content is the text, encoded as UTF-8.
+
+    Attribute: Parameter entryName The name inside the archive, such as "Metadata/plate_1.gcode".
+    Attribute: Parameter content The text to store.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/print.zip")
+        zip:AddText("Metadata/plate_1.gcode", "G28 ;home all axes")
+        zip:Close()
+    */
+    system action AddText(text entryName, text content)
+
+    /*
+    Starts a blank, fully transparent RGBA image. Sizes below 1 become 1.
+
+    Attribute: Parameter width The width in pixels.
+    Attribute: Parameter height The height in pixels.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/thumbnail.zip")
+        zip:BeginImage(128, 128)
+        zip:SetPixel(64, 64, 255, 255, 255, 255)
+        zip:AddImage("thumbnail.png")
+        zip:Close()
+    */
+    system action BeginImage(integer width, integer height)
+
+    /*
+    Sets one pixel of the current image. Pixels outside the image are
+    ignored, and each channel is clamped to 0 to 255.
+
+    Attribute: Parameter x The column, from the left.
+    Attribute: Parameter y The row, from the top.
+    Attribute: Parameter red The red channel.
+    Attribute: Parameter green The green channel.
+    Attribute: Parameter blue The blue channel.
+    Attribute: Parameter alpha The opacity, 255 being opaque.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/square.zip")
+        zip:BeginImage(8, 8)
+        integer x = 2
+        repeat while x < 6
+            zip:SetPixel(x, 2, 0, 128, 255, 255)
+            x = x + 1
+        end
+        zip:AddImage("square.png")
+        zip:Close()
+    */
+    system action SetPixel(integer x, integer y, integer red, integer green, integer blue, integer alpha)
+
+    /*
+    Encodes the current image as PNG and adds it as an entry.
+
+    Attribute: Parameter entryName The name inside the archive.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/dot.zip")
+        zip:BeginImage(1, 1)
+        zip:SetPixel(0, 0, 255, 0, 0, 255)
+        zip:AddImage("Metadata/dot.png")
+        zip:Close()
+    */
+    system action AddImage(text entryName)
+
+    /*
+    Adds another entry with exactly the same bytes as an entry added earlier.
+
+    Attribute: Parameter entryName The name of the new entry.
+    Attribute: Parameter existingEntryName The entry to copy.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/plate.zip")
+        zip:BeginImage(2, 2)
+        zip:AddImage("Metadata/plate_1.png")
+        zip:AddCopy("Metadata/plate_no_light_1.png", "Metadata/plate_1.png")
+        zip:Close()
+    */
+    system action AddCopy(text entryName, text existingEntryName)
+
+    /*
+    Adds a text entry holding the MD5 checksum of the content's UTF-8 bytes:
+    32 upper-case hexadecimal digits, the form Bambu Studio writes in
+    Metadata/plate_1.gcode.md5. The content itself is not added.
+
+    Attribute: Parameter entryName The name of the checksum entry.
+    Attribute: Parameter content The text to checksum.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        text gcode = "G28"
+        ZipWriter zip
+        zip:Open("Outputs/print.zip")
+        zip:AddMd5("Metadata/plate_1.gcode.md5", gcode)
+        zip:AddText("Metadata/plate_1.gcode", gcode)
+        zip:Close()
+    */
+    system action AddMd5(text entryName, text content)
+
+    /*
+    Finishes the archive. Nothing in it can be read until this is called.
+    Calling it again does nothing.
+
+    Attribute: Example
+
+        use Libraries.Data.Compression.ZipWriter
+
+        ZipWriter zip
+        zip:Open("Outputs/readme.zip")
+        zip:AddText("readme.txt", "Finished archives can be opened by any ZIP tool.")
+        zip:Close()
+    */
+    system action Close
+end

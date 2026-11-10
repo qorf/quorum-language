@@ -1,0 +1,36 @@
+use Libraries.System.File
+use Libraries.Data.Compression.Decompresser
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.Language.Errors.InputOutputError
+
+Decompresser decompress
+
+File archive
+archive:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+archive:SetPath("zipfile.zip")
+check
+    text value = decompress:ReadZipEntry(archive, "missing.txt")
+    output "no error"
+detect missingEntry is InputOutputError
+    output "missing entry"
+end
+
+File missing
+missing:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+missing:SetPath("missing.zip")
+check
+    boolean foundInMissing = decompress:HasZipEntry(missing, "zipfile.txt")
+    output "no error"
+detect missingArchive is FileNotFoundError
+    output "missing archive"
+end
+
+File notZip
+notZip:SetWorkingDirectory("../../Library/Tests/Decompresser/Resources/")
+notZip:SetPath("gzipfile.txt.gz")
+check
+    boolean foundInNotZip = decompress:HasZipEntry(notZip, "zipfile.txt")
+    output "no error"
+detect notAnArchive is InputOutputError
+    output "not a ZIP archive"
+end
