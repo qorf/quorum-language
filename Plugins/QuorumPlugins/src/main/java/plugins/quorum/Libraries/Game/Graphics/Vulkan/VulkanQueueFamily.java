@@ -26,6 +26,11 @@ public class VulkanQueueFamily
         return strategy.GetComputeQueueFamilyIndex(device);
     }
 
+    public int GetTimestampValidBits()
+    {
+        return strategy.GetTimestampValidBits();
+    }
+
     public VulkanQueueFamilyStrategy GetStrategy()
     {
         return strategy;

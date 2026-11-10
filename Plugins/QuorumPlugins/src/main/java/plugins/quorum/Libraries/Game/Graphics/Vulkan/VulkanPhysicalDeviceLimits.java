@@ -451,6 +451,11 @@ public class VulkanPhysicalDeviceLimits {
         return strategy.GetBoolean(86, 0);
     }
 
+    public boolean GetTimestampComputeAndGraphics()
+    {
+        return strategy.GetBoolean(87, 0);
+    }
+
     public int GetMaxDescriptorSetSampledImages()
     {
         return strategy.GetInteger(87, 0);

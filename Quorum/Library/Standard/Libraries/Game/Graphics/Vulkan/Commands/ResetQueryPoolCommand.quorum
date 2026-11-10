@@ -1,0 +1,50 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+
+/*
+The ResetQueryPoolCommand resets a range of a query pool's queries, so they
+can be used again (vkCmdResetQueryPool). It must be recorded outside a
+render pass, before the queries are written.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.ResetQueryPoolCommand
+
+ResetQueryPoolCommand reset
+reset:SetRange(0, 16)
+*/
+class ResetQueryPoolCommand is VulkanCommand
+    VulkanQueryPool queryPool = undefined
+    integer first = 0
+    integer count = 0
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetQueryPool(VulkanQueryPool pool)
+        queryPool = pool
+    end
+
+    action GetQueryPool returns VulkanQueryPool
+        return queryPool
+    end
+
+    /*
+    This action sets which queries are reset.
+
+    Attribute: Parameter first The first query
+    Attribute: Parameter count How many
+    */
+    action SetRange(integer first, integer count)
+        me:first = first
+        me:count = count
+    end
+
+    action GetFirst returns integer
+        return first
+    end
+
+    action GetCount returns integer
+        return count
+    end
+end

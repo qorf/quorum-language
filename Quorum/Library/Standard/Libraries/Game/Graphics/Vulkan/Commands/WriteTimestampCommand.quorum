@@ -1,0 +1,65 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+
+/*
+The WriteTimestampCommand has the GPU write its clock into a query of a
+TIMESTAMP pool when it reaches a stage of the work recorded before it
+(vkCmdWriteTimestamp). BOTTOM_OF_PIPE, the default, marks that all earlier
+work has finished; TOP_OF_PIPE marks when the GPU started on what follows.
+On Apple GPUs, stamps are taken only at render pass boundaries.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.WriteTimestampCommand
+
+WriteTimestampCommand stamp
+stamp:SetIndex(3)
+stamp:SetStage(stamp:BOTTOM_OF_PIPE)
+*/
+class WriteTimestampCommand is VulkanCommand
+    // The stages (VkPipelineStageFlagBits).
+    public constant integer TOP_OF_PIPE = 1
+    public constant integer BOTTOM_OF_PIPE = 8192
+
+    VulkanQueryPool queryPool = undefined
+    integer index = 0
+    integer stage = 8192
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetQueryPool(VulkanQueryPool pool)
+        queryPool = pool
+    end
+
+    action GetQueryPool returns VulkanQueryPool
+        return queryPool
+    end
+
+    /*
+    This action sets which query the time is written to.
+
+    Attribute: Parameter index The query, from 0
+    */
+    action SetIndex(integer index)
+        me:index = index
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+
+    /*
+    This action sets the stage the time is taken at: TOP_OF_PIPE or
+    BOTTOM_OF_PIPE, or another VkPipelineStageFlagBits value.
+
+    Attribute: Parameter stage The stage
+    */
+    action SetStage(integer stage)
+        me:stage = stage
+    end
+
+    action GetStage returns integer
+        return stage
+    end
+end

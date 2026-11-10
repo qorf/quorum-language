@@ -1,0 +1,16 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+/*
+The EndLabelCommand ends the span started by the last BeginLabelCommand
+(vkCmdEndDebugUtilsLabelEXT).
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.EndLabelCommand
+
+EndLabelCommand finish
+*/
+class EndLabelCommand is VulkanCommand
+    system action Record(VulkanCommandBuffer buffer)
+end

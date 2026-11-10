@@ -1,0 +1,168 @@
+package Libraries.Game.Graphics.Timing
+
+use Libraries.Containers.Array
+
+/*
+A GraphicsTimingFrame is the GPU time one frame took, measured by a
+GraphicsTimer (Graphics timing plan T2): the whole frame, and each phase,
+such as "Shadows" or "G-buffer", in milliseconds. A phase timed more than
+once in a frame, such as one shadow pass per light, is added up, and its
+call count says how many times.
+
+Attribute: Example
+use Libraries.Game.Graphics.Timing.GraphicsTimingFrame
+use Libraries.Game.Game
+
+class Main is Game
+    action Update(number seconds)
+        GraphicsTimingFrame frame = GetGraphicsTimer():GetLatestFrame()
+        if frame not= undefined
+            output "GPU frame " + frame:GetFrameNumber() + ": " + frame:GetTotal() + " ms"
+        end
+    end
+end
+*/
+class GraphicsTimingFrame
+    integer frameNumber = 0
+    number total = 0
+    Array<text> names
+    Array<number> phaseTimes
+    Array<number> starts
+    Array<integer> calls
+
+    /*
+    This action sets which frame this is and its whole GPU time. The timer
+    calls it.
+
+    Attribute: Parameter frame The frame's number
+    Attribute: Parameter milliseconds The frame's GPU time
+    */
+    action SetFrame(integer frame, number milliseconds)
+        frameNumber = frame
+        total = milliseconds
+    end
+
+    /*
+    This action adds time to a phase, making it if it's new. The timer calls
+    it for each start and end it finds.
+
+    Attribute: Parameter name The phase's name
+    Attribute: Parameter milliseconds The time to add
+    Attribute: Parameter start When this part of it started, in milliseconds after the frame started
+    */
+    action AddPhaseTime(text name, number milliseconds, number start)
+        integer place = GetPhaseIndex(name)
+        if place < 0
+            names:Add(name)
+            phaseTimes:Add(milliseconds)
+            starts:Add(start)
+            calls:Add(1)
+            return now
+        end
+        phaseTimes:Set(place, phaseTimes:Get(place) + milliseconds)
+        calls:Set(place, calls:Get(place) + 1)
+        if start < starts:Get(place)
+            starts:Set(place, start)
+        end
+    end
+
+    /*
+    This action returns the frame's number, counted from the game's start.
+
+    Attribute: Returns The number
+    */
+    action GetFrameNumber returns integer
+        return frameNumber
+    end
+
+    /*
+    This action returns the frame's whole GPU time, from its first stamp to
+    its last.
+
+    Attribute: Returns Milliseconds
+    */
+    action GetTotal returns number
+        return total
+    end
+
+    /*
+    This action returns how many phases the frame has.
+
+    Attribute: Returns The count
+    */
+    action GetPhaseCount returns integer
+        return names:GetSize()
+    end
+
+    /*
+    This action returns a phase's name, in the order they were first timed.
+
+    Attribute: Parameter index The phase, from 0
+    Attribute: Returns The name
+    */
+    action GetPhaseName(integer index) returns text
+        return names:Get(index)
+    end
+
+    /*
+    This action returns a phase's GPU time, all its parts added together.
+
+    Attribute: Parameter index The phase, from 0
+    Attribute: Returns Milliseconds
+    */
+    action GetPhaseTime(integer index) returns number
+        return phaseTimes:Get(index)
+    end
+
+    /*
+    This action returns when a phase first started, after the frame started.
+
+    Attribute: Parameter index The phase, from 0
+    Attribute: Returns Milliseconds
+    */
+    action GetPhaseStart(integer index) returns number
+        return starts:Get(index)
+    end
+
+    /*
+    This action returns how many times a phase was timed in the frame.
+
+    Attribute: Parameter index The phase, from 0
+    Attribute: Returns The count
+    */
+    action GetPhaseCalls(integer index) returns integer
+        return calls:Get(index)
+    end
+
+    /*
+    This action returns a phase's place, or -1 if the frame doesn't have it.
+
+    Attribute: Parameter name The phase's name
+    Attribute: Returns The place, from 0, or -1
+    */
+    action GetPhaseIndex(text name) returns integer
+        integer i = 0
+        repeat while i < names:GetSize()
+            if names:Get(i) = name
+                return i
+            end
+            i = i + 1
+        end
+        return -1
+    end
+
+    /*
+    This action returns a phase's GPU time by name, or 0 if the frame doesn't
+    have it.
+
+    Attribute: Parameter name The phase's name
+    Attribute: Returns Milliseconds
+    */
+    action GetTime(text name) returns number
+        integer place = GetPhaseIndex(name)
+        if place < 0
+            return 0
+        end
+        return phaseTimes:Get(place)
+    end
+end

@@ -1,0 +1,71 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Color
+
+/*
+The BeginLabelCommand starts a named, colored span of a command buffer
+(vkCmdBeginDebugUtilsLabelEXT); an EndLabelCommand ends it. Spans may nest.
+Graphics tools show the names: Xcode's GPU frame capture and Instruments'
+Metal System Trace (through MoltenVK), and RenderDoc. They do nothing
+unless Vulkan's debug extension, VK_EXT_debug_utils, is loaded, as it is
+with validation layers on, so they are always safe to record.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.BeginLabelCommand
+
+BeginLabelCommand label
+label:SetLabel("Shadows")
+label:SetColor(0.2, 0.4, 0.9, 1)
+*/
+class BeginLabelCommand is VulkanCommand
+    text label = ""
+    number red = 1
+    number green = 1
+    number blue = 1
+    number alpha = 1
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetLabel(text value)
+        label = value
+    end
+
+    action GetLabel returns text
+        return label
+    end
+
+    /*
+    This action sets the span's color in tools that show one, each part from
+    0 to 1.
+    */
+    action SetColor(number red, number green, number blue, number alpha)
+        me:red = red
+        me:green = green
+        me:blue = blue
+        me:alpha = alpha
+    end
+
+    /*
+    This action sets the span's color from a Color.
+    */
+    action SetColor(Color color)
+        SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), color:GetAlpha())
+    end
+
+    action GetRed returns number
+        return red
+    end
+
+    action GetGreen returns number
+        return green
+    end
+
+    action GetBlue returns number
+        return blue
+    end
+
+    action GetAlpha returns number
+        return alpha
+    end
+end

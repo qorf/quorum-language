@@ -57,4 +57,15 @@ public class DesktopVulkanQueueFamily implements VulkanQueueFamilyStrategy
         }
         return index;
     }
+
+    public int GetTimestampValidBits()
+    {
+        quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily_ quorumFamily = (quorum.Libraries.Game.Graphics.Vulkan.VulkanQueueFamily_)peer.me_;
+        quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice quorumDevice = (quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice)quorumFamily.GetPhysicalDevice();
+        VkQueueFamilyProperties.Buffer properties = quorumDevice.plugin_.GetQueueFamilyProperties();
+        int familyIndex = quorumFamily.GetQueueFamilyIndex();
+        if (familyIndex < 0 || familyIndex >= properties.capacity())
+            return 0;
+        return properties.get(familyIndex).timestampValidBits();
+    }
 }

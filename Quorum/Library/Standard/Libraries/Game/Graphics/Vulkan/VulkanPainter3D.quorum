@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Game.Graphics.Timing.GraphicsTimer
 use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Skybox
@@ -66,6 +67,11 @@ class VulkanPainter3D is Painter3D
     VulkanRenderPass shadowRenderPass = undefined
     VulkanRenderPass lightRenderPass = undefined
     VulkanRenderPass resultRenderPass = undefined
+    // The forward programs' own pass, used only while the GPU timer splits
+    // them from lighting (Graphics timing plan T6): the lighting pass, but
+    // keeping the lit image instead of clearing it, so it works with the
+    // same framebuffers and pipelines.
+    VulkanRenderPass forwardRenderPass = undefined
     ShaderProgram defaultProgram = undefined
     ShaderProgram defaultLightingProgram = undefined
     ShaderProgram defaultShadowProgram = undefined
@@ -512,6 +518,42 @@ shadowDepthDescription:SetStencilStoreOp(constants:ATTACHMENT_STORE_OP_DONT_CARE
         
         // Now, create the lighting render pass.
         CreateRenderPass(lightRenderPass, lightAttachmentDescriptions, lightColorAttachmentReferences, undefined)
+
+        // The forward programs' own pass, for timing them apart from
+        // lighting (Graphics timing plan T6): the same attachment, kept as
+        // the lighting pass left it.
+        Array<VulkanAttachmentDescription> forwardAttachmentDescriptions
+        VulkanAttachmentDescription forwardColorAttachment
+        forwardColorAttachment:SetFormat(constants:FORMAT_R16G16B16A16_SFLOAT)
+        forwardColorAttachment:SetSamples(1)
+        forwardColorAttachment:SetLoadOp(constants:ATTACHMENT_LOAD_OP_LOAD)
+        forwardColorAttachment:SetStoreOp(constants:ATTACHMENT_STORE_OP_STORE)
+        forwardColorAttachment:SetInitialLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        forwardColorAttachment:SetFinalLayout(constants:IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+        forwardAttachmentDescriptions:Add(forwardColorAttachment)
+        // It reads the lit image as it starts, so it waits for the lighting
+        // pass's writes before both reading and writing.
+        VulkanSubpassDescription forwardSubpass
+        forwardSubpass:SetPipelineBindPoint(constants:PIPELINE_BIND_POINT_GRAPHICS)
+        forwardSubpass:SetColorAttachments(lightColorAttachmentReferences)
+        forwardSubpass:SetDepthStencilAttachment(undefined)
+        Array<VulkanSubpassDescription> forwardSubpasses
+        forwardSubpasses:Add(forwardSubpass)
+        VulkanSubpassDependency forwardDependency
+        forwardDependency:SetSourceSubpass(constants:SUBPASS_EXTERNAL)
+        forwardDependency:SetDestinationSubpass(0)
+        forwardDependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        forwardDependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+        forwardDependency:SetSourceAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+        forwardDependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_READ_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
+        Array<VulkanSubpassDependency> forwardDependencies
+        forwardDependencies:Add(forwardDependency)
+        VulkanRenderPass forwardRender
+        if forwardRender:Create(graphics:GetDevice(), forwardAttachmentDescriptions, forwardSubpasses, forwardDependencies)
+            forwardRenderPass = forwardRender
+        else
+            forwardRenderPass = undefined
+        end
         
         // Final result rendering attachments: the same as the swapchain's
         // framebuffers, with or without 2D MSAA (Item 29). The first layer
@@ -1668,10 +1710,14 @@ if batches:HasKey(schematic)
                 graphics:Retire(shadowRenderPass)
                 graphics:Retire(lightRenderPass)
                 graphics:Retire(resultRenderPass)
+                if forwardRenderPass not= undefined
+                    graphics:Retire(forwardRenderPass)
+                end
                 sceneRenderPass = undefined
                 shadowRenderPass = undefined
                 lightRenderPass = undefined
                 resultRenderPass = undefined
+                forwardRenderPass = undefined
             end
         end
 
@@ -1816,6 +1862,9 @@ Layer layer = layers:Next()
         VulkanCommandBuffer commandBuffer = graphics:GetCurrentRenderCommandBuffer()
         VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanFramebuffer sceneFramebuffer = renderFramebuffers:Get(resourceIndex)
+        // Times each phase on the GPU when timing is on; otherwise its
+        // actions record nothing (Graphics timing plan T4).
+        GraphicsTimer timer = graphics:GetGraphicsTimer()
         VulkanConstants constants
         
         ModelManagerVulkan modelManager = graphics:GetModelManager()
@@ -1950,6 +1999,7 @@ VulkanNumber32BitMappedMemory currentCameraMapping = cameraMappings:Get(currentS
         end
 
         // Create the command to begin the render pass.
+        timer:StartPhase(commandBuffer, "G-buffer")
         BeginRenderPassCommand beginRenderPass
         beginRenderPass:SetRenderPass(sceneRenderPass)
         beginRenderPass:SetClearValues(sceneClearValues)
@@ -2083,6 +2133,7 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
         // End the render pass.
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
+        timer:EndPhase(commandBuffer, "G-buffer")
         
         // Now, submit commands to render the shadow maps.
         // We intentionally do NOT put any additional barriers or waiting here, because the shadow stage is independent of the scene rendering.
@@ -2144,9 +2195,18 @@ constants:SHADER_STAGE_FRAGMENT_BIT)
             programIndex = programIndex + 1
         end
         
+        timer:StartPhase(commandBuffer, "Shadows")
         i = 0
         repeat while i < totalLightCount
             VulkanFramebuffer shadowFramebuffer = shadowFramebuffers:Get(i)
+            // Each light's shadow pass is also timed by its kind.
+            text shadowPhase = "Shadows: spot"
+            if i < directionalLightCount
+                shadowPhase = "Shadows: directional"
+            elseif i < pointLightEnd
+                shadowPhase = "Shadows: point"
+            end
+            timer:StartPhase(commandBuffer, shadowPhase)
             
             // We have to render to a different framebuffer for each light, so we create a render pass for each one.
             // Create the command to begin the render pass.
@@ -2260,9 +2320,11 @@ end
             // End the render pass.
         EndRenderPassCommand endShadowRenderPass
         commandBuffer:Record(endShadowRenderPass)
+            timer:EndPhase(commandBuffer, shadowPhase)
             
             i = i + 1
         end
+        timer:EndPhase(commandBuffer, "Shadows")
 
         // Empty the pending arrays.
         pendingBatches:Empty()
@@ -2287,6 +2349,14 @@ end
         // Begin the render pass for the lighting phase.
         VulkanFramebuffer lightFramebuffer = lightFramebuffers:Get(resourceIndex)
         
+        // With the forward programs split into their own pass (T6), lighting
+        // and forward are timed apart.
+        boolean splitForward = timer:IsSplittingForwardPass() and forwardRenderPass not= undefined
+        text lightPhase = "Lighting and forward"
+        if splitForward
+            lightPhase = "Lighting"
+        end
+        timer:StartPhase(commandBuffer, lightPhase)
         BeginRenderPassCommand beginLightRender
         beginLightRender:SetRenderPass(lightRenderPass)
         beginLightRender:SetClearValues(lightClearValues)
@@ -2342,12 +2412,30 @@ BindDescriptorSetCommand lightDescriptorBind
         commandBuffer:Record(lightDrawCommand)
 
         // Then the forward programs, such as water, over the lit image, in
-        // the same pass (Item 39).
-        RecordForwardPrograms(commandBuffer, swapchain, resourceIndex, currentCameraDescriptor)
+        // the same pass (Item 39), or, while timing them apart (Graphics
+        // timing plan T6), in a pass of their own that keeps the lit image.
+        if not splitForward
+            RecordForwardPrograms(commandBuffer, swapchain, resourceIndex, currentCameraDescriptor)
+        end
 
         // End the render pass.
         EndRenderPassCommand endLightRenderPass
         commandBuffer:Record(endLightRenderPass)
+        timer:EndPhase(commandBuffer, lightPhase)
+
+        if splitForward
+            timer:StartPhase(commandBuffer, "Forward")
+            BeginRenderPassCommand beginForward
+            beginForward:SetRenderPass(forwardRenderPass)
+            beginForward:SetFramebuffer(lightFramebuffer)
+            beginForward:SetRenderArea(swapchain:GetImageWidth(), swapchain:GetImageHeight())
+            commandBuffer:Record(beginForward)
+            SetViewportAndScissor(commandBuffer, swapchain)
+            RecordForwardPrograms(commandBuffer, swapchain, resourceIndex, currentCameraDescriptor)
+            EndRenderPassCommand endForward
+            commandBuffer:Record(endForward)
+            timer:EndPhase(commandBuffer, "Forward")
+        end
         
         // Now that the scene geometry and lighting are finished, copy the result from the Painter3D's framebuffer to the swapchain image that will eventually be drawn to the screen.
         // First, ensure all writing to the light's output attachment is done before we proceed.
@@ -2360,7 +2448,9 @@ BindDescriptorSetCommand lightDescriptorBind
         VulkanImageView bloomView = lightFramebuffer:GetImageViews():Get(0)
         number bloomStrength = 0
         if environment:HasBloom()
+            timer:StartPhase(commandBuffer, "Bloom")
             bloomView = RecordBloom(commandBuffer, resourceIndex, bloomView)
+            timer:EndPhase(commandBuffer, "Bloom")
             bloomStrength = environment:GetBloomStrength()
         end
         LinkResultBloom(resourceIndex, bloomView)
@@ -2369,6 +2459,7 @@ BindDescriptorSetCommand lightDescriptorBind
         VulkanFramebuffer resultFramebuffer = graphics:GetCurrentFramebuffer()
         VulkanClearValues resultClearValues = graphics:GetClearValues()
         
+        timer:StartPhase(commandBuffer, "Tone mapping")
         BeginRenderPassCommand beginResultRender
         beginResultRender:SetRenderPass(resultRenderPass)
         beginResultRender:SetClearValues(resultClearValues)
@@ -2429,6 +2520,7 @@ BindDescriptorSetCommand resultDescriptorBind
         // End the render pass.
         EndRenderPassCommand endResultRenderPass
         commandBuffer:Record(endResultRenderPass)
+        timer:EndPhase(commandBuffer, "Tone mapping")
         
     end
     

@@ -229,4 +229,9 @@ system action GetPointSizeGranularity returns number
 system action GetLineWidthGranularity returns number
 system action GetStrictLines returns boolean
 system action GetStandardSampleLocations returns boolean
+/*
+This action returns true if every graphics and compute queue can write
+timestamps (WriteTimestampCommand). GraphicsTimer checks it.
+*/
+system action GetTimestampComputeAndGraphics returns boolean
 end
