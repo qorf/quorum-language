@@ -1307,16 +1307,22 @@ public class AccessibilityManager
         }
         else if (item instanceof Item3D_)
         {
-            // This is only a place holder, to place a small box roughly at the
-            // center of a 3D object in the screen. To calculate this correctly,
-            // check how we calculate mouse input detection for 3D objects.
-            
+            // The part of the window the item covers, in pixels from the
+            // bottom left, viewport included, or undefined if none shows.
             Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
             
-            bounds[0] = windowX + rectangle.GetX();
-            bounds[1] = windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight()));
-            bounds[2] = rectangle.GetWidth();
-            bounds[3] = rectangle.GetHeight();
+            if (rectangle == null)
+            {
+                for (int i = 0; i < bounds.length; i++)
+                    bounds[i] = 0;
+            }
+            else
+            {
+                bounds[0] = windowX + rectangle.GetX();
+                bounds[1] = windowY + (windowHeight - (rectangle.GetY() + rectangle.GetHeight()));
+                bounds[2] = rectangle.GetWidth();
+                bounds[3] = rectangle.GetHeight();
+            }
         }
         else
         {

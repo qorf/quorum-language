@@ -1,0 +1,248 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Number64BitArray
+
+/*
+A VulkanQueryPool is a pool of Vulkan queries: numbers the GPU writes while
+it works, read back afterward (Graphics timing plan T1). There are three
+kinds:
+- TIMESTAMP: the GPU's clock when it reached a point in a command buffer
+  (WriteTimestampCommand). Read with ReadTimestamps, in milliseconds.
+- OCCLUSION: how many samples passed the depth test between a
+  BeginQueryCommand and an EndQueryCommand, such as whether an object is
+  visible at all. Read with ReadResults.
+- PIPELINE_STATISTICS: how many vertices, primitives and shader runs a span
+  of work caused, the counters chosen with SetStatistics before Create. Read
+  with ReadResults. Not every device has them (see
+  VulkanPhysicalDeviceFeatures:HasPipelineStatisticsQuery); Apple GPUs don't.
+
+Queries are reset with ResetQueryPoolCommand before each use. Reading never
+waits for the GPU: a read returns false if any query asked for isn't
+finished yet, so it is usually done a frame or two later.
+
+GraphicsTimer (Libraries.Game.Graphics.Timing) uses a pool of timestamps to
+time each part of a frame.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.GameStateManager
+
+GameStateManager manager
+VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+VulkanQueryPool pool
+if pool:Create(graphics:GetDevice(), pool:TIMESTAMP, 16)
+    output "Made a pool of " + pool:GetCount() + " timestamps."
+end
+*/
+class VulkanQueryPool is VulkanRetirable
+    // The kinds of query (VkQueryType).
+    public constant integer OCCLUSION = 0
+    public constant integer PIPELINE_STATISTICS = 1
+    public constant integer TIMESTAMP = 2
+
+    // The counters a statistics pool can keep (VkQueryPipelineStatisticFlagBits).
+    public constant integer INPUT_ASSEMBLY_VERTICES = 1
+    public constant integer INPUT_ASSEMBLY_PRIMITIVES = 2
+    public constant integer VERTEX_SHADER_INVOCATIONS = 4
+    public constant integer GEOMETRY_SHADER_INVOCATIONS = 8
+    public constant integer GEOMETRY_SHADER_PRIMITIVES = 16
+    public constant integer CLIPPING_INVOCATIONS = 32
+    public constant integer CLIPPING_PRIMITIVES = 64
+    public constant integer FRAGMENT_SHADER_INVOCATIONS = 128
+    public constant integer TESSELLATION_CONTROL_SHADER_PATCHES = 256
+    public constant integer TESSELLATION_EVALUATION_SHADER_INVOCATIONS = 512
+    public constant integer COMPUTE_SHADER_INVOCATIONS = 1024
+
+    // How CopyQueryResultsCommand writes results (VkQueryResultFlagBits).
+    public constant integer RESULT_64_BIT = 1
+    public constant integer RESULT_WAIT = 2
+    public constant integer RESULT_WITH_AVAILABILITY = 4
+    public constant integer RESULT_PARTIAL = 8
+
+    VulkanDevice device = undefined
+    integer queryType = 2
+    integer queryCount = 0
+    integer statistics = 0
+    boolean initialized = false
+
+    // For timestamps: nanoseconds per GPU clock tick, and how many bits of a
+    // timestamp are valid (0 for all 64).
+    number nanosecondsPerTick = 1
+    integer validBits = 64
+
+    /*
+    This action makes the pool on a device.
+
+    Attribute: Parameter device The device
+    Attribute: Parameter type TIMESTAMP, OCCLUSION or PIPELINE_STATISTICS
+    Attribute: Parameter count How many queries it holds
+    Attribute: Returns True if the pool was made
+    */
+    action Create(VulkanDevice device, integer type, integer count) returns boolean
+        if initialized or count <= 0
+            return false
+        end
+        boolean result = CreateNative(device, type, count, statistics)
+        if result
+            me:device = device
+            queryType = type
+            queryCount = count
+            initialized = true
+        end
+        return result
+    end
+
+    private system action CreateNative(VulkanDevice device, integer type, integer count, integer statistics) returns boolean
+
+    /*
+    This action sets which counters a PIPELINE_STATISTICS pool keeps, added
+    together, such as VERTEX_SHADER_INVOCATIONS + FRAGMENT_SHADER_INVOCATIONS.
+    Call it before Create.
+
+    Attribute: Parameter flags The counters
+    */
+    action SetStatistics(integer flags)
+        statistics = flags
+    end
+
+    /*
+    This action returns the counters a statistics pool keeps.
+
+    Attribute: Returns The counters, added together
+    */
+    action GetStatistics returns integer
+        return statistics
+    end
+
+    /*
+    This action returns how many numbers each query of a statistics pool
+    gives: one per counter it keeps. Other pools give one.
+
+    Attribute: Returns The count
+    */
+    action GetValuesPerQuery returns integer
+        if queryType not= PIPELINE_STATISTICS
+            return 1
+        end
+        integer values = 0
+        integer bit = 1
+        repeat while bit <= COMPUTE_SHADER_INVOCATIONS
+            if (statistics / bit) mod 2 = 1
+                values = values + 1
+            end
+            bit = bit * 2
+        end
+        if values = 0
+            return 1
+        end
+        return values
+    end
+
+    /*
+    This action returns the kind of query the pool holds.
+
+    Attribute: Returns TIMESTAMP, OCCLUSION or PIPELINE_STATISTICS
+    */
+    action GetType returns integer
+        return queryType
+    end
+
+    /*
+    This action returns how many queries the pool holds.
+
+    Attribute: Returns The count
+    */
+    action GetCount returns integer
+        return queryCount
+    end
+
+    /*
+    This action returns the device the pool was made on.
+
+    Attribute: Returns The device
+    */
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    /*
+    This action returns true once the pool has been made.
+
+    Attribute: Returns True if made
+    */
+    action IsCreated returns boolean
+        return initialized
+    end
+
+    /*
+    This action sets how timestamps are turned into time: the device's
+    nanoseconds per tick (VulkanPhysicalDeviceLimits:GetTimestampPeriod) and
+    the queue's valid bits (VulkanQueueFamily:GetTimestampValidBits).
+    GraphicsTimer sets them.
+
+    Attribute: Parameter period Nanoseconds per tick
+    Attribute: Parameter bits How many bits of a timestamp are valid
+    */
+    action SetTimestampScale(number period, integer bits)
+        nanosecondsPerTick = period
+        validBits = bits
+    end
+
+    /*
+    This action reads timestamps without waiting, as milliseconds after the
+    first one read. into is made large enough.
+
+    Attribute: Parameter first The first query to read
+    Attribute: Parameter count How many to read
+    Attribute: Parameter into Where the times go, in milliseconds
+    Attribute: Returns True if all were finished and read; false otherwise
+    */
+    action ReadTimestamps(integer first, integer count, Number64BitArray into) returns boolean
+        if not initialized or queryType not= TIMESTAMP or first < 0 or count <= 0 or first + count > queryCount
+            return false
+        end
+        if into:GetSize() < count
+            into:SetSize(count)
+        end
+        return ReadTimestampsNative(first, count, nanosecondsPerTick, validBits, into)
+    end
+
+    private system action ReadTimestampsNative(integer first, integer count, number nanosecondsPerTick, integer validBits, Number64BitArray into) returns boolean
+
+    /*
+    This action reads occlusion counts or pipeline statistics without
+    waiting: GetValuesPerQuery numbers for each query, in order.
+
+    Attribute: Parameter first The first query to read
+    Attribute: Parameter count How many queries to read
+    Attribute: Parameter into Where the numbers go
+    Attribute: Returns True if all were finished and read; false otherwise
+    */
+    action ReadResults(integer first, integer count, Number64BitArray into) returns boolean
+        if not initialized or queryType = TIMESTAMP or first < 0 or count <= 0 or first + count > queryCount
+            return false
+        end
+        integer values = GetValuesPerQuery()
+        if into:GetSize() < count * values
+            into:SetSize(count * values)
+        end
+        return ReadResultsNative(first, count, values, into)
+    end
+
+    private system action ReadResultsNative(integer first, integer count, integer valuesPerQuery, Number64BitArray into) returns boolean
+
+    /*
+    This action frees the pool.
+    */
+    system action Dispose
+
+    /*
+    This action frees the pool once VulkanGraphics:Retire knows no frame
+    still uses it. It is the same as Dispose.
+    */
+    action Release
+        Dispose()
+        initialized = false
+    end
+end

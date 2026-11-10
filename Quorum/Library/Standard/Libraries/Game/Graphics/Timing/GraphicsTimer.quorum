@@ -1,0 +1,470 @@
+package Libraries.Game.Graphics.Timing
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+use Libraries.Game.Graphics.Vulkan.Commands.ResetQueryPoolCommand
+use Libraries.Game.Graphics.Vulkan.Commands.WriteTimestampCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BeginLabelCommand
+use Libraries.Game.Graphics.Vulkan.Commands.EndLabelCommand
+
+/*
+The GraphicsTimer measures how long the GPU spends on named phases of each
+frame (Graphics timing plan T2), using Vulkan timestamp queries: the GPU
+writes its own clock at the start and end of each phase, and the timer reads
+the times back a frame or two later, without waiting.
+
+Turn it on with Game:SetGraphicsTiming(true). The 3D and 2D painters then
+time their own phases: "Shadows" (with "Shadows: directional", "Shadows:
+point" and "Shadows: spot" inside it), "G-buffer", "Lighting and forward"
+(the lighting pass and forward programs such as water), "Tone mapping",
+"Bloom" and "2D". Any code that records Vulkan commands can time its own
+phases with StartPhase and EndPhase, and phases may nest. A phase timed more
+than once in a frame is added up.
+
+Each frame's result is a GraphicsTimingFrame (GetLatestFrame). Give the
+timer a GraphicsTimingLog (SetLog) to keep frames, summarize them, chart
+them or write them as JSON.
+
+Limits: on Apple GPUs time is measured between render passes, not single
+draws; phases can overlap on the GPU, so they may not add up exactly to the
+frame; and the GPU changes its clock speed with load. Timing needs Vulkan,
+and isn't supported on iOS and Android yet (IsSupported).
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Timing.GraphicsTimer
+use Libraries.Game.Graphics.Timing.GraphicsTimingFrame
+
+class Main is Game
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        SetGraphicsTiming(true)
+    end
+
+    action Update(number seconds)
+        GraphicsTimingFrame frame = GetGraphicsTimer():GetLatestFrame()
+        if frame not= undefined
+            output "G-buffer: " + frame:GetTime("G-buffer") + " ms"
+        end
+    end
+end
+*/
+class GraphicsTimer
+    boolean enabled = false
+    boolean supported = false
+    boolean labels = false
+    boolean splitForward = false
+    integer maximumPhases = 32
+
+    VulkanDevice device = undefined
+    number nanosecondsPerTick = 1
+    integer validBits = 64
+
+    Array<GraphicsTimerSlot> slots
+    GraphicsTimerSlot recording = undefined
+    GraphicsTimingFrame latest = undefined
+    GraphicsTimingLog log = undefined
+    Number64BitArray readings
+
+    // The stages a stamp is written at.
+    constant integer TOP_OF_PIPE = 1
+    constant integer BOTTOM_OF_PIPE = 8192
+
+    // The readings are sized to hold a whole pool's stamps up front.
+    on create
+        readings:SetSize(maximumPhases * 2 + 2)
+    end
+
+    /*
+    This action tells the timer which device it times and how its clock
+    works. VulkanGraphics calls it once Vulkan is ready.
+
+    Attribute: Parameter device The device
+    Attribute: Parameter period Nanoseconds per GPU clock tick
+    Attribute: Parameter bits How many bits of a timestamp are valid, or 0 if the graphics queue can't write them
+    */
+    action Setup(VulkanDevice device, number period, integer bits)
+        me:device = device
+        nanosecondsPerTick = period
+        validBits = bits
+        supported = device not= undefined and period > 0 and bits > 0
+    end
+
+    /*
+    This action turns timing on or off. Off, nothing is recorded, so it costs
+    nothing.
+
+    Attribute: Parameter value True to time frames
+    */
+    action SetEnabled(boolean value)
+        enabled = value
+        if not value
+            recording = undefined
+        end
+    end
+
+    /*
+    This action returns true if timing is on.
+
+    Attribute: Returns True if on
+    */
+    action IsEnabled returns boolean
+        return enabled
+    end
+
+    /*
+    This action returns true if the device can time frames: it is Vulkan, on
+    the desktop for now, and its graphics queue can write timestamps.
+
+    Attribute: Returns True if supported
+    */
+    action IsSupported returns boolean
+        return supported
+    end
+
+    /*
+    This action returns true if frames are being timed: timing is on and
+    supported.
+
+    Attribute: Returns True if timing
+    */
+    action IsActive returns boolean
+        return enabled and supported
+    end
+
+    /*
+    This action sets whether each phase is also a debug label, so tools such
+    as Xcode's GPU frame capture show the phases by name (labels need
+    Vulkan's debug extension, loaded with validation layers).
+
+    Attribute: Parameter value True to label phases
+    */
+    action SetLabels(boolean value)
+        labels = value
+    end
+
+    action HasLabels returns boolean
+        return labels
+    end
+
+    /*
+    This action sets whether the 3D painter draws its forward programs, such
+    as water, in a render pass of their own, so "Lighting" and "Forward" are
+    timed apart, even on Apple GPUs (Graphics timing plan T6). It costs a
+    little memory traffic, so it is off unless asked for.
+
+    Attribute: Parameter value True to split them
+    */
+    action SetSplitForwardPass(boolean value)
+        splitForward = value
+    end
+
+    /*
+    This action returns true if the 3D painter splits its forward programs
+    into their own pass, while timing.
+
+    Attribute: Returns True if split
+    */
+    action IsSplittingForwardPass returns boolean
+        return splitForward and IsActive()
+    end
+
+    /*
+    This action sets how many phases a frame may time, counting each time a
+    phase is timed (32 by default). Stamps past it are left out. It takes
+    effect for pools made after it, so set it before turning timing on.
+
+    Attribute: Parameter count The most phases
+    */
+    action SetMaximumPhases(integer count)
+        if count > 0
+            maximumPhases = count
+            readings:SetSize(maximumPhases * 2 + 2)
+        end
+    end
+
+    action GetMaximumPhases returns integer
+        return maximumPhases
+    end
+
+    /*
+    This action gives the timer a log that keeps each frame as it is read.
+
+    Attribute: Parameter value The log, or undefined for none
+    */
+    action SetLog(GraphicsTimingLog value)
+        log = value
+        if log not= undefined
+            log:SetTimestampScale(nanosecondsPerTick, validBits)
+        end
+    end
+
+    action GetLog returns GraphicsTimingLog
+        return log
+    end
+
+    /*
+    This action returns the last frame read, a frame or two behind the one
+    being drawn, or undefined before the first.
+
+    Attribute: Returns The frame
+    */
+    action GetLatestFrame returns GraphicsTimingFrame
+        return latest
+    end
+
+    /*
+    This action starts timing a frame: it resets the slot's stamps and
+    stamps the frame's start. VulkanGraphics calls it just after the
+    frame's command buffer begins recording, outside any render pass.
+
+    Attribute: Parameter buffer The frame's command buffer
+    Attribute: Parameter slot The frame's slot, from 0, one per frame in flight
+    Attribute: Parameter frame The frame's number
+    */
+    action BeginFrame(VulkanCommandBuffer buffer, integer slot, integer frame)
+        recording = undefined
+        if not IsActive() or buffer = undefined
+            return now
+        end
+        GraphicsTimerSlot timerSlot = GetSlot(slot)
+        if timerSlot = undefined
+            return now
+        end
+        timerSlot:Start(frame)
+        ResetQueryPoolCommand reset
+        reset:SetQueryPool(timerSlot:GetPool())
+        reset:SetRange(0, timerSlot:GetPool():GetCount())
+        buffer:Record(reset)
+        recording = timerSlot
+        Stamp(buffer, "", true, TOP_OF_PIPE)
+    end
+
+    /*
+    This action stamps the start of a phase. Call EndPhase with the same
+    name to end it. Phases may nest, and a name may be used more than once a
+    frame.
+
+    Attribute: Parameter buffer The command buffer being recorded
+    Attribute: Parameter name The phase's name
+    */
+    action StartPhase(VulkanCommandBuffer buffer, text name)
+        if recording = undefined or name = ""
+            return now
+        end
+        // Room for this start, its end, the end of every phase still open
+        // and the frame's end, so an end is never left out.
+        if recording:GetRoomLeft() < CountOpenStarts() + 3
+            return now
+        end
+        Stamp(buffer, name, true, TOP_OF_PIPE)
+        if labels
+            BeginLabelCommand label
+            label:SetLabel(name)
+            buffer:Record(label)
+        end
+    end
+
+    /*
+    This action stamps the end of a phase started with StartPhase.
+
+    Attribute: Parameter buffer The command buffer being recorded
+    Attribute: Parameter name The phase's name
+    */
+    action EndPhase(VulkanCommandBuffer buffer, text name)
+        if recording = undefined or name = ""
+            return now
+        end
+        // Only end a phase whose start was stamped.
+        if not HasOpenStart(name)
+            return now
+        end
+        if labels
+            EndLabelCommand label
+            buffer:Record(label)
+        end
+        Stamp(buffer, name, false, BOTTOM_OF_PIPE)
+    end
+
+    /*
+    This action stamps the frame's end. VulkanGraphics calls it just before
+    the frame's command buffer stops recording.
+
+    Attribute: Parameter buffer The frame's command buffer
+    */
+    action EndFrame(VulkanCommandBuffer buffer)
+        if recording = undefined
+            return now
+        end
+        Stamp(buffer, "", false, BOTTOM_OF_PIPE)
+        recording:SetWaiting(true)
+        recording = undefined
+    end
+
+    /*
+    This action reads a slot's frame, once the GPU has finished it, into a
+    GraphicsTimingFrame, and adds it to the log. VulkanGraphics calls it
+    after waiting for the slot's fence, before the slot is used again.
+
+    Attribute: Parameter slot The slot, from 0
+    */
+    action Collect(integer slot)
+        if slot < 0 or slot >= slots:GetSize()
+            return now
+        end
+        GraphicsTimerSlot timerSlot = slots:Get(slot)
+        if timerSlot = undefined or not timerSlot:IsWaiting()
+            return now
+        end
+        timerSlot:SetWaiting(false)
+        integer count = timerSlot:GetStampCount()
+        if count < 2
+            return now
+        end
+        if not timerSlot:GetPool():ReadTimestamps(0, count, readings)
+            return now
+        end
+
+        GraphicsTimingFrame frame
+        frame:SetFrame(timerSlot:GetFrameNumber(), readings:Get(count - 1))
+        // Each end is matched with the latest unmatched start of the same
+        // phase, so phases may nest and repeat.
+        Array<integer> openStarts
+        integer i = 1
+        repeat while i < count - 1
+            text name = timerSlot:GetStampName(i)
+            if timerSlot:IsStampStart(i)
+                openStarts:Add(i)
+            else
+                integer look = openStarts:GetSize() - 1
+                boolean matched = false
+                repeat while look >= 0 and not matched
+                    integer startIndex = openStarts:Get(look)
+                    if timerSlot:GetStampName(startIndex) = name
+                        number started = readings:Get(startIndex)
+                        number elapsed = readings:Get(i) - started
+                        if elapsed < 0
+                            elapsed = 0
+                        end
+                        frame:AddPhaseTime(name, elapsed, started)
+                        integer removed = openStarts:RemoveAt(look)
+                        matched = true
+                    end
+                    look = look - 1
+                end
+            end
+            i = i + 1
+        end
+        latest = frame
+        if log not= undefined
+            log:Add(frame)
+        end
+    end
+
+    /*
+    This action returns true if the frame being recorded has a start of a
+    phase not yet ended.
+    */
+    private action HasOpenStart(text name) returns boolean
+        integer open = 0
+        integer i = 0
+        repeat while i < recording:GetStampCount()
+            if recording:GetStampName(i) = name
+                if recording:IsStampStart(i)
+                    open = open + 1
+                else
+                    open = open - 1
+                end
+            end
+            i = i + 1
+        end
+        return open > 0
+    end
+
+    /*
+    This action returns how many phases of the frame being recorded have
+    started and not yet ended.
+    */
+    private action CountOpenStarts returns integer
+        integer open = 0
+        integer i = 0
+        repeat while i < recording:GetStampCount()
+            if recording:GetStampName(i) not= ""
+                if recording:IsStampStart(i)
+                    open = open + 1
+                else
+                    open = open - 1
+                end
+            end
+            i = i + 1
+        end
+        return open
+    end
+
+    /*
+    This action writes the next stamp of the frame being recorded.
+    */
+    private action Stamp(VulkanCommandBuffer buffer, text name, boolean isStart, integer stage)
+        integer index = recording:AddStamp(name, isStart)
+        if index < 0
+            return now
+        end
+        WriteTimestampCommand stamp
+        stamp:SetQueryPool(recording:GetPool())
+        stamp:SetIndex(index)
+        stamp:SetStage(stage)
+        buffer:Record(stamp)
+    end
+
+    /*
+    This action returns a slot, making it and its pool the first time. If a
+    pool can't be made, timing is turned off as unsupported.
+    */
+    private action GetSlot(integer slot) returns GraphicsTimerSlot
+        if slot < 0
+            return undefined
+        end
+        repeat while slots:GetSize() <= slot
+            GraphicsTimerSlot made = undefined
+            slots:Add(made)
+        end
+        GraphicsTimerSlot timerSlot = slots:Get(slot)
+        if timerSlot = undefined
+            VulkanQueryPool pool
+            if not pool:Create(device, pool:TIMESTAMP, maximumPhases * 2 + 2)
+                supported = false
+                return undefined
+            end
+            pool:SetTimestampScale(nanosecondsPerTick, validBits)
+            GraphicsTimerSlot newSlot
+            newSlot:SetPool(pool)
+            slots:Set(slot, newSlot)
+            timerSlot = newSlot
+        end
+        return timerSlot
+    end
+
+    /*
+    This action frees the timer's pools. VulkanGraphics calls it when Vulkan
+    is shut down.
+    */
+    action Dispose
+        integer i = 0
+        repeat while i < slots:GetSize()
+            GraphicsTimerSlot timerSlot = slots:Get(i)
+            if timerSlot not= undefined and timerSlot:GetPool() not= undefined
+                timerSlot:GetPool():Dispose()
+            end
+            i = i + 1
+        end
+        slots:Empty()
+        recording = undefined
+    end
+end

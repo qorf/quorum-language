@@ -1,0 +1,57 @@
+package Libraries.Game.Graphics.Vulkan
+
+/*
+VulkanDebugNames gives Vulkan objects names that graphics tools show, such
+as Xcode's GPU frame capture and RenderDoc (vkSetDebugUtilsObjectNameEXT,
+Graphics timing plan T1b). A name helps find a texture, buffer or pipeline
+among hundreds. Naming does nothing, and returns false, unless Vulkan's
+debug extension, VK_EXT_debug_utils, is loaded, as it is with validation
+layers on.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.VulkanDebugNames
+
+VulkanDebugNames names
+// names:NameBuffer(device, waterBuffer, "Water vertices")
+*/
+class VulkanDebugNames
+    /*
+    This action names an image.
+
+    Attribute: Parameter device The device the image is on
+    Attribute: Parameter image The image
+    Attribute: Parameter name Its name
+    Attribute: Returns True if it was named
+    */
+    system action NameImage(VulkanDevice device, VulkanImage image, text name) returns boolean
+
+    /*
+    This action names a buffer.
+
+    Attribute: Parameter device The device the buffer is on
+    Attribute: Parameter buffer The buffer
+    Attribute: Parameter name Its name
+    Attribute: Returns True if it was named
+    */
+    system action NameBuffer(VulkanDevice device, VulkanBuffer buffer, text name) returns boolean
+
+    /*
+    This action names a pipeline, such as a shader program's.
+
+    Attribute: Parameter device The device the pipeline is on
+    Attribute: Parameter pipeline The pipeline
+    Attribute: Parameter name Its name
+    Attribute: Returns True if it was named
+    */
+    system action NamePipeline(VulkanDevice device, VulkanPipeline pipeline, text name) returns boolean
+
+    /*
+    This action names a query pool.
+
+    Attribute: Parameter device The device the pool is on
+    Attribute: Parameter pool The pool
+    Attribute: Parameter name Its name
+    Attribute: Returns True if it was named
+    */
+    system action NameQueryPool(VulkanDevice device, VulkanQueryPool pool, text name) returns boolean
+end

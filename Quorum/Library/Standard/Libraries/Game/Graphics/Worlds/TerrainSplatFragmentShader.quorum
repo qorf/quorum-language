@@ -32,9 +32,10 @@ For a terrain model, the shader reads three things:
    so they tile evenly and line up across regions. The layer repeat is how
    many world units one tile covers.
 
-The outputs are the same four the default shader writes for the deferred
-lighting pass: position, color, normal, and ambient occlusion, roughness
-and metallic, so lighting and shadows work as they do for any model.
+The outputs are the same five the default shader writes for the deferred
+lighting pass: position, color, normal, ambient occlusion, roughness and
+metallic, and emissive light (none, for terrain), so lighting and shadows
+work as they do for any model.
 
 Height blending is Terrain3D's idea: where layers meet, each point shows the
 layer that stands highest there, its height map plus its weight, so stones
@@ -148,6 +149,8 @@ layout (location = 0) out vec4 outputPosition;
 layout (location = 1) out vec4 outputColor;
 layout (location = 2) out vec4 outputNormal;
 layout (location = 3) out vec4 outputPBR;
+// The light a surface gives off (Lighting plan L1). Terrain gives none.
+layout (location = 4) out vec4 outputEmissive;
 
 vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
 {
@@ -350,6 +353,7 @@ void main()
    InstanceData instanceData = instances.data[v_entityID];
    Materials materials = instanceData.materials;
    Material material = materials.data;
+   outputEmissive = vec4(0.0);
 
    // Terrain is marked by a negative metallic value.
    if (material.metallic < 0.0)

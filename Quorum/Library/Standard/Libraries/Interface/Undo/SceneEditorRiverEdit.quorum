@@ -1,0 +1,72 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.WaterState
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+/*
+    The SceneEditorRiverEdit is one change to a river in the scene editor's
+    undo list (River plan R4): a river drawn, a point added, moved or
+    removed, a river's settings changed, or a river removed. A river shapes
+    the ground under it, so the change holds both the water before and
+    after it and the ground's own edit, and undoes or redoes them together,
+    as one step.
+*/
+class SceneEditorRiverEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    WaterState before = undefined
+    WaterState after = undefined
+    TerrainStrokeEdit groundEdit = undefined
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain whose river changed
+        Attribute: Parameter before The water before the change
+        Attribute: Parameter after The water after it
+        Attribute: Parameter groundEdit The ground's edit, or undefined if the ground didn't change
+        Attribute: Parameter changeName What changed, such as "draw River 1"
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, WaterState before, WaterState after, TerrainStrokeEdit groundEdit, text changeName)
+        me:controller = controller
+        me:terrain = terrain
+        me:before = before
+        me:after = after
+        me:groundEdit = groundEdit
+        name = changeName
+    end
+
+    action Undo
+        if groundEdit not= undefined
+            groundEdit:Undo()
+        end
+        before:Apply(terrain)
+        controller:RiverEdited(terrain, groundEdit not= undefined, "Undid " + name)
+    end
+
+    action Redo
+        if groundEdit not= undefined
+            groundEdit:Redo()
+        end
+        after:Apply(terrain)
+        controller:RiverEdited(terrain, groundEdit not= undefined, "Redid " + name)
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+        if groundEdit not= undefined
+            groundEdit:Dispose()
+        end
+    end
+end

@@ -1,0 +1,56 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    The CameraKeyBehavior moves the scene editor's 3D camera while a key is
+    held: one behavior starts a move when the key goes down, and another
+    stops it when the key comes up. The move is one of SceneEditor's camera
+    moves (SceneConstants' CAMERA_LOOK, CAMERA_SLIDE, CAMERA_ORBIT or
+    CAMERA_ZOOM) in a
+    direction: x is -1 for left and 1 for right, y is -1 for down and 1 for
+    up, and for zooming y is 1 for in and -1 for out.
+
+    Attribute: Example
+    use Libraries.Interface.Behaviors.Scenes.Camera.CameraKeyBehavior
+    use Libraries.Interface.Controls.Scenes.SceneConstants
+
+    SceneConstants constants
+    CameraKeyBehavior lookLeft
+    lookLeft:Setup(constants:CAMERA_LOOK, -1, 0, true)
+*/
+class CameraKeyBehavior is Behavior
+    integer move = 0
+    integer directionX = 0
+    integer directionY = 0
+    boolean starts = true
+
+    /*
+        Sets which move, which way, and whether this behavior starts the
+        move (on the key going down) or stops it (on the key coming up).
+
+        Attribute: Parameter cameraMove One of SceneConstants' CAMERA_ moves
+        Attribute: Parameter x -1 left, 1 right, or 0
+        Attribute: Parameter y -1 down or out, 1 up or in, or 0
+        Attribute: Parameter starting True to start the move, false to stop it
+    */
+    action Setup(integer cameraMove, integer x, integer y, boolean starting)
+        move = cameraMove
+        directionX = x
+        directionY = y
+        starts = starting
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SceneEditor
+            SceneEditor editor = cast(SceneEditor, event:GetItem())
+            if starts
+                editor:StartCameraMove(move, directionX, directionY)
+            else
+                editor:StopCameraMove(move, directionX, directionY)
+            end
+        end
+    end
+end

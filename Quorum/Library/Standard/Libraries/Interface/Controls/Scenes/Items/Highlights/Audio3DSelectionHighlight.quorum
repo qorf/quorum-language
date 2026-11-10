@@ -9,6 +9,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
 */
 class Audio3DSelectionHighlight is SelectionHighlight3D, EditorAudio3D
 
+    on create
+        // What screen readers call it, instead of a generic item.
+        SetAccessibilityRoleDescription("sound")
+    end
+
     /*
         Returns the EditorAudio3D associated with this highlight. The same
         object can be returned using GetItem but this action does the cast

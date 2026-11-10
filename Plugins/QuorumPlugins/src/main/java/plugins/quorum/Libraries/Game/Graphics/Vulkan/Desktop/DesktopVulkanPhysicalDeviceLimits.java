@@ -206,6 +206,7 @@ public class DesktopVulkanPhysicalDeviceLimits implements VulkanPhysicalDeviceLi
         {
             case 85: return limits.strictLines();
             case 86: return limits.standardSampleLocations();
+            case 87: return limits.timestampComputeAndGraphics();
             default: return false;
         }
     }

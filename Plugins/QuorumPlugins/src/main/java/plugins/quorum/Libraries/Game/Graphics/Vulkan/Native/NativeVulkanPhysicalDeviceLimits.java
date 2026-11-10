@@ -43,6 +43,10 @@ public class NativeVulkanPhysicalDeviceLimits implements VulkanPhysicalDeviceLim
 
     public boolean GetBoolean(int limit, int index)
     {
+        // Limits added after the table (such as 87, timestamps on every
+        // queue) aren't in quorum-natives' table yet, so they read false.
+        if (limit >= SLOTS.length)
+            return false;
         return integers[SLOTS[limit] + index] != 0;
     }
 }

@@ -69,7 +69,8 @@ class ModelBuilder
         MeshData mesh = data:GetMeshes():Get(0)
         AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, true)
         if doubleSided
-            AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, false)
+            // The back is mirrored sideways, so its picture stays upright.
+            AddHorizontalPlane(mesh, 0, 0, 0, width, depth, textureCoordinates, false, true)
         end
         
         return data
@@ -170,6 +171,19 @@ class ModelBuilder
     end
     
     private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, Vector4 setTextureCoordinates, boolean facesUp)
+        AddHorizontalPlane(data, x, y, z, width, depth, setTextureCoordinates, facesUp, false)
+    end
+
+    /*
+    Adds a horizontal plane. A plane facing down is mirrored so its
+    triangles face down: by default along z, which turns its picture upside
+    down when seen from below; with mirrorSideways, along x instead, so the
+    picture is mirrored left to right and stays upright. A double-sided
+    plane's back uses that, so a card stood up on end (such as foliage)
+    looks right from behind (found 2026-11-06: half the grass cards were
+    upside down).
+    */
+    private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, Vector4 setTextureCoordinates, boolean facesUp, boolean mirrorSideways)
         Number32BitArray vertices = data:GetVertices()
     Number32BitArray normals = data:GetNormals()
     Number32BitArray tangents = data:GetTangents()
@@ -184,6 +198,15 @@ class ModelBuilder
         
         number halfWidth = 0.5 * width
         number halfDepth = 0.5 * depth * facingOffset
+        // The direction the picture's left-to-right and bottom-to-top run.
+        number tangentX = 1
+        number bitangentZ = facingOffset
+        if mirrorSideways
+            halfWidth = 0.5 * width * facingOffset
+            halfDepth = 0.5 * depth
+            tangentX = facingOffset
+            bitangentZ = 1
+        end
         
         number x1 = x - halfWidth
         number x2 = x + halfWidth
@@ -211,13 +234,13 @@ class ModelBuilder
             normals:Set(i + 1, facingOffset)
             normals:Set(i + 2, 0)
             
-            tangents:Set(i, 1)
+            tangents:Set(i, tangentX)
             tangents:Set(i + 1, 0)
             tangents:Set(i + 2, 0)
             
             bitangents:Set(i, 0)
             bitangents:Set(i + 1, 0)
-            bitangents:Set(i + 2, facingOffset)
+            bitangents:Set(i + 2, bitangentZ)
             
             i = i + 3
         end

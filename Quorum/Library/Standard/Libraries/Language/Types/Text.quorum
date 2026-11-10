@@ -618,63 +618,47 @@ class Text is Object
         Array<Text> values = a:Split("l")
     */
     action Split(text delimiter) returns Array<text>
-        // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
-        
-	Array<text> results
-	integer pos = 0
-	integer length = me:GetSize()
-	Text delim
+        // Each delimiter is found with IndexOf and each piece is taken with
+        // one GetSubtext, so the work grows with the text's length. The old
+        // version joined text a character at a time, which grew with the
+        // square of each piece's length (Studio plan LexerAndSplit.md,
+        // Option A, 2026-11-06). The results are the same for one-character
+        // delimiters: empty pieces between delimiters are kept, and one
+        // empty piece after a final delimiter is not added.
+        Array<text> results
+        integer length = me:GetSize()
+        // Measured through a Text, as the old version did, inside this class.
+        Text delim
         delim:SetValue(delimiter)
-	integer delimLength = delim:GetSize()
-	text newString = ""
-        boolean afterDelim = false
-
-	repeat while pos < length
-            // If this doesn't start the delimiter, add it to the new string.
-            if me:GetCharacter(pos) not= delim:GetCharacter(0)
-                newString = newString + me:GetCharacter(pos)
-                pos = pos + 1
-                afterDelim = false
-            else
-                // Matches start of delimiter. Keep track and bail if we don't match the delimiter
-                text tmpString = ""
-                integer delimPos = 0
-                text currentChar = me:GetCharacter(pos)
-                text currentDelimChar = delim:GetCharacter(0)
-
-                // As long as the values read continue to match the delimiter...
-                repeat while delimPos < delimLength and currentChar = currentDelimChar and pos < length
-                    tmpString = tmpString + me:GetCharacter(pos)
-                    delimPos = delimPos + 1 // keep going through delimiter
-                    pos = pos + 1 // and keep moving ahead in main string
-                    
-                    if pos < length
-                        currentChar = me:GetCharacter(pos)
-                    end
-
-                    if delimPos < delimLength
-                        currentDelimChar = delim:GetCharacter(delimPos)
-                    end
-                end
-
-                if delimPos not= delimLength
-                    // We didn't reach the end of the delimiter, so add this temporary string and keep moving.
-                    tmpString = tmpString + newString
-                    afterDelim = false
-                else
-                    // Delimiter hit. Store the result.
-                    results:Add(newString)
-                    newString = ""  
-                    afterDelim = true
-                end
-            end
-	end
-
-
-        if not afterDelim
-            results:Add(newString)
+        integer delimLength = delim:GetSize()
+        if delimLength = 0
+            // Nothing to split on: the whole text.
+            results:Add(me:GetValue())
+            return results
         end
 
+        integer start = 0
+        integer found = -1
+        if length > 0
+            found = me:IndexOf(delimiter, 0)
+        end
+        repeat while found >= 0
+            results:Add(me:GetSubtext(start, found))
+            start = found + delimLength
+            found = -1
+            // IndexOf needs a start inside the text.
+            if start < length
+                found = me:IndexOf(delimiter, start)
+            end
+        end
+
+        // The piece after the last delimiter. A text ending with the
+        // delimiter has none; an empty text gives one empty piece.
+        if start < length
+            results:Add(me:GetSubtext(start, length))
+        elseif length = 0
+            results:Add("")
+        end
         return results
     end
 end

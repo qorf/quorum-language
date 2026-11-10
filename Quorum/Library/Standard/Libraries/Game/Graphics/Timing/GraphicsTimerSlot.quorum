@@ -1,0 +1,101 @@
+package Libraries.Game.Graphics.Timing
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+
+/*
+A GraphicsTimerSlot is a GraphicsTimer's record of one frame in flight
+(Graphics timing plan T2): its pool of timestamps and, for each stamp
+written, the phase it belongs to and whether it starts or ends it. The
+timer has one slot per frame the GPU may be working on, so reading a frame's
+times never waits for another. Programs don't use it directly.
+
+Attribute: Example
+use Libraries.Game.Graphics.Timing.GraphicsTimerSlot
+
+GraphicsTimerSlot slot
+output slot:GetStampCount()
+*/
+class GraphicsTimerSlot
+    VulkanQueryPool pool = undefined
+    Array<text> stampNames
+    Array<boolean> stampStarts
+    integer frameNumber = 0
+    // True once a frame's stamps were recorded, until they are read.
+    boolean waiting = false
+
+    action SetPool(VulkanQueryPool value)
+        pool = value
+    end
+
+    action GetPool returns VulkanQueryPool
+        return pool
+    end
+
+    /*
+    This action starts a new frame in the slot, forgetting the last one's
+    stamps.
+
+    Attribute: Parameter frame The frame's number
+    */
+    action Start(integer frame)
+        frameNumber = frame
+        stampNames:Empty()
+        stampStarts:Empty()
+        waiting = false
+    end
+
+    /*
+    This action notes the next stamp: the phase it belongs to and whether it
+    starts it. It returns the query the stamp is written to, or -1 if the pool
+    is full.
+
+    Attribute: Parameter name The phase's name ("" for the frame's start and end)
+    Attribute: Parameter isStart True if it starts the phase
+    Attribute: Returns The query, from 0, or -1
+    */
+    action AddStamp(text name, boolean isStart) returns integer
+        if pool = undefined or stampNames:GetSize() >= pool:GetCount()
+            return -1
+        end
+        stampNames:Add(name)
+        stampStarts:Add(isStart)
+        return stampNames:GetSize() - 1
+    end
+
+    /*
+    This action returns how many stamps are left in the pool.
+
+    Attribute: Returns The count
+    */
+    action GetRoomLeft returns integer
+        if pool = undefined
+            return 0
+        end
+        return pool:GetCount() - stampNames:GetSize()
+    end
+
+    action GetStampCount returns integer
+        return stampNames:GetSize()
+    end
+
+    action GetStampName(integer index) returns text
+        return stampNames:Get(index)
+    end
+
+    action IsStampStart(integer index) returns boolean
+        return stampStarts:Get(index)
+    end
+
+    action GetFrameNumber returns integer
+        return frameNumber
+    end
+
+    action SetWaiting(boolean value)
+        waiting = value
+    end
+
+    action IsWaiting returns boolean
+        return waiting
+    end
+end

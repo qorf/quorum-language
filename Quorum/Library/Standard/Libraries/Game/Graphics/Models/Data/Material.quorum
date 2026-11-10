@@ -77,6 +77,30 @@ class Material
     boolean normalMapIsDirectX = false
     number textureScale = 1.0
 
+    // Read from model files (Lighting plan L4), and drawn by the Vulkan
+    // renderer: the emissive texture and strength, whether both sides of
+    // each face are drawn, how transparency is used ("OPAQUE", "MASK" or
+    // "BLEND", as glTF names them, or "" when the file doesn't say) and where
+    // a mask cuts off, whether the material ignores lights, and the color
+    // texture's offset, scale and turn.
+    text emissiveMapPath = ""
+    number emissiveStrength = 1.0
+    boolean twoSided = false
+    text alphaMode = ""
+    number alphaCutoff = 0.5
+    boolean unlit = false
+    number uvOffsetX = 0
+    number uvOffsetY = 0
+    number uvScaleX = 1
+    number uvScaleY = 1
+    number uvRotation = 0
+
+    // The wind's sway (Foliage plan F6): how far a point moves sideways per
+    // unit of height above its model's origin, and the wind's direction
+    // about the up axis, in degrees from +x toward +z. 0 sways not at all.
+    number sway = 0
+    number swayDirection = 0
+
     // The material's name, and the file it was loaded from or saved to
     // (step 9).
     text name = ""
@@ -160,6 +184,185 @@ class Material
 
     action SetRefractiveIndex(number refractiveIndex)
         me:refractiveIndex = refractiveIndex
+    end
+
+    /*
+    This action returns the emissive texture's path: the parts of the
+    surface that glow (Lighting plan L4).
+
+    Attribute: Returns The path, or "" for none.
+    */
+    action GetEmissiveMapPath returns text
+        return emissiveMapPath
+    end
+
+    /*
+    This action sets the emissive texture's path.
+
+    Attribute: Parameter path The path, or "" for none.
+    */
+    action SetEmissiveMapPath(text path)
+        emissiveMapPath = path
+    end
+
+    /*
+    This action returns how strongly the emissive color glows, 1 being the
+    color as it is. glTF's emissive strength sets it above 1.
+
+    Attribute: Returns The strength.
+    */
+    action GetEmissiveStrength returns number
+        return emissiveStrength
+    end
+
+    /*
+    This action sets how strongly the emissive color glows.
+
+    Attribute: Parameter strength The strength, 0 or more.
+    */
+    action SetEmissiveStrength(number strength)
+        emissiveStrength = strength
+    end
+
+    /*
+    This action returns true if both sides of each face are drawn, as for
+    leaves, cloth or thin cards.
+
+    Attribute: Returns True for two-sided.
+    */
+    action IsTwoSided returns boolean
+        return twoSided
+    end
+
+    /*
+    This action sets whether both sides of each face are drawn.
+
+    Attribute: Parameter value True for two-sided.
+    */
+    action SetTwoSided(boolean value)
+        twoSided = value
+    end
+
+    /*
+    This action returns how the material uses transparency, as glTF names
+    it: "OPAQUE" (none), "MASK" (pixels below the cutoff are cut out) or
+    "BLEND" (see-through), or "" when the model file doesn't say, in which
+    case pixels whose texture alpha is below half are cut out.
+
+    Attribute: Returns The mode.
+    */
+    action GetAlphaMode returns text
+        return alphaMode
+    end
+
+    /*
+    This action sets how the material uses transparency.
+
+    Attribute: Parameter mode "OPAQUE", "MASK", "BLEND" or "".
+    */
+    action SetAlphaMode(text mode)
+        alphaMode = mode
+    end
+
+    /*
+    This action returns where a "MASK" material cuts out: pixels whose
+    alpha is below it aren't drawn.
+
+    Attribute: Returns The cutoff, from 0 to 1.
+    */
+    action GetAlphaCutoff returns number
+        return alphaCutoff
+    end
+
+    /*
+    This action sets where a "MASK" material cuts out.
+
+    Attribute: Parameter cutoff From 0 to 1.
+    */
+    action SetAlphaCutoff(number cutoff)
+        alphaCutoff = cutoff
+    end
+
+    /*
+    This action returns true if the material ignores lights and shows its
+    color as it is.
+
+    Attribute: Returns True for unlit.
+    */
+    action IsUnlit returns boolean
+        return unlit
+    end
+
+    /*
+    This action sets whether the material ignores lights.
+
+    Attribute: Parameter value True for unlit.
+    */
+    action SetUnlit(boolean value)
+        unlit = value
+    end
+
+    /*
+    This action sets how the color texture is placed on the surface: moved,
+    scaled and turned, as glTF's texture transform does.
+
+    Attribute: Parameter offsetX How far it moves across, in texture widths.
+    Attribute: Parameter offsetY How far it moves up, in texture heights.
+    Attribute: Parameter scaleX How many times it repeats across.
+    Attribute: Parameter scaleY How many times it repeats up.
+    Attribute: Parameter rotation How far it turns, in radians.
+    */
+    action SetTextureTransform(number offsetX, number offsetY, number scaleX, number scaleY, number rotation)
+        uvOffsetX = offsetX
+        uvOffsetY = offsetY
+        uvScaleX = scaleX
+        uvScaleY = scaleY
+        uvRotation = rotation
+    end
+
+    /*
+    This action returns how far the color texture moves across.
+
+    Attribute: Returns The offset, in texture widths.
+    */
+    action GetTextureOffsetX returns number
+        return uvOffsetX
+    end
+
+    /*
+    This action returns how far the color texture moves up.
+
+    Attribute: Returns The offset, in texture heights.
+    */
+    action GetTextureOffsetY returns number
+        return uvOffsetY
+    end
+
+    /*
+    This action returns how many times the color texture repeats across.
+
+    Attribute: Returns The scale.
+    */
+    action GetTextureScaleX returns number
+        return uvScaleX
+    end
+
+    /*
+    This action returns how many times the color texture repeats up.
+
+    Attribute: Returns The scale.
+    */
+    action GetTextureScaleY returns number
+        return uvScaleY
+    end
+
+    /*
+    This action returns how far the color texture turns.
+
+    Attribute: Returns The turn, in radians.
+    */
+    action GetTextureRotation returns number
+        return uvRotation
     end
 
     /*
@@ -731,8 +934,61 @@ class Material
         heightMapPath = other:GetHeightMapPath()
         normalMapIsDirectX = other:IsNormalMapDirectX()
         textureScale = other:GetTextureScale()
+        emissiveMapPath = other:GetEmissiveMapPath()
+        emissiveStrength = other:GetEmissiveStrength()
+        twoSided = other:IsTwoSided()
+        alphaMode = other:GetAlphaMode()
+        alphaCutoff = other:GetAlphaCutoff()
+        unlit = other:IsUnlit()
+        uvOffsetX = other:GetTextureOffsetX()
+        uvOffsetY = other:GetTextureOffsetY()
+        uvScaleX = other:GetTextureScaleX()
+        uvScaleY = other:GetTextureScaleY()
+        uvRotation = other:GetTextureRotation()
+        sway = other:GetSway()
+        swayDirection = other:GetSwayDirection()
         name = other:GetName()
         file = other:GetFile()
+    end
+
+    /*
+    This action returns how much the material sways in the wind (Foliage
+    plan F6): how far a point moves sideways per unit of height above its
+    model's origin.
+
+    Attribute: Returns The strength, 0 for none.
+    */
+    action GetSway returns number
+        return sway
+    end
+
+    /*
+    This action sets how much the material sways in the wind (Foliage plan
+    F6), as grass and leaves do. Set it before the model loads; for a model
+    already drawn, use Model:SetSway.
+
+    Attribute: Parameter strength How far a point moves sideways per unit of height above its model's origin, such as 0.05; 0 for none.
+    */
+    action SetSway(number strength)
+        sway = strength
+    end
+
+    /*
+    This action returns the wind's direction for the sway (Foliage plan F6).
+
+    Attribute: Returns Degrees about the up axis, from +x toward +z.
+    */
+    action GetSwayDirection returns number
+        return swayDirection
+    end
+
+    /*
+    This action sets the wind's direction for the sway (Foliage plan F6).
+
+    Attribute: Parameter degrees Degrees about the up axis, from +x toward +z.
+    */
+    action SetSwayDirection(number degrees)
+        swayDirection = degrees
     end
 
     /*

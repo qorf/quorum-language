@@ -71,6 +71,43 @@ public class TextFieldKit extends TextKitBase {
         return null;
     }
 
+    /*
+        SET_VALUE replaces the text (VoiceOver, dictation, Voice Control);
+        not offered for a password field. SET_TEXT_SELECTION moves the
+        caret or the selection. AccessKit counts characters (a CRLF is
+        one), Quorum counts Java chars, so a selection after an emoji or a
+        CRLF is off by those, as before.
+    */
+    @Override
+    protected void AddActions(Node node, Item_ item) {
+        super.AddActions(node, item);
+        if (item instanceof TextField_) {
+            if (!((TextField_) item).IsPassword()) {
+                node.addAction(Action.SET_VALUE);
+            }
+            node.addAction(Action.SET_TEXT_SELECTION);
+        }
+    }
+
+    @Override
+    public void DoAction(ActionRequest request) {
+        Item_ item = GetItem();
+        if (!(item instanceof TextField_)) {
+            super.DoAction(request);
+            return;
+        }
+        TextField_ field = (TextField_) item;
+        if (request.action == Action.SET_VALUE && request.value != null && !field.IsPassword()) {
+            field.SetText(request.value);
+        } else if (request.action == Action.SET_TEXT_SELECTION && request.textSelection != null) {
+            int anchor = request.textSelection.anchor.characterIndex;
+            int focus = request.textSelection.focus.characterIndex;
+            field.Select(Math.min(anchor, focus), Math.max(anchor, focus), focus >= anchor);
+        } else {
+            super.DoAction(request);
+        }
+    }
+
     public void SetTextDirty() {
         textDirty = true;
     }

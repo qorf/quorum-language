@@ -1,10 +1,13 @@
 package plugins.quorum.Libraries.Game.Graphics.Vulkan;
 
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanCommands;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanQueryCommands;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanShaders;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanCommands;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanQueryCommands;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanShaders;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanCommandsStrategy;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanQueryCommandsStrategy;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanShadersStrategy;
 
 /*
@@ -19,6 +22,7 @@ public class VulkanPlatform
     private static final boolean ANDROID = DetectAndroid();
     private static VulkanCommandsStrategy commands = null;
     private static VulkanShadersStrategy shaders = null;
+    private static VulkanQueryCommandsStrategy queryCommands = null;
 
     private static boolean DetectIOS()
     {
@@ -54,6 +58,15 @@ public class VulkanPlatform
         if (commands == null)
             commands = UsesNativeVulkan() ? new NativeVulkanCommands() : new DesktopVulkanCommands();
         return commands;
+    }
+
+    // The strategy the query and debug label commands record with
+    // (Graphics timing plan T1).
+    public static VulkanQueryCommandsStrategy GetQueryCommands()
+    {
+        if (queryCommands == null)
+            queryCommands = UsesNativeVulkan() ? new NativeVulkanQueryCommands() : new DesktopVulkanQueryCommands();
+        return queryCommands;
     }
 
     // The strategy SPIRVShaderCompiler and VulkanShaderManager use.

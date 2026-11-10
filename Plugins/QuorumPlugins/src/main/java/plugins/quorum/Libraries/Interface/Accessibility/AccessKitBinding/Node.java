@@ -44,6 +44,15 @@ public final class Node {
         nativeSetValue(ptr, Util.bytesFromString(value));
     }
 
+    /*
+        What VoiceOver calls the item instead of its role's name, such as
+        "terrain" or "block" (Item:GetAccessibilityRoleDescription).
+    */
+    public void setRoleDescription(String value) {
+        checkActive();
+        nativeSetRoleDescription(ptr, Util.bytesFromString(value));
+    }
+
     public void setAccessKey(String value) {
         checkActive();
         nativeSetAccessKey(ptr, Util.bytesFromString(value));
@@ -202,6 +211,8 @@ public final class Node {
     private static native void nativeSetDescription(long ptr, byte[] value);
 
     private static native void nativeSetValue(long ptr, byte[] value);
+
+    private static native void nativeSetRoleDescription(long ptr, byte[] value);
 
     private static native void nativeSetAccessKey(long ptr, byte[] value);
 

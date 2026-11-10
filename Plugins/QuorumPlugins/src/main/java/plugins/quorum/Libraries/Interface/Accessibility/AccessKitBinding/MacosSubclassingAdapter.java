@@ -7,14 +7,22 @@ package plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding;
 
     It must be used on the main thread, and closed at most once; close()
     after close() does nothing.
+
+    VoiceOver's action requests go to the ActionHandler, if one is given;
+    without one they are dropped.
 */
 public final class MacosSubclassingAdapter extends Adapter {
     long ptr;
 
     /* view is an NSView pointer. */
     public MacosSubclassingAdapter(long view, ActivationHandler activationHandler) {
+        this(view, activationHandler, null);
+    }
+
+    /* view is an NSView pointer; actionHandler may be null. */
+    public MacosSubclassingAdapter(long view, ActivationHandler activationHandler, ActionHandler actionHandler) {
         NativePointerSupplier supplier = TreeUpdate.makeNativeSupplier(activationHandler);
-        ptr = nativeNew(view, supplier);
+        ptr = nativeNew(view, supplier, receiverFor(actionHandler));
     }
 
     MacosSubclassingAdapter(long ptr) {
@@ -23,8 +31,18 @@ public final class MacosSubclassingAdapter extends Adapter {
 
     /* window is an NSWindow pointer, for example from GLFWNativeCocoa.glfwGetCocoaWindow. */
     public static MacosSubclassingAdapter forWindow(long window, ActivationHandler activationHandler) {
+        return forWindow(window, activationHandler, null);
+    }
+
+    /* The same, with VoiceOver's action requests going to actionHandler (may be null). */
+    public static MacosSubclassingAdapter forWindow(long window, ActivationHandler activationHandler,
+            ActionHandler actionHandler) {
         NativePointerSupplier supplier = TreeUpdate.makeNativeSupplier(activationHandler);
-        return new MacosSubclassingAdapter(nativeForWindow(window, supplier));
+        return new MacosSubclassingAdapter(nativeForWindow(window, supplier, receiverFor(actionHandler)));
+    }
+
+    private static NativeActionReceiver receiverFor(ActionHandler actionHandler) {
+        return actionHandler == null ? null : new NativeActionReceiver(actionHandler);
     }
 
     @Override
@@ -58,9 +76,11 @@ public final class MacosSubclassingAdapter extends Adapter {
         Util.checkActive(ptr);
     }
 
-    private static native long nativeNew(long view, NativePointerSupplier activationSupplier);
+    private static native long nativeNew(long view, NativePointerSupplier activationSupplier,
+        NativeActionReceiver actionReceiver);
 
-    private static native long nativeForWindow(long window, NativePointerSupplier activationSupplier);
+    private static native long nativeForWindow(long window, NativePointerSupplier activationSupplier,
+        NativeActionReceiver actionReceiver);
 
     private static native void nativeDrop(long ptr);
 

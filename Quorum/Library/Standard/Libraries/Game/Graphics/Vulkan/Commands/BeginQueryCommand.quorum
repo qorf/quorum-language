@@ -1,0 +1,50 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+
+/*
+The BeginQueryCommand starts counting into a query of an OCCLUSION or
+PIPELINE_STATISTICS pool (vkCmdBeginQuery); an EndQueryCommand for the same
+query stops it. For occlusion, precise asks for the exact number of samples
+rather than only whether any passed (it needs
+VulkanPhysicalDeviceFeatures:HasOcclusionQueryPrecise).
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.BeginQueryCommand
+
+BeginQueryCommand begin
+begin:SetIndex(0)
+begin:SetPrecise(true)
+*/
+class BeginQueryCommand is VulkanCommand
+    VulkanQueryPool queryPool = undefined
+    integer index = 0
+    boolean precise = false
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetQueryPool(VulkanQueryPool pool)
+        queryPool = pool
+    end
+
+    action GetQueryPool returns VulkanQueryPool
+        return queryPool
+    end
+
+    action SetIndex(integer index)
+        me:index = index
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+
+    action SetPrecise(boolean value)
+        precise = value
+    end
+
+    action IsPrecise returns boolean
+        return precise
+    end
+end

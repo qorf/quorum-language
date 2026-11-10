@@ -1,0 +1,108 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
+
+/*
+The SwayVertexShaderPartVulkan gives the GLSL shared by the 3D vertex
+shaders and the shadow vertex shaders for the wind (Foliage plan F6): the
+GPU material as MaterialVulkan writes it, and a function giving how far a
+vertex of a swaying material moves. Using the same text in each shader
+keeps a model and its shadow swaying together.
+
+A material sways when its flag 128 is set. Its word 21 is the strength:
+how far a point moves sideways per unit of height above its model's origin.
+Its word 22 is the wind's direction about the up axis, in radians from +x
+toward +z. The height is measured along the world's up axis from the
+instance's origin (the translation of its transform), so a card pitched
+upright sways by its top as a tree does, and the part below the origin
+stays still. The movement leans with the wind and wavers with two sine
+waves of time, offset by where the copy stands, so neighbors don't move as
+one.
+
+Most users will never need this class directly.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Vertex.SwayVertexShaderPartVulkan
+
+SwayVertexShaderPartVulkan sway
+text code = sway:GetMaterialCode() + sway:GetSwayFunction()
+*/
+class SwayVertexShaderPartVulkan
+
+    /*
+    This action returns the GLSL for the GPU material and the Materials
+    buffer reference, to come before the InstanceData struct, which then
+    holds a Materials member where its material's address is (Foliage plan
+    F6). The shader needs GL_EXT_buffer_reference and
+    GL_EXT_scalar_block_layout.
+
+    Attribute: Returns The GLSL text.
+    */
+    action GetMaterialCode returns text
+        return "
+// The GPU material (MaterialVulkan), as the 3D fragment shader reads it.
+// The vertex shaders use its flags and its wind words (Foliage plan F6):
+// flag 128 sways; swayStrength is how far a point moves sideways per unit
+// of height above its model's origin; swayDirection is the wind's
+// direction about the up axis, in radians from +x toward +z.
+struct Material {
+	uint diffuseColor;
+	uint textureIndex;
+	uint hasNormalMap;
+	uint hasRoughMap;
+	uint normalMapIndex;
+	uint roughMapIndex;
+	float roughness;
+	float metallic;
+	uint flags;
+	float textureScale;
+	uint emissiveColor;
+	uint emissiveMapIndex;
+	float emissiveStrength;
+	uint occlusionMapIndex;
+	float alphaCutoff;
+	float normalStrength;
+	float uvOffsetX;
+	float uvOffsetY;
+	float uvScaleX;
+	float uvScaleY;
+	float uvRotation;
+	float swayStrength;
+	float swayDirection;
+	uint reserved3;
+};
+
+layout(scalar, buffer_reference) buffer Materials
+{
+	Material data;
+};
+"
+    end
+
+    /*
+    This action returns the GLSL function swayOffset(materials, origin,
+    worldPosition, time), which returns how far a vertex moves in the
+    world: nothing unless its material sways (Foliage plan F6). It must
+    come after GetMaterialCode's text.
+
+    Attribute: Returns The GLSL text.
+    */
+    action GetSwayFunction returns text
+        return "
+// How far a vertex of a swaying material moves in the wind (Foliage plan
+// F6). origin is the instance's place; worldPosition the vertex's place
+// before swaying; time the shader time in seconds.
+vec3 swayOffset(Materials materials, vec3 origin, vec3 worldPosition, float time)
+{
+	if ((materials.data.flags & 128u) == 0u)
+	{
+		return vec3(0.0);
+	}
+	float height = max(worldPosition.y - origin.y, 0.0);
+	float phase = origin.x * 0.31 + origin.z * 0.23 + (worldPosition.x + worldPosition.z) * 0.05;
+	float wave = 0.35 + 0.45 * sin(time * 1.7 + phase) + 0.2 * sin(time * 3.3 + phase * 1.7);
+	float amount = materials.data.swayStrength * height * wave;
+	float angle = materials.data.swayDirection;
+	return vec3(cos(angle) * amount, 0.0, sin(angle) * amount);
+}
+"
+    end
+end

@@ -210,16 +210,22 @@ dependencies {
     implementation files('../RobotPlugin/LegoPlugins/libraries/dbusjava.jar')
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
-}
-
-// The sources are UTF-8. Without this, javac reads them in the system's default
-// encoding: UTF-8 on a Mac, but the code page on Windows (usually Cp1252), which
-// turns characters like the bullet in TextAdjust.java into three and fails.
+// The plugins are compiled for Java 8 (class file version 52), which MobiVM and
+// Android need. They're compiled with the Java the build runs on (21, from
+// gradle/gradle-daemon-jvm.properties), with --release 8, rather than with a
+// Java 8 toolchain: --release 8 checks every API against Java 8's library, as a
+// Java 8 compiler does, and produces the same class file version. The Java 8
+// toolchain was an Intel build on Apple-silicon Macs, run through Rosetta, and
+// compiling the plugins with it took about 5 times as long (2026-11-07).
 tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+    // Java 21 warns that release 8 is obsolete on every compile; it still
+    // supports it.
+    options.compilerArgs << '-Xlint:-options'
+
+    // The sources are UTF-8. Without this, javac reads them in the system's default
+    // encoding: UTF-8 on a Mac, but the code page on Windows (usually Cp1252), which
+    // turns characters like the bullet in TextAdjust.java into three and fails.
     options.encoding = 'UTF-8'
 }
 

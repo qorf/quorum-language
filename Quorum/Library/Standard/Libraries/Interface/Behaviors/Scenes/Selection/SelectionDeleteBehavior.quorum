@@ -3,6 +3,7 @@ package Libraries.Interface.Behaviors.Scenes.Selection
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
 
 /*
     This behavior is used by the selection system in the scene editor to delete an item in a scene. 
@@ -14,6 +15,15 @@ class SelectionDeleteBehavior is Behavior
     action Run(BehaviorEvent event)
         if event:GetItem() is SelectionHighlight
             SelectionHighlight highlight = cast(SelectionHighlight, event:GetItem())
+            // With the River tool, Delete removes the chosen point of a
+            // river, or the last point of one being drawn, never the
+            // terrain (River plan R6).
+            if highlight is TerrainSelectionHighlight and highlight:GetSceneEditor() not= undefined
+                if highlight:GetSceneEditor():IsRiverToolActive()
+                    boolean handled = highlight:GetSceneEditor():RemoveChosenRiverPoint()
+                    return now
+                end
+            end
             highlight:GetSceneEditor():Delete(highlight)
         end
     end

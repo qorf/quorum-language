@@ -35,7 +35,8 @@ class TerrainStrengthBehavior is Behavior
         if event:GetItem() is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
             EditorTerrain terrain = highlight:GetEditorTerrain()
-            if terrain not= undefined and terrain:HasTool() and highlight:GetSceneEditor() not= undefined
+            // With or without a tool, as the brush's size (ChangeTerrainStrength).
+            if terrain not= undefined and highlight:GetSceneEditor() not= undefined
                 highlight:GetSceneEditor():ChangeTerrainStrength(terrain, stronger)
             end
         end

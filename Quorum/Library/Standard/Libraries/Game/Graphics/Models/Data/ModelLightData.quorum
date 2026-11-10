@@ -1,0 +1,293 @@
+package Libraries.Game.Graphics.Models.Data
+
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Color
+
+/*
+ModelLightData holds one light read from a model file, such as a lamp's
+bulb in a glTF file that uses the KHR_lights_punctual extension. A Model
+loaded from such a file turns each of these into a PointLight, SpotLight or
+DirectionalLight (Lighting plan L8).
+
+The position and direction are in the model's own space, the same space
+its meshes are in, so a light placed on a lamp's bulb in the file lands on
+the bulb in the loaded model. Area lights in a file are read as point
+lights. Ambient lights are not read.
+
+The color is kept with its brightest part at 1, and the strength is kept
+separately as the intensity, as it was in the file (candela for point and
+spot lights in glTF, lux for directional lights).
+*/
+class ModelLightData
+    // The kinds of light a file can hold (Lighting plan L8).
+    public constant integer POINT = 0
+    public constant integer DIRECTIONAL = 1
+    public constant integer SPOT = 2
+
+    /*
+    How many units of Quorum light intensity one unit of a file light's
+    intensity becomes (Lighting plan L8). Quorum's lighting divides a point
+    light's color times intensity by the distance squared and uses the
+    albedo over pi for diffuse light, as the glTF lights extension expects,
+    so a glTF light in candela (point and spot) or lux (directional) is used
+    as it is. Unsure: files exported from Blender often have large values,
+    and how they look also depends on the layer's exposure.
+    */
+    public constant number INTENSITY_SCALE = 1.0
+
+    integer type = 0
+    text name = ""
+    Color color
+    number intensity = 0
+    number range = 0
+    number innerAngle = 0
+    number outerAngle = 45
+    Vector3 position
+    Vector3 direction
+
+    on create
+        color:SetColor(1, 1, 1, 1)
+        direction:Set(0, 0, -1)
+    end
+
+    /*
+    This action returns the kind of light: POINT, DIRECTIONAL or SPOT
+    (Lighting plan L8).
+
+    Attribute: Returns The kind of light.
+    */
+    action GetType returns integer
+        return type
+    end
+
+    /*
+    This action sets the kind of light: POINT, DIRECTIONAL or SPOT
+    (Lighting plan L8). Any other value is treated as POINT.
+
+    Attribute: Parameter type The kind of light.
+    */
+    action SetType(integer type)
+        if type = DIRECTIONAL or type = SPOT
+            me:type = type
+        else
+            me:type = POINT
+        end
+    end
+
+    /*
+    This action returns true if the light is a point light (Lighting plan L8).
+
+    Attribute: Returns True for a point light.
+    */
+    action IsPointLight returns boolean
+        return type = POINT
+    end
+
+    /*
+    This action returns true if the light is a directional light, like the
+    sun (Lighting plan L8).
+
+    Attribute: Returns True for a directional light.
+    */
+    action IsDirectionalLight returns boolean
+        return type = DIRECTIONAL
+    end
+
+    /*
+    This action returns true if the light is a spot light (Lighting plan L8).
+
+    Attribute: Returns True for a spot light.
+    */
+    action IsSpotLight returns boolean
+        return type = SPOT
+    end
+
+    /*
+    This action returns the light's name, as it is in the file (Lighting
+    plan L8). For glTF files, this is the name of the node the light is on.
+
+    Attribute: Returns The light's name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the light's name (Lighting plan L8).
+
+    Attribute: Parameter name The light's name.
+    */
+    action SetName(text name)
+        if name = undefined
+            me:name = ""
+        else
+            me:name = name
+        end
+    end
+
+    /*
+    This action returns the light's color, with its brightest part at 1
+    (Lighting plan L8). Change it with SetColor.
+
+    Attribute: Returns The light's color.
+    */
+    action GetColor returns Color
+        return color
+    end
+
+    /*
+    This action sets the light's color from its red, green and blue parts,
+    each from 0 to 1 (Lighting plan L8).
+
+    Attribute: Parameter red The red part.
+    Attribute: Parameter green The green part.
+    Attribute: Parameter blue The blue part.
+    */
+    action SetColor(number red, number green, number blue)
+        color:SetColor(red, green, blue, 1)
+    end
+
+    /*
+    This action returns how bright the light is, as it was in the file
+    (Lighting plan L8). For glTF, this is in candela for point and spot
+    lights, and lux for directional lights.
+
+    Attribute: Returns The light's intensity in the file's units.
+    */
+    action GetIntensity returns number
+        return intensity
+    end
+
+    /*
+    This action sets how bright the light is, in the file's units (Lighting
+    plan L8). A value below 0 is kept as 0.
+
+    Attribute: Parameter intensity The light's intensity.
+    */
+    action SetIntensity(number intensity)
+        if intensity < 0
+            me:intensity = 0
+        else
+            me:intensity = intensity
+        end
+    end
+
+    /*
+    This action returns how bright the light is in Quorum's units: the
+    file's intensity times INTENSITY_SCALE (Lighting plan L8).
+
+    Attribute: Returns The intensity to give a Quorum light.
+    */
+    action GetQuorumIntensity returns number
+        return intensity * INTENSITY_SCALE
+    end
+
+    /*
+    This action returns how far the light reaches, or 0 if the file did not
+    say (Lighting plan L8). Directional lights have no range.
+
+    Attribute: Returns The light's range, in the model's units, or 0.
+    */
+    action GetRange returns number
+        return range
+    end
+
+    /*
+    This action sets how far the light reaches, or 0 if the file did not
+    say (Lighting plan L8). A value below 0 is kept as 0.
+
+    Attribute: Parameter range The light's range, or 0.
+    */
+    action SetRange(number range)
+        if range < 0
+            me:range = 0
+        else
+            me:range = range
+        end
+    end
+
+    /*
+    This action returns a spot light's inner angle, in degrees, measured
+    from the direction it points: inside it, the light is at full strength
+    (Lighting plan L8).
+
+    Attribute: Returns The inner angle, in degrees.
+    */
+    action GetInnerAngle returns number
+        return innerAngle
+    end
+
+    /*
+    This action returns a spot light's outer angle, in degrees, measured
+    from the direction it points: past it, the light gives no light
+    (Lighting plan L8).
+
+    Attribute: Returns The outer angle, in degrees.
+    */
+    action GetOuterAngle returns number
+        return outerAngle
+    end
+
+    /*
+    This action sets a spot light's inner and outer angles, in degrees,
+    each measured from the direction it points (Lighting plan L8).
+
+    Attribute: Parameter inner The angle of full strength, in degrees.
+    Attribute: Parameter outer The angle where the light ends, in degrees.
+    */
+    action SetConeAngles(number inner, number outer)
+        innerAngle = inner
+        outerAngle = outer
+    end
+
+    /*
+    This action returns where the light is, in the model's own space
+    (Lighting plan L8). Change it with SetPosition.
+
+    Attribute: Returns The light's position.
+    */
+    action GetPosition returns Vector3
+        return position
+    end
+
+    /*
+    This action sets where the light is, in the model's own space (Lighting
+    plan L8).
+
+    Attribute: Parameter x The position along x.
+    Attribute: Parameter y The position along y.
+    Attribute: Parameter z The position along z.
+    */
+    action SetPosition(number x, number y, number z)
+        position:Set(x, y, z)
+    end
+
+    /*
+    This action returns the direction the light shines, in the model's own
+    space, of length 1 (Lighting plan L8). Point lights ignore it. Change it
+    with SetDirection.
+
+    Attribute: Returns The light's direction.
+    */
+    action GetDirection returns Vector3
+        return direction
+    end
+
+    /*
+    This action sets the direction the light shines, in the model's own
+    space (Lighting plan L8). It is made length 1. A direction of zero
+    length is ignored.
+
+    Attribute: Parameter x The direction along x.
+    Attribute: Parameter y The direction along y.
+    Attribute: Parameter z The direction along z.
+    */
+    action SetDirection(number x, number y, number z)
+        number lengthSquared = x * x + y * y + z * z
+        if lengthSquared < 0.000000000001
+            return now
+        end
+        direction:Set(x, y, z)
+        direction:Normalize()
+    end
+end

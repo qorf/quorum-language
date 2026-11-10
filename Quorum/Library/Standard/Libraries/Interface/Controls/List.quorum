@@ -26,9 +26,17 @@ class List is ScrollableLineControl, FirstLetterNavigator
     // True if screen readers should treat the list as a tree (SetTreeAccessibility).
     boolean treeAccessibility = false
 
+    // What opens and closes a row for a screen reader (SetAccessibilityExpandBehaviors).
+    Behavior accessibilityExpandBehavior = undefined
+    Behavior accessibilityCollapseBehavior = undefined
+
     // A thick accent line along the list's left edge while it has the
     // focus (LS5), like a focused text field's (FD).
     Control focusLine = undefined
+    // When above 0, every line is this many pixels tall, and heights are
+    // worked out without laying out lines off screen (Studio plan
+    // TeamTabSpeed.md, fix 2). 0, the default, measures each line.
+    number fixedLineHeight = 0
     constant number FOCUS_LINE_THICKNESS = 4
     
     on create
@@ -243,6 +251,54 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return treeAccessibility
     end
 
+    /*
+    This action gives a list treated as a tree (SetTreeAccessibility) the
+    behaviors that open and close one of its rows, so a screen reader can
+    open and close rows itself, such as with VoiceOver's VO-\ on the Mac.
+    Each behavior runs with the row as the event's item, and only when the
+    row's state is the other one (ListItem:IsAccessibilityExpanded): the
+    expand behavior on a closed row, the collapse behavior on an open one.
+    Without them, screen readers can only read whether a row is open.
+
+    Attribute: Parameter expand The behavior that opens a row, or undefined.
+    Attribute: Parameter collapse The behavior that closes a row, or undefined.
+
+    Attribute: Example
+
+        use Libraries.Interface.Controls.List
+        use Libraries.Interface.Behaviors.Behavior
+
+        List results
+        Behavior openFile
+        Behavior closeFile
+        results:SetTreeAccessibility(true)
+        results:SetAccessibilityExpandBehaviors(openFile, closeFile)
+    */
+    action SetAccessibilityExpandBehaviors(Behavior expand, Behavior collapse)
+        accessibilityExpandBehavior = expand
+        accessibilityCollapseBehavior = collapse
+    end
+
+    /*
+    This action returns the behavior that opens a row for a screen reader
+    (see SetAccessibilityExpandBehaviors), or undefined.
+
+    Attribute: Returns The behavior, or undefined.
+    */
+    action GetAccessibilityExpandBehavior returns Behavior
+        return accessibilityExpandBehavior
+    end
+
+    /*
+    This action returns the behavior that closes a row for a screen reader
+    (see SetAccessibilityExpandBehaviors), or undefined.
+
+    Attribute: Returns The behavior, or undefined.
+    */
+    action GetAccessibilityCollapseBehavior returns Behavior
+        return accessibilityCollapseBehavior
+    end
+
     action GetIndexOf(ListItem item) returns integer
         return renderer:GetChildren():GetFirstLocation(item)
     end
@@ -417,6 +473,9 @@ class List is ScrollableLineControl, FirstLetterNavigator
     than the height of the Control, then vertical scrolling can be used.
     */
     action GetTotalContentHeight returns number
+        if fixedLineHeight > 0
+            return fixedLineHeight * GetLineCount()
+        end
         // TO-DO: Optimize this so it isn't an O(n) summation every time. This could be cached, if nothing else.
         number result = 0
 
@@ -469,6 +528,10 @@ class List is ScrollableLineControl, FirstLetterNavigator
         if line >= GetLineCount()
             return 0
         end
+        // One height for all: the line is laid out when it is drawn.
+        if fixedLineHeight > 0
+            return fixedLineHeight
+        end
 
         ListItem item = GetListItem(line)
 
@@ -508,6 +571,16 @@ class List is ScrollableLineControl, FirstLetterNavigator
     in pixels.
     */
     private action GetHeightThrough(integer line) returns number
+        if fixedLineHeight > 0
+            integer lines = line + 1
+            if lines > GetLineCount()
+                lines = GetLineCount()
+            end
+            if lines < 0
+                lines = 0
+            end
+            return fixedLineHeight * lines
+        end
         number result = 0
         integer i = 0
         repeat while i <= line and i < GetLineCount()
@@ -532,6 +605,20 @@ class List is ScrollableLineControl, FirstLetterNavigator
     Attribute: Returns The index of the first visible line.
     */
     action GetFirstVisibleLine returns integer
+        if fixedLineHeight > 0
+            if GetLineCount() = 0
+                return 0
+            end
+            number scrolled = GetScrollPercentageY() * GetTotalContentHeight()
+            integer first = cast(integer, scrolled / fixedLineHeight)
+            if first >= GetLineCount()
+                first = GetLineCount() - 1
+            end
+            if first < 0
+                first = 0
+            end
+            return first
+        end
         // The first line whose bottom is below the scrolled-off part.
         number offset = GetScrollPercentageY() * GetTotalContentHeight()
         number bottom = 0
@@ -544,6 +631,42 @@ class List is ScrollableLineControl, FirstLetterNavigator
             i = i + 1
         end
         return 0
+    end
+
+    /*
+    This action makes every line of the list one height, in pixels, so the
+    list never has to lay out its lines to know how tall it is: only the
+    lines on screen are laid out, as they are drawn. Use it for a list of
+    one-line rows, such as files. A line taller than this overlaps the next
+    one, so choose the tallest row's height. 0 measures each line again,
+    the default (Studio plan TeamTabSpeed.md, fix 2).
+
+    Attribute: Parameter height The height of every line, in pixels, or 0 to measure each line.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List files
+    files:SetFixedLineHeight(28)
+    */
+    action SetFixedLineHeight(number height)
+        if height < 0
+            height = 0
+        end
+        if fixedLineHeight = height
+            return now
+        end
+        fixedLineHeight = height
+        RequestLayout()
+    end
+
+    /*
+    This action returns the fixed height of every line, or 0 if each line is
+    measured.
+
+    Attribute: Returns The height in pixels, or 0.
+    */
+    action GetFixedLineHeight returns number
+        return fixedLineHeight
     end
 
     action GoToItem(integer index)

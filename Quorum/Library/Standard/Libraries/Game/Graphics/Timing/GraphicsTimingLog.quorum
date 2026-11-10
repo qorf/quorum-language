@@ -1,0 +1,709 @@
+package Libraries.Game.Graphics.Timing
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.System.File
+use Libraries.Compute.Statistics.DataFrame
+use Libraries.Compute.Statistics.Columns.IntegerColumn
+use Libraries.Compute.Statistics.Columns.NumberColumn
+use Libraries.Compute.Statistics.Columns.TextColumn
+use Libraries.Interface.Controls.Charts.BarChart
+use Libraries.Interface.Controls.Charts.PieChart
+use Libraries.Interface.Controls.Charts.LineChart
+
+/*
+A GraphicsTimingLog keeps the GPU times of frame after frame, as a
+GraphicsTimer reads them (Graphics timing plan T3). Give it to the timer
+with GraphicsTimer:SetLog; it keeps the most recent frames, 1,000 by
+default (SetLimit).
+
+From what it keeps it can:
+- summarize each phase: its average, minimum, maximum, a percentile and
+  its share of the frame;
+- write everything as JSON (ToJson, Write), laid out to be read by people
+  and AI tools: units in the names, a summary first, then each frame;
+- give the data as a DataFrame (GetDataFrame, GetSummaryDataFrame), to
+  chart, sort or analyze with the statistics library;
+- make ready charts with the charting library: a bar chart of the last
+  frames by phase (GetBarChart), a pie chart of the average shares
+  (GetPieChart), and a line chart of every frame (GetLineChart).
+
+How it keeps the frames is its own business: programs add, ask, chart and
+write.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Timing.GraphicsTimingLog
+use Libraries.System.File
+
+class Main is Game
+    GraphicsTimingLog timings
+
+    action Main
+        UseVulkan(true)
+        StartGame()
+    end
+
+    action CreateGame
+        SetGraphicsTiming(true)
+        timings:SetLimit(600)
+        timings:SetNote("scene", "My world")
+        GetGraphicsTimer():SetLog(timings)
+    end
+
+    action WriteTimings
+        File file
+        file:SetPath("timings.json")
+        timings:Write(file)
+    end
+end
+*/
+class GraphicsTimingLog
+    Array<GraphicsTimingFrame> frames
+    integer limit = 1000
+    integer framesSeen = 0
+
+    // Notes written with the data, in the order they were set.
+    Array<text> noteKeys
+    HashTable<text, text> notes
+
+    // The device's clock, written with the data.
+    number nanosecondsPerTick = 0
+    integer validBits = 0
+
+    Math math
+
+    // The phase name the frame's whole time goes under in data frames.
+    public constant text WHOLE_FRAME = "Whole frame"
+
+    /*
+    This action sets how many of the most recent frames are kept. Older ones
+    are let go as new ones come. 0 keeps every frame.
+
+    Attribute: Parameter frameCount The most frames to keep
+    */
+    action SetLimit(integer frameCount)
+        if frameCount < 0
+            frameCount = 0
+        end
+        limit = frameCount
+        TrimToLimit()
+    end
+
+    action GetLimit returns integer
+        return limit
+    end
+
+    /*
+    This action adds a frame. The timer calls it for each frame it reads.
+
+    Attribute: Parameter frame The frame
+    */
+    action Add(GraphicsTimingFrame frame)
+        if frame = undefined
+            return now
+        end
+        frames:Add(frame)
+        framesSeen = framesSeen + 1
+        TrimToLimit()
+    end
+
+    private action TrimToLimit
+        if limit <= 0
+            return now
+        end
+        repeat while frames:GetSize() > limit
+            GraphicsTimingFrame dropped = frames:RemoveFromFront()
+        end
+    end
+
+    /*
+    This action lets go of every frame kept. Notes stay.
+    */
+    action Empty
+        frames:Empty()
+    end
+
+    /*
+    This action returns how many frames are kept.
+
+    Attribute: Returns The count
+    */
+    action GetFrameCount returns integer
+        return frames:GetSize()
+    end
+
+    /*
+    This action returns a kept frame, oldest first.
+
+    Attribute: Parameter index The frame, from 0
+    Attribute: Returns The frame
+    */
+    action GetFrame(integer index) returns GraphicsTimingFrame
+        return frames:Get(index)
+    end
+
+    /*
+    This action sets a note written with the data, such as the scene or
+    the settings being tried.
+
+    Attribute: Parameter key The note's name, such as "scene"
+    Attribute: Parameter value The note, such as "QuincyWorld"
+    */
+    action SetNote(text key, text value)
+        if not notes:HasKey(key)
+            noteKeys:Add(key)
+        else
+            text old = notes:RemoveKey(key)
+        end
+        notes:Add(key, value)
+    end
+
+    /*
+    This action sets the device's clock, written with the data. The timer
+    sets it.
+
+    Attribute: Parameter period Nanoseconds per GPU clock tick
+    Attribute: Parameter bits Valid bits of a timestamp
+    */
+    action SetTimestampScale(number period, integer bits)
+        nanosecondsPerTick = period
+        validBits = bits
+    end
+
+    /*
+    This action returns every phase's name in the kept frames, in the order
+    they first appear.
+
+    Attribute: Returns The names
+    */
+    action GetPhaseNames returns Array<text>
+        Array<text> result
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            integer p = 0
+            repeat while p < frame:GetPhaseCount()
+                text name = frame:GetPhaseName(p)
+                if not result:Has(name)
+                    result:Add(name)
+                end
+                p = p + 1
+            end
+            f = f + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns a phase's times in the frames that have it, oldest
+    first. WHOLE_FRAME gives each frame's whole time.
+    */
+    private action GetTimes(text name) returns Array<number>
+        Array<number> result
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            if name = WHOLE_FRAME
+                result:Add(frame:GetTotal())
+            elseif frame:GetPhaseIndex(name) >= 0
+                result:Add(frame:GetTime(name))
+            end
+            f = f + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns a phase's average GPU time over the kept frames that
+    have it. WHOLE_FRAME gives the whole frame's.
+
+    Attribute: Parameter name The phase
+    Attribute: Returns Milliseconds, or 0 if no kept frame has it
+    */
+    action GetAverage(text name) returns number
+        Array<number> values = GetTimes(name)
+        if values:IsEmpty()
+            return 0
+        end
+        number sum = 0
+        integer i = 0
+        repeat while i < values:GetSize()
+            sum = sum + values:Get(i)
+            i = i + 1
+        end
+        return sum / values:GetSize()
+    end
+
+    /*
+    This action returns a phase's least GPU time over the kept frames.
+
+    Attribute: Parameter name The phase
+    Attribute: Returns Milliseconds, or 0 if no kept frame has it
+    */
+    action GetMinimum(text name) returns number
+        Array<number> values = GetTimes(name)
+        if values:IsEmpty()
+            return 0
+        end
+        number least = values:Get(0)
+        integer i = 1
+        repeat while i < values:GetSize()
+            if values:Get(i) < least
+                least = values:Get(i)
+            end
+            i = i + 1
+        end
+        return least
+    end
+
+    /*
+    This action returns a phase's most GPU time over the kept frames.
+
+    Attribute: Parameter name The phase
+    Attribute: Returns Milliseconds, or 0 if no kept frame has it
+    */
+    action GetMaximum(text name) returns number
+        Array<number> values = GetTimes(name)
+        if values:IsEmpty()
+            return 0
+        end
+        number most = values:Get(0)
+        integer i = 1
+        repeat while i < values:GetSize()
+            if values:Get(i) > most
+                most = values:Get(i)
+            end
+            i = i + 1
+        end
+        return most
+    end
+
+    /*
+    This action returns the GPU time a phase stays at or under in a share of
+    the kept frames, such as 95 for the 95th percentile.
+
+    Attribute: Parameter name The phase
+    Attribute: Parameter percent From 0 to 100
+    Attribute: Returns Milliseconds, or 0 if no kept frame has it
+    */
+    action GetPercentile(text name, number percent) returns number
+        Array<number> values = GetTimes(name)
+        if values:IsEmpty()
+            return 0
+        end
+        Array<number> sorted = SortNumbers(values)
+        if percent <= 0
+            return sorted:Get(0)
+        end
+        if percent >= 100
+            return sorted:Get(sorted:GetSize() - 1)
+        end
+        integer place = cast(integer, math:Ceiling(percent / 100.0 * sorted:GetSize())) - 1
+        if place < 0
+            place = 0
+        end
+        return sorted:Get(place)
+    end
+
+    /*
+    This action returns how much of the GPU's frame time a phase takes over
+    the kept frames: its time added up over all frames, divided by all the
+    frames' time.
+
+    Attribute: Parameter name The phase
+    Attribute: Returns The share, from 0 to 1
+    */
+    action GetShare(text name) returns number
+        number phaseSum = 0
+        number frameSum = 0
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            frameSum = frameSum + frame:GetTotal()
+            phaseSum = phaseSum + frame:GetTime(name)
+            f = f + 1
+        end
+        if frameSum <= 0
+            return 0
+        end
+        return phaseSum / frameSum
+    end
+
+    /*
+    This action returns how many times, on average, a phase is timed in a
+    frame that has it.
+    */
+    private action GetAverageCalls(text name) returns number
+        integer callSum = 0
+        integer framesWith = 0
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            integer place = frame:GetPhaseIndex(name)
+            if place >= 0
+                callSum = callSum + frame:GetPhaseCalls(place)
+                framesWith = framesWith + 1
+            end
+            f = f + 1
+        end
+        if framesWith = 0
+            return 0
+        end
+        return cast(number, callSum) / framesWith
+    end
+
+    /*
+    This action returns the phase names sorted by average time, largest
+    first.
+    */
+    private action GetPhasesByAverage returns Array<text>
+        Array<text> names = GetPhaseNames()
+        Array<number> averages
+        integer i = 0
+        repeat while i < names:GetSize()
+            averages:Add(GetAverage(names:Get(i)))
+            i = i + 1
+        end
+        // An insertion sort, largest first; there are only a few phases.
+        i = 1
+        repeat while i < names:GetSize()
+            text name = names:Get(i)
+            number average = averages:Get(i)
+            integer j = i - 1
+            repeat while j >= 0 and averages:Get(j) < average
+                names:Set(j + 1, names:Get(j))
+                averages:Set(j + 1, averages:Get(j))
+                j = j - 1
+            end
+            names:Set(j + 1, name)
+            averages:Set(j + 1, average)
+            i = i + 1
+        end
+        return names
+    end
+
+    /*
+    This action returns a sorted copy of some numbers, smallest first.
+    */
+    private action SortNumbers(Array<number> values) returns Array<number>
+        Array<number> sorted
+        integer i = 0
+        repeat while i < values:GetSize()
+            number value = values:Get(i)
+            integer j = sorted:GetSize() - 1
+            repeat while j >= 0 and sorted:Get(j) > value
+                j = j - 1
+            end
+            sorted:Add(j + 1, value)
+            i = i + 1
+        end
+        return sorted
+    end
+
+    private action Round(number value) returns number
+        return math:Round(value, 2)
+    end
+
+    /*
+    This action returns everything kept as JSON, laid out to be read by
+    people and AI tools: what it is and its units, the device's clock, the
+    notes, the limits of GPU timing, a summary of each phase (largest average
+    first), and then each frame's phases.
+
+    Attribute: Returns The JSON
+    */
+    action ToJson returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:SetPrettyPrint(true)
+        json:Add("Format", "Quorum Graphics Timing")
+        json:Add("Version", 1)
+        json:Add("Units", "milliseconds of GPU time")
+        json:Add("Timestamp Period Nanoseconds", nanosecondsPerTick)
+        json:Add("Timestamp Valid Bits", validBits)
+        json:Add("Frames Recorded", frames:GetSize())
+        json:Add("Frames Seen", framesSeen)
+
+        JavaScriptObjectNotation noteJson
+        integer n = 0
+        repeat while n < noteKeys:GetSize()
+            text key = noteKeys:Get(n)
+            noteJson:Add(key, notes:GetValue(key))
+            n = n + 1
+        end
+        json:Add("Notes", noteJson)
+
+        JavaScriptObjectNotation limits
+        limits:SetArray()
+        limits:Add("On Apple GPUs, time is measured between render passes, not single draws.")
+        limits:Add("Phases can overlap on the GPU, so they may not add up exactly to the frame.")
+        limits:Add("The GPU changes its clock speed with load; compare shares within one recording.")
+        limits:Add("A phase timed several times in a frame, such as one shadow pass per light, is added up; Calls Per Frame says how many.")
+        json:Add("Limits", limits)
+
+        JavaScriptObjectNotation summary
+        summary:Add("Frame", SummaryOf(WHOLE_FRAME, false))
+        JavaScriptObjectNotation phaseList
+        phaseList:SetArray()
+        Array<text> names = GetPhasesByAverage()
+        integer p = 0
+        repeat while p < names:GetSize()
+            phaseList:Add(SummaryOf(names:Get(p), true))
+            p = p + 1
+        end
+        summary:Add("Phases", phaseList)
+        json:Add("Summary", summary)
+
+        JavaScriptObjectNotation frameList
+        frameList:SetArray()
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            JavaScriptObjectNotation frameJson
+            frameJson:Add("Frame", frame:GetFrameNumber())
+            frameJson:Add("Total", Round(frame:GetTotal()))
+            JavaScriptObjectNotation phaseTimes
+            integer i = 0
+            repeat while i < frame:GetPhaseCount()
+                phaseTimes:Add(frame:GetPhaseName(i), Round(frame:GetPhaseTime(i)))
+                i = i + 1
+            end
+            frameJson:Add("Phases", phaseTimes)
+            frameList:Add(frameJson)
+            f = f + 1
+        end
+        json:Add("Frames", frameList)
+        return json
+    end
+
+    /*
+    This action makes one phase's summary for ToJson.
+    */
+    private action SummaryOf(text name, boolean isPhase) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation result
+        if isPhase
+            result:Add("Name", name)
+        end
+        result:Add("Average", Round(GetAverage(name)))
+        result:Add("Minimum", Round(GetMinimum(name)))
+        result:Add("Maximum", Round(GetMaximum(name)))
+        result:Add("95th Percentile", Round(GetPercentile(name, 95)))
+        if isPhase
+            result:Add("Share Of Frame", Round(GetShare(name)))
+            result:Add("Calls Per Frame", Round(GetAverageCalls(name)))
+        end
+        return result
+    end
+
+    /*
+    This action writes ToJson to a file, pretty-printed.
+
+    Attribute: Parameter file The file
+    */
+    action Write(File file)
+        file:Write(ToJson():ToText())
+    end
+
+    /*
+    This action returns the kept frames as a DataFrame, one row per frame
+    and phase, oldest frame first, with the columns Frame (integer), Phase
+    (text), Milliseconds (number), Start (number, milliseconds after the
+    frame started) and Calls (integer). Each frame's whole time is a row
+    too, with the phase WHOLE_FRAME ("Whole frame").
+
+    Attribute: Returns The data frame
+    */
+    action GetDataFrame returns DataFrame
+        return MakeDataFrame(0, true)
+    end
+
+    /*
+    This action makes the long data frame from a kept frame on.
+    */
+    private action MakeDataFrame(integer firstFrame, boolean withWholeFrame) returns DataFrame
+        IntegerColumn frameColumn
+        frameColumn:SetHeader("Frame")
+        TextColumn phaseColumn
+        phaseColumn:SetHeader("Phase")
+        NumberColumn timeColumn
+        timeColumn:SetHeader("Milliseconds")
+        NumberColumn startColumn
+        startColumn:SetHeader("Start")
+        IntegerColumn callColumn
+        callColumn:SetHeader("Calls")
+        integer f = firstFrame
+        if f < 0
+            f = 0
+        end
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            if withWholeFrame
+                frameColumn:Add(frame:GetFrameNumber())
+                phaseColumn:Add(WHOLE_FRAME)
+                timeColumn:Add(Round(frame:GetTotal()))
+                startColumn:Add(0.0)
+                callColumn:Add(1)
+            end
+            integer p = 0
+            repeat while p < frame:GetPhaseCount()
+                frameColumn:Add(frame:GetFrameNumber())
+                phaseColumn:Add(frame:GetPhaseName(p))
+                timeColumn:Add(Round(frame:GetPhaseTime(p)))
+                startColumn:Add(Round(frame:GetPhaseStart(p)))
+                callColumn:Add(frame:GetPhaseCalls(p))
+                p = p + 1
+            end
+            f = f + 1
+        end
+        DataFrame result
+        result:AddColumn(frameColumn)
+        result:AddColumn(phaseColumn)
+        result:AddColumn(timeColumn)
+        result:AddColumn(startColumn)
+        result:AddColumn(callColumn)
+        return result
+    end
+
+    /*
+    This action returns a summary of each phase as a DataFrame, one row per
+    phase, largest average first, with the columns Phase, Average, Minimum,
+    Maximum, 95th Percentile and Share Of Frame (times in milliseconds,
+    the share from 0 to 1).
+
+    Attribute: Returns The data frame
+    */
+    action GetSummaryDataFrame returns DataFrame
+        TextColumn phaseColumn
+        phaseColumn:SetHeader("Phase")
+        NumberColumn averageColumn
+        averageColumn:SetHeader("Average")
+        NumberColumn minimumColumn
+        minimumColumn:SetHeader("Minimum")
+        NumberColumn maximumColumn
+        maximumColumn:SetHeader("Maximum")
+        NumberColumn percentileColumn
+        percentileColumn:SetHeader("95th Percentile")
+        NumberColumn shareColumn
+        shareColumn:SetHeader("Share Of Frame")
+        Array<text> names = GetPhasesByAverage()
+        integer p = 0
+        repeat while p < names:GetSize()
+            text name = names:Get(p)
+            phaseColumn:Add(name)
+            averageColumn:Add(Round(GetAverage(name)))
+            minimumColumn:Add(Round(GetMinimum(name)))
+            maximumColumn:Add(Round(GetMaximum(name)))
+            percentileColumn:Add(Round(GetPercentile(name, 95)))
+            shareColumn:Add(Round(GetShare(name)))
+            p = p + 1
+        end
+        DataFrame result
+        result:AddColumn(phaseColumn)
+        result:AddColumn(averageColumn)
+        result:AddColumn(minimumColumn)
+        result:AddColumn(maximumColumn)
+        result:AddColumn(percentileColumn)
+        result:AddColumn(shareColumn)
+        return result
+    end
+
+    /*
+    This action returns a bar chart of the last 30 kept frames: for each
+    frame, in frame order, a bar per phase, colored by phase, in
+    milliseconds.
+
+    Attribute: Returns The chart
+    */
+    action GetBarChart returns BarChart
+        return GetBarChart(30)
+    end
+
+    /*
+    This action returns a bar chart of the last kept frames: for each frame,
+    in frame order, a bar per phase, colored by phase, in milliseconds. It is
+    made with the charting library from GetDataFrame's columns (Milliseconds
+    by the factors Frame and Phase), without the whole-frame rows.
+
+    Attribute: Parameter frameCount How many of the latest frames to show
+    Attribute: Returns The chart
+    */
+    action GetBarChart(integer frameCount) returns BarChart
+        if frameCount < 1
+            frameCount = 1
+        end
+        DataFrame data = MakeDataFrame(frames:GetSize() - frameCount, false)
+        data:AddSelectedColumn(2)
+        data:AddSelectedFactor(0)
+        data:AddSelectedFactor(1)
+        BarChart chart = data:BarChart()
+        chart:SetTitle("GPU time per phase, last " + frameCount + " frames")
+        chart:SetXAxisTitle("Frame")
+        chart:SetYAxisTitle("Milliseconds")
+        return chart
+    end
+
+    /*
+    This action returns a pie chart of how an average frame's GPU time is
+    shared among the phases. It is made with the charting library from
+    GetSummaryDataFrame's Average by Phase.
+
+    Attribute: Returns The chart
+    */
+    action GetPieChart returns PieChart
+        DataFrame data = GetSummaryDataFrame()
+        data:AddSelectedColumn(1)
+        data:AddSelectedFactor(0)
+        PieChart chart = data:PieChart()
+        chart:SetTitle("Average GPU time per phase")
+        return chart
+    end
+
+    /*
+    This action returns a line chart of every kept frame: frame number
+    across, milliseconds up, one line per phase, to see spikes and trends
+    over a whole recording. It is made with the charting library from a
+    data frame with a Frame column and one column per phase.
+
+    Attribute: Returns The chart
+    */
+    action GetLineChart returns LineChart
+        Array<text> names = GetPhaseNames()
+        IntegerColumn frameColumn
+        frameColumn:SetHeader("Frame")
+        Array<NumberColumn> phaseColumns
+        integer p = 0
+        repeat while p < names:GetSize()
+            NumberColumn column
+            column:SetHeader(names:Get(p))
+            phaseColumns:Add(column)
+            p = p + 1
+        end
+        integer f = 0
+        repeat while f < frames:GetSize()
+            GraphicsTimingFrame frame = frames:Get(f)
+            frameColumn:Add(frame:GetFrameNumber())
+            p = 0
+            repeat while p < names:GetSize()
+                phaseColumns:Get(p):Add(Round(frame:GetTime(names:Get(p))))
+                p = p + 1
+            end
+            f = f + 1
+        end
+        DataFrame data
+        data:AddColumn(frameColumn)
+        p = 0
+        repeat while p < phaseColumns:GetSize()
+            data:AddColumn(phaseColumns:Get(p))
+            data:AddSelectedColumn(p + 1)
+            p = p + 1
+        end
+        data:AddSelectedFactor(0)
+        LineChart chart = data:LineChart()
+        chart:SetTitle("GPU time per phase, every frame")
+        chart:SetXAxisTitle("Frame")
+        chart:SetYAxisTitle("Milliseconds")
+        return chart
+    end
+end

@@ -31,6 +31,13 @@ action SetPhysicalDevice(VulkanPhysicalDevice device)
     
     system action GetComputeQueueFamilyIndex(VulkanPhysicalDevice context) returns integer
 
+    /*
+    This action returns how many bits of a timestamp written by this
+    family's queues are valid, from 36 to 64, or 0 if they can't write
+    timestamps at all (Graphics timing plan T1).
+    */
+    system action GetTimestampValidBits returns integer
+
     // Even though this is private, the plugin layer can access this, because it doesn't respect access flags.
     private action Initialize(VulkanPhysicalDevice device, integer queueCount, integer queueFlags, integer queueFamilyIndex)
         me:device = device

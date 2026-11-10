@@ -17,6 +17,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 */
 class ItemPreview3D is ItemPreview, EditorItem3D
 
+    // True if the arrow keys keep the preview at its height above the
+    // ground, as for building on a hill; false, the default, keeps its
+    // height as it is.
+    boolean followGround = false
+
     on create
         SetInputGroup("NewItemPreview3D")
     end
@@ -26,6 +31,26 @@ class ItemPreview3D is ItemPreview, EditorItem3D
     */
     action GetAccessibleParent returns Item
         return parent:EditorItem:GetAccessibleParent()
+    end
+
+    /*
+        Returns true if the arrow keys keep the preview at its height above
+        the ground, set in the Properties panel's Place card.
+
+        Attribute: Returns True to follow the ground
+    */
+    action IsFollowingGround returns boolean
+        return followGround
+    end
+
+    /*
+        Sets whether the arrow keys keep the preview at its height above the
+        ground. It is off by default.
+
+        Attribute: Parameter follow True to follow the ground
+    */
+    action SetFollowingGround(boolean follow)
+        followGround = follow
     end
 
     /*

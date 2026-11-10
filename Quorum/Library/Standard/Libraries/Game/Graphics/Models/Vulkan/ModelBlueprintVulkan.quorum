@@ -9,12 +9,17 @@ use Libraries.Game.Graphics.Models.Data.MeshData
 use Libraries.Containers.Number32BitArray
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.Data.Animations
+use Libraries.Game.Graphics.Models.Data.ModelLightData
 
 class ModelBlueprintVulkan is ModelBlueprint
     text key = undefined
     ModelData data = undefined
     Array<MeshVulkan> meshes = undefined
     Array<MaterialVulkan> materials = undefined
+
+    // Whether a material is two-sided, found once the materials are set.
+    boolean twoSided = false
+    boolean twoSidedChecked = false
     Array<Array<AnimationFrameVulkan>> animationFrames = undefined
     
     // An additional animation frame that represents the bind pose -- i.e., no animation is performed. Used to allow the animation layer to apply base model transforms without animation.
@@ -27,6 +32,10 @@ class ModelBlueprintVulkan is ModelBlueprint
 
     // True once the blueprint's GPU memory has been freed (Item 33).
     boolean released = false
+
+    // The lights read from the model file, kept after the data is released
+    // (Lighting plan L8).
+    Array<ModelLightData> lights = undefined
     
     on create
         boundingBox:Invalidate()
@@ -75,6 +84,27 @@ Animations animations = data:GetAnimations()
 
     action SetData(ModelData data)
         me:data = data
+    end
+
+    /*
+    This action returns the lights read from the model file the blueprint
+    was made from, or undefined if it has none (Lighting plan L8). Model:Load
+    turns each into a light on the model.
+
+    Attribute: Returns The file's lights, or undefined.
+    */
+    action GetLights returns Array<ModelLightData>
+        return lights
+    end
+
+    /*
+    This action sets the lights read from the model file (Lighting plan L8).
+    The model manager calls it when it makes the blueprint.
+
+    Attribute: Parameter lights The file's lights, or undefined.
+    */
+    action SetLights(Array<ModelLightData> lights)
+        me:lights = lights
     end
     
     action GetDimensions returns Vector3
@@ -160,6 +190,34 @@ Animations animations = data:GetAnimations()
 
     action SetMaterials(Array<MaterialVulkan> materials)
         me:materials = materials
+        twoSidedChecked = false
+    end
+
+    /*
+    This action returns true if any of the blueprint's materials is
+    two-sided, so the painter draws its models without hiding the backs of
+    faces (Lighting plan L4).
+
+    Attribute: Returns True if a material is two-sided.
+    */
+    action HasTwoSidedMaterial returns boolean
+        if twoSidedChecked
+            return twoSided
+        end
+        if materials = undefined or materials:IsEmpty()
+            return false
+        end
+        twoSided = false
+        integer i = 0
+        repeat while i < materials:GetSize()
+            MaterialVulkan material = materials:Get(i)
+            if material not= undefined and material:IsTwoSided()
+                twoSided = true
+            end
+            i = i + 1
+        end
+        twoSidedChecked = true
+        return twoSided
     end
     
     action GetMeshCount returns integer

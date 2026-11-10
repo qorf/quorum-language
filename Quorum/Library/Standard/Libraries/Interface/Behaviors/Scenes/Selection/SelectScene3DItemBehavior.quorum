@@ -12,6 +12,8 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Math
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
@@ -41,13 +43,18 @@ class SelectScene3DItemBehavior is Behavior
         MouseEvent mouse = event:GetMouseEvent()
         
         SceneEditor editor = cast(SceneEditor, event:GetItem())
-        // While a terrain's tool is chosen, a click belongs to its brush: it
-        // starts a stroke under the pointer, which goes on while the button
-        // is held (step 8). Escape leaves the tool; the scene tree still
-        // selects (step 7).
+        // While a terrain's tool is chosen, a click belongs to its cursor:
+        // outside the ring it moves the cursor there; inside, it applies, as
+        // a stroke while the button is held; holding anywhere applies too.
+        // Escape leaves the tool; the scene tree still selects (step 7).
+        // A new item's preview: a click on it places it; anywhere else
+        // moves it there.
+        if editor:HasActivePreview()
+            editor:PressPreview(mouse:GetX(), mouse:GetY())
+            return now
+        end
         if editor:IsTerrainBrushActive()
-            editor:MoveTerrainBrushToPointer(mouse:GetX(), mouse:GetY())
-            editor:BeginTerrainStroke(editor:GetBrushTerrain(), true, 0)
+            editor:PressTerrainCursor(mouse:GetX(), mouse:GetY())
             return now
         end
         EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
@@ -116,6 +123,15 @@ class SelectScene3DItemBehavior is Behavior
             result:Add(nearestTerrain)
         end
         
+        // A selected terrain with no tool: a click on its own ground, or on
+        // nothing, moves its cursor; a click on another item selects it.
+        if editor:IsTerrainCursorActive()
+            if result:IsEmpty() or result:Get(0):Equals(editor:GetPointerTerrain())
+                editor:PressTerrainCursor(mouse:GetX(), mouse:GetY())
+                return now
+            end
+        end
+
         if not result:IsEmpty()
             // A click on the ground puts the cursor where it landed, rather
             // than at the terrain's middle, which may be far away.
@@ -128,23 +144,35 @@ class SelectScene3DItemBehavior is Behavior
                     clickedTerrain:SetBrushPosition(nearestTerrainHit:GetX(), nearestTerrainHit:GetZ())
                 end
             end
+            // A click selects without moving the camera; moving it is up
+            // to the user.
+            editor:SetKeepCameraOnSelection(true)
             editor:SetFilteredItems(result, true)
+            editor:SetKeepCameraOnSelection(false)
         end
     end
     
     /*
     This action will test if the given ray intersects with an Item3D. This
-    intersection is tested using the base, axis-aligned dimensions of the item.
-    It will not properly reflect changes made due to scaling or rotation, and
-    assumes the Item is a box-like shape.
+    intersection is tested using the item's size times its scale, and its
+    parents' scale, as an axis-aligned box. It does not turn with the item's
+    rotation, and assumes the Item is a box-like shape.
     */
     private action RayIntersectsItem(Ray ray, Item3D item) returns boolean
         number divX = 1.0 / ray:GetDirection():GetX()
         number divY = 1.0 / ray:GetDirection():GetY()
         number divZ = 1.0 / ray:GetDirection():GetZ()
 
-        number minX = ((item:GetGlobalX() - item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
-        number maxX = ((item:GetGlobalX() + item:GetWidth() * 0.5) - ray:GetOrigin():GetX()) * divX
+        // The item's size as it shows: its own size times its scale, and its
+        // parents' scale, read from the lengths of its world transform's axes.
+        Math math
+        Matrix4 transform = item:GetTransform()
+        number halfWidth = item:GetWidth() * 0.5 * math:SquareRoot(transform:row0column0 * transform:row0column0 + transform:row1column0 * transform:row1column0 + transform:row2column0 * transform:row2column0)
+        number halfHeight = item:GetHeight() * 0.5 * math:SquareRoot(transform:row0column1 * transform:row0column1 + transform:row1column1 * transform:row1column1 + transform:row2column1 * transform:row2column1)
+        number halfDepth = item:GetDepth() * 0.5 * math:SquareRoot(transform:row0column2 * transform:row0column2 + transform:row1column2 * transform:row1column2 + transform:row2column2 * transform:row2column2)
+
+        number minX = ((item:GetGlobalX() - halfWidth) - ray:GetOrigin():GetX()) * divX
+        number maxX = ((item:GetGlobalX() + halfWidth) - ray:GetOrigin():GetX()) * divX
         
         if minX > maxX
             number temp = minX
@@ -152,8 +180,8 @@ class SelectScene3DItemBehavior is Behavior
             maxX = temp
         end
 
-        number minY = ((item:GetGlobalY() - item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
-        number maxY = ((item:GetGlobalY() + item:GetHeight() * 0.5) - ray:GetOrigin():GetY()) * divY
+        number minY = ((item:GetGlobalY() - halfHeight) - ray:GetOrigin():GetY()) * divY
+        number maxY = ((item:GetGlobalY() + halfHeight) - ray:GetOrigin():GetY()) * divY
 
         if minY > maxY
             number temp = minY
@@ -161,8 +189,8 @@ class SelectScene3DItemBehavior is Behavior
             maxY = temp
         end
 
-        number minZ = ((item:GetGlobalZ() - item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
-        number maxZ = ((item:GetGlobalZ() + item:GetDepth() * 0.5) - ray:GetOrigin():GetZ()) * divZ
+        number minZ = ((item:GetGlobalZ() - halfDepth) - ray:GetOrigin():GetZ()) * divZ
+        number maxZ = ((item:GetGlobalZ() + halfDepth) - ray:GetOrigin():GetZ()) * divZ
 
         if minZ > maxZ
             number temp = minZ

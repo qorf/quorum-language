@@ -55,6 +55,13 @@ class Grid3D is Model
     // The distance between grid coordinates, in 3D world space.
     number gridUnits = 1
 
+    // The grid's picture and color, kept to make the plane again when its
+    // extent or unit changes (SetExtent).
+    Texture squareTexture = undefined
+    Color planeColor = undefined
+    // How many grid squares across the plane is.
+    integer squares = 64
+
     on create
         SetProperty(editorConstants:EDITOR_TAG, undefined)
         SetFocusable(false)
@@ -62,6 +69,7 @@ class Grid3D is Model
 
         Texture gridTexture
         gridTexture:LoadRectangle(100, 100)
+        squareTexture = gridTexture
         
         
         Scale(scaleFactor, 1, scaleFactor)
@@ -77,6 +85,7 @@ if manager:GetGameGraphics() is VulkanGraphics
             gridColor:SetAlpha(0.1)
             
             SetColor(gridColor)
+            planeColor = gridColor
             
             //Color gridColor
             //gridColor:SetColor(0, 0, 1, 0.75)
@@ -149,8 +158,47 @@ Drawable grid
     */
     action SetGridUnitSize(number unit)
         gridUnits = unit
-        textureAttribute:scaleU = scaleFactor / unit
-        textureAttribute:scaleV = scaleFactor / unit
+        // The plane keeps its number of squares, each now a unit wide.
+        SetExtent(squares)
+    end
+
+    /*
+        SetExtent sets how many grid squares across the grid's plane is, so
+        it can be a small patch around a selected item or a large floor. The
+        squares stay one grid unit wide.
+
+        Attribute: Parameter count The number of squares along each side, 1 or more
+    */
+    action SetExtent(integer count)
+        if count < 1
+            count = 1
+        end
+        squares = count
+        scaleFactor = squares * gridUnits
+        GameStateManager manager
+        if manager:GetGameGraphics() is VulkanGraphics
+            // The texture repeats once a square; the plane is made again
+            // with the new repeat.
+            Vector4 textureCoordinates
+            textureCoordinates:Set(0, 0, squares, squares)
+            LoadPlane(1, 1, squareTexture, textureCoordinates, true)
+            if planeColor not= undefined
+                SetColor(planeColor)
+            end
+        elseif textureAttribute not= undefined
+            textureAttribute:scaleU = squares
+            textureAttribute:scaleV = squares
+        end
+        SetScale(scaleFactor, 1, scaleFactor)
+    end
+
+    /*
+        GetExtent returns how many grid squares across the grid's plane is.
+
+        Attribute: Returns The number of squares along each side
+    */
+    action GetExtent returns integer
+        return squares
     end
 
     /*

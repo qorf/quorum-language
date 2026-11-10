@@ -1,0 +1,86 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+
+/*
+The CopyQueryResultsCommand copies query results into a buffer on the GPU
+(vkCmdCopyQueryPoolResults), so a later shader can use them, such as for
+culling, without the CPU reading anything. Each query's results are written
+stride bytes apart from offset, as the flags say: VulkanQueryPool's
+RESULT_64_BIT, RESULT_WAIT, RESULT_WITH_AVAILABILITY and RESULT_PARTIAL,
+added together. It must be recorded outside a render pass.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.CopyQueryResultsCommand
+
+CopyQueryResultsCommand copy
+copy:SetRange(0, 4)
+copy:SetStride(8)
+copy:SetFlags(1)
+*/
+class CopyQueryResultsCommand is VulkanCommand
+    VulkanQueryPool queryPool = undefined
+    VulkanBuffer targetBuffer = undefined
+    integer first = 0
+    integer count = 0
+    integer offset = 0
+    integer stride = 8
+    integer flags = 1
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetQueryPool(VulkanQueryPool pool)
+        queryPool = pool
+    end
+
+    action GetQueryPool returns VulkanQueryPool
+        return queryPool
+    end
+
+    action SetBuffer(VulkanBuffer target)
+        targetBuffer = target
+    end
+
+    action GetBuffer returns VulkanBuffer
+        return targetBuffer
+    end
+
+    action SetRange(integer first, integer count)
+        me:first = first
+        me:count = count
+    end
+
+    action GetFirst returns integer
+        return first
+    end
+
+    action GetCount returns integer
+        return count
+    end
+
+    action SetOffset(integer offset)
+        me:offset = offset
+    end
+
+    action GetOffset returns integer
+        return offset
+    end
+
+    action SetStride(integer stride)
+        me:stride = stride
+    end
+
+    action GetStride returns integer
+        return stride
+    end
+
+    action SetFlags(integer flags)
+        me:flags = flags
+    end
+
+    action GetFlags returns integer
+        return flags
+    end
+end

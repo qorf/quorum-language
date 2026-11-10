@@ -14,6 +14,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorModel
 */
 class ModelSelectionHighlight is SelectionHighlight3D
 
+    on create
+        // What screen readers call it, instead of a generic item.
+        SetAccessibilityRoleDescription("model")
+    end
+
     /*
         This action retuns the item being selected as an EditorModel
     */

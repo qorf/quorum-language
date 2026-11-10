@@ -19,6 +19,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
 */
 class PointLightPreview is ItemPreview3D
 
+    on create
+        // What screen readers call it while it is placed, as for the item itself.
+        SetAccessibilityRoleDescription("point light")
+    end
+
     number intensity = 0
 
     /*

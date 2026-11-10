@@ -15,6 +15,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.PropertiesPanel
 use Libraries.Interface.Controls.Scenes.PropertiesSectionItem
+use Libraries.Interface.Controls.Scenes.PropertiesFoldItem
 use Libraries.Interface.Controls.Tree
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Game.Graphics.Label
@@ -185,6 +186,48 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         TreeItem treeItem = headerItem
         headerTree:Add(treeItem)
         headerRow:Add(headerTree)
+    end
+
+    /*
+        Makes a row for a part's header inside the section, such as the
+        Water section's Lakes: the header in a tree of its own, with the
+        tree's chevron, as the section's own header is. Opening or closing
+        it calls FoldChanged with the number given.
+
+        Attribute: Parameter item The part's header, named with its title
+        Attribute: Parameter partKey The number FoldChanged is called with
+        Attribute: Parameter indent How far in from the section's edge, in pixels
+        Attribute: Returns The row holding the header
+    */
+    action MakeFoldRow(PropertiesFoldItem item, integer partKey, number indent) returns Control
+        Control row
+        FlowLayout rowLayout
+        row:SetLayout(rowLayout)
+        row:SetPercentageWidth(1.0)
+        row:SetVerticalLayoutMode(row:FIT_CONTENTS)
+        row:SetLeftMargin(indent)
+        row:SetRightMargin(20)
+        row:SetTopMargin(2)
+        row:SetBottomMargin(2)
+        Tree tree
+        tree:SetName(item:GetName())
+        item:SetFold(me, partKey)
+        // Added as a TreeItem, so the tree's own Add for tree items is the
+        // one used, not Item2D's.
+        TreeItem treeItem = item
+        tree:Add(treeItem)
+        row:Add(tree)
+        return row
+    end
+
+    /*
+        This action is called when a part's header made with MakeFoldRow is
+        opened or closed. A section with parts shows or hides the part here.
+
+        Attribute: Parameter partKey The part's number
+        Attribute: Parameter open True if it was opened
+    */
+    action FoldChanged(integer partKey, boolean open)
     end
 
     /*

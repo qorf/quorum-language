@@ -1,0 +1,594 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Math
+use Libraries.Compute.Random
+use Libraries.System.File
+
+/*
+TerrainFoliage holds where every copy of every foliage asset stands on one
+terrain (Terrain plan F1). The copies are kept in FoliageCells: each region
+of the terrain is split into square cells about 32 units wide, and each cell
+holds one asset's copies, so a cell can be drawn and culled as one piece.
+
+It is saved beside the terrain's height images, one file per region with
+foliage, such as "region_-1_2_foliage.json", so a region's foliage loads
+with it. Saving never deletes a file: a region whose foliage was all removed
+gets a file with no cells.
+
+The assets themselves (which model, how dense) are in a FoliageList; copies
+here name their asset by its number in that list.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainFoliage
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+use Libraries.Compute.Random
+
+TerrainItem ground
+ground:Load("Scenes/Terrains/Terrain1/terrain.json")
+TerrainFoliage foliage = ground:GetTerrainFoliage()
+FoliageAsset rock
+rock:SetName("Rock")
+Random random
+foliage:AddCopyOnGround(0, rock, 10, 20, random)
+*/
+class TerrainFoliage
+    TerrainData data = undefined
+    Math math
+
+    // Every cell, by "asset/cellX/cellZ", and the same cells in a list.
+    HashTable<text, FoliageCell> cellTable
+    Array<FoliageCell> cells
+
+    // The regions a foliage file was loaded for, by "x/z", so saving writes
+    // them again even when their foliage is gone.
+    HashTable<text, text> regionsWithFiles
+
+    // How wide a cell is wanted, in world units. Each region is split into a
+    // whole number of cells, as near this width as can be.
+    constant number WANTED_CELL_SIZE = 32
+
+    /*
+    This action sets the terrain data the foliage stands on. TerrainItem
+    calls it when it loads or makes a terrain.
+
+    Attribute: Parameter terrainData The terrain's data.
+    */
+    action SetTerrainData(TerrainData terrainData)
+        data = terrainData
+    end
+
+    /*
+    This action returns the terrain data the foliage stands on.
+
+    Attribute: Returns The data, or undefined before it is set.
+    */
+    action GetTerrainData returns TerrainData
+        return data
+    end
+
+    /*
+    This action returns how many cells each region is split into along x
+    and along z.
+
+    Attribute: Returns The count, at least 1.
+    */
+    action GetCellsPerRegion returns integer
+        number regionWidth = GetRegionWidth()
+        integer count = cast(integer, math:Round(regionWidth / WANTED_CELL_SIZE))
+        if count < 1
+            return 1
+        end
+        return count
+    end
+
+    /*
+    This action returns how wide a cell is, in world units.
+
+    Attribute: Returns The width.
+    */
+    action GetCellSize returns number
+        return GetRegionWidth() / GetCellsPerRegion()
+    end
+
+    /*
+    This action returns how wide a region is, in world units.
+    */
+    private action GetRegionWidth returns number
+        if data = undefined
+            return WANTED_CELL_SIZE
+        end
+        return data:GetRegionSize() * data:GetVertexSpacing()
+    end
+
+    /*
+    This action returns the cell along one axis holding a world position.
+    */
+    private action GetCellAt(number world) returns integer
+        return cast(integer, math:Floor(world / GetCellSize()))
+    end
+
+    /*
+    This action returns the region along one axis holding a cell.
+    */
+    private action GetRegionOfCell(integer cell) returns integer
+        return cast(integer, math:Floor(cast(number, cell) / GetCellsPerRegion()))
+    end
+
+    /*
+    This action returns the cell for an asset at a place, making it if it
+    isn't there.
+    */
+    private action GetOrMakeCell(integer asset, integer cellX, integer cellZ) returns FoliageCell
+        text key = "" + asset + "/" + cellX + "/" + cellZ
+        if cellTable:HasKey(key)
+            return cellTable:GetValue(key)
+        end
+        FoliageCell cell
+        cell:Set(asset, cellX, cellZ, GetCellSize())
+        cellTable:Add(key, cell)
+        cells:Add(cell)
+        return cell
+    end
+
+    /*
+    This action adds a copy of an asset.
+
+    Attribute: Parameter asset The asset's number in the foliage list.
+    Attribute: Parameter x Where it stands along x, in world units.
+    Attribute: Parameter y Its height, in world units.
+    Attribute: Parameter z Where it stands along z, in world units.
+    Attribute: Parameter turn Its turn about the up axis, in degrees.
+    Attribute: Parameter scale Its scale.
+    Attribute: Parameter shade Its shade, 1 for the asset's own color.
+    Attribute: Returns The cell it was added to.
+    */
+    action AddCopy(integer asset, number x, number y, number z, number turn, number scale, number shade) returns FoliageCell
+        FoliageCell cell = GetOrMakeCell(asset, GetCellAt(x), GetCellAt(z))
+        cell:Add(x, y, z, turn, scale, shade)
+        return cell
+    end
+
+    /*
+    This action adds a copy of an asset standing on the ground at a place,
+    with the asset's height offset and its random scale, turn and shade. It
+    adds nothing where there is no ground, or where the slope is outside the
+    asset's range.
+
+    Attribute: Parameter asset The asset's number in the foliage list.
+    Attribute: Parameter settings The asset, for its offset, variation and slopes.
+    Attribute: Parameter x Where it stands along x, in world units.
+    Attribute: Parameter z Where it stands along z, in world units.
+    Attribute: Parameter random Where the random variation comes from.
+    Attribute: Returns True if a copy was added.
+    */
+    action AddCopyOnGround(integer asset, FoliageAsset settings, number x, number z, Random random) returns boolean
+        if data = undefined or not data:HasHeight(x, z)
+            return false
+        end
+        if not settings:GrowsOnSlope(data:GetSlope(x, z))
+            return false
+        end
+        number y = data:GetSurfaceHeight(x, z) + settings:GetHeightOffset()
+        number turn = 0
+        if settings:HasRandomTurn()
+            turn = random:RandomNumber() * 360
+        end
+        number scale = settings:GetBaseScale() * (1 + (random:RandomNumber() * 2 - 1) * settings:GetRandomScale())
+        number shade = 1 - random:RandomNumber() * settings:GetShadeVariation()
+        AddCopy(asset, x, y, z, turn, scale, shade)
+        return true
+    end
+
+    /*
+    This action removes the copies whose middles are within a distance of a
+    point, of one asset or of all of them.
+
+    Attribute: Parameter asset The asset's number, or -1 for every asset.
+    Attribute: Parameter x The point along x, in world units.
+    Attribute: Parameter z The point along z, in world units.
+    Attribute: Parameter radius The distance, in world units.
+    Attribute: Returns How many copies were removed.
+    */
+    action RemoveCopies(integer asset, number x, number z, number radius) returns integer
+        integer removed = 0
+        integer firstX = GetCellAt(x - radius)
+        integer lastX = GetCellAt(x + radius)
+        integer firstZ = GetCellAt(z - radius)
+        integer lastZ = GetCellAt(z + radius)
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            boolean inside = cell:GetCellX() >= firstX and cell:GetCellX() <= lastX and cell:GetCellZ() >= firstZ and cell:GetCellZ() <= lastZ
+            if inside and (asset < 0 or cell:GetAsset() = asset)
+                removed = removed + cell:RemoveNear(x, z, radius)
+            end
+            i = i + 1
+        end
+        return removed
+    end
+
+    /*
+    This action moves the copies in an area up or down onto the ground
+    under them, after the ground was sculpted (Terrain plan F4), keeping
+    their asset's height offset. Copies with no ground under them, such as
+    on a removed region, stay where they are.
+
+    Attribute: Parameter list The foliage list, for each asset's height offset, or undefined for none.
+    Attribute: Parameter x The area's middle along x, in world units.
+    Attribute: Parameter z The area's middle along z, in world units.
+    Attribute: Parameter radius How far the area reaches from its middle; a negative radius is the whole terrain.
+    Attribute: Returns The cells whose copies moved.
+    */
+    action FollowGround(FoliageList list, number x, number z, number radius) returns Array<FoliageCell>
+        Array<FoliageCell> moved
+        if data = undefined
+            return moved
+        end
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            number size = cell:GetCellSize()
+            number lowX = cell:GetCellX() * size
+            number lowZ = cell:GetCellZ() * size
+            boolean inside = radius < 0 or (lowX <= x + radius and lowX + size >= x - radius and lowZ <= z + radius and lowZ + size >= z - radius)
+            if inside and not cell:IsEmpty()
+                number offset = 0
+                if list not= undefined and cell:GetAsset() >= 0 and cell:GetAsset() < list:GetAssetCount()
+                    offset = list:GetAsset(cell:GetAsset()):GetHeightOffset()
+                end
+                boolean changed = false
+                integer copy = 0
+                repeat while copy < cell:GetCount()
+                    number copyX = cell:GetX(copy)
+                    number copyZ = cell:GetZ(copy)
+                    if data:HasHeight(copyX, copyZ)
+                        number y = data:GetSurfaceHeight(copyX, copyZ) + offset
+                        number difference = y - cell:GetY(copy)
+                        if difference > 0.0001 or difference < -0.0001
+                            cell:SetY(copy, y)
+                            changed = true
+                        end
+                    end
+                    copy = copy + 1
+                end
+                if changed
+                    moved:Add(cell)
+                end
+            end
+            i = i + 1
+        end
+        return moved
+    end
+
+    /*
+    This action returns how many cells there are, including empty ones.
+
+    Attribute: Returns The count.
+    */
+    action GetCellCount returns integer
+        return cells:GetSize()
+    end
+
+    /*
+    This action returns one of the cells.
+
+    Attribute: Parameter index The cell, from 0.
+    Attribute: Returns The cell.
+    */
+    action GetCellAtIndex(integer index) returns FoliageCell
+        return cells:Get(index)
+    end
+
+    /*
+    This action returns how many copies there are of every asset.
+
+    Attribute: Returns The count.
+    */
+    action GetCopyCount returns integer
+        return GetCopyCount(-1)
+    end
+
+    /*
+    This action returns how many copies there are of one asset.
+
+    Attribute: Parameter asset The asset's number, or -1 for every asset.
+    Attribute: Returns The count.
+    */
+    action GetCopyCount(integer asset) returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            if asset < 0 or cell:GetAsset() = asset
+                count = count + cell:GetCount()
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    /*
+    This action removes every copy of an asset, and moves the numbers of the
+    assets after it down one, for when the foliage list loses that asset.
+
+    Attribute: Parameter asset The asset's number.
+    */
+    action RemoveAsset(integer asset)
+        Array<FoliageCell> kept
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            if cell:GetAsset() = asset
+                cell:Empty()
+            else
+                if cell:GetAsset() > asset
+                    cell:SetAsset(cell:GetAsset() - 1)
+                end
+                kept:Add(cell)
+            end
+            i = i + 1
+        end
+        cells = kept
+        RebuildTable()
+    end
+
+    /*
+    This action swaps two assets' numbers on every copy, for when the
+    foliage list's assets are swapped, so each copy keeps its asset.
+
+    Attribute: Parameter first One asset's number.
+    Attribute: Parameter second The other's.
+    */
+    action SwapAssets(integer first, integer second)
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            if cell:GetAsset() = first
+                cell:SetAsset(second)
+            elseif cell:GetAsset() = second
+                cell:SetAsset(first)
+            end
+            i = i + 1
+        end
+        RebuildTable()
+    end
+
+    /*
+    This action makes the table of cells again from the list, after their
+    asset numbers changed.
+    */
+    private action RebuildTable
+        cellTable:Empty()
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            cellTable:Add("" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ(), cell)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action removes every copy. Files already saved stay as they are
+    until the next save.
+    */
+    action Empty
+        cells:Empty()
+        cellTable:Empty()
+    end
+
+    /*
+    This action returns the name of a region's foliage file, such as
+    "region_-1_2_foliage.json".
+
+    Attribute: Parameter locationX The region's location along x.
+    Attribute: Parameter locationZ The region's location along z.
+    Attribute: Returns The file's name.
+    */
+    action GetRegionFileName(integer locationX, integer locationZ) returns text
+        return "region_" + locationX + "_" + locationZ + "_foliage.json"
+    end
+
+    /*
+    This action reads the foliage of every region of the terrain from a
+    folder, replacing what is held. Regions with no foliage file have none.
+
+    Attribute: Parameter folder The terrain's folder, holding its terrain.json.
+    */
+    action Load(File folder)
+        Empty()
+        regionsWithFiles:Empty()
+        if data = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            LoadRegion(folder, region:GetLocationX(), region:GetLocationZ())
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads one region's foliage file, if it has one.
+
+    Attribute: Parameter folder The terrain's folder.
+    Attribute: Parameter locationX The region's location along x.
+    Attribute: Parameter locationZ The region's location along z.
+    */
+    action LoadRegion(File folder, integer locationX, integer locationZ)
+        File file = GetFileInFolder(folder, GetRegionFileName(locationX, locationZ))
+        if not file:Exists()
+            return now
+        end
+        regionsWithFiles:Add("" + locationX + "/" + locationZ, "")
+        JavaScriptObjectNotation json
+        json:Read(file)
+        JavaScriptObjectNotation holder = json:GetObject("Cells")
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        integer i = 0
+        repeat while i < list:GetSize()
+            LoadCell(list:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads one cell of a region's foliage file.
+    */
+    private action LoadCell(JavaScriptObjectNotation item)
+        integer asset = cast(integer, ReadNumber(item, "Asset"))
+        integer cellX = cast(integer, ReadNumber(item, "X"))
+        integer cellZ = cast(integer, ReadNumber(item, "Z"))
+        FoliageCell cell = GetOrMakeCell(asset, cellX, cellZ)
+        JavaScriptObjectNotation holder = item:GetObject("Copies")
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation copies = holder
+        if holder:IsArrayObject()
+            copies = holder:GetArray()
+        end
+        integer count = copies:GetSize() / cell:VALUES_PER_COPY
+        integer i = 0
+        repeat while i < count
+            integer start = i * cell:VALUES_PER_COPY
+            cell:Add(ReadArrayNumber(copies, start), ReadArrayNumber(copies, start + 1), ReadArrayNumber(copies, start + 2),
+                ReadArrayNumber(copies, start + 3), ReadArrayNumber(copies, start + 4), ReadArrayNumber(copies, start + 5))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes the foliage of every region that has any, or had a
+    foliage file when loaded, to a folder. Regions without foliage that
+    never had a file get none. Nothing is deleted.
+
+    Attribute: Parameter folder The terrain's folder, holding its terrain.json.
+    */
+    action Save(File folder)
+        if data = undefined
+            return now
+        end
+        // Each region's cells, by "x/z".
+        HashTable<text, Array<FoliageCell>> byRegion
+        integer i = 0
+        repeat while i < cells:GetSize()
+            FoliageCell cell = cells:Get(i)
+            if not cell:IsEmpty()
+                text key = "" + GetRegionOfCell(cell:GetCellX()) + "/" + GetRegionOfCell(cell:GetCellZ())
+                if not byRegion:HasKey(key)
+                    Array<FoliageCell> list
+                    byRegion:Add(key, list)
+                end
+                byRegion:GetValue(key):Add(cell)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            text key = "" + region:GetLocationX() + "/" + region:GetLocationZ()
+            if byRegion:HasKey(key)
+                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), byRegion:GetValue(key))
+                if not regionsWithFiles:HasKey(key)
+                    regionsWithFiles:Add(key, "")
+                end
+            elseif regionsWithFiles:HasKey(key)
+                Array<FoliageCell> none
+                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), none)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes one region's foliage file.
+    */
+    private action SaveRegion(File folder, integer locationX, integer locationZ, Array<FoliageCell> regionCells)
+        JavaScriptObjectNotation json
+        json:Add("Format", "Quorum Region Foliage")
+        json:Add("Version", 1)
+        JavaScriptObjectNotation list
+        list:SetArray()
+        integer i = 0
+        repeat while i < regionCells:GetSize()
+            FoliageCell cell = regionCells:Get(i)
+            JavaScriptObjectNotation item
+            item:Add("Asset", cell:GetAsset())
+            item:Add("X", cell:GetCellX())
+            item:Add("Z", cell:GetCellZ())
+            JavaScriptObjectNotation copies
+            copies:SetArray()
+            Array<number> values = cell:GetValues()
+            integer j = 0
+            repeat while j < values:GetSize()
+                copies:Add(values:Get(j))
+                j = j + 1
+            end
+            item:Add("Copies", copies)
+            list:Add(item)
+            i = i + 1
+        end
+        json:Add("Cells", list)
+        File file = GetFileInFolder(folder, GetRegionFileName(locationX, locationZ))
+        file:Write(json:ToText())
+    end
+
+    /*
+    This action returns a file in a folder, keeping the folder's working
+    directory, so a terrain loaded relative to a project saves there too.
+    */
+    private action GetFileInFolder(File folder, text name) returns File
+        File file
+        file:SetWorkingDirectory(folder:GetWorkingDirectory())
+        if folder:GetPath() = ""
+            file:SetPath(name)
+        else
+            file:SetPath(folder:GetPath() + "/" + name)
+        end
+        return file
+    end
+
+    /*
+    This action returns a number from an entry, whether it was written as a
+    whole number or with a decimal point, or 0 if it isn't there.
+    */
+    private action ReadNumber(JavaScriptObjectNotation json, text key) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+            end
+        end
+        return 0
+    end
+
+    /*
+    This action returns one number of an array, whether it was written as a
+    whole number or with a decimal point.
+    */
+    private action ReadArrayNumber(JavaScriptObjectNotation array, integer index) returns number
+        JavaScriptObjectNotation item = array:Get(index)
+        if item:IsInteger()
+            return item:GetInteger()
+        end
+        return item:GetNumber()
+    end
+end

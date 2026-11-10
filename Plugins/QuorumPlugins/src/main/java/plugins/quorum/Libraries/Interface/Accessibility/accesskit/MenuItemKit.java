@@ -5,7 +5,7 @@ import java.util.Collections;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Item_;
 
-public class MenuItemKit extends ItemKit {
+public class MenuItemKit extends ClickableKit {
     public MenuItemKit() {
         SetRole(Role.MENU_ITEM);
     }

@@ -29,6 +29,7 @@ use Libraries.Game.InputTable
 use Libraries.Interface.Behaviors.Controls.MenuItemShortcutBehavior
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Views.ChevronTexture
 
 class MenuItem is Control
     
@@ -391,6 +392,11 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
     action SetParentMenu(MenuItem menu)
         parentMenu = menu
+        // A submenu given its items before it was put in its menu shows its
+        // arrow now, as one given them after does (Add).
+        if menu not= undefined and not menuItems:IsEmpty()
+            arrow:Show()
+        end
     end
 
     action SetBehavior(Behavior behavior)
@@ -419,14 +425,9 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     action BeginMouseOver
         parent:Control:BeginMouseOver()
         label:ShowUnderline()
-        // The theme's hover text color, if it has one (selecting the item
-        // below sets the selection color instead).
-        if not IsSelected()
-            ColorGroup hoverFont = GetDefaultLayoutProperties():GetMouseOverFontColor()
-            if hoverFont not= undefined
-                label:SetColor(hoverFont)
-            end
-        end
+        // The theme's hover text color, if it has one, or the selection
+        // color when selected.
+        RefreshLabelColor()
         MenuRoot bar = GetMenuRoot()
         if bar not= undefined and bar:IsSelecting()
             if not open
@@ -440,9 +441,36 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         parent:Control:EndMouseOver()
         if not IsSelected()
             label:HideUnderline()
-            if GetDefaultLayoutProperties():GetMouseOverFontColor() not= undefined
-                label:SetColor(GetDefaultLayoutProperties():GetFontColor())
-            end
+        end
+        // Always colored again from the item's state, so the hover color is
+        // never left behind, even when the item counts as selected.
+        RefreshLabelColor()
+    end
+
+    /*
+    Colors the label from the item's state: the selection font color when
+    selected, the theme's hover font color while the mouse is over it (if
+    the theme has one), and the plain font color otherwise. Every change of
+    hover or selection calls this, so a color is never left behind.
+    */
+    private action RefreshLabelColor
+        ColorLabel(IsSelected())
+    end
+
+    /*
+    Colors the label as RefreshLabelColor does, for a selection state given
+    directly. GainedSelection and LostSelection use it, since MenuRoot sets
+    its selection path after telling the items, so IsSelected doesn't yet
+    give the new state while they run.
+    */
+    private action ColorLabel(boolean selected)
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if selected
+            label:SetColor(properties:GetSelectionFontColor())
+        elseif IsRenderingMouseOver() and properties:GetMouseOverFontColor() not= undefined
+            label:SetColor(properties:GetMouseOverFontColor())
+        else
+            label:SetColor(properties:GetFontColor())
         end
     end
 
@@ -450,9 +478,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         parent:Control:GainedSelection()
         label:ShowUnderline()
         LayoutProperties properties = GetDefaultLayoutProperties()
-        ColorGroup select = properties:GetSelectionFontColor()
-
-        label:SetColor(select)
+        ColorLabel(true)
         shortcutLabel:SetColor(properties:GetSelectionFontColor())
 
         MenuRoot menuRoot = GetMenuRoot()
@@ -465,8 +491,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         parent:Control:LostSelection()
         label:HideUnderline()
         LayoutProperties properties = GetDefaultLayoutProperties()
-        ColorGroup select = properties:GetFontColor()
-        label:SetColor(select)
+        ColorLabel(false)
         ColorShortcut(properties, false)
 
         if open
@@ -796,8 +821,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
 
         arrow:SetColor(properties:GetFontColor())
 
+        // A submenu's arrow is a chevron, ">", the same as a tree's,
+        // drawn for half the font's line height, the arrow's size.
         if arrow:IsLoaded() = false
-            arrow:LoadFilledTriangle(0, 0, 0, 200, 173, 100)
+            integer chevronSize = cast(integer, properties:GetFont():GetLineHeight() / 2)
+            if chevronSize < 8
+                chevronSize = 8
+            end
+            ChevronTexture chevrons
+            arrow:Load(chevrons:GetTexture(chevronSize))
         end
 
         arrow:SetColor(properties:GetFontColor():GetBottomLeft())

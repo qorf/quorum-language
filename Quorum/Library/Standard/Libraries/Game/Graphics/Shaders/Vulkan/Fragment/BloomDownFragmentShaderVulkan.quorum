@@ -1,0 +1,78 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+/*
+BloomDownFragmentShaderVulkan makes one step down the bloom chain (Lighting
+plan L3): an image half the size of its source, each pixel the average of
+the source around it (the dual filter's down step: the center four times and
+four diagonal neighbors). The first step, from the lit image, keeps only the
+light above the threshold, with a soft knee so the glow doesn't start
+suddenly.
+
+Its push constants (24 bytes): the source's texel size, the threshold, the
+knee, whether this is the first step, and a spare.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.BloomDownFragmentShaderVulkan
+
+BloomDownFragmentShaderVulkan shader
+*/
+class BloomDownFragmentShaderVulkan is Shader
+
+    public constant text DEFAULT_NAME = "Bloom Down Fragment Shader"
+
+    on create
+        SetType(parent:Shader:FRAGMENT_SHADER)
+        SetName(DEFAULT_NAME)
+
+        SetCode(GetVersionHeader() + "
+
+layout (location = 0) in vec2 v_samplerCoordinate;
+
+layout (location = 0) out vec4 outputColor;
+
+// The source: the lit image, or the previous step.
+layout (set = 0, binding = 0) uniform sampler2D source;
+
+layout(push_constant) uniform BloomDown {
+	vec2 texelSize;
+	float threshold;
+	float knee;
+	float brightPass;
+	float spare;
+} bloom;
+
+// Light that isn't a number, or is endless, would spread over the screen.
+vec3 safe(vec3 color)
+{
+	if (any(isnan(color)) || any(isinf(color)))
+		return vec3(0.0);
+	return clamp(color, vec3(0.0), vec3(1000.0));
+}
+
+void main()
+{
+	vec2 offset = bloom.texelSize;
+	vec3 sum = safe(texture(source, v_samplerCoordinate).rgb) * 4.0;
+	sum += safe(texture(source, v_samplerCoordinate + vec2(-offset.x, -offset.y)).rgb);
+	sum += safe(texture(source, v_samplerCoordinate + vec2(offset.x, -offset.y)).rgb);
+	sum += safe(texture(source, v_samplerCoordinate + vec2(-offset.x, offset.y)).rgb);
+	sum += safe(texture(source, v_samplerCoordinate + vec2(offset.x, offset.y)).rgb);
+	vec3 color = sum / 8.0;
+
+	if (bloom.brightPass > 0.5)
+	{
+		// The soft knee: light just under the threshold glows a little.
+		float brightness = max(color.r, max(color.g, color.b));
+		float knee = max(bloom.knee, 0.00001);
+		float soft = clamp(brightness - bloom.threshold + knee, 0.0, 2.0 * knee);
+		soft = soft * soft / (4.0 * knee);
+		float contribution = max(soft, brightness - bloom.threshold) / max(brightness, 0.00001);
+		color = color * contribution;
+	}
+	outputColor = vec4(color, 1.0);
+}
+")
+    end
+end
