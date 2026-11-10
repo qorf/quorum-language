@@ -9,7 +9,7 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.System.StackTraceItem
 
-class ByteArrayTester 
+class ByteArrayTester
     CompilerTestSuite suite = undefined
     text path = "Library/Tests/ByteArray/"
     text passPath = path + "Pass/"
@@ -35,6 +35,7 @@ class ByteArrayTester
         NumberFromEightBytes()
         TextFromEightBytes()
         TextFromFourBytes()
+        ReadBytesClosesFile()
     end
 
     action GetName returns text
@@ -260,5 +261,14 @@ class ByteArrayTester
         suite:TestJavaScript(files, results)
     end
 
-
+    action ReadBytesClosesFile
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReadBytesClosesFile.quorum")
+        files:Add(main)
+        results:Add(0, "success")
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
+    end
 end
