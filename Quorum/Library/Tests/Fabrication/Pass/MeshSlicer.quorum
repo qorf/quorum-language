@@ -1,0 +1,153 @@
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Fabrication.Geometry.TriangleMesh
+use Libraries.Fabrication.Slicing.MeshSlicer
+use Libraries.Fabrication.Slicing.Segment
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Slicing.MeshSlicer on boxes whose slices are known exactly. */
+class Main
+    TestModels models
+
+    action Main
+        SlicesACube()
+        DetectsUnits()
+        PutsTheBaseDown()
+        RejectsMisuse()
+    end
+
+    action Prepared(ModelData model) returns MeshSlicer
+        TriangleMesh mesh
+        mesh:Load(model)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        return slicer
+    end
+
+    action SlicesACube
+        // a 20 mm cube at 0.2 mm layers
+        MeshSlicer slicer = Prepared(models:Cube())
+        output "an upright cube stays as it is: " + slicer:GetBaseDirection()
+        output "millimetres: " + Near(slicer:GetUnitScale(), 1, 0)
+        output "distinct vertices: " + slicer:GetUniqueVertexCount()
+        Array<number> range = slicer:GetSliceRange()
+        output "bottom: " + Near(range:Get(0), 0, 0.000001)
+        output "top: " + Near(range:Get(1), 20, 0.000001)
+        Array<number> planes = slicer:BuildPlanes(0, 20, 0.2)
+        output "one plane per layer: " + planes:GetSize()
+        output "the first plane is mid-layer: " + Near(planes:Get(0), 0.1, 0.000001)
+        Array<Segment> segments = slicer:Slice(planes)
+        // each plane cuts both triangles of each of the 4 sides
+        output "segments: " + segments:GetSize()
+        output "a closed mesh has no odd crossings: " + slicer:GetOddCrossingCount()
+        output "two crossings per triangle: " + slicer:GetMaxCrossingsPerFace()
+        Array<text> warnings = slicer:GetWarnings()
+        output "no warnings for a clean 20 mm cube: " + warnings:GetSize()
+        Segment first = segments:Get(0)
+        output "segments carry their plane: " + (first:planeIndex >= 0 and first:planeIndex < 100)
+    end
+
+    action DetectsUnits
+        // unit detection
+        MeshSlicer metres = Prepared(models:Box(0, 0, 0, 0.02, 0.02, 0.02))
+        output "a 0.02 unit model is taken as metres: " + Near(metres:GetUnitScale(), 1000, 0)
+        Array<number> range = metres:GetSliceRange()
+        output "scaled to 20 mm: " + Near(range:Get(1), 20, 0.001)
+        Array<text> metreWarnings = metres:GetWarnings()
+        output "the guess is reported: " + metreWarnings:GetSize()
+
+        MeshSlicer small = Prepared(models:Box(0, 0, 0, 2, 2, 2))
+        Array<text> smallWarnings = small:GetWarnings()
+        output "a 2 mm model may be in inches: warned: " + smallWarnings:GetSize()
+
+        TriangleMesh mesh
+        mesh:Load(models:Box(0, 0, 0, 2, 2, 2))
+        MeshSlicer inches
+        inches:SetUnitScale(25.4)
+        inches:SetTriangles(mesh)
+        Array<number> inchRange = inches:GetSliceRange()
+        output "SetUnitScale(25.4) turns 2 inches into 50.8 mm: " + Near(inchRange:Get(1), 50.8, 0.0001)
+        Array<text> inchWarnings = inches:GetWarnings()
+        output "no warning when the scale is given: " + inchWarnings:GetSize()
+
+        MeshSlicer huge = Prepared(models:Box(0, 0, 0, 500, 10, 10))
+        Array<text> hugeWarnings = huge:GetWarnings()
+        output "a model larger than the bed is warned about: " + hugeWarnings:GetSize()
+    end
+
+    action PutsTheBaseDown
+        // the largest flat face goes on the bed
+        // a 30 x 30 plate standing on a 2 mm edge: its big face looks down -Y
+        MeshSlicer slicer = Prepared(models:Box(0, 0, 0, 30, 2, 30))
+        output "the base faced -Y: " + slicer:GetBaseDirection()
+        Array<number> range = slicer:GetSliceRange()
+        output "lying flat, it is 2 mm tall: " + Near(range:Get(1) - range:Get(0), 2, 0.000001)
+
+        MeshSlicer raised = Prepared(models:Box(5, 5, 7, 25, 25, 27))
+        Array<number> raisedRange = raised:GetSliceRange()
+        output "a model above Z = 0 is moved down to the bed: " + Near(raisedRange:Get(0), 0, 0.000001)
+    end
+
+    action RejectsMisuse
+        // misuse stops with a message
+        boolean emptyMesh = false
+        check
+            TriangleMesh nothing
+            MeshSlicer slicer
+            slicer:SetTriangles(nothing)
+        detect e1
+            emptyMesh = true
+        end
+        output "SetTriangles with an empty mesh: " + emptyMesh
+
+        boolean early = false
+        check
+            MeshSlicer unused
+            Array<number> range = unused:GetSliceRange()
+        detect e2
+            early = true
+        end
+        output "GetSliceRange before SetTriangles: " + early
+
+        boolean zeroLayer = false
+        check
+            MeshSlicer cube = Prepared(models:Cube())
+            Array<number> planes = cube:BuildPlanes(0, 20, 0)
+        detect e3 is InvalidArgumentError
+            zeroLayer = true
+        end
+        output "a layer height of 0 (which would loop forever): " + zeroLayer
+
+        boolean flat = false
+        check
+            MeshSlicer cube2 = Prepared(models:Cube())
+            Array<number> none = cube2:BuildPlanes(0, 0.05, 0.2)
+        detect e4
+            flat = true
+        end
+        output "a model thinner than half a layer: " + flat
+
+        boolean negativeScale = false
+        check
+            MeshSlicer scaled
+            scaled:SetUnitScale(-1)
+        detect e5 is InvalidArgumentError
+            negativeScale = true
+        end
+        output "a negative unit scale: " + negativeScale
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

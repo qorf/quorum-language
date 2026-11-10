@@ -1,0 +1,28 @@
+package Libraries.Fabrication.Slicing
+
+/*
+The Segment class is one piece of a slice outline: the line where a single
+triangle of the mesh crosses a slice plane. MeshSlicer makes them and
+ContourGenerator chains them into loops.
+
+Each end lies on a triangle edge, recorded by the edge's two vertex ids
+(lower id first) so that the neighbouring triangle's segment, which shares
+that edge, can be found exactly. Segments run so the solid is on the left.
+*/
+class Segment
+    /* The slice plane this segment lies on. */
+    public integer planeIndex = 0
+
+    /* The mesh edge the segment starts on (its two vertex ids, lower first). */
+    public integer aLow = 0
+    public integer aHigh = 0
+
+    /* The mesh edge the segment ends on. */
+    public integer bLow = 0
+    public integer bHigh = 0
+
+    public number x0 = 0.0
+    public number y0 = 0.0
+    public number x1 = 0.0
+    public number y1 = 0.0
+end

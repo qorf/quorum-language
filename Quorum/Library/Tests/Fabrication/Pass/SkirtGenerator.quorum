@@ -1,0 +1,105 @@
+use Libraries.Containers.Array
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Slicing.SkirtGenerator
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Slicing.SkirtGenerator around a 20 mm square first layer. */
+class Main
+    TestModels models
+
+    action Main
+        Skirt()
+        TallSkirt()
+        Brim()
+        NothingToGoAround()
+    end
+
+    /* A first layer: a 20 mm square with a hole, plus a second layer the skirt must ignore. */
+    action FirstLayer returns Array<Contour>
+        Array<Contour> outlines
+        outlines:Add(models:Square(0, 0, 20, 0))
+        outlines:Add(models:HoleSquare(5, 5, 10, 0))
+        outlines:Add(models:Square(-50, -50, 200, 1))
+        return outlines
+    end
+
+    action Skirt
+        // a two-loop skirt 3 mm away
+        SkirtGenerator skirt
+        skirt:SetLineWidth(0.4)
+        skirt:SetSkirt(2, 3, 1)
+        Array<Contour> loops = skirt:Generate(FirstLayer())
+        output "two loops: " + loops:GetSize()
+        if loops:GetSize() = 2
+            Contour inner = loops:Get(0)
+            Contour outer = loops:Get(1)
+            // loop i is centred (3 + (i + 0.5) * 0.4) mm outside the 20 mm square
+            output "first loop: " + Near(inner:Area(), 26.4 * 26.4, 0.0001)
+            output "second loop: " + Near(outer:Area(), 27.2 * 27.2, 0.0001)
+            output "a closed loop on layer 0: " + (inner:closed and inner:planeIndex = 0)
+            output "it goes around the model: " + inner:ContainsPoint(10, 10)
+        end
+        Array<text> warnings = skirt:GetWarnings()
+        output "no warnings: " + warnings:GetSize()
+    end
+
+    action TallSkirt
+        // a skirt 3 layers tall
+        SkirtGenerator skirt
+        skirt:SetSkirt(1, 3, 3)
+        Array<Contour> loops = skirt:Generate(FirstLayer())
+        output "one loop on each of 3 layers: " + loops:GetSize()
+        output "the third layer has its loop: " + models:CountOnPlane(loops, 2)
+    end
+
+    action Brim
+        // a brim touching the model
+        SkirtGenerator brim
+        brim:SetLineWidth(0.4)
+        brim:SetBrim(3, 0)
+        Array<Contour> loops = brim:Generate(FirstLayer())
+        output "three loops, all outside (none in the hole): " + loops:GetSize()
+        if loops:GetSize() = 3
+            Contour first = loops:Get(0)
+            output "the first loop is half a line width out: " + Near(first:Area(), 20.4 * 20.4, 0.0001)
+        end
+    end
+
+    action NothingToGoAround
+        // an empty first layer, and bad settings
+        SkirtGenerator skirt
+        Array<Contour> upstairs = models:ListOf(models:Square(0, 0, 10, 3))
+        Array<Contour> loops = skirt:Generate(upstairs)
+        output "no loops: " + loops:GetSize()
+        Array<text> warnings = skirt:GetWarnings()
+        output "the missing skirt is reported: " + warnings:GetSize()
+
+        SkirtGenerator none
+        none:SetSkirt(0, 3, 1)
+        Array<Contour> noLoops = none:Generate(FirstLayer())
+        output "0 loops asked for, 0 made: " + noLoops:GetSize()
+
+        boolean refused = false
+        check
+            SkirtGenerator bad
+            bad:SetSkirt(2, 3, 0)
+        detect e is InvalidArgumentError
+            refused = true
+        end
+        output "a skirt 0 layers tall is refused: " + refused
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

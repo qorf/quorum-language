@@ -1,0 +1,481 @@
+package Libraries.Fabrication.Slicing
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ContourSimplifier
+use Libraries.Fabrication.Geometry.GeometryUtilities
+
+/*
+The ContourGenerator class joins MeshSlicer's segments into the outlines of
+each layer. Segments that share a mesh edge are chained exactly; chains left
+open by a damaged mesh are bridged across gaps up to maxGap. Each loop is
+then simplified, specks smaller than the minimum area are dropped, and every
+loop is oriented: outer loops counter-clockwise, holes clockwise with isHole
+set and depth counting the loops around them.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Slicing.ContourGenerator
+    use Libraries.Fabrication.Slicing.Segment
+
+    class Main
+        action Main
+            Array<Segment> segments     // from MeshSlicer:Slice(planes)
+            ContourGenerator generator
+            generator:SetSimplifyTolerance(0.02)
+            generator:SetMinArea(0.05)
+            Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        end
+    end
+*/
+class ContourGenerator
+    integer flippedCount = 0
+    number simplifyTolerance = 0.02
+    number minArea = 0.05
+
+    integer pointsBefore = 0
+    integer pointsAfter = 0
+    integer droppedCount = 0
+    integer openCount = 0
+
+    GeometryUtilities util
+    ContourSimplifier simplifier
+    ArgumentChecker checker
+
+    /*
+    How far (mm) a loop may move when its points are thinned out; 0 keeps
+    every point.
+
+    Attribute: Parameter tolerance The distance (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        generator:SetSimplifyTolerance(0.02)      // points may move 0.02 mm
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+    */
+    action SetSimplifyTolerance(number tolerance)
+        checker:RequireAtLeast("ContourGenerator:SetSimplifyTolerance tolerance", tolerance, 0)
+        simplifyTolerance = tolerance
+    end
+
+    /*
+    Loops smaller than this are dropped as specks; 0 keeps them all.
+
+    Attribute: Parameter area The area (mm^2).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        generator:SetMinArea(0.05)      // drop loops under 0.05 mm^2
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+    */
+    action SetMinArea(number area)
+        checker:RequireAtLeast("ContourGenerator:SetMinArea area", area, 0)
+        minArea = area
+    end
+
+    /*
+    The number of loop points before simplification in the last Build.
+
+    Attribute: Returns The number of loop points before simplification in the last Build.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        output generator:GetPointsBefore() + " points, " + generator:GetPointsAfter() + " after simplifying"
+    */
+    action GetPointsBefore returns integer
+        return pointsBefore
+    end
+
+    /*
+    The number of loop points after simplification in the last Build.
+
+    Attribute: Returns The number of loop points after simplification in the last Build.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        output generator:GetPointsAfter() + " points are left"
+    */
+    action GetPointsAfter returns integer
+        return pointsAfter
+    end
+
+    /*
+    How many specks the last Build dropped.
+
+    Attribute: Returns How many specks the last Build dropped.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        output generator:GetDroppedCount() + " specks dropped"
+    */
+    action GetDroppedCount returns integer
+        return droppedCount
+    end
+
+    /*
+    How many loops the last Build reversed to orient them.
+
+    Attribute: Returns How many loops the last Build reversed to orient them.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        output generator:GetFlippedCount() + " loops were reversed"
+    */
+    action GetFlippedCount returns integer
+        return flippedCount
+    end
+
+    /*
+    How many chains the last Build couldn't close, even across a gap (0 for a clean mesh).
+
+    Attribute: Returns How many chains the last Build couldn't close, even across a gap (0 for a clean mesh).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        if generator:GetOpenCount() > 0
+            output "The mesh has holes: some outlines couldn't be closed."
+        end
+    */
+    action GetOpenCount returns integer
+        return openCount
+    end
+
+    /*
+    Joins the segments into each plane's loops.
+
+    Attribute: Parameter segments The segments from MeshSlicer:Slice.
+    Attribute: Parameter planeCount The number of planes sliced.
+    Attribute: Parameter maxGap The largest gap (mm) bridged to close a chain.
+    Attribute: Returns The loops of every plane (plane by plane), plus any chains that stayed open.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.ContourGenerator
+        use Libraries.Fabrication.Slicing.Segment
+
+        Array<Segment> segments     // from MeshSlicer:Slice(planes)
+        ContourGenerator generator
+        Array<Contour> outlines = generator:Build(segments, 100, 0.2)
+        output outlines:GetSize() + " loops"
+    */
+    action Build(Array<Segment> segments, integer planeCount, number maxGap) returns Array<Contour>
+        checker:RequireAtLeast("ContourGenerator:Build planeCount", planeCount, 0)
+        checker:RequireAtLeast("ContourGenerator:Build maxGap", maxGap, 0)
+        Array<Contour> result
+        pointsBefore = 0
+        pointsAfter = 0
+        droppedCount = 0
+        flippedCount = 0
+        openCount = 0
+
+        Array<integer> planeOf
+        integer s = 0
+        repeat while s < segments:GetSize()
+            Segment seg = segments:Get(s)
+            planeOf:Add(seg:planeIndex)
+            s = s + 1
+        end
+        Array<integer> starts
+        Array<integer> order
+        util:BucketByPlane(planeOf, planeCount, starts, order)
+
+        integer p = 0
+        repeat while p < planeCount
+            if starts:Get(p + 1) > starts:Get(p)
+                ChainPlane(segments, order, starts:Get(p), starts:Get(p + 1), p, maxGap, result)
+            end
+            p = p + 1
+        end
+        return result
+    end
+
+    // builds the contours of one layer from segment order[from ... to]
+    private action ChainPlane(Array<Segment> segments, Array<integer> order, integer from, integer to,
+                              integer planeIndex, number maxGap, Array<Contour> result)
+        integer n = to - from
+        Array<boolean> used
+        Array<Contour> open
+        Array<Contour> planeResult
+        HashTable<text, integer> startMap // edge key -> segment starting it
+        HashTable<text, integer> endMap // edge key -> segment ending it
+
+        integer i = 0
+        repeat while i < n
+            used:Add(false)
+            Segment seg = segments:Get(order:Get(from + i))
+            text startKey = StartKey(seg)
+            text endKey = EndKey(seg)
+            if not startMap:HasKey(startKey)
+                startMap:Add(startKey, i)
+            end
+            if not endMap:HasKey(endKey)
+                endMap:Add(endKey, i)
+            end
+            i = i + 1
+        end
+
+        // pass 0: start only from segments no other segment leads into
+        // pass 1: whatever segments are left
+        integer pass = 0
+        repeat while pass < 2
+            i = 0
+            repeat while i < n
+                if not used:Get(i)
+                    Segment seed = segments:Get(order:Get(from + i))
+                    if pass = 1 or not endMap:HasKey(StartKey(seed))
+                        Contour c = WalkChain(segments, order, from, i, startMap, used)
+                        c:planeIndex = planeIndex
+                        if c:closed
+                            planeResult:Add(c)
+                        else
+                            open:Add(c)
+                        end
+                    end
+                end
+                i = i + 1
+            end
+            pass = pass + 1
+        end
+
+        BridgeGaps(open, maxGap, planeResult)
+
+        // simplify contours, and drop small loops
+        Array<Contour> cleaned
+        i = 0
+        repeat while i < planeResult:GetSize()
+            Contour cand = planeResult:Get(i)
+            pointsBefore = pointsBefore + cand:GetSize()
+            if simplifyTolerance > 0
+                simplifier:Simplify(cand, simplifyTolerance)
+            end
+            pointsAfter = pointsAfter + cand:GetSize()
+
+            if cand:closed and minArea > 0 and cand:Area() < minArea
+                droppedCount = droppedCount + 1
+            else
+                cleaned:Add(cand)
+            end
+            i = i + 1
+        end
+
+        OrientPlane(cleaned)
+
+        i = 0
+        repeat while i < cleaned:GetSize()
+            result:Add(cleaned:Get(i))
+            i = i + 1
+        end
+    end
+
+    // sets depth and or isHole for each loop by counting the
+    // loops around it, then reversing any loops that run
+    // the wrong way
+    private action OrientPlane(Array<Contour> contours)
+        integer m = contours:GetSize()
+        integer i = 0
+        repeat while i < m
+            Contour a = contours:Get(i)
+            if a:closed and a:GetSize() >= 3
+                integer depth = 0
+                integer j = 0
+
+                repeat while j < m
+                    if j not= i
+                        Contour b = contours:Get(j)
+                        if b:closed and a:IsInside(b)
+                            depth = depth + 1
+                        end
+                    end
+                    j = j + 1
+                end
+
+                a:depth = depth
+                a:isHole = false
+                if depth mod 2 = 1
+                    a:isHole = true
+                end
+
+                number area2 = a:SignedArea2()
+                boolean isCCW = area2 > 0
+                if a:isHole = isCCW
+                    a:Reverse()
+                    flippedCount = flippedCount + 1
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    // follows segments from the seed until chain closes, runs out,
+    // or reaches a segment that is already in use
+    private action WalkChain(Array<Segment> segments, Array<integer> order, integer from, integer seedLocal,
+                             HashTable<text, integer> startMap, Array<boolean> used) returns Contour
+        Contour c
+        Segment first = segments:Get(order:Get(from + seedLocal))
+        text firstKey = StartKey(first)
+        c:AddPoint(first:x0, first:y0)
+
+        integer curr = seedLocal
+        repeat while true
+            used:Set(curr, true)
+            Segment seg = segments:Get(order:Get(from + curr))
+            c:AddPoint(seg:x1, seg:y1)
+
+            text endKey = EndKey(seg)
+            if endKey = firstKey
+                c:closed = true
+                c:DropClosingDuplicate()
+                return c
+            end
+
+            if not startMap:HasKey(endKey)
+                return c
+            end
+
+            integer nextIndex = startMap:GetValue(endKey)
+            if used:Get(nextIndex)
+                return c
+            end
+
+            curr = nextIndex
+        end
+
+        return c
+    end
+
+    // repeatedly joins the closest tail-to-head pair of open chains
+    // chains that are not able to be closed are marked as open
+    private action BridgeGaps(Array<Contour> open, number maxGap, Array<Contour> result)
+        Array<boolean> alive
+        integer i = 0
+        repeat while i < open:GetSize()
+            alive:Add(true)
+            i = i + 1
+        end
+
+        number maxGap2 = maxGap * maxGap
+        repeat while true
+            integer bestI = -1
+            integer bestJ = -1
+            number best = maxGap2
+
+            i = 0
+            repeat while i < open:GetSize()
+                if alive:Get(i)
+                    Contour a = open:Get(i)
+                    number tx = a:TailX()
+                    number ty = a:TailY()
+                    integer j = 0
+                    repeat while j < open:GetSize()
+                        if alive:Get(j)
+                            Contour b = open:Get(j)
+                            if i not= j or a:GetSize() >= 3
+                                number dx = b:HeadX() - tx
+                                number dy = b:HeadY() - ty
+                                number d2 = dx * dx + dy * dy
+                                if d2 <= best
+                                    best = d2
+                                    bestI = i
+                                    bestJ = j
+                                end
+                            end
+                        end
+                        j = j + 1
+                    end
+                end
+                i = i + 1
+            end
+
+            if bestI = -1
+                i = 0
+                repeat while i < open:GetSize()
+                    if alive:Get(i)
+                        result:Add(open:Get(i))
+                        openCount = openCount + 1
+                    end
+                    i = i + 1
+                end
+                return now
+            end
+
+            Contour joined = open:Get(bestI)
+            if bestI = bestJ
+                joined:closed = true
+                joined:DropClosingDuplicate()
+                result:Add(joined)
+                alive:Set(bestI, false)
+            else
+                joined:AppendAll(open:Get(bestJ))
+                alive:Set(bestJ, false)
+            end
+        end
+    end
+
+    private action StartKey(Segment s) returns text
+        return "" + s:aLow + "_" + s:aHigh
+    end
+
+    private action EndKey(Segment s) returns text
+        return "" + s:bLow + "_" + s:bHigh
+    end
+end

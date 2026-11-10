@@ -1,0 +1,725 @@
+package Libraries.Fabrication.Slicing
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.GeometryUtilities
+use Libraries.Fabrication.Geometry.TriangleMesh
+
+/*
+The MeshSlicer class cuts a triangle mesh into horizontal slices. SetTriangles
+takes the mesh, turns it so its largest flat face is on the bed, scales it to
+millimetres and moves its lowest point to Z = 0. Slice then cuts every
+triangle with every plane it spans, giving one Segment per cut, ready for
+ContourGenerator to join into loops.
+
+Warnings about the model (a size that suggests the wrong units, a model
+larger than the bed, a mesh with holes) are collected in GetWarnings rather
+than printed.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.TriangleMesh
+    use Libraries.Fabrication.Slicing.MeshSlicer
+    use Libraries.Fabrication.Slicing.Segment
+
+    class Main
+        action Main
+            TriangleMesh mesh       // filled with mesh:Load(modelData)
+            MeshSlicer slicer
+            slicer:SetTriangles(mesh)
+            Array<number> range = slicer:GetSliceRange()
+            Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), 0.2)
+            Array<Segment> segments = slicer:Slice(planes)
+        end
+    end
+*/
+class MeshSlicer
+    Number64BitArray vertX
+    Number64BitArray vertY
+    Number64BitArray vertZ
+    Integer32BitArray faceCorners
+    boolean loaded = false
+
+    integer maxCrossingsPerFace = 0
+    integer oddCount = 0
+
+    number firstPlaneZ = 0.0
+    number planeDelta = 0.0
+
+    Array<integer> mergedIds
+    integer uniqueVertices = 0
+
+    number unitScale = 1.0
+    number forcedUnitScale = 0.0
+    number bedSize = 220.0
+    integer baseDirection = 4
+    Array<text> warnings
+
+    number minX = 0.0
+    number maxX = 0.0
+    number minY = 0.0
+    number maxY = 0.0
+    number minZ = 0.0
+    number maxZ = 0.0
+
+    Math math
+    GeometryUtilities util
+    ArgumentChecker checker
+
+    /*
+    The factor that turns the model's units into millimetres: 25.4 for a
+    file in inches, 1 for millimetres. 0 (the default) guesses it from the
+    model's size.
+
+    Attribute: Parameter scale The factor, or 0 to detect it.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetUnitScale(25.4)      // the file is in inches
+        slicer:SetTriangles(mesh)
+    */
+    action SetUnitScale(number scale)
+        checker:RequireAtLeast("MeshSlicer:SetUnitScale scale", scale, 0)
+        forcedUnitScale = scale
+    end
+
+    /*
+    The largest side of the bed (mm), to warn about models exported in the
+    wrong units.
+
+    Attribute: Parameter size The bed size (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetBedSize(256)      // warn about models bigger than a Bambu P2S bed
+        slicer:SetTriangles(mesh)
+    */
+    action SetBedSize(number size)
+        checker:RequirePositive("MeshSlicer:SetBedSize size", size)
+        bedSize = size
+    end
+
+    /*
+    Takes the triangles to slice: copies them turned so the base faces down,
+    scaled to millimetres and resting on Z = 0, and merges vertices that sit
+    at exactly the same spot (so neighbouring triangles share edges).
+
+    Attribute: Parameter mesh The loaded mesh.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        output "The model's base faced " + slicer:GetBaseDirection()
+    */
+    action SetTriangles(TriangleMesh mesh)
+        Number64BitArray srcX = mesh:GetVertexX()
+        Number64BitArray srcY = mesh:GetVertexY()
+        Number64BitArray srcZ = mesh:GetVertexZ()
+        faceCorners = mesh:GetCorners()
+        integer count = srcX:GetSize()
+        if count = 0 or mesh:GetTriangleCount() = 0
+            alert("MeshSlicer:SetTriangles was given a mesh with no triangles. Call TriangleMesh:Load with the model first.")
+        end
+        warnings:Empty()
+
+        ComputeBounds(srcX, srcY, srcZ)
+        baseDirection = FindBaseDirection(srcX, srcY, srcZ)
+        unitScale = DetectUnitScale()
+
+        // copy into our own arrays, rotated so the base faces -Z
+        Number64BitArray newX
+        Number64BitArray newY
+        Number64BitArray newZ
+        newX:SetSize(count)
+        newY:SetSize(count)
+        newZ:SetSize(count)
+        vertX = newX
+        vertY = newY
+        vertZ = newZ
+
+        integer i = 0
+        repeat while i < count
+            number x = srcX:Get(i) * unitScale
+            number y = srcY:Get(i) * unitScale
+            number z = srcZ:Get(i) * unitScale
+
+            if baseDirection = 4         // base faces -Z: already upright
+                vertX:Set(i, x)
+                vertY:Set(i, y)
+                vertZ:Set(i, z)
+            elseif baseDirection = 5     // base faces +Z: upside down
+                vertX:Set(i, x)
+                vertY:Set(i, -y)
+                vertZ:Set(i, -z)
+            elseif baseDirection = 2     // base faces -Y: Y is up
+                vertX:Set(i, x)
+                vertY:Set(i, -z)
+                vertZ:Set(i, y)
+            elseif baseDirection = 3     // base faces +Y
+                vertX:Set(i, x)
+                vertY:Set(i, z)
+                vertZ:Set(i, -y)
+            elseif baseDirection = 0     // base faces -X: X is up
+                vertX:Set(i, -z)
+                vertY:Set(i, y)
+                vertZ:Set(i, x)
+            else                         // base faces +X
+                vertX:Set(i, z)
+                vertY:Set(i, y)
+                vertZ:Set(i, -x)
+            end
+            i = i + 1
+        end
+
+        // shift so the lowest point is at Z = 0
+        number lowZ = vertZ:Get(0)
+        i = 1
+        repeat while i < count
+            lowZ = util:Min2(lowZ, vertZ:Get(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < count
+            vertZ:Set(i, vertZ:Get(i) - lowZ)
+            i = i + 1
+        end
+
+        // merge vertices that sit at exactly the same position
+        HashTable<text, integer> seen
+        mergedIds:Empty()
+        integer v = 0
+        repeat while v < count
+            text key = "" + vertX:Get(v) + "_" + vertY:Get(v) + "_" + vertZ:Get(v)
+            if seen:HasKey(key)
+                mergedIds:Add(seen:GetValue(key))
+            else
+                seen:Add(key, v)
+                mergedIds:Add(v)
+            end
+            v = v + 1
+        end
+        uniqueVertices = seen:GetSize()
+        loaded = true
+    end
+
+    /*
+    The lowest and highest Z of the mesh after SetTriangles (mm).
+
+    Attribute: Returns An array of two numbers: the lowest Z, then the highest.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        output "The model is " + (range:Get(1) - range:Get(0)) + " mm tall"
+    */
+    action GetSliceRange returns Array<number>
+        RequireLoaded("GetSliceRange")
+        Array<number> range
+        number low = vertZ:Get(0)
+        number high = low
+        integer i = 1
+        repeat while i < vertZ:GetSize()
+            low = util:Min2(low, vertZ:Get(i))
+            high = util:Max2(high, vertZ:Get(i))
+            i = i + 1
+        end
+        range:Add(low)
+        range:Add(high)
+        return range
+    end
+
+    /*
+    The heights to slice at: the middle of each layer from zMin up to zMax.
+
+    Attribute: Parameter zMin The bottom of the first layer (mm).
+    Attribute: Parameter zMax The top of the model (mm).
+    Attribute: Parameter delta The layer height (mm).
+    Attribute: Returns One plane height per layer, from the bottom up.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> planes = slicer:BuildPlanes(0, 20, 0.2)
+        output planes:Get(0)       // 0.1, the middle of the first layer
+    */
+    action BuildPlanes(number zMin, number zMax, number delta) returns Array<number>
+        checker:RequirePositive("MeshSlicer:BuildPlanes layer height", delta)
+        Array<number> planes
+        firstPlaneZ = zMin + delta / 2.0
+        planeDelta = delta
+
+        integer i = 0
+        repeat while firstPlaneZ + i * delta < zMax
+            planes:Add(firstPlaneZ + i * delta)
+            i = i + 1
+        end
+        if planes:GetSize() = 0
+            alert("The model is too flat to slice: it is " + (zMax - zMin) + " mm tall above the cut, less than half a " + delta + " mm layer.")
+        end
+        return planes
+    end
+
+    /*
+    Cuts every triangle with every plane it spans. Triangles cut an odd
+    number of times (a mesh with holes or flipped faces) are counted in
+    GetOddCrossingCount and skipped.
+
+    Attribute: Parameter planeZ The plane heights, from BuildPlanes.
+    Attribute: Returns The segments of every plane, in no particular order.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+        use Libraries.Fabrication.Slicing.Segment
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), 0.2)
+        Array<Segment> segments = slicer:Slice(planes)
+        output segments:GetSize() + " segments on " + planes:GetSize() + " planes"
+    */
+    action Slice(Array<number> planeZ) returns Array<Segment>
+        RequireLoaded("Slice")
+        if planeDelta <= 0
+            alert("MeshSlicer:Slice needs the planes from BuildPlanes, which hasn't been called.")
+        end
+        Array<Segment> result
+        Array<SliceCrossing> crossings
+        maxCrossingsPerFace = 0
+        oddCount = 0
+
+        integer cornersPerFace = 3
+        integer faceCount = GetFaceCount()
+        integer planeCount = planeZ:GetSize()
+
+        integer f = 0
+        repeat while f < faceCount
+            number zMin = vertZ:Get(GetCorner(f, 0))
+            number zMax = zMin
+            integer c = 1
+            repeat while c < cornersPerFace
+                number z = vertZ:Get(GetCorner(f, c))
+                zMin = util:Min2(zMin, z)
+                zMax = util:Max2(zMax, z)
+                c = c + 1
+            end
+
+            // only the planes between the triangle's lowest and highest
+            // corner can cut it (padded by one on each side for rounding)
+            integer idStart = util:CeilingToInt((zMin - firstPlaneZ) / planeDelta) - 1
+            integer idEnd = util:FloorToInt((zMax - firstPlaneZ) / planeDelta) + 1
+            if idStart < 0
+                idStart = 0
+            end
+            if idEnd > planeCount - 1
+                idEnd = planeCount - 1
+            end
+
+            integer i = idStart
+            repeat while i <= idEnd
+                crossings:Empty()
+                CollectCrossings(f, cornersPerFace, planeZ:Get(i), crossings)
+
+                integer n = crossings:GetSize()
+                if n > maxCrossingsPerFace
+                    maxCrossingsPerFace = n
+                end
+                // a closed triangle is crossed 0 or 2 times; odd means bad data
+                if n mod 2 not= 0
+                    oddCount = oddCount + 1
+                elseif n = 2
+                    EmitSegment(crossings, i, result)
+                end
+                i = i + 1
+            end
+            f = f + 1
+        end
+        if oddCount > 0
+            warnings:Add(oddCount + " triangle cuts crossed a slice an odd number of times and were skipped: the mesh has holes or bad faces, so some outlines may be open. Repairing the model usually fixes this.")
+        end
+        return result
+    end
+
+    /*
+    The most crossings any triangle had with one plane in the last Slice (2 for a clean mesh).
+
+    Attribute: Returns The most crossings any triangle had with one plane in the last Slice (2 for a clean mesh).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+        use Libraries.Fabrication.Slicing.Segment
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), 0.2)
+        Array<Segment> segments = slicer:Slice(planes)
+        if slicer:GetMaxCrossingsPerFace() > 2
+            output "Some triangles overlap themselves."
+        end
+    */
+    action GetMaxCrossingsPerFace returns integer
+        return maxCrossingsPerFace
+    end
+
+    /*
+    How many triangle / plane cuts were skipped in the last Slice for having an odd number of crossings.
+
+    Attribute: Returns How many triangle / plane cuts were skipped in the last Slice for having an odd number of crossings.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+        use Libraries.Fabrication.Slicing.Segment
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), 0.2)
+        Array<Segment> segments = slicer:Slice(planes)
+        output slicer:GetOddCrossingCount() + " cuts skipped (0 for a closed mesh)"
+    */
+    action GetOddCrossingCount returns integer
+        return oddCount
+    end
+
+    /*
+    The factor SetTriangles scaled the model by (25.4 for inches, 1000 for metres, 1 for millimetres).
+
+    Attribute: Returns The factor SetTriangles scaled the model by (25.4 for inches, 1000 for metres, 1 for millimetres).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        output "Scaled by " + slicer:GetUnitScale()      // 25.4 for a model in inches
+    */
+    action GetUnitScale returns number
+        return unitScale
+    end
+
+    /*
+    How many distinct vertex positions the mesh has after merging duplicates.
+
+    Attribute: Returns How many distinct vertex positions the mesh has after merging duplicates.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        output slicer:GetUniqueVertexCount() + " vertices after merging duplicates"
+    */
+    action GetUniqueVertexCount returns integer
+        return uniqueVertices
+    end
+
+    /*
+    Which way the model's base faced in the file.
+
+    Attribute: Returns One of "-X", "+X", "-Y", "+Y", "-Z" (already upright) or "+Z".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        if slicer:GetBaseDirection() not= "-Z"
+            output "The model was turned upright."
+        end
+    */
+    action GetBaseDirection returns text
+        if baseDirection = 0
+            return "-X"
+        elseif baseDirection = 1
+            return "+X"
+        elseif baseDirection = 2
+            return "-Y"
+        elseif baseDirection = 3
+            return "+Y"
+        elseif baseDirection = 5
+            return "+Z"
+        end
+        return "-Z"
+    end
+
+    /*
+    Warnings from the last SetTriangles and Slice, as sentences.
+
+    Attribute: Returns Warnings from the last SetTriangles and Slice, as sentences.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+        use Libraries.Fabrication.Slicing.Segment
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), 0.2)
+        Array<Segment> segments = slicer:Slice(planes)
+        Array<text> warnings = slicer:GetWarnings()
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            output "warning: " + warnings:Get(i)
+            i = i + 1
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings
+    end
+
+    private action RequireLoaded(text actionName)
+        if not loaded
+            alert("MeshSlicer:" + actionName + " was called before SetTriangles.")
+        end
+    end
+
+    private action GetFaceCount returns integer
+        return faceCorners:GetSize() / 3
+    end
+
+    private action GetCorner(integer f, integer j) returns integer
+        return faceCorners:Get(3 * f + j)
+    end
+
+    // Adds up, for each of the six sides of the bounding box, the area of
+    // the triangles lying flat on it, and picks the side with the most as
+    // the base. The current bottom (-Z) wins unless another side has 20%
+    // more. Returns 0..5 for -X, +X, -Y, +Y, -Z, +Z.
+    private action FindBaseDirection(Number64BitArray x, Number64BitArray y, Number64BitArray z) returns integer
+        number eps = 0.002 * util:Max2(maxX - minX, util:Max2(maxY - minY, maxZ - minZ))
+
+        Array<number> area
+        integer i = 0
+        repeat while i < 6
+            area:Add(0.0)
+            i = i + 1
+        end
+
+        integer f = 0
+        repeat while f < GetFaceCount()
+            integer i0 = GetCorner(f, 0)
+            integer i1 = GetCorner(f, 1)
+            integer i2 = GetCorner(f, 2)
+            number ax = x:Get(i1) - x:Get(i0)
+            number ay = y:Get(i1) - y:Get(i0)
+            number az = z:Get(i1) - z:Get(i0)
+            number bx = x:Get(i2) - x:Get(i0)
+            number by = y:Get(i2) - y:Get(i0)
+            number bz = z:Get(i2) - z:Get(i0)
+
+            // face normal = cross product of two edges; its length is twice the area
+            number nx = ay * bz - az * by
+            number ny = az * bx - ax * bz
+            number nz = ax * by - ay * bx
+            number len = math:SquareRoot(nx * nx + ny * ny + nz * nz)
+
+            if len > 0
+                number faceArea = len / 2.0
+                nx = nx / len
+                ny = ny / len
+                nz = nz / len
+                number loX = util:Min2(x:Get(i0), util:Min2(x:Get(i1), x:Get(i2)))
+                number hiX = util:Max2(x:Get(i0), util:Max2(x:Get(i1), x:Get(i2)))
+                number loY = util:Min2(y:Get(i0), util:Min2(y:Get(i1), y:Get(i2)))
+                number hiY = util:Max2(y:Get(i0), util:Max2(y:Get(i1), y:Get(i2)))
+                number loZ = util:Min2(z:Get(i0), util:Min2(z:Get(i1), z:Get(i2)))
+                number hiZ = util:Max2(z:Get(i0), util:Max2(z:Get(i1), z:Get(i2)))
+
+                if nx < -0.99 and hiX <= minX + eps
+                    area:Set(0, area:Get(0) + faceArea)
+                end
+                if nx > 0.99 and loX >= maxX - eps
+                    area:Set(1, area:Get(1) + faceArea)
+                end
+                if ny < -0.99 and hiY <= minY + eps
+                    area:Set(2, area:Get(2) + faceArea)
+                end
+                if ny > 0.99 and loY >= maxY - eps
+                    area:Set(3, area:Get(3) + faceArea)
+                end
+                if nz < -0.99 and hiZ <= minZ + eps
+                    area:Set(4, area:Get(4) + faceArea)
+                end
+                if nz > 0.99 and loZ >= maxZ - eps
+                    area:Set(5, area:Get(5) + faceArea)
+                end
+            end
+            f = f + 1
+        end
+
+        integer base = 4
+        i = 0
+        repeat while i < 6
+            if area:Get(i) > area:Get(base) * 1.2
+                base = i
+            end
+            i = i + 1
+        end
+        return base
+    end
+
+    private action ComputeBounds(Number64BitArray x, Number64BitArray y, Number64BitArray z)
+        minX = x:Get(0)
+        maxX = minX
+        minY = y:Get(0)
+        maxY = minY
+        minZ = z:Get(0)
+        maxZ = minZ
+        integer i = 1
+        repeat while i < x:GetSize()
+            minX = util:Min2(minX, x:Get(i))
+            maxX = util:Max2(maxX, x:Get(i))
+            minY = util:Min2(minY, y:Get(i))
+            maxY = util:Max2(maxY, y:Get(i))
+            minZ = util:Min2(minZ, z:Get(i))
+            maxZ = util:Max2(maxZ, z:Get(i))
+            i = i + 1
+        end
+    end
+
+    // The unit scale to use: the forced one if set, otherwise a guess from
+    // the model's largest extent (under 1 unit across means metres).
+    private action DetectUnitScale returns number
+        if forcedUnitScale > 0
+            return forcedUnitScale
+        end
+
+        number extent = util:Max2(maxX - minX, util:Max2(maxY - minY, maxZ - minZ))
+        if extent <= 0
+            warnings:Add("The model has no size (every vertex is at the same point).")
+            return 1.0
+        elseif extent < 1.0
+            warnings:Add("The model is only " + extent + " units across, so its units are taken to be metres (scaled by 1000). Set unitScale to override.")
+            return 1000.0
+        elseif extent < 10.0
+            warnings:Add("The model is only " + extent + " mm across. If it was exported in inches, set unitScale to 25.4.")
+        elseif extent > bedSize
+            warnings:Add("The model is " + extent + " mm across, larger than the " + bedSize + " mm bed. Check the units it was exported in.")
+        end
+        return 1.0
+    end
+
+    // walks the edges of triangle f and records every edge that has
+    // one end below the plane and the other at or above it
+    private action CollectCrossings(integer f, integer cornersPerFace, number planeValue,
+                                    Array<SliceCrossing> result)
+        integer j = 0
+        repeat while j < cornersPerFace
+            integer k = j + 1
+            if k = cornersPerFace
+                k = 0
+            end
+            integer va = mergedIds:Get(GetCorner(f, j))
+            integer vb = mergedIds:Get(GetCorner(f, k))
+            boolean aBelow = vertZ:Get(va) < planeValue
+            boolean bBelow = vertZ:Get(vb) < planeValue
+
+            if aBelow not= bBelow
+                // Always interpolate from the lower vertex id to the higher
+                // one. The neighbouring triangle walks this edge the other
+                // way, and this makes both get bit-identical coordinates.
+                integer low = va
+                integer high = vb
+                if vb < va
+                    low = vb
+                    high = va
+                end
+
+                // t = how far along the edge (0..1) the plane sits
+                number t = (planeValue - vertZ:Get(low)) / (vertZ:Get(high) - vertZ:Get(low))
+
+                SliceCrossing point
+                point:x = vertX:Get(low) + t * (vertX:Get(high) - vertX:Get(low))
+                point:y = vertY:Get(low) + t * (vertY:Get(high) - vertY:Get(low))
+                point:edgeLow = low
+                point:edgeHigh = high
+                point:rising = aBelow
+                result:Add(point)
+            end
+            j = j + 1
+        end
+    end
+
+    // Turns a triangle's two crossings into a segment. The rising crossing
+    // is always the end, so every segment runs the same way around the
+    // solid and the chained loops come out consistently oriented.
+    private action EmitSegment(Array<SliceCrossing> points, integer planeIndex, Array<Segment> result)
+        SliceCrossing from = points:Get(0)
+        SliceCrossing to = points:Get(1)
+        if from:rising
+            from = points:Get(1)
+            to = points:Get(0)
+        end
+
+        Segment s
+        s:planeIndex = planeIndex
+        s:x0 = from:x
+        s:y0 = from:y
+        s:x1 = to:x
+        s:y1 = to:y
+        s:aLow = from:edgeLow
+        s:aHigh = from:edgeHigh
+        s:bLow = to:edgeLow
+        s:bHigh = to:edgeHigh
+        result:Add(s)
+    end
+end
