@@ -1,0 +1,151 @@
+package Tests.Support
+
+use Libraries.Containers.Array
+use Libraries.Testing.Test
+use Libraries.Testing.Tester
+use Libraries.Language.Errors.Error
+
+/*
+The CaseTest class is a Libraries.Testing.Test made of named cases, with
+expectation helpers that, unlike Test:Check, keep a message for each
+failure: "case: what was expected, what happened". The test fails if any
+expectation did. RunWith runs it for a Tester and prints the messages of a
+failed test, since the suite's summary lists only test names.
+
+A test overrides Run and calls one action per case, each starting with Case
+so failures say where they came from.
+
+Attribute: Example
+
+    use Tests.Support.CaseTest
+
+    class ExampleTest is CaseTest
+        on create
+            SetName("Example")
+        end
+
+        action Run
+            Addition()
+        end
+
+        action Addition
+            Case("Addition")
+            ExpectInteger(1 + 1, 2, "1 + 1")
+        end
+    end
+*/
+class CaseTest is Test
+    Array<text> failures
+    Array<text> notes
+    text currentCase = ""
+    integer checkCount = 0
+
+    /* Names the case the following expectations belong to. */
+    action Case(text name)
+        currentCase = name
+    end
+
+    action ExpectTrue(boolean condition, text what)
+        Record(condition, what)
+    end
+
+    action ExpectFalse(boolean condition, text what)
+        Record(not condition, what + " (expected false)")
+    end
+
+    action ExpectInteger(integer actual, integer expected, text what)
+        Record(actual = expected, what + ": expected " + expected + ", got " + actual)
+    end
+
+    action ExpectNumber(number actual, number expected, number tolerance, text what)
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        Record(difference <= tolerance, what + ": expected " + expected + " (+/- " + tolerance + "), got " + actual)
+    end
+
+    action ExpectAtLeast(number actual, number minimum, text what)
+        Record(actual >= minimum, what + ": expected at least " + minimum + ", got " + actual)
+    end
+
+    action ExpectAtMost(number actual, number maximum, text what)
+        Record(actual <= maximum, what + ": expected at most " + maximum + ", got " + actual)
+    end
+
+    action ExpectText(text actual, text expected, text what)
+        Record(actual = expected, what + ": expected '" + expected + "', got '" + actual + "'")
+    end
+
+    action ExpectContains(text haystack, text needle, text what)
+        Record(haystack:Contains(needle), what + ": expected to contain '" + needle + "'")
+    end
+
+    action ExpectNotContains(text haystack, text needle, text what)
+        Record(not haystack:Contains(needle), what + ": expected not to contain '" + needle + "'")
+    end
+
+    /* Records a failure unconditionally. */
+    action Fail(text what)
+        Record(false, what)
+    end
+
+    /* Records something worth reporting that isn't a failure (printed under the test's line). */
+    action Note(text message)
+        notes:Add(message)
+    end
+
+    /* Called by the runner when Run stopped with an error. */
+    action RecordError(text message)
+        failures:Add(currentCase + ": stopped with an error: " + message)
+    end
+
+    /* Called by the runner after Run: the test passes if nothing failed. */
+    action Finish
+        SetPassed(failures:GetSize() = 0)
+    end
+
+    action GetFailures returns Array<text>
+        return failures
+    end
+
+    action GetNotes returns Array<text>
+        return notes
+    end
+
+    action GetCheckCount returns integer
+        return checkCount
+    end
+
+    private action Record(boolean passed, text what)
+        checkCount = checkCount + 1
+        if not passed
+            failures:Add(currentCase + ": " + what)
+        end
+    end
+
+    /*
+    Runs the test, records an error that stops it as a failure, adds it to
+    the tester, and prints its failures if it failed.
+
+    Attribute: Parameter tester The tester collecting the results.
+    */
+    action RunWith(Tester tester)
+        check
+            Run()
+        detect e is Error
+            RecordError(e:GetErrorMessage())
+        end
+        Finish()
+        tester:Add(me)
+        if not IsPassed()
+            output "    FAIL " + GetName()
+            integer i = 0
+            repeat while i < failures:GetSize()
+                output "        " + failures:Get(i)
+                i = i + 1
+            end
+        end
+    end
+
+end

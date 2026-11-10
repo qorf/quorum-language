@@ -1,0 +1,571 @@
+package Libraries.Data.Formats
+
+use Libraries.Containers.Array
+use Libraries.Language.Errors.ParseError
+
+/*
+The JavaScriptObjectNotationTemplate class edits the top-level values of a
+JSON object without rebuilding the text. It finds where each top-level value
+starts and ends, and on output replaces only the values that were changed. This
+allows use to develop heirarchical setting configs for services like Bambu file
+packaging.
+
+It also works as a small reader: GetText returns a nested object's raw JSON text,
+which can be loaded into another template.
+
+Attribute: Example
+
+    use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+    class Main
+        action Main
+            text dq = ""
+            dq = dq:GetDoubleQuote()
+            JavaScriptObjectNotationTemplate json
+            json:Load("{" + dq + "a" + dq + ": " + dq + "1" + dq + "}")
+            json:Fill("a", "2") // only this value is rewritten
+            json:Put("added", "yes") // a missing key is appended
+            output json:ToText()
+        end
+    end
+*/
+class JavaScriptObjectNotationTemplate
+    text source = ""
+    Array<text> keys
+    Array<integer> starts
+    Array<integer> ends
+    Array<text> replacements
+    Array<boolean> replaced
+    text additions = ""
+
+    text dq = ""
+    text lf = ""
+    text cr = ""
+    text tab = ""
+
+    on create
+        dq = dq:GetDoubleQuote()
+        lf = lf:GetLineFeed()
+        cr = cr:GetCarriageReturn()
+        tab = tab:GetTab()
+    end
+
+    /*
+    Reads JSON text whose top level is an object, and finds every top-level key.
+    Stops with a ParseError giving the line of the problem if the text isn't a
+    JSON object.
+
+    Attribute: Parameter json The JSON text.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        Array<text> keys = settings:GetKeys()
+        output kets:GetSize() + " settings"
+    */
+    action Load(text json)
+        source = json
+        keys:Empty()
+        starts:Empty()
+        ends:Empty()
+        replacements:Empty()
+        replaced:Empty()
+        additions = ""
+
+        integer size = source:GetSize()
+        integer i = source:IndexOf("{")
+        if i < 0
+            Fail(0, "the text isn't a JSON object (it has no {)")
+        end
+        i = i + 1
+        boolean done = false
+        repeat while not done
+            i = SkipSpace(i)
+            if i >= size
+                Fail(i, "the object is never closed with }")
+            end
+            text c = source:GetCharacter(i)
+            if c = "}"
+                done = true
+            elseif c = ","
+                i = i + 1
+            elseif c = dq
+                integer keyEnd = StringEnd(i)
+                text key = source:GetSubtext(i + 1, keyEnd - 1)
+                i = SkipSpace(keyEnd)
+                if i >= size
+                    Fail(i, "the text ends after the key " + key)
+                end
+                if source:GetCharacter(i) not= ":"
+                    Fail(i, "expected : after the key " + key)
+                end
+                i = SkipSpace(i + 1)
+                if i >= size
+                    Fail(i, "the key " + key + " has no value")
+                end
+                integer valueEnd = ValueEnd(i)
+                keys:Add(key)
+                starts:Add(i)
+                ends:Add(valueEnd)
+                replacements:Add("")
+                replaced:Add(false)
+                i = valueEnd
+            else
+                Fail(i, "unexpected '" + c + "' where a key was expected")
+            end
+        end
+    end
+
+    /*
+    Every top-level key, in file order.
+
+    Attribute: Returns A new array of the keys.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        Array<text> keys = settings:GetKeys()
+        output "The first setting is " + keys:Get(0)
+    */
+    action GetKeys returns Array<text>
+        return keys:CopyToArray()
+    end
+    
+    /*
+    Checks whether the object has a top-level key.
+
+    Attribute: Parameter key The key to look for.
+    Attribute: Returns True if the key exists.
+
+    Attribute: Example
+        
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        if not settings:Has("layer_height")
+            output "This isn't a print settings file."
+        end
+    */
+    action Has(text key) returns boolean
+        return Find(key) >= 0
+    end    
+
+    /*
+    The value of a key as text: a string without its quotes, a number or
+    literal as written, a nested object as its raw JSON text, and for a list
+    its first string item.
+
+    Attribute: Parameter key The key to read.
+    Attribute: Parameter fallback What to return if the key is missing (or a list has no string item).
+    Attribute: Returns The value, or the fallback.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        output "Layer height: " + settings:GetText("layer_height", "0.2")
+    */
+    action GetText(text key, text fallback) returns text
+        integer k = Find(key)
+        if k < 0
+            return fallback
+        end
+        integer i = starts:Get(k)
+        integer finish = ends:Get(k)
+        text c = source:GetCharacter(i)
+        if c = "["
+            i = SkipSpace(i + 1)
+            if i < finish
+                if source:GetCharacter(i) = dq
+                    return Unquote(i)
+                end
+            end     
+            return fallback
+        end
+        if c = dq
+            return Unquote(i)
+        end
+        return source:GetSubtext(i, finish)
+    end
+
+    /*
+    The number of items in a list value.
+
+    Attribute: Parameter key The key to count.
+    Attribute: Returns The list's length, 1 for a single value, 0 if the key is missing.
+
+    Attribute: Example
+        
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        output settings:Count("filament_color") + " filaments"
+    */
+    action Count(text key) returns integer
+        integer k = Find(key)
+        if k < 0
+            return 0
+        end
+        integer i = starts:Get(k)
+        integer finish = ends:Get(k)
+        text c = source:GetCharacter(i)
+        if c not= "["
+            return 1
+        end
+        integer count = 0
+        integer depth = 0
+        boolean inItem = false
+        i = i + 1
+        repeat while i < finish - 1
+            c = source:GetCharacter(i)
+            if c = dq
+                if depth = 0 and not inItem
+                    count = count + 1
+                    inItem = true
+                end
+                i = StringEnd(i)
+            elseif c = "[" or c = "{"
+                if depth = 0 and not inItem
+                    count = count + 1
+                    inItem = true
+                end
+                depth = depth + 1
+                i = i + 1
+            elseif c = "]" or c = "}"
+                depth = depth - 1
+                i = i + 1
+            elseif c = "," and depth = 0
+                inItem = false
+                i = i + 1
+            elseif IsSpace(c)
+                i = i + 1
+            else
+                if depth = 0 and not inItem
+                    count = count + 1
+                    inItem = true
+                end
+                i = i + 1
+            end
+        end
+        return count
+    end
+
+    /*
+    Changes an existing key to a string value. A list stays a list of the
+    same length with every item set to the value. Missing keys are left alone
+    (use Has to find out, or Put to add them).
+
+    Attribute: Parameter key The key to change.
+    Attribute: Parameter value The new value, written as JSON string.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        settings:Fill("layer_height", "0.16")
+        file:Write(settings:ToText())
+    */
+    action Fill(text key, text value)
+        integer k = Find(key)
+        if k < 0
+            return now
+        end
+        if source:GetCharacter(starts:Get(k)) not= "["
+            Replace(k, Quote(value))
+            return now
+        end
+        Array<text> items
+        integer count = Count(key)
+        repeat count times
+            items:Add(value)
+        end
+        Replace(k, ListText(items))
+    end
+
+    /*
+    Changes an existing key to a list of exactly these strings, whatever its
+    length was. Missing keys are left alone.
+
+    Attribute: Parameter key The key to change.
+    Attribute: Parameter items The new list items.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        Array<text> colors
+        colors:Add("#FF8000")
+        settings:FillList("filament_color", colors)
+    */
+    action  FillList(text key, Array<text> items)
+        integer k = Find(key)
+        if k >= 0
+            Replace(k, ListText(items))
+        end
+    end
+
+    /*
+    Sets a key to a single string value, adding it at the end of the object if it
+    is missing.
+
+    Attribute: Parameter key The key to set.
+    Attribute: Parameter value The new value, written as a JSON string.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        settings:Put("print_settings_id", "0.20mm Standard")
+    */
+    action Put(text key, text value)
+        integer k = Find(key)
+        if k < 0
+            additions = additions + "," + lf + "    " + Quote(key) + ": " + Quote(value)
+        else
+            Replace(k, Quote(value))
+        end
+    end
+
+    /*
+    The JSON text with every change applied, ending in a line feed.
+
+    Attribute: Returns The edited JSON text.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+        File file
+        file:SetPath("project_settings.json")
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
+        settings:Fill("layer_height", "0.16")
+        File copy
+        copy:SetPath("project_settings_016.json")
+        copy:Write(settings:ToText())
+    */
+    action ToText returns text
+        text result = ""
+        integer position = 0
+        integer i = 0
+        repeat while i < keys:GetSize()
+            if replaced:Get(i)
+                result = result + source:GetSubtext(position, starts:Get(i)) + replacements:Get(i)
+                position = ends:Get(i)
+            end
+            i = i + 1
+        end
+        if additions not= ""
+            if keys:GetSize() > 0
+                integer insertAt = ends:Get(keys:GetSize() - 1)
+                result = result + source:GetSubtext(position, insertAt) + additions
+                position = insertAt
+            else
+                // an empty object, the additions go in place of the braces
+                result = result + "{" + additions:GetSubtext(1) + lf + "}"
+                position = source:GetSize()
+            end
+        end
+        result = result + source:GetSubtext(position)
+        if not result:EndsWith(lf)
+            result = result + lf
+        end
+        return result
+    end
+
+    private action Replace(integer index, text replacement)
+        replacements:Set(index, replacement)
+        replaced:Set(index, true)
+    end
+    
+    private action ListText(Array<text> items) returns text
+        if items:GetSize() = 0
+            return "[]"
+        end
+        text result = "["
+        integer item = 0
+        repeat while item < items:GetSize()
+            result = result + lf + "        " + Quote(items:Get(item))
+            if item < items:GetSize() - 1
+                result = result + ","
+            end
+            item = item + 1
+        end
+        return result + lf + "    ]"
+    end
+
+    private action Find(text key) returns integer
+        integer i = 0
+        repeat while i < keys:GetSize()
+            if keys:Get(i) = key
+                return i
+            end 
+            i = i + 1
+        end
+        return -1
+    end
+
+    private action Quote(text value) returns text
+        text escaped = value:Replace("\", "\\")
+        escaped = escaped:Replace(dq, "\" + dq)
+        return dq + escaped + dq
+    end
+
+    /*  The text inside the quoted string that starts at quoteIndex. */
+    private action Unquote(integer quoteIndex) returns text
+        integer closing = StringEnd(quoteIndex) - 1
+        text result = ""
+        integer i = quoteIndex + 1
+        repeat while i < closing
+            text c = source:GetCharacter(i)
+            if c = "\" and i + 1 < closing
+                text escaped = source:GetCharacter(i + 1)
+                if escaped = "n"
+                    result = result + lf
+                elseif escaped = "t"
+                    result = result + tab
+                else
+                    result = result + escaped
+                end
+                i = i + 2
+            else
+                result = result + c
+                i = i + 1
+            end
+        end
+        return result    
+    end
+
+    private action IsSpace(text c) returns boolean
+        return c = " " or c = lf or c = cr or c = tab
+    end
+    
+    private action SkipSpace(integer index) returns integer
+        integer i = index
+        integer size = source:GetSize()
+        repeat while i < size and IsSpace(source:GetCharacter(i))
+            i = i + 1
+        end
+        return i
+    end
+
+    /* Given the index of an opening quote, returns the index just past its closing quote */
+    private action StringEnd(integer quoteIndex) returns integer
+        integer i = quoteIndex + 1
+        integer size = source:GetSize()
+        repeat while i < size
+            text c = source:GetCharacter(i)
+            if c = "\"
+                i = i + 2
+            elseif c = dq
+                return i + 1
+            else
+                i = i + 1
+            end
+        end
+        Fail(quoteIndex, "a string is never closed")
+        return size
+    end
+
+    /* Given the index where a value starts, returns the index just past its end. */
+    private action ValueEnd(integer index) returns integer
+        integer size = source:GetSize()
+        integer depth = 0
+        integer i = index
+        repeat while i < size
+            text c = source:GetCharacter(i)
+            if c = dq
+                i = StringEnd(i)
+                if depth = 0
+                    return i
+                end
+            elseif c = "{" or c = "["
+                depth = depth + 1
+                i = i + 1
+            elseif c = "}" or c = "]"
+                if depth = 0
+                    return TrimEnd(index, i)
+                end
+                depth = depth - 1
+                i = i + 1
+                if depth = 0
+                    return i
+                end
+            elseif c = "," and depth = 0
+                return TrimEnd(index, i)
+            else
+                i = i + 1
+            end
+        end
+        if depth > 0
+            Fail(index, "a list or object is never closed")
+        end
+        return TrimEnd(index, size)
+    end
+
+    private action TrimEnd(integer start, integer finish) returns integer
+        integer i = finish
+        repeat while i > start and IsSpace(source:GetCharacter(i - 1))
+            i = i - 1
+        end
+        return i
+    end
+    
+    /* Stops with a ParseError that says on which line of the text the problem is. */
+    private action Fail(integer index, text problem)
+        integer line = 1
+        integer i = 0
+        repeat while i < index and i < source:GetSize()
+            if source:GetCharacter(i) = lf
+                line = line + 1
+            end
+            i = i + 1
+        end
+        ParseError error
+        error:SetErrorMessage("JSON error on line " + line + ": " + problem)
+        alert(error)
+    end
+end

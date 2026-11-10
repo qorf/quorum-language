@@ -1,0 +1,31 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Testing.Tester
+use Formats.Tests.NumberFormatterTest
+use Formats.Tests.JavaScriptObjectNotationTemplateTest
+
+/*
+Tests Libraries.Data.Formats.NumberFormatter and JavaScriptObjectNotationTemplate.
+Like ScienceTester, it runs Libraries.Testing.Test classes (CaseTest, in
+Quorum/SourceCode/Tests/Formats) in-process and adds them to the suite's
+Tester. A failed test also prints the message of each failed expectation.
+*/
+class DataFormatsTester
+    Tester tester = undefined
+
+    action GetName returns text
+        return "Data Formats Tests"
+    end
+
+    action SetTester(Tester tester)
+        me:tester = tester
+    end
+
+    action Test
+        NumberFormatterTest numberFormatterTest
+        numberFormatterTest:RunWith(tester)
+
+        JavaScriptObjectNotationTemplateTest javaScriptObjectNotationTemplateTest
+        javaScriptObjectNotationTemplateTest:RunWith(tester)
+    end
+end

@@ -1,0 +1,151 @@
+package Formats.Tests
+
+use Libraries.Containers.Array
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+use Libraries.Language.Errors.ParseError
+use Tests.Support.CaseTest
+
+/*
+Tests Libraries.Data.Formats.JavaScriptObjectNotationTemplate, which edits
+Bambu's 580-setting project file and reads profiles.json. The key promise:
+bytes that weren't changed come out exactly as they went in.
+*/
+class JavaScriptObjectNotationTemplateTest is CaseTest
+    text dq = ""
+    text lf = ""
+
+    on create
+        SetName("JavaScriptObjectNotationTemplate")
+        dq = dq:GetDoubleQuote()
+        lf = lf:GetLineFeed()
+    end
+
+    action Run
+        ReadsValues()
+        UnchangedTextIsKept()
+        FillKeepsListLength()
+        FillListAndPut()
+        NestedObjects()
+        ParseErrors()
+    end
+
+    /* Turns ' into " so the JSON in these tests stays readable. */
+    action Json(text value) returns text
+        return value:Replace("'", dq)
+    end
+
+    action Sample returns text
+        return Json("{" + lf + "  'name': 'project_settings'," + lf + "  'layer_height': '0.2'," + lf
+            + "  'wall_loops': 3," + lf + "  'filament_colour': ['#FFFFFF', '#000000']," + lf
+            + "  'empty': []," + lf + "  'quote': 'say \'hi\''" + lf + "}")
+    end
+
+    action ReadsValues
+        Case("reading values")
+        JavaScriptObjectNotationTemplate json
+        json:Load(Sample())
+        Array<text> keys = json:GetKeys()
+        ExpectInteger(keys:GetSize(), 6, "number of keys")
+        ExpectText(keys:Get(0), "name", "first key")
+        ExpectText(json:GetText("layer_height", "?"), "0.2", "a string value")
+        ExpectText(json:GetText("wall_loops", "?"), "3", "a number value")
+        ExpectText(json:GetText("filament_colour", "?"), "#FFFFFF", "a list gives its first item")
+        ExpectText(json:GetText("empty", "fallback"), "fallback", "an empty list gives the fallback")
+        ExpectText(json:GetText("missing", "fallback"), "fallback", "a missing key gives the fallback")
+        ExpectText(json:GetText("quote", "?"), "say " + dq + "hi" + dq, "escaped quotes")
+        ExpectInteger(json:Count("filament_colour"), 2, "Count of a two-item list")
+        ExpectInteger(json:Count("empty"), 0, "Count of an empty list")
+        ExpectInteger(json:Count("wall_loops"), 1, "Count of a single value")
+        ExpectInteger(json:Count("missing"), 0, "Count of a missing key")
+        ExpectTrue(json:Has("wall_loops"), "Has an existing key")
+        ExpectFalse(json:Has("missing"), "Has a missing key")
+    end
+
+    action UnchangedTextIsKept
+        Case("unchanged text is kept byte for byte")
+        JavaScriptObjectNotationTemplate json
+        json:Load(Sample())
+        ExpectText(json:ToText(), Sample() + lf, "ToText with no changes")
+        json:Fill("missing", "x")
+        ExpectText(json:ToText(), Sample() + lf, "Fill of a missing key changes nothing")
+    end
+
+    action FillKeepsListLength
+        Case("Fill")
+        JavaScriptObjectNotationTemplate json
+        json:Load(Sample())
+        json:Fill("layer_height", "0.16")
+        json:Fill("filament_colour", "#FF0000")
+        json:Fill("empty", "x")
+        text result = json:ToText()
+        ExpectContains(result, Json("'layer_height': '0.16'"), "a single value is replaced")
+        ExpectContains(result, Json("'wall_loops': 3,"), "an untouched value stays as written")
+
+        JavaScriptObjectNotationTemplate again
+        again:Load(result)
+        ExpectInteger(again:Count("filament_colour"), 2, "a filled list keeps its length")
+        ExpectText(again:GetText("filament_colour", "?"), "#FF0000", "every item of a filled list")
+        ExpectInteger(again:Count("empty"), 0, "an empty list stays empty")
+    end
+
+    action FillListAndPut
+        Case("FillList and Put")
+        JavaScriptObjectNotationTemplate json
+        json:Load(Sample())
+        Array<text> corners
+        corners:Add("0x0")
+        corners:Add("256x0")
+        corners:Add("256x256")
+        json:FillList("filament_colour", corners)
+        json:Put("curr_bed_type", "Textured PEI Plate")
+        json:Put("name", "renamed")
+
+        JavaScriptObjectNotationTemplate again
+        again:Load(json:ToText())
+        ExpectInteger(again:Count("filament_colour"), 3, "FillList sets the length")
+        ExpectText(again:GetText("curr_bed_type", "?"), "Textured PEI Plate", "Put adds a missing key")
+        ExpectText(again:GetText("name", "?"), "renamed", "Put replaces an existing key")
+        Array<text> keys = again:GetKeys()
+        ExpectText(keys:Get(keys:GetSize() - 1), "curr_bed_type", "an added key goes at the end")
+
+        JavaScriptObjectNotationTemplate empty
+        empty:Load("{}")
+        empty:Put("only", "value")
+        JavaScriptObjectNotationTemplate reread
+        reread:Load(empty:ToText())
+        ExpectText(reread:GetText("only", "?"), "value", "Put into an empty object")
+    end
+
+    action NestedObjects
+        Case("nested objects come back as JSON text")
+        JavaScriptObjectNotationTemplate json
+        json:Load(Json("{ 'outer': { 'inner': 5, 'list': [1, [2, 3]] }, 'after': 'x' }"))
+        text inner = json:GetText("outer", "")
+        ExpectTrue(inner:StartsWith("{") and inner:EndsWith("}"), "the nested object's text")
+        ExpectText(json:GetText("after", "?"), "x", "the key after a nested object")
+        JavaScriptObjectNotationTemplate nested
+        nested:Load(inner)
+        ExpectText(nested:GetText("inner", "?"), "5", "a value inside the nested object")
+    end
+
+    action ParseErrors
+        Case("broken JSON stops with a ParseError")
+        ExpectTrue(Fails(""), "empty text")
+        ExpectTrue(Fails("[1, 2]"), "a list, not an object")
+        ExpectTrue(Fails(Json("{ 'a': 1")), "an object that is never closed")
+        ExpectTrue(Fails(Json("{ 'a' 1 }")), "a missing colon")
+        ExpectTrue(Fails(Json("{ 'a': 'never closed }")), "a string that is never closed")
+        ExpectFalse(Fails(Json("{ 'a': 1 }")), "valid JSON is accepted")
+    end
+
+    action Fails(text json) returns boolean
+        boolean failed = false
+        check
+            JavaScriptObjectNotationTemplate template
+            template:Load(json)
+        detect error is ParseError
+            failed = true
+        end
+        return failed
+    end
+end
