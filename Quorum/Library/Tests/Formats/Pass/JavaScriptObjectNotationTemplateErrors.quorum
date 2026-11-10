@@ -1,0 +1,57 @@
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+use Libraries.Language.Errors.ParseError
+
+text dq = ""
+dq = dq:GetDoubleQuote()
+
+check
+    JavaScriptObjectNotationTemplate emptyText
+    emptyText:Load("")
+    output "no error"
+detect emptyError is ParseError
+    output "empty text"
+end
+
+check
+    JavaScriptObjectNotationTemplate list
+    list:Load("[1, 2]")
+    output "no error"
+detect listError is ParseError
+    output "a list, not an object"
+end
+
+text unclosed = "{ 'a': 1"
+check
+    JavaScriptObjectNotationTemplate unclosedObject
+    unclosedObject:Load(unclosed:Replace("'", dq))
+    output "no error"
+detect unclosedError is ParseError
+    output "an object that is never closed"
+end
+
+text noColon = "{ 'a' 1 }"
+check
+    JavaScriptObjectNotationTemplate missingColon
+    missingColon:Load(noColon:Replace("'", dq))
+    output "no error"
+detect colonError is ParseError
+    output "a missing colon"
+end
+
+text openString = "{ 'a': 'never closed }"
+check
+    JavaScriptObjectNotationTemplate unclosedString
+    unclosedString:Load(openString:Replace("'", dq))
+    output "no error"
+detect stringError is ParseError
+    output "a string that is never closed"
+end
+
+text valid = "{ 'a': 1 }"
+check
+    JavaScriptObjectNotationTemplate validObject
+    validObject:Load(valid:Replace("'", dq))
+    output "valid JSON is accepted"
+detect validError is ParseError
+    output "valid JSON was rejected"
+end

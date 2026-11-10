@@ -1,0 +1,15 @@
+use Libraries.System.File
+use Libraries.Data.Compression.ZipWriter
+use Libraries.Data.Compression.Decompresser
+
+ZipWriter zip
+zip:Open("ZipWriterMd5.zip")
+zip:AddMd5("empty.md5", "")
+zip:AddMd5("hello.md5", "hello")
+zip:Close()
+
+File archive
+archive:SetPath("ZipWriterMd5.zip")
+Decompresser decompress
+output decompress:ReadZipEntry(archive, "empty.md5")
+output decompress:ReadZipEntry(archive, "hello.md5")

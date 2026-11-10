@@ -23,6 +23,10 @@ class DecompresserTester
         path = passPath
         DecompressGZip()
         DecompressZip()
+        DecompressZipFolders()
+        HasZipEntry()
+        ReadZipEntry()
+        ReadZipEntryErrors()
 
 //FAIL TESTS
         path = failPath
@@ -31,7 +35,7 @@ class DecompresserTester
     action GetName returns text
         return "Decompresser Tests"
     end
-    
+
     action GetCompilerTestSuite returns CompilerTestSuite
         return suite
     end
@@ -62,4 +66,49 @@ class DecompresserTester
         //suite:TestJavaScript(files, results)
     end
 
+    action DecompressZipFolders
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "DecompressZipFolders.quorum")
+        files:Add(main)
+        results:Add(0, "success")
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
+    end
+
+    action HasZipEntry
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "HasZipEntry.quorum")
+        files:Add(main)
+        results:Add(0, "true")
+        results:Add(1, "false")
+        suite:Test(files, results)
+        //suite:TestJavaScript(files, results)
+    end
+
+    action ReadZipEntry
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReadZipEntry.quorum")
+        files:Add(main)
+        results:Add(0, "This is a test file for Quorum's Decompresser library. This file was ziped.")
+        results:Add(1, "inside a folder")
+        suite:Test(files, results)
+    end
+
+    action ReadZipEntryErrors
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "ReadZipEntryErrors.quorum")
+        files:Add(main)
+        results:Add(0, "missing entry")
+        results:Add(1, "missing archive")
+        results:Add(2, "not a ZIP archive")
+        suite:Test(files, results)
+    end
 end

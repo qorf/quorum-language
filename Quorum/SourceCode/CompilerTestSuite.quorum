@@ -35,7 +35,7 @@ class CompilerTestSuite is ProcessListener
     integer failed = 0
     integer previousPass = 0
     integer previousTotal = 0
-    
+
     boolean testBytecode = true
     boolean testJavaScript = false
     boolean testPython = false
@@ -81,9 +81,12 @@ class CompilerTestSuite is ProcessListener
     JsonTester jsonChecks
     BigIntegerTester bigIntegerChecks
     ByteArrayTester byteArrayChecks
+    ZipWriterTester zipWriterChecks
+    DataFormatsTester dataFormatsChecks
     ScienceTester scienceChecks
 
-    on create        
+
+    on create
         expressions:SetCompilerTestSuite(me)
         typeChecks:SetCompilerTestSuite(me)
         typeChecksGenerated:SetCompilerTestSuite(me)
@@ -111,6 +114,8 @@ class CompilerTestSuite is ProcessListener
         jsonChecks:SetCompilerTestSuite(me)
         bigIntegerChecks:SetCompilerTestSuite(me)
         byteArrayChecks:SetCompilerTestSuite(me)
+        zipWriterChecks:SetCompilerTestSuite(me)
+        dataFormatsChecks:SetCompilerTestSuite(me)
         scienceChecks:SetTester(tester)
 
         //delete the output folder to start the testing fresh
@@ -160,7 +165,7 @@ class CompilerTestSuite is ProcessListener
 
     private action FindNode returns text
         text location = undefined
-        
+
         Properties prop
         if prop:IsWindows()
             File nodeLoc
@@ -184,49 +189,49 @@ class CompilerTestSuite is ProcessListener
         start = date:GetEpochTime()
         expressions:Test()
         output expressions:GetName() + GetCurrentTestPassText()
-        
+
         typeChecks:Test()
         output typeChecks:GetName() + GetCurrentTestPassText()
-        
+
         typeChecksGenerated:Test()
         output typeChecksGenerated:GetName() + GetCurrentTestPassText()
-        
+
         chainingChecks:Test()
         output chainingChecks:GetName() + GetCurrentTestPassText()
-        
+
         ifStatementChecks:Test()
         output ifStatementChecks:GetName() + GetCurrentTestPassText()
-        
+
         loopsChecks:Test()
         output loopsChecks:GetName() + GetCurrentTestPassText()
-        
+
         actionsChecks:Test()
         output actionsChecks:GetName() + GetCurrentTestPassText()
-        
+
         inheritanceChecks:Test()
         output inheritanceChecks:GetName() + GetCurrentTestPassText()
-        
+
         templatingChecks:Test()
         output templatingChecks:GetName() + GetCurrentTestPassText()
-        
+
         templatingChecksGenerated:Test()
         output templatingChecksGenerated:GetName() + GetCurrentTestPassText()
-        
+
         exceptionChecks:Test()
         output exceptionChecks:GetName() + GetCurrentTestPassText()
-        
+
         arrayChecks:Test()
         output arrayChecks:GetName() + GetCurrentTestPassText()
-        
+
         stackChecks:Test()
         output stackChecks:GetName() + GetCurrentTestPassText()
-        
+
         queueChecks:Test()
         output queueChecks:GetName() + GetCurrentTestPassText()
-        
+
         mathChecks:Test()
         output mathChecks:GetName() + GetCurrentTestPassText()
-        
+
         listChecks:Test()
         output listChecks:GetName() + GetCurrentTestPassText()
 
@@ -238,6 +243,9 @@ class CompilerTestSuite is ProcessListener
 
         decompresserChecks:Test()
         output decompresserChecks:GetName() + GetCurrentTestPassText()
+
+        zipWriterChecks:Test()
+        output zipWriterChecks:GetName() + GetCurrentTestPassText()
 
         useChecks:Test()
         output useChecks:GetName() + GetCurrentTestPassText()
@@ -263,9 +271,11 @@ class CompilerTestSuite is ProcessListener
         byteArrayChecks:Test()
         output byteArrayChecks:GetName() + GetCurrentTestPassText()
 
+        dataFormatsChecks:Test()
+        output dataFormatsChecks:GetName() + GetCurrentTestPassText()
+
         scienceChecks:Test()
         output scienceChecks:GetName() + GetCurrentTestPassText()
-        
 
         text EOL = ""
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
@@ -299,18 +309,21 @@ class CompilerTestSuite is ProcessListener
         end
     end
 
-    
+
     action Test(Array<File> files, Array<text> reply)
         if testBytecode = false
             return now
         end
         CompilerTestResult result
-        check            
+        check
             result = RunTestFile(files)
             TestResult(result, reply)
         detect e
             text message = e:GetErrorMessage()
+            File failedFile = files:Get(0)
+            output "    " + failedFile:GetPath() + " stopped with an error: " + message
             result:SetErrorMessage(message)
+            result:SetName(failedFile:GetPath())
             result:stackTrace = e:GetStackTrace()
         end
         result:isBytecodeTest = true
@@ -320,6 +333,9 @@ class CompilerTestSuite is ProcessListener
 
     private action TestResult(CompilerTestResult result, Array<text> reply)
         result:Check(result:ranWithoutError, true)
+        if not result:ranWithoutError
+           output "failed here: " + result:errorMessage
+        end
         if result:ranWithoutError
             Array<text> lines = result:lines
             Iterator<text> lineIt = lines:GetIterator()
@@ -327,6 +343,7 @@ class CompilerTestSuite is ProcessListener
             integer i = 0
             result:passed = true
             if lines:GetSize() not= reply:GetSize()
+                output "diff sizes"
                 result:passed = false
             else
                 result:passed = true
@@ -334,7 +351,7 @@ class CompilerTestSuite is ProcessListener
             repeat n times
                 if lines:Get(i) not= reply:Get(i)
                     //leaving this here as it is convenient for testing.
-                    //output "Line '" + lines:Get(i) + "'" + "Answer '" + reply:Get(i) + "'"
+                    output "Line '" + lines:Get(i) + "'" + "Answer '" + reply:Get(i) + "'"
                     result:passed = false
                 end
                 i = i + 1
@@ -355,7 +372,7 @@ class CompilerTestSuite is ProcessListener
             text message = e:GetErrorMessage()
             result:errorMessage = message
             result:stackTrace = e:GetStackTrace()
-            File testFile 
+            File testFile
             testFile = files:Get(0)
             result:SetName(testFile:GetPath())
         end
@@ -367,7 +384,7 @@ class CompilerTestSuite is ProcessListener
     action RunPythonTestFile(Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler  = GetDefaultCompiler()
-        
+
         TranslateConstants constants
         constants:SetUserCodeAsynchronous(false)
         CompilerRequest request
@@ -380,7 +397,7 @@ class CompilerTestSuite is ProcessListener
         CompilerResult compilerResult = compiler:Compile(request)
         CompilerErrorManager manager = compilerResult:compilerErrorManager
 
-        File testFile 
+        File testFile
         testFile = files:Get(0)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
@@ -427,7 +444,7 @@ class CompilerTestSuite is ProcessListener
     action RunTestFile (Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler = GetDefaultCompiler()
-        
+
         CompilerRequest request
         request:main = files:Get(0)
         request:isWebRequest = false
@@ -436,7 +453,7 @@ class CompilerTestSuite is ProcessListener
 
         CompilerResult compilerResult = compiler:Compile(request)
         CompilerErrorManager manager = compilerResult:compilerErrorManager
-        File testFile 
+        File testFile
         testFile = files:Get(0)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
@@ -453,12 +470,12 @@ class CompilerTestSuite is ProcessListener
         return result
     end
 
-    
+
 
     action RunJavaScriptTestFile(Array<File> files) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler  = GetDefaultCompiler()
-        
+
         CompilerRequest request
         request:main = files:Get(0)
         request:isWebRequest = false
@@ -469,7 +486,7 @@ class CompilerTestSuite is ProcessListener
         CompilerResult compilerResult = compiler:Compile(request)
         CompilerErrorManager manager = compilerResult:compilerErrorManager
 
-        File testFile 
+        File testFile
         testFile = files:Get(0)
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
@@ -493,7 +510,7 @@ class CompilerTestSuite is ProcessListener
         //now run the output file in Node.js
         Process process
         process:SetName(javaLocation)
-        
+
         File processDirectory
         processDirectory:SetAbsolutePath(file:GetParentDirectory():GetAbsolutePath())
         process:SetDirectory(processDirectory)
@@ -505,20 +522,20 @@ class CompilerTestSuite is ProcessListener
         process:SetParameters(flags)
         process:AddListener(me)
         //now Run it
-        process:Run()  
+        process:Run()
 
-        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)
         if lines not= undefined
             result:lines = lines
         end
-        
+
         if javascriptError
             result:ranWithoutError = false
-        else 
+        else
             result:ranWithoutError = true
         end
         result:returnCode = javascriptExitCode
-        
+
         return result
     end
 
@@ -545,7 +562,7 @@ class CompilerTestSuite is ProcessListener
         //now run the output file in python3. It uses the same system as JavaScript
         Process process
         process:SetName("python3")
-        
+
         File processDirectory
         processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
         process:SetDirectory(processDirectory)
@@ -556,20 +573,20 @@ class CompilerTestSuite is ProcessListener
         process:SetParameters(flags)
         process:AddListener(me)
         //now Run it
-        process:Run()  
+        process:Run()
 
-        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)
         if lines not= undefined
             result:lines = lines
         end
-        
+
         if javascriptError
             result:ranWithoutError = false
-        else 
+        else
             result:ranWithoutError = true
         end
         result:returnCode = javascriptExitCode
-        
+
         return result
     end
 
@@ -595,7 +612,7 @@ Start();
 ")
         text resultText = builder:ToText()
 //        text resultText = javascriptStandardLibraryText + "
-//" + script 
+//" + script
 //+ "
 //Start();
 //"
@@ -609,7 +626,7 @@ Start();
         //now run the output file in Node.js
         Process process
         process:SetName(nodeLocation)
-        
+
         File processDirectory
         processDirectory:SetAbsolutePath(outFile:GetParentDirectory():GetAbsolutePath())
         process:SetDirectory(processDirectory)
@@ -620,24 +637,24 @@ Start();
         process:SetParameters(flags)
         process:AddListener(me)
         //now Run it
-        process:Run()  
+        process:Run()
 
-        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)  
+        Array<text> lines = javascriptOutput:Split(JAVASCRIPT_DELIMITER)
         if lines not= undefined
             result:lines = lines
         end
-        
+
         if javascriptError
             result:ranWithoutError = false
-        else 
+        else
             result:ranWithoutError = true
         end
         result:returnCode = javascriptExitCode
-        
+
         return result
     end
 
-    
+
     action ProcessStarted(ProcessEvent event)
         javascriptError = false
         javascriptOutput = ""
@@ -663,7 +680,7 @@ Start();
             return now
         end
         Compiler compiler = GetDefaultCompiler()
-        
+
         CompilerRequest request
         request:main = files:Get(0)
         request:isWebRequest = false
@@ -678,7 +695,7 @@ Start();
         File testFile
         testFile = files:Get(0)
         result:SetName(testFile:GetPath())
-        result:isBytecodeTest = true    
+        result:isBytecodeTest = true
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
 
@@ -695,7 +712,7 @@ Start();
     end
 
     /*
-        This action is identical to the JavaScript implementation, except in Python mode. Generally, 
+        This action is identical to the JavaScript implementation, except in Python mode. Generally,
         you would expect if it passes one it passes the other, but tis is a test of such a hypothesis.
     */
     action TestPythonFail(Array<File> files)
@@ -714,7 +731,7 @@ Start();
         CompilerErrorManager manager = compilerResult:compilerErrorManager
 
         CompilerTestResult result
-        File testFile 
+        File testFile
         testFile = files:Get(0)
         result:SetName(testFile:GetPath())
         result:isJavaScriptTest = true
@@ -749,7 +766,7 @@ Start();
         CompilerErrorManager manager = compilerResult:compilerErrorManager
 
         CompilerTestResult result
-        File testFile 
+        File testFile
         testFile = files:Get(0)
         result:SetName(testFile:GetPath())
         result:isJavaScriptTest = true
@@ -767,7 +784,7 @@ Start();
         Add(result)
         tester:Add(result)
     end
-    
+
     action Add(CompilerTestResult result)
         if result = undefined
             failed = failed + 1
@@ -778,7 +795,7 @@ Start();
         end
         total = total + 1
         text value = ""
-        value = result:GetName() 
+        value = result:GetName()
 
         if result:isBytecodeTest
             totalBytecode = totalBytecode + 1
@@ -842,7 +859,7 @@ Start();
     action RunTest(text source) returns CompilerTestResult
         CompilerTestResult result = undefined
         Compiler compiler = GetDefaultCompiler()
-        
+
         File file
         file:SetPath(source)
 
@@ -859,7 +876,7 @@ Start();
 
         CompilerProfiler profiler = compiler:GetCompilerProfiler()
         summaryProfiler:Add(profiler)
-        
+
         if manager:IsCompilationErrorFree()
             File jar = compiler:GetExecutable(request)
             result = RunClassFile(jar)
@@ -902,13 +919,13 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 2
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2
                        result:passed = true
                     end
                 end
             end
-            
+
         detect e
             text message = e:GetErrorMessage()
             result:errorMessage = message
@@ -926,14 +943,14 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 3
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3
                        result:passed = true
                     end
                 end
             end
-            
+
         detect e
             text message = e:GetErrorMessage()
             result:errorMessage = message
@@ -951,7 +968,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 4
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
                        lines:Get(3) = reply4
@@ -959,7 +976,7 @@ Start();
                     end
                 end
             end
-            
+
         detect e
             text message = e:GetErrorMessage()
             result:errorMessage = message
@@ -977,7 +994,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 5
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
                        lines:Get(3) = reply4 and
@@ -986,7 +1003,7 @@ Start();
                     end
                 end
             end
-            
+
         detect e
             text message = e:GetErrorMessage()
             result:errorMessage = message
@@ -1001,7 +1018,7 @@ Start();
         text quote = ""
         quote = quote:GetDoubleQuote()
         Compiler compiler = GetDefaultCompiler()
-        
+
         File file
         file:SetPath(source)
 
@@ -1063,7 +1080,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 2
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2
                        result:passed = true
                     end
@@ -1086,7 +1103,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 3
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3
                        result:passed = true
@@ -1110,7 +1127,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 4
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
                        lines:Get(3) = reply4
@@ -1135,7 +1152,7 @@ Start();
             if result:ranWithoutError
                 Array<text> lines = result:lines
                 if lines:GetSize() = 5
-                    if lines:Get(0) = reply1 and 
+                    if lines:Get(0) = reply1 and
                        lines:Get(1) = reply2 and
                        lines:Get(2) = reply3 and
                        lines:Get(3) = reply4 and
