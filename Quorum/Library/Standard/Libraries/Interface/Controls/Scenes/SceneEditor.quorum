@@ -173,9 +173,13 @@ class SceneEditor is Control, DefaultSceneManager
 
     SceneEditorEditManager editManager
 
-    // The scene's file text as it was last loaded or saved, to tell whether
-    // it has changed since (HasUnsavedChanges).
+    // The scene's file text as it was last loaded or saved, without its
+    // cameras, to tell whether it has changed since (HasUnsavedChanges).
     text savedText = ""
+    // True while the scene's text is made only to compare it: the cameras,
+    // which are the editor's view, are left out, so opening a scene or
+    // looking around doesn't count as a change.
+    boolean comparingText = false
 
     // The rotational speed measured in degrees,
     // and the directional speed, measured in 3D world units.
@@ -618,7 +622,7 @@ class SceneEditor is Control, DefaultSceneManager
         SetName(file:GetPath())
         Load(scene)
         SelectStartingLayer()
-        savedText = GetSceneText()
+        savedText = GetComparableText()
     end
 
     /*
@@ -8196,6 +8200,10 @@ action Update(number seconds)
     end
 
     private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
+        // Comparing: the camera is the editor's view, so it is left out.
+        if comparingText
+            return true
+        end
         if layer is EditorLayer2D
             EditorLayer2D layer2D = cast(EditorLayer2D, layer)
             if key = properties:SIZE
@@ -8228,7 +8236,7 @@ action Update(number seconds)
 
         text sceneText = GetSceneText()
         file:Write(sceneText)
-        savedText = sceneText
+        savedText = GetComparableText()
     end
 
     /*
@@ -8258,7 +8266,18 @@ action Update(number seconds)
             end
             counter = counter + 1
         end
-        return GetSceneText() not= savedText
+        return GetComparableText() not= savedText
+    end
+
+    /*
+    This action returns the scene's text without its cameras, to tell
+    whether the scene itself changed.
+    */
+    private action GetComparableText returns text
+        comparingText = true
+        text result = GetSceneText()
+        comparingText = false
+        return result
     end
 
     /*

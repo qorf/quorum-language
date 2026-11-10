@@ -1305,11 +1305,12 @@ number restitution = 0
             Item2D item = iterator:Next()
             JavaScriptObjectNotation itemJson = SaveItem2D(item)
 
+            // Only saved items are counted, so items left out, such as a
+            // scene editor's cursor and grid, don't change the numbers.
             if itemJson not= undefined
                 json:Add("" + i, itemJson)
+                i = i + 1
             end
-
-            i = i + 1
         end
 
         return json
@@ -1412,17 +1413,40 @@ number restitution = 0
     private action SaveItem3Ds(Layer3D layer) returns JavaScriptObjectNotation
         JavaScriptObjectNotation json
 
+        // A 3D layer keeps its items in a render tree, whose order changes
+        // whenever something in it moves, even the scene editor's cursor.
+        // So the items are saved sorted by their own text: an unchanged
+        // scene always saves the same way. Only saved items are counted,
+        // so items left out, such as the editor's cursor and grid, don't
+        // change the numbers.
+        HashTable<text, Array<JavaScriptObjectNotation>> byText
+        Array<text> texts
         Iterator<Item3D> iterator = layer:GetIterator()
-        integer i = 0
         repeat while iterator:HasNext()
             Item3D item = iterator:Next()
             JavaScriptObjectNotation itemJson = SaveItem3D(item)
-
             if itemJson not= undefined
-                json:Add("" + i, itemJson)
+                text itemText = itemJson:ToText()
+                if not byText:HasKey(itemText)
+                    Array<JavaScriptObjectNotation> sameText
+                    byText:Add(itemText, sameText)
+                    texts:Add(itemText)
+                end
+                byText:GetValue(itemText):Add(itemJson)
             end
-
-            i = i + 1
+        end
+        texts:Sort()
+        integer i = 0
+        integer place = 0
+        repeat while place < texts:GetSize()
+            Array<JavaScriptObjectNotation> same = byText:GetValue(texts:Get(place))
+            integer copy = 0
+            repeat while copy < same:GetSize()
+                json:Add("" + i, same:Get(copy))
+                i = i + 1
+                copy = copy + 1
+            end
+            place = place + 1
         end
 
         return json

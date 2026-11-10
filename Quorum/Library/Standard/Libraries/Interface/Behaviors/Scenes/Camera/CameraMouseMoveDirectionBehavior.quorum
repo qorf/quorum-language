@@ -37,7 +37,10 @@ class CameraMouseMoveDirectionBehavior is Behavior
             camera:LookBy(mouseEvent:GetMovementX() * SENSITIVITY, mouseEvent:GetMovementY() * SENSITIVITY)
         elseif mouseEvent:mouseButton = mouseEvent:MIDDLE and mouseEvent:IsDragged()
             number unitsPerPixel = camera:GetViewDistance() * SLIDE_SHARE
-            camera:SlideBy(mouseEvent:GetMovementX() * unitsPerPixel, mouseEvent:GetMovementY() * unitsPerPixel)
+            // The view is mirrored along x, so the x movement is negated:
+            // dragging right moves the camera right and the scene left, the
+            // same way dragging up moves the camera up and the scene down.
+            camera:SlideBy(-mouseEvent:GetMovementX() * unitsPerPixel, mouseEvent:GetMovementY() * unitsPerPixel)
         end
     end
 end
