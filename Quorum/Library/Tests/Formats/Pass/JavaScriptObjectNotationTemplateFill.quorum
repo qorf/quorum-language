@@ -1,0 +1,49 @@
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+text dq = ""
+dq = dq:GetDoubleQuote()
+text lf = ""
+lf = lf:GetLineFeed()
+
+// ' stands in for " so the JSON stays readable
+text sample = "{" + lf + "  'name': 'project_settings'," + lf + "  'layer_height': '0.2'," + lf
+    + "  'wall_loops': 3," + lf + "  'filament_colour': ['#FFFFFF', '#000000']," + lf
+    + "  'empty': []," + lf + "  'quote': 'say \'hi\''" + lf + "}"
+sample = sample:Replace("'", dq)
+
+JavaScriptObjectNotationTemplate json
+json:Load(sample)
+json:Fill("layer_height", "0.16")
+json:Fill("filament_colour", "#FF0000")
+json:Fill("empty", "x")
+text result = json:ToText()
+
+// a single value is replaced
+text replaced = "'layer_height': '0.16'"
+if result:Contains(replaced:Replace("'", dq))
+    output "layer_height replaced"
+else
+    output "layer_height not replaced"
+end
+
+// an untouched value stays as written
+text untouched = "'wall_loops': 3,"
+if result:Contains(untouched:Replace("'", dq))
+    output "wall_loops kept"
+else
+    output "wall_loops changed"
+end
+
+// every item of a filled list is the new value, and the list keeps its length
+if result:Contains("#000000")
+    output "old colour still there"
+else
+    output "old colour gone"
+end
+JavaScriptObjectNotationTemplate again
+again:Load(result)
+output again:Count("filament_colour")
+output again:GetText("filament_colour", "?")
+
+// an empty list stays empty
+output again:Count("empty")

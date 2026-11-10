@@ -6,12 +6,13 @@ use Libraries.Language.Errors.ParseError
 /*
 The JavaScriptObjectNotationTemplate class edits the top-level values of a
 JSON object without rebuilding the text. It finds where each top-level value
-starts and ends, and on output replaces only the values that were changed. This
-allows use to develop heirarchical setting configs for services like Bambu file
-packaging.
+starts and ends, and on output replaces only the values that were changed:
+every other byte (spacing, key order, number formats) stays as it was. This
+matters for files another program reads back with exact expectations, such
+as Bambu Studio's project_settings.config.
 
-It also works as a small reader: GetText returns a nested object's raw JSON text,
-which can be loaded into another template.
+It also works as a small reader: GetText returns a nested object's raw JSON
+text, which can be loaded into another template.
 
 Attribute: Example
 
@@ -23,8 +24,8 @@ Attribute: Example
             dq = dq:GetDoubleQuote()
             JavaScriptObjectNotationTemplate json
             json:Load("{" + dq + "a" + dq + ": " + dq + "1" + dq + "}")
-            json:Fill("a", "2") // only this value is rewritten
-            json:Put("added", "yes") // a missing key is appended
+            json:Fill("a", "2")             // only this value is rewritten
+            json:Put("added", "yes")        // a missing key is appended
             output json:ToText()
         end
     end
@@ -51,9 +52,9 @@ class JavaScriptObjectNotationTemplate
     end
 
     /*
-    Reads JSON text whose top level is an object, and finds every top-level key.
-    Stops with a ParseError giving the line of the problem if the text isn't a
-    JSON object.
+    Reads JSON text whose top level is an object, and finds every top-level
+    key. Stops with a ParseError giving the line of the problem if the text
+    isn't a JSON object.
 
     Attribute: Parameter json The JSON text.
 
@@ -66,8 +67,9 @@ class JavaScriptObjectNotationTemplate
         File file
         file:SetPath("project_settings.json")
         JavaScriptObjectNotationTemplate settings
+        settings:Load(file:Read())
         Array<text> keys = settings:GetKeys()
-        output kets:GetSize() + " settings"
+        output keys:GetSize() + " settings"
     */
     action Load(text json)
         source = json
@@ -143,7 +145,7 @@ class JavaScriptObjectNotationTemplate
     action GetKeys returns Array<text>
         return keys:CopyToArray()
     end
-    
+
     /*
     Checks whether the object has a top-level key.
 
@@ -151,7 +153,7 @@ class JavaScriptObjectNotationTemplate
     Attribute: Returns True if the key exists.
 
     Attribute: Example
-        
+
         use Libraries.System.File
         use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
 
@@ -165,7 +167,7 @@ class JavaScriptObjectNotationTemplate
     */
     action Has(text key) returns boolean
         return Find(key) >= 0
-    end    
+    end
 
     /*
     The value of a key as text: a string without its quotes, a number or
@@ -201,7 +203,7 @@ class JavaScriptObjectNotationTemplate
                 if source:GetCharacter(i) = dq
                     return Unquote(i)
                 end
-            end     
+            end
             return fallback
         end
         if c = dq
@@ -217,7 +219,7 @@ class JavaScriptObjectNotationTemplate
     Attribute: Returns The list's length, 1 for a single value, 0 if the key is missing.
 
     Attribute: Example
-        
+
         use Libraries.System.File
         use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
 
@@ -225,7 +227,7 @@ class JavaScriptObjectNotationTemplate
         file:SetPath("project_settings.json")
         JavaScriptObjectNotationTemplate settings
         settings:Load(file:Read())
-        output settings:Count("filament_color") + " filaments"
+        output settings:Count("filament_colour") + " filaments"
     */
     action Count(text key) returns integer
         integer k = Find(key)
@@ -278,11 +280,11 @@ class JavaScriptObjectNotationTemplate
 
     /*
     Changes an existing key to a string value. A list stays a list of the
-    same length with every item set to the value. Missing keys are left alone
-    (use Has to find out, or Put to add them).
+    same length with every item set to the value. Missing keys are left
+    alone (use Has to find out, or Put to add them).
 
     Attribute: Parameter key The key to change.
-    Attribute: Parameter value The new value, written as JSON string.
+    Attribute: Parameter value The new value, written as a JSON string.
 
     Attribute: Example
 
@@ -330,11 +332,11 @@ class JavaScriptObjectNotationTemplate
         file:SetPath("project_settings.json")
         JavaScriptObjectNotationTemplate settings
         settings:Load(file:Read())
-        Array<text> colors
-        colors:Add("#FF8000")
-        settings:FillList("filament_color", colors)
+        Array<text> colours
+        colours:Add("#FF8000")
+        settings:FillList("filament_colour", colours)
     */
-    action  FillList(text key, Array<text> items)
+    action FillList(text key, Array<text> items)
         integer k = Find(key)
         if k >= 0
             Replace(k, ListText(items))
@@ -342,8 +344,8 @@ class JavaScriptObjectNotationTemplate
     end
 
     /*
-    Sets a key to a single string value, adding it at the end of the object if it
-    is missing.
+    Sets a key to a single string value, adding it at the end of the object
+    if it is missing.
 
     Attribute: Parameter key The key to set.
     Attribute: Parameter value The new value, written as a JSON string.
@@ -404,7 +406,7 @@ class JavaScriptObjectNotationTemplate
                 result = result + source:GetSubtext(position, insertAt) + additions
                 position = insertAt
             else
-                // an empty object, the additions go in place of the braces
+                // an empty object: the additions go in place of the braces
                 result = result + "{" + additions:GetSubtext(1) + lf + "}"
                 position = source:GetSize()
             end
@@ -420,7 +422,7 @@ class JavaScriptObjectNotationTemplate
         replacements:Set(index, replacement)
         replaced:Set(index, true)
     end
-    
+
     private action ListText(Array<text> items) returns text
         if items:GetSize() = 0
             return "[]"
@@ -442,7 +444,7 @@ class JavaScriptObjectNotationTemplate
         repeat while i < keys:GetSize()
             if keys:Get(i) = key
                 return i
-            end 
+            end
             i = i + 1
         end
         return -1
@@ -454,7 +456,7 @@ class JavaScriptObjectNotationTemplate
         return dq + escaped + dq
     end
 
-    /*  The text inside the quoted string that starts at quoteIndex. */
+    /* The text inside the quoted string that starts at quoteIndex. */
     private action Unquote(integer quoteIndex) returns text
         integer closing = StringEnd(quoteIndex) - 1
         text result = ""
@@ -476,13 +478,13 @@ class JavaScriptObjectNotationTemplate
                 i = i + 1
             end
         end
-        return result    
+        return result
     end
 
     private action IsSpace(text c) returns boolean
         return c = " " or c = lf or c = cr or c = tab
     end
-    
+
     private action SkipSpace(integer index) returns integer
         integer i = index
         integer size = source:GetSize()
@@ -492,7 +494,7 @@ class JavaScriptObjectNotationTemplate
         return i
     end
 
-    /* Given the index of an opening quote, returns the index just past its closing quote */
+    /* Given the index of an opening quote, the index just past its closing quote. */
     private action StringEnd(integer quoteIndex) returns integer
         integer i = quoteIndex + 1
         integer size = source:GetSize()
@@ -510,7 +512,7 @@ class JavaScriptObjectNotationTemplate
         return size
     end
 
-    /* Given the index where a value starts, returns the index just past its end. */
+    /* Given the index where a value starts, the index just past its end. */
     private action ValueEnd(integer index) returns integer
         integer size = source:GetSize()
         integer depth = 0
@@ -553,7 +555,7 @@ class JavaScriptObjectNotationTemplate
         end
         return i
     end
-    
+
     /* Stops with a ParseError that says on which line of the text the problem is. */
     private action Fail(integer index, text problem)
         integer line = 1

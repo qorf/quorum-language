@@ -1,31 +1,170 @@
 package Libraries.Language.Compile.Test
 
-use Libraries.Testing.Tester
-use Formats.Tests.NumberFormatterTest
-use Formats.Tests.JavaScriptObjectNotationTemplateTest
+use Libraries.Containers.Array
+use Libraries.System.File
 
 /*
 Tests Libraries.Data.Formats.NumberFormatter and JavaScriptObjectNotationTemplate.
-Like ScienceTester, it runs Libraries.Testing.Test classes (CaseTest, in
-Quorum/SourceCode/Tests/Formats) in-process and adds them to the suite's
-Tester. A failed test also prints the message of each failed expectation.
+Like ZipWriterTester, each test is a small program in Library/Tests/Formats/Pass
+that the suite compiles against the repository's standard library, runs, and
+checks line by line against the expected output.
 */
 class DataFormatsTester
-    Tester tester = undefined
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Formats/"
+    text passPath = path + "Pass/"
+
+    action Test
+        path = passPath
+        NumberFormatterFixed()
+        NumberFormatterShort()
+        JavaScriptObjectNotationTemplateRead()
+        JavaScriptObjectNotationTemplateUnchanged()
+        JavaScriptObjectNotationTemplateFill()
+        JavaScriptObjectNotationTemplatePut()
+        JavaScriptObjectNotationTemplateNested()
+        JavaScriptObjectNotationTemplateErrors()
+    end
 
     action GetName returns text
         return "Data Formats Tests"
     end
 
-    action SetTester(Tester tester)
-        me:tester = tester
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
     end
 
-    action Test
-        NumberFormatterTest numberFormatterTest
-        numberFormatterTest:RunWith(tester)
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
 
-        JavaScriptObjectNotationTemplateTest javaScriptObjectNotationTemplateTest
-        javaScriptObjectNotationTemplateTest:RunWith(tester)
+    action NumberFormatterFixed
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberFormatterFixed.quorum")
+        files:Add(main)
+        results:Add(0, "3.14")
+        results:Add(1, "3")
+        results:Add(2, "0.001")
+        results:Add(3, "1.000")
+        results:Add(4, "0.05000")
+        results:Add(5, "12")
+        results:Add(6, "-1.3")
+        results:Add(7, "0.00")
+        results:Add(8, "0.000")
+        results:Add(9, "123456789.500")
+        results:Add(10, "-5000000.25")
+        suite:Test(files, results)
+    end
+
+    action NumberFormatterShort
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "NumberFormatterShort.quorum")
+        files:Add(main)
+        results:Add(0, "0.2")
+        results:Add(1, "200")
+        results:Add(2, "1.75")
+        results:Add(3, "0.3")
+        results:Add(4, "123457")
+        results:Add(5, "0")
+        results:Add(6, "15%")
+        results:Add(7, "100%")
+        results:Add(8, "100")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplateRead
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplateRead.quorum")
+        files:Add(main)
+        results:Add(0, "6")
+        results:Add(1, "name")
+        results:Add(2, "0.2")
+        results:Add(3, "3")
+        results:Add(4, "#FFFFFF")
+        results:Add(5, "fallback")
+        results:Add(6, "fallback")
+        results:Add(7, "say " + dq + "hi" + dq)
+        results:Add(8, "2")
+        results:Add(9, "0")
+        results:Add(10, "1")
+        results:Add(11, "0")
+        results:Add(12, "has wall_loops")
+        results:Add(13, "no missing")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplateUnchanged
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplateUnchanged.quorum")
+        files:Add(main)
+        results:Add(0, "unchanged")
+        results:Add(1, "unchanged")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplateFill
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplateFill.quorum")
+        files:Add(main)
+        results:Add(0, "layer_height replaced")
+        results:Add(1, "wall_loops kept")
+        results:Add(2, "old colour gone")
+        results:Add(3, "2")
+        results:Add(4, "#FF0000")
+        results:Add(5, "0")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplatePut
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplatePut.quorum")
+        files:Add(main)
+        results:Add(0, "3")
+        results:Add(1, "Textured PEI Plate")
+        results:Add(2, "curr_bed_type")
+        results:Add(3, "renamed")
+        results:Add(4, "value")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplateNested
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplateNested.quorum")
+        files:Add(main)
+        results:Add(0, "nested object text")
+        results:Add(1, "x")
+        results:Add(2, "5")
+        suite:Test(files, results)
+    end
+
+    action JavaScriptObjectNotationTemplateErrors
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "JavaScriptObjectNotationTemplateErrors.quorum")
+        files:Add(main)
+        results:Add(0, "empty text")
+        results:Add(1, "a list, not an object")
+        results:Add(2, "an object that is never closed")
+        results:Add(3, "a missing colon")
+        results:Add(4, "a string that is never closed")
+        results:Add(5, "valid JSON is accepted")
+        suite:Test(files, results)
     end
 end
