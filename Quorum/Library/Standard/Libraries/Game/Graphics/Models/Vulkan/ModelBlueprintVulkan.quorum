@@ -194,6 +194,61 @@ Animations animations = data:GetAnimations()
     end
 
     /*
+    This action returns true if any of the blueprint's materials lets light
+    through (Transmission plan T1), so the painter copies what is behind
+    before drawing its see-through meshes (T3).
+
+    Attribute: Returns True if a material has transmission.
+    */
+    action HasTransmissiveMaterial returns boolean
+        if materials = undefined
+            return false
+        end
+        integer i = 0
+        repeat while i < materials:GetSize()
+            MaterialVulkan material = materials:Get(i)
+            if material not= undefined and material:IsTransmissive()
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns true if some of the blueprint's meshes have a
+    see-through material and others an opaque one, as a lamp with a glass
+    or paper shade (Transmission plan, the mesh split). The painter then
+    draws the opaque meshes in the scene pass, where they hide one another,
+    and only the see-through ones after the lighting. It is worked out each
+    time, as the materials only know once they are loaded; the painter only
+    asks for see-through models.
+
+    Attribute: Returns True if the meshes are partly see-through.
+    */
+    action IsPartlySeeThrough returns boolean
+        if meshes = undefined or meshes:IsEmpty()
+            return false
+        end
+        boolean anySeeThrough = false
+        boolean anyOpaque = false
+        integer i = 0
+        repeat while i < meshes:GetSize()
+            MeshVulkan mesh = meshes:Get(i)
+            if mesh not= undefined
+                MaterialVulkan material = mesh:GetMaterial()
+                if material not= undefined and material:IsSeeThrough()
+                    anySeeThrough = true
+                else
+                    anyOpaque = true
+                end
+            end
+            i = i + 1
+        end
+        return anySeeThrough and anyOpaque
+    end
+
+    /*
     This action returns true if any of the blueprint's materials is
     two-sided, so the painter draws its models without hiding the backs of
     faces (Lighting plan L4).

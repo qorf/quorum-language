@@ -76,4 +76,25 @@ class EditorPointLight is EditorModel, PointLight
         return parent:PointLight:GetIntensity()
     end
 
+    /*
+        Sets whether the light casts shadows (Shadow plan S4). Both Light and
+        Model have this action; it is the light's, since the model is only
+        what the editor selects and draws nothing.
+
+        Attribute: Parameter casts True for the light to cast shadows.
+    */
+    action SetCastsShadows(boolean casts)
+        parent:PointLight:SetCastsShadows(casts)
+    end
+
+    /*
+        Returns whether the light casts shadows (Shadow plan S4). See
+        SetCastsShadows.
+
+        Attribute: Returns True if the light casts shadows.
+    */
+    action CastsShadows returns boolean
+        return parent:PointLight:CastsShadows()
+    end
+
 end

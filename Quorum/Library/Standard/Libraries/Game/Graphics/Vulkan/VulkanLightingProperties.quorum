@@ -15,6 +15,8 @@ class VulkanLightingProperties
     integer maximumLights = 16
     integer shadowMapCascadeCount = 1
     integer shadowMapSize = 4096
+    // Each face of a point light's shadow map (Shadow plan S1).
+    integer pointShadowMapSize = 512
     
     VulkanDescriptorSetLayout shadowCubemapsLayout = undefined
 
@@ -23,12 +25,23 @@ class VulkanLightingProperties
     constant integer SKY_LIGHT_CUBE_COUNT = 5
     VulkanDescriptorSetLayout skyLightLayout = undefined
 
+    // What is behind see-through models, for those that let light through
+    // (Transmission plan T3): BEHIND_LEVEL_COUNT copies of the lit image,
+    // each half the size of the last, from half the window's size. Their
+    // set's layout is made the first time it is asked for.
+    public constant integer BEHIND_LEVEL_COUNT = 4
+    VulkanDescriptorSetLayout behindLayout = undefined
+
     action Create(VulkanDevice device, DesktopConfiguration configuration)
         me:device = device
         
         maximumLights = configuration:maximumLights
         shadowMapCascadeCount = configuration:shadowMapCascadeCount
         shadowMapSize = configuration:shadowMapSize
+        pointShadowMapSize = configuration:pointShadowMapSize
+        if pointShadowMapSize < 1
+            pointShadowMapSize = 512
+        end
     end
     
     action GetMaximumLights returns integer
@@ -41,6 +54,17 @@ class VulkanLightingProperties
 
     action GetShadowMapSize returns integer
         return shadowMapSize
+    end
+
+    /*
+    This action returns the size, in pixels, of each face of a point
+    light's shadow map (Shadow plan S1), from DesktopConfiguration's
+    pointShadowMapSize.
+
+    Attribute: Returns The size of a point light's shadow map face.
+    */
+    action GetPointShadowMapSize returns integer
+        return pointShadowMapSize
     end
 
     action GetShadowCubemapsDescriptorSetLayout returns VulkanDescriptorSetLayout
@@ -80,6 +104,35 @@ class VulkanLightingProperties
     */
     action GetSkyLightCubeCount returns integer
         return SKY_LIGHT_CUBE_COUNT
+    end
+
+    /*
+    This action returns the layout of the set holding what is behind
+    see-through models (Transmission plan T3): BEHIND_LEVEL_COUNT bindings,
+    0 to 3, each one image sampler for the fragment shader, the sharpest
+    first. Forward programs use it as set 6. It is made the first time.
+
+    Attribute: Returns The layout.
+    */
+    action GetBehindDescriptorSetLayout returns VulkanDescriptorSetLayout
+        if behindLayout = undefined
+            VulkanConstants constants
+            Array<VulkanDescriptorSetLayoutBinding> bindings
+            integer i = 0
+            repeat while i < BEHIND_LEVEL_COUNT
+                VulkanDescriptorSetLayoutBinding binding
+                binding:SetBinding(i)
+                binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+                binding:SetDescriptorCount(1)
+                binding:SetStageFlags(constants:SHADER_STAGE_FRAGMENT_BIT)
+                bindings:Add(binding)
+                i = i + 1
+            end
+            VulkanDescriptorSetLayout layout
+            layout:Create(device, bindings)
+            behindLayout = layout
+        end
+        return behindLayout
     end
 
     /*

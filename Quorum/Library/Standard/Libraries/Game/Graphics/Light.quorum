@@ -18,6 +18,8 @@ class Light
     Color color
     Environment environment = undefined
     Array<CascadeShadowData> shadowData
+    // Whether the light casts shadows (Shadow plan S4).
+    boolean castsShadows = true
     
     /*
     This action will set the color of the light using number values for the red,
@@ -57,6 +59,53 @@ class Light
 is added to an environment, so users should never need to use this action directly.*/
     action SetEnvironment(Environment environment)
         me:environment = environment
+    end
+
+    /*
+    This action sets whether the light casts shadows (Shadow plan S4). A
+    light that doesn't still lights the scene, but nothing blocks it: it
+    has no shadow map and draws nothing into one, which saves GPU time and
+    memory. Lights cast shadows by default.
+
+    Attribute: Parameter casts True for the light to cast shadows.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.PointLight
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PointLight fill
+                fill:SetIntensity(5)
+                fill:SetPosition(0, 4, 0)
+                fill:SetCastsShadows(false)
+                Add(fill)
+            end
+        end
+    */
+    action SetCastsShadows(boolean casts)
+        if castsShadows = casts
+            return now
+        end
+        castsShadows = casts
+        if environment not= undefined
+            environment:LightChanged(me)
+        end
+    end
+
+    /*
+    This action returns whether the light casts shadows (Shadow plan S4).
+    See SetCastsShadows.
+
+    Attribute: Returns True if the light casts shadows.
+    */
+    action CastsShadows returns boolean
+        return castsShadows
     end
 
     action GetShadowData(integer index) returns CascadeShadowData

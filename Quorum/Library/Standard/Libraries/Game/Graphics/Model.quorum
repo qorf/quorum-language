@@ -120,6 +120,26 @@ class Model is Item3D
     // model; directional lights go on the model's layer.
     boolean loadLights = true
     Array<Light> fileLights = undefined
+    // Whether the lights Load adds cast shadows (Shadow plan S4).
+    boolean fileLightsCastShadows = true
+    // Each file light's culling range in the model's own units, before the
+    // model is scaled, by the light's place in fileLights; 0 for lights
+    // that have none. SetScale sizes them to the model (Lighting plan L8).
+    Number32BitArray fileLightCullingRanges = undefined
+    // Each file light's place and range in the model's own units, as the
+    // file gives them, FILE_LIGHT_VALUES words a light (x, y, z, range), by
+    // the light's place in fileLights. Point and spot lights are placed at
+    // them times the model's scale, so a scaled lamp keeps its bulb in its
+    // shade (Lighting plan V1).
+    Number32BitArray fileLightPlaces = undefined
+    constant integer FILE_LIGHT_VALUES = 4
+    /*
+    How many times the model's largest side a point light from its file
+    draws objects into its shadows, when the file gives the light no range
+    (Lighting plan L8). Without one, a bright light's shadows would take in
+    objects hundreds of units away; a lamp's bulb only needs its room.
+    */
+    constant number FILE_LIGHT_CULLING_SIZES = 3
     
     on create
         SceneProperties properties
@@ -429,6 +449,48 @@ based on its index.*/
     end
 
     /*
+    This action sets whether the lights loading a model file adds cast
+    shadows (Shadow plan S4). It is true by default. Set it before Load, or
+    change each light afterward with GetFileLights and SetCastsShadows.
+    Lights without shadows are cheaper: they have no shadow maps and draw
+    nothing into them.
+
+    Attribute: Parameter casts True for the file's lights to cast shadows.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+        Model lamp
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            lamp:SetFileLightsCastShadows(false)
+            lamp:Load("Models/Lamp.gltf")
+            Add(lamp)
+        end
+    end
+    */
+    action SetFileLightsCastShadows(boolean casts)
+        fileLightsCastShadows = casts
+    end
+
+    /*
+    This action returns whether the lights loading a model file adds cast
+    shadows (Shadow plan S4). See SetFileLightsCastShadows.
+
+    Attribute: Returns True if the file's lights cast shadows.
+    */
+    action GetFileLightsCastShadows returns boolean
+        return fileLightsCastShadows
+    end
+
+    /*
     This action returns the lights added from the model file when it was
     loaded (Lighting plan L8): PointLight, SpotLight and DirectionalLight
     objects. It is empty if the file had none, or SetLoadLights(false) was
@@ -464,19 +526,48 @@ based on its index.*/
         end
 
         Array<Light> lights = GetFileLights()
+        if fileLightCullingRanges = undefined
+            Number32BitArray ranges
+            fileLightCullingRanges = ranges
+        end
+        fileLightCullingRanges:SetSize(lights:GetSize() + lightData:GetSize())
+        if fileLightPlaces = undefined
+            Number32BitArray places
+            fileLightPlaces = places
+        end
+        fileLightPlaces:SetSize((lights:GetSize() + lightData:GetSize()) * FILE_LIGHT_VALUES)
+
+        // How far a point light without a range of its own draws objects
+        // into its shadows, in the model's own units.
+        number largestSide = GetWidth()
+        if GetHeight() > largestSide
+            largestSide = GetHeight()
+        end
+        if GetDepth() > largestSide
+            largestSide = GetDepth()
+        end
+        number modelCullingRange = largestSide * FILE_LIGHT_CULLING_SIZES
+
         integer i = 0
         repeat while i < lightData:GetSize()
             ModelLightData fileLight = lightData:Get(i)
+            fileLightCullingRanges:Set(lights:GetSize(), 0)
             Color lightColor = fileLight:GetColor()
             Vector3 position = fileLight:GetPosition()
             Vector3 direction = fileLight:GetDirection()
             number strength = fileLight:GetQuorumIntensity()
+            integer place = lights:GetSize() * FILE_LIGHT_VALUES
+            fileLightPlaces:Set(place, position:GetX())
+            fileLightPlaces:Set(place + 1, position:GetY())
+            fileLightPlaces:Set(place + 2, position:GetZ())
+            fileLightPlaces:Set(place + 3, fileLight:GetRange())
 
             if fileLight:IsDirectionalLight()
                 DirectionalLight sun
                 sun:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
                 sun:SetDirection(direction:GetX(), direction:GetY(), direction:GetZ())
                 sun:SetIntensity(strength)
+                sun:SetCastsShadows(fileLightsCastShadows)
                 lights:Add(sun)
                 Layer3D currentLayer = GetLayer()
                 if currentLayer not= undefined
@@ -487,10 +578,11 @@ based on its index.*/
                 spot:SetName(fileLight:GetName())
                 spot:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
                 spot:SetIntensity(strength)
-                spot:SetRange(fileLight:GetRange())
+                spot:SetCastsShadows(fileLightsCastShadows)
+                spot:SetRange(fileLight:GetRange() * GetLargestScale())
                 spot:SetConeAngles(fileLight:GetInnerAngle(), fileLight:GetOuterAngle())
                 spot:SetDirection(direction:GetX(), direction:GetY(), direction:GetZ())
-                spot:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+                spot:SetPosition(position:GetX() * GetScaleX(), position:GetY() * GetScaleY(), position:GetZ() * GetScaleZ())
                 lights:Add(spot)
                 Add(spot)
             else
@@ -498,14 +590,129 @@ based on its index.*/
                 bulb:SetName(fileLight:GetName())
                 bulb:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
                 bulb:SetIntensity(strength)
+                bulb:SetCastsShadows(fileLightsCastShadows)
                 // A point light has no range of its own; the file's range
-                // limits its shadows instead.
+                // limits its shadows instead, or, without one, a few times
+                // the model's size. SetScale keeps it sized to the model.
+                number cullingRange = modelCullingRange
                 if fileLight:GetRange() > 0
-                    bulb:SetCullingRange(fileLight:GetRange())
+                    cullingRange = fileLight:GetRange()
                 end
-                bulb:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+                fileLightCullingRanges:Set(lights:GetSize(), cullingRange)
+                bulb:SetCullingRange(cullingRange * GetLargestScale())
+                bulb:SetPosition(position:GetX() * GetScaleX(), position:GetY() * GetScaleY(), position:GetZ() * GetScaleZ())
                 lights:Add(bulb)
                 Add(bulb)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets the model's scale, as Item3D's SetScale does, and keeps
+    the point and spot lights from its file sized to match: each is placed
+    at its place in the file times the scale, so a lamp made larger keeps
+    its bulb in its shade (Lighting plan V1), and their ranges grow with it,
+    so it draws objects into its bulb's shadows from as far, for its size,
+    as before (L8). The file's lights follow the model whether or not
+    scaleChildren is true, as its meshes do.
+
+    Attribute: Parameter scaleX The scale along the x axis.
+    Attribute: Parameter scaleY The scale along the y axis.
+    Attribute: Parameter scaleZ The scale along the z axis.
+    Attribute: Parameter scaleChildren Whether the model's children are
+    scaled too.
+    */
+    action SetScale(number scaleX, number scaleY, number scaleZ, boolean scaleChildren)
+        parent:Item3D:SetScale(scaleX, scaleY, scaleZ, scaleChildren)
+        UpdateFileLights(false)
+    end
+
+    /*
+    This action scales the model by the given amounts, as Item3D's Scale
+    does, and keeps the point and spot lights from its file placed and
+    sized to match, as SetScale does (Lighting plan V1 and L8).
+
+    Attribute: Parameter vector How much to scale along each axis.
+    Attribute: Parameter scaleChildren Whether the model's children are
+    scaled too.
+    */
+    action Scale(Vector3 vector, boolean scaleChildren)
+        parent:Item3D:Scale(vector, scaleChildren)
+        UpdateFileLights(true)
+    end
+
+    // The largest of the model's scales, ignoring sign.
+    private action GetLargestScale returns number
+        number largest = GetScaleX()
+        if largest < 0
+            largest = -largest
+        end
+        number y = GetScaleY()
+        if y < 0
+            y = -y
+        end
+        if y > largest
+            largest = y
+        end
+        number z = GetScaleZ()
+        if z < 0
+            z = -z
+        end
+        if z > largest
+            largest = z
+        end
+        return largest
+    end
+
+    /*
+    Keeps the point and spot lights from the model's file sized to the
+    model's scale: each is placed at its place in the file times the scale
+    (Lighting plan V1), a spot light's range and a point light's culling
+    range grow with the largest scale (L8). Item3D's SetScale doesn't move
+    children, and a child's offset is set again to its parent's place
+    whenever the parent moves, so the scale is kept in the light's own
+    position. Item3D's Scale also moves children by their offsets, so after
+    it (resetOffsets true) each light's offset is put back to the model's
+    place, or the light would be moved twice.
+    */
+    private action UpdateFileLights(boolean resetOffsets)
+        if fileLights = undefined
+            return now
+        end
+        number largest = GetLargestScale()
+        number sizeX = GetScaleX()
+        number sizeY = GetScaleY()
+        number sizeZ = GetScaleZ()
+        number modelX = GetGlobalX()
+        number modelY = GetGlobalY()
+        number modelZ = GetGlobalZ()
+        integer i = 0
+        repeat while i < fileLights:GetSize()
+            Light light = fileLights:Get(i)
+            integer place = i * FILE_LIGHT_VALUES
+            boolean hasPlace = fileLightPlaces not= undefined and (i + 1) * FILE_LIGHT_VALUES <= fileLightPlaces:GetSize()
+            if light is PointLight
+                PointLight bulb = cast(PointLight, light)
+                if fileLightCullingRanges not= undefined and i < fileLightCullingRanges:GetSize()
+                    number range = fileLightCullingRanges:Get(i)
+                    if range > 0
+                        bulb:SetCullingRange(range * largest)
+                    end
+                end
+                if hasPlace
+                    if resetOffsets
+                        bulb:SetOffset(modelX, modelY, modelZ)
+                    end
+                    bulb:SetPosition(fileLightPlaces:Get(place) * sizeX, fileLightPlaces:Get(place + 1) * sizeY, fileLightPlaces:Get(place + 2) * sizeZ)
+                end
+            elseif light is SpotLight and hasPlace
+                SpotLight spot = cast(SpotLight, light)
+                if resetOffsets
+                    spot:SetOffset(modelX, modelY, modelZ)
+                end
+                spot:SetPosition(fileLightPlaces:Get(place) * sizeX, fileLightPlaces:Get(place + 1) * sizeY, fileLightPlaces:Get(place + 2) * sizeZ)
+                spot:SetRange(fileLightPlaces:Get(place + 3) * largest)
             end
             i = i + 1
         end

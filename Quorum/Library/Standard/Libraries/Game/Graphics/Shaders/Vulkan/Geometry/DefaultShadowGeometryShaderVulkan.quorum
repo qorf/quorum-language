@@ -59,6 +59,11 @@ class DefaultShadowGeometryShaderVulkan is Shader
 		{
 			uint isPoint = pushConstants.isPointLight;
 			uint lightIndex = pushConstants.lightIndex;
+
+			// A point light has one view per face, its first cascade's, as
+			// far as its culling range (Shadow plan S1).
+			if (isPoint == 1u && gl_InvocationID > 0)
+				return;
 			
 			/*
 			If this is a directional light, we only need one frustum, not six. Output to the cascade's one layer.

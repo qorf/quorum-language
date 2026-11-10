@@ -2,6 +2,7 @@ package Libraries.Game
 
 use Libraries.Interface.Item
 use Libraries.Interface.Item3D
+use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Shapes.Rectangle
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseEvent
@@ -146,6 +147,11 @@ class Layer3D is Layer
 
     // Counts frames, so an item found by more than one search is drawn once.
     integer frame = 0
+    // Whether this frame's shadow casters were marked with the point lights
+    // that found them (Shadow plan S2), and how many point lights have a
+    // bit: one integer's bits, less the sign.
+    boolean pointShadowCastersMarked = false
+    public constant integer MAXIMUM_SHADOW_BITS = 30
     Array<MouseListener> mouseListeners
     Array<MouseMovementListener> mouseMovementListeners
     Array<MouseWheelListener> mouseWheelListeners
@@ -1690,15 +1696,57 @@ Painter3D painter = GetPainter()
     light, those within its reach.
     */
     private action CollectShadowCasters
+        // A light that casts no shadows needs no casters (Shadow plan S4).
         Iterator<DirectionalLight> directionalLights = GetDirectionalLights()
         repeat while directionalLights:HasNext()
-            renderTree:CollectDirectionalShadowCasters(directionalLights:Next(), camera, found)
+            DirectionalLight sun = directionalLights:Next()
+            if sun:CastsShadows()
+                renderTree:CollectDirectionalShadowCasters(sun, camera, found)
+            end
         end
 
+        // Each point light marks the items it finds with its bit, its place
+        // among the point lights, so it draws only those into its shadows
+        // (Shadow plan S2). Past MAXIMUM_SHADOW_BITS lights, a light marks
+        // nothing and draws every caster.
+        pointShadowCastersMarked = renderTree:CollectsPointShadowCasters()
+        BitwiseOperations bits
+        integer place = 0
         Iterator<PointLight> pointLights = GetPointLights()
         repeat while pointLights:HasNext()
-            renderTree:CollectPointShadowCasters(pointLights:Next(), found)
+            PointLight bulb = pointLights:Next()
+            if bulb:CastsShadows()
+                if place < MAXIMUM_SHADOW_BITS
+                    found:SetShadowBit(bits:ShiftLeft(1, place))
+                end
+                renderTree:CollectPointShadowCasters(bulb, found)
+                found:SetShadowBit(0)
+            end
+            place = place + 1
         end
+    end
+
+    /*
+    This action returns the frame number this layer marks shadow casters
+    with (Shadow plan S2). An item's Item3D:GetShadowLightMask with it says
+    which point lights' searches found the item this frame.
+
+    Attribute: Returns The layer's frame number.
+    */
+    action GetShadowFrame returns integer
+        return frame
+    end
+
+    /*
+    This action returns true if this frame's shadow casters were marked
+    with the point lights that found them (Shadow plan S2), so each point
+    light can draw only its own. It is false if the layer's render tree
+    doesn't find point lights' casters.
+
+    Attribute: Returns True if point lights' casters were marked.
+    */
+    action ArePointShadowCastersMarked returns boolean
+        return pointShadowCastersMarked
     end
 
     /*

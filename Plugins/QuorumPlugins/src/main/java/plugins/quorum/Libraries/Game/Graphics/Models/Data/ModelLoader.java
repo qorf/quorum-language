@@ -55,7 +55,8 @@ public class ModelLoader {
         // Most model files are right-handed and the world is left-handed, so z is
         // flipped and each triangle's winding reversed, which keeps front faces
         // clockwise. aiProcess_ConvertToLeftHanded is not used because it also
-        // flips texture v, which ProcessTextureCoordinates already does.
+        // flips texture v, which MeshVulkan already does (Vulkan) and
+        // ProcessTextureCoordinates does for OpenGL.
         int leftHanded = vulkanLoading ? (aiProcess_MakeLeftHanded | aiProcess_FlipWindingOrder) : 0;
         if(hasAnimations) {
             flags = aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
@@ -90,7 +91,7 @@ public class ModelLoader {
         Array_ meshes = data.GetMeshes();
         for (int i = 0; i < numMeshes; i++) {
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-            MeshData_ mesh = ProcessMesh(aiMesh);
+            MeshData_ mesh = ProcessMesh(aiMesh, vulkanLoading);
             meshes.Add(mesh);
         }
 
@@ -693,10 +694,10 @@ public class ModelLoader {
         return result;
     }
 
-    private static MeshData_ ProcessMesh(AIMesh aiMesh) {
+    private static MeshData_ ProcessMesh(AIMesh aiMesh, boolean vulkanLoading) {
         Number32BitArray_ vertices = ProcessVertices(aiMesh);
         Integer32BitArray_ indices = ProcessIndices(aiMesh);
-        Number32BitArray_ coordinates = ProcessTextureCoordinates(aiMesh);
+        Number32BitArray_ coordinates = ProcessTextureCoordinates(aiMesh, vulkanLoading);
         Number32BitArray_ normals = ProcessNormals(aiMesh);
         Number32BitArray_ tangents = ProcessTangents(aiMesh, normals.GetSize());
         Number32BitArray_ bitangents = ProcessBiTangents(aiMesh, normals.GetSize());
@@ -839,7 +840,16 @@ public class ModelLoader {
         return ResolveTexturePath(aiPath.dataString(), texturesDir, embeddedPaths);
     }
 
-    private static Number32BitArray_ ProcessTextureCoordinates(AIMesh aiMesh) {
+    /*
+     * Returns the mesh's texture coordinates, two a vertex. Assimp gives v
+     * with 0 at the bottom of the picture (it flips glTF's v). For Vulkan
+     * they are passed on as Assimp gives them: MeshVulkan flips v as it
+     * builds the vertex buffer, giving v with 0 at the top, as the images
+     * are stored. Flipping here too made every model file's textures upside
+     * down on Vulkan (found on the LightsPunctualLamp, 2026-11-10). For
+     * OpenGL, v is flipped here, as before.
+     */
+    private static Number32BitArray_ ProcessTextureCoordinates(AIMesh aiMesh, boolean vulkanLoading) {
         AIVector3D.Buffer aiTextCoords = aiMesh.mTextureCoords(0);
         int numTextCoords = aiTextCoords != null ? aiTextCoords.remaining() : 0;
         Number32BitArray_ array = new Number32BitArray();
@@ -849,7 +859,11 @@ public class ModelLoader {
             int j = i * 2;
             AIVector3D textCoord = aiTextCoords.get();
             array.Set(j, textCoord.x());
-            array.Set(j + 1, 1 - textCoord.y());
+            if (vulkanLoading) {
+                array.Set(j + 1, textCoord.y());
+            } else {
+                array.Set(j + 1, 1 - textCoord.y());
+            }
         }
         return array;
     }
@@ -928,12 +942,22 @@ public class ModelLoader {
             array.SetSize(numNormals);
             return array;
         }
+        // The bitangent is turned around. With the left-handed flip,
+        // Assimp's bitangent points along the file's own v, down the
+        // picture (measured again after the v fix in
+        // ProcessTextureCoordinates, 2026-11-10), but normal maps
+        // (glTF requires it, and most other exporters do the same) store +Y,
+        // the green channel, as up the picture. Used as it was, every normal
+        // map was lit upside down: glTF's NormalTangentTest looked like its
+        // "incorrect-flipped-y" picture (2026-11-10). This was measured on
+        // the lamp, DamagedHelmet, BoomBox and NormalTangentTest, with file
+        // tangents and with tangents Assimp works out.
         int i = 0;
         while (aiBitangents.remaining() > 0) { //can't be null at this point.
             AIVector3D aiBitangent = aiBitangents.get();
-            array.Set(i, aiBitangent.x());
-            array.Set(i + 1, aiBitangent.y());
-            array.Set(i + 2, aiBitangent.z());
+            array.Set(i, -aiBitangent.x());
+            array.Set(i + 1, -aiBitangent.y());
+            array.Set(i + 2, -aiBitangent.z());
             i = i + 3;
         }
 
@@ -1045,6 +1069,15 @@ public class ModelLoader {
                 emissiveStrengthArr[0] = 1.0f;
             }
 
+            // How much light goes through the surface (Transmission plan T1,
+            // glTF's KHR_materials_transmission), and its texture.
+            float[] transmissionArr = new float[]{0.0f};
+            result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_TRANSMISSION_FACTOR, aiTextureType_NONE, 0, transmissionArr, pMax);
+            if (result != aiReturn_SUCCESS) {
+                transmissionArr[0] = 0.0f;
+            }
+            String transmissionMapPath = GetTexturePath(aiMaterial, aiTextureType_TRANSMISSION, texturesDir, embeddedPaths, stack);
+
             int[] twoSidedArr = new int[]{0};
             result = aiGetMaterialIntegerArray(aiMaterial, AI_MATKEY_TWOSIDED, aiTextureType_NONE, 0, twoSidedArr, pMax);
             boolean twoSided = result == aiReturn_SUCCESS && twoSidedArr[0] != 0;
@@ -1086,6 +1119,8 @@ public class ModelLoader {
             material.SetBumpShading(bumpScalingArr[0]);
             material.SetEmissiveMapPath(emissiveMapPath);
             material.SetEmissiveStrength(emissiveStrengthArr[0]);
+            material.SetTransmission(transmissionArr[0]);
+            material.SetTransmissionMapPath(transmissionMapPath);
             material.SetAmbientOcclusionMapPath(occlusionMapPath);
             material.SetTwoSided(twoSided);
             material.SetAlphaMode(alphaMode);

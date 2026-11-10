@@ -34,6 +34,9 @@ class TwoStageShadowVertexShaderVulkan is Shader
 layout(location = 0) out vec2 v_textureCoords;
 layout(location = 1) flat out uint v_entityID;
 layout(location = 2) flat out uint v_cascadeIndex;
+// Where the point is in the world, for a point light's distance (Shadow
+// plan S1).
+layout(location = 3) out vec3 v_worldPosition;
 
 struct CascadeShadow
 {
@@ -110,6 +113,7 @@ void main()
 	worldPosition.xyz += swayOffset(instanceData.materials, modelTransform[3].xyz, worldPosition.xyz, pushConstants.time);
 	
 	v_textureCoords = vertex.textureCoordinates;
+	v_worldPosition = worldPosition.xyz;
 	v_entityID = entityID;
 	
 	uint lightIndex = pushConstants.lightIndex;

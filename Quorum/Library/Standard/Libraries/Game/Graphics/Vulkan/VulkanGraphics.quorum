@@ -116,6 +116,13 @@ We use the physical device limits to figure out how many descriptors we can stor
 some platforms return -1 instead of a reasonable value. In this case, we use this default value.
 */
     constant integer DEFAULT_MAX_DESCRIPTORS = 256
+
+    /*
+    How many of a fragment stage's sampled images are kept for the textures
+    other than the texture groups' (the G-buffer, shadows, the sky's cubes,
+    what is behind): the see-through and forward programs bind about 17.
+    */
+    constant integer OTHER_SAMPLED_IMAGES = 32
     
     // Resources for compute shaders.
     VulkanQueue computeQueue = undefined
@@ -1272,16 +1279,34 @@ Attribute: Returns True if the application has paused rendering, or false if it 
         return renderingPaused
     end
     
+    /*
+    This action returns how many textures one texture group holds (the size
+    of VulkanTextureManager's descriptor sets). A material binds only its
+    color texture's group and finds its other maps inside it, so a material
+    whose textures fall in two groups reads other textures for some of its
+    maps; larger groups make that rare. The groups are sampled images, so
+    the size comes from the device's per-stage limit on sampled images,
+    less OTHER_SAMPLED_IMAGES for the other textures the same shaders bind.
+    It used to come from the limit on uniform buffers, 31 on Apple's GPUs
+    (MoltenVK), so on a Mac a group held 31 textures; that value is still
+    used where it is larger, so other platforms keep their groups.
+
+    Attribute: Returns The number of textures in a texture group.
+    */
     action GetMaxDescriptorsPerStage returns integer
         if cachedMaxDescriptors = false
             VulkanPhysicalDevice physical = device:GetPhysicalDevice()
         VulkanPhysicalDeviceLimits limits = physical:GetLimits()
         maxDescriptors = limits:GetMaxPerStageDescriptorUniformBuffers()
-        
+        integer sampledImages = limits:GetMaxPerStageDescriptorSampledImages() - OTHER_SAMPLED_IMAGES
+        if sampledImages > maxDescriptors
+            maxDescriptors = sampledImages
+        end
+
         if maxDescriptors <= 0
             maxDescriptors = DEFAULT_MAX_DESCRIPTORS
         end
-            
+
             cachedMaxDescriptors = true
         end
         return maxDescriptors

@@ -269,6 +269,7 @@ class SpotLight is Light, Item3D
         copy:SetConeAngles(innerAngle, outerAngle)
         copy:SetIntensity(intensity)
         copy:SetRange(range)
+        copy:SetCastsShadows(CastsShadows())
         return copy
     end
 

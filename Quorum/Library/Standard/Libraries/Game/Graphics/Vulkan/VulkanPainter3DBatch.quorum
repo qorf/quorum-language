@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Compute.BitwiseOperations
 use Libraries.Containers.Array
 use Libraries.Containers.Integer32BitArray
 use Libraries.Containers.Number32BitArray
@@ -20,6 +21,15 @@ class VulkanPainter3DBatch
     // It's necessary to store individual models in order to provide per-instance data when drawing occurs.
     Array<Model> models
     integer meshesPerModel = 0
+
+    // Which of the blueprint's meshes this batch draws (the mesh split): all
+    // of them, only those with a see-through material, or only the others.
+    // A model with a paper shade draws its opaque meshes in the scene pass,
+    // where they hide one another, and only the shade after the lighting.
+    public constant integer ALL_MESHES = 0
+    public constant integer SEE_THROUGH_MESHES = 1
+    public constant integer OPAQUE_MESHES = 2
+    integer meshFilter = 0
     integer totalVertices = 0
     
     boolean isTransparent = false
@@ -41,6 +51,11 @@ class VulkanPainter3DBatch
     // entries are in use, one past the highest group seen.
     Integer32BitArray drawQueueUses
     integer drawQueueUseCount = 0
+    // For each draw queue, the point lights whose shadow searches found any
+    // of those meshes' models, ORed together, so each point light draws
+    // only its own casters (Shadow plan S2). Sized with drawQueueUses.
+    Integer32BitArray drawQueueMasks
+    BitwiseOperations bits
 
     // Kept to write a model's copies (Foliage plan F5) without making
     // objects each frame: a copy's full transform, and its shade's color.
@@ -51,6 +66,7 @@ class VulkanPainter3DBatch
         // Integer32BitArray has no storage until SetSize. A few texture
         // groups is the usual most, and it grows if more are needed.
         drawQueueUses:SetSize(4)
+        drawQueueMasks:SetSize(4)
     end
     
     action Create(ModelBlueprintVulkan schematic, boolean isTransparent)
@@ -88,6 +104,38 @@ class VulkanPainter3DBatch
     action GetProgram returns ShaderProgram
         return program
     end
+
+    /*
+    This action sets which of the blueprint's meshes this batch draws:
+    ALL_MESHES, SEE_THROUGH_MESHES or OPAQUE_MESHES (the mesh split).
+
+    Attribute: Parameter filter Which meshes to draw.
+    */
+    action SetMeshFilter(integer filter)
+        meshFilter = filter
+    end
+
+    /*
+    This action returns which of the blueprint's meshes this batch draws.
+
+    Attribute: Returns ALL_MESHES, SEE_THROUGH_MESHES or OPAQUE_MESHES.
+    */
+    action GetMeshFilter returns integer
+        return meshFilter
+    end
+
+    // Whether this batch draws a mesh, by its material (the mesh split).
+    private action DrawsMesh(MeshVulkan mesh) returns boolean
+        if meshFilter = ALL_MESHES
+            return true
+        end
+        MaterialVulkan material = mesh:GetMaterial()
+        boolean seeThrough = material not= undefined and material:IsSeeThrough()
+        if meshFilter = SEE_THROUGH_MESHES
+            return seeThrough
+        end
+        return not seeThrough
+    end
     
     action IsTransparent returns boolean
         return isTransparent
@@ -109,6 +157,7 @@ class VulkanPainter3DBatch
         integer i = 0
         repeat while i < drawQueueUseCount
             drawQueueUses:Set(i, 0)
+            drawQueueMasks:Set(i, 0)
             i = i + 1
         end
     end
@@ -147,6 +196,7 @@ class VulkanPainter3DBatch
             integer i = 0
             repeat while i < meshesPerModel
                 MeshVulkan mesh = schematic:GetMeshes():Get(i)
+                if DrawsMesh(mesh)
                 VulkanBuffer indexBuffer = mesh:GetIndexBuffer()
                 MaterialVulkan material = mesh:GetMaterial()
                 integer baseTextureGroup = material:GetTextureGroupIndex()
@@ -178,12 +228,13 @@ class VulkanPainter3DBatch
                     // next frame.
                     if queue:GetRoom() > 0
                         queue:AddInstanceData(vertexBuffer, indexBuffer, material, textureOverride, diffuseOverride, model:GetTransform())
-                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1, model:CastsShadows())
+                        queue:AddDrawIndirectCommand(mesh:GetIndexCount(), 1, model:CastsShadows(), painter:GetShadowLightMask(model))
                     else
                         queue:NoteDropped(1)
                     end
                     
                     j = j + 1
+                end
                 end
                 
                 i = i + 1
@@ -193,6 +244,7 @@ class VulkanPainter3DBatch
             integer i = 0
             repeat while i < meshesPerModel
                 MeshVulkan mesh = schematic:GetMeshes():Get(i)
+                if DrawsMesh(mesh)
                 integer baseTextureGroup = mesh:GetMaterial():GetTextureGroupIndex()
                 
                 // The models that cast shadows are written first, then the
@@ -210,6 +262,10 @@ class VulkanPainter3DBatch
                     repeat while j < models:GetSize()
                         Model model = models:Get(j)
                         if model:CastsShadows() = shadowPass
+                            integer shadowMask = 0
+                            if shadowPass
+                                shadowMask = painter:GetShadowLightMask(model)
+                            end
                             ModelResourcesVulkan resources = cast(ModelResourcesVulkan, model:GetResources())
                             Color diffuseOverride = resources:GetColor(i)
                             Texture textureOverride = resources:GetTexture(i)
@@ -223,10 +279,10 @@ class VulkanPainter3DBatch
                             if model:GetCopyCount() > 0
                                 // One instance per copy (Foliage plan F5).
                                 integer written = AddCopies(queue, mesh, model, textureOverride, diffuseOverride)
-                                AddUses(group, written)
+                                AddUses(group, written, shadowMask)
                             elseif queue:GetRoom() > 0
                                 queue:AddInstanceData(mesh, textureOverride, diffuseOverride, model:GetTransform())
-                                AddUses(group, 1)
+                                AddUses(group, 1, shadowMask)
                             else
                                 queue:NoteDropped(1)
                             end
@@ -236,6 +292,7 @@ class VulkanPainter3DBatch
                     
                     FlushDrawCommands(painter, mesh, shadowPass)
                     pass = pass + 1
+                end
                 end
                 
                 i = i + 1
@@ -261,8 +318,9 @@ class VulkanPainter3DBatch
                 // used, since looking one up makes it if it doesn't
                 // exist yet.
                 VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, j)
-                queue:AddDrawIndirectCommand(mesh:GetIndexCount(), uses, castsShadows)
+                queue:AddDrawIndirectCommand(mesh:GetIndexCount(), uses, castsShadows, drawQueueMasks:Get(j))
                 drawQueueUses:Set(j, 0)
+                drawQueueMasks:Set(j, 0)
             end
             j = j + 1
         end
@@ -361,7 +419,7 @@ class VulkanPainter3DBatch
     Attribute: Parameter index The texture group.
     Attribute: Parameter count How many instances were written.
     */
-    private action AddUses(integer index, integer count)
+    private action AddUses(integer index, integer count, integer shadowMask)
         if count <= 0
             return now
         end
@@ -370,6 +428,7 @@ class VulkanPainter3DBatch
             drawQueueUseCount = index + 1
         end
         drawQueueUses:Set(index, drawQueueUses:Get(index) + count)
+        drawQueueMasks:Set(index, bits:Or(drawQueueMasks:Get(index), shadowMask))
     end
     
     /*
@@ -395,14 +454,18 @@ class VulkanPainter3DBatch
         end
         Integer32BitArray grown
         grown:SetSize(newCapacity)
+        Integer32BitArray grownMasks
+        grownMasks:SetSize(newCapacity)
         integer i = 0
         repeat while i < capacity
             grown:Set(i, drawQueueUses:Get(i))
+            grownMasks:Set(i, drawQueueMasks:Get(i))
             i = i + 1
         end
         // The new array starts at zero past the old capacity (Java's int
         // array is filled with 0).
         drawQueueUses = grown
+        drawQueueMasks = grownMasks
     end
 
 end

@@ -48,4 +48,26 @@ class EditorSpotLight is EditorModel, SpotLight
     action GetIntensity returns number
         return parent:SpotLight:GetIntensity()
     end
+
+    /*
+        Sets whether the light casts shadows (Shadow plan S4). Both Light and
+        Model have this action; it is the light's, since the model is only
+        what the editor selects and draws nothing.
+
+        Attribute: Parameter casts True for the light to cast shadows.
+    */
+    action SetCastsShadows(boolean casts)
+        parent:SpotLight:SetCastsShadows(casts)
+    end
+
+    /*
+        Returns whether the light casts shadows (Shadow plan S4). See
+        SetCastsShadows.
+
+        Attribute: Returns True if the light casts shadows.
+    */
+    action CastsShadows returns boolean
+        return parent:SpotLight:CastsShadows()
+    end
+
 end

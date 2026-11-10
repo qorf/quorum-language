@@ -166,6 +166,7 @@ class PointLight is Light, Item3D
         copy:SetLight(GetColor(), GetPosition(), intensity)
         copy:SetOffset(GetOffsetX(), GetOffsetY(), GetOffsetZ())
         copy:SetCullingRange(cullingRange)
+        copy:SetCastsShadows(CastsShadows())
         return copy
     end
 

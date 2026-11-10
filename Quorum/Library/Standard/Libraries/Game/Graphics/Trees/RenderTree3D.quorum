@@ -299,6 +299,18 @@ class RenderTree3D
     end
 
     /*
+    This action returns true if CollectPointShadowCasters finds the items
+    near a point light, so a layer can draw only those into each point
+    light's shadows (Shadow plan S2). A tree that doesn't returns false,
+    and every point light draws every shadow caster, as before.
+
+    Attribute: Returns True if the tree finds point lights' shadow casters.
+    */
+    action CollectsPointShadowCasters returns boolean
+        return false
+    end
+
+    /*
     This action adds the items overlapping a box to the results.
 
     Attribute: Parameter box The box, in world coordinates.

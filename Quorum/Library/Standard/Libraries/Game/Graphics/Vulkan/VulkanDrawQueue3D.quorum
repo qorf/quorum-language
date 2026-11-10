@@ -3,6 +3,8 @@ package Libraries.Game.Graphics.Vulkan
 use Libraries.Containers.Array
 use Libraries.Game.GameStateManager
 use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.BitwiseOperations
 use Libraries.Game.Graphics.Color
 use Libraries.Compute.Matrix4
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
@@ -47,6 +49,34 @@ queued elements for the scene render pass, only sending draw commands for models
     VulkanBuffer shadowDrawCommandBuffer = undefined
     VulkanDrawIndirectDataMappedMemory shadowDrawDataMemory = undefined
     integer currentShadowDrawCommandIndex = 0
+
+    // Each shadow command's numbers and the point lights whose shadow
+    // searches found its models, one bit per light (Shadow plan S2), so
+    // each point light gets a list of only its own commands
+    // (BuildPointShadowLists). -1 is every light.
+    Integer32BitArray shadowCommandVertexCounts
+    Integer32BitArray shadowCommandInstanceCounts
+    Integer32BitArray shadowCommandFirstInstances
+    Integer32BitArray shadowCommandMasks
+
+    // The point lights' lists, one after another, and where each starts
+    // and how many commands it has, by the light's place among the point
+    // lights (Shadow plan S2). The buffer grows by doubling, and an old one
+    // is retired, as frames on the GPU may still read it.
+    VulkanBuffer pointShadowDrawCommandBuffer = undefined
+    VulkanDrawIndirectDataMappedMemory pointShadowDrawDataMemory = undefined
+    integer pointShadowCommandCapacity = 0
+    Integer32BitArray pointShadowListStarts
+    Integer32BitArray pointShadowListCounts
+    integer pointShadowListCount = 0
+    BitwiseOperations bits
+
+    on create
+        // Integer32BitArray has no storage until SetSize. A few point
+        // lights is the usual most; BuildPointShadowLists grows them.
+        pointShadowListStarts:SetSize(4)
+        pointShadowListCounts:SetSize(4)
+    end
     
     integer textureGroupID = -1
 
@@ -103,6 +133,13 @@ queued elements for the scene render pass, only sending draw commands for models
         
         shadowDrawCommandBuffer:CreateMappableBuffer(device, drawCommandBuffer:GetSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
         shadowDrawDataMemory = shadowDrawCommandBuffer:MapToDrawIndirectDataMemory()
+
+        // Each shadow command's numbers, for the point lights' lists
+        // (Shadow plan S2).
+        shadowCommandVertexCounts:SetSize(capacity)
+        shadowCommandInstanceCounts:SetSize(capacity)
+        shadowCommandFirstInstances:SetSize(capacity)
+        shadowCommandMasks:SetSize(capacity)
     end
 
     /*
@@ -199,6 +236,7 @@ queued elements for the scene render pass, only sending draw commands for models
         instanceMapping:PrepareForTransfers()
         
         currentShadowDrawCommandIndex = 0
+        pointShadowListCount = 0
     end
     
     action End
@@ -223,10 +261,31 @@ Matrix4 modelMatrix)
     end
     
     action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows)
+        AddDrawIndirectCommand(vertexCount, instanceCount, hasShadows, -1)
+    end
+
+    /*
+    This action adds a draw command for the scene and, if the instances
+    cast shadows, for the shadows, with the point lights whose shadow
+    searches found the instances' models, one bit per light (Shadow plan
+    S2). -1 is every point light.
+
+    Attribute: Parameter vertexCount How many vertices each instance draws.
+    Attribute: Parameter instanceCount How many instances the command draws.
+    Attribute: Parameter hasShadows True if the instances cast shadows.
+    Attribute: Parameter shadowLights The point lights' bits, or -1 for all.
+    */
+    action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows, integer shadowLights)
         drawDataMemory:Set(currentDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
         
         if hasShadows
             shadowDrawDataMemory:Set(currentShadowDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
+            if currentShadowDrawCommandIndex < shadowCommandMasks:GetSize()
+                shadowCommandVertexCounts:Set(currentShadowDrawCommandIndex, vertexCount)
+                shadowCommandInstanceCounts:Set(currentShadowDrawCommandIndex, instanceCount)
+                shadowCommandFirstInstances:Set(currentShadowDrawCommandIndex, currentDrawInstanceIndex)
+                shadowCommandMasks:Set(currentShadowDrawCommandIndex, shadowLights)
+            end
             currentShadowDrawCommandIndex = currentShadowDrawCommandIndex + 1
         end
         
@@ -240,6 +299,10 @@ Matrix4 modelMatrix)
         drawCommandBuffer:Dispose()
         shadowDrawDataMemory:Dispose()
         shadowDrawCommandBuffer:Dispose()
+        if pointShadowDrawCommandBuffer not= undefined
+            pointShadowDrawDataMemory:Dispose()
+            pointShadowDrawCommandBuffer:Dispose()
+        end
         instanceData:Dispose()
     end
 
@@ -257,6 +320,151 @@ Matrix4 modelMatrix)
     
     action GetShadowDrawCommandCount returns integer
         return currentShadowDrawCommandIndex
+    end
+
+    /*
+    This action makes each point light's list of shadow commands, the ones
+    whose models its shadow search found (Shadow plan S2), for this frame.
+    Lights past Layer3D's MAXIMUM_SHADOW_BITS have no bit, and use every
+    shadow command (GetShadowDrawCommandBuffer). Call it once, after the
+    frame's commands are added and before the shadow pass is recorded.
+
+    Attribute: Parameter pointLightCount How many point lights there are.
+    */
+    action BuildPointShadowLists(integer pointLightCount)
+        integer lists = pointLightCount
+        if lists > 30
+            lists = 30
+        end
+        if lists < 0
+            lists = 0
+        end
+        if pointShadowListStarts:GetSize() < lists
+            pointShadowListStarts:SetSize(lists)
+            pointShadowListCounts:SetSize(lists)
+        end
+        pointShadowListCount = lists
+        integer commands = currentShadowDrawCommandIndex
+        if commands > shadowCommandMasks:GetSize()
+            commands = shadowCommandMasks:GetSize()
+        end
+
+        // First count each light's commands, so the buffer is large enough.
+        integer total = 0
+        integer light = 0
+        repeat while light < lists
+            integer bit = bits:ShiftLeft(1, light)
+            integer count = 0
+            integer command = 0
+            repeat while command < commands
+                if bits:And(shadowCommandMasks:Get(command), bit) not= 0
+                    count = count + 1
+                end
+                command = command + 1
+            end
+            pointShadowListStarts:Set(light, total)
+            pointShadowListCounts:Set(light, count)
+            total = total + count
+            light = light + 1
+        end
+        if total = 0
+            return now
+        end
+        EnsurePointShadowCapacity(total)
+
+        integer written = 0
+        light = 0
+        repeat while light < lists
+            integer bit = bits:ShiftLeft(1, light)
+            integer command = 0
+            repeat while command < commands
+                if bits:And(shadowCommandMasks:Get(command), bit) not= 0
+                    pointShadowDrawDataMemory:Set(written, shadowCommandVertexCounts:Get(command), shadowCommandInstanceCounts:Get(command), 0, shadowCommandFirstInstances:Get(command))
+                    written = written + 1
+                end
+                command = command + 1
+            end
+            light = light + 1
+        end
+    end
+
+    /*
+    This action makes sure the point lights' list buffer holds a number of
+    commands, doubling its size as needed (Shadow plan S2). An old buffer
+    is retired, since frames on the GPU may still read it.
+
+    Attribute: Parameter needed How many commands must fit.
+    */
+    private action EnsurePointShadowCapacity(integer needed)
+        if needed <= pointShadowCommandCapacity
+            return now
+        end
+        integer capacity = pointShadowCommandCapacity
+        if capacity < 16
+            capacity = 16
+        end
+        repeat while capacity < needed
+            capacity = capacity * 2
+        end
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        if pointShadowDrawCommandBuffer not= undefined
+            pointShadowDrawDataMemory:Dispose()
+            graphics:Retire(pointShadowDrawCommandBuffer)
+        end
+        VulkanConstants constants
+        VulkanDrawIndirectData drawData
+        VulkanBuffer buffer
+        buffer:CreateMappableBuffer(device, capacity * drawData:GetByteSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
+        pointShadowDrawCommandBuffer = buffer
+        pointShadowDrawDataMemory = buffer:MapToDrawIndirectDataMemory()
+        pointShadowCommandCapacity = capacity
+    end
+
+    /*
+    This action returns true if the point light at a place among the point
+    lights has its own list of shadow commands this frame (Shadow plan
+    S2). If not, it uses every shadow command.
+
+    Attribute: Parameter place The light's place among the point lights.
+    Attribute: Returns True if it has its own list.
+    */
+    action HasPointShadowList(integer place) returns boolean
+        return place >= 0 and place < pointShadowListCount
+    end
+
+    /*
+    This action returns the buffer holding the point lights' lists of
+    shadow commands (Shadow plan S2). It is undefined until a list has had
+    a command.
+
+    Attribute: Returns The buffer.
+    */
+    action GetPointShadowDrawCommandBuffer returns VulkanBuffer
+        return pointShadowDrawCommandBuffer
+    end
+
+    /*
+    This action returns where a point light's list of shadow commands
+    starts in GetPointShadowDrawCommandBuffer, in bytes (Shadow plan S2).
+
+    Attribute: Parameter place The light's place among the point lights.
+    Attribute: Returns The list's offset in bytes.
+    */
+    action GetPointShadowDrawCommandOffset(integer place) returns integer
+        VulkanDrawIndirectData drawData
+        return pointShadowListStarts:Get(place) * drawData:GetByteSize()
+    end
+
+    /*
+    This action returns how many shadow commands a point light's list has
+    (Shadow plan S2).
+
+    Attribute: Parameter place The light's place among the point lights.
+    Attribute: Returns The number of commands.
+    */
+    action GetPointShadowDrawCommandCount(integer place) returns integer
+        return pointShadowListCounts:Get(place)
     end
     
     action GetInstanceDataBuffer returns VulkanBuffer

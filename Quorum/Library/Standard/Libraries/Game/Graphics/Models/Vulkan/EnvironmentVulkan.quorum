@@ -98,6 +98,8 @@ class EnvironmentVulkan is Environment
     constant integer RANGE_INDEX = 11
     constant integer COS_INNER_INDEX = 12
     constant integer COS_OUTER_INDEX = 13
+    // 1 if the light casts shadows, 0 if not (Shadow plan S4).
+    constant integer CASTS_SHADOWS_INDEX = 15
 
     constant integer POINT_LIGHT_TYPE = 0
     constant integer DIRECTIONAL_LIGHT_TYPE = 1
@@ -260,8 +262,11 @@ or rotation:row2column0 not= written:row2column0 or rotation:row2column1 not= wr
         end
         // Spotlights' shadows come from their own view (Lighting plan L7),
         // so a spotlight that moves, such as a headlight, needs its shadow
-        // matrices made again too, even if the camera is still.
-        if not spotLights:IsEmpty()
+        // matrices made again too, even if the camera is still. Point
+        // lights' shadows are made from where each light is in the world,
+        // so one that moves with its model, like a lamp in a model file,
+        // needs them made again as well (Lighting plan L8).
+        if not pointLights:IsEmpty() or not spotLights:IsEmpty()
             integer shadowSlot = 0
             repeat while shadowSlot < shadowsDirty:GetSize()
                 shadowsDirty:Set(shadowSlot, true)
@@ -872,6 +877,47 @@ end
     action GetSpotLight(integer index) returns SpotLight
         return spotLights:Get(index)
     end
+
+    /*
+    This action returns the light with the given shadow map number, in the
+    order GetShadowLightCount counts them: directional lights, then point
+    lights, then spotlights (Shadow plan S4).
+
+    Attribute: Parameter index The light's shadow map number.
+    Attribute: Returns The light, or undefined past the last.
+    */
+    action GetShadowLight(integer index) returns Light
+        if index < 0
+            return undefined
+        end
+        if index < directionalLights:GetSize()
+            return directionalLights:Get(index)
+        end
+        integer pointIndex = index - directionalLights:GetSize()
+        if pointIndex < pointLights:GetSize()
+            return pointLights:Get(pointIndex)
+        end
+        integer spotIndex = pointIndex - pointLights:GetSize()
+        if spotIndex < spotLights:GetSize()
+            return spotLights:Get(spotIndex)
+        end
+        return undefined
+    end
+
+    /*
+    This action returns true if the light with the given shadow map number
+    casts shadows (Shadow plan S4). See GetShadowLight.
+
+    Attribute: Parameter index The light's shadow map number.
+    Attribute: Returns True if it casts shadows.
+    */
+    action ShadowLightCastsShadows(integer index) returns boolean
+        Light light = GetShadowLight(index)
+        if light = undefined
+            return false
+        end
+        return light:CastsShadows()
+    end
     
     action GetDevice returns VulkanDevice
         return device
@@ -887,6 +933,20 @@ end
 
     Attribute: Parameter index Where the record starts.
     */
+    /*
+    This action writes whether a light casts shadows into its record
+    (Shadow plan S4): 1 if it does, 0 if not, so the lighting skips the
+    shadow map of a light without one.
+    */
+    private action WriteCastsShadows(integer index, Light light)
+        NumberUtilities utility
+        integer casts = 0
+        if light:CastsShadows()
+            casts = 1
+        end
+        lightMappingArray:Set(index + CASTS_SHADOWS_INDEX, utility:EncodeIntegerAsNumber(casts))
+    end
+
     private action ClearLightRecord(integer index)
         integer word = 0
         repeat while word < LIGHTS_WORD_SIZE
@@ -975,6 +1035,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(DIRECTIONAL_LIGHT_TYPE))
                 WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteCastsShadows(index, light)
                 written = written + 1
                 i = i + 1
             end
@@ -992,6 +1053,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(POINT_LIGHT_TYPE))
                 WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteCastsShadows(index, light)
                 lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
                 written = written + 1
                 i = i + 1
@@ -1008,6 +1070,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(SPOT_LIGHT_TYPE))
                 WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteCastsShadows(index, light)
 
                 // The cone's direction turned by the light's world rotation,
                 // then made length 1 again (the transform may be scaled).
@@ -1162,9 +1225,20 @@ end
                 end
                 number splitDistance = shadowData:GetSplitDistance()
                 cascadeShadowTransferArray:Set(index, splitDistance)
-                cascadeShadowTransferArray:Set(index + 1, splitDistance)
-                cascadeShadowTransferArray:Set(index + 2, splitDistance)
-                cascadeShadowTransferArray:Set(index + 3, splitDistance)
+                if light is PointLight
+                    // A point light's far distance, then where it is in the
+                    // world, for the distance its shadow pass stores
+                    // (Shadow plan S1).
+                    PointLight pointLight = cast(PointLight, light)
+                    Matrix4 pointTransform = pointLight:GetTransform()
+                    cascadeShadowTransferArray:Set(index + 1, pointTransform:row0column3)
+                    cascadeShadowTransferArray:Set(index + 2, pointTransform:row1column3)
+                    cascadeShadowTransferArray:Set(index + 3, pointTransform:row2column3)
+                else
+                    cascadeShadowTransferArray:Set(index + 1, splitDistance)
+                    cascadeShadowTransferArray:Set(index + 2, splitDistance)
+                    cascadeShadowTransferArray:Set(index + 3, splitDistance)
+                end
             index = index + SHADOW_SPLIT_DISTANCE_WORD_SIZE
                     
                     cascadeIndex = cascadeIndex + 1
@@ -1427,34 +1501,45 @@ cascadeSplits:Add((d - nearClip) / clipRange)
         i = 0
         repeat while i < pointCount
             PointLight light = GetPointLight(i)
-            Vector3 lightPosition = light:GetPosition()
+            // The world position, as the lighting uses, so a light that
+            // belongs to another item, like a model file's lamp, casts its
+            // shadows from where it is (Lighting plan L8).
+            Matrix4 pointTransform = light:GetTransform()
+            Vector3 lightPosition
+            lightPosition:Set(pointTransform:row0column3, pointTransform:row1column3, pointTransform:row2column3)
 
-            number maxDistance = light:GetRange()
-            // Begin with a very small start distance. This will be the first "near" clip value, so we want it to be very close to the point light's source, but it can't be zero.
-            number minDistance = 0.001
-            
-            number distanceRange = maxDistance - minDistance
-            number distanceRatio = maxDistance / minDistance
-            
-            number lastSplitDistance = minDistance
+            // One view per face, as far as the light's culling range (Shadow
+            // plan S1). A cube face always spans 90 degrees, so cascades
+            // would add no sharpness; the shadow pass stores the distance
+            // from the light over this far distance, which is as precise
+            // near as far. Nothing past it casts a shadow, as
+            // SetCullingRange says, and the lighting treats anything past
+            // it as lit. Every cascade's data gets the same views, though
+            // only the first is drawn and read.
+            number far = light:GetCullingRange()
+            if far <= 0
+                far = 1
+            end
+            number near = far * 0.01
+            if near > 0.05
+                near = 0.05
+            end
+            if near >= far
+                near = far * 0.5
+            end
+
+            CameraMatrix4 shadowProjection
+            shadowProjection:PerspectiveProjection(near, far, 90, 1)
+
             integer j = 0
             repeat while j < CASCADE_COUNT
-                number power = (j + 1.0) / CASCADE_COUNT
-            number log = minDistance * math:RaiseToPower(distanceRatio, power)
-            number uniform = minDistance + distanceRange * power
-number d = 0.95 * (log - uniform) + uniform
-                number splitDistance = (d - minDistance) / distanceRange
-                
                 CascadeShadowData shadowData = light:GetShadowData(j)
-            if shadowData = undefined
-                CascadeShadowData newData
-                light:SetShadowData(j, newData)
-                shadowData = newData
-            end
-                
-                CameraMatrix4 shadowProjection
-                shadowProjection:PerspectiveProjection(minDistance * maxDistance, splitDistance * maxDistance, 90, 1)
-                
+                if shadowData = undefined
+                    CascadeShadowData newData
+                    light:SetShadowData(j, newData)
+                    shadowData = newData
+                end
+
                 /*We need to set all six faces of our cubemap for point lights. To do this, we'll create a matrix that points to
 one of the six axis directions. In order, these will be: positive/negative x, positive/negative y, positive/negative z.*/
                 integer k = 0
@@ -1480,23 +1565,20 @@ one of the six axis directions. In order, these will be: positive/negative x, po
                         direction:Set(0, 0, -1)
                         up:Set(0, 1, 0)
                     end
-                    
+
                     CameraMatrix4 shadowView
                     Vector3 viewTarget
                     viewTarget:Set(lightPosition):Add(direction)
                     shadowView:SetToLookAt(lightPosition, viewTarget, up)
-                    
+
                     Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(k)
-                shadowDataMatrix:Set(shadowProjection):Multiply(shadowView)
-                shadowData:SetSplitDistance((minDistance + splitDistance * distanceRange) * 1.0)
-                    
+                    shadowDataMatrix:Set(shadowProjection):Multiply(shadowView)
                     k = k + 1
                 end
-                
-                lastSplitDistance = splitDistance
+                shadowData:SetSplitDistance(far)
                 j = j + 1
             end
-            
+
             lightCounter = lightCounter + 1
             i = i + 1
         end

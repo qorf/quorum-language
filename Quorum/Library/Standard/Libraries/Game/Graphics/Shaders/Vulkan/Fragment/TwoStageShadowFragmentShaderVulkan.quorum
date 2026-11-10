@@ -30,7 +30,9 @@ class TwoStageShadowFragmentShaderVulkan is Shader
 		layout (location = 0) in vec2 v_textureCoordinates;
 		layout (location = 1) in flat uint v_entityID;
 		layout (location = 2) in flat uint v_cascadeIndex;
-		//layout (location = 3) in vec4 v_worldPosition;
+		// Where the point is in the world, for a point light's distance (Shadow
+		// plan S1).
+		layout (location = 3) in vec3 v_worldPosition;
 		
 		struct CascadeShadow
 		{
@@ -127,6 +129,15 @@ class TwoStageShadowFragmentShaderVulkan is Shader
 			//vec4 shadowPosition = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT + v_cascadeIndex].matrix[0] * v_worldPosition;
 			
 			float depth = gl_FragCoord.z;
+			// A point light stores the distance from the light over its far
+			// distance, which is as precise near as far (Shadow plan S1).
+			// Its shadow data's split distance holds the far distance, then
+			// where the light is.
+			if (pushConstants.isPointLight == 1u)
+			{
+				vec4 pointData = shadows.data[lightIndex * SHADOW_MAP_CASCADE_COUNT].splitDistance;
+				depth = clamp(distance(v_worldPosition, pointData.yzw) / max(pointData.x, 0.0001), 0.0, 1.0);
+			}
 			float moment1 = depth;
 			float moment2 = depth * depth;
 			

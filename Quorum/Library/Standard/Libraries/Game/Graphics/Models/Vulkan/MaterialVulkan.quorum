@@ -52,7 +52,10 @@ Sway direction (float, 4 bytes): the wind's direction about the up axis, in
 radians from +x toward +z (Foliage plan F6). A per-material angle was chosen
 over two packed halves: it is one number, and the shader turns it with cos
 and sin.
-One reserved word (uint, 4 bytes), 0
+Transmission (uint, 4 bytes): with the TRANSMISSION flag, how much light goes
+through the surface, 0 to 255 in the low 8 bits; bit 8 set if there is a
+transmission texture; and that texture's index in the bits above
+(Transmission plan T1).
 The emissive and later words are Lighting plan L1 and L4.*/
     constant integer DIFFUSE_INDEX = 0
     constant integer TEXTURE_INDEX = 1
@@ -77,7 +80,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
     constant integer UV_ROTATION_INDEX = 20
     constant integer SWAY_STRENGTH_INDEX = 21
     constant integer SWAY_DIRECTION_INDEX = 22
-    constant integer RESERVED_INDEX_3 = 23
+    constant integer TRANSMISSION_INDEX = 23
 
     // The flags. The shaders test the same numbers.
     constant integer TEXTURE_SET_FLAG = 1
@@ -90,6 +93,8 @@ The emissive and later words are Lighting plan L1 and L4.*/
     // The vertex shaders move the material's points sideways in the wind
     // (Foliage plan F6).
     constant integer SWAY_FLAG = 128
+    // Light goes through the surface (Transmission plan T1).
+    constant integer TRANSMISSION_FLAG = 256
 
     constant integer MATERIAL_BYTE_SIZE = 4 * 24
     
@@ -104,10 +109,20 @@ The emissive and later words are Lighting plan L1 and L4.*/
     Texture preloadRoughMap = undefined
     Texture preloadEmissiveMap = undefined
     Texture preloadOcclusionMap = undefined
+    Texture preloadTransmissionMap = undefined
 
     // Whether both sides of each face are drawn (Lighting plan L4), kept
     // after loading so the painter can draw the model without culling.
     boolean twoSided = false
+
+    // Whether the material is drawn after the lighting, back to front: it
+    // is less than opaque, blends ("BLEND"), or lets light through
+    // (Transmission plan T1). Kept after loading, so the painter can draw a
+    // model's see-through meshes apart from its opaque ones.
+    boolean seeThrough = false
+    // Whether light goes through it (Transmission plan T1), so the painter
+    // copies what is behind before drawing it (T3).
+    boolean transmissive = false
 
     // For a texture set: whether this material is one, and its two packed
     // textures, kept after loading so terrain can find their places.
@@ -117,6 +132,14 @@ The emissive and later words are Lighting plan L1 and L4.*/
     number textureScale = 1
     
     integer textureGroupIndex = -1
+
+    // When the material's textures are not all in one texture group, a
+    // block of places in one group that holds them all (Texture groups
+    // plan): its first place in the global array, or -1, and the textures
+    // linked into it, in order. The shader binds one group and finds every
+    // map inside it, so a map in another group would read another texture.
+    integer blockStart = -1
+    Array<Texture> blockTextures
 
     // The textures this material uses that it got from the material
     // manager (files and texture sets, not the unit texture), given back
@@ -143,6 +166,12 @@ The emissive and later words are Lighting plan L1 and L4.*/
         me:device = device
         preloadData = data
         twoSided = data:IsTwoSided()
+        text mode = data:GetAlphaMode()
+        transmissive = data:GetTransmission() > 0
+        seeThrough = data:GetOpaque() < 1 or transmissive
+        if mode not= undefined and mode = "BLEND"
+            seeThrough = true
+        end
         // The wind's sway (Foliage plan F6).
         Math swayMath
         swayStrength = data:GetSway()
@@ -192,6 +221,11 @@ The emissive and later words are Lighting plan L1 and L4.*/
         text occlusionPath = data:GetAmbientOcclusionMapPath()
         if occlusionPath not= undefined and occlusionPath not= ""
             preloadOcclusionMap = UseFileTexture(occlusionPath, false)
+        end
+        // The transmission texture (Transmission plan T1).
+        text transmissionPath = data:GetTransmissionMapPath()
+        if data:GetTransmission() > 0 and transmissionPath not= undefined and transmissionPath not= ""
+            preloadTransmissionMap = UseFileTexture(transmissionPath, false)
         end
         
         
@@ -381,24 +415,31 @@ default material loading system, as part of the model load system).*/
             dataArray:Set(DIFFUSE_INDEX, utility:PackNormalizedVector4(1.0, 1.0, 1.0, 1.0))
         end
         
+        // All the material's textures in one group, in a block of its own
+        // if they are spread over more than one (Texture groups plan).
+        KeepTexturesInOneGroup()
+
         // There is always a texture, whether its custom or the default unit texture.
-        dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(preloadTexture:GetVulkanTextureLocalIndex()))
-        
+        dataArray:Set(TEXTURE_INDEX, utility:EncodeIntegerAsNumber(GetPlaceInGroup(preloadTexture)))
+
         textureGroupIndex = preloadTexture:GetVulkanTextureGroupIndex()
-        
+        if blockStart >= 0
+            textureGroupIndex = blockStart / GetTextureManager():GetDescriptorSetEntries()
+        end
+
         if preloadNormalMap = undefined
             dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
             dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             dataArray:Set(HAS_NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
-            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadNormalMap:GetVulkanTextureLocalIndex()))
+            dataArray:Set(NORMAL_MAP_INDEX, utility:EncodeIntegerAsNumber(GetPlaceInGroup(preloadNormalMap)))
         end
         if preloadRoughMap = undefined
             dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
             dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             dataArray:Set(HAS_ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(1))
-            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadRoughMap:GetVulkanTextureLocalIndex()))
+            dataArray:Set(ROUGH_MAP_INDEX, utility:EncodeIntegerAsNumber(GetPlaceInGroup(preloadRoughMap)))
         end
         dataArray:Set(ROUGH_FACTOR_INDEX, data:GetRoughness())
         dataArray:Set(METALLIC_FACTOR_INDEX, data:GetMetallic())
@@ -420,7 +461,7 @@ default material loading system, as part of the model load system).*/
             dataArray:Set(EMISSIVE_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             flags = flags + EMISSIVE_MAP_FLAG
-            dataArray:Set(EMISSIVE_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadEmissiveMap:GetVulkanTextureLocalIndex()))
+            dataArray:Set(EMISSIVE_MAP_INDEX, utility:EncodeIntegerAsNumber(GetPlaceInGroup(preloadEmissiveMap)))
         end
         dataArray:Set(EMISSIVE_STRENGTH_INDEX, data:GetEmissiveStrength())
 
@@ -429,7 +470,7 @@ default material loading system, as part of the model load system).*/
             dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
             flags = flags + OCCLUSION_MAP_FLAG
-            dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(preloadOcclusionMap:GetVulkanTextureLocalIndex()))
+            dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(GetPlaceInGroup(preloadOcclusionMap)))
         end
         if data:IsUnlit()
             flags = flags + UNLIT_FLAG
@@ -460,7 +501,18 @@ default material loading system, as part of the model load system).*/
         dataArray:Set(UV_SCALE_Y_INDEX, data:GetTextureScaleY())
         dataArray:Set(UV_ROTATION_INDEX, data:GetTextureRotation())
 
-        dataArray:Set(RESERVED_INDEX_3, utility:EncodeIntegerAsNumber(0))
+        // How much light goes through (Transmission plan T1): the amount in
+        // the low 8 bits, the texture's place in the rest.
+        integer transmissionWord = 0
+        if data:GetTransmission() > 0
+            flags = flags + TRANSMISSION_FLAG
+            integer amount = cast(integer, Clamp(data:GetTransmission()) * 255 + 0.5)
+            transmissionWord = amount
+            if preloadTransmissionMap not= undefined
+                transmissionWord = GetPlaceInGroup(preloadTransmissionMap) * 512 + 256 + amount
+            end
+        end
+        dataArray:Set(TRANSMISSION_INDEX, utility:EncodeIntegerAsNumber(transmissionWord))
         // The flags, with the sway's flag and its two words (Foliage plan
         // F6). The words are kept so SetSway can send them again.
         loadedFlags = flags
@@ -486,6 +538,124 @@ default material loading system, as part of the model load system).*/
         preloadRoughMap = undefined
         preloadEmissiveMap = undefined
         preloadOcclusionMap = undefined
+        preloadTransmissionMap = undefined
+    end
+
+    /*
+    This action makes sure all the material's textures can be found in one
+    texture group (Texture groups plan). The painter binds one group for the
+    material, its color texture's, and the shader finds every map by its
+    place inside that group, so a map whose texture is in another group
+    would read whatever texture is at that place. Usually all are in one
+    group and nothing is done. Otherwise a block of places in one group is
+    reserved, each texture is linked into it as well as its own place, and
+    the material uses the block's places (GetPlaceInGroup). The block is
+    given back in Release.
+    */
+    private action KeepTexturesInOneGroup
+        Array<Texture> textures
+        AddUsedTexture(textures, preloadTexture)
+        AddUsedTexture(textures, preloadNormalMap)
+        AddUsedTexture(textures, preloadRoughMap)
+        AddUsedTexture(textures, preloadEmissiveMap)
+        AddUsedTexture(textures, preloadOcclusionMap)
+        AddUsedTexture(textures, preloadTransmissionMap)
+        if textures:GetSize() < 2
+            return now
+        end
+
+        integer group = textures:Get(0):GetVulkanTextureGroupIndex()
+        boolean split = false
+        integer i = 0
+        repeat while i < textures:GetSize()
+            Texture texture = textures:Get(i)
+            if texture:GetVulkanTextureIndex() < 0 or texture:GetVulkanTextureGroupIndex() not= group
+                split = true
+            end
+            i = i + 1
+        end
+        if not split
+            return now
+        end
+
+        VulkanTextureManager manager = GetTextureManager()
+        integer first = manager:ReserveBlock(textures:GetSize())
+        boolean linked = true
+        i = 0
+        repeat while i < textures:GetSize()
+            if not manager:LinkTextureAt(textures:Get(i), first + i)
+                linked = false
+            end
+            i = i + 1
+        end
+
+        text name = ""
+        if preloadData not= undefined and preloadData:GetName() not= undefined
+            name = preloadData:GetName()
+        end
+        if not linked
+            // A texture without an image yet can't be linked; the material
+            // keeps the places it had.
+            manager:ReleaseBlock(first, textures:GetSize())
+            output "Texture groups: the material '" + name + "' has textures in more than one group, but not all were loaded, so they could not be put together."
+            return now
+        end
+
+        blockStart = first
+        blockTextures:Empty()
+        i = 0
+        repeat while i < textures:GetSize()
+            blockTextures:Add(textures:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action adds a texture to a list if it is used and not already in it.
+
+    Attribute: Parameter textures The list.
+    Attribute: Parameter texture The texture, or undefined.
+    */
+    private action AddUsedTexture(Array<Texture> textures, Texture texture)
+        if texture = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < textures:GetSize()
+            if textures:Get(i) = texture
+                return now
+            end
+            i = i + 1
+        end
+        textures:Add(texture)
+    end
+
+    /*
+    This action returns a texture's place inside the material's group: its
+    place in the material's block if it has one (KeepTexturesInOneGroup),
+    or else its own place inside its own group.
+
+    Attribute: Parameter texture One of the material's textures.
+    Attribute: Returns Its place inside the group the material is drawn with.
+    */
+    private action GetPlaceInGroup(Texture texture) returns integer
+        if blockStart >= 0
+            integer i = 0
+            repeat while i < blockTextures:GetSize()
+                if blockTextures:Get(i) = texture
+                    return (blockStart + i) mod GetTextureManager():GetDescriptorSetEntries()
+                end
+                i = i + 1
+            end
+        end
+        return texture:GetVulkanTextureLocalIndex()
+    end
+
+    // The Vulkan texture manager.
+    private action GetTextureManager returns VulkanTextureManager
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        return graphics:GetTextureManager()
     end
 
     /*
@@ -511,6 +681,27 @@ default material loading system, as part of the model load system).*/
     */
     action IsTwoSided returns boolean
         return twoSided
+    end
+
+    /*
+    This action returns true if the material is drawn see-through, after
+    the lighting: it is less than opaque, blends ("BLEND"), or lets light
+    through (Transmission plan T1).
+
+    Attribute: Returns True for a see-through material.
+    */
+    action IsSeeThrough returns boolean
+        return seeThrough
+    end
+
+    /*
+    This action returns true if light goes through the material
+    (Transmission plan T1).
+
+    Attribute: Returns True if the material has transmission.
+    */
+    action IsTransmissive returns boolean
+        return transmissive
     end
     
     action IsPreloaded returns boolean
@@ -737,6 +928,14 @@ default material loading system, as part of the model load system).*/
         graphics:Retire(materialBuffer)
         stagingBuffer = undefined
         materialBuffer = undefined
+
+        // The block that kept its textures in one group (Texture groups
+        // plan), once no frame draws with it.
+        if blockStart >= 0
+            graphics:GetTextureManager():ReleaseBlock(blockStart, blockTextures:GetSize())
+            blockStart = -1
+            blockTextures:Empty()
+        end
 
         integer i = 0
         repeat while i < usedTextures:GetSize()

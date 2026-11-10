@@ -61,7 +61,9 @@ struct Light
 	float range;
 	float cosInner;
 	float cosOuter;
-	vec2 spare;
+	float spare;
+	// 1 if the light casts shadows, 0 if not (Shadow plan S4).
+	uint castsShadows;
 };
 
 struct CascadeShadow
@@ -193,7 +195,13 @@ float calculatePointVisibility(vec4 worldPosition, vec3 lightPosition, uint ligh
 	vec3 shadowMapXYZ = shadowMapPosition.xyz / shadowMapPosition.w;
 
 	vec2 uv = vec2(shadowMapXYZ.x * 0.5 + 0.5, (-shadowMapXYZ.y) * 0.5 + 0.5);
-    float depth = shadowMapXYZ.z;
+	// The map holds the distance from the light over its far distance
+	// (Shadow plan S1), kept in the split distance's first word. Past it,
+	// nothing casts a shadow, so the point is lit.
+	float farDistance = max(shadow.splitDistance.x, 0.0001);
+	float depth = length(direction) / farDistance;
+	if (depth >= 1.0)
+		return 1.0;
 	
 	vec2 moments = texture(nonuniformEXT(shadowSamplers[lightIndex]), vec3(uv, 6 * cascadeIndex + targetFace)).rg;
 
@@ -231,6 +239,19 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     float ggx1 = geometrySchlickGGX(NdotL, roughness);
 
     return ggx1 * ggx2;
+}
+
+// A color as stored in a picture (sRGB) turned into linear light. A
+// metal's reflections take its base color, and the reflection math needs
+// that color linear: used as stored, a dark bronze (0.32, 0.26, 0.19)
+// reflects like a pale, bright gray, so metals look like chrome. Only the
+// reflection color is turned; the diffuse color is used as before.
+vec3 linearFromPicture(vec3 color)
+{
+	vec3 c = clamp(color, 0.0, 1.0);
+	vec3 low = c / 12.92;
+	vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+	return mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
 }
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
@@ -379,7 +400,11 @@ vec3 skyLighting(vec3 N, vec3 V, vec3 F0, vec3 albedo, float metallic, float rou
 		vec3 R = reflect(-V, N);
 		specular = skyReflection(R, roughness) * environmentBRDF(F0, roughness, NdotV);
 	}
-	return (diffuse + specular) * sceneInfo.skyTint.rgb;
+	// The tint (the ambient light's color) keeps the sky's soft diffuse
+	// light near the old flat ambient light. Reflections aren't tinted: the
+	// sky is drawn at full brightness, so it is reflected at full brightness
+	// too, or metals, which show only reflections, turn nearly black.
+	return diffuse * sceneInfo.skyTint.rgb + specular;
 }
 
 // Fades a color into the fog by its distance from the camera, and less
@@ -434,7 +459,7 @@ void main()
     vec3 V = normalize(sceneInfo.cameraPosition - worldPosition);
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
+    F0 = mix(F0, linearFromPicture(albedo), metallic);
 
     vec3 Lo = vec3(0.0);
 	
@@ -455,7 +480,9 @@ void main()
 				}
 			}
 		
-			float shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+			float shadow = 1.0;
+			if (light.castsShadows != 0u)
+				shadow = calculateDirectionalVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
             Lo += (calculateDirectionalLight(light, V, N, F0, albedo, metallic, roughness) * shadow);
         }
         else if (light.lightType == 2u)
@@ -471,25 +498,18 @@ void main()
 					cascadeIndex = j + 1;
 				}
 			}
-			float shadow = calculateSpotVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
+			float shadow = 1.0;
+			if (light.castsShadows != 0u)
+				shadow = calculateSpotVisibility(vec4(worldPosition, 1.0), i, cascadeIndex);
             Lo += calculateSpotLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow;
 		}
 		else
 		{
-			// The maximum distance along an axis from the light's position to the world position of the fragment.
-			vec3 absLightDist = abs(worldPosition.rgb - light.positionDirection);
-			float maxAlignedDist = max(absLightDist.x, max(absLightDist.y, absLightDist.z));
-		
-			for (uint j = 0; j < SHADOW_MAP_CASCADE_COUNT - 1; ++j)
-			{
-				CascadeShadow currentShadow = shadows.data[i * SHADOW_MAP_CASCADE_COUNT + j];
-				if (maxAlignedDist > currentShadow.splitDistance.x)
-				{
-					cascadeIndex = j + 1;
-				}
-			}
-		
-			float shadow = calculatePointVisibility(vec4(worldPosition, 1.0), light.positionDirection, i, cascadeIndex);
+			// A point light has one view per face, its first cascade's
+			// (Shadow plan S1).
+			float shadow = 1.0;
+			if (light.castsShadows != 0u)
+				shadow = calculatePointVisibility(vec4(worldPosition, 1.0), light.positionDirection, i, 0u);
             Lo += (calculatePointLight(light, worldPosition, V, N, F0, albedo, metallic, roughness) * shadow);
         }
     }

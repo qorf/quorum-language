@@ -95,6 +95,12 @@ class Material
     number uvScaleY = 1
     number uvRotation = 0
 
+    // How much light goes through the surface, from glTF's
+    // KHR_materials_transmission: 0 for none, 1 for all, times the red of
+    // the transmission texture if there is one (Transmission plan T1).
+    number transmission = 0
+    text transmissionMapPath = ""
+
     // The wind's sway (Foliage plan F6): how far a point moves sideways per
     // unit of height above its model's origin, and the wind's direction
     // about the up axis, in degrees from +x toward +z. 0 sways not at all.
@@ -203,6 +209,53 @@ class Material
     */
     action SetEmissiveMapPath(text path)
         emissiveMapPath = path
+    end
+
+    /*
+    This action returns how much light goes through the surface instead of
+    being scattered by it, as in glass or thin paper (Transmission plan T1,
+    glTF's KHR_materials_transmission): 0 for none, 1 for all. A
+    transmission texture's red scales it.
+
+    Attribute: Returns The transmission, from 0 to 1.
+    */
+    action GetTransmission returns number
+        return transmission
+    end
+
+    /*
+    This action sets how much light goes through the surface (Transmission
+    plan T1). A material with transmission is drawn see-through.
+
+    Attribute: Parameter value The transmission, from 0 to 1.
+    */
+    action SetTransmission(number value)
+        if value < 0
+            transmission = 0
+        elseif value > 1
+            transmission = 1
+        else
+            transmission = value
+        end
+    end
+
+    /*
+    This action returns the transmission texture's path (Transmission plan
+    T1): its red scales the transmission.
+
+    Attribute: Returns The path, or "" for none.
+    */
+    action GetTransmissionMapPath returns text
+        return transmissionMapPath
+    end
+
+    /*
+    This action sets the transmission texture's path (Transmission plan T1).
+
+    Attribute: Parameter path The path, or "" for none.
+    */
+    action SetTransmissionMapPath(text path)
+        transmissionMapPath = path
     end
 
     /*
@@ -945,6 +998,8 @@ class Material
         uvScaleX = other:GetTextureScaleX()
         uvScaleY = other:GetTextureScaleY()
         uvRotation = other:GetTextureRotation()
+        transmission = other:GetTransmission()
+        transmissionMapPath = other:GetTransmissionMapPath()
         sway = other:GetSway()
         swayDirection = other:GetSwayDirection()
         name = other:GetName()

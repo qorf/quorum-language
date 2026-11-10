@@ -382,6 +382,17 @@ class StaticDynamicRenderTree3D is RenderTree3D
     end
 
     /*
+    This action returns true: this tree finds the items near a point light
+    (CollectPointShadowCasters), so each point light draws only those into
+    its shadows (Shadow plan S2).
+
+    Attribute: Returns True.
+    */
+    action CollectsPointShadowCasters returns boolean
+        return true
+    end
+
+    /*
     This action adds the items within a point light's culling range to the
     result. Static items are found once and remembered, until the light
     moves, its culling range changes, or the static part changes.

@@ -914,6 +914,11 @@ class VulkanPipelineInfoCreator
         // as the lighting pass's set 3, so the painter binds the same sets.
         AddDescriptorSetLayout(graphics:GetLightingProperties():GetSkyLightDescriptorSetLayout())
 
+        // Set 6: what is behind, for see-through models that let light
+        // through (Transmission plan T3). Programs that don't read it don't
+        // need it bound.
+        AddDescriptorSetLayout(graphics:GetLightingProperties():GetBehindDescriptorSetLayout())
+
         // 128 bytes: the address, the program's 18 numbers, and the
         // painter's 12 (the sky's rotation, W4). The painter's buffer is
         // exactly this size.

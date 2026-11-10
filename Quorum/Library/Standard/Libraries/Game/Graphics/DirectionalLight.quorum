@@ -105,6 +105,7 @@ class DirectionalLight is Light
         DirectionalLight copy
         copy:SetLight(GetColor(), GetDirection())
         copy:SetCullingRange(cullingRange)
+        copy:SetCastsShadows(CastsShadows())
         return copy
     end
 
