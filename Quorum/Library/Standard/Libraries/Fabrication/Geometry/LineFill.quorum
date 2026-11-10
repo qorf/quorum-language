@@ -1,0 +1,402 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+The LineFill class fills a region with parallel straight lines (a scan-line
+hatch), the way infill, skin and support are printed. Lines run at 45
+degrees on even planes and 135 degrees on odd ones, so neighbouring layers
+cross, and every other line runs backwards so the nozzle zigzags.
+
+FillJoined chains the lines into continuous zigzags instead: each line's end
+is linked to the next line's start along the region's edge, so the nozzle
+keeps extruding rather than stopping, jumping and starting again (used on the
+first layer, where every loose line end can lift off the bed).
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Geometry.LineFill
+
+    class Main
+        action Main
+            Contour square
+            square:AddPoint(0, 0)
+            square:AddPoint(20, 0)
+            square:AddPoint(20, 20)
+            square:AddPoint(0, 20)
+            square:closed = true
+            Array<Contour> region
+            region:Add(square)
+
+            LineFill fill
+            Array<Contour> lines
+            fill:Fill(region, 0, 2.0, 0.4, lines)     // lines 2 mm apart, none shorter than 0.4 mm
+            output lines:GetSize() + " lines"
+        end
+    end
+*/
+class LineFill
+    // a link whose midpoint is this close to an edge (mm) runs along it
+    number linkEdgeTolerance = 0.01
+
+    Math math
+    GeometryUtilities util
+
+    /*
+    Fills a region with separate straight lines.
+
+    Attribute: Parameter region Closed loops (holes included) on one plane.
+    Attribute: Parameter planeIndex The plane: sets the lines' angle and their planeIndex.
+    Attribute: Parameter spacing The distance between line centres (mm); must be greater than 0.
+    Attribute: Parameter minLength Lines shorter than this (mm) are left out.
+    Attribute: Parameter target The lines are added to this list as open contours.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.LineFill
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Array<Contour> region
+        region:Add(square)
+        LineFill fill
+        Array<Contour> lines
+        fill:Fill(region, 0, 2.0, 0.4, lines)      // 2 mm apart, none shorter than 0.4 mm
+        output lines:GetSize() + " lines"
+    */
+    action Fill(Array<Contour> region, integer planeIndex, number spacing, number minLength, Array<Contour> target)
+        Hatch(region, planeIndex, spacing, minLength, target, false)
+    end
+
+    /*
+    Fills a region with lines chained into continuous zigzags wherever the
+    link between two neighbouring lines stays inside the region.
+
+    Attribute: Parameter region Closed loops (holes included) on one plane.
+    Attribute: Parameter planeIndex The plane: sets the lines' angle and their planeIndex.
+    Attribute: Parameter spacing The distance between line centres (mm); must be greater than 0.
+    Attribute: Parameter minLength Lines shorter than this (mm) are left out.
+    Attribute: Parameter target The zigzags are added to this list as open contours.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.LineFill
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Array<Contour> region
+        region:Add(square)
+        LineFill fill
+        Array<Contour> zigzags
+        fill:FillJoined(region, 0, 0.4, 0.4, zigzags)     // solid first-layer fill
+        output zigzags:GetSize() + " continuous paths"
+    */
+    action FillJoined(Array<Contour> region, integer planeIndex, number spacing, number minLength, Array<Contour> target)
+        Hatch(region, planeIndex, spacing, minLength, target, true)
+    end
+
+    private action Hatch(Array<Contour> region, integer planeIndex, number spacing, number minLength,
+                         Array<Contour> target, boolean join)
+        if not (spacing > 0)
+            alert("LineFill: the line spacing must be greater than 0, but was " + spacing + " (check the line width and the fill density)")
+        end
+        if region:GetSize() = 0
+            return now
+        end
+
+        // 45 degrees on even planes, 135 on odd ones
+        number half = math:SquareRoot(0.5)
+        number cs = half
+        number sn = half
+        if planeIndex mod 2 = 1
+            cs = -half
+        end
+
+        // rotate the region by -angle so the lines become horizontal
+        Array<number> rx
+        Array<number> ry
+        Array<integer> loopStart
+        integer c = 0
+        repeat while c < region:GetSize()
+            Contour con = region:Get(c)
+            loopStart:Add(rx:GetSize())
+            integer i = 0
+            repeat while i < con:GetSize()
+                number x = con:xs:Get(i)
+                number y = con:ys:Get(i)
+                rx:Add(x * cs + y * sn)
+                ry:Add(-x * sn + y * cs)
+                i = i + 1
+            end
+            c = c + 1
+        end
+        loopStart:Add(rx:GetSize())
+        if ry:GetSize() = 0
+            return now
+        end
+
+        number lowY = ry:Get(0)
+        number highY = lowY
+        integer v = 0
+        repeat while v < ry:GetSize()
+            lowY = util:Min2(lowY, ry:Get(v))
+            highY = util:Max2(highY, ry:Get(v))
+            v = v + 1
+        end
+
+        // with join on, the lines are kept (in rotated space) and chained after
+        Array<integer> segLine
+        Array<number> segA
+        Array<number> segB
+
+        Array<number> hits
+        integer lineCount = 0
+        integer line = util:CeilingToInt(lowY / spacing)
+        repeat while cast(number, line) * spacing <= highY
+            number scanY = cast(number, line) * spacing
+            hits:Empty()
+
+            integer L = 0
+            repeat while L < region:GetSize()
+                integer s = loopStart:Get(L)
+                integer n = loopStart:Get(L + 1) - s
+                integer j = n - 1
+                integer k = 0
+                repeat while k < n
+                    number y0 = ry:Get(s + j)
+                    number y1 = ry:Get(s + k)
+                    boolean above0 = y0 > scanY
+                    boolean above1 = y1 > scanY
+                    if above0 not= above1
+                        number x0 = rx:Get(s + j)
+                        number x1 = rx:Get(s + k)
+                        hits:Add(x0 + (scanY - y0) * (x1 - x0) / (y1 - y0))
+                    end
+                    j = k
+                    k = k + 1
+                end
+                L = L + 1
+            end
+
+            util:SortNumbers(hits)
+
+            integer q = 0
+            repeat while q + 1 < hits:GetSize()
+                number a = hits:Get(q)
+                number b = hits:Get(q + 1)
+                if b - a >= minLength
+                    if join
+                        segLine:Add(line)
+                        segA:Add(a)
+                        segB:Add(b)
+                    else
+                        // every other line runs backwards, so the nozzle zigzags
+                        if lineCount mod 2 = 1
+                            number swap = a
+                            a = b
+                            b = swap
+                        end
+                        // rotate the two ends by +angle
+                        Contour seg
+                        seg:AddPoint(a * cs - scanY * sn, a * sn + scanY * cs)
+                        seg:AddPoint(b * cs - scanY * sn, b * sn + scanY * cs)
+                        seg:closed = false
+                        seg:planeIndex = planeIndex
+                        target:Add(seg)
+                    end
+                end
+                q = q + 2
+            end
+            lineCount = lineCount + 1
+            line = line + 1
+        end
+
+        if join
+            JoinLines(segLine, segA, segB, rx, ry, loopStart, region:GetSize(), spacing, cs, sn, planeIndex, target)
+        end
+    end
+
+    // Chains the scan lines (segLine / segA / segB, in rotated space, ordered
+    // by line then left to right) into zigzags. A chain that ends on the
+    // right end of a line continues from the right end of a line on the next
+    // scan line, and so on, as long as that end is within linkMax sideways
+    // and the link between them stays inside the region. Each chain is
+    // rotated back and added to target as one open path.
+    private action JoinLines(Array<integer> segLine, Array<number> segA, Array<number> segB,
+                             Array<number> rx, Array<number> ry, Array<integer> loopStart, integer loopCount,
+                             number spacing, number cs, number sn, integer planeIndex, Array<Contour> target)
+        integer count = segLine:GetSize()
+        Array<boolean> used
+        integer i = 0
+        repeat while i < count
+            used:Add(false)
+            i = i + 1
+        end
+        // longest sideways step a link may take: steep edges are fine,
+        // edges nearly parallel to the lines are not (the link would be a
+        // long line of its own)
+        number linkMax = 3.0 * spacing
+
+        integer seed = 0
+        repeat while seed < count
+            if not used:Get(seed)
+                used:Set(seed, true)
+                Array<number> px
+                Array<number> py
+                integer cur = seed
+                number firstY = cast(number, segLine:Get(cur)) * spacing
+                px:Add(segA:Get(cur))
+                py:Add(firstY)
+                px:Add(segB:Get(cur))
+                py:Add(firstY)
+                boolean atRight = true
+                boolean going = true
+                repeat while going
+                    number endX = px:Get(px:GetSize() - 1)
+                    number endY = py:Get(py:GetSize() - 1)
+                    integer nextLine = segLine:Get(cur) + 1
+                    number nextY = cast(number, nextLine) * spacing
+                    integer best = -1
+                    number bestGap = linkMax
+                    integer k = cur + 1
+                    boolean scanning = true
+                    repeat while scanning
+                        if k >= count
+                            scanning = false
+                        elseif segLine:Get(k) > nextLine
+                            scanning = false
+                        else
+                            if segLine:Get(k) = nextLine and not used:Get(k)
+                                number startX = segA:Get(k)
+                                if atRight
+                                    startX = segB:Get(k)
+                                end
+                                number gap = util:AbsNum(startX - endX)
+                                if gap <= bestGap
+                                    if LinkInside(endX, endY, startX, nextY, rx, ry, loopStart, loopCount)
+                                        best = k
+                                        bestGap = gap
+                                    end
+                                end
+                            end
+                            k = k + 1
+                        end
+                    end
+
+                    if best = -1
+                        going = false
+                    else
+                        used:Set(best, true)
+                        if atRight
+                            px:Add(segB:Get(best))
+                            py:Add(nextY)
+                            px:Add(segA:Get(best))
+                            py:Add(nextY)
+                        else
+                            px:Add(segA:Get(best))
+                            py:Add(nextY)
+                            px:Add(segB:Get(best))
+                            py:Add(nextY)
+                        end
+                        atRight = not atRight
+                        cur = best
+                    end
+                end
+
+                // rotate back by +angle
+                Contour chain
+                integer m = 0
+                repeat while m < px:GetSize()
+                    chain:AddPoint(px:Get(m) * cs - py:Get(m) * sn, px:Get(m) * sn + py:Get(m) * cs)
+                    m = m + 1
+                end
+                chain:closed = false
+                chain:planeIndex = planeIndex
+                target:Add(chain)
+            end
+            seed = seed + 1
+        end
+    end
+
+    // Does the link from (x0, y0) to (x1, y1) stay inside the region (all in
+    // rotated space)? Both ends sit on the region's edge, so touching it
+    // there is fine. Crossing an edge in between, or running outside the
+    // region (a notch between the two ends, caught by the midpoint), is not.
+    // When both ends lie on the same straight edge the midpoint lies on it
+    // too, and the even-odd test can land either way, so a midpoint within
+    // linkEdgeTolerance of an edge counts as inside. (A real notch puts the
+    // midpoint well outside, so this can't let a bad link through.)
+    private action LinkInside(number x0, number y0, number x1, number y1,
+                              Array<number> rx, Array<number> ry, Array<integer> loopStart,
+                              integer loopCount) returns boolean
+        number mx = (x0 + x1) / 2.0
+        number my = (y0 + y1) / 2.0
+        number dx = x1 - x0
+        number dy = y1 - y0
+        boolean inside = false
+        number nearest2 = -1.0
+        integer L = 0
+        repeat while L < loopCount
+            integer s = loopStart:Get(L)
+            integer n = loopStart:Get(L + 1) - s
+            integer j = n - 1
+            integer k = 0
+            repeat while k < n
+                number ax = rx:Get(s + j)
+                number ay = ry:Get(s + j)
+                number bx = rx:Get(s + k)
+                number by = ry:Get(s + k)
+
+                // even-odd count for the midpoint
+                boolean aAbove = ay > my
+                boolean bAbove = by > my
+                if aAbove not= bAbove
+                    if mx < ax + (my - ay) * (bx - ax) / (by - ay)
+                        inside = not inside
+                    end
+                end
+                number edge2 = util:SegmentDistance2(mx, my, ax, ay, bx, by)
+                if nearest2 < 0 or edge2 < nearest2
+                    nearest2 = edge2
+                end
+
+                // does this edge cross the link away from its two ends?
+                number ex = bx - ax
+                number ey = by - ay
+                number den = dx * ey - dy * ex
+                if den > 0.000000001 or den < -0.000000001
+                    number wx = ax - x0
+                    number wy = ay - y0
+                    number t = (wx * ey - wy * ex) / den
+                    number u = (wx * dy - wy * dx) / den
+                    if t > 0.02 and t < 0.98 and u >= 0 and u <= 1
+                        return false
+                    end
+                end
+                j = k
+                k = k + 1
+            end
+            L = L + 1
+        end
+        if inside
+            return true
+        end
+        // on the edge (both ends on one straight edge): fine
+        return nearest2 >= 0 and nearest2 < linkEdgeTolerance * linkEdgeTolerance
+    end
+end

@@ -1,0 +1,149 @@
+package Libraries.Fabrication
+
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.System.File
+
+/*
+The ArgumentChecker class validates the values handed to the fabrication
+libraries' Set actions, so a bad setting stops the program right where it
+was given instead of as a hang or a strange print much later (a line width of
+0, for example, makes every fill loop run forever).
+
+A failed check stops with an InvalidArgumentError (or a FileNotFoundError)
+whose message says which action, which value and what was wrong, so callers
+can also catch it with check / detect.
+
+Attribute: Example
+
+    use Libraries.Fabrication.ArgumentChecker
+    use Libraries.Language.Errors.InvalidArgumentError
+
+    class Main
+        action Main
+            ArgumentChecker checker
+            check
+                checker:RequirePositive("Example:SetWidth width", 0)
+            detect e is InvalidArgumentError
+                output e:GetErrorMessage()
+                // Example:SetWidth width must be greater than 0, but was 0.0
+            end
+        end
+    end
+*/
+class ArgumentChecker
+    /*
+    Stops unless the value is greater than 0.
+
+    Attribute: Parameter name What is being checked, such as "PathGenerator:SetLineWidth width".
+    Attribute: Parameter value The value to check.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.ArgumentChecker
+
+        number width = 0.4
+        ArgumentChecker checker
+        checker:RequirePositive("line width", width)
+    */
+    action RequirePositive(text name, number value)
+        if not (value > 0)
+            Fail(name + " must be greater than 0, but was " + value)
+        end
+    end
+
+    /*
+    Stops unless the value is at least the minimum.
+
+    Attribute: Parameter name What is being checked.
+    Attribute: Parameter value The value to check.
+    Attribute: Parameter minimum The smallest allowed value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.ArgumentChecker
+
+        integer walls = 3
+        ArgumentChecker checker
+        checker:RequireAtLeast("wall count", walls, 0)
+    */
+    action RequireAtLeast(text name, number value, number minimum)
+        if not (value >= minimum)
+            Fail(name + " must be at least " + minimum + ", but was " + value)
+        end
+    end
+
+    /*
+    Stops unless minimum <= value <= maximum.
+
+    Attribute: Parameter name What is being checked.
+    Attribute: Parameter value The value to check.
+    Attribute: Parameter minimum The smallest allowed value.
+    Attribute: Parameter maximum The largest allowed value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.ArgumentChecker
+
+        number density = 0.2
+        ArgumentChecker checker
+        checker:RequireRange("infill density", density, 0, 1)
+    */
+    action RequireRange(text name, number value, number minimum, number maximum)
+        if not (value >= minimum and value <= maximum)
+            Fail(name + " must be between " + minimum + " and " + maximum + ", but was " + value)
+        end
+    end
+
+    /*
+    Stops with a FileNotFoundError unless the path names an existing file.
+    The message gives the absolute path, since relative paths start in the
+    folder the program runs in, which is easy to get wrong.
+
+    Attribute: Parameter name What the file is for, such as "start G-code".
+    Attribute: Parameter path The path to check.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.ArgumentChecker
+
+        ArgumentChecker checker
+        checker:RequireFile("start G-code", "Templates/ender3-v2/start.gcode")
+    */
+    action RequireFile(text name, text path)
+        if path = ""
+            FileNotFoundError error
+            error:SetErrorMessage(name + " file not found: no path was given.")
+            alert(error)
+        end
+        File file
+        file:SetPath(path)
+        if not file:IsFile()
+            FileNotFoundError missing
+            missing:SetPath(path)
+            missing:SetErrorMessage(name + " file not found: '" + path + "' (looked for " + file:GetAbsolutePath() + ")")
+            alert(missing)
+        end
+    end
+
+    /*
+    Stops with an InvalidArgumentError carrying this message.
+
+    Attribute: Parameter message What was wrong.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.ArgumentChecker
+
+        text adhesion = "raft"
+        if adhesion not= "none" and adhesion not= "skirt" and adhesion not= "brim"
+            ArgumentChecker checker
+            checker:Fail("adhesion must be none, skirt or brim, but was " + adhesion)
+        end
+    */
+    action Fail(text message)
+        InvalidArgumentError error
+        error:SetErrorMessage(message)
+        alert(error)
+    end
+end

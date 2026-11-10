@@ -1,0 +1,363 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+The GeometryUtilities class holds the small numeric helpers the geometry and
+slicing classes share. They are written in Quorum rather than calling Math,
+because they run in the innermost loops.
+
+Attribute: Example
+
+    use Libraries.Fabrication.Geometry.GeometryUtilities
+
+    class Main
+        action Main
+            GeometryUtilities util
+            output util:FloorToInt(-1.5)                            // -2
+            output util:SegmentDistance2(0, 1, -1, 0, 1, 0)         // 1
+        end
+    end
+*/
+class GeometryUtilities
+    Math math
+
+    /*
+    The smaller of two numbers.
+
+    Attribute: Parameter a The first number.
+    Attribute: Parameter b The second number.
+    Attribute: Returns a or b, whichever is smaller.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:Min2(0.4, 0.2)      // 0.2
+    */
+    action Min2(number a, number b) returns number
+        if a < b
+            return a
+        end
+        return b
+    end
+
+    /*
+    The larger of two numbers.
+
+    Attribute: Parameter a The first number.
+    Attribute: Parameter b The second number.
+    Attribute: Returns a or b, whichever is larger.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:Max2(0.4, 0.2)      // 0.4
+    */
+    action Max2(number a, number b) returns number
+        if a > b
+            return a
+        end
+        return b
+    end
+
+    /*
+    The absolute value of a number.
+
+    Attribute: Parameter a The number.
+    Attribute: Returns a without its sign.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:AbsNum(-2.5)      // 2.5
+    */
+    action AbsNum(number a) returns number
+        if a < 0
+            return -a
+        end
+        return a
+    end
+
+    /*
+    The largest whole number not above v.
+
+    Attribute: Parameter v The number to round down.
+    Attribute: Returns The largest whole number not above v.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:FloorToInt(-1.5)      // -2
+    */
+    action FloorToInt(number v) returns integer
+        integer res = cast(integer, v)
+        if v < cast(number, res)
+            res = res - 1
+        end
+        return res
+    end
+
+    /*
+    The smallest whole number not below v.
+
+    Attribute: Parameter v The number to round up.
+    Attribute: Returns The smallest whole number not below v.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:CeilingToInt(2.1)      // 3
+    */
+    action CeilingToInt(number v) returns integer
+        integer res = cast(integer, v)
+        if v > cast(number, res)
+            res = res + 1
+        end
+        return res
+    end
+
+    /*
+    Sorts numbers ascending in place (insertion sort: the lists are short
+    scan-line crossings, where it beats anything fancier).
+
+    Attribute: Parameter a The numbers to sort.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        Array<number> crossings
+        crossings:Add(12.5)
+        crossings:Add(3.0)
+        crossings:Add(7.25)
+        util:SortNumbers(crossings)
+        output crossings:Get(0)      // 3.0
+    */
+    action SortNumbers(Array<number> a)
+        integer i = 1
+        repeat while i < a:GetSize()
+            number val = a:Get(i)
+            integer j = i - 1
+            boolean moving = true
+            repeat while moving
+                if j < 0
+                    moving = false
+                elseif a:Get(j) > val
+                    a:Set(j + 1, a:Get(j))
+                    j = j - 1
+                else
+                    moving = false
+                end
+            end
+            a:Set(j + 1, val)
+            i = i + 1
+        end
+    end
+
+    /*
+    The squared distance from point p to the segment from a to b.
+
+    Attribute: Parameter px The point's x coordinate (mm).
+    Attribute: Parameter py The point's y coordinate (mm).
+    Attribute: Parameter ax The x coordinate of the segment's start.
+    Attribute: Parameter ay The y coordinate of the segment's start.
+    Attribute: Parameter bx The x coordinate of the segment's end.
+    Attribute: Parameter by The y coordinate of the segment's end.
+    Attribute: Returns The squared distance (mm^2).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        output util:SegmentDistance2(5, 3, 0, 0, 10, 0)       // 9: 3 mm from the segment
+    */
+    action SegmentDistance2(number px, number py, number ax, number ay, number bx, number by) returns number
+        number vx = bx - ax
+        number vy = by - ay
+        number wx = px - ax
+        number wy = py - ay
+        number len2 = vx * vx + vy * vy
+        number t = 0.0
+        if len2 > 0.0
+            t = (wx * vx + wy * vy) / len2
+            if t < 0
+                t = 0.0
+            elseif t > 1
+                t = 1.0
+            end
+        end
+        number dx = wx - t * vx
+        number dy = wy - t * vy
+        return dx * dx + dy * dy
+    end
+
+    /*
+    The length of a path, including the closing edge of a loop.
+
+    Attribute: Parameter path The path to measure.
+    Attribute: Returns The length (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output util:PathLength(square)      // 80, closing edge included
+    */
+    action PathLength(Contour path) returns number
+        number total = 0.0
+        integer n = path:GetSize()
+        integer segments = n - 1
+        if path:closed
+            segments = n
+        end
+        integer i = 0
+        repeat while i < segments
+            integer j = i + 1
+            if j = n
+                j = 0
+            end
+            number dx = path:xs:Get(j) - path:xs:Get(i)
+            number dy = path:ys:Get(j) - path:ys:Get(i)
+            total = total + math:SquareRoot(dx * dx + dy * dy)
+            i = i + 1
+        end
+        return total
+    end
+
+    /*
+    True for a closed loop of at least 3 points on a plane between 0 and planeCount - 1.
+
+    Attribute: Parameter con The contour to check.
+    Attribute: Parameter planeCount The number of planes.
+    Attribute: Returns True for a closed loop of at least 3 points on a plane between 0 and planeCount - 1.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        square:planeIndex = 4
+        output util:IsUsableLoop(square, 100)      // true
+    */
+    action IsUsableLoop(Contour con, integer planeCount) returns boolean
+        if not con:closed or con:GetSize() < 3
+            return false
+        end
+        return InPlaneRange(con:planeIndex, planeCount)
+    end
+
+    private action InPlaneRange(integer planeIndex, integer planeCount) returns boolean
+        return planeIndex >= 0 and planeIndex < planeCount
+    end
+
+    /*
+    Groups item indices by plane with a counting sort. Afterwards plane p
+    owns order[starts[p]] up to (not including) order[starts[p + 1]], in the
+    items' original order. Items whose plane is outside 0 to planeCount - 1
+    (use -1 to leave an item out) are skipped.
+
+    Attribute: Parameter planeOf The plane of each item.
+    Attribute: Parameter planeCount The number of planes.
+    Attribute: Parameter starts Filled with planeCount + 1 offsets into order.
+    Attribute: Parameter order Filled with item indices, grouped by plane.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.GeometryUtilities
+
+        GeometryUtilities util
+        Array<integer> planeOf
+        planeOf:Add(1)
+        planeOf:Add(0)
+        planeOf:Add(1)
+        Array<integer> starts
+        Array<integer> order
+        util:BucketByPlane(planeOf, 2, starts, order)
+        // plane 1 owns order[starts[1]] up to order[starts[2]]: items 0 and 2
+        integer i = starts:Get(1)
+        repeat while i < starts:Get(2)
+            output order:Get(i)
+            i = i + 1
+        end
+    */
+    action BucketByPlane(Array<integer> planeOf, integer planeCount,
+                         Array<integer> starts, Array<integer> order)
+        starts:Empty()
+        order:Empty()
+        integer p = 0
+        repeat while p <= planeCount
+            starts:Add(0)
+            p = p + 1
+        end
+
+        // count items per plane, shifted by 1 so the prefix sum gives starts
+        integer i = 0
+        repeat while i < planeOf:GetSize()
+            integer plane = planeOf:Get(i)
+            if InPlaneRange(plane, planeCount)
+                starts:Set(plane + 1, starts:Get(plane + 1) + 1)
+            end
+            i = i + 1
+        end
+        p = 1
+        repeat while p <= planeCount
+            starts:Set(p, starts:Get(p) + starts:Get(p - 1))
+            p = p + 1
+        end
+
+        // drop each index into the next free slot of its plane
+        i = 0
+        repeat while i < starts:Get(planeCount)
+            order:Add(0)
+            i = i + 1
+        end
+        Array<integer> cursor
+        p = 0
+        repeat while p < planeCount
+            cursor:Add(starts:Get(p))
+            p = p + 1
+        end
+        i = 0
+        repeat while i < planeOf:GetSize()
+            integer plane2 = planeOf:Get(i)
+            if InPlaneRange(plane2, planeCount)
+                integer slot = cursor:Get(plane2)
+                order:Set(slot, i)
+                cursor:Set(plane2, slot + 1)
+            end
+            i = i + 1
+        end
+    end
+end

@@ -1,0 +1,151 @@
+use Libraries.Fabrication.Geometry.Contour
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.Contour, the path type every stage passes around. */
+class Main
+    TestModels models
+
+    action Main
+        AddPointSkipsRepeats()
+        AreaAndOrientation()
+        ReverseFlipsOrientation()
+        ContainsPoint()
+        IsInside()
+        CopyIsIndependent()
+        ClosingDuplicate()
+        NearestVertex()
+    end
+
+    action AddPointSkipsRepeats
+        // AddPoint
+        Contour line
+        line:AddPoint(0, 0)
+        line:AddPoint(0, 0)
+        line:AddPoint(1, 0)
+        output "a repeated point is skipped: " + line:GetSize()
+        output "HeadX: " + Near(line:HeadX(), 0, 0)
+        output "TailX: " + Near(line:TailX(), 1, 0)
+
+        Contour following
+        following:AddPoint(1, 0)
+        following:AddPoint(2, 0)
+        Contour joined
+        joined:AppendAll(line)
+        joined:AppendAll(following)
+        output "AppendAll skips the shared join point: " + joined:GetSize()
+    end
+
+    action AreaAndOrientation
+        // SignedArea2 and Area
+        Contour square = models:Square(0, 0, 10, 0)
+        output "twice the area of a CCW 10 mm square: " + Near(square:SignedArea2(), 200, 0.000001)
+        output "Area: " + Near(square:Area(), 100, 0.000001)
+        Contour triangle
+        triangle:AddPoint(0, 0)
+        triangle:AddPoint(4, 0)
+        triangle:AddPoint(0, 3)
+        output "a 3-4-5 triangle: " + Near(triangle:Area(), 6, 0.000001)
+    end
+
+    action ReverseFlipsOrientation
+        // Reverse
+        Contour square = models:Square(0, 0, 10, 0)
+        square:Reverse()
+        output "reversed, the area is negative: " + Near(square:SignedArea2(), -200, 0.000001)
+        output "Area doesn't depend on direction: " + Near(square:Area(), 100, 0.000001)
+        output "the last point comes first: " + Near(square:HeadY(), 10, 0)
+    end
+
+    action ContainsPoint
+        // ContainsPoint
+        Contour square = models:Square(0, 0, 10, 0)
+        output "the centre: " + square:ContainsPoint(5, 5)
+        output "a point outside: " + (not square:ContainsPoint(15, 5))
+        output "just outside the left edge: " + (not (square:ContainsPoint(-0.001, 5)))
+        Contour line
+        line:AddPoint(0, 0)
+        line:AddPoint(10, 10)
+        output "two points enclose nothing: " + (not line:ContainsPoint(5, 5))
+    end
+
+    action IsInside
+        // IsInside
+        Contour outer = models:Square(0, 0, 20, 0)
+        Contour hole = models:HoleSquare(5, 5, 10, 0)
+        Contour inner = models:Square(5, 5, 10, 0)
+        output "a clockwise hole inside: " + hole:IsInside(outer)
+        output "a counter-clockwise loop inside: " + inner:IsInside(outer)
+        output "the bigger loop isn't inside the smaller one: " + (not outer:IsInside(inner))
+
+        // side by side, sharing the edge x = 20 and its corners, starting on the shared corner
+        Contour block
+        block:AddPoint(20, 0)
+        block:AddPoint(20, 20)
+        block:AddPoint(0, 20)
+        block:AddPoint(0, 0)
+        block:closed = true
+        Contour ledge = models:Rectangle(20, 0, 30, 20, 0)
+        output "(why IsInside exists) a shared corner counts as inside the ledge: " + ledge:ContainsPoint(20, 0)
+        output "the block isn't inside the ledge: " + (not block:IsInside(ledge))
+        output "the ledge isn't inside the block: " + (not ledge:IsInside(block))
+
+        Contour line
+        line:AddPoint(1, 1)
+        line:AddPoint(2, 2)
+        output "fewer than 3 points: " + (not line:IsInside(outer))
+    end
+
+    action CopyIsIndependent
+        // Copy
+        Contour square = models:Square(0, 0, 10, 3)
+        square:wallIndex = 2
+        square:role = 1
+        square:keepShort = true
+        Contour copy = square:Copy()
+        output "same points: " + copy:GetSize()
+        output "planeIndex copied: " + copy:planeIndex
+        output "wallIndex copied: " + copy:wallIndex
+        output "role copied: " + copy:role
+        output "closed and keepShort copied: " + (copy:closed and copy:keepShort)
+        copy:AddPoint(50, 50)
+        copy:Reverse()
+        output "changing the copy leaves the original alone: " + square:GetSize()
+        output "the original's first point: " + Near(square:HeadX(), 0, 0)
+    end
+
+    action ClosingDuplicate
+        // DropClosingDuplicate
+        Contour loop
+        loop:AddPoint(0, 0)
+        loop:AddPoint(5, 0)
+        loop:AddPoint(5, 5)
+        loop:AddPoint(0, 0)
+        loop:DropClosingDuplicate()
+        output "the repeated first point is removed: " + loop:GetSize()
+        loop:DropClosingDuplicate()
+        output "nothing else is removed: " + loop:GetSize()
+    end
+
+    action NearestVertex
+        // NearestVertexIndex
+        Contour square = models:Square(0, 0, 10, 0)
+        output "nearest to the far corner: " + square:NearestVertexIndex(9, 9)
+        output "squared distance to it: " + Near(square:NearestVertexDistance2(10, 13), 9, 0.000001)
+        Contour empty
+        output "0 for an empty contour: " + empty:NearestVertexIndex(1, 1)
+        output "0 distance for an empty contour: " + Near(empty:NearestVertexDistance2(1, 1), 0, 0)
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

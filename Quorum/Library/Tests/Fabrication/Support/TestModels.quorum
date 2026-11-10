@@ -1,0 +1,145 @@
+package Tests.Fabrication
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Fabrication.Geometry.Contour
+
+/*
+The TestModels class builds the shapes the tests use, in code, so the
+tests need no model files: boxes as ModelData (exactly what ModelLoader
+returns for an STL), and squares and rectangles as Contours.
+
+The models:
+    Cube        a 20 mm cube from (0, 0, 0) to (20, 20, 20)
+    Ledge       a 20 x 20 x 10 mm block with a 10 x 20 x 2 mm ledge sticking
+                out of its +X side at 4 - 6 mm up: the ledge needs support
+
+Box faces are wound counter-clockwise seen from outside, so normals point out.
+*/
+class TestModels
+    /* A model with one box mesh. */
+    action Box(number x0, number y0, number z0, number x1, number y1, number z1) returns ModelData
+        ModelData model
+        Array<MeshData> meshes
+        meshes:Add(BoxMesh(x0, y0, z0, x1, y1, z1))
+        model:SetMeshes(meshes)
+        return model
+    end
+
+    action Cube returns ModelData
+        return Box(0, 0, 0, 20, 20, 20)
+    end
+
+    action Ledge returns ModelData
+        ModelData model
+        Array<MeshData> meshes
+        meshes:Add(BoxMesh(0, 0, 0, 20, 20, 10))
+        meshes:Add(BoxMesh(20, 0, 4, 30, 20, 6))
+        model:SetMeshes(meshes)
+        return model
+    end
+
+    /* One box as a mesh: 8 vertices, 12 triangles. */
+    action BoxMesh(number x0, number y0, number z0, number x1, number y1, number z1) returns MeshData
+        Number32BitArray vertices
+        vertices:SetSize(24)
+        integer v = 0
+        repeat while v < 8
+            number x = x0
+            if v mod 2 = 1
+                x = x1
+            end
+            number y = y0
+            if (v / 2) mod 2 = 1
+                y = y1
+            end
+            number z = z0
+            if v / 4 = 1
+                z = z1
+            end
+            vertices:Set(3 * v, x)
+            vertices:Set(3 * v + 1, y)
+            vertices:Set(3 * v + 2, z)
+            v = v + 1
+        end
+
+        // vertex v is corner (v mod 2, (v / 2) mod 2, v / 4); two triangles per face
+        text corners = "0 2 3 0 3 1 4 5 7 4 7 6 0 1 5 0 5 4 2 6 7 2 7 3 0 4 6 0 6 2 1 3 7 1 7 5"
+        Array<text> parts = corners:Split(" ")
+        Integer32BitArray indices
+        indices:SetSize(parts:GetSize())
+        integer i = 0
+        repeat while i < parts:GetSize()
+            text part = parts:Get(i)
+            indices:Set(i, part:ParseInteger())
+            i = i + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        return mesh
+    end
+
+    /* A closed counter-clockwise rectangle on a plane. */
+    action Rectangle(number x0, number y0, number x1, number y1, integer plane) returns Contour
+        Contour rectangle
+        rectangle:AddPoint(x0, y0)
+        rectangle:AddPoint(x1, y0)
+        rectangle:AddPoint(x1, y1)
+        rectangle:AddPoint(x0, y1)
+        rectangle:closed = true
+        rectangle:planeIndex = plane
+        return rectangle
+    end
+
+    /* A closed counter-clockwise square with its lower left corner at (x, y). */
+    action Square(number x, number y, number size, integer plane) returns Contour
+        return Rectangle(x, y, x + size, y + size, plane)
+    end
+
+    /* A clockwise square marked as a hole, for the inside of a ring. */
+    action HoleSquare(number x, number y, number size, integer plane) returns Contour
+        Contour hole = Square(x, y, size, plane)
+        hole:Reverse()
+        hole:isHole = true
+        hole:depth = 1
+        return hole
+    end
+
+    /* A list holding one contour. */
+    action ListOf(Contour contour) returns Array<Contour>
+        Array<Contour> list
+        list:Add(contour)
+        return list
+    end
+
+    /* The total signed area of loops (holes, wound clockwise, subtract). */
+    action NetArea(Array<Contour> loops) returns number
+        number total = 0.0
+        integer i = 0
+        repeat while i < loops:GetSize()
+            Contour loop = loops:Get(i)
+            total = total + loop:SignedArea2() / 2.0
+            i = i + 1
+        end
+        return total
+    end
+
+    /* How many of the contours lie on a plane. */
+    action CountOnPlane(Array<Contour> contours, integer plane) returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < contours:GetSize()
+            Contour contour = contours:Get(i)
+            if contour:planeIndex = plane
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+end

@@ -1,0 +1,92 @@
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ConvexHull
+
+/* Tests Libraries.Fabrication.Geometry.ConvexHull (Andrew's monotone chain). */
+class Main
+    Number64BitArray xs
+    Number64BitArray ys
+
+    action Main
+        SquareWithInsidePoints()
+        DuplicatesAndCollinear()
+        TinyInputs()
+    end
+
+    action Points(text pairs)
+        Array<text> values = pairs:Split(" ")
+        integer count = values:GetSize() / 2
+        xs:SetSize(count)
+        ys:SetSize(count)
+        integer i = 0
+        repeat while i < count
+            text x = values:Get(2 * i)
+            text y = values:Get(2 * i + 1)
+            xs:Set(i, x:ParseNumber())
+            ys:Set(i, y:ParseNumber())
+            i = i + 1
+        end
+    end
+
+    action HullContour(ConvexHull hull) returns Contour
+        Contour loop
+        Number64BitArray hx = hull:GetConvexX()
+        Number64BitArray hy = hull:GetConvexY()
+        integer i = 0
+        repeat while i < hx:GetSize()
+            loop:AddPoint(hx:Get(i), hy:Get(i))
+            i = i + 1
+        end
+        loop:closed = true
+        return loop
+    end
+
+    action SquareWithInsidePoints
+        // a square with points inside
+        Points("0 0 10 0 10 10 0 10 5 5 2 7 9 1")
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        output "only the corners: " + hull:GetSize()
+        Contour loop = HullContour(hull)
+        output "counter-clockwise, area 100: " + Near(loop:SignedArea2(), 200, 0.000001)
+    end
+
+    action DuplicatesAndCollinear
+        // duplicates and points along an edge
+        Points("0 0 0 0 5 0 10 0 10 10 10 10 0 10")
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        output "duplicates and the edge midpoint are dropped: " + hull:GetSize()
+    end
+
+    action TinyInputs
+        // fewer than three distinct points
+        Points("3 3 3 3")
+        ConvexHull single
+        single:Compute(xs, ys)
+        output "one distinct point has no hull: " + single:GetSize()
+        Number64BitArray noX
+        Number64BitArray noY
+        noX:SetSize(0)
+        noY:SetSize(0)
+        ConvexHull empty
+        empty:Compute(noX, noY)
+        output "no points: " + empty:GetSize()
+        ConvexHull unused
+        output "GetSize before Compute: " + unused:GetSize()
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

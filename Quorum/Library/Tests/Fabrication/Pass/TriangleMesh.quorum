@@ -1,0 +1,112 @@
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Number64BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Fabrication.Geometry.TriangleMesh
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.TriangleMesh: flattening a model's meshes, and rejecting broken ones. */
+class Main
+    TestModels models
+
+    action Main
+        OneBox()
+        TwoMeshesAreJoined()
+        BrokenMeshes()
+    end
+
+    action OneBox
+        // one box
+        TriangleMesh mesh
+        mesh:Load(models:Cube())
+        output "triangles: " + mesh:GetTriangleCount()
+        output "vertices: " + mesh:GetVertexCount()
+        Number64BitArray xs = mesh:GetVertexX()
+        Number64BitArray zs = mesh:GetVertexZ()
+        output "vertex 1 is the +X corner: " + Near(xs:Get(1), 20, 0)
+        output "vertex 7 is the top corner: " + Near(zs:Get(7), 20, 0)
+    end
+
+    action TwoMeshesAreJoined
+        // two meshes
+        TriangleMesh mesh
+        mesh:Load(models:Ledge())
+        output "triangles of both boxes: " + mesh:GetTriangleCount()
+        output "vertices of both boxes: " + mesh:GetVertexCount()
+        Integer32BitArray corners = mesh:GetCorners()
+        integer smallest = corners:Get(36)
+        integer i = 36
+        repeat while i < 72
+            if corners:Get(i) < smallest
+                smallest = corners:Get(i)
+            end
+            i = i + 1
+        end
+        output "the second mesh's indices are shifted past the first mesh's vertices: " + smallest
+
+        mesh:Load(models:Cube())
+        output "loading again replaces what was loaded before: " + mesh:GetTriangleCount()
+        output "vertices after loading again: " + mesh:GetVertexCount()
+    end
+
+    action BrokenMeshes
+        // broken meshes stop with a message
+        output "a valid triangle loads: " + (not LoadFails(Broken(24, "0 1 2")))
+        output "an index past the last vertex: " + LoadFails(Broken(24, "0 1 9"))
+        output "an index count that isn't a multiple of 3: " + LoadFails(Broken(24, "0 1"))
+        output "a vertex count that isn't a multiple of 3: " + LoadFails(Broken(23, "0 1 2"))
+        ModelData empty
+        Array<MeshData> none
+        empty:SetMeshes(none)
+        output "a model with no meshes: " + LoadFails(empty)
+    end
+
+    /* A one-mesh model with coordinateCount vertex coordinates and the given indices. */
+    action Broken(integer coordinateCount, text indexList) returns ModelData
+        Number32BitArray vertices
+        vertices:SetSize(coordinateCount)
+        Array<text> parts = indexList:Split(" ")
+        Integer32BitArray indices
+        indices:SetSize(parts:GetSize())
+        integer i = 0
+        repeat while i < parts:GetSize()
+            text part = parts:Get(i)
+            indices:Set(i, part:ParseInteger())
+            i = i + 1
+        end
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        ModelData model
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        model:SetMeshes(meshes)
+        return model
+    end
+
+    action LoadFails(ModelData model) returns boolean
+        boolean failed = false
+        check
+            TriangleMesh mesh
+            mesh:Load(model)
+        detect e
+            failed = true
+        end
+        return failed
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

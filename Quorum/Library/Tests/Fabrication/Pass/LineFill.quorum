@@ -1,0 +1,159 @@
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.LineFill
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.LineFill, the hatch behind infill, skin and support fill. */
+class Main
+    LineFill fill
+    TestModels models
+    Math math
+
+    action Main
+        SeparateLines()
+        AlternatingAngles()
+        LinesAvoidHoles()
+        JoinedZigzag()
+        BadSpacing()
+    end
+
+    action SeparateLines
+        // Fill of a 20 mm square, 2 mm apart
+        Array<Contour> lines
+        fill:Fill(models:ListOf(models:Square(0, 0, 20, 0)), 0, 2.0, 0.4, lines)
+        // 45 degree lines across a 28.3 mm diagonal: 15 scan lines, minus the
+        // two corner stubs shorter than 0.4 mm
+        output "line count: " + AtLeast(lines:GetSize(), 12)
+        output "line count: " + AtMost(lines:GetSize(), 15)
+        integer i = 0
+        boolean allInside = true
+        boolean allLongEnough = true
+        boolean allOpen = true
+        repeat while i < lines:GetSize()
+            Contour line = lines:Get(i)
+            if line:closed or line:GetSize() not= 2 or line:planeIndex not= 0
+                allOpen = false
+            end
+            if not InSquare(line:HeadX(), line:HeadY()) or not InSquare(line:TailX(), line:TailY())
+                allInside = false
+            end
+            if Length(line) < 0.4
+                allLongEnough = false
+            end
+            i = i + 1
+        end
+        output "every line is an open two-point path on plane 0: " + allOpen
+        output "every line ends on or inside the square: " + allInside
+        output "no line is shorter than minLength: " + allLongEnough
+    end
+
+    action AlternatingAngles
+        // neighbouring planes cross at 90 degrees
+        Array<Contour> even
+        Array<Contour> odd
+        fill:Fill(models:ListOf(models:Square(0, 0, 20, 0)), 0, 2.0, 0.4, even)
+        fill:Fill(models:ListOf(models:Square(0, 0, 20, 1)), 1, 2.0, 0.4, odd)
+        Contour a = even:Get(even:GetSize() / 2)
+        Contour b = odd:Get(odd:GetSize() / 2)
+        number dot = (a:TailX() - a:HeadX()) * (b:TailX() - b:HeadX()) + (a:TailY() - a:HeadY()) * (b:TailY() - b:HeadY())
+        output "the directions are perpendicular: " + Near(dot / (Length(a) * Length(b)), 0, 0.000001)
+        Contour c = even:Get(0)
+        output "plane 0 lines run at 45 degrees: " + Near(math:AbsoluteValue(c:TailX() - c:HeadX()), math:AbsoluteValue(c:TailY() - c:HeadY()), 0.000001)
+    end
+
+    action LinesAvoidHoles
+        // lines stop at holes
+        Array<Contour> ring
+        ring:Add(models:Square(0, 0, 20, 0))
+        ring:Add(models:HoleSquare(5, 5, 10, 0))
+        Array<Contour> lines
+        fill:Fill(ring, 0, 1.0, 0.1, lines)
+        boolean clear = true
+        integer i = 0
+        repeat while i < lines:GetSize()
+            Contour line = lines:Get(i)
+            number midX = (line:HeadX() + line:TailX()) / 2
+            number midY = (line:HeadY() + line:TailY()) / 2
+            if midX > 5.01 and midX < 14.99 and midY > 5.01 and midY < 14.99
+                clear = false
+            end
+            i = i + 1
+        end
+        output "no line crosses the hole: " + clear
+        output "the ring is filled: " + (lines:GetSize() > 0)
+    end
+
+    action JoinedZigzag
+        // FillJoined chains the lines
+        Array<Contour> lines
+        Array<Contour> chains
+        fill:Fill(models:ListOf(models:Square(0, 0, 20, 0)), 0, 2.0, 0.4, lines)
+        fill:FillJoined(models:ListOf(models:Square(0, 0, 20, 0)), 0, 2.0, 0.4, chains)
+        output "a convex square makes one or two zigzags: " + AtMost(chains:GetSize(), 2)
+        integer points = 0
+        integer closedChains = 0
+        integer i = 0
+        repeat while i < chains:GetSize()
+            Contour chain = chains:Get(i)
+            points = points + chain:GetSize()
+            if chain:closed
+                closedChains = closedChains + 1
+            end
+            i = i + 1
+        end
+        output "zigzags that are closed loops: " + closedChains
+        output "every line's two ends are in a zigzag: " + (points = 2 * lines:GetSize())
+    end
+
+    action BadSpacing
+        // a spacing of 0 is refused
+        boolean stopped = false
+        check
+            Array<Contour> lines
+            fill:Fill(models:ListOf(models:Square(0, 0, 20, 0)), 0, 0, 0.4, lines)
+        detect e
+            stopped = true
+        end
+        output "Fill with spacing 0 stops instead of looping forever: " + stopped
+    end
+
+    action InSquare(number x, number y) returns boolean
+        return x >= -0.001 and x <= 20.001 and y >= -0.001 and y <= 20.001
+    end
+
+    action Length(Contour line) returns number
+        number dx = line:TailX() - line:HeadX()
+        number dy = line:TailY() - line:HeadY()
+        return math:SquareRoot(dx * dx + dy * dy)
+    end
+
+    /* "true" if actual is at least minimum, otherwise the actual value. */
+    action AtLeast(number actual, number minimum) returns text
+        if actual >= minimum
+            return "true"
+        end
+        return "" + actual
+    end
+
+    /* "true" if actual is at most maximum, otherwise the actual value. */
+    action AtMost(number actual, number maximum) returns text
+        if actual <= maximum
+            return "true"
+        end
+        return "" + actual
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

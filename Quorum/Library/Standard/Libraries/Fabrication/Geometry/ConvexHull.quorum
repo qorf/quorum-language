@@ -1,0 +1,316 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Number64BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Containers.HashTable
+use Libraries.Containers.Array
+
+/*
+The ConvexHull class finds the convex hull of a set of 2D points with
+Andrew's monotone chain algorithm: duplicate points are dropped, the rest
+sorted by x then y (merge sort), and the lower and upper hulls built in one
+pass each. The hull comes back counter-clockwise, without repeating its
+first point.
+
+Attribute: Example
+
+    use Libraries.Containers.Number64BitArray
+    use Libraries.Fabrication.Geometry.ConvexHull
+
+    class Main
+        action Main
+            Number64BitArray xs
+            Number64BitArray ys
+            xs:SetSize(4)
+            ys:SetSize(4)
+            xs:Set(1, 10)
+            xs:Set(2, 10)
+            ys:Set(2, 10)
+            xs:Set(3, 5)
+            ys:Set(3, 2)        // inside the triangle of the other three
+            ConvexHull hull
+            hull:Compute(xs, ys)
+            output hull:GetSize()       // 3
+        end
+    end
+*/
+class ConvexHull
+    Number64BitArray sortedX
+    Number64BitArray sortedY
+    Number64BitArray hullX
+    Number64BitArray hullY
+
+    /* A new Number64BitArray has no storage until SetSize, so start empty. */
+    on create
+        sortedX:SetSize(0)
+        sortedY:SetSize(0)
+        hullX:SetSize(0)
+        hullY:SetSize(0)
+    end
+
+    /*
+    Computes the hull of the points (xs:Get(i), ys:Get(i)).
+
+    Attribute: Parameter xs The x coordinates.
+    Attribute: Parameter ys The y coordinates, as many as xs.
+
+    Attribute: Example
+
+        use Libraries.Containers.Number64BitArray
+        use Libraries.Fabrication.Geometry.ConvexHull
+
+        Number64BitArray xs
+        Number64BitArray ys
+        xs:SetSize(5)
+        ys:SetSize(5)
+        xs:Set(1, 10)
+        xs:Set(2, 10)
+        ys:Set(2, 10)
+        ys:Set(3, 10)
+        xs:Set(4, 5)
+        ys:Set(4, 5)          // inside the square of the other four
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        output hull:GetSize()       // 4
+    */
+    action Compute(Number64BitArray xs, Number64BitArray ys)
+        if xs:GetSize() not= ys:GetSize()
+            alert("ConvexHull:Compute was given " + xs:GetSize() + " x coordinates but " + ys:GetSize() + " y coordinates")
+        end
+
+        // drop duplicate points
+        HashTable<text, boolean> seen
+        Array<integer> unique
+        integer i = 0
+        repeat while i < xs:GetSize()
+            text key = xs:Get(i) + "," + ys:Get(i)
+            if not seen:HasKey(key)
+                seen:Add(key, true)
+                unique:Add(i)
+            end
+            i = i + 1
+        end
+        integer size = unique:GetSize()
+        Number64BitArray uniqueX
+        Number64BitArray uniqueY
+        uniqueX:SetSize(size)
+        uniqueY:SetSize(size)
+        i = 0
+        repeat while i < size
+            uniqueX:Set(i, xs:Get(unique:Get(i)))
+            uniqueY:Set(i, ys:Get(unique:Get(i)))
+            i = i + 1
+        end
+
+        // sort by x, then y
+        Integer32BitArray sortedIndices = SortedOrder(uniqueX, uniqueY)
+        sortedX:SetSize(size)
+        sortedY:SetSize(size)
+        i = 0
+        repeat while i < size
+            sortedX:Set(i, uniqueX:Get(sortedIndices:Get(i)))
+            sortedY:Set(i, uniqueY:Get(sortedIndices:Get(i)))
+            i = i + 1
+        end
+
+        if size = 0
+            hullX:SetSize(0)
+            hullY:SetSize(0)
+            return now
+        end
+
+        // lower hull left to right, upper hull right to left
+        Array<integer> lower
+        i = 0
+        repeat while i < size
+            PushHullPoint(lower, i)
+            i = i + 1
+        end
+        Array<integer> upper
+        i = size - 1
+        repeat while i >= 0
+            PushHullPoint(upper, i)
+            i = i - 1
+        end
+
+        // each chain's last point starts the other chain
+        integer hullSize = lower:GetSize() + upper:GetSize() - 2
+        hullX:SetSize(hullSize)
+        hullY:SetSize(hullSize)
+        integer index = 0
+        i = 0
+        repeat while i < lower:GetSize() - 1
+            hullX:Set(index, sortedX:Get(lower:Get(i)))
+            hullY:Set(index, sortedY:Get(lower:Get(i)))
+            index = index + 1
+            i = i + 1
+        end
+        i = 0
+        repeat while i < upper:GetSize() - 1
+            hullX:Set(index, sortedX:Get(upper:Get(i)))
+            hullY:Set(index, sortedY:Get(upper:Get(i)))
+            index = index + 1
+            i = i + 1
+        end
+    end
+
+    /*
+    The number of points on the hull found by the last Compute.
+
+    Attribute: Returns The number of points on the hull found by the last Compute.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.ConvexHull
+
+        ConvexHull hull
+        output hull:GetSize()       // 0 before Compute
+    */
+    action GetSize returns integer
+        return hullX:GetSize()
+    end
+
+    /*
+    The hull's x coordinates, counter-clockwise.
+
+    Attribute: Returns The hull's x coordinates, counter-clockwise.
+
+    Attribute: Example
+
+        use Libraries.Containers.Number64BitArray
+        use Libraries.Fabrication.Geometry.ConvexHull
+
+        Number64BitArray xs
+        Number64BitArray ys
+        xs:SetSize(3)
+        ys:SetSize(3)
+        xs:Set(1, 4)
+        ys:Set(2, 3)
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        Number64BitArray hullX = hull:GetConvexX()
+        Number64BitArray hullY = hull:GetConvexY()
+        integer i = 0
+        repeat while i < hullX:GetSize()
+            output hullX:Get(i) + ", " + hullY:Get(i)
+            i = i + 1
+        end
+    */
+    action GetConvexX returns Number64BitArray
+        return hullX
+    end
+
+    /*
+    The hull's y coordinates, counter-clockwise.
+
+    Attribute: Returns The hull's y coordinates, counter-clockwise.
+
+    Attribute: Example
+
+        use Libraries.Containers.Number64BitArray
+        use Libraries.Fabrication.Geometry.ConvexHull
+
+        Number64BitArray xs
+        Number64BitArray ys
+        xs:SetSize(3)
+        ys:SetSize(3)
+        xs:Set(1, 4)
+        ys:Set(2, 3)
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        Number64BitArray hullY = hull:GetConvexY()
+        output hullY:Get(0)         // 0: the hull starts at the lowest left point
+    */
+    action GetConvexY returns Number64BitArray
+        return hullY
+    end
+
+    /* Adds point to a half hull, first dropping points that would make it turn clockwise. */
+    private action PushHullPoint(Array<integer> chain, integer point)
+        boolean turning = true
+        repeat while chain:GetSize() >= 2 and turning
+            integer last = chain:Get(chain:GetSize() - 1)
+            integer before = chain:Get(chain:GetSize() - 2)
+            if IsCounterClockwise(before, last, point)
+                turning = false
+            else
+                chain:RemoveAt(chain:GetSize() - 1)
+            end
+        end
+        chain:Add(point)
+    end
+
+    /* True if the sorted points a, b, c make a strict left turn. */
+    private action IsCounterClockwise(integer a, integer b, integer c) returns boolean
+        number x1 = sortedX:Get(a)
+        number y1 = sortedY:Get(a)
+        number cross = (sortedX:Get(b) - x1) * (sortedY:Get(c) - y1) - (sortedY:Get(b) - y1) * (sortedX:Get(c) - x1)
+        return cross > 0
+    end
+
+    /* The point indices in x, then y order (a stable merge sort). */
+    private action SortedOrder(Number64BitArray xs, Number64BitArray ys) returns Integer32BitArray
+        integer size = xs:GetSize()
+        Integer32BitArray indices
+        Integer32BitArray temp
+        indices:SetSize(size)
+        temp:SetSize(size)
+        integer i = 0
+        repeat while i < size
+            indices:Set(i, i)
+            temp:Set(i, 0)
+            i = i + 1
+        end
+        MergeSort(xs, ys, indices, temp, 0, size - 1)
+        return indices
+    end
+
+    private action MergeSort(Number64BitArray xs, Number64BitArray ys, Integer32BitArray indices,
+                             Integer32BitArray temp, integer left, integer right)
+        if left >= right
+            return now
+        end
+        integer middle = (left + right) / 2
+        MergeSort(xs, ys, indices, temp, left, middle)
+        MergeSort(xs, ys, indices, temp, middle + 1, right)
+
+        integer a = left
+        integer b = middle + 1
+        integer current = left
+        repeat while a <= middle and b <= right
+            if Before(xs, ys, indices:Get(a), indices:Get(b))
+                temp:Set(current, indices:Get(a))
+                a = a + 1
+            else
+                temp:Set(current, indices:Get(b))
+                b = b + 1
+            end
+            current = current + 1
+        end
+        repeat while a <= middle
+            temp:Set(current, indices:Get(a))
+            a = a + 1
+            current = current + 1
+        end
+        repeat while b <= right
+            temp:Set(current, indices:Get(b))
+            b = b + 1
+            current = current + 1
+        end
+        current = left
+        repeat while current <= right
+            indices:Set(current, temp:Get(current))
+            current = current + 1
+        end
+    end
+
+    /* True if point first sorts strictly before point second. */
+    private action Before(Number64BitArray xs, Number64BitArray ys, integer first, integer second) returns boolean
+        number x1 = xs:Get(first)
+        number x2 = xs:Get(second)
+        if x1 = x2
+            return ys:Get(first) < ys:Get(second)
+        end
+        return x1 < x2
+    end
+end

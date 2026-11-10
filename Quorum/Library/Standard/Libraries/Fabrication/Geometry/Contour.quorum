@@ -1,0 +1,528 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+
+/*
+The Contour class is a 2D path on one slice plane: a closed loop (an outline,
+a hole, a wall) or an open polyline (a fill line). It is the common currency
+of the fabrication libraries: slicing produces contours, path generation
+turns them into more contours, and the G-code writer prints them.
+
+Closed loops do not repeat their first point at the end. Outer loops run
+counter-clockwise and holes clockwise once ContourGenerator has oriented
+them, so the material is always on the left.
+
+Attribute: Example
+
+    use Libraries.Fabrication.Geometry.Contour
+
+    class Main
+        action Main
+            Contour square
+            square:AddPoint(0, 0)
+            square:AddPoint(10, 0)
+            square:AddPoint(10, 10)
+            square:AddPoint(0, 10)
+            square:closed = true
+            output square:Area()                    // 100
+            output square:ContainsPoint(5, 5)       // true
+        end
+    end
+*/
+class Contour
+    /* The slice plane (layer) this path lies on, counting from 0 at the bed. */
+    public integer planeIndex = 0
+    /* True for a loop whose last point connects back to its first. */
+    public boolean closed = false
+    public Array<number> xs
+    public Array<number> ys
+
+    /* How many loops of the same plane surround this one (ContourGenerator). */
+    public integer depth = 0
+    public boolean isHole = false
+
+    /* Which wall this is, 0 being the outermost (PathGenerator); -1 if not a wall. */
+    public integer wallIndex = -1
+    /* What the path prints as, one of the PathRole constants; -1 until PathOrderer sets it. */
+    public integer role = -1
+
+    /*
+    True for thin-island center lines and tip dots: PathOrderer keeps them
+    even when they are shorter than its minimum line length, since they are
+    the only thing printed for that island.
+    */
+    public boolean keepShort = false
+
+    /*
+    The number of points.
+
+    Attribute: Returns The number of points.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:GetSize()       // 4
+    */
+    action GetSize returns integer
+        return xs:GetSize()
+    end
+
+    /*
+    The x coordinate of the first point.
+
+    Attribute: Returns The x coordinate (mm); 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:HeadX() + ", " + square:HeadY()      // 0, 0
+    */
+    action HeadX returns number
+        return xs:Get(0)
+    end
+
+    /*
+    The y coordinate of the first point.
+
+    Attribute: Returns The y coordinate (mm); 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour line
+        line:AddPoint(1, 2)
+        line:AddPoint(5, 2)
+        output line:HeadY()     // 2
+    */
+    action HeadY returns number
+        return ys:Get(0)
+    end
+
+    /*
+    The x coordinate of the last point.
+
+    Attribute: Returns The x coordinate (mm); 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour line
+        line:AddPoint(1, 2)
+        line:AddPoint(5, 2)
+        output line:TailX()     // 5
+    */
+    action TailX returns number
+        return xs:Get(xs:GetSize() - 1)
+    end
+
+    /*
+    The y coordinate of the last point.
+
+    Attribute: Returns The y coordinate (mm); 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:TailY()        // 20
+    */
+    action TailY returns number
+        return ys:Get(ys:GetSize() - 1)
+    end
+
+    /*
+    Adds a point at the end, unless it is exactly the same as the last one.
+
+    Attribute: Parameter x The x coordinate (mm).
+    Attribute: Parameter y The y coordinate (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour path
+        path:AddPoint(0, 0)
+        path:AddPoint(10, 0)
+        path:AddPoint(10, 0)     // the same point again: not added
+        output path:GetSize()     // 2
+    */
+    action AddPoint(number x, number y)
+        integer n = xs:GetSize()
+        if n > 0
+            if xs:Get(n - 1) = x and ys:Get(n - 1) = y
+                return now
+            end
+        end
+        xs:Add(x)
+        ys:Add(y)
+    end
+
+    /*
+    Adds every point of another contour at the end (see AddPoint).
+
+    Attribute: Parameter other The contour to append.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour first
+        first:AddPoint(0, 0)
+        first:AddPoint(10, 0)
+        Contour second
+        second:AddPoint(10, 5)
+        second:AddPoint(0, 5)
+        first:AppendAll(second)
+        output first:GetSize()    // 4
+    */
+    action AppendAll(Contour other)
+        integer i = 0
+        repeat while i < other:GetSize()
+            AddPoint(other:xs:Get(i), other:ys:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    A copy with its own point lists and every field copied.
+
+    Attribute: Returns The copy.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour copy = square:Copy()
+        copy:Reverse()
+        output square:SignedArea2() > 0     // true: the original keeps its direction
+    */
+    action Copy returns Contour
+        Contour copy
+        copy:AppendAll(me)
+        copy:planeIndex = planeIndex
+        copy:closed = closed
+        copy:depth = depth
+        copy:isHole = isHole
+        copy:wallIndex = wallIndex
+        copy:role = role
+        copy:keepShort = keepShort
+        return copy
+    end
+
+    /*
+    Removes the last point if it repeats the first (a loop written closed).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour loop
+        loop:AddPoint(0, 0)
+        loop:AddPoint(10, 0)
+        loop:AddPoint(10, 10)
+        loop:AddPoint(0, 0)
+        loop:DropClosingDuplicate()
+        loop:closed = true
+        output loop:GetSize()     // 3
+    */
+    action DropClosingDuplicate
+        integer n = xs:GetSize()
+        if n > 1
+            if xs:Get(n - 1) = xs:Get(0) and ys:Get(n - 1) = ys:Get(0)
+                xs:RemoveAt(n - 1)
+                ys:RemoveAt(n - 1)
+            end
+        end
+    end
+
+    /*
+    Twice the signed area of the loop (the shoelace sum).
+
+    Attribute: Returns Positive for a counter-clockwise loop, negative for a clockwise one.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:SignedArea2()      // 800: counter-clockwise
+    */
+    action SignedArea2 returns number
+        number area2 = 0.0
+        integer n = xs:GetSize()
+        integer i = 0
+        repeat while i < n
+            integer j = i + 1
+            if j = n
+                j = 0
+            end
+            area2 = area2 + (xs:Get(i) * ys:Get(j) - xs:Get(j) * ys:Get(i))
+            i = i + 1
+        end
+        return area2
+    end
+
+    /*
+    The area enclosed by the loop.
+
+    Attribute: Returns The unsigned area (mm^2).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:Area()     // 400
+    */
+    action Area returns number
+        number area = SignedArea2() / 2.0
+        if area < 0
+            return -area
+        end
+        return area
+    end
+
+    /*
+    Reverses the order of the points (and so the direction of a loop).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        square:Reverse()
+        output square:SignedArea2() < 0     // true: now clockwise, like a hole
+    */
+    action Reverse
+        integer i = 0
+        integer j = xs:GetSize() - 1
+        repeat while i < j
+            number tx = xs:Get(i)
+            number ty = ys:Get(i)
+            xs:Set(i, xs:Get(j))
+            xs:Set(j, tx)
+            ys:Set(i, ys:Get(j))
+            ys:Set(j, ty)
+            i = i + 1
+            j = j - 1
+        end
+    end
+
+    /*
+    The even-odd point-in-polygon test (ray casting).
+
+    Attribute: Parameter px The x coordinate of the point.
+    Attribute: Parameter py The y coordinate of the point.
+    Attribute: Returns True if the point is inside the loop; always false for fewer than 3 points.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:ContainsPoint(5, 5)        // true
+        output square:ContainsPoint(25, 5)       // false
+    */
+    action ContainsPoint(number px, number py) returns boolean
+        boolean inside = false
+        integer n = xs:GetSize()
+        if n < 3
+            return false
+        end
+        integer i = 0
+        integer j = n - 1
+        repeat while i < n
+            number xi = xs:Get(i)
+            number xj = xs:Get(j)
+            number yi = ys:Get(i)
+            number yj = ys:Get(j)
+            boolean iAbove = yi > py
+            boolean jAbove = yj > py
+            if iAbove not= jAbove
+                number xCross = xi + (py - yi) * (xj - xi) / (yj - yi)
+                if px < xCross
+                    inside = not inside
+                end
+            end
+            j = i
+            i = i + 1
+        end
+        return inside
+    end
+
+    /*
+    True if this closed loop lies inside the other one. It is tested at a
+    point just inside this loop, off the middle of its longest edge,
+    rather than at a vertex: two loops that touch (two meshes side by side)
+    share vertices, and a shared vertex can count as inside either loop.
+
+    Attribute: Parameter other The loop that may surround this one.
+    Attribute: Returns True if the test point is inside other; false if either has fewer than 3 points.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour hole
+        hole:AddPoint(5, 5)
+        hole:AddPoint(5, 15)
+        hole:AddPoint(15, 15)
+        hole:AddPoint(15, 5)
+        hole:closed = true
+        output hole:IsInside(square)     // true
+        output square:IsInside(hole)     // false
+    */
+    action IsInside(Contour other) returns boolean
+        integer n = xs:GetSize()
+        if n < 3 or other:GetSize() < 3
+            return false
+        end
+        integer longest = 0
+        number longestD2 = -1.0
+        integer i = 0
+        repeat while i < n
+            integer k = (i + 1) mod n
+            number dx = xs:Get(k) - xs:Get(i)
+            number dy = ys:Get(k) - ys:Get(i)
+            number d2 = dx * dx + dy * dy
+            if d2 > longestD2
+                longest = i
+                longestD2 = d2
+            end
+            i = i + 1
+        end
+        integer next = (longest + 1) mod n
+        number ex = xs:Get(next) - xs:Get(longest)
+        number ey = ys:Get(next) - ys:Get(longest)
+        number px = xs:Get(longest) + ex / 2.0
+        number py = ys:Get(longest) + ey / 2.0
+        // step off the edge by 1/100000 of its length, to the left of a
+        // counter-clockwise loop (its inside) or the right of a clockwise one
+        number side = 0.00001
+        if SignedArea2() < 0
+            side = -side
+        end
+        px = px - ey * side
+        py = py + ex * side
+        return other:ContainsPoint(px, py)
+    end
+
+    /*
+    The vertex closest to a point.
+
+    Attribute: Parameter x The x coordinate of the point.
+    Attribute: Parameter y The y coordinate of the point.
+    Attribute: Returns The index of the closest vertex; 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:NearestVertexIndex(19, 18)       // 2, the corner at (20, 20)
+    */
+    action NearestVertexIndex(number x, number y) returns integer
+        integer best = 0
+        number bestD2 = 0.0
+        integer i = 0
+        repeat while i < xs:GetSize()
+            number dx = xs:Get(i) - x
+            number dy = ys:Get(i) - y
+            number d2 = dx * dx + dy * dy
+            if i = 0 or d2 < bestD2
+                best = i
+                bestD2 = d2
+            end
+            i = i + 1
+        end
+        return best
+    end
+
+    /*
+    The squared distance from a point to the closest vertex.
+
+    Attribute: Parameter x The x coordinate of the point.
+    Attribute: Parameter y The y coordinate of the point.
+    Attribute: Returns The squared distance; 0 for an empty contour.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        output square:NearestVertexDistance2(23, 24)     // 25: 5 mm from (20, 20)
+    */
+    action NearestVertexDistance2(number x, number y) returns number
+        if xs:GetSize() = 0
+            return 0.0
+        end
+        integer i = NearestVertexIndex(x, y)
+        number dx = xs:Get(i) - x
+        number dy = ys:Get(i) - y
+        return dx * dx + dy * dy
+    end
+end

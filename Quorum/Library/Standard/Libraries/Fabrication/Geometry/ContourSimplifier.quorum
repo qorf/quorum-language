@@ -1,0 +1,260 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+
+/*
+The ContourSimplifier class removes points that hardly change a path's shape,
+with the Ramer-Douglas-Peucker algorithm: a point is kept only if leaving it
+out would move the path by more than the tolerance. A closed loop is first
+split at its first point and the point farthest from it, so the result keeps
+the loop's order (and so its direction).
+
+Attribute: Example
+
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Geometry.ContourSimplifier
+
+    class Main
+        action Main
+            Contour line
+            line:AddPoint(0, 0)
+            line:AddPoint(5, 0.001)
+            line:AddPoint(10, 0)
+            line:AddPoint(10, 10)
+            ContourSimplifier simplifier
+            simplifier:Simplify(line, 0.01)
+            output line:GetSize()       // 3: (5, 0.001) was within 0.01 of the line
+        end
+    end
+*/
+class ContourSimplifier
+    GeometryUtilities util
+
+    /*
+    Simplifies a contour in place. Contours with fewer than 4 points, or a
+    tolerance of 0 or less, are left as they are, and so is a closed loop
+    that would keep fewer than 3 points.
+
+    Attribute: Parameter contour The contour to simplify.
+    Attribute: Parameter tolerance How far (mm) the path may move.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.ContourSimplifier
+
+        Contour edge
+        edge:AddPoint(0, 0)
+        edge:AddPoint(5, 0.001)
+        edge:AddPoint(10, 0)
+        edge:AddPoint(10, 10)
+        ContourSimplifier simplifier
+        simplifier:Simplify(edge, 0.01)
+        output edge:GetSize()       // 3: the nearly straight point is gone
+    */
+    action Simplify(Contour contour, number tolerance)
+        integer n = contour:GetSize()
+        if n < 4 or tolerance <= 0
+            return now
+        end
+        Array<boolean> keep = MarkKept(contour, contour:closed, tolerance * tolerance)
+
+        integer kept = 0
+        integer i = 0
+        repeat while i < n
+            if keep:Get(i)
+                kept = kept + 1
+            end
+            i = i + 1
+        end
+        if contour:closed and kept < 3
+            return now
+        end
+
+        Array<number> newXs
+        Array<number> newYs
+        i = 0
+        repeat while i < n
+            if keep:Get(i)
+                newXs:Add(contour:xs:Get(i))
+                newYs:Add(contour:ys:Get(i))
+            end
+            i = i + 1
+        end
+        contour:xs = newXs
+        contour:ys = newYs
+    end
+
+    /*
+    A simplified copy of a closed loop, for outlines where a sliver is better
+    dropped than kept.
+
+    Attribute: Parameter loop The loop to simplify (not changed).
+    Attribute: Parameter tolerance How far (mm) the outline may move.
+    Attribute: Returns A new closed loop on the same plane, or undefined if fewer than 3 points remain or its area is below tolerance squared.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.ContourSimplifier
+
+        Contour sliver
+        sliver:AddPoint(0, 0)
+        sliver:AddPoint(10, 0)
+        sliver:AddPoint(10, 0.001)
+        sliver:AddPoint(0, 0.001)
+        sliver:closed = true
+        ContourSimplifier simplifier
+        Contour kept = simplifier:SimplifiedLoop(sliver, 0.1)
+        output kept = undefined        // true: too thin to keep
+    */
+    action SimplifiedLoop(Contour loop, number tolerance) returns Contour
+        integer n = loop:GetSize()
+        if n < 3
+            return undefined
+        end
+        number tol2 = tolerance * tolerance
+        Array<boolean> keep = MarkKept(loop, true, tol2)
+        Contour out
+        integer i = 0
+        repeat while i < n
+            if keep:Get(i)
+                out:AddPoint(loop:xs:Get(i), loop:ys:Get(i))
+            end
+            i = i + 1
+        end
+        if out:GetSize() < 3
+            return undefined
+        end
+        out:closed = true
+        out:planeIndex = loop:planeIndex
+        if out:Area() < tol2
+            return undefined
+        end
+        return out
+    end
+
+    /* Which points the Ramer-Douglas-Peucker pass keeps. */
+    private action MarkKept(Contour con, boolean asLoop, number tol2) returns Array<boolean>
+        integer n = con:GetSize()
+        Array<boolean> keep
+        integer i = 0
+        repeat while i < n
+            keep:Add(false)
+            i = i + 1
+        end
+
+        if asLoop
+            // split at point 0 and the point farthest from it
+            integer far = 0
+            number farD2 = -1.0
+            i = 1
+            repeat while i < n
+                number dx = con:xs:Get(i) - con:xs:Get(0)
+                number dy = con:ys:Get(i) - con:ys:Get(0)
+                number d2 = dx * dx + dy * dy
+                if d2 > farD2
+                    farD2 = d2
+                    far = i
+                end
+                i = i + 1
+            end
+            keep:Set(0, true)
+            keep:Set(far, true)
+            MarkRange(con, 0, far, tol2, keep)
+            MarkRange(con, far, n, tol2, keep)  // n stands for point 0 closing the loop
+            DropStartIfStraight(con, keep, tol2)
+        else
+            keep:Set(0, true)
+            keep:Set(n - 1, true)
+            MarkRange(con, 0, n - 1, tol2, keep)
+        end
+        return keep
+    end
+
+    /*
+    A loop's split point 0 is always kept by the pass above, even when it sits
+    on a straight side. Drops it when every point between its kept neighbours
+    is within the tolerance of the line joining them, and 3 or more points
+    stay. (The far point needs no check: the point farthest from any other
+    point is always a corner of the convex hull.)
+    */
+    private action DropStartIfStraight(Contour con, Array<boolean> keep, number tol2)
+        integer n = con:GetSize()
+        integer kept = 0
+        integer next = -1
+        integer previous = -1
+        integer i = 1
+        repeat while i < n
+            if keep:Get(i)
+                kept = kept + 1
+                if next = -1
+                    next = i
+                end
+                previous = i
+            end
+            i = i + 1
+        end
+        if kept < 3
+            return now
+        end
+        number ax = con:xs:Get(previous)
+        number ay = con:ys:Get(previous)
+        number bx = con:xs:Get(next)
+        number by = con:ys:Get(next)
+        i = previous + 1
+        repeat while i < n + next
+            integer index = i mod n
+            if util:SegmentDistance2(con:xs:Get(index), con:ys:Get(index), ax, ay, bx, by) > tol2
+                return now
+            end
+            i = i + 1
+        end
+        keep:Set(0, false)
+    end
+
+    /* Marks the points between first and last that must stay (index n means point 0). */
+    private action MarkRange(Contour con, integer first, integer last, number tol2, Array<boolean> keep)
+        integer n = con:GetSize()
+        Array<integer> stackA
+        Array<integer> stackB
+        stackA:Add(first)
+        stackB:Add(last)
+
+        repeat while stackA:GetSize() > 0
+            integer top = stackA:GetSize() - 1
+            integer a = stackA:Get(top)
+            integer b = stackB:Get(top)
+            stackA:RemoveAt(top)
+            stackB:RemoveAt(top)
+
+            if b - a >= 2
+                integer bi = b mod n
+                number ax = con:xs:Get(a)
+                number ay = con:ys:Get(a)
+                number bx = con:xs:Get(bi)
+                number by = con:ys:Get(bi)
+
+                integer worst = -1
+                number worstD2 = tol2
+                integer i = a + 1
+                repeat while i < b
+                    number d2 = util:SegmentDistance2(con:xs:Get(i), con:ys:Get(i), ax, ay, bx, by)
+                    if d2 > worstD2
+                        worstD2 = d2
+                        worst = i
+                    end
+                    i = i + 1
+                end
+
+                if worst not= -1
+                    keep:Set(worst, true)
+                    stackA:Add(a)
+                    stackB:Add(worst)
+                    stackA:Add(worst)
+                    stackB:Add(b)
+                end
+            end
+        end
+    end
+end

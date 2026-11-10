@@ -1,0 +1,105 @@
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Language.Errors.FileNotFoundError
+
+/* Tests Libraries.Fabrication.ArgumentChecker, which every Set action relies on to reject bad settings. */
+class Main
+    ArgumentChecker checker
+
+    action Main
+        Positive()
+        AtLeast()
+        Range()
+        Files()
+    end
+
+    action Positive
+        // RequirePositive
+        output "a small positive number passes: " + (not PositiveFails(0.001))
+        output "0 is rejected: " + PositiveFails(0)
+        output "a negative number is rejected: " + (PositiveFails(-1))
+    end
+
+    action AtLeast
+        // RequireAtLeast
+        output "the minimum itself passes: " + (not AtLeastFails(0, 0))
+        output "below the minimum is rejected: " + (AtLeastFails(-0.5, 0))
+    end
+
+    action Range
+        // RequireRange
+        output "the lower end passes: " + (not RangeFails(0, 0, 1))
+        output "the upper end passes: " + (not RangeFails(1, 0, 1))
+        output "above the range is rejected: " + RangeFails(1.01, 0, 1)
+        output "below the range is rejected: " + (RangeFails(-0.01, 0, 1))
+
+        text message = ""
+        check
+            checker:RequireRange("Example:SetDensity density", 2, 0, 1)
+        detect e is InvalidArgumentError
+            message = e:GetErrorMessage()
+        end
+        output "the message names the setting: " + message:Contains("Example:SetDensity density")
+        output "the message gives the value: " + message:Contains("2")
+    end
+
+    action Files
+        // RequireFile
+        boolean missing = false
+        text message = ""
+        check
+            checker:RequireFile("Test", "no/such/file.txt")
+        detect e is FileNotFoundError
+            missing = true
+            message = e:GetErrorMessage()
+        end
+        output "a missing file stops with FileNotFoundError: " + missing
+        output "the message gives the path: " + message:Contains("no/such/file.txt")
+
+        boolean empty = false
+        check
+            checker:RequireFile("Test", "")
+        detect emptyError is FileNotFoundError
+            empty = true
+        end
+        output "an empty path is rejected: " + empty
+
+        boolean present = true
+        check
+            checker:RequireFile("Resources", "../../Library/Tests/Fabrication/Resources/README.md")
+        detect presentError
+            present = false
+        end
+        output "an existing file passes: " + present
+    end
+
+    action PositiveFails(number value) returns boolean
+        boolean failed = false
+        check
+            checker:RequirePositive("value", value)
+        detect e is InvalidArgumentError
+            failed = true
+        end
+        return failed
+    end
+
+    action AtLeastFails(number value, number minimum) returns boolean
+        boolean failed = false
+        check
+            checker:RequireAtLeast("value", value, minimum)
+        detect e is InvalidArgumentError
+            failed = true
+        end
+        return failed
+    end
+
+    action RangeFails(number value, number minimum, number maximum) returns boolean
+        boolean failed = false
+        check
+            checker:RequireRange("value", value, minimum, maximum)
+        detect e is InvalidArgumentError
+            failed = true
+        end
+        return failed
+    end
+end

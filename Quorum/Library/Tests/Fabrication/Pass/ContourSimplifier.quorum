@@ -1,0 +1,129 @@
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ContourSimplifier
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.ContourSimplifier (Ramer-Douglas-Peucker). */
+class Main
+    ContourSimplifier simplifier
+    TestModels models
+
+    action Main
+        DropsNearlyStraightPoints()
+        StartingMidSide()
+        KeepsCorners()
+        SmallInputsUnchanged()
+        SimplifiedLoopDropsSlivers()
+    end
+
+    /* A 10 mm square with an extra, almost straight point in the middle of each side. */
+    action BumpySquare(number bump) returns Contour
+        Contour loop
+        loop:AddPoint(0, 0)
+        loop:AddPoint(5, -bump)
+        loop:AddPoint(10, 0)
+        loop:AddPoint(10 + bump, 5)
+        loop:AddPoint(10, 10)
+        loop:AddPoint(5, 10 + bump)
+        loop:AddPoint(0, 10)
+        loop:AddPoint(-bump, 5)
+        loop:closed = true
+        return loop
+    end
+
+    action DropsNearlyStraightPoints
+        // points within the tolerance are dropped
+        Contour loop = BumpySquare(0.001)
+        simplifier:Simplify(loop, 0.01)
+        output "only the corners are left: " + loop:GetSize()
+        output "the area hardly changes: " + Near(loop:Area(), 100, 0.05)
+        output "the direction is kept: " + (loop:SignedArea2() > 0)
+    end
+
+    action StartingMidSide
+        // a loop that starts in the middle of a side
+        Contour loop
+        loop:AddPoint(5, 0)
+        loop:AddPoint(10, 0)
+        loop:AddPoint(10, 10)
+        loop:AddPoint(0, 10)
+        loop:AddPoint(0, 0)
+        loop:closed = true
+        simplifier:Simplify(loop, 0.01)
+        output "the starting point on the side is dropped: " + loop:GetSize()
+        output "the area is unchanged: " + Near(loop:Area(), 100, 0.000001)
+
+        Contour bent
+        bent:AddPoint(5, -1)
+        bent:AddPoint(10, 0)
+        bent:AddPoint(10, 10)
+        bent:AddPoint(0, 10)
+        bent:AddPoint(0, 0)
+        bent:closed = true
+        simplifier:Simplify(bent, 0.01)
+        output "a real corner at the start stays: " + bent:GetSize()
+        output "and is still the first point: " + Near(bent:HeadX(), 5, 0)
+    end
+
+    action KeepsCorners
+        // points beyond the tolerance are kept
+        Contour loop = BumpySquare(0.5)
+        simplifier:Simplify(loop, 0.01)
+        output "every bump stays: " + loop:GetSize()
+
+        Contour open
+        open:AddPoint(0, 0)
+        open:AddPoint(5, 0.001)
+        open:AddPoint(10, 0)
+        open:AddPoint(10, 10)
+        simplifier:Simplify(open, 0.01)
+        output "an open path keeps both ends: " + open:GetSize()
+        output "the last point of an open path: " + Near(open:TailY(), 10, 0)
+    end
+
+    action SmallInputsUnchanged
+        // small inputs are left alone
+        Contour triangle
+        triangle:AddPoint(0, 0)
+        triangle:AddPoint(10, 0)
+        triangle:AddPoint(5, 0.001)
+        triangle:closed = true
+        simplifier:Simplify(triangle, 1)
+        output "fewer than 4 points: " + triangle:GetSize()
+        Contour square = models:Square(0, 0, 10, 0)
+        simplifier:Simplify(square, 0)
+        output "a tolerance of 0: " + square:GetSize()
+    end
+
+    action SimplifiedLoopDropsSlivers
+        // SimplifiedLoop
+        Contour square = models:Square(0, 0, 10, 4)
+        Contour copy = simplifier:SimplifiedLoop(square, 0.1)
+        output "a real loop survives: " + (copy not= undefined)
+        if copy not= undefined
+            output "the plane is kept: " + copy:planeIndex
+            output "the copy is closed: " + copy:closed
+        end
+        output "the input isn't changed: " + square:GetSize()
+
+        Contour sliver
+        sliver:AddPoint(0, 0)
+        sliver:AddPoint(10, 0)
+        sliver:AddPoint(10, 0.001)
+        sliver:AddPoint(0, 0.001)
+        sliver:closed = true
+        output "a sliver thinner than the tolerance is dropped: " + (simplifier:SimplifiedLoop(sliver, 0.1) = undefined)
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

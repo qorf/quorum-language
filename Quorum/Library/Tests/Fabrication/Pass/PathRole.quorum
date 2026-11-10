@@ -1,0 +1,30 @@
+use Libraries.Fabrication.Geometry.PathRole
+
+/*
+Tests Libraries.Fabrication.Geometry.PathRole. The numbers are part of the
+contract (they used to be bare numbers in PathOrderer and the G-code
+writer), and the feature names are what G-code previewers colour by.
+*/
+class Main
+    PathRole roles
+
+    action Main
+        // role numbers and feature names
+        output "OUTER_WALL: " + roles:OUTER_WALL
+        output "INNER_WALL: " + roles:INNER_WALL
+        output "SKIN: " + roles:SKIN
+        output "INFILL: " + roles:INFILL
+        output "SKIRT: " + roles:SKIRT
+        output "SUPPORT_WALL: " + roles:SUPPORT_WALL
+        output "SUPPORT_FILL: " + roles:SUPPORT_FILL
+        output "outer wall name: " + roles:GetFeatureName(roles:OUTER_WALL)
+        output "inner wall name: " + roles:GetFeatureName(roles:INNER_WALL)
+        output "skin name: " + roles:GetFeatureName(roles:SKIN)
+        output "infill name: " + roles:GetFeatureName(roles:INFILL)
+        output "skirt name: " + roles:GetFeatureName(roles:SKIRT)
+        output "support name: " + roles:GetFeatureName(roles:SUPPORT_FILL)
+        output "an unset role: " + (roles:GetFeatureName(-1))
+        output "IsSupport for support: " + (roles:IsSupport(roles:SUPPORT_WALL) and roles:IsSupport(roles:SUPPORT_FILL))
+        output "IsSupport for anything else: " + (not (roles:IsSupport(roles:INFILL) or roles:IsSupport(-1)))
+    end
+end
