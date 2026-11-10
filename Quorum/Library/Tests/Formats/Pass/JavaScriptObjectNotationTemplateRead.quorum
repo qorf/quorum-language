@@ -1,0 +1,39 @@
+use Libraries.Containers.Array
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+text dq = ""
+dq = dq:GetDoubleQuote()
+text lf = ""
+lf = lf:GetLineFeed()
+
+// ' stands in for " so the JSON stays readable
+text sample = "{" + lf + "  'name': 'project_settings'," + lf + "  'layer_height': '0.2'," + lf
+    + "  'wall_loops': 3," + lf + "  'filament_colour': ['#FFFFFF', '#000000']," + lf
+    + "  'empty': []," + lf + "  'quote': 'say \'hi\''" + lf + "}"
+sample = sample:Replace("'", dq)
+
+JavaScriptObjectNotationTemplate json
+json:Load(sample)
+Array<text> keys = json:GetKeys()
+output keys:GetSize()
+output keys:Get(0)
+output json:GetText("layer_height", "?")
+output json:GetText("wall_loops", "?")
+output json:GetText("filament_colour", "?")
+output json:GetText("empty", "fallback")
+output json:GetText("missing", "fallback")
+output json:GetText("quote", "?")
+output json:Count("filament_colour")
+output json:Count("empty")
+output json:Count("wall_loops")
+output json:Count("missing")
+if json:Has("wall_loops")
+    output "has wall_loops"
+else
+    output "no wall_loops"
+end
+if json:Has("missing")
+    output "has missing"
+else
+    output "no missing"
+end

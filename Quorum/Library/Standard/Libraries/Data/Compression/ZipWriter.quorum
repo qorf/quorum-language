@@ -9,21 +9,21 @@ through the plugin plugins.quorum.Libraries.Data.Compression.ZipWriter.
 
 Attribute: Example
 
-	use Libraries.Data.Compression.ZipWriter
+use Libraries.Data.Compression.ZipWriter
 
-	class Main
-		action Main
-			ZipWriter zip
-			zip:Open("Outputs/example.zip")
-			zip:AddText("readme.txt", "Hello")
-			zip:BeginImage(2, 2)
-			zip:SetPixel(0, 0, 255, 0, 0, 255)
-			zip:AddImage("red-dot.png")
-			zip:AddCopy("copy-of-red-dot.png", "red-dot.png")
-			zip:AddMd5("readme.txt.md5", "hello")
-			zip:Close()
-		end
-	end
+class Main
+    action Main
+        ZipWriter zip
+        zip:Open("Outputs/example.zip")
+        zip:AddText("readme.txt", "Hello")
+        zip:BeginImage(2, 2)
+        zip:SetPixel(0, 0, 255, 0, 0, 255)
+        zip:AddImage("red-dot.png")
+        zip:AddCopy("copy-of-red-dot.png", "red-dot.png")
+        zip:AddMd5("readme.txt.md5", "hello")
+        zip:Close()
+    end
+end
 */
 class ZipWriter
     /*

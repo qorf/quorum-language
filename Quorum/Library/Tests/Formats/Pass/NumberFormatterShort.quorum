@@ -1,0 +1,15 @@
+use Libraries.Data.Formats.NumberFormatter
+
+NumberFormatter format
+
+// up to 6 significant digits, no trailing zeros
+output format:Short(0.2)
+output format:Short(200.0)
+output format:Short(1.75)
+output format:Short(0.1 + 0.2)
+output format:Short(123456.7)
+output format:Short(-0.0000001)
+
+output format:Percent(0.15)
+output format:Percent(1.0)
+output format:Rounded(99.6)

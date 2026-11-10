@@ -1,0 +1,27 @@
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+
+text dq = ""
+dq = dq:GetDoubleQuote()
+
+// ' stands in for " so the JSON stays readable
+text source = "{ 'outer': { 'inner': 5, 'list': [1, [2, 3]] }, 'after': 'x' }"
+source = source:Replace("'", dq)
+
+JavaScriptObjectNotationTemplate json
+json:Load(source)
+
+// a nested object comes back as its JSON text
+text inner = json:GetText("outer", "")
+if inner:StartsWith("{") and inner:EndsWith("}")
+    output "nested object text"
+else
+    output "not an object: " + inner
+end
+
+// the key after a nested object is still found
+output json:GetText("after", "?")
+
+// the nested text loads into another template
+JavaScriptObjectNotationTemplate nested
+nested:Load(inner)
+output nested:GetText("inner", "?")

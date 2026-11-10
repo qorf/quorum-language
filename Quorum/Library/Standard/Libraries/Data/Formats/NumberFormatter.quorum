@@ -1,0 +1,171 @@
+package Libraries.Data.Formats
+
+use Libraries.Compute.Math
+
+/*
+The NumberFormatter class turns numbers into the plain decimal text that
+G-code firmware, JSON readers and people expect: never scientific notation,
+never "-0", and (with Short) no trailing zeros.
+
+Attribute: Example
+
+    use Libraries.Data.Formats.NumberFormatter
+
+    class Main
+        action Main
+            NumberFormatter format
+            output format:Fixed(3.14159, 2)     // 3.14
+            output format:Short(0.2)            // 0.2
+            output format:Short(200.0)          // 200
+            output format:Percent(0.15)         // 15%
+        end
+    end
+*/
+class NumberFormatter
+    Math math
+
+    /*
+    The value rounded to a fixed number of decimals, like Python's
+    f"{value:.Nf}" or C's printf("%.Nf"), except that a value that rounds to
+    zero never gets a minus sign.
+
+    Attribute: Parameter value The number to write.
+    Attribute: Parameter decimals How many digits after the point (0 for none).
+    Attribute: Returns The number as text.
+
+    Attribute: Example
+
+        use Libraries.Data.Formats.NumberFormatter
+
+        NumberFormatter format
+        output format:Fixed(3.14159, 2)     // 3.14
+        output format:Fixed(0.0001, 3)      // 0.000, never 1.0E-4
+    */
+    action Fixed(number value, integer decimals) returns text
+        boolean negative = value < 0
+        number magnitude = value
+        if negative
+            magnitude = -value
+        end
+        number scale = 1.0
+        integer d = 0
+        repeat while d < decimals
+            scale = scale * 10.0
+            d = d + 1
+        end
+
+        // all the digits of the rounded value, without the point
+        number rounded = magnitude * scale + 0.5
+        text digits = ""
+        boolean zero = false
+        if rounded < 2000000000.0
+            integer scaled = cast(integer, rounded)
+            digits = "" + scaled
+            if scaled = 0
+                zero = true
+            end
+        else
+            digits = WholeNumber(math:Floor(rounded))
+        end
+        repeat while digits:GetSize() <= decimals
+            digits = "0" + digits
+        end
+
+        text result = digits
+        if decimals > 0
+            integer point = digits:GetSize() - decimals
+            result = digits:GetSubtext(0, point) + "." + digits:GetSubtext(point)
+        end
+        if negative and not zero
+            result = "-" + result
+        end
+        return result
+    end
+
+    /*
+    The value with up to six significant digits and no trailing zeros, like
+    Python's f"{value:g}" for everyday values: 0.2 rather than 0.2000000001,
+    200 rather than 200.0.
+
+    Attribute: Parameter value The number to write.
+    Attribute: Returns The number as text.
+
+    Attribute: Example
+
+        use Libraries.Data.Formats.NumberFormatter
+
+        NumberFormatter format
+        output format:Short(0.2)            // 0.2
+        output format:Short(200.0)          // 200
+    */
+    action Short(number value) returns text
+        integer decimals = 6
+        number whole = math:Floor(math:AbsoluteValue(value))
+        if whole >= 1
+            text wholeDigits = WholeNumber(whole)
+            decimals = 6 - wholeDigits:GetSize()
+            if decimals < 0
+                decimals = 0
+            end
+        end
+        text result = Fixed(value, decimals)
+        if result:Contains(".")
+            repeat while result:EndsWith("0")
+                result = result:GetSubtext(0, result:GetSize() - 1)
+            end
+            if result:EndsWith(".")
+                result = result:GetSubtext(0, result:GetSize() - 1)
+            end
+        end
+        return result
+    end
+
+    /*
+    A fraction as a percentage, the way Bambu Studio writes it.
+
+    Attribute: Parameter fraction The fraction, such as 0.15.
+    Attribute: Returns The percentage, such as "15%".
+
+    Attribute: Example
+
+        use Libraries.Data.Formats.NumberFormatter
+
+        NumberFormatter format
+        output format:Percent(0.15)         // 15%
+    */
+    action Percent(number fraction) returns text
+        return Short(fraction * 100.0) + "%"
+    end
+
+    /*
+    The value rounded to the nearest whole number, without ".0".
+
+    Attribute: Parameter value The number to round.
+    Attribute: Returns The rounded number as text.
+
+    Attribute: Example
+
+        use Libraries.Data.Formats.NumberFormatter
+
+        NumberFormatter format
+        output format:Rounded(209.6)        // 210
+    */
+    action Rounded(number value) returns text
+        return Short(math:Round(value))
+    end
+
+    /* The digits of a whole, non-negative number of any size. */
+    private action WholeNumber(number value) returns text
+        if value < 1
+            return "0"
+        end
+        text result = ""
+        number remaining = value
+        repeat while remaining >= 1
+            integer digit = cast(integer, remaining mod 10.0)
+            result = "" + digit + result
+            remaining = math:Floor(remaining / 10.0)
+        end
+        return result
+    end
+end

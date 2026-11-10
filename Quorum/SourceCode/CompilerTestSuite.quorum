@@ -82,6 +82,7 @@ class CompilerTestSuite is ProcessListener
     BigIntegerTester bigIntegerChecks
     ByteArrayTester byteArrayChecks
     ZipWriterTester zipWriterChecks
+    DataFormatsTester dataFormatsChecks
     ScienceTester scienceChecks
 
 
@@ -114,6 +115,7 @@ class CompilerTestSuite is ProcessListener
         bigIntegerChecks:SetCompilerTestSuite(me)
         byteArrayChecks:SetCompilerTestSuite(me)
         zipWriterChecks:SetCompilerTestSuite(me)
+        dataFormatsChecks:SetCompilerTestSuite(me)
         scienceChecks:SetTester(tester)
 
         //delete the output folder to start the testing fresh
@@ -268,6 +270,9 @@ class CompilerTestSuite is ProcessListener
 
         byteArrayChecks:Test()
         output byteArrayChecks:GetName() + GetCurrentTestPassText()
+
+        dataFormatsChecks:Test()
+        output dataFormatsChecks:GetName() + GetCurrentTestPassText()
 
         scienceChecks:Test()
         output scienceChecks:GetName() + GetCurrentTestPassText()
