@@ -162,15 +162,15 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
             y = (int)(IOSApplication.accessibilityContainerBounds.getHeight() - ( height + (itemY / IOSApplication.containerScaleFactorHeight)));
         }
         else if (item instanceof Item3D_) {
-            // This is only a place holder, to place a small box roughly at the
-            // center of a 3D object in the screen. To calculate this correctly,
-            // check how we calculate mouse input detection for 3D objects.
+            // The part of the screen the item covers, in pixels from the
+            // bottom left, viewport included, or undefined if none shows.
             Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
-
-            width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
-            height = (int) (rectangle.GetY() + rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
-            x = (int) (rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
-            y = (int) (IOSApplication.accessibilityContainerBounds.getHeight() - (height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
+            if (rectangle != null) {
+                width = (int) (rectangle.GetWidth() / IOSApplication.containerScaleFactorWidth);
+                height = (int) (rectangle.GetHeight() / IOSApplication.containerScaleFactorHeight);
+                x = (int) (rectangle.GetX() / IOSApplication.containerScaleFactorWidth);
+                y = (int) (IOSApplication.accessibilityContainerBounds.getHeight() - (height + (rectangle.GetY() / IOSApplication.containerScaleFactorHeight)));
+            }
         }
 
         return new CGRect(x, y, width, height);

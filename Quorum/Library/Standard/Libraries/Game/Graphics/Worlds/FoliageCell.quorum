@@ -1,0 +1,297 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+
+/*
+A FoliageCell holds the copies of one foliage asset standing in one square
+cell of a terrain (Terrain plan F1). TerrainFoliage splits each region into
+cells, so a cell can be drawn, hidden and culled as one piece, and saved with
+its region.
+
+Each copy is six numbers: where it stands (x, y and z, in world units), its
+turn about the up axis in degrees, its scale, and its shade (1 is the
+asset's own color, less is darker).
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.FoliageCell
+
+FoliageCell cell
+cell:Set(0, 3, 4, 32)
+cell:Add(100, 2.5, 140, 45, 1.1, 0.95)
+output cell:GetCount()
+*/
+class FoliageCell
+    // The asset's number in the foliage list, and the cell's place, counted
+    // in cells from the world's origin.
+    integer asset = 0
+    integer cellX = 0
+    integer cellZ = 0
+    number cellSize = 32
+
+    // Six numbers per copy: x, y, z, turn, scale, shade.
+    Array<number> values
+
+    // How many numbers each copy takes.
+    public constant integer VALUES_PER_COPY = 6
+
+    /*
+    This action sets which asset the cell holds and where the cell is.
+
+    Attribute: Parameter assetNumber The asset's number in the foliage list.
+    Attribute: Parameter x The cell's place along x, in cells from the origin.
+    Attribute: Parameter z The cell's place along z, in cells from the origin.
+    Attribute: Parameter size How wide a cell is, in world units.
+    */
+    action Set(integer assetNumber, integer x, integer z, number size)
+        asset = assetNumber
+        cellX = x
+        cellZ = z
+        cellSize = size
+    end
+
+    /*
+    This action returns the asset's number in the foliage list.
+
+    Attribute: Returns The number.
+    */
+    action GetAsset returns integer
+        return asset
+    end
+
+    /*
+    This action changes which asset number the cell holds, such as after the
+    list's assets were reordered.
+
+    Attribute: Parameter assetNumber The new number.
+    */
+    action SetAsset(integer assetNumber)
+        asset = assetNumber
+    end
+
+    /*
+    This action returns the cell's place along x, in cells from the origin.
+
+    Attribute: Returns The place.
+    */
+    action GetCellX returns integer
+        return cellX
+    end
+
+    /*
+    This action returns the cell's place along z, in cells from the origin.
+
+    Attribute: Returns The place.
+    */
+    action GetCellZ returns integer
+        return cellZ
+    end
+
+    /*
+    This action returns how wide the cell is, in world units.
+
+    Attribute: Returns The width.
+    */
+    action GetCellSize returns number
+        return cellSize
+    end
+
+    /*
+    This action adds a copy.
+
+    Attribute: Parameter x Where it stands along x, in world units.
+    Attribute: Parameter y Its height, in world units.
+    Attribute: Parameter z Where it stands along z, in world units.
+    Attribute: Parameter turn Its turn about the up axis, in degrees.
+    Attribute: Parameter scale Its scale.
+    Attribute: Parameter shade Its shade, 1 for the asset's own color.
+    */
+    action Add(number x, number y, number z, number turn, number scale, number shade)
+        values:Add(x)
+        values:Add(y)
+        values:Add(z)
+        values:Add(turn)
+        values:Add(scale)
+        values:Add(shade)
+    end
+
+    /*
+    This action returns how many copies the cell holds.
+
+    Attribute: Returns The count.
+    */
+    action GetCount returns integer
+        return values:GetSize() / VALUES_PER_COPY
+    end
+
+    /*
+    This action returns true if the cell holds no copies.
+
+    Attribute: Returns True when empty.
+    */
+    action IsEmpty returns boolean
+        return values:IsEmpty()
+    end
+
+    /*
+    This action returns where a copy stands along x.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The x, in world units.
+    */
+    action GetX(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY)
+    end
+
+    /*
+    This action returns a copy's height.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The y, in world units.
+    */
+    action GetY(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY + 1)
+    end
+
+    /*
+    This action returns where a copy stands along z.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The z, in world units.
+    */
+    action GetZ(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY + 2)
+    end
+
+    /*
+    This action returns a copy's turn about the up axis.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The turn, in degrees.
+    */
+    action GetTurn(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY + 3)
+    end
+
+    /*
+    This action returns a copy's scale.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The scale.
+    */
+    action GetScale(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY + 4)
+    end
+
+    /*
+    This action returns a copy's shade.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Returns The shade, 1 for the asset's own color.
+    */
+    action GetShade(integer index) returns number
+        return values:Get(index * VALUES_PER_COPY + 5)
+    end
+
+    /*
+    This action moves a copy up or down, such as after the ground under it
+    was sculpted.
+
+    Attribute: Parameter index The copy, from 0.
+    Attribute: Parameter y Its new height, in world units.
+    */
+    action SetY(integer index, number y)
+        values:Set(index * VALUES_PER_COPY + 1, y)
+    end
+
+    /*
+    This action removes the copies whose middles are within a distance of a
+    point, measured across the ground (x and z).
+
+    Attribute: Parameter x The point along x, in world units.
+    Attribute: Parameter z The point along z, in world units.
+    Attribute: Parameter radius The distance, in world units.
+    Attribute: Returns How many copies were removed.
+    */
+    action RemoveNear(number x, number z, number radius) returns integer
+        Array<number> kept
+        integer removed = 0
+        number radiusSquared = radius * radius
+        integer count = GetCount()
+        integer i = 0
+        repeat while i < count
+            number offsetX = GetX(i) - x
+            number offsetZ = GetZ(i) - z
+            if offsetX * offsetX + offsetZ * offsetZ <= radiusSquared
+                removed = removed + 1
+            else
+                integer j = 0
+                repeat while j < VALUES_PER_COPY
+                    kept:Add(values:Get(i * VALUES_PER_COPY + j))
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+        if removed > 0
+            values = kept
+        end
+        return removed
+    end
+
+    /*
+    This action removes every copy.
+    */
+    action Empty
+        values:Empty()
+    end
+
+    /*
+    This action returns the lowest height of any copy, or 0 when empty.
+
+    Attribute: Returns The height, in world units.
+    */
+    action GetLowestY returns number
+        if IsEmpty()
+            return 0
+        end
+        number lowest = GetY(0)
+        integer i = 1
+        repeat while i < GetCount()
+            if GetY(i) < lowest
+                lowest = GetY(i)
+            end
+            i = i + 1
+        end
+        return lowest
+    end
+
+    /*
+    This action returns the highest height of any copy, or 0 when empty.
+
+    Attribute: Returns The height, in world units.
+    */
+    action GetHighestY returns number
+        if IsEmpty()
+            return 0
+        end
+        number highest = GetY(0)
+        integer i = 1
+        repeat while i < GetCount()
+            if GetY(i) > highest
+                highest = GetY(i)
+            end
+            i = i + 1
+        end
+        return highest
+    end
+
+    /*
+    This action returns every copy's numbers, six per copy, in order, for
+    saving.
+
+    Attribute: Returns The numbers.
+    */
+    action GetValues returns Array<number>
+        return values
+    end
+end

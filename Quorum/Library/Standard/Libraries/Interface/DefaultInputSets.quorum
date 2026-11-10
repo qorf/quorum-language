@@ -1833,6 +1833,23 @@ InputSet shiftF10SetTextBox
 
         table:Add(focusCameraSet, focusCameraBehavior)
 
+        // The 3D camera's keys: the same moves as the mouse, while held.
+        SceneConstants cameraConstants
+        AddCameraKey(table, sceneKeys:GetCameraLookLeftKey(), cameraConstants:CAMERA_LOOK, -1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraLookRightKey(), cameraConstants:CAMERA_LOOK, 1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraLookUpKey(), cameraConstants:CAMERA_LOOK, 0, 1)
+        AddCameraKey(table, sceneKeys:GetCameraLookDownKey(), cameraConstants:CAMERA_LOOK, 0, -1)
+        AddCameraKey(table, sceneKeys:GetCameraSlideLeftKey(), cameraConstants:CAMERA_SLIDE, -1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraSlideRightKey(), cameraConstants:CAMERA_SLIDE, 1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraSlideUpKey(), cameraConstants:CAMERA_SLIDE, 0, 1)
+        AddCameraKey(table, sceneKeys:GetCameraSlideDownKey(), cameraConstants:CAMERA_SLIDE, 0, -1)
+        AddCameraKey(table, sceneKeys:GetCameraOrbitLeftKey(), cameraConstants:CAMERA_ORBIT, -1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraOrbitRightKey(), cameraConstants:CAMERA_ORBIT, 1, 0)
+        AddCameraKey(table, sceneKeys:GetCameraOrbitUpKey(), cameraConstants:CAMERA_ORBIT, 0, 1)
+        AddCameraKey(table, sceneKeys:GetCameraOrbitDownKey(), cameraConstants:CAMERA_ORBIT, 0, -1)
+        AddCameraKey(table, sceneKeys:GetCameraZoomInKey(), cameraConstants:CAMERA_ZOOM, 0, 1)
+        AddCameraKey(table, sceneKeys:GetCameraZoomOutKey(), cameraConstants:CAMERA_ZOOM, 0, -1)
+
         // 2D camera set
         cameraItemTable2D:Add(reportLocation, reportLocationBehavior)
 
@@ -1964,6 +1981,9 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionDeleteSet, selectionDeleteBehavior)
         selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
         selectionTable:Add(selectionCancelSet, selectionCancelBehavior)
+        // Enter on a selected terrain finishes a river being drawn with the
+        // River tool (River plan R5); otherwise it does nothing there.
+        selectionTable:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
         selectionTable:Add(toggleGridInput, toggleGridBehavior)
         selectionTable:Add(increaseGridUnitInput, increaseGridUnitBehavior)
@@ -1978,9 +1998,10 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
 
         // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7),
-        // then stamp, erode and auto paint, Shift+Alt+1 to Shift+Alt+3.
+        // then stamp, erode, auto paint, foliage, fill water, paint water and
+        // river, Shift+Alt+1 to Shift+Alt+7.
         integer toolNumber = 1
-        repeat while toolNumber <= 12
+        repeat while toolNumber <= 16
             AddTerrainToolKey(selectionTable, sceneKeys, toolNumber)
             toolNumber = toolNumber + 1
         end
@@ -2936,6 +2957,21 @@ connectorTable:Add(startDrag, dragBehavior)
         Binds the key for one of a selected terrain's tools to a behavior of
         its own, which chooses that tool (step 7).
     */
+    /*
+        This action adds one of the 3D camera's keys: the move starts as the
+        key goes down and stops as it comes up.
+    */
+    private action AddCameraKey(SceneEditorInputTable table, InputSet key, integer move, integer x, integer y)
+        CameraKeyBehavior start
+        start:Setup(move, x, y, true)
+        table:Add3D(key, start)
+        InputSet released = key:Copy()
+        released:SetInputTrigger(released:FINISH)
+        CameraKeyBehavior stop
+        stop:Setup(move, x, y, false)
+        table:Add3D(released, stop)
+    end
+
     private action AddTerrainToolKey(InputTable table, SceneEditorKeys sceneKeys, integer tool)
         TerrainChooseToolBehavior chooseTool
         chooseTool:SetTool(tool)

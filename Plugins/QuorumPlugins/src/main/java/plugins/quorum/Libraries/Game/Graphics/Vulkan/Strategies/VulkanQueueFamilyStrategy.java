@@ -10,4 +10,5 @@ public interface VulkanQueueFamilyStrategy
 {
     boolean CanPresentToSurface(VulkanSurface_ quorumSurface);
     int GetComputeQueueFamilyIndex(quorum.Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice_ device);
+    int GetTimestampValidBits();
 }

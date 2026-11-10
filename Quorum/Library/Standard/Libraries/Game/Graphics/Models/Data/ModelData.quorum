@@ -7,6 +7,9 @@ class ModelData
     Array<MeshData> meshes
     Animations animations = undefined
     text ID = undefined
+
+    // The lights read from the model file (Lighting plan L8).
+    Array<ModelLightData> lights
     
     action GetMaterials returns Array<Material>
         return materials
@@ -46,6 +49,27 @@ class ModelData
 
     action SetAnimations(Animations animations)
         me:animations = animations
+    end
+
+    /*
+    This action returns the lights read from the model file, such as a
+    lamp's bulb in a glTF file (Lighting plan L8). It is empty if the file
+    has none.
+
+    Attribute: Returns The file's lights.
+    */
+    action GetLights returns Array<ModelLightData>
+        return lights
+    end
+
+    /*
+    This action sets the lights read from the model file (Lighting plan L8).
+    The model loader calls it.
+
+    Attribute: Parameter lights The file's lights.
+    */
+    action SetLights(Array<ModelLightData> lights)
+        me:lights = lights
     end
 
 end

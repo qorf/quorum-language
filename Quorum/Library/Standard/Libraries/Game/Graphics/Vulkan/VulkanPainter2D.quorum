@@ -25,6 +25,7 @@ use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.VulkanShaderMapping
 use Libraries.Compute.Vector4
 use Libraries.Compute.Vector3
 use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Timing.GraphicsTimer
 
 class VulkanPainter2D is Painter2D
 
@@ -368,6 +369,12 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanSwapchain swapchain = graphics:GetSwapchain()
         VulkanClearValues clearValues = graphics:GetClearValues()
         VulkanConstants constants
+
+        // Times this layer's 2D drawing on the GPU, its uploads included,
+        // when timing is on (Graphics timing plan T4). Each 2D layer adds a
+        // call to the same phase.
+        GraphicsTimer timer = graphics:GetGraphicsTimer()
+        timer:StartPhase(commandBuffer, "2D")
         
         /*
         End the batches. This will reset information from the last pass, dispose of any batches that 
@@ -558,6 +565,7 @@ BindDescriptorSetCommand descriptorBind
         // End the render pass.
         EndRenderPassCommand endRenderPass
         commandBuffer:Record(endRenderPass)
+        timer:EndPhase(commandBuffer, "2D")
 
         // Set the current batch to undefined, to ensure we're starting with a clean slate again next time.
         currentBatch = undefined

@@ -1,0 +1,225 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Events.TreeChangeEvent
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+/*
+    A PropertiesFoldItem is the header of a part inside a section of the
+    scene editor's Properties panel, such as the Water section's Sea, Lakes,
+    one lake, or Look. Like a section's own header (PropertiesSectionItem),
+    it is a tree item alone in its own tree, with the tree's chevron: Right
+    opens it, Left closes it, Enter or a click switches it, and screen
+    readers hear it as a tree item that is expanded or collapsed.
+
+    It doesn't hide anything itself: opening or closing it tells its
+    section, with the number it was given, and the section shows or hides
+    that part (PropertiesDialog:FoldChanged).
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.PropertiesFoldItem
+
+    PropertiesFoldItem lakes
+    lakes:SetName("Lakes (2)")
+*/
+class PropertiesFoldItem is TreeItem
+    PropertiesDialog dialog = undefined
+    integer key = 0
+    boolean foldOpen = false
+
+    /*
+        Sets the section this header belongs to, and the number the section
+        knows this part by.
+
+        Attribute: Parameter dialog The section
+        Attribute: Parameter partKey The part's number
+    */
+    action SetFold(PropertiesDialog dialog, integer partKey)
+        me:dialog = dialog
+        key = partKey
+    end
+
+    /*
+        Returns the number the section knows this part by.
+
+        Attribute: Returns The number
+    */
+    action GetKey returns integer
+        return key
+    end
+
+    /*
+        Opens the part.
+    */
+    action Open
+        if not foldOpen
+            ShowOpen(true)
+            Announce()
+            if dialog not= undefined
+                dialog:FoldChanged(key, true)
+            end
+        end
+    end
+
+    /*
+        Closes the part, leaving only this header.
+    */
+    action Close
+        if foldOpen
+            ShowOpen(false)
+            Announce()
+            if dialog not= undefined
+                dialog:FoldChanged(key, false)
+            end
+        end
+    end
+
+    /*
+        Returns true if the part is open.
+
+        Attribute: Returns True if open
+    */
+    action IsOpen returns boolean
+        return foldOpen
+    end
+
+    /*
+        Shows the header as open or closed, without telling the section.
+
+        Attribute: Parameter open True for open
+    */
+    action ShowOpen(boolean open)
+        foldOpen = open
+        TreeItemContent content = GetTreeItemContent()
+        if content not= undefined
+            content:SetExpandState(open)
+        end
+    end
+
+    /*
+        A header always has a part under it, so it opens and closes.
+
+        Attribute: Returns True
+    */
+    action IsSubtree returns boolean
+        return true
+    end
+
+    /*
+        Counts the part as the one thing under the header, so the tree draws
+        the chevron.
+
+        Attribute: Returns 1
+    */
+    action GetSize returns integer
+        return 1
+    end
+
+    /*
+        Down goes to the next stop in the section's Tab order.
+    */
+    action SelectionDown
+        Tree tree = GetTree()
+        if tree not= undefined
+            Item next = tree:GetNextFocus()
+            if next not= undefined
+                next:Focus()
+            end
+        end
+    end
+
+    /*
+        Up goes to the previous stop in the section's Tab order.
+    */
+    action SelectionUp
+        Tree tree = GetTree()
+        if tree not= undefined
+            Item previous = tree:GetPreviousFocus()
+            if previous not= undefined
+                previous:Focus()
+            end
+        end
+    end
+
+    /*
+        The header is the last item of its own tree, open or closed.
+    */
+    action SelectLastElement
+        Select()
+    end
+
+    /*
+        Clicking the header's name opens or closes it, as clicking the
+        chevron does.
+    */
+    action ClickedMouse
+        parent:TreeItem:ClickedMouse()
+        Switch()
+    end
+
+    /*
+        Each click already switches the header, so a double click does
+        nothing more.
+
+        Attribute: Parameter event The event
+    */
+    action OnDoubleClick(BehaviorEvent event)
+    end
+
+    /*
+        Enter on the header opens or closes it.
+
+        Attribute: Parameter event The event
+    */
+    action Activate(BehaviorEvent event)
+        Switch()
+    end
+
+    /*
+        Opens a closed part, or closes an open one.
+    */
+    action Switch
+        if foldOpen
+            Close()
+        else
+            Open()
+        end
+    end
+
+    /*
+        Draws the header, with its chevron showing whether it is open.
+
+        Attribute: Parameter properties The layout properties
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:TreeItem:LoadGraphics(properties)
+        TreeItemContent content = GetTreeItemContent()
+        if content not= undefined
+            content:ShowExpandButton()
+            content:SetExpandState(foldOpen)
+        end
+    end
+
+    /*
+        Tells the tree, and so screen readers, that the header opened or
+        closed.
+    */
+    private action Announce
+        Tree tree = GetTree()
+        if tree not= undefined
+            tree:RequestLayout()
+            TreeChangeEvent event
+            if foldOpen
+                event:Set(tree, me, event:OPENED)
+            else
+                event:Set(tree, me, event:CLOSED)
+            end
+            tree:NotifyTreeChangeListeners(event)
+        end
+    end
+end

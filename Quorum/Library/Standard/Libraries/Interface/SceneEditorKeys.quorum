@@ -246,6 +246,93 @@ class SceneEditorKeys
         return WithModifiers(keys:F, false, false, true, false)
     end
 
+    // ------------------------------------------------------- camera keys
+    /*
+        The 3D camera's keys (the same moves as the mouse): Shift and the
+        arrows look around; Cmd (Ctrl elsewhere), Shift and the arrows slide;
+        Shift and Home, End, Page Up and Page Down orbit; Page Up and Page
+        Down zoom. A Mac laptop has no Home, End, Page Up or Page Down keys:
+        Fn and the arrows give them.
+    */
+
+    /* Turns the 3D camera to look left, while held. Default: Shift+Left. */
+    action GetCameraLookLeftKey returns InputSet
+        return WithModifiers(keys:LEFT, false, false, false, true)
+    end
+
+    /* Turns the 3D camera to look right, while held. Default: Shift+Right. */
+    action GetCameraLookRightKey returns InputSet
+        return WithModifiers(keys:RIGHT, false, false, false, true)
+    end
+
+    /* Turns the 3D camera to look up, while held. Default: Shift+Up. */
+    action GetCameraLookUpKey returns InputSet
+        return WithModifiers(keys:UP, false, false, false, true)
+    end
+
+    /* Turns the 3D camera to look down, while held. Default: Shift+Down. */
+    action GetCameraLookDownKey returns InputSet
+        return WithModifiers(keys:DOWN, false, false, false, true)
+    end
+
+    /* Slides the 3D camera left across its view, while held. Default: Cmd+Shift+Left on Mac, Ctrl+Shift+Left elsewhere. */
+    action GetCameraSlideLeftKey returns InputSet
+        InputSet set = WithCommand(keys:LEFT)
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    /* Slides the 3D camera right across its view, while held. Default: Cmd+Shift+Right on Mac, Ctrl+Shift+Right elsewhere. */
+    action GetCameraSlideRightKey returns InputSet
+        InputSet set = WithCommand(keys:RIGHT)
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    /* Slides the 3D camera up across its view, while held. Default: Cmd+Shift+Up on Mac, Ctrl+Shift+Up elsewhere. */
+    action GetCameraSlideUpKey returns InputSet
+        InputSet set = WithCommand(keys:UP)
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    /* Slides the 3D camera down across its view, while held. Default: Cmd+Shift+Down on Mac, Ctrl+Shift+Down elsewhere. */
+    action GetCameraSlideDownKey returns InputSet
+        InputSet set = WithCommand(keys:DOWN)
+        set:AddModifier(set:SHIFT)
+        return set
+    end
+
+    /* Circles the 3D camera left around what it looks at, while held. Default: Shift+Home (Shift+Fn+Left on a Mac laptop). */
+    action GetCameraOrbitLeftKey returns InputSet
+        return WithModifiers(keys:HOME, false, false, false, true)
+    end
+
+    /* Circles the 3D camera right around what it looks at, while held. Default: Shift+End (Shift+Fn+Right on a Mac laptop). */
+    action GetCameraOrbitRightKey returns InputSet
+        return WithModifiers(keys:END, false, false, false, true)
+    end
+
+    /* Circles the 3D camera up over what it looks at, while held. Default: Shift+Page Up (Shift+Fn+Up on a Mac laptop). */
+    action GetCameraOrbitUpKey returns InputSet
+        return WithModifiers(keys:PAGE_UP, false, false, false, true)
+    end
+
+    /* Circles the 3D camera down under what it looks at, while held. Default: Shift+Page Down (Shift+Fn+Down on a Mac laptop). */
+    action GetCameraOrbitDownKey returns InputSet
+        return WithModifiers(keys:PAGE_DOWN, false, false, false, true)
+    end
+
+    /* Moves the 3D camera toward what it looks at, while held. Default: Page Up (Fn+Up on a Mac laptop). */
+    action GetCameraZoomInKey returns InputSet
+        return Plain(keys:PAGE_UP)
+    end
+
+    /* Moves the 3D camera away from what it looks at, while held. Default: Page Down (Fn+Down on a Mac laptop). */
+    action GetCameraZoomOutKey returns InputSet
+        return Plain(keys:PAGE_DOWN)
+    end
+
     // ------------------------------------------------------------- grid
 
     /* Turns the grid on or off. Default: Cmd+G on Mac, Ctrl+G elsewhere. */
@@ -322,15 +409,16 @@ class SceneEditorKeys
         tools are numbered as in the in-game terrain editor: 1 raise, 2 lower,
         3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
         9 remove region; then the scene editor's own: 10 stamp, 11 erode,
-        12 auto paint. Default: Alt+1 to Alt+9, then Shift+Alt+1 to
-        Shift+Alt+3.
+        12 auto paint, 13 foliage (Terrain plan F3), 14 fill water and 15
+        paint water (Water plan W6), and 16 river (River plan R5). Default:
+        Alt+1 to Alt+9, then Shift+Alt+1 to Shift+Alt+7.
 
-        Attribute: Parameter tool The tool's number, from 1 to 12.
+        Attribute: Parameter tool The tool's number, from 1 to 16.
         Attribute: Returns The key that chooses it.
     */
     action GetTerrainToolKey(integer tool) returns InputSet
-        if tool < 1 or tool > 12
-            alert("A terrain tool's number is from 1 to 12, but was given " + tool + ".")
+        if tool < 1 or tool > 16
+            alert("A terrain tool's number is from 1 to 16, but was given " + tool + ".")
         end
         if tool > 9
             return WithModifiers(keys:NUM_1 + tool - 10, false, false, true, true)

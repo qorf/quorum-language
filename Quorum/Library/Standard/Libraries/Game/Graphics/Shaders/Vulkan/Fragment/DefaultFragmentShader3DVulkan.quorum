@@ -32,6 +32,9 @@ class DefaultFragmentShader3DVulkan is Shader
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 
+// The GPU material (MaterialVulkan). Its flags: 1 texture set, 2 emissive
+// map, 4 occlusion map, 8 unlit, 16 two-sided, 32 texture transform, 64 the
+// cutoff is compared with the texture's own alpha (Lighting plan L1, L4).
 struct Material {
 	uint diffuseColor;
 	uint textureIndex;
@@ -43,8 +46,20 @@ struct Material {
 	float metallic;
 	uint flags;
 	float textureScale;
+	uint emissiveColor;
+	uint emissiveMapIndex;
+	float emissiveStrength;
+	uint occlusionMapIndex;
+	float alphaCutoff;
+	float normalStrength;
+	float uvOffsetX;
+	float uvOffsetY;
+	float uvScaleX;
+	float uvScaleY;
+	float uvRotation;
 	uint reserved1;
 	uint reserved2;
+	uint reserved3;
 };
 
 layout(scalar, buffer_reference) buffer Materials
@@ -65,6 +80,9 @@ layout (location = 0) out vec4 outputPosition;
 layout (location = 1) out vec4 outputColor;
 layout (location = 2) out vec4 outputNormal;
 layout (location = 3) out vec4 outputPBR;
+// The light the surface gives off (Lighting plan L1), added after the
+// lights by the lighting pass.
+layout (location = 4) out vec4 outputEmissive;
 
 vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
 {
@@ -72,7 +90,10 @@ vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
     if (material.hasNormalMap > 0)
     {
 		newNormal = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), textCoords).rgb;
-        newNormal = normalize(newNormal * 2.0 - 1.0);
+        newNormal = newNormal * 2.0 - 1.0;
+        // The normal map's strength (glTF's normal scale) bends it more or less.
+        newNormal.xy *= material.normalStrength;
+        newNormal = normalize(newNormal);
         newNormal = normalize(tanBitanNormal * newNormal);
     }
     return newNormal;
@@ -109,6 +130,25 @@ void main()
    // A texture set keeps height in its albedo's alpha, and its normal,
    // ambient occlusion and roughness together in the normal map.
    bool textureSet = (material.flags & 1u) != 0u;
+   bool twoSided = (material.flags & 16u) != 0u;
+
+	// Back faces only reach here when a model has a two-sided material
+	// (drawn without culling); its other materials still hide them.
+	if (!gl_FrontFacing && !twoSided)
+	{
+		discard;
+	}
+
+	// The texture transform (glTF's KHR_texture_transform): scale, turn,
+	// then move.
+	vec2 coordinates = v_textureCoords;
+	if ((material.flags & 32u) != 0u)
+	{
+		float turnCos = cos(material.uvRotation);
+		float turnSin = sin(material.uvRotation);
+		vec2 scaled = coordinates * vec2(material.uvScaleX, material.uvScaleY);
+		coordinates = vec2(turnCos * scaled.x + turnSin * scaled.y, -turnSin * scaled.x + turnCos * scaled.y) + vec2(material.uvOffsetX, material.uvOffsetY);
+	}
 
    uint textureIndex = material.textureIndex;
 	if (v_hasTextureOverride == 1)
@@ -118,17 +158,32 @@ void main()
 	if (v_hasDiffuseOverride == 1)
 		diffuse = unpackUnorm4x8(v_diffuseOverride);
 
-    outputColor = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), v_textureCoords) * diffuse;
+    vec4 sampled = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), coordinates);
+    outputColor = sampled * diffuse;
 
 	if (textureSet)
 	{
 		// Alpha is height, not opacity.
 		outputColor.a = diffuse.a;
 	}
-	// If the color is less than half of the base transparency (i.e. transparent pixels in the texture), discard the fragment.
-	else if (outputColor.a < (diffuse.a / 2.0))
+	else if ((material.flags & 64u) != 0u)
 	{
-		discard;
+		// The rule every model had before: cut out where the texture's own
+		// alpha is below the cutoff (a half).
+		if (sampled.a < material.alphaCutoff)
+		{
+			discard;
+		}
+	}
+	else
+	{
+		// glTF's MASK cuts out below its cutoff; OPAQUE's cutoff is 0. What
+		// is left of either is fully opaque, as glTF says.
+		if (outputColor.a < material.alphaCutoff)
+		{
+			discard;
+		}
+		outputColor.a = 1.0;
 	}
 
 	// Set position.
@@ -140,7 +195,7 @@ void main()
 	float ambientOcclusion = 1.0f;
 	if (textureSet)
 	{
-		vec4 normalRoughness = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), v_textureCoords);
+		vec4 normalRoughness = texture(nonuniformEXT(sampler2D(globalTextures[material.normalMapIndex], immutableSampler)), coordinates);
 		vec3 packedNormal = normalRoughness.rgb * 2.0 - 1.0;
 		// Terrain3D's packing: the normal's length carries ambient occlusion.
 		ambientOcclusion = clamp(length(packedNormal) * 2.0 - 1.0, 0.0, 1.0);
@@ -150,12 +205,12 @@ void main()
 	else
 	{
 		// Calculate and set normal.
-		newNormal = calculateNormal(material, v_tangentBitangentNormal, v_textureCoords);
+		newNormal = calculateNormal(material, v_tangentBitangentNormal, coordinates);
 
 		// Calculate PBR properties.
 		if (material.hasRoughMap > 0)
 		{
-			vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), v_textureCoords);
+			vec4 pbrValues = texture(nonuniformEXT(sampler2D(globalTextures[material.roughMapIndex], immutableSampler)), coordinates);
 			roughnessFactor = pbrValues.g;
 			metallicFactor = pbrValues.b;
 		}
@@ -163,11 +218,40 @@ void main()
 		{
 			roughnessFactor = material.roughness;
 		}
+
+		// An ambient occlusion map, as glTF models bring (its red channel).
+		if ((material.flags & 4u) != 0u)
+		{
+			ambientOcclusion = texture(nonuniformEXT(sampler2D(globalTextures[material.occlusionMapIndex], immutableSampler)), coordinates).r;
+		}
+	}
+
+	// The back of a two-sided face faces the other way.
+	if (!gl_FrontFacing)
+	{
+		newNormal = -newNormal;
 	}
 	outputNormal = vec4(newNormal, 1.0);
 
 	// The first channel, unused before, carries ambient occlusion: 1 for none.
 	outputPBR = vec4(ambientOcclusion, roughnessFactor, metallicFactor, 1.0);
+
+	// The emissive light: its color times its strength, times its texture
+	// if it has one (Lighting plan L1).
+	vec3 emissive = unpackUnorm4x8(material.emissiveColor).rgb * material.emissiveStrength;
+	if ((material.flags & 2u) != 0u)
+	{
+		emissive *= texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb;
+	}
+
+	// An unlit material shows its color as it is: it goes into the emissive
+	// light, and gives the lights nothing to shade (Lighting plan L4).
+	if ((material.flags & 8u) != 0u)
+	{
+		emissive += outputColor.rgb;
+		outputColor.rgb = vec3(0.0);
+	}
+	outputEmissive = vec4(emissive, 1.0);
 }"
 )
     end

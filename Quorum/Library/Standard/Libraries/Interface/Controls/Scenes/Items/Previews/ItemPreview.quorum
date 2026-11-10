@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Items.Previews
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.DialogLayer
 use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Scenes.PropertiesPanel
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 
@@ -41,13 +42,30 @@ class ItemPreview is EditorItem
     end
 
     /*
-        If the user focuses away from the editor the preview is cancelled and removed.
+        If the user focuses away from the editor the preview is cancelled and
+        removed, unless the focus went into the Properties, which edit it.
     */
     action LostFocus(FocusEvent event)
         if event:GetNewFocus() is Item2D
             Item2D item = cast(Item2D, event:GetNewFocus())
             if item:GetLayer() is DialogLayer
                 return now
+            end
+            // The Properties panel, docked beside the scene, edits the
+            // preview too, so moving into it keeps the preview, as moving
+            // into a floating Properties dialog always did.
+            // A click in the scene moves or places the preview, which the
+            // scene editor does, then gives the preview the focus back.
+            if item:Equals(GetSceneEditor())
+                return now
+            end
+            Item2D seeker = item
+            repeat while seeker not= undefined
+                if seeker is PropertiesPanel
+                    GetSceneEditor():PreviewWentToProperties()
+                    return now
+                end
+                seeker = seeker:GetParent()
             end
         end
 

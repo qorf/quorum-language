@@ -1,0 +1,520 @@
+package Libraries.Game.Graphics
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.System.File
+use Libraries.Compute.Math
+use Libraries.Compute.BitwiseOperations
+
+/*
+SkyLight is the light a Skybox gives a scene (Lighting plan L5): the soft
+light from every direction of the sky, and the sky seen in shiny surfaces.
+It is worked out once, on the computer's processor, from the sky's six
+pictures, when the sky is set or changes:
+- the diffuse light: nine numbers per color (spherical harmonics), which
+  give the light falling on a surface facing any direction;
+- reflections: four small cubes of the sky, 64, 32, 16 and 8 pixels a
+  side, each a blurrier half of the last. Rough surfaces see the blurrier
+  ones.
+
+The Vulkan 3D painter makes one for its layer's skybox on its own, and gives
+it to the layer's EnvironmentVulkan, so most programs never use this class.
+EnvironmentVulkan:SetSkyLightStrength sets how strong it is.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Skybox
+use Libraries.Game.Graphics.SkyLight
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Skybox skybox
+        skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+        SetSkybox(skybox)
+        SkyLight light
+        if light:Load(skybox)
+            output "The sky light is ready."
+        end
+    end
+end
+*/
+class SkyLight
+    // The skybox this light was made from, and its six files, so the
+    // painter can tell when the sky has changed.
+    Skybox source = undefined
+    Array<File> sourceFiles
+
+    // The diffuse light: nine coefficients, each red, green and blue (27
+    // numbers), already scaled so the shader's sum gives the light a white
+    // surface facing that way receives, divided by pi.
+    Number32BitArray irradiance
+
+    // The four reflection cubes, largest first.
+    Array<Texture> reflectionCubes
+
+    boolean loaded = false
+    Math math
+    BitwiseOperations bits
+
+    // The largest reflection cube's side, in pixels, and how many halvings
+    // follow it (64, 32, 16, 8).
+    constant integer FIRST_REFLECTION_SIZE = 64
+    constant integer REFLECTION_LEVELS = 4
+    // The most samples, along each side, read from a sky picture for one
+    // pixel of the largest cube.
+    constant integer MOST_SAMPLES = 4
+    constant integer IRRADIANCE_SIZE = 27
+
+    on create
+        irradiance:SetSize(IRRADIANCE_SIZE)
+        ClearIrradiance()
+    end
+
+    /*
+    This action works out the sky light from a skybox's six pictures: it
+    reads them again from their files, makes the four reflection cubes and
+    the diffuse light. It takes a moment for large pictures, so it is done
+    once, when the sky changes. The cubes are asked for from the texture
+    manager and are ready when it next loads textures.
+
+    Attribute: Parameter skybox The skybox, loaded from six files.
+    Attribute: Returns True if the light was made, or false if a picture couldn't be read.
+    */
+    action Load(Skybox skybox) returns boolean
+        Dispose()
+        source = skybox
+        sourceFiles:Empty()
+        if skybox = undefined
+            return false
+        end
+        sourceFiles:Add(skybox:GetRightFile())
+        sourceFiles:Add(skybox:GetLeftFile())
+        sourceFiles:Add(skybox:GetTopFile())
+        sourceFiles:Add(skybox:GetBottomFile())
+        sourceFiles:Add(skybox:GetFrontFile())
+        sourceFiles:Add(skybox:GetBackFile())
+        integer i = 0
+        repeat while i < 6
+            if sourceFiles:Get(i) = undefined
+                return false
+            end
+            i = i + 1
+        end
+
+        Number32BitArray level = ReadSides(FIRST_REFLECTION_SIZE)
+        if level = undefined
+            return false
+        end
+
+        integer size = FIRST_REFLECTION_SIZE
+        Number32BitArray irradianceLevel = level
+        integer irradianceSize = size
+        integer step = 0
+        repeat while step < REFLECTION_LEVELS
+            if step > 0
+                level = Halve(level, size)
+                size = size / 2
+            end
+            // The diffuse light is worked out from the 32 pixel cube.
+            if step = 1
+                irradianceLevel = level
+                irradianceSize = size
+            end
+            reflectionCubes:Add(MakeCube(level, size))
+            step = step + 1
+        end
+
+        ComputeIrradiance(irradianceLevel, irradianceSize)
+        loaded = true
+        return true
+    end
+
+    /*
+    This action returns true if this light was made from the skybox as it
+    is now: the same skybox, with the same six files.
+
+    Attribute: Parameter skybox A skybox.
+    Attribute: Returns True if the light was made from it and it hasn't changed since.
+    */
+    action IsMadeFrom(Skybox skybox) returns boolean
+        if skybox = undefined or skybox not= source or sourceFiles:GetSize() not= 6
+            return false
+        end
+        return skybox:GetRightFile() = sourceFiles:Get(0) and skybox:GetLeftFile() = sourceFiles:Get(1) and
+            skybox:GetTopFile() = sourceFiles:Get(2) and skybox:GetBottomFile() = sourceFiles:Get(3) and
+            skybox:GetFrontFile() = sourceFiles:Get(4) and skybox:GetBackFile() = sourceFiles:Get(5)
+    end
+
+    /*
+    This action returns true once Load has made the light.
+
+    Attribute: Returns True if the light is ready.
+    */
+    action IsLoaded returns boolean
+        return loaded
+    end
+
+    /*
+    This action returns the skybox the light was made from. Its rotation
+    turns the light too.
+
+    Attribute: Returns The skybox, or undefined before Load.
+    */
+    action GetSkybox returns Skybox
+        return source
+    end
+
+    /*
+    This action returns the diffuse light: 27 numbers, nine coefficients of
+    red, green and blue in turn. They are scaled so a sky of one even color
+    gives that color back.
+
+    Attribute: Returns The 27 numbers.
+    */
+    action GetIrradiance returns Number32BitArray
+        return irradiance
+    end
+
+    /*
+    This action returns how many reflection cubes there are, 4.
+
+    Attribute: Returns The number of reflection cubes.
+    */
+    action GetReflectionCubeCount returns integer
+        return reflectionCubes:GetSize()
+    end
+
+    /*
+    This action returns one reflection cube: 0 is the sharpest (64 pixels a
+    side), 3 the blurriest (8 pixels).
+
+    Attribute: Parameter index Which cube, from 0 to 3.
+    Attribute: Returns The cube.
+    */
+    action GetReflectionCube(integer index) returns Texture
+        return reflectionCubes:Get(index)
+    end
+
+    /*
+    This action frees the reflection cubes. The light can be loaded again.
+    */
+    action Dispose
+        integer i = 0
+        repeat while i < reflectionCubes:GetSize()
+            reflectionCubes:Get(i):Dispose()
+            i = i + 1
+        end
+        reflectionCubes:Empty()
+        ClearIrradiance()
+        loaded = false
+    end
+
+    /*
+    This action sets the diffuse light to none.
+    */
+    private action ClearIrradiance
+        integer i = 0
+        repeat while i < IRRADIANCE_SIZE
+            irradiance:Set(i, 0)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action reads the six pictures into one cube of the given size:
+    each pixel is the average of an even grid of points in its square of
+    the picture (up to MOST_SAMPLES along each side). Colors are from 0 to
+    1, red, green and blue, side after side, row after row from the top.
+
+    Attribute: Parameter size The cube's side, in pixels.
+    Attribute: Returns The colors, or undefined if a picture couldn't be read.
+    */
+    private action ReadSides(integer size) returns Number32BitArray
+        Number32BitArray values
+        values:SetSize(6 * size * size * 3)
+        integer face = 0
+        repeat while face < 6
+            PixelMap map
+            boolean read = false
+            check
+                map:LoadPixelMap(sourceFiles:Get(face))
+                read = true
+            detect error
+                read = false
+            end
+            if not read
+                return undefined
+            end
+            integer width = map:GetWidth()
+            integer height = map:GetHeight()
+            if width <= 0 or height <= 0
+                map:Dispose()
+                return undefined
+            end
+            integer samples = width / size
+            if samples < 1
+                samples = 1
+            elseif samples > MOST_SAMPLES
+                samples = MOST_SAMPLES
+            end
+            number scale = 1.0 / (255.0 * samples * samples)
+
+            integer y = 0
+            repeat while y < size
+                integer x = 0
+                repeat while x < size
+                    number red = 0
+                    number green = 0
+                    number blue = 0
+                    integer sampleY = 0
+                    repeat while sampleY < samples
+                        number partY = (y + (sampleY + 0.5) / samples) / size
+                        integer pixelY = cast(integer, partY * height)
+                        if pixelY >= height
+                            pixelY = height - 1
+                        end
+                        integer sampleX = 0
+                        repeat while sampleX < samples
+                            number partX = (x + (sampleX + 0.5) / samples) / size
+                            integer pixelX = cast(integer, partX * width)
+                            if pixelX >= width
+                                pixelX = width - 1
+                            end
+                            // The pixel's code is red, green, blue and alpha,
+                            // a byte each, red highest.
+                            integer code = map:GetPixel(pixelX, pixelY)
+                            red = red + bits:And(bits:ShiftRightPositive(code, 24), 255)
+                            green = green + bits:And(bits:ShiftRightPositive(code, 16), 255)
+                            blue = blue + bits:And(bits:ShiftRightPositive(code, 8), 255)
+                            sampleX = sampleX + 1
+                        end
+                        sampleY = sampleY + 1
+                    end
+                    integer index = ((face * size + y) * size + x) * 3
+                    values:Set(index, red * scale)
+                    values:Set(index + 1, green * scale)
+                    values:Set(index + 2, blue * scale)
+                    x = x + 1
+                end
+                y = y + 1
+            end
+            map:Dispose()
+            face = face + 1
+        end
+        return values
+    end
+
+    /*
+    This action makes a cube half the size of another: each pixel is the
+    average of the four it covers.
+
+    Attribute: Parameter level The larger cube's colors.
+    Attribute: Parameter size The larger cube's side, in pixels.
+    Attribute: Returns The smaller cube's colors.
+    */
+    private action Halve(Number32BitArray level, integer size) returns Number32BitArray
+        integer half = size / 2
+        Number32BitArray values
+        values:SetSize(6 * half * half * 3)
+        integer face = 0
+        repeat while face < 6
+            integer y = 0
+            repeat while y < half
+                integer x = 0
+                repeat while x < half
+                    integer channel = 0
+                    repeat while channel < 3
+                        integer topLeft = ((face * size + y * 2) * size + x * 2) * 3 + channel
+                        integer bottomLeft = topLeft + size * 3
+                        number sum = level:Get(topLeft) + level:Get(topLeft + 3) + level:Get(bottomLeft) + level:Get(bottomLeft + 3)
+                        values:Set(((face * half + y) * half + x) * 3 + channel, sum * 0.25)
+                        channel = channel + 1
+                    end
+                    x = x + 1
+                end
+                y = y + 1
+            end
+            face = face + 1
+        end
+        return values
+    end
+
+    /*
+    This action makes a cube texture from colors, side after side in the
+    order right, left, up, down, front, back, as the skybox's own cube.
+
+    Attribute: Parameter level The colors.
+    Attribute: Parameter size The side, in pixels.
+    Attribute: Returns The cube, asked for from the texture manager.
+    */
+    private action MakeCube(Number32BitArray level, integer size) returns Texture
+        Format format
+        format:SetValue(format:RGBA8888)
+        Array<PixelMap> sides
+        integer face = 0
+        repeat while face < 6
+            PixelMap side
+            side:CreatePixelMap(size, size, format)
+            integer y = 0
+            repeat while y < size
+                integer x = 0
+                repeat while x < size
+                    integer index = ((face * size + y) * size + x) * 3
+                    integer red = ToByte(level:Get(index))
+                    integer green = ToByte(level:Get(index + 1))
+                    integer blue = ToByte(level:Get(index + 2))
+                    integer code = bits:Or(bits:Or(bits:ShiftLeft(red, 24), bits:ShiftLeft(green, 16)), bits:Or(bits:ShiftLeft(blue, 8), 255))
+                    side:SetPixel(x, y, code)
+                    x = x + 1
+                end
+                y = y + 1
+            end
+            sides:Add(side)
+            face = face + 1
+        end
+        Texture cube
+        cube:LoadCubemapFromPixelMaps(sides)
+        return cube
+    end
+
+    /*
+    This action turns a color from 0 to 1 into a byte, from 0 to 255.
+
+    Attribute: Parameter value The color.
+    Attribute: Returns The byte.
+    */
+    private action ToByte(number value) returns integer
+        integer result = cast(integer, value * 255.0 + 0.5)
+        if result < 0
+            return 0
+        elseif result > 255
+            return 255
+        end
+        return result
+    end
+
+    /*
+    This action works out the diffuse light from a cube's colors: each
+    pixel's color is projected onto the first nine spherical harmonics,
+    weighted by how much of the sky the pixel covers, and each band is then
+    scaled for a surface's cosine (1, 2/3 and 1/4). Each pixel's direction is
+    the one the GPU looks up that pixel with: Vulkan's cube faces, right,
+    left, up, down, front (positive z) and back, rows from the top.
+
+    Attribute: Parameter level The cube's colors.
+    Attribute: Parameter size The cube's side, in pixels.
+    */
+    private action ComputeIrradiance(Number32BitArray level, integer size)
+        Number32BitArray sums
+        sums:SetSize(IRRADIANCE_SIZE)
+        integer i = 0
+        repeat while i < IRRADIANCE_SIZE
+            sums:Set(i, 0)
+            i = i + 1
+        end
+        Number32BitArray basis
+        basis:SetSize(9)
+
+        number totalWeight = 0
+        integer face = 0
+        repeat while face < 6
+            integer y = 0
+            repeat while y < size
+                integer x = 0
+                repeat while x < size
+                    // Where the pixel's center is on its face, from -1 to 1:
+                    // across (s) and down (t).
+                    number s = (2.0 * (x + 0.5)) / size - 1.0
+                    number t = (2.0 * (y + 0.5)) / size - 1.0
+                    number directionX = 0
+                    number directionY = 0
+                    number directionZ = 0
+                    if face = 0
+                        directionX = 1
+                        directionY = -t
+                        directionZ = -s
+                    elseif face = 1
+                        directionX = -1
+                        directionY = -t
+                        directionZ = s
+                    elseif face = 2
+                        directionX = s
+                        directionY = 1
+                        directionZ = t
+                    elseif face = 3
+                        directionX = s
+                        directionY = -1
+                        directionZ = -t
+                    elseif face = 4
+                        directionX = s
+                        directionY = -t
+                        directionZ = 1
+                    else
+                        directionX = -s
+                        directionY = -t
+                        directionZ = -1
+                    end
+                    number lengthSquared = s * s + t * t + 1.0
+                    number length = math:SquareRoot(lengthSquared)
+                    // How much of the sky the pixel covers, up to a constant.
+                    number weight = 1.0 / (lengthSquared * length)
+                    directionX = directionX / length
+                    directionY = directionY / length
+                    directionZ = directionZ / length
+
+                    basis:Set(0, 0.282095)
+                    basis:Set(1, 0.488603 * directionY)
+                    basis:Set(2, 0.488603 * directionZ)
+                    basis:Set(3, 0.488603 * directionX)
+                    basis:Set(4, 1.092548 * directionX * directionY)
+                    basis:Set(5, 1.092548 * directionY * directionZ)
+                    basis:Set(6, 0.315392 * (3.0 * directionZ * directionZ - 1.0))
+                    basis:Set(7, 1.092548 * directionX * directionZ)
+                    basis:Set(8, 0.546274 * (directionX * directionX - directionY * directionY))
+
+                    integer index = ((face * size + y) * size + x) * 3
+                    number red = level:Get(index) * weight
+                    number green = level:Get(index + 1) * weight
+                    number blue = level:Get(index + 2) * weight
+                    integer k = 0
+                    repeat while k < 9
+                        number b = basis:Get(k)
+                        sums:Set(k * 3, sums:Get(k * 3) + red * b)
+                        sums:Set(k * 3 + 1, sums:Get(k * 3 + 1) + green * b)
+                        sums:Set(k * 3 + 2, sums:Get(k * 3 + 2) + blue * b)
+                        k = k + 1
+                    end
+                    totalWeight = totalWeight + weight
+                    x = x + 1
+                end
+                y = y + 1
+            end
+            face = face + 1
+        end
+
+        // The weights add up to the whole sphere, 4 pi.
+        number scale = 0
+        if totalWeight > 0
+            scale = 4.0 * math:pi / totalWeight
+        end
+        integer coefficient = 0
+        repeat while coefficient < 9
+            number band = 1.0
+            if coefficient >= 4
+                band = 0.25
+            elseif coefficient >= 1
+                band = 2.0 / 3.0
+            end
+            integer channel = 0
+            repeat while channel < 3
+                irradiance:Set(coefficient * 3 + channel, sums:Get(coefficient * 3 + channel) * scale * band)
+                channel = channel + 1
+            end
+            coefficient = coefficient + 1
+        end
+    end
+end

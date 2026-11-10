@@ -6,7 +6,7 @@ import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Rect;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Role;
 import quorum.Libraries.Interface.Item_;
 
-public class ButtonKit extends ItemKit{
+public class ButtonKit extends ClickableKit {
     public ButtonKit() {
         SetRole(Role.BUTTON);
     }

@@ -1615,8 +1615,14 @@ elseif font:IsFontAvailable("courbd")
             Item item = GetChildAsItem(counter)
             if item is Control and haveResized = false
                 Control control = cast(Control, item)
-                
-                if control:NeedsLayout()
+
+                // Only a showing child's request lays this control out. A
+                // layout that skips hidden children never clears their
+                // flag, so a hidden child that once asked (such as a hidden
+                // label whose text was set) laid its parent out on every
+                // update (Studio plan TeamTabSpeed.md, 2026-11-06). Its flag
+                // stays set, so it is laid out once it shows.
+                if control:IsShowing() and control:NeedsLayout()
                     Resize()
                     haveResized = true
                 end

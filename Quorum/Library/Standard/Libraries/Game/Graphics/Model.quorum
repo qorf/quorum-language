@@ -22,6 +22,9 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
+use Libraries.Compute.Math
 use Libraries.Compute.Vector4
 use Libraries.Game.Graphics.Models.Data.Animation
 use Libraries.Game.Graphics.Models.OpenGL.ModelResourcesOpenGL
@@ -31,6 +34,8 @@ use Libraries.Game.Graphics.Models.Data.AnimationFrame
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.AccessibilityManager
+use Libraries.Game.Layer3D
+use Libraries.Game.Graphics.Models.Data.ModelLightData
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -71,6 +76,11 @@ class Model is Item3D
     ModelBlueprint modelBlueprint = undefined
 	ModelResources resources = undefined
 
+    // The box around this model's meshes, and the blueprint it was
+    // measured from, so it is measured again only when that changes.
+    BoundingBox meshBounds
+    ModelBlueprint meshBoundsBlueprint = undefined
+
     integer modelType = 0
 
     // The color of this Model. Used only if a primitive shape has been loaded.
@@ -104,6 +114,12 @@ class Model is Item3D
     boolean transparencyAutoSet = true
     
     boolean castsShadows = true
+
+    // Lights read from a model file (Lighting plan L8): whether Load adds
+    // them, and the lights added. Point and spot lights are children of the
+    // model; directional lights go on the model's layer.
+    boolean loadLights = true
+    Array<Light> fileLights = undefined
     
     on create
         SceneProperties properties
@@ -178,6 +194,34 @@ return modelBlueprint:GetAnimationsSize()
     */
     action GetModelBlueprint returns ModelBlueprint
         return modelBlueprint
+    end
+
+    /*
+    This action fills in the box around the model's meshes, in its own
+    coordinates, measured once for each blueprint (ModelBlueprintVulkan
+    walks every vertex). It returns false if the blueprint can't give it:
+    no blueprint, an OpenGL one, or one whose mesh data was freed.
+    */
+    private action GetMeshBounds(BoundingBox local) returns boolean
+        if not (modelBlueprint is ModelBlueprintVulkan)
+            return false
+        end
+        if meshBoundsBlueprint not= modelBlueprint
+            ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+            if vulkanBlueprint:IsReleased() or vulkanBlueprint:GetData() = undefined
+                return false
+            end
+            meshBounds:Invalidate()
+            vulkanBlueprint:ExtendBoundingBox(meshBounds)
+            meshBoundsBlueprint = modelBlueprint
+        end
+        Vector3 minimum = meshBounds:GetMinimum()
+        Vector3 maximum = meshBounds:GetMaximum()
+        if minimum:GetX() <= maximum:GetX() and minimum:GetY() <= maximum:GetY() and minimum:GetZ() <= maximum:GetZ()
+            local:Set(minimum, maximum)
+            return true
+        end
+        return false
     end
 
     /*
@@ -305,6 +349,7 @@ based on its index.*/
         Load(schematic)
 
         assetFile = file
+        AddFileLights(schematic)
     end
 
     /*
@@ -340,6 +385,191 @@ based on its index.*/
         Load(file)
     end
     
+    /*
+    This action sets whether loading a model file also adds the lights the
+    file holds, such as a lamp's bulb in a glTF file (Lighting plan L8). It
+    is true by default. Set it before calling Load. Each point or spot light
+    becomes a PointLight or SpotLight child of the model, named as in the
+    file; each directional light becomes a DirectionalLight on the model's
+    layer while the model is on one. Area lights become point lights.
+
+    Attribute: Parameter load True to add the file's lights, false to leave them out.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+
+    class Main is Game
+        Model lamp
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            lamp:SetLoadLights(false)
+            lamp:Load("Models/Lamp.gltf")
+            Add(lamp)
+        end
+    end
+    */
+    action SetLoadLights(boolean load)
+        loadLights = load
+    end
+
+    /*
+    This action returns whether loading a model file also adds the lights
+    the file holds (Lighting plan L8). It is true by default.
+
+    Attribute: Returns True if the file's lights are added.
+    */
+    action GetLoadLights returns boolean
+        return loadLights
+    end
+
+    /*
+    This action returns the lights added from the model file when it was
+    loaded (Lighting plan L8): PointLight, SpotLight and DirectionalLight
+    objects. It is empty if the file had none, or SetLoadLights(false) was
+    used. Changing a light here, such as its intensity, changes it in the
+    scene.
+
+    Attribute: Returns The lights added from the model file.
+    */
+    action GetFileLights returns Array<Light>
+        if fileLights = undefined
+            Array<Light> lights
+            fileLights = lights
+        end
+        return fileLights
+    end
+
+    /*
+    This action adds the lights the model file holds, as read into the
+    blueprint (Lighting plan L8). Point and spot lights are positioned in
+    the model's space as children; directional lights shine as in the file.
+    */
+    private action AddFileLights(ModelBlueprint schematic)
+        if loadLights = false or schematic = undefined
+            return now
+        end
+        if not (schematic is ModelBlueprintVulkan)
+            return now
+        end
+        ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, schematic)
+        Array<ModelLightData> lightData = vulkanBlueprint:GetLights()
+        if lightData = undefined or lightData:IsEmpty()
+            return now
+        end
+
+        Array<Light> lights = GetFileLights()
+        integer i = 0
+        repeat while i < lightData:GetSize()
+            ModelLightData fileLight = lightData:Get(i)
+            Color lightColor = fileLight:GetColor()
+            Vector3 position = fileLight:GetPosition()
+            Vector3 direction = fileLight:GetDirection()
+            number strength = fileLight:GetQuorumIntensity()
+
+            if fileLight:IsDirectionalLight()
+                DirectionalLight sun
+                sun:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
+                sun:SetDirection(direction:GetX(), direction:GetY(), direction:GetZ())
+                sun:SetIntensity(strength)
+                lights:Add(sun)
+                Layer3D currentLayer = GetLayer()
+                if currentLayer not= undefined
+                    currentLayer:Add(sun)
+                end
+            elseif fileLight:IsSpotLight()
+                SpotLight spot
+                spot:SetName(fileLight:GetName())
+                spot:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
+                spot:SetIntensity(strength)
+                spot:SetRange(fileLight:GetRange())
+                spot:SetConeAngles(fileLight:GetInnerAngle(), fileLight:GetOuterAngle())
+                spot:SetDirection(direction:GetX(), direction:GetY(), direction:GetZ())
+                spot:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+                lights:Add(spot)
+                Add(spot)
+            else
+                PointLight bulb
+                bulb:SetName(fileLight:GetName())
+                bulb:SetColor(lightColor:GetRed(), lightColor:GetGreen(), lightColor:GetBlue(), 1)
+                bulb:SetIntensity(strength)
+                // A point light has no range of its own; the file's range
+                // limits its shadows instead.
+                if fileLight:GetRange() > 0
+                    bulb:SetCullingRange(fileLight:GetRange())
+                end
+                bulb:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+                lights:Add(bulb)
+                Add(bulb)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action takes away the lights added from a model file, so loading
+    again doesn't add them twice (Lighting plan L8).
+    */
+    private action RemoveFileLights
+        if fileLights = undefined or fileLights:IsEmpty()
+            return now
+        end
+        Layer3D currentLayer = GetLayer()
+        integer i = 0
+        repeat while i < fileLights:GetSize()
+            Light light = fileLights:Get(i)
+            if light is DirectionalLight
+                if currentLayer not= undefined
+                    currentLayer:Remove(cast(DirectionalLight, light))
+                end
+            elseif light is SpotLight
+                SpotLight spot = cast(SpotLight, light)
+                Remove(spot)
+            elseif light is PointLight
+                PointLight bulb = cast(PointLight, light)
+                Remove(bulb)
+            end
+            i = i + 1
+        end
+        fileLights:Empty()
+    end
+
+    /*
+    This action is called by the layer when the model is added to it or
+    taken off it. Besides what every Item3D does, it moves the directional
+    lights from the model file to the new layer, since they are not
+    children of the model (Lighting plan L8). Most users will never need to
+    use this action directly.
+
+    Attribute: Parameter parentLayer The layer the model is now on, or undefined.
+    */
+    action SetLayer(Layer3D parentLayer)
+        Layer3D previous = GetLayer()
+        parent:Item3D:SetLayer(parentLayer)
+        if fileLights = undefined or previous = parentLayer
+            return now
+        end
+        integer i = 0
+        repeat while i < fileLights:GetSize()
+            Light light = fileLights:Get(i)
+            if light is DirectionalLight
+                DirectionalLight sun = cast(DirectionalLight, light)
+                if previous not= undefined
+                    previous:Remove(sun)
+                end
+                if parentLayer not= undefined
+                    parentLayer:Add(sun)
+                end
+            end
+            i = i + 1
+        end
+    end
+
     private action GetCachedBlueprint(File file) returns ModelBlueprint
         if UsingOpenGL()
             return GetCachedBlueprintOpenGL(file)
@@ -2160,6 +2390,8 @@ end
 
     */
     action Load(ModelBlueprint loader, Matrix4 matrix)
+        // Lights from an earlier model file go (Lighting plan L8).
+        RemoveFileLights()
         ModelBlueprint previous = modelBlueprint
         SetModelBlueprint(loader)
         if matrix not= undefined
@@ -2636,6 +2868,254 @@ end
 
     action CastsShadows returns boolean
         return castsShadows
+    end
+
+    // Copies (Foliage plan F5): more places to draw the model, each a
+    // transform of 16 numbers relative to the model, and a shade for each.
+    // The model's box for culling covers them all.
+    Number32BitArray copyTransforms = undefined
+    Number32BitArray copyShades = undefined
+    integer copyCount = 0
+    number copyLowestX = 0
+    number copyLowestY = 0
+    number copyLowestZ = 0
+    number copyHighestX = 0
+    number copyHighestY = 0
+    number copyHighestZ = 0
+    number copyLargestScale = 1
+
+    /*
+    This action gives the model copies: it is drawn once at each copy's
+    transform, times the model's own, instead of once (Foliage plan F5).
+    All copies are drawn together, so many copies cost far less than as
+    many models. They share the model's colors, textures and shadow setting.
+    The model keeps the arrays it is given; after changing them, call
+    SetCopies again. Animated models draw no copies. Only the Vulkan
+    renderer draws copies.
+
+    Attribute: Parameter transforms 16 numbers per copy: its transform, column by column (as a Matrix4 is written to the GPU: row 0 to 3 of column 0, then column 1, and so on).
+    Attribute: Parameter shades One number per copy, or undefined for none. A shade below 1 replaces the model's color with that gray, which its textures are multiplied by; 1 leaves it.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.Containers.Number32BitArray
+
+    class Main is Game
+        Model boxes
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color green
+            green:SetColor(0, 0.6, 0, 1)
+            boxes:LoadBox(1, 1, 1, green)
+            Number32BitArray transforms
+            transforms:SetSize(16 * 3)
+            integer copy = 0
+            repeat while copy < 3
+                integer base = copy * 16
+                transforms:Set(base, 1)
+                transforms:Set(base + 5, 1)
+                transforms:Set(base + 10, 1)
+                transforms:Set(base + 15, 1)
+                transforms:Set(base + 12, copy * 2)
+                copy = copy + 1
+            end
+            boxes:SetCopies(transforms, undefined)
+            Add(boxes)
+        end
+    end
+    */
+    action SetCopies(Number32BitArray transforms, Number32BitArray shades)
+        if transforms = undefined
+            ClearCopies()
+            return now
+        end
+        integer count = transforms:GetSize() / 16
+        if count * 16 not= transforms:GetSize()
+            alert("A model's copies need 16 numbers each, but were given " + transforms:GetSize() + " numbers.")
+        end
+        if shades not= undefined and shades:GetSize() < count
+            alert("A model's copies need one shade each, but " + count + " copies were given " + shades:GetSize() + " shades.")
+        end
+        copyTransforms = transforms
+        copyShades = shades
+        copyCount = count
+
+        Math copyMath
+        copyLargestScale = 0
+        integer copy = 0
+        repeat while copy < count
+            integer base = copy * 16
+            number copyX = transforms:Get(base + 12)
+            number copyY = transforms:Get(base + 13)
+            number copyZ = transforms:Get(base + 14)
+            if copy = 0 or copyX < copyLowestX
+                copyLowestX = copyX
+            end
+            if copy = 0 or copyY < copyLowestY
+                copyLowestY = copyY
+            end
+            if copy = 0 or copyZ < copyLowestZ
+                copyLowestZ = copyZ
+            end
+            if copy = 0 or copyX > copyHighestX
+                copyHighestX = copyX
+            end
+            if copy = 0 or copyY > copyHighestY
+                copyHighestY = copyY
+            end
+            if copy = 0 or copyZ > copyHighestZ
+                copyHighestZ = copyZ
+            end
+            // The longest of its three axes is how much it is scaled.
+            integer column = 0
+            repeat while column < 3
+                number a = transforms:Get(base + column * 4)
+                number b = transforms:Get(base + column * 4 + 1)
+                number c = transforms:Get(base + column * 4 + 2)
+                number length = copyMath:SquareRoot(a * a + b * b + c * c)
+                if length > copyLargestScale
+                    copyLargestScale = length
+                end
+                column = column + 1
+            end
+            copy = copy + 1
+        end
+        NotifyCopiesChanged()
+    end
+
+    /*
+    This action takes away the model's copies (Foliage plan F5), so it is
+    drawn once again, at its own place.
+    */
+    action ClearCopies
+        copyTransforms = undefined
+        copyShades = undefined
+        copyCount = 0
+        NotifyCopiesChanged()
+    end
+
+    /*
+    This action returns how many copies the model has (Foliage plan F5).
+
+    Attribute: Returns The count, 0 when the model is drawn once.
+    */
+    action GetCopyCount returns integer
+        return copyCount
+    end
+
+    /*
+    This action returns the copies' transforms (Foliage plan F5), 16
+    numbers each, column by column.
+
+    Attribute: Returns The transforms, or undefined for none.
+    */
+    action GetCopyTransforms returns Number32BitArray
+        return copyTransforms
+    end
+
+    /*
+    This action returns the copies' shades (Foliage plan F5), one each.
+
+    Attribute: Returns The shades, or undefined for none.
+    */
+    action GetCopyShades returns Number32BitArray
+        return copyShades
+    end
+
+    /*
+    This action tells the layer's render tree the model's box changed, if
+    it is in one (Foliage plan F5).
+    */
+    private action NotifyCopiesChanged
+        Libraries.Game.Layer3D layer = GetLayer()
+        if layer = undefined
+            return now
+        end
+        Libraries.Game.Graphics.Trees.RenderTree3D tree = layer:GetRenderTree()
+        BoundingBox local
+        if tree not= undefined and tree:Has(me) and GetRenderBounds(local)
+            tree:SetLocalBounds(me, local)
+        end
+    end
+
+    /*
+    This action fills in the box around the model, in its own coordinates,
+    for a layer that culls what it draws, and for screen readers
+    (Item3D:GetScreenBounds). A model with copies (Foliage plan F5) gives a
+    box around every copy: their places, widened by the model's size times
+    the largest copy's scale, whichever way it is turned. Otherwise it is
+    the box around the model's meshes, when the blueprint can give it: a
+    mesh often doesn't sit centered on its model (a wall piece's base is
+    usually at the model's position). Failing that, it is the box of the
+    model's width, height and depth, centered on it.
+
+    Attribute: Parameter local The box to fill in.
+    Attribute: Returns True if the box was filled in, false if there is none.
+    */
+    action GetRenderBounds(BoundingBox local) returns boolean
+        if copyCount <= 0
+            if GetMeshBounds(local)
+                return true
+            end
+            return parent:Item3D:GetRenderBounds(local)
+        end
+        Math boundsMath
+        number modelWidth = GetWidth()
+        number modelHeight = GetHeight()
+        number modelDepth = GetDepth()
+        number reach = boundsMath:SquareRoot(modelWidth * modelWidth + modelHeight * modelHeight + modelDepth * modelDepth) / 2 * copyLargestScale
+        Vector3 minimum
+        minimum:Set(copyLowestX - reach, copyLowestY - reach, copyLowestZ - reach)
+        Vector3 maximum
+        maximum:Set(copyHighestX + reach, copyHighestY + reach, copyHighestZ + reach)
+        local:Set(minimum, maximum)
+        return true
+    end
+
+    /*
+    This action makes the model sway in the wind (Foliage plan F6): the
+    renderer moves each point sideways by the strength times its height
+    above the model's origin, back and forth over time. It changes the
+    materials of the model's blueprint, so every model loaded from the
+    same file or shape sways the same. Only the Vulkan renderer sways, in
+    its 3D and shadow vertex shaders.
+
+    Attribute: Parameter strength How far a point moves sideways per unit of height above the model's origin, such as 0.05; 0 for none.
+    Attribute: Parameter directionDegrees The wind's direction about the up axis, in degrees from +x toward +z.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Model
+
+    Model tree
+    tree:Load("Models/Tree.glb")
+    tree:SetSway(0.04, 30)
+    */
+    action SetSway(number strength, number directionDegrees)
+        if modelBlueprint = undefined or UsingOpenGL()
+            return now
+        end
+        if not (modelBlueprint is ModelBlueprintVulkan)
+            return now
+        end
+        ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+        Array<MaterialVulkan> materials = vulkanBlueprint:GetMaterials()
+        if materials = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < materials:GetSize()
+            MaterialVulkan material = materials:Get(i)
+            if material not= undefined
+                material:SetSway(strength, directionDegrees)
+            end
+            i = i + 1
+        end
     end
 
 end

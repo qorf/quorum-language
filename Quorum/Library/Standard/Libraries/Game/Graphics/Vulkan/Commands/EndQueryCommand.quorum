@@ -1,0 +1,37 @@
+package Libraries.Game.Graphics.Vulkan.Commands
+
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
+
+/*
+The EndQueryCommand stops counting into a query started with a
+BeginQueryCommand (vkCmdEndQuery).
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.Commands.EndQueryCommand
+
+EndQueryCommand finish
+finish:SetIndex(0)
+*/
+class EndQueryCommand is VulkanCommand
+    VulkanQueryPool queryPool = undefined
+    integer index = 0
+
+    system action Record(VulkanCommandBuffer buffer)
+
+    action SetQueryPool(VulkanQueryPool pool)
+        queryPool = pool
+    end
+
+    action GetQueryPool returns VulkanQueryPool
+        return queryPool
+    end
+
+    action SetIndex(integer index)
+        me:index = index
+    end
+
+    action GetIndex returns integer
+        return index
+    end
+end

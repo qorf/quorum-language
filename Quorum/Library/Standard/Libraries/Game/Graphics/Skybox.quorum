@@ -35,6 +35,10 @@ class Skybox
     Vector3 viewForward
     Math math
 
+    // The turn about the up axis set by SetTurn, in degrees, saved with
+    // scenes (QuincyWorld demo D3).
+    number turn = 0
+
     /*
     Flags to indicate which sides are loaded. A Skybox can only be rendered if
     all of the sides of the Skybox are loaded. These are set to true inside the
@@ -1138,5 +1142,154 @@ class Skybox
         end
         
         return cubeSides:Get(5)
+    end
+
+    /*
+    This action turns the Skybox about the up axis, from its base
+    orientation, by a number of degrees, and remembers the number so it can
+    be saved with a scene (QuincyWorld demo D3). It replaces any rotation
+    set before. GetTurn returns it.
+
+    Attribute: Parameter degrees How far to turn the sky about the up axis.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            skybox:SetTurn(45)
+            SetSkybox(skybox)
+        end
+    end
+    */
+    action SetTurn(number degrees)
+        turn = degrees
+        transform:SetToRotation(0, 1, 0, degrees)
+    end
+
+    /*
+    This action returns the turn about the up axis set by SetTurn, in
+    degrees. Rotations made with Rotate or SetToRotation aren't counted.
+
+    Attribute: Returns The turn, in degrees.
+    */
+    action GetTurn returns number
+        return turn
+    end
+
+    /*
+    This action loads the six sides from the pictures in a folder, found by
+    their names, ignoring case and the kind of picture (png, jpg and so on)
+    (QuincyWorld demo D3):
+    - right: right, px, posx or positivex
+    - left: left, nx, negx or negativex
+    - up: top, up, py, posy or positivey
+    - down: bottom, down, ny, negy or negativey
+    - front: front, pz, posz or positivez
+    - back: back, nz, negz or negativez
+    A name may also end with one of these after an underscore or a dash,
+    such as "sky_right.png". The sides' files keep the folder's working
+    directory, so a folder given relative to a project stays relative.
+
+    Attribute: Parameter folder The folder holding the six pictures.
+    Attribute: Returns True if all six were found and loading began, or false if one is missing (nothing is loaded then).
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.System.File
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            File folder
+            folder:SetPath("Skybox")
+            Skybox skybox
+            if skybox:LoadFolder(folder)
+                SetSkybox(skybox)
+            end
+        end
+    end
+    */
+    action LoadFolder(File folder) returns boolean
+        if folder = undefined or not folder:IsDirectory()
+            return false
+        end
+        Array<File> listing = folder:GetDirectoryListing()
+        Array<File> found
+        found:SetSize(6)
+        integer i = 0
+        repeat while i < listing:GetSize()
+            File candidate = listing:Get(i)
+            if not candidate:IsDirectory()
+                integer side = GetSideFromName(candidate)
+                if side >= 0 and found:Get(side) = undefined
+                    File sideFile
+                    sideFile:SetWorkingDirectory(folder:GetWorkingDirectory())
+                    text folderPath = folder:GetPath()
+                    if folderPath = "" or folderPath:EndsWith("/") or folderPath:EndsWith("\")
+                        sideFile:SetPath(folderPath + candidate:GetFileName())
+                    else
+                        sideFile:SetPath(folderPath + "/" + candidate:GetFileName())
+                    end
+                    found:Set(side, sideFile)
+                end
+            end
+            i = i + 1
+        end
+        i = 0
+        repeat while i < 6
+            if found:Get(i) = undefined
+                return false
+            end
+            i = i + 1
+        end
+        Load(found:Get(0), found:Get(1), found:Get(2), found:Get(3), found:Get(4), found:Get(5))
+        return true
+    end
+
+    /*
+    This action returns which side a picture's name says it is, from 0 to 5
+    (right, left, up, down, front, back), or -1 if it isn't a sky picture.
+    */
+    private action GetSideFromName(File file) returns integer
+        text extension = file:GetFileExtension():ToLowerCase()
+        if not (extension = "png" or extension = "jpg" or extension = "jpeg" or extension = "bmp" or extension = "tga")
+            return -1
+        end
+        text name = file:GetFileName():ToLowerCase()
+        name = name:GetSubtext(0, name:GetSize() - extension:GetSize() - 1)
+        if NameIs(name, "right") or NameIs(name, "px") or NameIs(name, "posx") or NameIs(name, "positivex")
+            return 0
+        elseif NameIs(name, "left") or NameIs(name, "nx") or NameIs(name, "negx") or NameIs(name, "negativex")
+            return 1
+        elseif NameIs(name, "top") or NameIs(name, "up") or NameIs(name, "py") or NameIs(name, "posy") or NameIs(name, "positivey")
+            return 2
+        elseif NameIs(name, "bottom") or NameIs(name, "down") or NameIs(name, "ny") or NameIs(name, "negy") or NameIs(name, "negativey")
+            return 3
+        elseif NameIs(name, "front") or NameIs(name, "pz") or NameIs(name, "posz") or NameIs(name, "positivez")
+            return 4
+        elseif NameIs(name, "back") or NameIs(name, "nz") or NameIs(name, "negz") or NameIs(name, "negativez")
+            return 5
+        end
+        return -1
+    end
+
+    /*
+    This action returns true if a picture's name is a side's name, or ends
+    with it after an underscore or a dash.
+    */
+    private action NameIs(text name, text side) returns boolean
+        return name = side or name:EndsWith("_" + side) or name:EndsWith("-" + side)
     end
 end

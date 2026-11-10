@@ -7,7 +7,7 @@ import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Toggled
 import quorum.Libraries.Interface.Controls.ToggleButton_;
 import quorum.Libraries.Interface.Item_;
 
-public class ToggleButtonKit extends ItemKit{
+public class ToggleButtonKit extends ClickableKit {
     public ToggleButtonKit() {
         SetRole(Role.BUTTON);
     }

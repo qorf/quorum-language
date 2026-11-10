@@ -1,0 +1,1200 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+
+/*
+A TerrainRiver is one river on a terrain (River plan R1): water that runs
+downhill along a path. TerrainWater holds a terrain's rivers with its lakes,
+saves them in water.json, and draws each with a WaterSurface whose ripples
+flow downstream.
+
+A river is a list of points, from where it starts to where it ends, each
+with the river's width and depth there. Compute makes a smooth line through
+the points and finds the water's surface along it: the ground's height,
+smoothed and never rising going downstream, so the water always runs
+downhill. Where the path climbs, the surface stays level and the river cuts
+into the ground; GetDeepestCut says how far. A river can start from, or end
+in, a lake or the sea, at that water's level.
+
+Carve shapes the ground to hold the river: a bed, deepest in the middle,
+under the water, and low banks beside it, so the water never floats. The
+ground's heights from before are kept, so Uncarve can put them back when the
+river is moved or removed, unless the ground there was changed since.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainWater
+use Libraries.Game.Graphics.Worlds.TerrainRiver
+
+TerrainItem ground
+ground:Load("Terrains/Island/terrain.json")
+TerrainWater water = ground:GetWater()
+TerrainRiver river = water:AddRiver()
+river:SetName("Mill river")
+river:AddPoint(10, 40, 4, 1.5)
+river:AddPoint(30, 10, 5, 1.5)
+river:AddPoint(60, -20, 6, 2)
+water:RiverChanged(river)
+ground:WaterChanged()
+*/
+class TerrainRiver
+    Math math
+    text name = ""
+
+    // The points the river passes through, from its start to its end, with
+    // its width and depth at each.
+    Array<number> pointsX
+    Array<number> pointsZ
+    Array<number> widths
+    Array<number> depths
+
+    // How fast the ripples move downstream, in units a second.
+    number speed = 1.5
+
+    // The smooth line through the points, sampled every half a terrain
+    // cell: each sample's place, the river's width and depth there, the
+    // water's surface, how far along the river it is, and which way the
+    // water flows, as a direction one unit long.
+    Array<number> samplesX
+    Array<number> samplesZ
+    Array<number> sampleWidths
+    Array<number> sampleDepths
+    Array<number> surfaces
+    Array<number> distances
+    Array<number> flowsX
+    Array<number> flowsZ
+    // The point each sample is after, for messages about the path.
+    Array<integer> samplePoints
+    boolean computed = false
+
+    // The box around the river's water, for quick checks.
+    number lowX = 0
+    number highX = 0
+    number lowZ = 0
+    number highZ = 0
+
+    // Where the path climbs: the most the river cuts into the ground, and
+    // the point it is after there.
+    number deepestCut = 0
+    integer deepestCutPoint = -1
+
+    // True if the river starts from, or ends in, a lake or the sea, so no
+    // banks are raised in that water at its mouth.
+    boolean startJoined = false
+    boolean endJoined = false
+
+    // The ground's heights from before carving, by sample ("x/z"), so
+    // Compute finds the same water after the river carved its bed.
+    HashTable<text, number> uncarvedHeights
+
+    // The ground the river carved: each sample changed, its height before,
+    // and the height the river gave it, to put back with Uncarve.
+    Array<integer> carvedX
+    Array<integer> carvedZ
+    Array<number> carvedBefore
+    Array<number> carvedAfter
+
+    WaterSurface surface = undefined
+
+    // How high the banks stand above the water, at most, and how wide they
+    // are, as a share of the river's width.
+    public constant number BANK_HEIGHT = 0.4
+    public constant number BANK_SHARE = 0.5
+    // How far below the ground the water's surface sits, so the ground
+    // beside the river is a little higher than the water.
+    public constant number SURFACE_DROP = 0.25
+    // How a level is given as "none", for Compute's start and end.
+    public constant number NO_LEVEL = -1000000
+    // The fewest points a river needs before it has any water.
+    public constant integer MINIMUM_POINTS = 2
+
+    /*
+    This action returns the river's name, such as "Mill river".
+
+    Attribute: Returns The name, or "" for none.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the river's name.
+
+    Attribute: Parameter value The name.
+    */
+    action SetName(text value)
+        name = value
+    end
+
+    /*
+    This action adds a point at the river's end.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Parameter width How wide the river is there.
+    Attribute: Parameter depth How deep its water is in the middle there.
+    */
+    action AddPoint(number x, number z, number width, number depth)
+        pointsX:Add(x)
+        pointsZ:Add(z)
+        widths:Add(width)
+        depths:Add(depth)
+        computed = false
+    end
+
+    /*
+    This action puts a point in the river's path, before the point now at
+    that place.
+
+    Attribute: Parameter index Its place in the path, from 0.
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Parameter width How wide the river is there.
+    Attribute: Parameter depth How deep its water is in the middle there.
+    */
+    action InsertPoint(integer index, number x, number z, number width, number depth)
+        pointsX:Add(index, x)
+        pointsZ:Add(index, z)
+        widths:Add(index, width)
+        depths:Add(index, depth)
+        computed = false
+    end
+
+    /*
+    This action takes a point out of the river's path.
+
+    Attribute: Parameter index The point, from 0.
+    */
+    action RemovePoint(integer index)
+        number removedX = pointsX:RemoveAt(index)
+        number removedZ = pointsZ:RemoveAt(index)
+        number removedWidth = widths:RemoveAt(index)
+        number removedDepth = depths:RemoveAt(index)
+        computed = false
+    end
+
+    /*
+    This action moves a point of the river's path.
+
+    Attribute: Parameter index The point, from 0.
+    Attribute: Parameter x Its new place along x.
+    Attribute: Parameter z Its new place along z.
+    */
+    action MovePoint(integer index, number x, number z)
+        pointsX:Set(index, x)
+        pointsZ:Set(index, z)
+        computed = false
+    end
+
+    /*
+    This action returns how many points the river's path has.
+
+    Attribute: Returns The count.
+    */
+    action GetPointCount returns integer
+        return pointsX:GetSize()
+    end
+
+    /*
+    This action returns a point's place along x.
+
+    Attribute: Parameter index The point, from 0.
+    Attribute: Returns The place.
+    */
+    action GetPointX(integer index) returns number
+        return pointsX:Get(index)
+    end
+
+    /*
+    This action returns a point's place along z.
+
+    Attribute: Parameter index The point, from 0.
+    Attribute: Returns The place.
+    */
+    action GetPointZ(integer index) returns number
+        return pointsZ:Get(index)
+    end
+
+    /*
+    This action returns how wide the river is at a point.
+
+    Attribute: Parameter index The point, from 0.
+    Attribute: Returns The width.
+    */
+    action GetPointWidth(integer index) returns number
+        return widths:Get(index)
+    end
+
+    /*
+    This action returns how deep the river is at a point.
+
+    Attribute: Parameter index The point, from 0.
+    Attribute: Returns The depth.
+    */
+    action GetPointDepth(integer index) returns number
+        return depths:Get(index)
+    end
+
+    /*
+    This action sets how wide the river is at every point.
+
+    Attribute: Parameter value The width.
+    */
+    action SetWidth(number value)
+        integer i = 0
+        repeat while i < widths:GetSize()
+            widths:Set(i, value)
+            i = i + 1
+        end
+        computed = false
+    end
+
+    /*
+    This action sets how deep the river is at every point.
+
+    Attribute: Parameter value The depth.
+    */
+    action SetDepth(number value)
+        integer i = 0
+        repeat while i < depths:GetSize()
+            depths:Set(i, value)
+            i = i + 1
+        end
+        computed = false
+    end
+
+    /*
+    This action returns the river's width at its first point, or 0 for a
+    river with no points.
+
+    Attribute: Returns The width.
+    */
+    action GetWidth returns number
+        if widths:IsEmpty()
+            return 0
+        end
+        return widths:Get(0)
+    end
+
+    /*
+    This action returns the river's depth at its first point, or 0 for a
+    river with no points.
+
+    Attribute: Returns The depth.
+    */
+    action GetDepth returns number
+        if depths:IsEmpty()
+            return 0
+        end
+        return depths:Get(0)
+    end
+
+    /*
+    This action returns how fast the ripples move downstream.
+
+    Attribute: Returns The speed, in units a second.
+    */
+    action GetSpeed returns number
+        return speed
+    end
+
+    /*
+    This action sets how fast the ripples move downstream.
+
+    Attribute: Parameter value The speed, in units a second.
+    */
+    action SetSpeed(number value)
+        speed = value
+    end
+
+    /*
+    This action finds the river's line and its water's surface from its
+    points and the ground (River plan R1). The line is a smooth curve
+    through the points (Catmull-Rom), sampled every half a terrain cell.
+    The surface is the ground's height along it, smoothed, a little below
+    the ground, and never rising going downstream. A river starting from
+    a lake or the sea starts at that water's level; one ending in one ends
+    at its level.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter startLevel The level of the water it starts from, or NO_LEVEL.
+    Attribute: Parameter endLevel The level of the water it ends in, or NO_LEVEL.
+    */
+    action Compute(TerrainData data, number startLevel, number endLevel)
+        samplesX:Empty()
+        samplesZ:Empty()
+        sampleWidths:Empty()
+        sampleDepths:Empty()
+        surfaces:Empty()
+        distances:Empty()
+        flowsX:Empty()
+        flowsZ:Empty()
+        samplePoints:Empty()
+        deepestCut = 0
+        deepestCutPoint = -1
+        startJoined = startLevel not= NO_LEVEL
+        endJoined = endLevel not= NO_LEVEL
+        computed = true
+        // The ground as it was before this river carved it.
+        uncarvedHeights:Empty()
+        integer carvedIndex = 0
+        repeat while carvedIndex < carvedX:GetSize()
+            uncarvedHeights:Add("" + carvedX:Get(carvedIndex) + "/" + carvedZ:Get(carvedIndex), carvedBefore:Get(carvedIndex))
+            carvedIndex = carvedIndex + 1
+        end
+        integer count = pointsX:GetSize()
+        if count < MINIMUM_POINTS or data = undefined
+            return now
+        end
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+        number step = spacing / 2
+
+        // The line: each stretch between two points is a curve that also
+        // looks at the points before and after, so the river bends smoothly.
+        integer stretch = 0
+        repeat while stretch < count - 1
+            integer before = stretch - 1
+            if before < 0
+                before = 0
+            end
+            integer after = stretch + 2
+            if after > count - 1
+                after = count - 1
+            end
+            number stretchX = pointsX:Get(stretch + 1) - pointsX:Get(stretch)
+            number stretchZ = pointsZ:Get(stretch + 1) - pointsZ:Get(stretch)
+            number length = math:SquareRoot(stretchX * stretchX + stretchZ * stretchZ)
+            integer pieces = cast(integer, math:Ceiling(length / step))
+            if pieces < 1
+                pieces = 1
+            end
+            integer piece = 0
+            repeat while piece < pieces or (stretch = count - 2 and piece = pieces)
+                number t = cast(number, piece) / pieces
+                samplesX:Add(CurvePoint(pointsX:Get(before), pointsX:Get(stretch), pointsX:Get(stretch + 1), pointsX:Get(after), t))
+                samplesZ:Add(CurvePoint(pointsZ:Get(before), pointsZ:Get(stretch), pointsZ:Get(stretch + 1), pointsZ:Get(after), t))
+                sampleWidths:Add(widths:Get(stretch) + (widths:Get(stretch + 1) - widths:Get(stretch)) * t)
+                sampleDepths:Add(depths:Get(stretch) + (depths:Get(stretch + 1) - depths:Get(stretch)) * t)
+                samplePoints:Add(stretch)
+                piece = piece + 1
+            end
+            stretch = stretch + 1
+        end
+
+        // How far along the river each sample is, and which way it flows.
+        integer total = samplesX:GetSize()
+        number along = 0
+        integer i = 0
+        repeat while i < total
+            if i > 0
+                number backX = samplesX:Get(i) - samplesX:Get(i - 1)
+                number backZ = samplesZ:Get(i) - samplesZ:Get(i - 1)
+                along = along + math:SquareRoot(backX * backX + backZ * backZ)
+            end
+            distances:Add(along)
+            integer previous = i - 1
+            if previous < 0
+                previous = 0
+            end
+            integer following = i + 1
+            if following > total - 1
+                following = total - 1
+            end
+            number flowX = samplesX:Get(following) - samplesX:Get(previous)
+            number flowZ = samplesZ:Get(following) - samplesZ:Get(previous)
+            number flowLength = math:SquareRoot(flowX * flowX + flowZ * flowZ)
+            if flowLength < 0.0001
+                flowsX:Add(1)
+                flowsZ:Add(0)
+            else
+                flowsX:Add(flowX / flowLength)
+                flowsZ:Add(flowZ / flowLength)
+            end
+            i = i + 1
+        end
+
+        // The ground along the line, smoothed over about the river's
+        // width, so a single bump doesn't make a step in the water.
+        Array<number> grounds
+        i = 0
+        repeat while i < total
+            number ground = 0
+            if data:HasHeight(samplesX:Get(i), samplesZ:Get(i))
+                ground = GetUncarvedHeight(data, samplesX:Get(i), samplesZ:Get(i))
+            elseif i > 0
+                ground = grounds:Get(i - 1)
+            end
+            grounds:Add(ground)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < total
+            integer reach = cast(integer, math:Ceiling(sampleWidths:Get(i) / step))
+            integer low = i - reach
+            if low < 0
+                low = 0
+            end
+            integer high = i + reach
+            if high > total - 1
+                high = total - 1
+            end
+            number sum = 0
+            integer near = low
+            repeat while near <= high
+                sum = sum + grounds:Get(near)
+                near = near + 1
+            end
+            surfaces:Add(sum / (high - low + 1) - SURFACE_DROP)
+            i = i + 1
+        end
+
+        // The water runs downhill: from the start, it never rises. A
+        // river from a lake or the sea starts at that water's level.
+        if startLevel not= NO_LEVEL
+            surfaces:Set(0, startLevel)
+        end
+        i = 1
+        repeat while i < total
+            if surfaces:Get(i) > surfaces:Get(i - 1)
+                surfaces:Set(i, surfaces:Get(i - 1))
+            end
+            i = i + 1
+        end
+        // A river ending in a lake or the sea ends at its level: it goes no
+        // lower than that, and the end comes down to it.
+        if endLevel not= NO_LEVEL
+            i = 0
+            repeat while i < total
+                if surfaces:Get(i) < endLevel
+                    surfaces:Set(i, endLevel)
+                end
+                i = i + 1
+            end
+            surfaces:Set(total - 1, endLevel)
+        end
+
+        // Where the path climbs, the water stays level and the river cuts
+        // into the ground.
+        i = 0
+        repeat while i < total
+            number cut = grounds:Get(i) - surfaces:Get(i) - SURFACE_DROP - BANK_HEIGHT
+            if cut > deepestCut
+                deepestCut = cut
+                deepestCutPoint = samplePoints:Get(i)
+            end
+            i = i + 1
+        end
+
+        // The box around the water.
+        i = 0
+        repeat while i < total
+            number half = sampleWidths:Get(i) / 2
+            if i = 0 or samplesX:Get(i) - half < lowX
+                lowX = samplesX:Get(i) - half
+            end
+            if i = 0 or samplesX:Get(i) + half > highX
+                highX = samplesX:Get(i) + half
+            end
+            if i = 0 or samplesZ:Get(i) - half < lowZ
+                lowZ = samplesZ:Get(i) - half
+            end
+            if i = 0 or samplesZ:Get(i) + half > highZ
+                highZ = samplesZ:Get(i) + half
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the ground's height at a place as it was before
+    this river carved it, the same way TerrainData's GetSurfaceHeight
+    finds it from the samples around the place.
+    */
+    private action GetUncarvedHeight(TerrainData data, number worldX, number worldZ) returns number
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+        number gridX = worldX / spacing
+        number gridZ = worldZ / spacing
+        integer x = cast(integer, math:Floor(gridX))
+        integer z = cast(integer, math:Floor(gridZ))
+        if not data:HasSample(x, z)
+            return 0
+        end
+        number fractionX = gridX - x
+        number fractionZ = gridZ - z
+        number topLeft = GetUncarvedSample(data, x, z, 0)
+        number topRight = GetUncarvedSample(data, x + 1, z, topLeft)
+        number bottomLeft = GetUncarvedSample(data, x, z + 1, topLeft)
+        if fractionX + fractionZ <= 1
+            return topLeft + fractionX * (topRight - topLeft) + fractionZ * (bottomLeft - topLeft)
+        end
+        number bottomRight = GetUncarvedSample(data, x + 1, z + 1, topLeft)
+        return bottomRight + (1 - fractionX) * (bottomLeft - bottomRight) + (1 - fractionZ) * (topRight - bottomRight)
+    end
+
+    /*
+    This action returns a sample's height before this river carved it, or
+    a fallback where there is no sample.
+    */
+    private action GetUncarvedSample(TerrainData data, integer x, integer z, number fallback) returns number
+        if not data:HasSample(x, z)
+            return fallback
+        end
+        text key = "" + x + "/" + z
+        if uncarvedHeights:HasKey(key)
+            return uncarvedHeights:GetValue(key)
+        end
+        return data:GetSampleHeight(x, z)
+    end
+
+    /*
+    This action returns one coordinate of a point on a Catmull-Rom curve,
+    which passes through the middle two points.
+    */
+    private action CurvePoint(number p0, number p1, number p2, number p3, number t) returns number
+        number t2 = t * t
+        number t3 = t2 * t
+        return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+    end
+
+    /*
+    This action returns true if Compute has run since the points last
+    changed.
+
+    Attribute: Returns True if the line and surface are up to date.
+    */
+    action IsComputed returns boolean
+        return computed
+    end
+
+    /*
+    This action returns how many samples the river's line has, after
+    Compute.
+
+    Attribute: Returns The count.
+    */
+    action GetSampleCount returns integer
+        return samplesX:GetSize()
+    end
+
+    /*
+    This action returns a sample's place along x.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The place.
+    */
+    action GetSampleX(integer index) returns number
+        return samplesX:Get(index)
+    end
+
+    /*
+    This action returns a sample's place along z.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The place.
+    */
+    action GetSampleZ(integer index) returns number
+        return samplesZ:Get(index)
+    end
+
+    /*
+    This action returns the river's width at a sample.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The width.
+    */
+    action GetSampleWidth(integer index) returns number
+        return sampleWidths:Get(index)
+    end
+
+    /*
+    This action returns the river's depth at a sample.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The depth.
+    */
+    action GetSampleDepth(integer index) returns number
+        return sampleDepths:Get(index)
+    end
+
+    /*
+    This action returns the water's surface height at a sample.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The height.
+    */
+    action GetSampleSurface(integer index) returns number
+        return surfaces:Get(index)
+    end
+
+    /*
+    This action returns how far along the river a sample is.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The distance from the river's start.
+    */
+    action GetSampleDistance(integer index) returns number
+        return distances:Get(index)
+    end
+
+    /*
+    This action returns which way the water flows at a sample, along x, as
+    part of a direction one unit long.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The direction's x.
+    */
+    action GetFlowX(integer index) returns number
+        return flowsX:Get(index)
+    end
+
+    /*
+    This action returns which way the water flows at a sample, along z.
+
+    Attribute: Parameter index The sample, from 0.
+    Attribute: Returns The direction's z.
+    */
+    action GetFlowZ(integer index) returns number
+        return flowsZ:Get(index)
+    end
+
+    /*
+    This action returns how long the river is along its line.
+
+    Attribute: Returns The length, or 0 before Compute.
+    */
+    action GetLength returns number
+        if distances:IsEmpty()
+            return 0
+        end
+        return distances:Get(distances:GetSize() - 1)
+    end
+
+    /*
+    This action returns the water's height at the river's start.
+
+    Attribute: Returns The height, or NO_LEVEL before Compute.
+    */
+    action GetStartLevel returns number
+        if surfaces:IsEmpty()
+            return NO_LEVEL
+        end
+        return surfaces:Get(0)
+    end
+
+    /*
+    This action returns the water's height at the river's end.
+
+    Attribute: Returns The height, or NO_LEVEL before Compute.
+    */
+    action GetEndLevel returns number
+        if surfaces:IsEmpty()
+            return NO_LEVEL
+        end
+        return surfaces:Get(surfaces:GetSize() - 1)
+    end
+
+    /*
+    This action returns the most the river cuts into the ground where its
+    path climbs, after Compute.
+
+    Attribute: Returns How far below the ground's level the water had to stay, or 0.
+    */
+    action GetDeepestCut returns number
+        return deepestCut
+    end
+
+    /*
+    This action returns the point the deepest cut comes after, so the cut
+    is between it and the next point.
+
+    Attribute: Returns The point, from 0, or -1 if the river cuts nowhere.
+    */
+    action GetDeepestCutPoint returns integer
+        return deepestCutPoint
+    end
+
+    /*
+    This action returns the sample nearest a point, or -1 if the point
+    isn't on the river's water.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns The sample, from 0, or -1.
+    */
+    action GetSampleAt(number x, number z) returns integer
+        if samplesX:IsEmpty() or x < lowX or x > highX or z < lowZ or z > highZ
+            return -1
+        end
+        integer best = -1
+        number bestDistance = 0
+        integer i = 0
+        repeat while i < samplesX:GetSize()
+            number offsetX = x - samplesX:Get(i)
+            number offsetZ = z - samplesZ:Get(i)
+            number distance = offsetX * offsetX + offsetZ * offsetZ
+            number half = sampleWidths:Get(i) / 2
+            if distance <= half * half and (best = -1 or distance < bestDistance)
+                best = i
+                bestDistance = distance
+            end
+            i = i + 1
+        end
+        return best
+    end
+
+    /*
+    This action returns true if a point is on the river's water.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns True if it is.
+    */
+    action Covers(number x, number z) returns boolean
+        return GetSampleAt(x, z) >= 0
+    end
+
+    /*
+    This action returns the water's height at a point, or NO_LEVEL if the
+    point isn't on the river.
+
+    Attribute: Parameter x The point along x.
+    Attribute: Parameter z The point along z.
+    Attribute: Returns The height.
+    */
+    action GetLevelAt(number x, number z) returns number
+        integer sample = GetSampleAt(x, z)
+        if sample < 0
+            return NO_LEVEL
+        end
+        return surfaces:Get(sample)
+    end
+
+    /*
+    This action returns the river's highest water, its start, for the
+    terrain's render box.
+
+    Attribute: Returns The height, or NO_LEVEL before Compute.
+    */
+    action GetHighestLevel returns number
+        return GetStartLevel()
+    end
+
+    /*
+    This action returns the river's lowest water, its end.
+
+    Attribute: Returns The height, or NO_LEVEL before Compute.
+    */
+    action GetLowestLevel returns number
+        return GetEndLevel()
+    end
+
+    /*
+    This action returns the point nearest a place, within a distance, or -1.
+
+    Attribute: Parameter x The place along x.
+    Attribute: Parameter z The place along z.
+    Attribute: Parameter within The farthest a point may be.
+    Attribute: Returns The point, from 0, or -1.
+    */
+    action GetPointNear(number x, number z, number within) returns integer
+        integer best = -1
+        number bestDistance = within * within
+        integer i = 0
+        repeat while i < pointsX:GetSize()
+            number offsetX = x - pointsX:Get(i)
+            number offsetZ = z - pointsZ:Get(i)
+            number distance = offsetX * offsetX + offsetZ * offsetZ
+            if distance <= bestDistance
+                best = i
+                bestDistance = distance
+            end
+            i = i + 1
+        end
+        return best
+    end
+
+    /*
+    This action returns where a new point on the river's line at a place
+    goes in the path: the point it would come before. It is -1 if the place
+    isn't on the river's water.
+
+    Attribute: Parameter x The place along x.
+    Attribute: Parameter z The place along z.
+    Attribute: Returns The place in the path for a new point, or -1.
+    */
+    action GetInsertIndexAt(number x, number z) returns integer
+        integer sample = GetSampleAt(x, z)
+        if sample < 0
+            return -1
+        end
+        return samplePoints:Get(sample) + 1
+    end
+
+    /*
+    This action shapes the ground to hold the river (River plan R4): under
+    the water, a bed, deepest in the middle, as deep as the river; beside
+    it, low banks a little above the water, blending into the ground. The
+    ground under the river from before is kept, for Uncarve. Call Compute
+    first, and Uncarve before carving a river again.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Returns How many of the ground's samples changed.
+    */
+    action Carve(TerrainData data) returns integer
+        carvedX:Empty()
+        carvedZ:Empty()
+        carvedBefore:Empty()
+        carvedAfter:Empty()
+        integer total = samplesX:GetSize()
+        if total = 0 or data = undefined
+            return 0
+        end
+        number spacing = data:GetVertexSpacing()
+        if spacing <= 0
+            spacing = 1
+        end
+
+        // The ground's samples near the river, and for each the nearest
+        // river sample, so each is shaped once, by the closest water.
+        number widest = 0
+        integer i = 0
+        repeat while i < total
+            if sampleWidths:Get(i) > widest
+                widest = sampleWidths:Get(i)
+            end
+            i = i + 1
+        end
+        number reach = widest / 2 + widest * BANK_SHARE + spacing
+        integer firstX = data:GetSampleX(lowX - reach)
+        integer firstZ = data:GetSampleZ(lowZ - reach)
+        integer lastX = data:GetSampleX(highX + reach) + 1
+        integer lastZ = data:GetSampleZ(highZ + reach) + 1
+        integer columnCount = lastX - firstX + 1
+        integer rowCount = lastZ - firstZ + 1
+        Array<integer> nearest
+        Array<number> nearestDistances
+        i = 0
+        repeat while i < columnCount * rowCount
+            nearest:Add(-1)
+            nearestDistances:Add(0)
+            i = i + 1
+        end
+        i = 0
+        repeat while i < total
+            number outer = sampleWidths:Get(i) / 2 + sampleWidths:Get(i) * BANK_SHARE
+            integer fromX = data:GetSampleX(samplesX:Get(i) - outer)
+            integer toX = data:GetSampleX(samplesX:Get(i) + outer) + 1
+            integer fromZ = data:GetSampleZ(samplesZ:Get(i) - outer)
+            integer toZ = data:GetSampleZ(samplesZ:Get(i) + outer) + 1
+            integer sampleZ = fromZ
+            repeat while sampleZ <= toZ
+                integer sampleX = fromX
+                repeat while sampleX <= toX
+                    number offsetX = sampleX * spacing - samplesX:Get(i)
+                    number offsetZ = sampleZ * spacing - samplesZ:Get(i)
+                    number distance = math:SquareRoot(offsetX * offsetX + offsetZ * offsetZ)
+                    if distance <= outer
+                        integer cell = (sampleZ - firstZ) * columnCount + sampleX - firstX
+                        if cell >= 0 and cell < nearest:GetSize()
+                            if nearest:Get(cell) = -1 or distance < nearestDistances:Get(cell)
+                                nearest:Set(cell, i)
+                                nearestDistances:Set(cell, distance)
+                            end
+                        end
+                    end
+                    sampleX = sampleX + 1
+                end
+                sampleZ = sampleZ + 1
+            end
+            i = i + 1
+        end
+
+        // Each nearby sample of the ground takes the bed's shape, or the
+        // bank's.
+        integer place = 0
+        repeat while place < nearest:GetSize()
+            integer river = nearest:Get(place)
+            if river >= 0
+                integer groundX = firstX + (place mod columnCount)
+                integer groundZ = firstZ + (place / columnCount)
+                if data:HasSample(groundX, groundZ)
+                    number before = data:GetSampleHeight(groundX, groundZ)
+                    number away = nearestDistances:Get(place)
+                    number half = sampleWidths:Get(river) / 2
+                    number water = surfaces:Get(river)
+                    number wanted = before
+                    // Near an end in a lake or the sea, no banks are raised
+                    // in that water.
+                    boolean atMouth = (startJoined and distances:Get(river) < sampleWidths:Get(river) * 1.5) or
+                        (endJoined and GetLength() - distances:Get(river) < sampleWidths:Get(river) * 1.5)
+                    if half <= 0
+                        // A river with no width carves nothing.
+                    elseif away <= half
+                        // The bed: as deep as the river in the middle,
+                        // rising to the water's edge.
+                        number across = away / half
+                        number bed = water - sampleDepths:Get(river) * (1 - across * across)
+                        if bed < wanted
+                            wanted = bed
+                        end
+                    else
+                        // The bank: a little above the water at its edge,
+                        // blending into the ground farther out.
+                        number bankWidth = sampleWidths:Get(river) * BANK_SHARE
+                        if bankWidth <= 0
+                            bankWidth = 0.0001
+                        end
+                        number outward = (away - half) / bankWidth
+                        if outward > 1
+                            outward = 1
+                        end
+                        number bank = water + BANK_HEIGHT * (1 - outward)
+                        // Ground higher than the water is cut down to the
+                        // bank near the river, so the banks slope to it.
+                        number cutTo = water + BANK_HEIGHT + (before - water - BANK_HEIGHT) * outward
+                        if before < bank and not atMouth
+                            wanted = bank
+                        elseif before > cutTo
+                            wanted = cutTo
+                        end
+                    end
+                    if wanted not= before
+                        data:SetSampleHeight(groundX, groundZ, wanted)
+                        carvedX:Add(groundX)
+                        carvedZ:Add(groundZ)
+                        carvedBefore:Add(before)
+                        // The height as stored, which may be rounded, so
+                        // Uncarve can tell it is still as the river left it.
+                        carvedAfter:Add(data:GetSampleHeight(groundX, groundZ))
+                    end
+                end
+            end
+            place = place + 1
+        end
+        return carvedX:GetSize()
+    end
+
+    /*
+    This action puts back the ground the river carved, where it is still as
+    the river left it. Ground changed since, such as by sculpting, is left
+    as it is.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Returns How many samples were left as they are, since they changed after carving.
+    */
+    action Uncarve(TerrainData data) returns integer
+        integer kept = 0
+        if data = undefined
+            return 0
+        end
+        integer i = 0
+        repeat while i < carvedX:GetSize()
+            integer groundX = carvedX:Get(i)
+            integer groundZ = carvedZ:Get(i)
+            if data:HasSample(groundX, groundZ)
+                if data:GetSampleHeight(groundX, groundZ) = carvedAfter:Get(i)
+                    data:SetSampleHeight(groundX, groundZ, carvedBefore:Get(i))
+                else
+                    kept = kept + 1
+                end
+            end
+            i = i + 1
+        end
+        carvedX:Empty()
+        carvedZ:Empty()
+        carvedBefore:Empty()
+        carvedAfter:Empty()
+        return kept
+    end
+
+    /*
+    This action returns the box of ground samples the river carved, and
+    would carve, as four numbers: smallest x, smallest z, largest x and
+    largest z. Undo copies this area before the ground changes.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Returns The box, or an empty list for a river with no water and nothing carved.
+    */
+    action GetCarveArea(TerrainData data) returns Array<integer>
+        Array<integer> area
+        if data = undefined
+            return area
+        end
+        boolean any = false
+        integer minimumX = 0
+        integer minimumZ = 0
+        integer maximumX = 0
+        integer maximumZ = 0
+        if not samplesX:IsEmpty()
+            number widest = 0
+            integer i = 0
+            repeat while i < sampleWidths:GetSize()
+                if sampleWidths:Get(i) > widest
+                    widest = sampleWidths:Get(i)
+                end
+                i = i + 1
+            end
+            number reach = widest / 2 + widest * BANK_SHARE + data:GetVertexSpacing()
+            minimumX = data:GetSampleX(lowX - reach) - 1
+            minimumZ = data:GetSampleZ(lowZ - reach) - 1
+            maximumX = data:GetSampleX(highX + reach) + 2
+            maximumZ = data:GetSampleZ(highZ + reach) + 2
+            any = true
+        end
+        integer j = 0
+        repeat while j < carvedX:GetSize()
+            if not any or carvedX:Get(j) < minimumX
+                minimumX = carvedX:Get(j)
+            end
+            if not any or carvedZ:Get(j) < minimumZ
+                minimumZ = carvedZ:Get(j)
+            end
+            if not any or carvedX:Get(j) > maximumX
+                maximumX = carvedX:Get(j)
+            end
+            if not any or carvedZ:Get(j) > maximumZ
+                maximumZ = carvedZ:Get(j)
+            end
+            any = true
+            j = j + 1
+        end
+        if any
+            area:Add(minimumX)
+            area:Add(minimumZ)
+            area:Add(maximumX)
+            area:Add(maximumZ)
+        end
+        return area
+    end
+
+    /*
+    This action returns how many ground samples the river carved.
+
+    Attribute: Returns The count.
+    */
+    action GetCarvedCount returns integer
+        return carvedX:GetSize()
+    end
+
+    /*
+    This action returns the carved ground as a list, for saving: four
+    numbers per sample, its x and z, its height before and the height the
+    river gave it.
+
+    Attribute: Returns The list.
+    */
+    action GetCarvedList returns Array<number>
+        Array<number> list
+        integer i = 0
+        repeat while i < carvedX:GetSize()
+            list:Add(carvedX:Get(i))
+            list:Add(carvedZ:Get(i))
+            list:Add(carvedBefore:Get(i))
+            list:Add(carvedAfter:Get(i))
+            i = i + 1
+        end
+        return list
+    end
+
+    /*
+    This action sets the carved ground from a list made by GetCarvedList,
+    such as one being loaded.
+
+    Attribute: Parameter list Four numbers per sample.
+    */
+    action SetCarvedList(Array<number> list)
+        carvedX:Empty()
+        carvedZ:Empty()
+        carvedBefore:Empty()
+        carvedAfter:Empty()
+        integer i = 0
+        repeat while i + 3 < list:GetSize()
+            carvedX:Add(cast(integer, list:Get(i)))
+            carvedZ:Add(cast(integer, list:Get(i + 1)))
+            carvedBefore:Add(list:Get(i + 2))
+            carvedAfter:Add(list:Get(i + 3))
+            i = i + 4
+        end
+    end
+
+    /*
+    This action makes this river the same as another: its name, points,
+    speed and carved ground. Its line is found again by the next Compute.
+
+    Attribute: Parameter other The river to copy.
+    */
+    action CopyFrom(TerrainRiver other)
+        name = other:GetName()
+        speed = other:GetSpeed()
+        pointsX:Empty()
+        pointsZ:Empty()
+        widths:Empty()
+        depths:Empty()
+        integer i = 0
+        repeat while i < other:GetPointCount()
+            AddPoint(other:GetPointX(i), other:GetPointZ(i), other:GetPointWidth(i), other:GetPointDepth(i))
+            i = i + 1
+        end
+        SetCarvedList(other:GetCarvedList())
+        computed = false
+    end
+
+    /*
+    This action returns true if this river is the same as another: the
+    same name, points, speed and carved ground.
+
+    Attribute: Parameter other The other river.
+    Attribute: Returns True if they are the same.
+    */
+    action IsSameAs(TerrainRiver other) returns boolean
+        if name not= other:GetName() or speed not= other:GetSpeed() or GetPointCount() not= other:GetPointCount()
+            return false
+        end
+        integer i = 0
+        repeat while i < GetPointCount()
+            if pointsX:Get(i) not= other:GetPointX(i) or pointsZ:Get(i) not= other:GetPointZ(i) or widths:Get(i) not= other:GetPointWidth(i) or depths:Get(i) not= other:GetPointDepth(i)
+                return false
+            end
+            i = i + 1
+        end
+        Array<number> mine = GetCarvedList()
+        Array<number> theirs = other:GetCarvedList()
+        if mine:GetSize() not= theirs:GetSize()
+            return false
+        end
+        i = 0
+        repeat while i < mine:GetSize()
+            if mine:Get(i) not= theirs:Get(i)
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+    This action returns the river's water sheet.
+
+    Attribute: Returns The sheet, or undefined until it is drawn.
+    */
+    action GetSurface returns WaterSurface
+        return surface
+    end
+
+    /*
+    This action sets the river's water sheet. TerrainWater calls it.
+
+    Attribute: Parameter value The sheet.
+    */
+    action SetSurface(WaterSurface value)
+        surface = value
+    end
+end

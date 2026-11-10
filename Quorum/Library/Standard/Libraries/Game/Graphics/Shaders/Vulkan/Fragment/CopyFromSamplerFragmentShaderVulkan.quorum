@@ -2,6 +2,28 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 
 use Libraries.Game.Graphics.Shaders.Shader
 
+/*
+CopyFromSamplerFragmentShaderVulkan copies the 3D painter's lit image to
+the screen. On the way, it tone maps it (Lighting plan L2): the lit image
+can be brighter than white, and tone mapping fits it into the screen's
+range instead of clipping it. The exposure scales the light first. The
+painter sends both from the layer's EnvironmentVulkan as push constants.
+Alpha is copied as it is, so the sky still shows where nothing was drawn.
+The lit image is premultiplied: the lighting pass and the forward programs
+blend by alpha onto a cleared image, so its color is already times its
+alpha. The light is divided by the alpha before tone mapping.
+
+With bloom on (Lighting plan L3), the bloom image (binding 1) times its
+strength is added to the light before the exposure and tone mapping. The
+color is written already multiplied by its alpha, and the pipeline blends
+it with one and one minus the alpha, which is the same as before; where
+there is sky, the glow is added over the sky as well.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.CopyFromSamplerFragmentShaderVulkan
+
+CopyFromSamplerFragmentShaderVulkan shader
+*/
 class CopyFromSamplerFragmentShaderVulkan is Shader
     
     public constant text DEFAULT_NAME = "Copy From Sampler Fragment Shader"
@@ -18,10 +40,67 @@ layout (location = 0) out vec4 outputColor;
 
 // The sampled image to copy out to the color attachment
 layout (set = 0, binding = 0) uniform sampler2D u_sampler;
+// The bloom (Lighting plan L3), half the size; the lit image when bloom is
+// off, unused then.
+layout (set = 0, binding = 1) uniform sampler2D u_bloom;
+
+// How the light is fit to the screen: 0 none (clipped at white, as before),
+// 1 Reinhard, 2 ACES (filmic); and the exposure the light is scaled by.
+// Then how much of the bloom is added; 0 when bloom is off.
+layout(push_constant) uniform ToneMapping {
+	float exposure;
+	float mode;
+	float bloomStrength;
+} toneMapping;
+
+// Reinhard: gentle, never quite reaching white.
+vec3 reinhard(vec3 color)
+{
+	return color / (1.0 + color);
+}
+
+// Krzysztof Narkowicz's fit of the ACES filmic curve: a little more
+// contrast, and bright light rolls off to white.
+vec3 aces(vec3 color)
+{
+	const float a = 2.51;
+	const float b = 0.03;
+	const float c = 2.43;
+	const float d = 0.59;
+	const float e = 0.14;
+	return clamp((color * (a * color + b)) / (color * (c * color + d) + e), 0.0, 1.0);
+}
+
+// The exposure, then the tone mapping.
+vec3 mapLight(vec3 light)
+{
+	vec3 color = max(light * toneMapping.exposure, vec3(0.0));
+	if (toneMapping.mode > 1.5)
+	{
+		color = aces(color);
+	}
+	else if (toneMapping.mode > 0.5)
+	{
+		color = reinhard(color);
+	}
+	return color;
+}
 
 void main()
 {
-	outputColor = texture(u_sampler, v_samplerCoordinate);
+	vec4 lit = texture(u_sampler, v_samplerCoordinate);
+	// The lit image is premultiplied; its light is divided by its alpha
+	// for the tone mapping, then multiplied again.
+	vec3 light = lit.a > 0.0001 ? lit.rgb / lit.a : vec3(0.0);
+	vec3 color = mapLight(light) * lit.a;
+	if (toneMapping.bloomStrength > 0.0)
+	{
+		vec3 glow = texture(u_bloom, v_samplerCoordinate).rgb * toneMapping.bloomStrength;
+		// On what was drawn, the glow joins its light; over the sky, it is
+		// added on its own.
+		color = mapLight(light + glow) * lit.a + mapLight(glow) * (1.0 - lit.a);
+	}
+	outputColor = vec4(color, lit.a);
 }
 ")
     end

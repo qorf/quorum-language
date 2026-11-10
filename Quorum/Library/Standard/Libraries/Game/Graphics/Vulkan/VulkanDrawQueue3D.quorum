@@ -49,43 +49,150 @@ queued elements for the scene render pass, only sending draw commands for models
     integer currentShadowDrawCommandIndex = 0
     
     integer textureGroupID = -1
+
+    // Room for more instances (Foliage plan F5). A queue holds maxInstances;
+    // instances that don't fit are counted here and not drawn, and the
+    // queue grows to fit them the next time it starts empty, so nothing
+    // already written is lost. The old buffers are retired, since frames
+    // already recorded may still read them. A queue never grows past
+    // MAXIMUM_INSTANCES; past it, the rest are left out with one warning.
+    integer droppedThisFrame = 0
+    integer pendingCapacity = 0
+    boolean warnedFull = false
+    public constant integer MAXIMUM_INSTANCES = 262144
     
     action Create(VulkanDevice device, VulkanGraphics graphics, integer maxInstances, integer textureGroupID)
         me:device = device
         me:textureGroupID = textureGroupID
-        
+        CreateBuffers(maxInstances)
+    end
+
+    /*
+    This action makes the queue's instance buffer and its two draw command
+    buffers (for the scene and the shadows), with room for a number of
+    instances, and maps them. Create uses it, and growing does again
+    (Foliage plan F5).
+
+    Attribute: Parameter capacity How many instances the queue holds.
+    */
+    private action CreateBuffers(integer capacity)
         VulkanConstants constants
-        VulkanDescriptorSetManager setManager = graphics:GetDescriptorSetManager()
+        maxInstances = capacity
+
+        VulkanBuffer newInstanceData
+        instanceData = newInstanceData
+        instanceData:CreateMappableBuffer(device, capacity * INSTANCE_DATA_BYTE_SIZE, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
-me:maxInstances = maxInstances
-        
-        VulkanBuffer instanceData
-        me:instanceData = instanceData
-        instanceData:CreateMappableBuffer(device, maxInstances * INSTANCE_DATA_BYTE_SIZE, constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
-        
-        VulkanDrawQueue3DInstanceMappedMemory instanceMapping
-        me:instanceMapping = instanceMapping
+        VulkanDrawQueue3DInstanceMappedMemory newMapping
+        instanceMapping = newMapping
         instanceMapping:Create(instanceData)
         
         // Also create the draw command buffer. In the worst case, every mesh is unique, so it's possible to have an equal number of draw commands and instances.
-        VulkanBuffer buffer
-        drawCommandBuffer = buffer
+        VulkanBuffer newCommandBuffer
+        drawCommandBuffer = newCommandBuffer
         
         // Dummy data used only to retrieve the size of each data structure in bytes. Needed to size the buffer.
         VulkanDrawIndirectData drawData
         
-        drawCommandBuffer:CreateMappableBuffer(device, maxInstances * drawData:GetByteSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
+        drawCommandBuffer:CreateMappableBuffer(device, capacity * drawData:GetByteSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
         drawDataMemory = drawCommandBuffer:MapToDrawIndirectDataMemory()
         
         // Also create the parallel draw resources for the shadow mapping pass.
-        VulkanBuffer buffer2
-        shadowDrawCommandBuffer = buffer2
+        VulkanBuffer newShadowCommandBuffer
+        shadowDrawCommandBuffer = newShadowCommandBuffer
         
         shadowDrawCommandBuffer:CreateMappableBuffer(device, drawCommandBuffer:GetSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
         shadowDrawDataMemory = shadowDrawCommandBuffer:MapToDrawIndirectDataMemory()
     end
+
+    /*
+    This action returns how many more instances fit in the queue this frame
+    (Foliage plan F5). If instances were turned away in an earlier frame and
+    nothing has been written yet this frame, the queue grows first.
+
+    Attribute: Returns How many more instances fit.
+    */
+    action GetRoom returns integer
+        if pendingCapacity > maxInstances and currentInstanceIndex = 0 and currentDrawCommandIndex = 0
+            Grow(pendingCapacity)
+        end
+        return maxInstances - currentInstanceIndex
+    end
+
+    /*
+    This action counts instances that didn't fit this frame (Foliage plan
+    F5), so the queue grows to fit them in a later frame. Once it can't
+    grow any more, it says so once.
+
+    Attribute: Parameter count How many instances were left out.
+    */
+    action NoteDropped(integer count)
+        if count <= 0
+            return now
+        end
+        droppedThisFrame = droppedThisFrame + count
+        if maxInstances >= MAXIMUM_INSTANCES and not warnedFull
+            warnedFull = true
+            output "A 3D draw queue is full: more than " + MAXIMUM_INSTANCES + " copies of models share one texture group, so some are not drawn."
+        end
+    end
+
+    /*
+    This action returns how many instances the queue holds now.
+
+    Attribute: Returns The capacity.
+    */
+    action GetCapacity returns integer
+        return maxInstances
+    end
+
+    /*
+    This action makes the queue's buffers larger, doubling until they hold
+    the number of instances needed, up to MAXIMUM_INSTANCES (Foliage plan
+    F5). It is only used while the queue is empty this frame. The old
+    buffers are retired, as frames on the GPU may still read them.
+
+    Attribute: Parameter needed How many instances must fit.
+    */
+    private action Grow(integer needed)
+        pendingCapacity = 0
+        integer capacity = maxInstances
+        if capacity < 1
+            capacity = 1
+        end
+        repeat while capacity < needed and capacity < MAXIMUM_INSTANCES
+            capacity = capacity * 2
+        end
+        if capacity > MAXIMUM_INSTANCES
+            capacity = MAXIMUM_INSTANCES
+        end
+        if capacity <= maxInstances
+            return now
+        end
+
+        GameStateManager gameState
+        VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
+        instanceMapping:Dispose()
+        drawDataMemory:Dispose()
+        shadowDrawDataMemory:Dispose()
+        graphics:Retire(instanceData)
+        graphics:Retire(drawCommandBuffer)
+        graphics:Retire(shadowDrawCommandBuffer)
+
+        CreateBuffers(capacity)
+        instanceMapping:PrepareForTransfers()
+    end
     
     action Begin
+        // Instances left out last time this queue was used make it grow
+        // the next time it starts empty (Foliage plan F5).
+        if droppedThisFrame > 0
+            integer needed = currentInstanceIndex + droppedThisFrame
+            if needed > pendingCapacity
+                pendingCapacity = needed
+            end
+            droppedThisFrame = 0
+        end
         currentInstanceIndex = 0
         currentDrawCommandIndex = 0
         currentDrawInstanceIndex = 0

@@ -1,16 +1,20 @@
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.CameraMatrix4
 
 class Matrix4SetToLookAt 
     action Main
-        Matrix4 matrix
+        CameraMatrix4 camera
+        // The rows are fields of Matrix4, which a CameraMatrix4 variable
+        // can't read, so they're read through a Matrix4 variable.
+        Matrix4 matrix = camera
         Vector3 direction
         Vector3 up
 
         direction:Set(0, 0, 1)
         up:Set(0, 1, 0)
 
-        matrix:SetToLookAt(direction, up)
+        camera:SetToLookAt(direction, up)
 
         number row0column0 = matrix:row0column0 + 0.0
         number row0column1 = matrix:row0column1 + 0.0
@@ -43,7 +47,7 @@ class Matrix4SetToLookAt
         target:Set(0, 0, 3)
         up:Set(0, 1, 0)
 
-        matrix:SetToLookAt(direction, target, up)
+        camera:SetToLookAt(direction, target, up)
 
         row0column0 = matrix:row0column0 + 0.0
         row0column1 = matrix:row0column1 + 0.0

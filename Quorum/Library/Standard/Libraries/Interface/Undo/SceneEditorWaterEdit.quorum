@@ -1,0 +1,58 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.WaterState
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+
+/*
+    The SceneEditorWaterEdit is one change to a terrain's water in the scene
+    editor's undo list (Water plan W6): the sea turned on or off or moved, a
+    lake added, removed or changed, or the water's look changed. It holds the
+    water as it was before and after, and gives the terrain one or the
+    other, then has the scene editor show it and say what happened.
+*/
+class SceneEditorWaterEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    WaterState before = undefined
+    WaterState after = undefined
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain whose water changed
+        Attribute: Parameter before The water before the change
+        Attribute: Parameter after The water after it
+        Attribute: Parameter changeName What changed, such as "add lake"
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, WaterState before, WaterState after, text changeName)
+        me:controller = controller
+        me:terrain = terrain
+        me:before = before
+        me:after = after
+        name = changeName
+    end
+
+    action Undo
+        before:Apply(terrain)
+        controller:WaterEdited(terrain, "Undid " + name)
+    end
+
+    action Redo
+        after:Apply(terrain)
+        controller:WaterEdited(terrain, "Redid " + name)
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

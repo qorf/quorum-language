@@ -1,0 +1,372 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Containers.Array
+use Libraries.Compute.Random
+use Libraries.Compute.Math
+use Libraries.Game.Graphics.Worlds.TerrainFoliage
+use Libraries.Game.Graphics.Worlds.FoliageCell
+use Libraries.Game.Graphics.Worlds.FoliageList
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+/*
+    A FoliageStroke is one stroke of a terrain's Foliage tool in the scene
+    editor (Terrain plan F3): while it goes, each dab adds copies of one
+    foliage asset under the brush, or removes them. It keeps each cell it
+    touched as it was before the stroke, and as it is after, so the whole
+    stroke can be undone and redone as one step.
+
+    A dab adds as many copies as the asset's density and the brush's
+    density scale ask for over the brush's area, at random places, where
+    the slope suits the asset. To keep a held brush from piling copies up,
+    a new dab is made only once the brush has moved a radius from the last
+    one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.FoliageStroke
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+
+    TerrainItem ground
+    ground:Load("Scenes/Terrains/Terrain1/terrain.json")
+    FoliageStroke stroke
+    stroke:Begin(ground:GetTerrainFoliage(), ground:GetFoliageList(), 0, stroke:ADD_COPIES)
+    stroke:Apply(10, 20, 5, 1)
+    stroke:End()
+*/
+class FoliageStroke
+    // What a stroke does: add copies of its asset, remove its asset's
+    // copies, or remove every asset's.
+    public constant integer ADD_COPIES = 0
+    public constant integer REMOVE_ASSET = 1
+    public constant integer REMOVE_ALL = 2
+
+    TerrainFoliage foliage = undefined
+    FoliageList list = undefined
+    integer asset = 0
+    integer mode = 0
+    Random random
+    Math math
+
+    // Each cell touched, and its six numbers per copy before and after.
+    Array<FoliageCell> touched
+    Array<Array<number>> before
+    Array<Array<number>> after
+
+    // The area the stroke touched, for drawing again after undo.
+    number lowX = 0
+    number lowZ = 0
+    number highX = 0
+    number highZ = 0
+    boolean hasArea = false
+
+    // Where the last dab was, so a held brush doesn't add again in place.
+    number lastX = 0
+    number lastZ = 0
+    boolean dabbed = false
+
+    integer added = 0
+    integer removed = 0
+    boolean going = false
+
+    /*
+        Starts a stroke.
+
+        Attribute: Parameter terrainFoliage The terrain's foliage
+        Attribute: Parameter foliageList The terrain's foliage list
+        Attribute: Parameter assetNumber The asset added or removed, by its number in the list
+        Attribute: Parameter strokeMode ADD_COPIES, REMOVE_ASSET or REMOVE_ALL
+    */
+    action Begin(TerrainFoliage terrainFoliage, FoliageList foliageList, integer assetNumber, integer strokeMode)
+        foliage = terrainFoliage
+        list = foliageList
+        asset = assetNumber
+        mode = strokeMode
+        touched:Empty()
+        before:Empty()
+        after:Empty()
+        hasArea = false
+        dabbed = false
+        added = 0
+        removed = 0
+        going = true
+    end
+
+    /*
+        Returns true while the stroke is going.
+
+        Attribute: Returns True between Begin and End
+    */
+    action IsGoing returns boolean
+        return going
+    end
+
+    /*
+        Returns what the stroke does.
+
+        Attribute: Returns ADD_COPIES, REMOVE_ASSET or REMOVE_ALL
+    */
+    action GetMode returns integer
+        return mode
+    end
+
+    /*
+        Makes a dab at the brush, if the brush has moved far enough since the
+        last one; removal dabs are made every time, since removing again
+        does nothing more.
+
+        Attribute: Parameter x The brush's middle along x, in world units
+        Attribute: Parameter z The brush's middle along z, in world units
+        Attribute: Parameter radius The brush's radius, in world units
+        Attribute: Parameter densityScale How many times the asset's density to add
+        Attribute: Returns True if anything changed
+    */
+    action Apply(number x, number z, number radius, number densityScale) returns boolean
+        if not going or foliage = undefined or radius <= 0
+            return false
+        end
+        if mode = ADD_COPIES and dabbed
+            number movedX = x - lastX
+            number movedZ = z - lastZ
+            if movedX * movedX + movedZ * movedZ < radius * radius
+                return false
+            end
+        end
+        dabbed = true
+        lastX = x
+        lastZ = z
+        SnapshotCells(x, z, radius, false)
+        boolean changed = false
+        if mode = ADD_COPIES
+            if list = undefined or asset < 0 or asset >= list:GetAssetCount()
+                return false
+            end
+            FoliageAsset settings = list:GetAsset(asset)
+            number area = math:pi * radius * radius
+            number wanted = settings:GetDensity() * densityScale * area
+            integer count = cast(integer, wanted)
+            // The part left over is added by chance, so a light brush still
+            // places some.
+            if random:RandomNumber() < wanted - count
+                count = count + 1
+            end
+            integer i = 0
+            repeat while i < count
+                // A random place in the circle, even over its area.
+                number distance = radius * math:SquareRoot(random:RandomNumber())
+                number angle = random:RandomNumber() * 2 * math:pi
+                number placeX = x + distance * math:Cosine(angle)
+                number placeZ = z + distance * math:Sine(angle)
+                if foliage:AddCopyOnGround(asset, settings, placeX, placeZ, random)
+                    added = added + 1
+                    changed = true
+                end
+                i = i + 1
+            end
+        else
+            integer which = asset
+            if mode = REMOVE_ALL
+                which = -1
+            end
+            integer gone = foliage:RemoveCopies(which, x, z, radius)
+            if gone > 0
+                removed = removed + gone
+                changed = true
+            end
+        end
+        // Cells made by this dab weren't there before it: they were empty.
+        SnapshotCells(x, z, radius, true)
+        GrowArea(x, z, radius)
+        return changed
+    end
+
+    /*
+        Keeps a copy, as it is now, of every cell near the brush not kept
+        yet, before the dab changes it; or, after the dab, keeps cells it
+        made as empty, since they had nothing before.
+    */
+    private action SnapshotCells(number x, number z, number radius, boolean asEmpty)
+        integer i = 0
+        repeat while i < foliage:GetCellCount()
+            FoliageCell cell = foliage:GetCellAtIndex(i)
+            number size = cell:GetCellSize()
+            number cellLowX = cell:GetCellX() * size
+            number cellLowZ = cell:GetCellZ() * size
+            if cellLowX <= x + radius and cellLowX + size >= x - radius and cellLowZ <= z + radius and cellLowZ + size >= z - radius
+                if not IsTouched(cell)
+                    touched:Add(cell)
+                    if asEmpty
+                        Array<number> nothing
+                        before:Add(nothing)
+                    else
+                        before:Add(CopyValues(cell:GetValues()))
+                    end
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Returns true if a cell was kept already.
+    */
+    private action IsTouched(FoliageCell cell) returns boolean
+        integer i = 0
+        repeat while i < touched:GetSize()
+            if touched:Get(i) = cell
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+        Returns a copy of a cell's numbers.
+    */
+    private action CopyValues(Array<number> values) returns Array<number>
+        Array<number> copy
+        integer i = 0
+        repeat while i < values:GetSize()
+            copy:Add(values:Get(i))
+            i = i + 1
+        end
+        return copy
+    end
+
+    /*
+        Grows the area the stroke touched to take in a dab.
+    */
+    private action GrowArea(number x, number z, number radius)
+        if not hasArea
+            lowX = x - radius
+            highX = x + radius
+            lowZ = z - radius
+            highZ = z + radius
+            hasArea = true
+            return now
+        end
+        if x - radius < lowX
+            lowX = x - radius
+        end
+        if x + radius > highX
+            highX = x + radius
+        end
+        if z - radius < lowZ
+            lowZ = z - radius
+        end
+        if z + radius > highZ
+            highZ = z + radius
+        end
+    end
+
+    /*
+        Ends the stroke, keeping each touched cell as it is now, for redo.
+
+        Attribute: Returns True if the stroke added or removed anything
+    */
+    action End returns boolean
+        going = false
+        after:Empty()
+        integer i = 0
+        repeat while i < touched:GetSize()
+            after:Add(CopyValues(touched:Get(i):GetValues()))
+            i = i + 1
+        end
+        return added > 0 or removed > 0
+    end
+
+    /*
+        Puts every touched cell back as it was before the stroke.
+    */
+    action Undo
+        Restore(before)
+    end
+
+    /*
+        Puts every touched cell as it was after the stroke again.
+    */
+    action Redo
+        Restore(after)
+    end
+
+    /*
+        Sets each touched cell's copies to kept numbers.
+    */
+    private action Restore(Array<Array<number>> kept)
+        integer i = 0
+        repeat while i < touched:GetSize() and i < kept:GetSize()
+            FoliageCell cell = touched:Get(i)
+            Array<number> values = kept:Get(i)
+            cell:Empty()
+            integer index = 0
+            repeat while index + 5 < values:GetSize()
+                cell:Add(values:Get(index), values:Get(index + 1), values:Get(index + 2), values:Get(index + 3), values:Get(index + 4), values:Get(index + 5))
+                index = index + 6
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Returns how many copies the stroke added.
+
+        Attribute: Returns The count
+    */
+    action GetAddedCount returns integer
+        return added
+    end
+
+    /*
+        Returns how many copies the stroke removed.
+
+        Attribute: Returns The count
+    */
+    action GetRemovedCount returns integer
+        return removed
+    end
+
+    /*
+        Returns the middle of the area the stroke touched, along x.
+
+        Attribute: Returns The x, in world units
+    */
+    action GetAreaMiddleX returns number
+        return (lowX + highX) / 2
+    end
+
+    /*
+        Returns the middle of the area the stroke touched, along z.
+
+        Attribute: Returns The z, in world units
+    */
+    action GetAreaMiddleZ returns number
+        return (lowZ + highZ) / 2
+    end
+
+    /*
+        Returns how far the area the stroke touched reaches from its middle,
+        at most.
+
+        Attribute: Returns The distance, in world units
+    */
+    action GetAreaRadius returns number
+        number halfX = (highX - lowX) / 2
+        number halfZ = (highZ - lowZ) / 2
+        return math:SquareRoot(halfX * halfX + halfZ * halfZ)
+    end
+
+    /*
+        Returns the name of the asset the stroke added or removed, or "every
+        asset" when it removed them all.
+
+        Attribute: Returns The name
+    */
+    action GetAssetName returns text
+        if mode = REMOVE_ALL
+            return "foliage"
+        end
+        if list = undefined or asset < 0 or asset >= list:GetAssetCount()
+            return "foliage"
+        end
+        return list:GetAsset(asset):GetName()
+    end
+end

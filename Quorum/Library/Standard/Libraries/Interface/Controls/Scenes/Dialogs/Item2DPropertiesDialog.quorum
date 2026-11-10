@@ -40,16 +40,19 @@ class Item2DPropertiesDialog is PropertiesDialog
     TextField frictionField = undefined
     TextField restitutionField = undefined
 
+    // The width of the box each line's label sits in, so the fields after
+    // the labels line up and are the same size (the terrain sections' way).
+    constant number FIELD_LABEL_WIDTH = 90
+    // The gap after each of a line's three fields, in pixels.
+    constant integer CELL_GAP = 6
+
     /*
-        Creates and adds the interface components for this dialog.
+        Creates and adds the interface components for this dialog: the
+        item's name, then cards for its place (position, scale and turn) and
+        its physics, as the 3D items' and the terrain's sections are laid
+        out.
     */
     private action CreateInterface(Control panel, Array<Control> focusArray)
-        Label label
-        nameLabel = label
-        
-        TextField field
-        nameField = field
-
         SetName("Object Properties")
 
         Label basicPropertiesLabel
@@ -61,343 +64,190 @@ class Item2DPropertiesDialog is PropertiesDialog
         // closes it when the panel shows several sections (step 15).
         SetHeading(basicPropertiesLabel)
 
-        FlowLayout nameLayout
-        Control nameContainer
-        nameContainer:SetLayout(nameLayout)
-        nameContainer:SetPercentageWidth(1.0)
-        nameContainer:SetVerticalLayoutMode(nameContainer:FIT_CONTENTS)
-        nameContainer:SetLeftMargin(20)
-        nameContainer:SetTopMargin(10)
-        nameContainer:SetRightMargin(30)
-        nameContainer:SetBottomMargin(10)
+        Control nameCard = AddCard(panel, "")
+        nameField = AddField(nameCard, "Name", "Name", focusArray)
 
-        nameLabel:SetText("Name")
-        nameLabel:SetHorizontalLayoutMode(nameLabel:parent:Control:STANDARD)
-        nameLabel:SetPercentageWidth(0.3)
-        nameContainer:Add(nameLabel)
-        
-        nameField:SetHorizontalLayoutMode(nameField:parent:Libraries.Interface.Controls.Control:FILL)
-        nameField:SetName("Name")
-        nameField:SetText("")
-        nameField:SetFocusable(true)
-        nameField:AddTextChangeListener(me)
-        nameContainer:Add(nameField)
-        focusArray:Add(nameField)
-        panel:Add(nameContainer)
+        Control placeCard = AddCard(panel, "Place")
+        Array<TextField> position = AddTriple(placeCard, "Position", "X", "Y", "Z", "x", "y", "z", focusArray)
+        positionXField = position:Get(0)
+        positionYField = position:Get(1)
+        positionZField = position:Get(2)
+        // Scale has two fields, each a third wide, under position's x and y.
+        placeCard:Add(MakeLabelLine("Scale"))
+        Control scaleLine = MakeCardLine()
+        scaleLine:SetTopMargin(0)
+        scaleXField = AddTaggedField(scaleLine, "X Scale", "x", focusArray)
+        scaleYField = AddTaggedField(scaleLine, "Y Scale", "y", focusArray)
+        placeCard:Add(scaleLine)
+        rotationField = AddField(placeCard, "Rotation", "Rotation", focusArray)
 
-        Label positionLabel
-        
-        TextField positionXField
-        me:positionXField = positionXField
-
-        TextField positionYField
-        me:positionYField = positionYField
-
-        TextField positionZField
-        me:positionZField = positionZField
-
-        FlowLayout positionLayout
-        Control positionContainer
-        positionContainer:SetLayout(positionLayout)
-        positionContainer:SetPercentageWidth(1.0)
-        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftMargin(20)
-        positionContainer:SetTopMargin(10)
-        positionContainer:SetRightMargin(30)
-        positionContainer:SetBottomMargin(10)
-
-        positionLabel:SetText("Position")
-        positionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        positionLabel:SetPercentageWidth(0.3)
-        positionContainer:Add(positionLabel)
-        
-        FlowLayout positionFieldLayout
-        Control positionFieldContainer
-        positionFieldContainer:SetLayout(positionFieldLayout)
-
-        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
-        positionFieldContainer:SetName("Position Fields")
-        positionXField:SetName("X")
-        positionXField:SetText("")
-        positionXField:SetFocusable(true)
-        positionXField:AddTextChangeListener(me)
-        positionXField:SetRightMargin(8)
-        positionXField:SetPercentageWidth(0.33)
-        positionXField:SetPixelWidth(-5)
-        positionFieldContainer:Add(positionXField)
-
-        positionYField:SetName("Y")
-        positionYField:SetText("")
-        positionYField:SetFocusable(true)
-        positionYField:AddTextChangeListener(me)
-        positionYField:SetRightMargin(8)
-        positionYField:SetPercentageWidth(0.33)
-        positionYField:SetPixelWidth(-5)
-        positionFieldContainer:Add(positionYField)
-
-        positionZField:SetName("Z")
-        positionZField:SetText("")
-        positionZField:SetFocusable(true)
-        positionZField:AddTextChangeListener(me)
-        positionZField:SetPercentageWidth(0.33)
-        positionZField:SetPixelWidth(-5)
-        positionFieldContainer:Add(positionZField)
-
-        focusArray:Add(positionXField)
-        focusArray:Add(positionYField)
-        focusArray:Add(positionZField)
-
-        positionContainer:Add(positionFieldContainer)
-        panel:Add(positionContainer)
-
-        Label scaleLabel
-        
-        TextField scaleXField
-        me:scaleXField = scaleXField
-
-        TextField scaleYField
-        me:scaleYField = scaleYField
-
-        FlowLayout scaleLayout
-        Control scaleContainer
-        scaleContainer:SetLayout(scaleLayout)
-        scaleContainer:SetPercentageWidth(1.0)
-        scaleContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        scaleContainer:SetLeftMargin(20)
-        scaleContainer:SetTopMargin(10)
-        scaleContainer:SetRightMargin(30)
-        scaleContainer:SetBottomMargin(10)
-
-        scaleLabel:SetText("Scale")
-        scaleLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        scaleLabel:SetPercentageWidth(0.3)
-        scaleContainer:Add(scaleLabel)
-        
-        FlowLayout scaleFieldLayout
-        Control scaleFieldContainer
-        scaleFieldContainer:SetLayout(scaleFieldLayout)
-
-        scaleFieldContainer:SetHorizontalLayoutMode(scaleFieldContainer:FILL)
-        scaleFieldContainer:SetName("Scale Fields")
-        scaleXField:SetName("X Scale")
-        scaleXField:SetText("")
-        scaleXField:SetFocusable(true)
-        scaleXField:AddTextChangeListener(me)
-        scaleXField:SetRightMargin(8)
-        scaleXField:SetPercentageWidth(0.5)
-        scaleXField:SetPixelWidth(-4)
-        scaleFieldContainer:Add(scaleXField)
-
-        scaleYField:SetName("Y Scale")
-        scaleYField:SetText("")
-        scaleYField:SetFocusable(true)
-        scaleYField:AddTextChangeListener(me)
-        scaleYField:SetPercentageWidth(0.5)
-        scaleYField:SetPixelWidth(-4)
-        scaleFieldContainer:Add(scaleYField)
-
-        focusArray:Add(scaleXField)
-        focusArray:Add(scaleYField)
-
-        scaleContainer:Add(scaleFieldContainer)
-        panel:Add(scaleContainer)
-
-        Label rotationLabel
-        
-        TextField rotationField
-        me:rotationField = rotationField
-
-        FlowLayout rotationLayout
-        Control rotationContainer
-        rotationContainer:SetLayout(rotationLayout)
-        rotationContainer:SetPercentageWidth(1.0)
-        rotationContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        rotationContainer:SetLeftMargin(20)
-        rotationContainer:SetTopMargin(10)
-        rotationContainer:SetRightMargin(30)
-        rotationContainer:SetBottomMargin(10)
-
-        rotationLabel:SetText("Rotation")
-        rotationLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        rotationLabel:SetPercentageWidth(0.3)
-        rotationContainer:Add(rotationLabel)
-        
-        FlowLayout rotationFieldLayout
-        Control rotationFieldContainer
-        rotationFieldContainer:SetLayout(rotationFieldLayout)
-
-        rotationFieldContainer:SetHorizontalLayoutMode(rotationFieldContainer:FILL)
-        rotationFieldContainer:SetName("Rotation Fields")
-        rotationField:SetName("Rotation")
-        rotationField:SetText("")
-        rotationField:SetFocusable(true)
-        rotationField:AddTextChangeListener(me)
-        rotationField:SetPercentageWidth(1)
-        rotationFieldContainer:Add(rotationField)
-
-        focusArray:Add(rotationField)
-
-        rotationContainer:Add(rotationFieldContainer)
-        panel:Add(rotationContainer)
-
-        Label physicsLabel
-        physicsLabel:SetSize(18)
-        physicsLabel:SetText("Physics")
-        physicsLabel:SetLeftMargin(20)
-        panel:Add(physicsLabel)
-
-        FlowLayout physicsEnabledLayout
-        Control physicsEnabledContainer
-        physicsEnabledContainer:SetLayout(physicsEnabledLayout)
-        physicsEnabledContainer:SetPercentageWidth(1.0)
-        physicsEnabledContainer:SetVerticalLayoutMode(physicsEnabledContainer:FIT_CONTENTS)
-        physicsEnabledContainer:SetLeftMargin(20)
-        physicsEnabledContainer:SetTopMargin(10)
-        physicsEnabledContainer:SetRightMargin(30)
-        physicsEnabledContainer:SetBottomMargin(10)
-
-        Checkbox physicsEnabledCheckbox
-        me:physicsEnabledCheckbox = physicsEnabledCheckbox
-        
+        Control physicsCard = AddCard(panel, "Physics")
+        Control physicsLine = MakeCardLine()
+        Checkbox physicsCheckbox
+        physicsEnabledCheckbox = physicsCheckbox
         physicsEnabledCheckbox:SetName("Physics Enabled")
-        physicsEnabledContainer:Add(physicsEnabledCheckbox)
-        physicsEnabledContainer:SetTopMargin(10)
-        physicsEnabledContainer:SetBottomMargin(10)
-        panel:Add(physicsEnabledContainer)
-
         PropertiesEnablePhysicsBehavior propertiesEnablePhysicsBehavior
         propertiesEnablePhysicsBehavior:SetDialog2D(me)
         physicsEnabledCheckbox:SetBehavior(propertiesEnablePhysicsBehavior)
-
+        physicsLine:Add(physicsEnabledCheckbox)
+        physicsCard:Add(physicsLine)
         focusArray:Add(physicsEnabledCheckbox)
 
-        Control responsivenessPanel
-        responsivenessPanel:SetPercentageWidth(1.0)
-        responsivenessPanel:SetVerticalLayoutMode(responsivenessPanel:FIT_CONTENTS)
-        FlowLayout responsivenessPanelLayout
-        responsivenessPanel:SetLayout(responsivenessPanelLayout)
-        responsivenessPanel:SetLeftMargin(20)
-        responsivenessPanel:SetRightMargin(30)
-        responsivenessPanel:SetBottomMargin(10)
-
-        ButtonGroup responsivenessGroup
+        // The three ways an item responds, side by side on one line.
+        Control responsivenessLine = MakeCardLine()
+        ButtonGroup group
+        responsivenessGroup = group
         responsivenessGroup:SetName("Responsiveness")
-        me:responsivenessGroup = responsivenessGroup
-        responsivenessGroup:SetHorizontalLayoutMode(responsivenessPanel:FILL)
-        responsivenessGroup:SetVerticalLayoutMode(responsivenessPanel:FIT_CONTENTS)
-
-        RadioButton responsiveButton
-        responsiveButton:SetName("Responsive")
-        responsiveButton:SetHorizontalLayoutMode(physicsEnabledContainer:FILL)
-        
-        RadioButton nonResponsiveButton
-        nonResponsiveButton:SetName("Nonresponsive")
-        nonResponsiveButton:SetHorizontalLayoutMode(physicsEnabledContainer:FILL)
+        responsivenessGroup:SetHorizontalLayoutMode(responsivenessLine:FILL)
+        responsivenessGroup:SetVerticalLayoutMode(responsivenessLine:FIT_CONTENTS)
+        FlowLayout groupLayout
+        responsivenessGroup:SetLayout(groupLayout)
         RadioButton unmovableButton
         unmovableButton:SetName("Unmovable")
-        unmovableButton:SetHorizontalLayoutMode(physicsEnabledContainer:FILL)
-        
-        responsivenessGroup:AddToGrouping(unmovableButton)
-        responsivenessGroup:AddToGrouping(nonResponsiveButton)
-        responsivenessGroup:AddToGrouping(responsiveButton)
-responsivenessGroup:Add(unmovableButton)
-        responsivenessGroup:Add(nonResponsiveButton)
-        responsivenessGroup:Add(responsiveButton)
+        RadioButton nonResponsiveButton
+        nonResponsiveButton:SetName("Nonresponsive")
+        RadioButton responsiveButton
+        responsiveButton:SetName("Responsive")
+        AddChoice(unmovableButton)
+        AddChoice(nonResponsiveButton)
+        AddChoice(responsiveButton)
         responsivenessGroup:AddSelectionListener(me)
-        
-        FlowLayout responseGroupLayout
-        responsivenessGroup:SetLayout(responseGroupLayout)
-
-        responsivenessPanel:Add(responsivenessGroup)
-        panel:Add(responsivenessPanel)
+        responsivenessLine:Add(responsivenessGroup)
+        physicsCard:Add(responsivenessLine)
         focusArray:Add(responsivenessGroup)
 
-        FlowLayout massLayout
-        Control massContainer
-        massContainer:SetLayout(massLayout)
-        massContainer:SetPercentageWidth(1.0)
-        massContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        massContainer:SetLeftMargin(20)
-        massContainer:SetTopMargin(10)
-        massContainer:SetRightMargin(30)
-        massContainer:SetBottomMargin(10)
+        massField = AddField(physicsCard, "Mass", "Mass", focusArray)
+        frictionField = AddField(physicsCard, "Friction", "Friction", focusArray)
+        restitutionField = AddField(physicsCard, "Restitution", "Restitution", focusArray)
+    end
 
-        Label massLabel
-        massLabel:SetText("Mass")
-        massLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        massLabel:SetPercentageWidth(0.3)
-        massContainer:Add(massLabel)
+    /*
+        Adds one of the responsiveness choices to its group, a third of the
+        line wide, in the order SetFields counts them.
+    */
+    private action AddChoice(RadioButton button)
+        button:SetPercentageWidth(0.333)
+        button:SetPixelWidth(-CELL_GAP)
+        button:SetRightMargin(CELL_GAP)
+        responsivenessGroup:AddToGrouping(button)
+        responsivenessGroup:Add(button)
+    end
 
-        TextField massField
-        me:massField = massField
-        massField:SetName("Mass")
-        massField:SetText("")
-        massField:SetFocusable(true)
-        massField:AddTextChangeListener(me)
-        massField:SetRightMargin(8)
-        massField:SetHorizontalLayoutMode(massContainer:FILL)
-        massContainer:Add(massField)
+    /*
+        Makes the start of a card's line: the line, and its label in a box
+        of one width, so the fields after the labels line up.
+    */
+    private action MakeLabeledLine(text label) returns Control
+        Control line = MakeCardLine()
+        FlowLayout labelLayout
+        Control labelBox
+        labelBox:SetLayout(labelLayout)
+        labelBox:SetPercentageWidth(0)
+        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
+        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
+        labelBox:SetRightMargin(8)
+        Label fieldLabel
+        fieldLabel:SetText(label)
+        labelBox:Add(fieldLabel)
+        line:Add(labelBox)
+        return line
+    end
 
-        focusArray:Add(massField)
-        panel:Add(massContainer)
+    /*
+        Adds a line to a card with a label and one field filling the rest.
 
-        FlowLayout frictionLayout
-        Control frictionContainer
-        frictionContainer:SetLayout(frictionLayout)
-        frictionContainer:SetPercentageWidth(1.0)
-        frictionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        frictionContainer:SetLeftMargin(20)
-        frictionContainer:SetTopMargin(10)
-        frictionContainer:SetRightMargin(30)
-        frictionContainer:SetBottomMargin(10)
+        Attribute: Parameter card The card
+        Attribute: Parameter label The label shown
+        Attribute: Parameter name The field's name, as a screen reader says it
+        Attribute: Parameter focusArray The section's focus order
+        Attribute: Returns The field
+    */
+    private action AddField(Control card, text label, text name, Array<Control> focusArray) returns TextField
+        Control line = MakeLabeledLine(label)
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:AddTextChangeListener(me)
+        field:SetHorizontalLayoutMode(line:FILL)
+        line:Add(field)
+        card:Add(line)
+        focusArray:Add(field)
+        return field
+    end
 
-        Label frictionLabel
-        frictionLabel:SetText("Friction")
-        frictionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        frictionLabel:SetPercentageWidth(0.3)
-        frictionContainer:Add(frictionLabel)
+    /*
+        Adds a label on its own line, then a line of three fields of the
+        same width, each after a small tag, such as x, y and z. The label
+        sits above, so the fields have the card's whole width.
 
-        TextField frictionField
-        me:frictionField = frictionField
-        frictionField:SetName("Friction")
-        frictionField:SetText("")
-        frictionField:SetFocusable(true)
-        frictionField:AddTextChangeListener(me)
-        frictionField:SetRightMargin(8)
-        frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
-        frictionContainer:Add(frictionField)
+        Attribute: Parameter card The card
+        Attribute: Parameter label The label shown
+        Attribute: Parameter firstName The first field's name, as a screen reader says it
+        Attribute: Parameter secondName The second field's name
+        Attribute: Parameter thirdName The third field's name
+        Attribute: Parameter firstTag The small tag before the first field
+        Attribute: Parameter secondTag The tag before the second field
+        Attribute: Parameter thirdTag The tag before the third field
+        Attribute: Parameter focusArray The section's focus order
+        Attribute: Returns The three fields, in order
+    */
+    private action AddTriple(Control card, text label, text firstName, text secondName, text thirdName,
+            text firstTag, text secondTag, text thirdTag, Array<Control> focusArray) returns Array<TextField>
+        card:Add(MakeLabelLine(label))
+        Control line = MakeCardLine()
+        line:SetTopMargin(0)
+        Array<TextField> made
+        made:Add(AddTaggedField(line, firstName, firstTag, focusArray))
+        made:Add(AddTaggedField(line, secondName, secondTag, focusArray))
+        made:Add(AddTaggedField(line, thirdName, thirdTag, focusArray))
+        card:Add(line)
+        return made
+    end
 
-        focusArray:Add(frictionField)
-        panel:Add(frictionContainer)
+    /*
+        Makes a line holding only a label, for the three-field rows, whose
+        label sits above their fields.
+    */
+    private action MakeLabelLine(text label) returns Control
+        Control line = MakeCardLine()
+        line:SetBottomMargin(2)
+        Label lineLabel
+        lineLabel:SetText(label)
+        line:Add(lineLabel)
+        return line
+    end
 
-        FlowLayout restitutionLayout
-        Control restitutionContainer
-        restitutionContainer:SetLayout(restitutionLayout)
-        restitutionContainer:SetPercentageWidth(1.0)
-        restitutionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        restitutionContainer:SetLeftMargin(20)
-        restitutionContainer:SetTopMargin(10)
-        restitutionContainer:SetRightMargin(30)
-        restitutionContainer:SetBottomMargin(10)
-
-        Label restitutionLabel
-        restitutionLabel:SetText("Restitution")
-        restitutionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        restitutionLabel:SetPercentageWidth(0.3)
-        restitutionContainer:Add(restitutionLabel)
-
-        TextField restitutionField
-        me:restitutionField = restitutionField
-        restitutionField:SetName("Restitution")
-        restitutionField:SetText("")
-        restitutionField:SetFocusable(true)
-        restitutionField:AddTextChangeListener(me)
-        restitutionField:SetRightMargin(8)
-        restitutionField:SetHorizontalLayoutMode(frictionContainer:FILL)
-        restitutionContainer:Add(restitutionField)
-
-        focusArray:Add(restitutionField)
-        panel:Add(restitutionContainer)
+    /*
+        Adds one of a line's three fields: a third of the line wide, less
+        its margin so three always fit, with its small tag first, in the
+        section title's color.
+    */
+    private action AddTaggedField(Control fields, text name, text tag, Array<Control> focusArray) returns TextField
+        FlowLayout cellLayout
+        Control cell
+        cell:SetLayout(cellLayout)
+        cell:SetPercentageWidth(0.333)
+        cell:SetPixelWidth(-CELL_GAP)
+        cell:SetVerticalLayoutMode(cell:FIT_CONTENTS)
+        cell:SetRightMargin(CELL_GAP)
+        Label tagLabel = MakeCardTitle(tag)
+        tagLabel:SetSize(12)
+        tagLabel:SetLeftMargin(0)
+        tagLabel:SetTopMargin(0)
+        tagLabel:SetBottomMargin(0)
+        tagLabel:SetRightMargin(4)
+        cell:Add(tagLabel)
+        TextField field
+        field:SetName(name)
+        field:SetText("")
+        field:SetFocusable(true)
+        field:AddTextChangeListener(me)
+        field:SetHorizontalLayoutMode(cell:FILL)
+        cell:Add(field)
+        fields:Add(cell)
+        focusArray:Add(field)
+        return field
     end
 
     /*

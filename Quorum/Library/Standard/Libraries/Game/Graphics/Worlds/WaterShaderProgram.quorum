@@ -1,0 +1,421 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Shaders.ShaderManager
+use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Containers.Number32BitArray
+use Libraries.Compute.Math
+use Libraries.System.Logging.SharedLogger
+
+/*
+WaterShaderProgram draws water: lakes and seas over the terrain. It is a
+forward program (library item 39): drawn after the lighting, over what is
+already there, so it can look through to the ground below. Deeper water is
+darker, the edge fades softly into the shore, ripples move with time, and
+the sun and lamps glint on it.
+
+The program holds every setting. Give it to WaterSurfaces with their Load
+action; every surface using one program looks the same. Install it once,
+before the first surface is loaded. It needs Vulkan.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Worlds.WaterShaderProgram
+use Libraries.Game.Graphics.Worlds.WaterSurface
+
+class Main is Game
+    WaterShaderProgram water
+    WaterSurface lake
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        water:Install()
+        water:SetClarity(0.3)
+        lake:Load(40, 40, water)
+        lake:SetPosition(0, 2, 0)
+        Add(lake)
+    end
+end
+*/
+class WaterShaderProgram is ShaderProgram
+    WaterFragmentShader waterFragment
+    Texture normalMap = undefined
+    Color shallowColor = undefined
+    Color deepColor = undefined
+    number waveScale = 8
+    number waveSpeed = 0.6
+    number waveDirectionX = 1
+    number waveDirectionZ = 0.35
+    number clarity = 0.35
+    number shoreFade = 0.5
+    number roughness = 0.06
+    number reflectionStrength = 1
+    number normalStrength = 1
+    // The generated normal map's size, in pixels; it tiles.
+    constant integer NORMAL_MAP_SIZE = 128
+    Math math
+
+    on create
+        Color colors
+        shallowColor = colors:CustomColor(0.10, 0.42, 0.40, 0.25)
+        deepColor = colors:CustomColor(0.02, 0.10, 0.16, 0.92)
+    end
+
+    /*
+    This action compiles the program as "Water Shader Program" and makes
+    its ripple texture. Call it once, before loading any WaterSurface with
+    it.
+    */
+    action Install
+        Install("Water Shader Program")
+    end
+
+    /*
+    This action compiles the program under a name, and makes its ripple
+    texture. Each program installed needs its own name.
+
+    Attribute: Parameter programName The name to register the program under.
+    */
+    action Install(text programName)
+        GameStateManager gameState
+        // Water needs Vulkan. Under OpenGL the program isn't made, and
+        // WaterSurface draws nothing, so a scene with water still opens.
+        if not (gameState:GetGameGraphics() is VulkanGraphics)
+            SharedLogger logger
+            logger:Log("Water needs Vulkan, so it isn't drawn under OpenGL.")
+            return now
+        end
+        ShaderManager manager = gameState:GetShaderManager()
+        SetName(programName)
+        Add(manager:GetDefaultVertexShader3D())
+        Add(waterFragment)
+        WaterShaderMapping mapping
+        SetShaderMapping(mapping)
+        Compile()
+        if normalMap = undefined
+            normalMap = MakeNormalMap()
+        end
+    end
+
+    /*
+    This action returns the ripple texture: a normal map that tiles,
+    made when the program is installed.
+
+    Attribute: Returns The normal map, or undefined before Install.
+    */
+    action GetNormalMap returns Texture
+        return normalMap
+    end
+
+    /*
+    This action sets the color of shallow water, and its alpha is how
+    much of the ground shows through it, from 0 (all of it) to 1 (none).
+
+    Attribute: Parameter color The shallow color.
+    */
+    action SetShallowColor(Color color)
+        shallowColor = color
+    end
+
+    /*
+    This action returns the color of shallow water.
+
+    Attribute: Returns The shallow color.
+    */
+    action GetShallowColor returns Color
+        return shallowColor
+    end
+
+    /*
+    This action sets the color of deep water, and its alpha is how much of
+    the ground shows through deep water, from 0 (all of it) to 1 (none).
+
+    Attribute: Parameter color The deep color.
+    */
+    action SetDeepColor(Color color)
+        deepColor = color
+    end
+
+    /*
+    This action returns the color of deep water.
+
+    Attribute: Returns The deep color.
+    */
+    action GetDeepColor returns Color
+        return deepColor
+    end
+
+    /*
+    This action sets how quickly the water darkens and hides the ground
+    as it gets deeper. 0 is perfectly clear; 1 is muddy within a meter or
+    so.
+
+    Attribute: Parameter value How murky the water is, 0 or more.
+    */
+    action SetClarity(number value)
+        if value < 0
+            value = 0
+        end
+        clarity = value
+    end
+
+    /*
+    This action returns how quickly the water darkens with depth.
+
+    Attribute: Returns The value from SetClarity.
+    */
+    action GetClarity returns number
+        return clarity
+    end
+
+    /*
+    This action sets how deep the water is, in world units, before its edge
+    stops fading into the shore. 0 gives a hard edge.
+
+    Attribute: Parameter depth The depth over which the edge fades.
+    */
+    action SetShoreFade(number depth)
+        if depth < 0
+            depth = 0
+        end
+        shoreFade = depth
+    end
+
+    /*
+    This action returns the depth over which the edge fades.
+
+    Attribute: Returns The value from SetShoreFade.
+    */
+    action GetShoreFade returns number
+        return shoreFade
+    end
+
+    /*
+    This action sets how many world units one tile of the larger ripples
+    covers. The smaller ripples are a little under half that.
+
+    Attribute: Parameter size The size of a ripple tile, more than 0.
+    */
+    action SetWaveScale(number size)
+        if size <= 0
+            alert("The wave scale must be more than 0, but was given " + size + ".")
+        end
+        waveScale = size
+    end
+
+    /*
+    This action returns the size of a ripple tile.
+
+    Attribute: Returns The value from SetWaveScale.
+    */
+    action GetWaveScale returns number
+        return waveScale
+    end
+
+    /*
+    This action sets how fast the ripples move, in world units a second.
+
+    Attribute: Parameter speed The ripples' speed.
+    */
+    action SetWaveSpeed(number speed)
+        waveSpeed = speed
+    end
+
+    /*
+    This action returns how fast the ripples move.
+
+    Attribute: Returns The value from SetWaveSpeed.
+    */
+    action GetWaveSpeed returns number
+        return waveSpeed
+    end
+
+    /*
+    This action sets the way the wind pushes the ripples, along the ground.
+    Only the direction matters.
+
+    Attribute: Parameter x The direction's x part.
+    Attribute: Parameter z The direction's z part.
+    */
+    action SetWaveDirection(number x, number z)
+        waveDirectionX = x
+        waveDirectionZ = z
+    end
+
+    /*
+    This action sets how rough the surface is for glints: small values give
+    sharp sun glints, larger ones a broad sheen.
+
+    Attribute: Parameter value The roughness, from 0.02 to 1.
+    */
+    action SetRoughness(number value)
+        roughness = math:Clamp(value, 0.02, 1)
+    end
+
+    /*
+    This action returns the surface's roughness.
+
+    Attribute: Returns The value from SetRoughness.
+    */
+    action GetRoughness returns number
+        return roughness
+    end
+
+    /*
+    This action sets how much of the sky the water reflects (library item
+    41), from 0 for none to 1 for all the physics allows.
+
+    Attribute: Parameter strength The reflection's strength.
+    */
+    action SetReflectionStrength(number strength)
+        reflectionStrength = math:Clamp(strength, 0, 1)
+    end
+
+    /*
+    This action returns how much of the sky the water reflects.
+
+    Attribute: Returns The value from SetReflectionStrength.
+    */
+    action GetReflectionStrength returns number
+        return reflectionStrength
+    end
+
+    /*
+    This action sets how strong the ripples look: 0 is a flat mirror, 1 is
+    normal, and 2 is choppy.
+
+    Attribute: Parameter strength The ripples' strength.
+    */
+    action SetNormalStrength(number strength)
+        if strength < 0
+            strength = 0
+        end
+        normalStrength = strength
+    end
+
+    /*
+    This action returns how strong the ripples look.
+
+    Attribute: Returns The value from SetNormalStrength.
+    */
+    action GetNormalStrength returns number
+        return normalStrength
+    end
+
+    /*
+    This action writes the settings, in the order WaterFragmentShader reads
+    them: the shallow and deep colors, the waves (scale, speed, direction),
+    the look (clarity, shore fade, roughness, reflection), and the ripples'
+    strength. WaterShaderMapping calls it each frame.
+
+    Attribute: Parameter data The 18 numbers to fill.
+    */
+    action FillData(Number32BitArray data)
+        data:Set(0, shallowColor:GetRed())
+        data:Set(1, shallowColor:GetGreen())
+        data:Set(2, shallowColor:GetBlue())
+        data:Set(3, shallowColor:GetAlpha())
+        data:Set(4, deepColor:GetRed())
+        data:Set(5, deepColor:GetGreen())
+        data:Set(6, deepColor:GetBlue())
+        data:Set(7, deepColor:GetAlpha())
+        data:Set(8, waveScale)
+        data:Set(9, waveSpeed)
+        data:Set(10, waveDirectionX)
+        data:Set(11, waveDirectionZ)
+        data:Set(12, clarity)
+        data:Set(13, shoreFade)
+        data:Set(14, roughness)
+        data:Set(15, reflectionStrength)
+        data:Set(16, normalStrength)
+        data:Set(17, 0)
+    end
+
+    /*
+    This action makes the ripple texture: a normal map of the slopes of ten
+    waves added together. Each wave fits a whole number of times across the
+    texture, so it tiles with no seam. Each pixel's red and green are its
+    slope along x and along the rows, and blue is up.
+
+    Attribute: Returns The normal map, with mipmaps so distant water doesn't shimmer.
+    */
+    private action MakeNormalMap returns Texture
+        // Each wave: how many times it fits across (x, then rows), its
+        // height, and where it starts.
+        Number32BitArray waves
+        waves:SetSize(40)
+        SetWave(waves, 0, 1, 2, 0.90, 0.3)
+        SetWave(waves, 1, 2, -1, 0.80, 1.7)
+        SetWave(waves, 2, -3, 1, 0.50, 4.1)
+        SetWave(waves, 3, 1, 4, 0.45, 2.6)
+        SetWave(waves, 4, 5, 2, 0.30, 5.3)
+        SetWave(waves, 5, -4, -5, 0.25, 0.9)
+        SetWave(waves, 6, 7, -3, 0.18, 3.4)
+        SetWave(waves, 7, 3, 8, 0.15, 1.2)
+        SetWave(waves, 8, -9, 5, 0.10, 4.8)
+        SetWave(waves, 9, 11, 6, 0.08, 2.2)
+
+        PixelMap map
+        Format format
+        format:SetValue(format:RGBA8888)
+        map:CreatePixelMap(NORMAL_MAP_SIZE, NORMAL_MAP_SIZE, format)
+        Color colors
+        number step = 2 * math:pi / NORMAL_MAP_SIZE
+        // How steep the slopes are made, before the shader's strength.
+        number steepness = 2
+        integer y = 0
+        repeat while y < NORMAL_MAP_SIZE
+            integer x = 0
+            repeat while x < NORMAL_MAP_SIZE
+                number slopeX = 0
+                number slopeY = 0
+                integer wave = 0
+                repeat while wave < 10
+                    number acrossX = waves:Get(wave * 4)
+                    number acrossY = waves:Get(wave * 4 + 1)
+                    number height = waves:Get(wave * 4 + 2)
+                    number start = waves:Get(wave * 4 + 3)
+                    number change = height * math:Cosine(step * (acrossX * x + acrossY * y) + start)
+                    slopeX = slopeX + change * step * acrossX
+                    slopeY = slopeY + change * step * acrossY
+                    wave = wave + 1
+                end
+                number normalX = -slopeX * steepness
+                number normalY = -slopeY * steepness
+                number length = math:SquareRoot(normalX * normalX + normalY * normalY + 1)
+                map:SetPixel(x, y, colors:CustomColor(0.5 + 0.5 * normalX / length, 0.5 + 0.5 * normalY / length,
+                    0.5 + 0.5 / length, 1))
+                x = x + 1
+            end
+            y = y + 1
+        end
+        Texture made
+        made:LoadFromPixelMap(map, format, true)
+        return made
+    end
+
+    /*
+    This action stores one wave of the ripple texture.
+
+    Attribute: Parameter waves The waves, four numbers each.
+    Attribute: Parameter index Which wave.
+    Attribute: Parameter acrossX How many times it fits across the texture's width.
+    Attribute: Parameter acrossY How many times it fits down the texture's rows.
+    Attribute: Parameter height Its height.
+    Attribute: Parameter start Where it starts, in radians.
+    */
+    private action SetWave(Number32BitArray waves, integer index, number acrossX, number acrossY, number height, number start)
+        waves:Set(index * 4, acrossX)
+        waves:Set(index * 4 + 1, acrossY)
+        waves:Set(index * 4 + 2, height)
+        waves:Set(index * 4 + 3, start)
+    end
+end

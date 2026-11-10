@@ -1,0 +1,202 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.System.File
+
+/*
+A FoliageList is the list of foliage assets a terrain can be covered with,
+such as pines, rocks and grass, kept in its own file so terrains can share
+one (Terrain plan F1). An asset's place in the list is its number, which
+TerrainFoliage stores with each copy, so reordering the list goes through
+SwapAssets here and in the terrain's foliage together.
+
+A list file is JSON whose "Format" is "Quorum Foliage List", with "Assets",
+an array of FoliageAsset entries. Model and picture paths in it are relative
+to the file.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.FoliageList
+use Libraries.Game.Graphics.Worlds.FoliageAsset
+use Libraries.System.File
+
+FoliageList list
+FoliageAsset rock
+rock:SetName("Rock")
+rock:SetModelPath("Models/Rock.glb")
+list:AddAsset(rock)
+File file
+file:SetPath("Scenes/Foliage/Terrain1.json")
+list:Save(file)
+*/
+class FoliageList
+    text name = ""
+    Array<FoliageAsset> assets
+    File file = undefined
+
+    // The most assets a list can have.
+    public constant integer MAXIMUM_ASSETS = 16
+
+    /*
+    This action returns the list's name, such as "Forest".
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the list's name.
+
+    Attribute: Parameter value The name.
+    */
+    action SetName(text value)
+        name = value
+    end
+
+    /*
+    This action returns the file the list was loaded from or saved to.
+
+    Attribute: Returns The file, or undefined for a list never saved.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+    This action returns how many assets the list has.
+
+    Attribute: Returns The count.
+    */
+    action GetAssetCount returns integer
+        return assets:GetSize()
+    end
+
+    /*
+    This action returns one of the assets.
+
+    Attribute: Parameter index Its number, from 0.
+    Attribute: Returns The asset.
+    */
+    action GetAsset(integer index) returns FoliageAsset
+        return assets:Get(index)
+    end
+
+    /*
+    This action adds an asset at the end of the list. There can be
+    MAXIMUM_ASSETS.
+
+    Attribute: Parameter asset The asset.
+    Attribute: Returns Its number, from 0.
+    */
+    action AddAsset(FoliageAsset asset) returns integer
+        if assets:GetSize() >= MAXIMUM_ASSETS
+            alert("A foliage list can have " + MAXIMUM_ASSETS + " assets, and this one has " + MAXIMUM_ASSETS + " already.")
+        end
+        assets:Add(asset)
+        return assets:GetSize() - 1
+    end
+
+    /*
+    This action removes an asset; the assets after it move down one place.
+    It doesn't remove any copies from a terrain: TerrainFoliage's
+    RemoveAsset does that.
+
+    Attribute: Parameter index Its number, from 0.
+    */
+    action RemoveAsset(integer index)
+        assets:RemoveAt(index)
+    end
+
+    /*
+    This action swaps two assets' places. Use TerrainFoliage's SwapAssets
+    with it, so each copy keeps its asset.
+
+    Attribute: Parameter first One asset's number.
+    Attribute: Parameter second The other's.
+    */
+    action SwapAssets(integer first, integer second)
+        FoliageAsset held = assets:Get(first)
+        assets:Set(first, assets:Get(second))
+        assets:Set(second, held)
+    end
+
+    /*
+    This action returns the number of the asset with a name, or -1.
+
+    Attribute: Parameter assetName The name.
+    Attribute: Returns Its number, or -1 if no asset has the name.
+    */
+    action FindAsset(text assetName) returns integer
+        integer i = 0
+        repeat while i < assets:GetSize()
+            if assets:Get(i):GetName() = assetName
+                return i
+            end
+            i = i + 1
+        end
+        return -1
+    end
+
+    /*
+    This action reads a foliage list file.
+
+    Attribute: Parameter listFile The file, whose "Format" is "Quorum Foliage List".
+    */
+    action Load(File listFile)
+        if not listFile:Exists()
+            alert("I couldn't find the foliage list file " + listFile:GetAbsolutePath() + ".")
+        end
+        JavaScriptObjectNotation json
+        json:Read(listFile)
+        if not json:HasValue("Format") or json:GetValue("Format") not= "Quorum Foliage List"
+            alert("The file " + listFile:GetAbsolutePath() + " is not a foliage list, since its Format isn't Quorum Foliage List.")
+        end
+        file = listFile
+        assets:Empty()
+        if json:HasValue("Name")
+            name = json:GetValue("Name")
+        end
+        // The value under "Assets" holds the array as its one child.
+        JavaScriptObjectNotation holder = json:GetObject("Assets")
+        if holder = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = holder
+        if holder:IsArrayObject()
+            list = holder:GetArray()
+        end
+        integer i = 0
+        repeat while i < list:GetSize() and i < MAXIMUM_ASSETS
+            FoliageAsset asset
+            asset:FromJavaScriptObjectNotation(list:Get(i))
+            assets:Add(asset)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes the list to a file. The folder must exist.
+
+    Attribute: Parameter listFile The file, usually ending in .json.
+    */
+    action Save(File listFile)
+        JavaScriptObjectNotation json
+        json:SetPrettyPrint(true)
+        json:Add("Format", "Quorum Foliage List")
+        json:Add("Version", 1)
+        json:Add("Name", name)
+        JavaScriptObjectNotation list
+        list:SetPrettyPrint(true)
+        list:SetArray()
+        integer i = 0
+        repeat while i < assets:GetSize()
+            list:Add(assets:Get(i):ToJavaScriptObjectNotation())
+            i = i + 1
+        end
+        json:Add("Assets", list)
+        listFile:Write(json:ToText())
+        file = listFile
+    end
+end

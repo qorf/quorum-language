@@ -16,6 +16,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
     intensity and cone.
 */
 class SpotLightPreview is ItemPreview3D
+
+    on create
+        // What screen readers call it while it is placed, as for the item itself.
+        SetAccessibilityRoleDescription("spot light")
+    end
     number intensity = 0
 
     /*

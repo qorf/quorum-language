@@ -33,6 +33,7 @@ use Libraries.System.File
 use Libraries.Containers.HashTable
 use Libraries.Game.Audio3D
 use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.FoliageList
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Models.Data.Material
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
@@ -194,6 +195,12 @@ class DefaultSceneManager is SceneManager
                 LoadLights(cast(Layer3D, layer), json:GetObject(key))
             elseif key = properties:SKYBOX
                 LoadSkybox(cast(Layer3D, layer), json:GetObject(key))
+            elseif key = properties:SKYBOX_TURN
+                // Saved after the skybox (QuincyWorld demo D3).
+                Layer3D skyLayer = cast(Layer3D, layer)
+                if skyLayer:GetSkybox() not= undefined
+                    skyLayer:GetSkybox():SetTurn(json:GetNumber(key))
+                end
             end
 
             counter = counter + 1
@@ -913,18 +920,34 @@ number restitution = 0
         File up
         File back
         File front
-        JavaScriptObjectNotation current = json:Get(0)
-        right:SetPath(current:GetValue())
-        current = json:Get(1)
-        left:SetPath(current:GetValue())
-        current = json:Get(2)
-        up:SetPath(current:GetValue())
-        current = json:Get(3)
-        down:SetPath(current:GetValue())
-        current = json:Get(4)
-        front:SetPath(current:GetValue())
-        current = json:Get(5)
-        back:SetPath(current:GetValue())
+        // GetObject gives an array as an object holding the array, as
+        // ConvertToNumber32BitArray reads it, so the six paths are inside
+        // its first element (fixed 2026-11-06). A sky that isn't six paths
+        // is left out, so the rest of the scene still loads.
+        JavaScriptObjectNotation sides = json
+        if json:GetSize() = 1
+            sides = json:Get(0)
+        end
+        if sides = undefined or sides:GetSize() < 6
+            SharedLogger logger
+            logger:Log("This scene's sky doesn't name six pictures, so it is left out.")
+            return now
+        end
+
+        // The paths are relative to the project, as models' are, so the
+        // scene editor finds them too (QuincyWorld demo D3).
+        JavaScriptObjectNotation current = sides:Get(0)
+        right = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(1)
+        left = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(2)
+        up = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(3)
+        down = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(4)
+        front = ConvertToProjectFile(current:GetValue())
+        current = sides:Get(5)
+        back = ConvertToProjectFile(current:GetValue())
 
         skybox:Load(right, left, up, down, front, back)
         layer:SetSkybox(skybox)
@@ -1027,6 +1050,22 @@ number restitution = 0
                 logger:Log("The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain.")
             end
         end
+        // The foliage list, if it has one (Terrain plan F1). The copies load
+        // with the terrain, from its folder. A missing list file is logged,
+        // and the scene keeps naming it.
+        if json:HasValue(properties:FOLIAGE)
+            text foliagePath = json:GetValue(properties:FOLIAGE)
+            terrain:SetFoliageFile(foliagePath)
+            File foliageListFile = ConvertToProjectFile(foliagePath)
+            if foliageListFile:Exists()
+                FoliageList foliageList
+                foliageList:Load(foliageListFile)
+                terrain:SetFoliageList(foliageList)
+            else
+                SharedLogger foliageLogger
+                foliageLogger:Log("The foliage list " + foliageListFile:GetAbsolutePath() + " wasn't found, so the terrain has no foliage assets.")
+            end
+        end
         terrain:Load(terrainFile)
         return terrain
     end
@@ -1069,6 +1108,9 @@ number restitution = 0
         json:Add(properties:FILE, terrain:GetTerrainFile())
         if terrain:GetMaterialFile() not= ""
             json:Add(properties:MATERIAL, terrain:GetMaterialFile())
+        end
+        if terrain:GetFoliageFile() not= ""
+            json:Add(properties:FOLIAGE, terrain:GetFoliageFile())
         end
         json:Add(properties:PHYSICS_ENABLED, terrain:HasCollision())
         integer mode = terrain:GetCollisionMode()
@@ -1231,6 +1273,16 @@ number restitution = 0
             if layer3D:GetAmbientLight() not= undefined or layer3D:GetDirectionalLights():HasNext()
                 json:Add(properties:LIGHTS, SaveLights(layer3D))
             end
+
+            // The sky (QuincyWorld demo D3), and its turn after it, so the
+            // turn is read once the sky is loaded.
+            Skybox skybox = layer3D:GetSkybox()
+            if skybox not= undefined and skybox:GetRightFile() not= undefined
+                json:Add(properties:SKYBOX, SaveSkybox(skybox))
+                if skybox:GetTurn() not= 0
+                    json:Add(properties:SKYBOX_TURN, skybox:GetTurn())
+                end
+            end
         end
 
         return json
@@ -1253,11 +1305,12 @@ number restitution = 0
             Item2D item = iterator:Next()
             JavaScriptObjectNotation itemJson = SaveItem2D(item)
 
+            // Only saved items are counted, so items left out, such as a
+            // scene editor's cursor and grid, don't change the numbers.
             if itemJson not= undefined
                 json:Add("" + i, itemJson)
+                i = i + 1
             end
-
-            i = i + 1
         end
 
         return json
@@ -1360,17 +1413,40 @@ number restitution = 0
     private action SaveItem3Ds(Layer3D layer) returns JavaScriptObjectNotation
         JavaScriptObjectNotation json
 
+        // A 3D layer keeps its items in a render tree, whose order changes
+        // whenever something in it moves, even the scene editor's cursor.
+        // So the items are saved sorted by their own text: an unchanged
+        // scene always saves the same way. Only saved items are counted,
+        // so items left out, such as the editor's cursor and grid, don't
+        // change the numbers.
+        HashTable<text, Array<JavaScriptObjectNotation>> byText
+        Array<text> texts
         Iterator<Item3D> iterator = layer:GetIterator()
-        integer i = 0
         repeat while iterator:HasNext()
             Item3D item = iterator:Next()
             JavaScriptObjectNotation itemJson = SaveItem3D(item)
-
             if itemJson not= undefined
-                json:Add("" + i, itemJson)
+                text itemText = itemJson:ToText()
+                if not byText:HasKey(itemText)
+                    Array<JavaScriptObjectNotation> sameText
+                    byText:Add(itemText, sameText)
+                    texts:Add(itemText)
+                end
+                byText:GetValue(itemText):Add(itemJson)
             end
-
-            i = i + 1
+        end
+        texts:Sort()
+        integer i = 0
+        integer place = 0
+        repeat while place < texts:GetSize()
+            Array<JavaScriptObjectNotation> same = byText:GetValue(texts:Get(place))
+            integer copy = 0
+            repeat while copy < same:GetSize()
+                json:Add("" + i, same:Get(copy))
+                i = i + 1
+                copy = copy + 1
+            end
+            place = place + 1
         end
 
         return json
@@ -1603,6 +1679,8 @@ number restitution = 0
     action SaveSkybox(Skybox skybox) returns JavaScriptObjectNotation
         JavaScriptObjectNotation json
         json:SetArray()
+        // Each path as the side was loaded: relative to the project when
+        // it was loaded from a scene or chosen in the scene editor.
         json:Add(skybox:GetRightFile():GetPath())
         json:Add(skybox:GetLeftFile():GetPath())
         json:Add(skybox:GetTopFile():GetPath())

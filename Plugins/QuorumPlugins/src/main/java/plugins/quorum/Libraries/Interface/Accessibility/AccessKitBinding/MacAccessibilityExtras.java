@@ -33,6 +33,14 @@ public final class MacAccessibilityExtras {
     public static final int LIST = 128;
     // A heading: role AXHeading, listed in the window's Headings rotor.
     public static final int HEADING = 256;
+    // It has a context menu (Control:GetPopupMenu): VoiceOver may show it (VO-Shift-M).
+    public static final int HAS_MENU = 512;
+    // VoiceOver may open or close it (VO-\, setting AXDisclosing): an
+    // EXPANDABLE row whose kit can carry out EXPAND and COLLAPSE.
+    public static final int CAN_DISCLOSE = 1024;
+    // An outline whose rows VoiceOver must not count ("1 of 2"): a 3D
+    // item's cursor (Item3DKit). Mac.so gives it no AXRows.
+    public static final int UNCOUNTED = 2048;
 
     /* Notices for queueNotice. The same numbers as AccessKitRuntime.m. */
 
@@ -46,6 +54,10 @@ public final class MacAccessibilityExtras {
     public static final int ROW_COLLAPSED = 4;
     // AXRowCountChanged, on a tree.
     public static final int ROW_COUNT_CHANGED = 5;
+    // AXMoved and AXLayoutChanged, on an element whose box moved (a 3D
+    // item's, as its camera or cursor moves). AccessKit sends nothing when
+    // only bounds change, so VoiceOver would keep the old box.
+    public static final int MOVED = 6;
 
     private MacAccessibilityExtras() {
     }

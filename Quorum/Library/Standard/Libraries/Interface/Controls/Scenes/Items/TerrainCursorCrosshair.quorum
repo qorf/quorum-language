@@ -1,0 +1,489 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.PixelMap
+use Libraries.Game.Graphics.Format
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+/*
+The TerrainCursorCrosshair is two lines through a scene editor's terrain
+cursor, one along x and one along z, laid over the ground out to the
+terrain's edges, with a small square tab at each end. Each line has a dark
+edge, so it shows on light and dark ground, and fades out softly at its
+sides, so it is smooth at any zoom. Like the beam, its width is set in
+screen terms from the camera's distance.
+
+It is an editor helper, not a scene item, and lets clicks through. Its
+meshes have a fixed number of pieces, so they are built once and then
+updated in place.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.TerrainCursorCrosshair
+use Libraries.Game.Graphics.Worlds.TerrainData
+
+TerrainData data
+TerrainCursorCrosshair crosshair
+crosshair:Place(data, 10, 20, 0, 100, 0, 100, 50)
+crosshair:Recolor(1, 0.17, 0.84, 0.5)
+*/
+class TerrainCursorCrosshair is Model
+    SceneConstants constants
+    Math math
+
+    // How many pieces each line is cut into to follow the ground; the
+    // lines' pieces in all; and the tabs.
+    constant integer PIECES = 200
+    constant integer LINE_QUADS = 400
+    constant integer TAB_QUADS = 4
+
+    // One screen pixel at the usual zoom, as a share of the camera's
+    // distance. In pixels: the line's colored width, the tab's colored
+    // size, the dark edge on each side, and the soft fade outside it.
+    constant number PIXEL_SHARE = 0.0012
+    constant number LINE_WIDTH = 2
+    constant number TAB_SIZE = 12
+    constant number EDGE = 1
+    constant number SOFT = 1
+
+    // The textures' sizes: the line's across and along, and the tab's.
+    constant integer LINE_TEXTURE_WIDTH = 64
+    constant integer LINE_TEXTURE_HEIGHT = 4
+    constant integer TAB_TEXTURE_SIZE = 64
+
+    boolean loaded = false
+    MeshVulkan lineMesh = undefined
+    MeshVulkan tabMesh = undefined
+    Color tint
+    Texture lineTexture = undefined
+    Texture tabTexture = undefined
+    // The color the textures were made with.
+    number texturedRed = -1
+    number texturedGreen = -1
+    number texturedBlue = -1
+
+    Integer32BitArray lineIndices
+    Number32BitArray lineNormals
+    Number32BitArray lineTangents
+    Number32BitArray lineBitangents
+    Number32BitArray lineCoordinates
+    Integer32BitArray tabIndices
+    Number32BitArray tabNormals
+    Number32BitArray tabTangents
+    Number32BitArray tabBitangents
+    Number32BitArray tabCoordinates
+
+    // Where and how big it was last placed, for Place and Refresh.
+    number placedX = 0
+    number placedZ = 0
+    number placedPixel = 0
+
+    // The lowest and highest heights while building, and the middle the
+    // vertices are made relative to.
+    number lowest = 0
+    number highest = 0
+    number middleX = 0
+    number middleZ = 0
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+        FillFixed(LINE_QUADS, lineIndices, lineNormals, lineTangents, lineBitangents)
+        FillFixed(TAB_QUADS, tabIndices, tabNormals, tabTangents, tabBitangents)
+        // A line's strip: across from 0 to 1, always the middle along.
+        lineCoordinates:SetSize(LINE_QUADS * 4 * 2)
+        integer vertex = 0
+        repeat while vertex < LINE_QUADS * 4
+            integer corner = vertex mod 4
+            number across = 0
+            if corner = 1 or corner = 3
+                across = 1
+            end
+            lineCoordinates:Set(vertex * 2, across)
+            lineCoordinates:Set(vertex * 2 + 1, 0.5)
+            vertex = vertex + 1
+        end
+        // A tab: the whole texture, corner to corner.
+        tabCoordinates:SetSize(TAB_QUADS * 4 * 2)
+        vertex = 0
+        repeat while vertex < TAB_QUADS * 4
+            integer tabCorner = vertex mod 4
+            number u = 0
+            number v = 0
+            if tabCorner = 1 or tabCorner = 3
+                u = 1
+            end
+            if tabCorner >= 2
+                v = 1
+            end
+            tabCoordinates:Set(vertex * 2, u)
+            tabCoordinates:Set(vertex * 2 + 1, v)
+            vertex = vertex + 1
+        end
+    end
+
+    /*
+    This action fills the parts of a mesh that never change: normals up,
+    and two triangles per quad.
+    */
+    private action FillFixed(integer quads, Integer32BitArray indices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents)
+        integer vertexCount = quads * 4
+        normals:SetSize(vertexCount * 3)
+        tangents:SetSize(vertexCount * 3)
+        bitangents:SetSize(vertexCount * 3)
+        integer i = 0
+        repeat while i < vertexCount
+            normals:Set(i * 3, 0)
+            normals:Set(i * 3 + 1, 1)
+            normals:Set(i * 3 + 2, 0)
+            tangents:Set(i * 3, 1)
+            tangents:Set(i * 3 + 1, 0)
+            tangents:Set(i * 3 + 2, 0)
+            bitangents:Set(i * 3, 0)
+            bitangents:Set(i * 3 + 1, 0)
+            bitangents:Set(i * 3 + 2, 1)
+            i = i + 1
+        end
+        indices:SetSize(quads * 6)
+        integer quad = 0
+        repeat while quad < quads
+            integer first = quad * 4
+            indices:Set(quad * 6, first)
+            indices:Set(quad * 6 + 1, first + 2)
+            indices:Set(quad * 6 + 2, first + 1)
+            indices:Set(quad * 6 + 3, first + 1)
+            indices:Set(quad * 6 + 4, first + 2)
+            indices:Set(quad * 6 + 5, first + 3)
+            quad = quad + 1
+        end
+    end
+
+    /*
+    This action lays the lines over the ground through a point, out to the
+    terrain's edges, sized for the camera's distance. It is built again only
+    when the point moved or the size changed by more than a twentieth.
+
+    Attribute: Parameter data The terrain's data
+    Attribute: Parameter x The cursor's place along x
+    Attribute: Parameter z The cursor's place along z
+    Attribute: Parameter lowX The terrain's smallest x
+    Attribute: Parameter highX The terrain's largest x
+    Attribute: Parameter lowZ The terrain's smallest z
+    Attribute: Parameter highZ The terrain's largest z
+    Attribute: Parameter distance The camera's distance from the cursor
+    */
+    action Place(TerrainData data, number x, number z, number lowX, number highX, number lowZ, number highZ, number distance)
+        number pixel = math:MaximumOf(0.001, distance * PIXEL_SHARE)
+        if loaded and x = placedX and z = placedZ and math:AbsoluteValue(pixel - placedPixel) <= placedPixel / 20
+            return now
+        end
+        Build(data, x, z, lowX, highX, lowZ, highZ, pixel)
+    end
+
+    /*
+    This action builds the lines again where they are, after the ground
+    under them changed, such as after sculpting.
+
+    Attribute: Parameter data The terrain's data
+    Attribute: Parameter lowX The terrain's smallest x
+    Attribute: Parameter highX The terrain's largest x
+    Attribute: Parameter lowZ The terrain's smallest z
+    Attribute: Parameter highZ The terrain's largest z
+    */
+    action Refresh(TerrainData data, number lowX, number highX, number lowZ, number highZ)
+        if loaded
+            Build(data, placedX, placedZ, lowX, highX, lowZ, highZ, placedPixel)
+        end
+    end
+
+    /*
+    This action sets the lines' color and opacity. The color is drawn into
+    the textures, made again only when it changes; the opacity is the
+    model's color's alpha, so pulsing costs nothing more.
+
+    Attribute: Parameter red The red, from 0 to 1
+    Attribute: Parameter green The green, from 0 to 1
+    Attribute: Parameter blue The blue, from 0 to 1
+    Attribute: Parameter opacity The opacity, from 0 to 1
+    */
+    action Recolor(number red, number green, number blue, number opacity)
+        if not loaded
+            return now
+        end
+        if red not= texturedRed or green not= texturedGreen or blue not= texturedBlue
+            MakeTextures(red, green, blue)
+            texturedRed = red
+            texturedGreen = green
+            texturedBlue = blue
+        end
+        tint:SetColor(1, 1, 1, opacity)
+        SetColor(0, tint)
+        SetColor(1, tint)
+    end
+
+    /*
+    This action makes the lines and tabs. The vertices are relative to the
+    terrain's middle, and the model sits there, sized to cover them, so its
+    bounds hold the whole crosshair.
+    */
+    private action Build(TerrainData data, number x, number z, number lowX, number highX, number lowZ, number highZ, number pixel)
+        placedX = x
+        placedZ = z
+        placedPixel = pixel
+        middleX = (lowX + highX) / 2
+        middleZ = (lowZ + highZ) / 2
+        number fallback = 0
+        if data:HasHeight(x, z)
+            fallback = data:GetSurfaceHeight(x, z)
+        end
+        lowest = fallback
+        highest = fallback
+        number lift = math:MaximumOf(0.05, pixel * 2)
+        number lineHalf = (LINE_WIDTH / 2 + EDGE + SOFT) * pixel
+        number tabHalf = (TAB_SIZE / 2 + EDGE + SOFT) * pixel
+
+        Number32BitArray lineVertices
+        lineVertices:SetSize(LINE_QUADS * 4 * 3)
+        integer quad = 0
+        integer direction = 0
+        repeat while direction < 2
+            number start = lowX
+            number finish = highX
+            if direction = 1
+                start = lowZ
+                finish = highZ
+            end
+            number step = (finish - start) / PIECES
+            integer piece = 0
+            repeat while piece < PIECES
+                number along = start + piece * step
+                SetStrip(lineVertices, quad, data, direction, x, z, along, along + step, lineHalf, fallback, lift)
+                quad = quad + 1
+                piece = piece + 1
+            end
+            direction = direction + 1
+        end
+
+        // The tabs, at each line's two ends.
+        Number32BitArray tabVertices
+        tabVertices:SetSize(TAB_QUADS * 4 * 3)
+        SetTab(tabVertices, 0, data, lowX, z, tabHalf, fallback, lift)
+        SetTab(tabVertices, 1, data, highX, z, tabHalf, fallback, lift)
+        SetTab(tabVertices, 2, data, x, lowZ, tabHalf, fallback, lift)
+        SetTab(tabVertices, 3, data, x, highZ, tabHalf, fallback, lift)
+
+        // The heights become offsets from halfway between the lowest and
+        // highest, so the model's bounds are centered on it.
+        number middle = (lowest + highest) / 2
+        Offset(lineVertices, LINE_QUADS * 4, middle)
+        Offset(tabVertices, TAB_QUADS * 4, middle)
+
+        MeshData lines = MakeMesh(lineVertices, lineIndices, lineNormals, lineTangents, lineBitangents, lineCoordinates)
+        MeshData tabs = MakeMesh(tabVertices, tabIndices, tabNormals, tabTangents, tabBitangents, tabCoordinates)
+        if not loaded
+            LoadLines(lines, tabs)
+            loaded = true
+        else
+            lineMesh:UpdateVertices(lines)
+            tabMesh:UpdateVertices(tabs)
+        end
+        SetPosition(middleX, middle, middleZ)
+        SetWidth(highX - lowX + 2 * tabHalf)
+        SetHeight(highest - lowest + 2 * lift)
+        SetDepth(highZ - lowZ + 2 * tabHalf)
+    end
+
+    // Lowers every vertex's height by an amount.
+    private action Offset(Number32BitArray vertices, integer count, number amount)
+        integer vertex = 0
+        repeat while vertex < count
+            vertices:Set(vertex * 3 + 1, vertices:Get(vertex * 3 + 1) - amount)
+            vertex = vertex + 1
+        end
+    end
+
+    /*
+    This action sets one piece of a line: a flat strip across it, at the
+    ground's height at each corner. Direction 0 runs along x at the
+    cursor's z; direction 1 runs along z at the cursor's x. Corners 0 and 2
+    are on one side (the texture's left), 1 and 3 on the other.
+    */
+    private action SetStrip(Number32BitArray vertices, integer quad, TerrainData data, integer direction, number x, number z, number from, number to, number half, number fallback, number lift)
+        integer corner = 0
+        repeat while corner < 4
+            number along = from
+            if corner >= 2
+                along = to
+            end
+            number across = -half
+            if corner = 1 or corner = 3
+                across = half
+            end
+            number worldX = along
+            number worldZ = z + across
+            if direction = 1
+                worldX = x + across
+                worldZ = along
+            end
+            SetCorner(vertices, quad * 4 + corner, data, worldX, worldZ, fallback, lift)
+            corner = corner + 1
+        end
+    end
+
+    // Sets one tab: a flat square around a point.
+    private action SetTab(Number32BitArray vertices, integer quad, TerrainData data, number x, number z, number half, number fallback, number lift)
+        SetCorner(vertices, quad * 4, data, x - half, z - half, fallback, lift)
+        SetCorner(vertices, quad * 4 + 1, data, x + half, z - half, fallback, lift)
+        SetCorner(vertices, quad * 4 + 2, data, x - half, z + half, fallback, lift)
+        SetCorner(vertices, quad * 4 + 3, data, x + half, z + half, fallback, lift)
+    end
+
+    /*
+    This action sets one vertex at a place, at the ground's height there
+    (or the cursor's, where there is no region) plus a lift, relative to the
+    terrain's middle along x and z.
+    */
+    private action SetCorner(Number32BitArray vertices, integer vertex, TerrainData data, number x, number z, number fallback, number lift)
+        number ground = fallback
+        if data:HasHeight(x, z)
+            ground = data:GetSurfaceHeight(x, z)
+        end
+        lowest = math:MinimumOf(lowest, ground)
+        highest = math:MaximumOf(highest, ground)
+        vertices:Set(vertex * 3, x - middleX)
+        vertices:Set(vertex * 3 + 1, ground + lift)
+        vertices:Set(vertex * 3 + 2, z - middleZ)
+    end
+
+    private action MakeMesh(Number32BitArray vertices, Integer32BitArray indices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents, Number32BitArray coordinates) returns MeshData
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        return mesh
+    end
+
+    /*
+    This action makes the two textures in a color: the line's, a profile
+    across it, and the tab's, the same profile out from its middle. From the
+    middle out: the color, a dark edge, then a soft fade to nothing. A pixel
+    with no alpha keeps the dark edge's color, so filtering doesn't lighten
+    the edge.
+    */
+    private action MakeTextures(number red, number green, number blue)
+        number lineTotal = LINE_WIDTH / 2 + EDGE + SOFT
+        number tabTotal = TAB_SIZE / 2 + EDGE + SOFT
+        Format format
+        format:SetValue(format:RGBA8888)
+        Color pixelColor
+
+        PixelMap lineMap
+        lineMap:CreatePixelMap(LINE_TEXTURE_WIDTH, LINE_TEXTURE_HEIGHT, format)
+        integer row = 0
+        repeat while row < LINE_TEXTURE_HEIGHT
+            integer column = 0
+            repeat while column < LINE_TEXTURE_WIDTH
+                number out = math:AbsoluteValue((column + 0.5) / LINE_TEXTURE_WIDTH * 2 - 1)
+                SetProfile(pixelColor, out, (LINE_WIDTH / 2) / lineTotal, (LINE_WIDTH / 2 + EDGE) / lineTotal, red, green, blue)
+                lineMap:SetPixel(column, row, pixelColor:GetColorCode())
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        PixelMap tabMap
+        tabMap:CreatePixelMap(TAB_TEXTURE_SIZE, TAB_TEXTURE_SIZE, format)
+        row = 0
+        repeat while row < TAB_TEXTURE_SIZE
+            number outRow = math:AbsoluteValue((row + 0.5) / TAB_TEXTURE_SIZE * 2 - 1)
+            integer tabColumn = 0
+            repeat while tabColumn < TAB_TEXTURE_SIZE
+                number outColumn = math:AbsoluteValue((tabColumn + 0.5) / TAB_TEXTURE_SIZE * 2 - 1)
+                SetProfile(pixelColor, math:MaximumOf(outRow, outColumn), (TAB_SIZE / 2) / tabTotal, (TAB_SIZE / 2 + EDGE) / tabTotal, red, green, blue)
+                tabMap:SetPixel(tabColumn, row, pixelColor:GetColorCode())
+                tabColumn = tabColumn + 1
+            end
+            row = row + 1
+        end
+
+        Texture madeLine
+        madeLine:LoadFromPixelMap(lineMap)
+        lineTexture = madeLine
+        Texture madeTab
+        madeTab:LoadFromPixelMap(tabMap)
+        tabTexture = madeTab
+        ModelResourcesVulkan resources = cast(ModelResourcesVulkan, GetResources())
+        resources:SetTexture(0, lineTexture)
+        resources:SetTexture(1, tabTexture)
+    end
+
+    /*
+    This action sets a color from how far out a pixel is, 0 in the middle
+    and 1 at the edge: the line's color to colorEnd, dark to edgeEnd, then
+    fading to nothing, each change blended a little so it isn't hard.
+    */
+    private action SetProfile(Color pixelColor, number out, number colorEnd, number edgeEnd, number red, number green, number blue)
+        number dark = Smooth(colorEnd - 0.06, colorEnd + 0.06, out)
+        number alpha = 1 - Smooth(edgeEnd, 1.0, out)
+        pixelColor:SetColor(red * (1 - dark) + 0.02 * dark, green * (1 - dark) + 0.02 * dark, blue * (1 - dark) + 0.02 * dark, alpha)
+    end
+
+    // 0 at or below low, 1 at or above high, and a smooth curve between.
+    private action Smooth(number low, number high, number value) returns number
+        if value <= low
+            return 0
+        elseif value >= high
+            return 1
+        end
+        number t = (value - low) / (high - low)
+        return t * t * (3 - 2 * t)
+    end
+
+    /*
+    This action loads the lines first and the tabs second, so the tabs are
+    drawn over the lines' ends: unlit, seen from both sides, see-through.
+    Their textures are set separately (MakeTextures).
+    */
+    private action LoadLines(MeshData lines, MeshData tabs)
+        Array<MeshData> meshes
+        meshes:Add(lines)
+        meshes:Add(tabs)
+        Material material
+        Vector4 white
+        white:Set(1, 1, 1, 1)
+        material:SetDiffuse(white)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        Array<Material> materials
+        materials:Add(material)
+        ModelData modelData
+        modelData:SetID("Terrain cursor crosshair " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+        EnableTransparency(true)
+        lineMesh = schematic:GetMeshes():Get(0)
+        tabMesh = schematic:GetMeshes():Get(1)
+    end
+end

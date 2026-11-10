@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeCocoa;
 import plugins.quorum.Libraries.Game.DesktopDisplay;
+import plugins.quorum.Libraries.Game.GameStateManager;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.Tree;
 import plugins.quorum.Libraries.Interface.Accessibility.accesskit.*;
@@ -25,6 +27,7 @@ import quorum.Libraries.Interface.Events.TextChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeChangeEvent_;
 import quorum.Libraries.Interface.Events.TreeTableChangeEvent_;
 import quorum.Libraries.Interface.Events.WindowFocusEvent_;
+import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Selections.ListSelection_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
@@ -51,6 +54,10 @@ public class MacAccessibility {
 
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
+
+    // The node AccessKit's focus was last set to: focus's kit's
+    // GetFocusTarget, which is focus itself unless a kit moves it inside.
+    private NodeId sentFocus = null;
     private boolean isFocusDirty = false;
 
     // Kits whose children all need rebuilding (a tab's siblings, when it is selected).
@@ -63,6 +70,26 @@ public class MacAccessibility {
     // tree fails, AccessKit keeps an empty placeholder and won't ask again,
     // and it ends the program unless the next update carries the whole tree.
     private boolean needsFullTree = true;
+
+    /*
+        VoiceOver's requests, queued by the ActionHandler while AppKit
+        answers VoiceOver (AccessKit may have its tree borrowed then), and
+        carried out at the start of NativeUpdate, where changing Quorum's
+        items, and so the tree, is safe.
+    */
+    private final ConcurrentLinkedQueue<ActionRequest> pendingActions = new ConcurrentLinkedQueue<ActionRequest>();
+
+    // Whether the window has the focus, as last told to AccessKit.
+    private boolean windowFocused = false;
+
+    // The kits of items in 3D scenes, which NativeUpdate checks a few times
+    // a second, the focused one every frame (Item3DKit.HasChanged), and
+    // when it last checked them all.
+    private final ArrayList<Item3DKit> kits3D = new ArrayList<Item3DKit>();
+    private long lastCheck3D = 0;
+    private static final long CHECK_3D_MILLISECONDS = 100;
+    private boolean warned3D = false;
+    private boolean warnedDetached = false;
 
     public MacAccessibility() {
         items.put(root.GetNodeID(), root);
@@ -81,11 +108,39 @@ public class MacAccessibility {
                 needsFullTree = false;
                 return update;
             }
+        }, new ActionHandler() {
+            @Override
+            public void requestAction(ActionRequest request) {
+                // Only queued: see pendingActions.
+                pendingActions.add(request);
+            }
         });
         // AccessKit assumes the window isn't focused until told;
-        // WindowFocusChanged keeps it up to date after this.
-        adapter.updateViewFocusState(
-            GLFW.glfwGetWindowAttrib(DesktopDisplay.window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE);
+        // WindowFocusChanged and CheckWindowFocus keep it up to date.
+        SetWindowFocus(IsWindowFocused());
+    }
+
+    private static boolean IsWindowFocused() {
+        return GLFW.glfwGetWindowAttrib(DesktopDisplay.window, GLFW.GLFW_FOCUSED) == GLFW.GLFW_TRUE;
+    }
+
+    private void SetWindowFocus(boolean focused) {
+        windowFocused = focused;
+        adapter.updateViewFocusState(focused);
+    }
+
+    /*
+        GLFW's focus event reaches WindowFocusChanged through GameInput and
+        the game's Accessibility. If one is ever missed (for example while
+        the game has no Accessibility yet), AccessKit would keep thinking
+        the window has no focus, and no element would be keyboard focused.
+        GLFW's own flag is cheap to read, so each update checks it.
+    */
+    private void CheckWindowFocus() {
+        boolean focused = IsWindowFocused();
+        if (focused != windowFocused) {
+            SetWindowFocus(focused);
+        }
     }
 
     private ItemKit GetKit(Item_ item) {
@@ -103,7 +158,7 @@ public class MacAccessibility {
     */
     private static Node SafeBuild(ItemKit kit) {
         try {
-            Node node = kit.Build();
+            Node node = kit.BuildNode();
             if (node != null) {
                 return node;
             }
@@ -151,7 +206,9 @@ public class MacAccessibility {
     }
 
     private TreeUpdate BuildFullTree() {
-        TreeUpdate update = TreeUpdate.withFocus(items.containsKey(focus) ? focus : root.GetNodeID());
+        NodeId target = items.containsKey(focus) ? FocusTarget() : root.GetNodeID();
+        TreeUpdate update = TreeUpdate.withFocus(target);
+        sentFocus = target;
         Traverse(root, update);
         update.setTree(new Tree(root.GetNodeID()));
         return update;
@@ -187,7 +244,127 @@ public class MacAccessibility {
         SetItemToDirty(item);
     }
 
+    /*
+        Carries out VoiceOver's queued requests. A request for a node that
+        is gone is dropped. Quorum's usual events (focus, selection, text,
+        toggles, trees opening) then mark what changed; the target is
+        rebuilt too, for what no event reports (a list row opened by its
+        list's behavior).
+    */
+    private void RunPendingActions() {
+        ActionRequest request = pendingActions.poll();
+        while (request != null) {
+            ItemKit kit = items.get(request.target);
+            if (kit != null && request.action != null) {
+                try {
+                    kit.DoAction(request);
+                    if (items.containsKey(request.target)) {
+                        dirtyNodes.add(request.target);
+                    }
+                } catch (RuntimeException error) {
+                    Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+                        "A VoiceOver action failed: " + request.action, error);
+                }
+            }
+            request = pendingActions.poll();
+        }
+    }
+
+    /*
+        Checks the 3D items' bounds, names, descriptions and cursors, once
+        AccessKit has a tree, and rebuilds the ones that changed
+        (Item3DKit): the focused item every frame, the others at most 10
+        times a second. This runs after the game's update (Game:ContinueGame
+        calls Accessibility:Update after UpdateAll, Update and the cameras),
+        so the bounds use this frame's cursor and camera, the ones about to
+        be drawn.
+    */
+    private void Check3DItems() {
+        if (needsFullTree || kits3D.isEmpty()) {
+            return;
+        }
+        ItemKit focusedKit = items.get(focus);
+        Item3DKit focused3D = focusedKit instanceof Item3DKit ? (Item3DKit) focusedKit : null;
+        long time = System.currentTimeMillis();
+        if (time - lastCheck3D < CHECK_3D_MILLISECONDS) {
+            if (focused3D != null) {
+                Check3DItem(focused3D, true);
+            }
+            return;
+        }
+        lastCheck3D = time;
+        for (Item3DKit kit : kits3D) {
+            Check3DItem(kit, kit == focused3D);
+        }
+    }
+
+    private void Check3DItem(Item3DKit kit, boolean focused) {
+        try {
+            if (kit.HasChanged(focused)) {
+                dirtyNodes.add(kit.GetNodeID());
+                // AccessKit sends nothing when only a box moves, so tell
+                // VoiceOver, for the focused item and its cursor's row. Both
+                // are needed: with only the row, VoiceOver neither moves its
+                // box nor reads the move (plan 20's tests).
+                if (focused && kit.TakeBoundsMoved()) {
+                    MacAccessibilityExtras.queueNotice(kit.GetNodeID(), null, MacAccessibilityExtras.MOVED);
+                    NodeId row = kit.GetCursorRowID();
+                    if (row != null) {
+                        MacAccessibilityExtras.queueNotice(row, kit.GetNodeID(), MacAccessibilityExtras.MOVED);
+                    }
+                }
+            }
+        } catch (RuntimeException error) {
+            if (!warned3D) {
+                warned3D = true;
+                Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+                    "Checking a 3D item's bounds failed; further failures are not logged.", error);
+            }
+        }
+    }
+
+    // Where AccessKit's focus goes: the focused kit's GetFocusTarget.
+    private NodeId FocusTarget() {
+        ItemKit kit = items.get(focus);
+        return kit == null ? focus : kit.GetFocusTarget();
+    }
+
+    /*
+        True if this kit hangs from the root. A kit whose parent (or one of
+        its parents) was removed is gone from AccessKit's tree too, and an
+        update that names it stops the app (accesskit_consumer's "neither
+        in the current tree nor a child of another node").
+    */
+    private boolean IsAttached(ItemKit kit) {
+        ItemKit current = kit;
+        while (current != null) {
+            if (current == root) {
+                return true;
+            }
+            current = current.GetParent();
+        }
+        return false;
+    }
+
+    // Says once which kit was left behind, so its cause can be found.
+    private void WarnDetached(ItemKit kit) {
+        if (warnedDetached) {
+            return;
+        }
+        warnedDetached = true;
+        Item_ item = kit.GetItem();
+        String what = item == null ? kit.getClass().getSimpleName()
+                : kit.getClass().getSimpleName() + " for " + item.getClass().getName() + " \"" + item.GetName() + "\"";
+        Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+            "Skipped a node left behind after its parent was removed: " + what
+            + ". Further ones are not logged.");
+    }
+
     public void  NativeUpdate() {
+        RunPendingActions();
+        CheckWindowFocus();
+        RestoreFocus();
+        Check3DItems();
         for (NodeId id : refreshChildren) {
             ItemKit parent = items.get(id);
             if (parent != null) {
@@ -197,6 +374,10 @@ public class MacAccessibility {
             }
         }
         refreshChildren.clear();
+        final NodeId target = FocusTarget();
+        if (!target.equals(sentFocus)) {
+            isFocusDirty = true;
+        }
         if (needsFullTree || !dirtyNodes.isEmpty() || isFocusDirty) {
             if (!items.containsKey(focus)) {
                 // Try again on the next frame.
@@ -211,9 +392,14 @@ public class MacAccessibility {
                         return update;
                     }
                     try {
-                        TreeUpdate update = TreeUpdate.withFocus(focus);
+                        TreeUpdate update = TreeUpdate.withFocus(target);
+                        sentFocus = target;
                         for (NodeId id : dirtyNodes) {
                             ItemKit kit = items.get(id);
+                            if (!IsAttached(kit)) {
+                                WarnDetached(kit);
+                                continue;
+                            }
                             update.add(id, BuildNode(kit));
                             for (NodeId child : kit.GetDirtyInternalChildren()) {
                                 update.add(child, Identify(child, kit.BuildInternalChild(child)));
@@ -264,9 +450,14 @@ public class MacAccessibility {
         It may not be enough, but I think even updating it "could" be enough, depending on how selection is implemented.
          */
 
-        //The following is actually mimicking the focus, which is wrong. However, it gets us basic screen reader support
-        //We need to polish everything, but it's a start.
-        ChangeFocusNextFrame(item);
+        // A selection moves VoiceOver's focus only inside the control that
+        // has the keyboard focus (or in an open menu). Lists and trees
+        // elsewhere also select rows, such as the Team tab restoring its
+        // selection when Studio gets the focus back (TeamTab.quorum:1213),
+        // and that used to take AccessKit's focus off the focused row.
+        if (IsInKeyboardFocus(item)) {
+            ChangeFocusNextFrame(item);
+        }
 
         // The kits send each item's selected state; rebuild the item that
         // was selected before and the one selected now.
@@ -286,6 +477,65 @@ public class MacAccessibility {
         return false;
     }
 
+    // The item that has Quorum's keyboard focus, or null.
+    private static Item_ GetKeyboardFocus() {
+        return GameStateManager.game == null ? null : GameStateManager.game.GetFocus();
+    }
+
+    /*
+        True if a selected item is where the keyboard is: the focused item
+        itself, a row of the focused tree or list, an item inside the
+        focused item, or a menu item (an open menu has the keyboard). Also
+        true when nothing has the focus.
+    */
+    private static boolean IsInKeyboardFocus(Item_ item) {
+        if (item == null) {
+            return false;
+        }
+        if (item instanceof MenuItem_) {
+            return true;
+        }
+        Item_ focused = GetKeyboardFocus();
+        if (focused == null || focused == item) {
+            return true;
+        }
+        if (item instanceof ListItem_ && ((ListItem_) item).GetList() == focused) {
+            return true;
+        }
+        if (item instanceof TreeItem_ && ((TreeItem_) item).GetTree() == focused) {
+            return true;
+        }
+        Item_ above = item.GetAccessibleParent();
+        for (int depth = 0; above != null && depth < 64; depth++) {
+            if (above == focused) {
+                return true;
+            }
+            above = above.GetAccessibleParent();
+        }
+        return false;
+    }
+
+    /*
+        When the focused node leaves the tree, the focus falls back to the
+        root (NativeRemove), and nothing else would move it back: Quorum's
+        focus didn't change, so no FocusChanged comes. That happens when
+        Studio rebuilds the Projects tree after files change on disk, with
+        the tree focused. So while the focus is on the root, it goes back to
+        Quorum's focus (the selected row of a focused tree or list) as soon
+        as that has a node.
+    */
+    private void RestoreFocus() {
+        if (!focus.equals(root.GetNodeID())) {
+            return;
+        }
+        Item_ focused = GetKeyboardFocus();
+        if (focused == null) {
+            return;
+        }
+        Item_ selected = GetSelectedItem(focused);
+        ChangeFocusNextFrame(selected != null ? selected : focused);
+    }
+
     private void ChangeFocusNextFrame(Item_ item) {
         ItemKit kit = GetKit(item);
         if (kit == null && item != null && NativeAdd(item)) {
@@ -295,7 +545,7 @@ public class MacAccessibility {
             // now that it is selected or focused, so add it.
             kit = GetKit(item);
         }
-        if(kit != null) {
+        if(kit != null && !kit.GetNodeID().equals(focus)) {
             focus = kit.GetNodeID();
             isFocusDirty = true;
         }
@@ -392,9 +642,9 @@ public class MacAccessibility {
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || (!item.IsShowing() && !IsListRow(item))) {
             return null;
         } else if (code == item.Get_Libraries_Interface_Item__ITEM_()) {
-            itemKit = new ItemKit();
+            itemKit = item instanceof Item3D_ ? new Item3DKit() : new ItemKit();
         } else if (code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
-            itemKit = new ItemKit();
+            itemKit = item instanceof Item3D_ ? new Item3DKit() : new ItemKit();
         } else if (code == item.Get_Libraries_Interface_Item__CHECKBOX_()) {
             CheckboxKit kit = new CheckboxKit();
             itemKit = kit;
@@ -522,6 +772,9 @@ public class MacAccessibility {
         NodeId id = itemKit.GetNodeID();
         items.put(id, itemKit);
         kitsByItem.put(item, itemKit);
+        if (itemKit instanceof Item3DKit) {
+            kits3D.add((Item3DKit) itemKit);
+        }
         dirtyNodes.add(id);
         parentKit.AddChild(itemKit);
         dirtyNodes.add(parentKit.GetNodeID());
@@ -568,6 +821,9 @@ public class MacAccessibility {
                 dirtyNodes.add(parentID);
             }
             dirtyNodes.remove(id);
+            if (kit instanceof Item3DKit) {
+                kits3D.remove(kit);
+            }
             kit.RemoveFromParent();
             // Rows a tree-like list drew under this row (GetParentForKit) are
             // its kit's children but not its Quorum children; take them out
@@ -581,6 +837,7 @@ public class MacAccessibility {
             if (id.equals(focus)) {
                 // AccessKit needs a focus that is in the tree, and
                 // NativeUpdate sends nothing while the focus is missing.
+                // RestoreFocus moves it back once Quorum's focus has a node.
                 focus = root.GetNodeID();
                 isFocusDirty = true;
             }
@@ -712,7 +969,7 @@ public class MacAccessibility {
 
     public void  WindowFocusChanged(WindowFocusEvent_ event) {
         if (event != null) {
-            adapter.updateViewFocusState(event.IsFocused());
+            SetWindowFocus(event.IsFocused());
         }
     }
 

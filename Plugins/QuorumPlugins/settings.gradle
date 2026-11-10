@@ -1,5 +1,6 @@
-// Lets Gradle download the Java the toolchain in build.gradle asks for
-// (Java 8, which MobiVM and Android need), if the machine doesn't have one.
+// Lets Gradle download a Java it needs, if the machine doesn't have one. The
+// plugins no longer ask for a Java 8 toolchain (build.gradle compiles them with
+// --release 8), so this is only a fallback.
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }

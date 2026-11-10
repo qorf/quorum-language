@@ -10,6 +10,11 @@ use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
 */
 class SpotLightSelectionHighlight is SelectionHighlight3D
 
+    on create
+        // What screen readers call it, instead of a generic item.
+        SetAccessibilityRoleDescription("spot light")
+    end
+
     /*
         Returns the item being selected as an EditorSpotLight.
 

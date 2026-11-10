@@ -4,6 +4,7 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
 
 /*
     This behavior sets the filtered items of the editor to be any items that are found at 
@@ -13,6 +14,18 @@ use Libraries.Interface.Behaviors.Behavior
 class CursorSelectItemsBehavior is Behavior
 
     action Run(BehaviorEvent event)
+        // With the River tool, Enter finishes the river being drawn (River
+        // plan R5).
+        SceneEditor editor = undefined
+        if event:GetItem() is SceneEditor
+            editor = cast(SceneEditor, event:GetItem())
+        elseif event:GetItem() is EditorItem
+            EditorItem focused = cast(EditorItem, event:GetItem())
+            editor = focused:GetSceneEditor()
+        end
+        if editor not= undefined and editor:FinishRiverDrawing()
+            return now
+        end
         if event:GetItem() is SceneEditor
             SceneEditor controller = cast(SceneEditor, event:GetItem())
             EditorCursor cursor = controller:GetCursor()

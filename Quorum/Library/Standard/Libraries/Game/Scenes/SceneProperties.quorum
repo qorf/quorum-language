@@ -39,10 +39,12 @@ shared class SceneProperties
     VIEWPORT
     PHYSICS
     SKYBOX (Layer3D only)
+    SKYBOX_TURN (Layer3D only, degrees about the up axis; QuincyWorld demo D3)
     */
     public constant text LAYERS = "Layers"
     public constant text VIEWPORT = "Viewport"
     public constant text SKYBOX = "Skybox"
+    public constant text SKYBOX_TURN = "Skybox Turn"
 
     /*
     Properties used for the camera in a Layer.
@@ -167,6 +169,8 @@ shared class SceneProperties
     // "Scenes/Materials/Terrain1.json" (step 9). Written only when the
     // terrain has one.
     public constant text MATERIAL = "Material"
+    // A terrain's foliage list file (Terrain plan F1).
+    public constant text FOLIAGE = "Foliage"
 
     // A terrain's collision in games (step 13): "Full" (every region),
     // "Dynamic" (only near moving bodies) or "Disabled". Older scenes have

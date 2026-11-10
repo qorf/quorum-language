@@ -27,6 +27,11 @@ class SelectionCancelBehavior is Behavior
         if event:GetItem() is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
             if highlight:GetSceneEditor() not= undefined
+                // A river being drawn is stopped first, without leaving the
+                // terrain (River plan R5).
+                if highlight:GetSceneEditor():CancelRiverDrawing()
+                    return now
+                end
                 highlight:GetSceneEditor():ExitTerrainCursor(highlight)
                 return now
             end

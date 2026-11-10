@@ -8,9 +8,8 @@ use Libraries.Language.Compile.CompilerError
 use Libraries.Language.Compile.Hints.Hint
 use Libraries.Language.Compile.CompilerErrorType
 use Libraries.Language.Compile.CompilerErrorCodes
-use Libraries.Language.Support.TextBuilder
 
-/* 
+/*
     This is a default class named Main. It has one action, also named Main,
     that starts the program.
 
@@ -36,6 +35,10 @@ class QuorumLexer is Lexer
     integer currentLine = 1
     integer currentColumn = -1
     text currentValue = ""
+    // The size of the text being read, read once per Read.
+    integer currentSize = 0
+    // The current character as text. It is made only for an error message,
+    // not for every character.
     text currentChar = ""
     integer charCode = -1
     Token token = undefined
@@ -45,11 +48,31 @@ class QuorumLexer is Lexer
     constant integer LINE_FEED = 10
     boolean ignoreWhiteSpace = true
 
+    // Character codes the lexer decides on.
+    constant integer QUOTE_CODE = 34
+    constant integer LEFT_PAREN_CODE = 40
+    constant integer RIGHT_PAREN_CODE = 41
+    constant integer MULTIPLY_CODE = 42
+    constant integer PLUS_CODE = 43
+    constant integer COMMA_CODE = 44
+    constant integer MINUS_CODE = 45
+    constant integer PERIOD_CODE = 46
+    constant integer SLASH_CODE = 47
+    constant integer COLON_CODE = 58
+    constant integer LESS_CODE = 60
+    constant integer EQUALITY_CODE = 61
+    constant integer GREATER_CODE = 62
+    constant integer LETTER_E_CODE = 101
+    constant integer LETTER_N_CODE = 110
+
     text quote = ""
+    // A line feed as text, the ending of a single-line comment.
+    text lineFeedText = ""
     HashTable<text, integer> keywords
 
     on create
         quote = quote:GetDoubleQuote()
+        lineFeedText = lineFeedText:GetLineFeed()
         AddKeywords()
     end
 
@@ -135,13 +158,11 @@ class QuorumLexer is Lexer
     */
     action Read(text value)
         currentValue = value
-        text line = value:GetCarriageReturn() + value:GetLineFeed()
-        text string = ""
+        currentSize = value:GetSize()
         index = 0
-        repeat while index < value:GetSize()
-            currentChar = value:GetCharacter(index)
-            charCode = currentChar:GetUnicodeInteger(0)
-            
+        repeat while index < currentSize
+            charCode = value:GetUnicodeInteger(index)
+
             token = undefined
             if charCode = LINE_FEED //linefeed
                 currentLine = currentLine + 1
@@ -151,30 +172,34 @@ class QuorumLexer is Lexer
 
             boolean isValid = true
             boolean isIgnored = false
-            
-            if IsSingleLineComment()
-                token = CreateToken()
-                ProcessSingleLineComment(token)
-            elseif IsMultilineComment()
-                token = CreateToken()
-                ProcessMultilineComment(token)
-            elseif IsNumeric()
-                token = CreateToken()
-                ProcessNumeric(token)
-            elseif CheckSymbols() //don't need to do anything here, just separating it
-            elseif IsIdentifier()
-                token = CreateToken()
-                ProcessIdentifier(token)
-            elseif IsQuotedText()
-                token = CreateToken()
-                ProcessText(token)
-            elseif IsWhiteSpace()
+
+            // The first character decides the kind of token: no token
+            // starts with white space, comments start with "/", and "not="
+            // is the only symbol that starts with a letter. The same tokens
+            // come out as when every test was tried in turn.
+            if IsWhiteSpace(charCode)
                 if ignoreWhiteSpace
                     isIgnored = true
                 else
                     token = CreateToken()
                     ProcessWhiteSpace(token)
                 end
+            elseif charCode = SLASH_CODE and IsSingleLineComment()
+                token = CreateToken()
+                ProcessSingleLineComment(token)
+            elseif charCode = SLASH_CODE and IsMultilineComment()
+                token = CreateToken()
+                ProcessMultilineComment(token)
+            elseif IsDigit(charCode)
+                token = CreateToken()
+                ProcessNumeric(token)
+            elseif CheckSymbols() //don't need to do anything here, just separating it
+            elseif IsAlpha(charCode) or IsUnderscore(charCode)
+                token = CreateToken()
+                ProcessIdentifier(token)
+            elseif charCode = QUOTE_CODE
+                token = CreateToken()
+                ProcessText(token)
             else
                 isValid = false
             end
@@ -186,6 +211,7 @@ class QuorumLexer is Lexer
 
                 Add(token)
             elseif not isIgnored //it's not an ignorable character and it's not valid
+                currentChar = value:GetCharacter(index)
                 CompilerError error = CreateCompilerError(typeConstants:LEXER_NO_VIABLE_ALTERNATIVE)
                 error:SetCode(codes:LEXER_INVALID_CHARACTER)
                 SetCompilerErrorLocation(error)
@@ -227,17 +253,6 @@ class QuorumLexer is Lexer
         return error
     end
 
-    private action IsWhiteSpace returns boolean
-        if charCode = LINE_FEED or//linefeed
-           charCode = 11 or//vertical tab
-           charCode = 13 or //carriage return
-           charCode = 32 or //space
-           charCode = 9 //horizontal tab
-            return true
-        end
-        return false
-    end
-
     private action IsWhiteSpace(integer code) returns boolean
         if code = LINE_FEED or//linefeed
            code = 11 or//vertical tab
@@ -263,29 +278,11 @@ class QuorumLexer is Lexer
         return false
     end
 
-    private action CalculateIndexChange(text value) returns integer
-        return value:GetSize() - 1
-    end
-
     private action MatchesFromIndex(text value) returns boolean
-        if (index + value:GetSize() - 1) < currentValue:GetSize() 
+        if (index + value:GetSize() - 1) < currentSize
             integer i = 0
             repeat while i < value:GetSize()
                 if currentValue:GetUnicodeInteger(index + i) not= value:GetUnicodeInteger(i)
-                    return false
-                end
-                i = i + 1
-            end
-            return true
-        end
-        return false
-    end
-
-    private action MatchesFromIndex(text value, integer offset) returns boolean
-        if (offset + value:GetSize() - 1) < currentValue:GetSize() 
-            integer i = 0
-            repeat while i < value:GetSize()
-                if currentValue:GetUnicodeInteger(offset + i) not= value:GetUnicodeInteger(i)
                     return false
                 end
                 i = i + 1
@@ -305,175 +302,137 @@ class QuorumLexer is Lexer
         token:SetToWhiteSpaceChannel()
         token:category = constants:WS
 
-        integer startIndex = index
-        integer j = index + 1
+        integer stop = index + 1
         boolean done = false
-        text string = currentChar
-        repeat while j < currentValue:GetSize() and not done
-            char2 = currentValue:GetCharacter(j)
-            integer code = char2:GetUnicodeInteger(0)
-            if IsWhiteSpace(code)
-                string = string + char2
+        repeat while stop < currentSize and not done
+            if IsWhiteSpace(currentValue:GetUnicodeInteger(stop))
                 currentColumn = currentColumn + 1
+                stop = stop + 1
             else //stop at the first non-whitespace character
                 done = true
             end
-            j = j + 1
         end
 
-        token:value = string
+        token:value = currentValue:GetSubtext(index, stop)
 
-        index = startIndex + string:GetSize() - 1
+        index = stop - 1
     end
 
     private action ProcessSingleLineComment(Token token)
-        text linefeed = ""
-        linefeed = linefeed:GetLineFeed()
-        ProcessGreedy(token, linefeed)
+        ProcessGreedy(token, lineFeedText)
         token:SetToCommentChannel()
         token:category = constants:COMMENTS
     end
 
+    /*
+    This action reads a comment from the current index through its ending,
+    or to the end of the text if the ending is missing.
+    */
     private action ProcessGreedy(Token token, text ending)
-        TextBuilder builder
-        j = index
-        boolean done = false
-        repeat while j < currentValue:GetSize() and not done
-            integer code = currentValue:GetUnicodeInteger(j)
-            
-            if MatchesFromIndex(ending, j)
-                j = j + CalculateIndexChange(ending)
-                builder:Append(ending)
-                done = true
-            else 
-                builder:Append(currentValue:GetCharacter(j))
-            end
+        // Where the ending starts, or -1 if it's missing.
+        integer endingAt = -1
+        if index < currentSize
+            endingAt = currentValue:IndexOf(ending, index)
+        end
+        integer stop = currentSize
+        if endingAt >= 0
+            stop = endingAt + ending:GetSize()
+        end
 
-            if code = LINE_FEED
+        // Lines and columns as the character-by-character loop counted
+        // them: one step per character before the ending, and one for the
+        // ending's first character only.
+        integer counted = stop
+        if endingAt >= 0
+            counted = endingAt + 1
+        end
+        integer j = index
+        repeat while j < counted
+            if currentValue:GetUnicodeInteger(j) = LINE_FEED
                 currentLine = currentLine + 1
                 currentColumn = -1
             else
                 currentColumn = currentColumn + 1
             end
-            
             j = j + 1
         end
+
         token:category = constants:COMMENTS
-        token:value = builder:ToText()
-        index = j - 1
+        token:value = currentValue:GetSubtext(index, stop)
+        index = stop - 1
     end
 
     private action CheckSymbols returns boolean
+        integer next = -1
+        if index + 1 < currentSize
+            next = currentValue:GetUnicodeInteger(index + 1)
+        end
+
         //first handle symbols that actually take two or more positions
-        if MatchesFromIndex(constants:GREATER_EQUAL_TEXT)
-            token = CreateToken()
-            token:category = constants:GREATER_EQUAL
-            token:value = constants:GREATER_EQUAL_TEXT
-            index = index + constants:GREATER_EQUAL_TEXT:GetSize() - 1
-            return true
-        elseif MatchesFromIndex(constants:LESS_EQUAL_TEXT)
-            token = CreateToken()
-            token:category = constants:LESS_EQUAL
-            token:value = constants:LESS_EQUAL_TEXT
-            index = index + constants:LESS_EQUAL_TEXT:GetSize() - 1
-            return true
-        elseif MatchesFromIndex(constants:NOT_EQUALS_TEXT)
-            token = CreateToken()
-            token:category = constants:NOT_EQUALS
-            token:value = constants:NOT_EQUALS_TEXT
-            index = index + constants:NOT_EQUALS_TEXT:GetSize() - 1
-            return true
+        if charCode = GREATER_CODE and next = EQUALITY_CODE
+            return MakeSymbol(constants:GREATER_EQUAL, constants:GREATER_EQUAL_TEXT)
+        elseif charCode = LESS_CODE and next = EQUALITY_CODE
+            return MakeSymbol(constants:LESS_EQUAL, constants:LESS_EQUAL_TEXT)
+        elseif charCode = LETTER_N_CODE and MatchesFromIndex(constants:NOT_EQUALS_TEXT)
+            return MakeSymbol(constants:NOT_EQUALS, constants:NOT_EQUALS_TEXT)
         //Now move to single position values
-        elseif MatchesFromIndex(constants:PERIOD_TEXT)
-            token = CreateToken()
-            token:category = constants:PERIOD
-            token:value = constants:PERIOD_TEXT
-            return true
-        elseif MatchesFromIndex(constants:COMMA_TEXT)
-            token = CreateToken()
-            token:category = constants:COMMA
-            token:value = constants:COMMA_TEXT
-            return true
-        elseif MatchesFromIndex(constants:EQUALITY_TEXT)
-            token = CreateToken()
-            token:category = constants:EQUALITY
-            token:value = constants:EQUALITY_TEXT
-            return true
-        elseif MatchesFromIndex(constants:GREATER_TEXT)
-            token = CreateToken()
-            token:category = constants:GREATER
-            token:value = constants:GREATER_TEXT
-            return true
-        elseif MatchesFromIndex(constants:LESS_TEXT)
-            token = CreateToken()
-            token:category = constants:LESS
-            token:value = constants:LESS_TEXT
-            return true
-        elseif MatchesFromIndex(constants:PLUS_TEXT)
-            token = CreateToken()
-            token:category = constants:PLUS
-            token:value = constants:PLUS_TEXT
-            return true
-        elseif MatchesFromIndex(constants:MINUS_TEXT)
-            token = CreateToken()
-            token:category = constants:MINUS
-            token:value = constants:MINUS_TEXT
-            return true
-        elseif MatchesFromIndex(constants:MULTIPLY_TEXT)
-            token = CreateToken()
-            token:category = constants:MULTIPLY
-            token:value = constants:MULTIPLY_TEXT
-            return true
-        elseif MatchesFromIndex(constants:DIVIDE_TEXT)
-            token = CreateToken()
-            token:category = constants:DIVIDE
-            token:value = constants:DIVIDE_TEXT
-            return true
-        elseif MatchesFromIndex(constants:LEFT_PAREN_TEXT)
-            token = CreateToken()
-            token:category = constants:LEFT_PAREN
-            token:value = constants:LEFT_PAREN_TEXT
-            return true
-        elseif MatchesFromIndex(constants:RIGHT_PAREN_TEXT)
-            token = CreateToken()
-            token:category = constants:RIGHT_PAREN
-            token:value = constants:RIGHT_PAREN_TEXT
-            return true
-        elseif MatchesFromIndex(constants:COLON_TEXT)
-            token = CreateToken()
-            token:category = constants:COLON
-            token:value = constants:COLON_TEXT
-            return true
+        elseif charCode = PERIOD_CODE
+            return MakeSymbol(constants:PERIOD, constants:PERIOD_TEXT)
+        elseif charCode = COMMA_CODE
+            return MakeSymbol(constants:COMMA, constants:COMMA_TEXT)
+        elseif charCode = EQUALITY_CODE
+            return MakeSymbol(constants:EQUALITY, constants:EQUALITY_TEXT)
+        elseif charCode = GREATER_CODE
+            return MakeSymbol(constants:GREATER, constants:GREATER_TEXT)
+        elseif charCode = LESS_CODE
+            return MakeSymbol(constants:LESS, constants:LESS_TEXT)
+        elseif charCode = PLUS_CODE
+            return MakeSymbol(constants:PLUS, constants:PLUS_TEXT)
+        elseif charCode = MINUS_CODE
+            return MakeSymbol(constants:MINUS, constants:MINUS_TEXT)
+        elseif charCode = MULTIPLY_CODE
+            return MakeSymbol(constants:MULTIPLY, constants:MULTIPLY_TEXT)
+        elseif charCode = SLASH_CODE
+            return MakeSymbol(constants:DIVIDE, constants:DIVIDE_TEXT)
+        elseif charCode = LEFT_PAREN_CODE
+            return MakeSymbol(constants:LEFT_PAREN, constants:LEFT_PAREN_TEXT)
+        elseif charCode = RIGHT_PAREN_CODE
+            return MakeSymbol(constants:RIGHT_PAREN, constants:RIGHT_PAREN_TEXT)
+        elseif charCode = COLON_CODE
+            return MakeSymbol(constants:COLON, constants:COLON_TEXT)
         end
         return false
     end
-    
-    private action IsNumeric returns boolean
-        if IsDigit(charCode)
-            return true
-        end
-        return false
+
+    /*
+    This action makes the token for a symbol at the current index and moves
+    the index to the symbol's last character. As before, the column is not
+    moved for a symbol's second and later characters.
+    */
+    private action MakeSymbol(integer category, text symbol) returns boolean
+        token = CreateToken()
+        token:category = category
+        token:value = symbol
+        index = index + symbol:GetSize() - 1
+        return true
     end
 
     private action ProcessIdentifier(Token token)
         integer startIndex = index
-        integer j = index + 1
+        integer stop = index + 1
         boolean done = false
-        TextBuilder builder
-        builder:Append(currentChar)
-        
-        repeat while j < currentValue:GetSize() and not done
-            integer code = currentValue:GetUnicodeInteger(j)
+
+        repeat while stop < currentSize and not done
+            integer code = currentValue:GetUnicodeInteger(stop)
             if IsAlphaNumeric(code) or IsUnderscore(code)
-                builder:Append(currentValue:GetCharacter(j))
                 currentColumn = currentColumn + 1
+                stop = stop + 1
             else //stop at the first non-digit
                 done = true
             end
-            j = j + 1
         end
 
-        text string = builder:ToText()
+        text string = currentValue:GetSubtext(startIndex, stop)
         token:value = string
         //check if this is a keyword
         if keywords:HasKey(string)
@@ -483,22 +442,7 @@ class QuorumLexer is Lexer
             token:category = constants:ID
         end
 
-        index = startIndex + string:GetSize() - 1
-    end
-
-    private action IsIdentifier returns boolean
-        //if we allow weird non-quorum expressions in the DSL for data frames, this is where it would go.
-        if IsIdentifierFirstValue() //a magic identifier section?
-            return true
-        end
-        return false
-    end
-
-    private action IsIdentifierFirstValue returns boolean
-        if IsAlpha(charCode) or IsUnderscore(charCode)
-            return true
-        end
-        return false
+        index = stop - 1
     end
 
     private action IsAlpha(integer code) returns boolean
@@ -537,27 +481,18 @@ class QuorumLexer is Lexer
         return false
     end
 
-    private action IsQuotedText returns boolean
-        if currentChar = quote
-            return true
-        end
-        return false
-    end
-
     private action ProcessNumeric(Token token)
-        text string = currentChar
+        integer startIndex = index
         integer j = index + 1
-        digitCount = 0
+        integer digitCount = 0
         if IsDigit(charCode)
             digitCount = 1
         end
 
-        done = false
-        repeat while j < currentValue:GetSize() and not done
-            char2 = currentValue:GetCharacter(j)
-            integer code = char2:GetUnicodeInteger(0)
+        boolean done = false
+        repeat while j < currentSize and not done
+            integer code = currentValue:GetUnicodeInteger(j)
             if IsDigit(code)
-                string = string + char2
                 digitCount = digitCount + 1
                 currentColumn = currentColumn + 1
                 j = j + 1
@@ -579,21 +514,17 @@ class QuorumLexer is Lexer
             token:category = constants:INT
         end
 
-        //we now have a bunch of digits. The next character is either 
+        //we now have a bunch of digits. The next character is either
         //an e or a dot.
-        if j < currentValue:GetSize()
-            char2 = currentValue:GetCharacter(j)
-            if char2 = "."
+        if j < currentSize
+            if currentValue:GetUnicodeInteger(j) = PERIOD_CODE
                 token:category = constants:DECIMAL
-                string = string + char2
                 j = j + 1
                 done = false
                 digitCount = 0
-                repeat while j < currentValue:GetSize() and not done
-                    char2 = currentValue:GetCharacter(j)
-                    integer code = char2:GetUnicodeInteger(0)
+                repeat while j < currentSize and not done
+                    integer code = currentValue:GetUnicodeInteger(j)
                     if IsDigit(code)
-                        string = string + char2
                         digitCount = digitCount + 1
                         currentColumn = currentColumn + 1
                         j = j + 1
@@ -613,19 +544,16 @@ class QuorumLexer is Lexer
             end
         end
 
-        //whether there was a dot or not, the last thing 
+        //whether there was a dot or not, the last thing
         //we might have is the exponent
-        if j < currentValue:GetSize()
-            char2 = currentValue:GetCharacter(j)
-            if char2 = "e" //unlike typical scientific notation, lowercase e only, for readability.
-                string = string + char2
+        if j < currentSize
+            if currentValue:GetUnicodeInteger(j) = LETTER_E_CODE //unlike typical scientific notation, lowercase e only, for readability.
                 j = j + 1
 
                 //now check if is a plus or a minus
-                if j < currentValue:GetSize()
-                    char2 = currentValue:GetCharacter(j)
-                    if char2 = "+" or char2 = "-"
-                        string = string + char2
+                if j < currentSize
+                    integer sign = currentValue:GetUnicodeInteger(j)
+                    if sign = PLUS_CODE or sign = MINUS_CODE
                         j = j + 1
                     end
                 end
@@ -633,11 +561,9 @@ class QuorumLexer is Lexer
                 //now add more integers
                 done = false
                 digitCount = 0
-                repeat while j < currentValue:GetSize() and not done
-                    char2 = currentValue:GetCharacter(j)
-                    integer code = char2:GetUnicodeInteger(0)
+                repeat while j < currentSize and not done
+                    integer code = currentValue:GetUnicodeInteger(j)
                     if IsDigit(code)
-                        string = string + char2
                         j = j + 1
                         currentColumn = currentColumn + 1
                         digitCount = digitCount + 1
@@ -656,31 +582,32 @@ class QuorumLexer is Lexer
         end
 
         index = j - 1
-        token:value = string
+        token:value = currentValue:GetSubtext(startIndex, j)
     end
 
+    /*
+    This action reads a text from its opening quote through its closing
+    quote. If there is no closing quote, the token gets no value or
+    category, as before.
+    */
     private action ProcessText(Token token)
-        string = ""
-        j = index + 1
-        boolean done = false
-        repeat while j < currentValue:GetSize() and not done
-            char2 = currentValue:GetCharacter(j)
-            integer code = char2:GetUnicodeInteger(0)
-            if char2 = quote
-                token:category = constants:STRING
-                token:value = string
-                string = ""
-                done = true
-            //temporarily remove this new change.
-            //elseif char2 = "\" and j + 1 < currentValue:GetSize() and currentValue:GetCharacter(j + 1) = quote
-            //    string = string + quote
-            //    j = j + 1 //add an extra value
-            //    currentColumn = currentColumn + 1
-            else 
-                string = string + char2
-            end
-            
-            if code = LINE_FEED
+        integer closing = -1
+        if index + 1 < currentSize
+            closing = currentValue:IndexOf(quote, index + 1)
+        end
+        integer counted = currentSize
+        if closing >= 0
+            token:category = constants:STRING
+            token:value = currentValue:GetSubtext(index + 1, closing)
+            counted = closing + 1
+        end
+
+        // Lines and columns as the character-by-character loop counted
+        // them: one step per character, up to and including the closing
+        // quote.
+        integer j = index + 1
+        repeat while j < counted
+            if currentValue:GetUnicodeInteger(j) = LINE_FEED
                 currentLine = currentLine + 1
                 currentColumn = -1
             else
@@ -688,7 +615,7 @@ class QuorumLexer is Lexer
             end
             j = j + 1
         end
-        index = j - 1
+        index = counted - 1
     end
 
     /*

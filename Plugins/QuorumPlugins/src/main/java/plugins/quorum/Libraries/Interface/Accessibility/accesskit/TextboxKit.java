@@ -30,6 +30,39 @@ public class TextboxKit extends TextKitBase {
         return (int)(lineID.value & 0xffffffffL);
     }
 
+    /*
+        SET_TEXT_SELECTION moves the caret or the selection. Its positions
+        are a line's run and a character in it; the box wants indexes in
+        its whole text.
+    */
+    @Override
+    protected void AddActions(Node node, Item_ item) {
+        super.AddActions(node, item);
+        if (item instanceof TextBox_) {
+            node.addAction(Action.SET_TEXT_SELECTION);
+        }
+    }
+
+    @Override
+    public void DoAction(ActionRequest request) {
+        Item_ item = GetItem();
+        if (item instanceof TextBox_ && request.action == Action.SET_TEXT_SELECTION
+                && request.textSelection != null) {
+            TextBox_ box = (TextBox_) item;
+            MultipleLineText_ value = box.GetMultipleLineText();
+            int anchorLine = GetLineIndex(request.textSelection.anchor.node);
+            int focusLine = GetLineIndex(request.textSelection.focus.node);
+            if (anchorLine < 0 || focusLine < 0) {
+                return;
+            }
+            int anchor = value.CharacterIndexFromLineIndex(anchorLine) + request.textSelection.anchor.characterIndex;
+            int focus = value.CharacterIndexFromLineIndex(focusLine) + request.textSelection.focus.characterIndex;
+            box.Select(Math.min(anchor, focus), Math.max(anchor, focus), focus >= anchor);
+        } else {
+            super.DoAction(request);
+        }
+    }
+
     public Node Build() {
         Item_ item = GetItem();
         if(item != null) {

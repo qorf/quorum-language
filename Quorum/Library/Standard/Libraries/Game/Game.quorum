@@ -152,6 +152,7 @@ use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.OpenGL.OpenGLManager
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Timing.GraphicsTimer
 use Libraries.Game.Graphics.Shaders.OpenGL.OpenGLShaderManager
 use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
 use Libraries.Game.Graphics.Vulkan.VulkanTextureManager
@@ -199,6 +200,11 @@ class Game
     integer multisampleCount = 1
     // MSAA for 2D and the screen's final image under Vulkan (Item 29).
     integer multisampleCount2D = 1
+    // GPU timing (Graphics timing plan T4): whether it was asked for, passed
+    // to the graphics when they start, and a timer that reports itself
+    // unsupported, for graphics without timing.
+    boolean graphicsTiming = false
+    GraphicsTimer unsupportedTimer
     Accessibility accessibility = undefined
     EditManager editManager
     InterfaceOptions interfaceOptions = undefined
@@ -351,6 +357,7 @@ class Game
             VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
             vulkan:SetMultisampleCount(multisampleCount)
             vulkan:SetMultisampleCount2D(multisampleCount2D)
+            vulkan:GetGraphicsTimer():SetEnabled(graphicsTiming)
         end
 
         if application is DesktopApplication
@@ -4020,6 +4027,86 @@ if gl20 is OpenGLManager
     */
     action GetSkybox returns Skybox
         return GetCurrentLayer3D():GetSkybox()
+    end
+
+    /*
+    This action turns GPU timing on or off (Graphics timing plan T4). On, the
+    GPU's time for each phase of each frame, such as shadows, the G-buffer
+    and lighting, is measured with Vulkan timestamps and can be read from
+    GetGraphicsTimer, kept with a GraphicsTimingLog, charted or written as
+    JSON. It needs Vulkan, and isn't supported on iOS and Android yet. Off,
+    the default, it costs nothing.
+
+    Attribute: Parameter value True to time the GPU's work
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            UseVulkan(true)
+            StartGame()
+        end
+
+        action CreateGame
+            SetGraphicsTiming(true)
+        end
+    end
+    */
+    action SetGraphicsTiming(boolean value)
+        graphicsTiming = value
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            vulkan:GetGraphicsTimer():SetEnabled(value)
+        end
+    end
+
+    /*
+    This action returns true if GPU timing was turned on with
+    SetGraphicsTiming.
+
+    Attribute: Returns True if on
+
+    Attribute: Example
+    use Libraries.Game.Game
+
+    class Main is Game
+        action CreateGame
+            SetGraphicsTiming(true)
+            output IsGraphicsTiming()
+        end
+    end
+    */
+    action IsGraphicsTiming returns boolean
+        return graphicsTiming
+    end
+
+    /*
+    This action returns the GPU timer (Graphics timing plan T2), to read
+    each frame's GPU times, give it a GraphicsTimingLog, or time phases of
+    one's own. Without Vulkan it is a timer whose IsSupported is false.
+
+    Attribute: Returns The timer
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Timing.GraphicsTimingLog
+
+    class Main is Game
+        GraphicsTimingLog timings
+
+        action CreateGame
+            SetGraphicsTiming(true)
+            GetGraphicsTimer():SetLog(timings)
+        end
+    end
+    */
+    action GetGraphicsTimer returns GraphicsTimer
+        if manager:GetGameGraphics() is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, manager:GetGameGraphics())
+            return vulkan:GetGraphicsTimer()
+        end
+        return unsupportedTimer
     end
 
     /*

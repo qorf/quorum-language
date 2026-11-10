@@ -1,0 +1,39 @@
+package Libraries.Game.Graphics.Shaders.Vulkan.Mapping
+
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderProgram
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+
+/*
+TwoSidedShaderMapping3DVulkan is the default 3D shader mapping with no face
+culling, so both sides of each face are drawn (Lighting plan L4). The
+painter draws models with a two-sided material, such as leaves, cloth and
+grass cards, with it. The default 3D fragment shader still hides the backs
+of the model's other materials.
+
+Attribute: Example
+use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.TwoSidedShaderMapping3DVulkan
+
+TwoSidedShaderMapping3DVulkan mapping
+*/
+class TwoSidedShaderMapping3DVulkan is DefaultShaderMapping3DVulkan
+
+    /*
+    This action makes the default 3D pipeline's settings, with no culling.
+
+    Attribute: Parameter program The program the pipeline is for.
+    Attribute: Parameter device The device it is made on.
+    Attribute: Returns The settings.
+    */
+    action CreatePipelineInfo(VulkanShaderProgram program, VulkanDevice device) returns VulkanPipelineInfo
+        VulkanPipelineInfoCreator creator
+        creator:Begin(device)
+        creator:AddDefaultInfo3D()
+        VulkanPipelineInfo info = creator:Finish()
+        VulkanConstants constants
+        info:SetCullMode(constants:CULL_MODE_NONE)
+        return info
+    end
+end

@@ -4,7 +4,7 @@ import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Item_;
 
-public class RadioButtonKit extends ItemKit{
+public class RadioButtonKit extends ClickableKit {
     public RadioButtonKit() {
         SetRole(Role.RADIO_BUTTON);
     }

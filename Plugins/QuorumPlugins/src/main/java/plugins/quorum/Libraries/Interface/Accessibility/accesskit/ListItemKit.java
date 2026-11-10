@@ -1,8 +1,10 @@
 package plugins.quorum.Libraries.Interface.Accessibility.accesskit;
 
 import plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding.*;
+import quorum.Libraries.Interface.Behaviors.Behavior_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.List_;
+import quorum.Libraries.Interface.Events.BehaviorEvent;
 import quorum.Libraries.Interface.Item_;
 
 public class ListItemKit extends ItemKit{
@@ -73,7 +75,7 @@ public class ListItemKit extends ItemKit{
     */
     @Override
     public void SendExtras() {
-        int flags = tree ? MacAccessibilityExtras.OUTLINE_ROW : MacAccessibilityExtras.LIST_ROW;
+        int flags = (tree ? MacAccessibilityExtras.OUTLINE_ROW : MacAccessibilityExtras.LIST_ROW) | GetMenuFlag();
         int index = -1;
         int level = 0;
         int position = 0;
@@ -81,13 +83,18 @@ public class ListItemKit extends ItemKit{
         Item_ item = GetItem();
         if (item instanceof ListItem_) {
             ListItem_ listItem = (ListItem_) item;
+            List_ list = listItem.GetList();
             if (tree && listItem.IsAccessibilityExpandable()) {
                 flags = flags | MacAccessibilityExtras.EXPANDABLE;
                 if (listItem.IsAccessibilityExpanded()) {
                     flags = flags | MacAccessibilityExtras.EXPANDED;
                 }
+                // VoiceOver may open and close it only if the list says how.
+                if (list != null && list.GetAccessibilityExpandBehavior() != null
+                        && list.GetAccessibilityCollapseBehavior() != null) {
+                    flags = flags | MacAccessibilityExtras.CAN_DISCLOSE;
+                }
             }
-            List_ list = listItem.GetList();
             if (list != null) {
                 index = list.GetIndexOf(listItem);
                 level = Math.max(0, listItem.GetAccessibilityLevel());
@@ -119,5 +126,85 @@ public class ListItemKit extends ItemKit{
             }
         }
         MacAccessibilityExtras.setInfo(GetNodeID(), flags, level, tree ? -1 : index, count, position, null);
+    }
+    /*
+        CLICK (VoiceOver's press, or AXSelected set to true) selects the
+        row. FOCUS focuses the list on this row. SCROLL_INTO_VIEW scrolls
+        the list to it. In a list drawn as a tree, EXPAND and COLLAPSE (from
+        Mac.so: VO-\ sets AXDisclosing) run the behaviors the list was
+        given for them (List:SetAccessibilityExpandBehaviors), which open
+        and close a row the way the program's own keys do.
+    */
+    @Override
+    protected void AddActions(Node node, Item_ item) {
+        super.AddActions(node, item);
+        if (item instanceof ListItem_) {
+            ListItem_ listItem = (ListItem_) item;
+            node.addAction(Action.CLICK);
+            node.addAction(Action.SCROLL_INTO_VIEW);
+            List_ list = listItem.GetList();
+            if (!item.IsFocusable() && list != null && list.IsFocusable()) {
+                node.addAction(Action.FOCUS);
+            }
+            if (tree && listItem.IsAccessibilityExpandable() && list != null) {
+                if (listItem.IsAccessibilityExpanded()) {
+                    if (list.GetAccessibilityCollapseBehavior() != null) {
+                        node.addAction(Action.COLLAPSE);
+                    }
+                } else if (list.GetAccessibilityExpandBehavior() != null) {
+                    node.addAction(Action.EXPAND);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void DoAction(ActionRequest request) {
+        Item_ item = GetItem();
+        if (!(item instanceof ListItem_)) {
+            super.DoAction(request);
+            return;
+        }
+        ListItem_ listItem = (ListItem_) item;
+        List_ list = listItem.GetList();
+        if (request.action == Action.CLICK) {
+            listItem.Select();
+        } else if (request.action == Action.FOCUS && !item.IsFocusable() && list != null && list.IsFocusable()) {
+            list.Focus();
+            listItem.Select();
+        } else if (request.action == Action.SCROLL_INTO_VIEW) {
+            if (list != null) {
+                int index = list.GetIndexOf(listItem);
+                if (index >= 0) {
+                    list.GoToItem(index);
+                }
+            }
+        } else if (request.action == Action.EXPAND || request.action == Action.COLLAPSE) {
+            if (!tree || list == null || !listItem.IsAccessibilityExpandable()) {
+                return;
+            }
+            boolean expand = request.action == Action.EXPAND;
+            // Only a change: a collapse behavior may also move to the row
+            // above when the row is already closed, as the Left key does.
+            if (listItem.IsAccessibilityExpanded() == expand) {
+                return;
+            }
+            Behavior_ behavior = expand ? list.GetAccessibilityExpandBehavior() : list.GetAccessibilityCollapseBehavior();
+            if (behavior != null) {
+                BehaviorEvent event = new BehaviorEvent();
+                event.SetItem(listItem);
+                behavior.Run(event);
+            }
+        } else if (request.action == Action.SHOW_CONTEXT_MENU) {
+            // The menu acts on the selected row, as with the keyboard.
+            if (HasPopupMenu(listItem)) {
+                if (list != null && list.GetSelection().GetListItem() != listItem) {
+                    listItem.Select();
+                }
+                ShowPopupMenu(listItem);
+            }
+        } else {
+            super.DoAction(request);
+        }
     }
 }

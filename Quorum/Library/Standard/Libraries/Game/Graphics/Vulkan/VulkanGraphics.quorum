@@ -1,5 +1,6 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Game.Graphics.Timing.GraphicsTimer
 use Libraries.System.Logging.SharedLogger
 
 use Libraries.Game.Graphics.GraphicsManager
@@ -19,6 +20,9 @@ use Libraries.Game.Graphics.DeviceCoordinates
 
 use Libraries.Game.DesktopConfiguration
 class VulkanGraphics is GraphicsManager
+    // Times the GPU's phases of each frame, when turned on (Graphics timing
+    // plan T2). Game:SetGraphicsTiming turns it on.
+    GraphicsTimer graphicsTimer
     
 VulkanConstants constants
     
@@ -358,8 +362,22 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         ndc:SetDefaultCoordinateSpace(ndc:LEFT_HANDED)
         ndc:SetDefaultDepthRange(ndc:DEPTH_ZERO_TO_ONE)
 
+        // The GPU timer learns the device's clock: nanoseconds per tick, and
+        // how many bits of a timestamp the graphics queue writes.
+        graphicsTimer:Setup(device, GetPhysicalDeviceLimits():GetTimestampPeriod(), graphicsQueue:GetQueueFamily():GetTimestampValidBits())
+
         initialized = true
         return true
+    end
+
+    /*
+    This action returns the GPU timer, which times each frame's phases when
+    turned on (Graphics timing plan T2).
+
+    Attribute: Returns The timer
+    */
+    action GetGraphicsTimer returns GraphicsTimer
+        return graphicsTimer
     end
 
     /*
@@ -439,6 +457,10 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         // Ensure that all work associated with this image has previously finished.
         currentRenderFence:Wait()
 
+        // The frame that last used this slot has finished, so its GPU times
+        // can be read (Graphics timing plan T2).
+        graphicsTimer:Collect(currentResourceIndex)
+
         // Frame frameNumber - N, the last to use this slot, has now
         // finished, so whatever was retired by then can be freed (Item 31).
         ReleaseRetired(false)
@@ -495,6 +517,9 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
         
         // Begin recording commands for our chosen command buffer.
         currentRenderCommandBuffer:BeginRecording()
+
+        // Stamp the frame's start, when timing (Graphics timing plan T2).
+        graphicsTimer:BeginFrame(currentRenderCommandBuffer, currentResourceIndex, frameNumber)
     end
 
     // Asks the system to get the index of the next image in the Swapchain, and returns a boolean indicating if the operation was successful or not.
@@ -510,7 +535,8 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
             return now
         end
         
-        // Stop recording commands.
+        // Stamp the frame's end, when timing, then stop recording commands.
+        graphicsTimer:EndFrame(currentRenderCommandBuffer)
         currentRenderCommandBuffer:EndRecording()
 
 

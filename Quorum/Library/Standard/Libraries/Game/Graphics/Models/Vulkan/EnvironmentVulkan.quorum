@@ -40,6 +40,8 @@ use Libraries.Game.Graphics.Vulkan.VulkanRenderPass
 use Libraries.Game.Graphics.Vulkan.VulkanSampler
 use Libraries.Game.Graphics.Vulkan.VulkanSamplerInfo
 use Libraries.Game.Graphics.CameraMatrix4
+use Libraries.Game.Graphics.SkyLight
+use Libraries.Game.Graphics.Skybox
 
 class EnvironmentVulkan is Environment
     
@@ -101,7 +103,12 @@ class EnvironmentVulkan is Environment
     constant integer DIRECTIONAL_LIGHT_TYPE = 1
     constant integer SPOT_LIGHT_TYPE = 2
     
-    constant integer SCENE_DATA_WORD_SIZE = 24
+    // The camera, ambient light, light count and view matrix (24 words),
+    // then the fog (8 words, Item 40), then the light from the sky (56
+    // words, Lighting plan L5): its strength and whether it has reflections
+    // (4 words), its tint (4), the sky's rotation as three columns (12),
+    // and nine diffuse light coefficients (36), each padded to 4 words.
+    constant integer SCENE_DATA_WORD_SIZE = 88
     constant integer SCENE_DATA_BYTE_SIZE = SCENE_DATA_WORD_SIZE * 4
     
     constant integer CAMERA_POSITION_INDEX = 0
@@ -109,6 +116,17 @@ class EnvironmentVulkan is Environment
     constant integer AMBIENT_LIGHT_COLOR_INDEX = 4
     constant integer LIGHT_COUNT_INDEX = 7
     constant integer CAMERA_VIEW_MATRIX_INDEX = 8
+    constant integer FOG_COLOR_INDEX = 24
+    constant integer FOG_START_INDEX = 27
+    constant integer FOG_END_INDEX = 28
+    constant integer FOG_AMOUNT_INDEX = 29
+    constant integer FOG_BASE_HEIGHT_INDEX = 30
+    constant integer FOG_HEIGHT_FALLOFF_INDEX = 31
+    constant integer SKY_LIGHT_STRENGTH_INDEX = 32
+    constant integer SKY_LIGHT_REFLECTIONS_INDEX = 33
+    constant integer SKY_LIGHT_TINT_INDEX = 36
+    constant integer SKY_ROTATION_INDEX = 40
+    constant integer SKY_IRRADIANCE_INDEX = 52
     
     /*Cascade shadow data is made of 6 Matrix4s for shadow projection transforms, followed by one Vector4 for split distance values.*/
     constant integer SHADOW_PROJECTION_WORD_SIZE = 16
@@ -124,13 +142,55 @@ class EnvironmentVulkan is Environment
     constant integer SPLIT_DISTANCE_INDEX = PROJECTION_MATRIX_INDEX + SHADOW_PROJECTION_CUBE_WORD_SIZE
     
     integer maxLights = -1
+
+    // How the lit image is fit to the screen (Lighting plan L2): the
+    // exposure scales the light, and the tone mapping is one of the
+    // TONE_MAPPING constants.
+    number exposure = 1.0
+    integer toneMapping = 0
+
+    /* No tone mapping: light brighter than white clips to white, as before. */
+    public constant integer TONE_MAPPING_NONE = 0
+    /* Reinhard tone mapping: gentle; bright light nears white slowly. */
+    public constant integer TONE_MAPPING_REINHARD = 1
+    /* ACES filmic tone mapping: a little more contrast, as films have. */
+    public constant integer TONE_MAPPING_ACES = 2
     VulkanLightingProperties lightingProperties = undefined
     
     Array<VulkanDescriptorSet> lightDataDescriptorSets
     VulkanDescriptorSetLayout lightDataDescriptorSetLayout = undefined
+
+    // Distance fog (Item 40). An amount of 0 is no fog.
+    Color fogColor = undefined
+    number fogStart = 50
+    number fogEnd = 300
+    number fogAmount = 0
+    number fogBaseHeight = 0
+    number fogHeightFalloff = 0
     
     // Used to check if the camera has changed since the previous update. If so, we need to update shadows.
     Matrix4 previousCameraTransform
+
+    // The light from the sky (Lighting plan L5): the sky light, how strong
+    // it is (0 is the flat ambient light alone, as before), and the sky's
+    // rotation when the scene data was last written, so turning the sky
+    // writes it again.
+    SkyLight skyLight = undefined
+    number skyLightStrength = 1
+    Matrix4 skyRotationWritten
+
+    // Bloom (Lighting plan L3): off by default. Light brighter than the
+    // threshold glows past its edges, added at the strength.
+    boolean bloomOn = false
+    number bloomThreshold = 1
+    number bloomStrength = 0.05
+
+    // A spotlight's shadow map reaches from this share of its range, but
+    // no nearer than SPOT_SHADOW_NEAREST, and its view is wider than its
+    // cone by SPOT_SHADOW_MARGIN degrees (Lighting plan L7).
+    constant number SPOT_SHADOW_NEAR_SHARE = 0.002
+    constant number SPOT_SHADOW_NEAREST = 0.01
+    constant number SPOT_SHADOW_MARGIN = 4
     
     action Create(VulkanDevice device, VulkanGraphics graphics)
         me:device = device
@@ -175,6 +235,18 @@ or a:row3column0 not= b:row3column0 or a:row3column1 not= b:row3column1 or a:row
             SetSceneDataDirty()
         end
 
+        // Turning the sky turns its light (Lighting plan L5).
+        if skyLight not= undefined and skyLight:GetSkybox() not= undefined
+            Matrix4 rotation = skyLight:GetSkybox():GetRotation()
+            Matrix4 written = skyRotationWritten
+            if rotation:row0column0 not= written:row0column0 or rotation:row0column1 not= written:row0column1 or rotation:row0column2 not= written:row0column2
+or rotation:row1column0 not= written:row1column0 or rotation:row1column1 not= written:row1column1 or rotation:row1column2 not= written:row1column2
+or rotation:row2column0 not= written:row2column0 or rotation:row2column1 not= written:row2column1 or rotation:row2column2 not= written:row2column2
+                skyRotationWritten:Set(rotation)
+                SetFogDirty()
+            end
+        end
+
         // A point light or spotlight may belong to a model that moves or
         // turns without telling the environment, such as a headlight on a
         // car. Re-pack the lights every frame while there are any; their
@@ -184,6 +256,16 @@ or a:row3column0 not= b:row3column0 or a:row3column1 not= b:row3column1 or a:row
             repeat while slot < lightsDirty:GetSize()
                 lightsDirty:Set(slot, true)
                 slot = slot + 1
+            end
+        end
+        // Spotlights' shadows come from their own view (Lighting plan L7),
+        // so a spotlight that moves, such as a headlight, needs its shadow
+        // matrices made again too, even if the camera is still.
+        if not spotLights:IsEmpty()
+            integer shadowSlot = 0
+            repeat while shadowSlot < shadowsDirty:GetSize()
+                shadowsDirty:Set(shadowSlot, true)
+                shadowSlot = shadowSlot + 1
             end
         end
     end
@@ -363,7 +445,384 @@ end
     */
     action GetAmbientLight returns AmbientLight
         return ambientLight
-end
+    end
+
+    /*
+    This action turns on distance fog: things fade into the fog color as
+    they get farther from the camera, from none at the start distance to
+    all of it at the end distance. The sky isn't fogged, so a color close
+    to the sky's horizon looks best. Vulkan only (Item 40, Water plan W2).
+
+    Attribute: Parameter color The fog's color.
+    Attribute: Parameter nearDistance The distance where fog begins.
+    Attribute: Parameter farDistance The distance where fog is thickest. It must be more than the near distance.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Game.Graphics.Environment
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Environment environment = GetCurrentLayer3D():GetEnvironment()
+            if environment is EnvironmentVulkan
+                EnvironmentVulkan vulkanEnvironment = cast(EnvironmentVulkan, environment)
+                Color haze
+                haze:SetColor(0.78, 0.86, 0.94, 1)
+                vulkanEnvironment:SetFog(haze, 60, 260)
+            end
+        end
+    end
+    */
+    action SetFog(Color color, number nearDistance, number farDistance)
+        if farDistance <= nearDistance
+            alert("The fog's far distance must be more than its near distance, but was given " + nearDistance + " and " + farDistance + ".")
+        end
+        fogColor = color
+        fogStart = nearDistance
+        fogEnd = farDistance
+        if fogAmount <= 0
+            fogAmount = 1
+        end
+        SetFogDirty()
+    end
+
+    /*
+    This action sets the most fog anything gets, from 0 (no fog) to 1 (the
+    farthest things are only the fog color).
+
+    Attribute: Parameter amount The most fog, from 0 to 1.
+    */
+    action SetFogAmount(number amount)
+        if amount < 0
+            amount = 0
+        elseif amount > 1
+            amount = 1
+        end
+        fogAmount = amount
+        SetFogDirty()
+    end
+
+    /*
+    This action makes the fog thinner higher up: above the base height it
+    fades by the falloff for each unit of height, so valleys are hazy and
+    hilltops clear. A falloff of 0 makes the fog the same at every height,
+    the default.
+
+    Attribute: Parameter baseHeight The height below which the fog is thickest.
+    Attribute: Parameter falloff How quickly the fog thins above it, 0 or more.
+    */
+    action SetFogHeight(number baseHeight, number falloff)
+        if falloff < 0
+            falloff = 0
+        end
+        fogBaseHeight = baseHeight
+        fogHeightFalloff = falloff
+        SetFogDirty()
+    end
+
+    /*
+    This action turns the fog off. SetFog turns it back on.
+    */
+    action RemoveFog
+        fogAmount = 0
+        SetFogDirty()
+    end
+
+    /*
+    This action returns true if there is fog.
+
+    Attribute: Returns True if fog is on.
+    */
+    action HasFog returns boolean
+        return fogColor not= undefined and fogAmount > 0
+    end
+
+    /*
+    This action returns the fog's color.
+
+    Attribute: Returns The fog's color, or undefined if SetFog hasn't been called.
+    */
+    action GetFogColor returns Color
+        return fogColor
+    end
+
+    /*
+    This action returns the distance where fog begins.
+
+    Attribute: Returns The fog's start.
+    */
+    action GetFogStart returns number
+        return fogStart
+    end
+
+    /*
+    This action returns the distance where fog is thickest.
+
+    Attribute: Returns The fog's end.
+    */
+    action GetFogEnd returns number
+        return fogEnd
+    end
+
+    /*
+    This action returns the most fog anything gets.
+
+    Attribute: Returns The fog amount, from 0 to 1.
+    */
+    action GetFogAmount returns number
+        return fogAmount
+    end
+
+    /*
+    This action returns the height below which the fog is thickest.
+
+    Attribute: Returns The fog's base height.
+    */
+    action GetFogBaseHeight returns number
+        return fogBaseHeight
+    end
+
+    /*
+    This action returns how quickly the fog thins above its base height.
+
+    Attribute: Returns The fog's height falloff.
+    */
+    action GetFogHeightFalloff returns number
+        return fogHeightFalloff
+    end
+
+    /*
+    This action marks the scene data of every frame slot to be written
+    again, for a fog change. Unlike SetSceneDataDirty, the shadows don't
+    need working out again (Item 40).
+    */
+    private action SetFogDirty
+        integer i = 0
+        repeat while i < sceneDataDirty:GetSize()
+            sceneDataDirty:Set(i, true)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets the exposure: how much the light is scaled before it is
+    drawn on the screen (Lighting plan L2). 1 leaves it as it is; 2 is twice
+    as bright, 0.5 half.
+
+    Attribute: Parameter value The exposure, more than 0.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetExposure(1.5)
+        end
+    end
+    */
+    action SetExposure(number value)
+        exposure = value
+    end
+
+    /*
+    This action returns the exposure.
+
+    Attribute: Returns The exposure; 1 leaves the light as it is.
+    */
+    action GetExposure returns number
+        return exposure
+    end
+
+    /*
+    This action sets how light brighter than white is fit to the screen
+    (Lighting plan L2): TONE_MAPPING_NONE clips it to white, as before;
+    TONE_MAPPING_REINHARD and TONE_MAPPING_ACES roll it off smoothly, so
+    strong lights and glowing surfaces keep their shape and color.
+
+    Attribute: Parameter value One of the TONE_MAPPING constants.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetToneMapping(environment:TONE_MAPPING_ACES)
+        end
+    end
+    */
+    action SetToneMapping(integer value)
+        if value < TONE_MAPPING_NONE or value > TONE_MAPPING_ACES
+            alert("The tone mapping must be one of EnvironmentVulkan's TONE_MAPPING constants, from " + TONE_MAPPING_NONE + " to " + TONE_MAPPING_ACES + ", not " + value + ".")
+        end
+        toneMapping = value
+    end
+
+    /*
+    This action returns the tone mapping.
+
+    Attribute: Returns One of the TONE_MAPPING constants.
+    */
+    action GetToneMapping returns integer
+        return toneMapping
+    end
+
+    /*
+    This action sets the light from the sky (Lighting plan L5): the soft
+    light a skybox gives from every direction, and the sky seen in shiny
+    surfaces. The Vulkan 3D painter sets it on its own from the layer's
+    skybox, so most programs never call this. Undefined takes it away.
+
+    Attribute: Parameter light The sky light, or undefined for none.
+    */
+    action SetSkyLight(SkyLight light)
+        skyLight = light
+        SetFogDirty()
+    end
+
+    /*
+    This action returns the light from the sky.
+
+    Attribute: Returns The sky light, or undefined if there is none.
+    */
+    action GetSkyLight returns SkyLight
+        return skyLight
+    end
+
+    /*
+    This action sets how strong the light from the sky is (Lighting plan
+    L5). At 0, surfaces get only the flat ambient light, as before there
+    was a sky light. At 1, the default, the sky's light takes the flat
+    ambient light's place: shade facing the sky is sky colored, and shiny
+    surfaces reflect the sky. More than 1 makes it brighter. An ambient
+    light's color tints the sky's light; with no ambient light, it isn't
+    tinted. With no skybox, this does nothing.
+
+    Attribute: Parameter strength How strong the sky's light is, 0 or more.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Skybox
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Skybox skybox
+            skybox:Load("Skybox/right.jpg", "Skybox/left.jpg", "Skybox/top.jpg", "Skybox/bottom.jpg", "Skybox/front.jpg", "Skybox/back.jpg")
+            SetSkybox(skybox)
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetSkyLightStrength(0.8)
+        end
+    end
+    */
+    action SetSkyLightStrength(number strength)
+        if strength < 0
+            strength = 0
+        end
+        skyLightStrength = strength
+        SetFogDirty()
+    end
+
+    /*
+    This action returns how strong the light from the sky is.
+
+    Attribute: Returns The strength; 0 is the flat ambient light alone.
+    */
+    action GetSkyLightStrength returns number
+        return skyLightStrength
+    end
+
+    /*
+    This action turns on bloom (Lighting plan L3): light brighter than the
+    threshold glows softly past its edges, as bright lamps and glowing
+    signs do in a camera. The glow is added to the light before the
+    exposure and tone mapping. Bloom is off until this is called.
+
+    Attribute: Parameter threshold How bright light must be to glow; 1 is white before exposure.
+    Attribute: Parameter strength How much of the glow is added, more than 0; 0.05 is subtle, 0.3 strong.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetToneMapping(environment:TONE_MAPPING_ACES)
+            environment:SetBloom(1.0, 0.1)
+        end
+    end
+    */
+    action SetBloom(number threshold, number strength)
+        if threshold < 0
+            threshold = 0
+        end
+        if strength < 0
+            strength = 0
+        end
+        bloomThreshold = threshold
+        bloomStrength = strength
+        bloomOn = true
+    end
+
+    /*
+    This action turns bloom off. SetBloom turns it back on.
+    */
+    action RemoveBloom
+        bloomOn = false
+    end
+
+    /*
+    This action returns true if bloom is on and adds something.
+
+    Attribute: Returns True if bloom is on.
+    */
+    action HasBloom returns boolean
+        return bloomOn and bloomStrength > 0
+    end
+
+    /*
+    This action returns how bright light must be to glow.
+
+    Attribute: Returns The bloom threshold.
+    */
+    action GetBloomThreshold returns number
+        return bloomThreshold
+    end
+
+    /*
+    This action returns how much of the glow is added.
+
+    Attribute: Returns The bloom strength.
+    */
+    action GetBloomStrength returns number
+        return bloomStrength
+    end
 
     /*
     This action will return whether the Environment currently contains any
@@ -630,7 +1089,26 @@ end
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 13, matrix:row1column3)
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 14, matrix:row2column3)
             sceneDataMappingArray:Set(CAMERA_VIEW_MATRIX_INDEX + 15, matrix:row3column3)
-            
+
+            // The fog (Item 40). With no color set, it is off.
+            if fogColor not= undefined and fogAmount > 0
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX, fogColor:GetRed())
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, fogColor:GetGreen())
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, fogColor:GetBlue())
+                sceneDataMappingArray:Set(FOG_AMOUNT_INDEX, fogAmount)
+            else
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX, 0)
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, 0)
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, 0)
+                sceneDataMappingArray:Set(FOG_AMOUNT_INDEX, 0)
+            end
+            sceneDataMappingArray:Set(FOG_START_INDEX, fogStart)
+            sceneDataMappingArray:Set(FOG_END_INDEX, fogEnd)
+            sceneDataMappingArray:Set(FOG_BASE_HEIGHT_INDEX, fogBaseHeight)
+            sceneDataMappingArray:Set(FOG_HEIGHT_FALLOFF_INDEX, fogHeightFalloff)
+
+            WriteSkyLight()
+
             sceneDataMemory:Set(sceneDataMappingArray)
             sceneDataDirty:Set(resourceIndex, false)
         end
@@ -640,17 +1118,17 @@ end
             
             integer index = 0
         integer i = 0
-        // At most maxLights fit in the shadow data (Item 35).
-        integer shadowLightCount = directionalLights:GetSize() + pointLights:GetSize()
-        if shadowLightCount > maxLights
-            shadowLightCount = maxLights
-        end
+        // At most maxLights fit in the shadow data (Item 35). Spotlights
+        // come after point lights, as in the light list (Lighting plan L7).
+        integer shadowLightCount = GetShadowLightCount()
         repeat while i < shadowLightCount
                 Light light = undefined
                 if i < directionalLights:GetSize()
                     light = directionalLights:Get(i)
-                else
+                elseif i < directionalLights:GetSize() + pointLights:GetSize()
                     light = pointLights:Get(i - directionalLights:GetSize())
+                else
+                    light = spotLights:Get(i - directionalLights:GetSize() - pointLights:GetSize())
                 end
                 
                 integer cascadeIndex = 0
@@ -701,6 +1179,68 @@ end
         
     end
     
+    /*
+    This action writes the light from the sky into the scene data
+    (Lighting plan L5): its strength (0 when there is no sky light, so the
+    shader uses the flat ambient light alone), whether there are
+    reflections, its tint (the ambient light's color, or white), the sky's
+    rotation as three columns, and the nine diffuse light coefficients.
+    */
+    private action WriteSkyLight
+        integer i = SKY_LIGHT_STRENGTH_INDEX
+        repeat while i < SCENE_DATA_WORD_SIZE
+            sceneDataMappingArray:Set(i, 0)
+            i = i + 1
+        end
+
+        // The identity rotation, so the columns are sensible with no sky.
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX, 1)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 5, 1)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 10, 1)
+
+        if skyLight = undefined or not skyLight:IsLoaded() or skyLight:GetSkybox() = undefined or skyLightStrength <= 0
+            return now
+        end
+
+        sceneDataMappingArray:Set(SKY_LIGHT_STRENGTH_INDEX, skyLightStrength)
+        sceneDataMappingArray:Set(SKY_LIGHT_REFLECTIONS_INDEX, 1)
+
+        if ambientLight not= undefined
+            Color tint = ambientLight:GetColor()
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX, tint:GetRed())
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 1, tint:GetGreen())
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 2, tint:GetBlue())
+        else
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX, 1)
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 1, 1)
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 2, 1)
+        end
+
+        // The columns of the sky's rotation, as the skybox and water use it:
+        // a direction is looked up in the cube as its dot product with each.
+        Matrix4 rotation = skyLight:GetSkybox():GetRotation()
+        skyRotationWritten:Set(rotation)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX, rotation:row0column0)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 1, rotation:row1column0)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 2, rotation:row2column0)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 4, rotation:row0column1)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 5, rotation:row1column1)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 6, rotation:row2column1)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 8, rotation:row0column2)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 9, rotation:row1column2)
+        sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 10, rotation:row2column2)
+
+        Number32BitArray coefficients = skyLight:GetIrradiance()
+        integer coefficient = 0
+        repeat while coefficient < 9
+            integer target = SKY_IRRADIANCE_INDEX + coefficient * 4
+            sceneDataMappingArray:Set(target, coefficients:Get(coefficient * 3))
+            sceneDataMappingArray:Set(target + 1, coefficients:Get(coefficient * 3 + 1))
+            sceneDataMappingArray:Set(target + 2, coefficients:Get(coefficient * 3 + 2))
+            coefficient = coefficient + 1
+        end
+    end
+
     private action CalculateShadowProjections
         Matrix4 cameraView = camera:GetViewMatrix()
         Matrix4 cameraProjection = camera:GetProjectionMatrix()
@@ -960,11 +1500,115 @@ one of the six axis directions. In order, these will be: positive/negative x, po
             lightCounter = lightCounter + 1
             i = i + 1
         end
-        
+
+        // Spotlights (Lighting plan L7): one perspective map per cascade,
+        // looking along the spot's direction, as wide as its cone and a
+        // little more. The cascades split the distance along the
+        // direction, as point lights split theirs.
+        integer spotCount = GetSpotLightCount()
+        i = 0
+        repeat while i < spotCount and directionalCount + pointCount + i < maxLights
+            SpotLight light = GetSpotLight(i)
+            Matrix4 spotTransform = light:GetTransform()
+            Vector3 spotPosition
+            spotPosition:Set(spotTransform:row0column3, spotTransform:row1column3, spotTransform:row2column3)
+            Vector3 spotDirection
+            GetWorldSpotDirection(light, spotDirection)
+
+            number spotFar = light:GetRange()
+            if spotFar <= 0
+                spotFar = 1
+            end
+            number spotNear = spotFar * SPOT_SHADOW_NEAR_SHARE
+            if spotNear < SPOT_SHADOW_NEAREST
+                spotNear = SPOT_SHADOW_NEAREST
+            end
+            if spotFar <= spotNear
+                spotFar = spotNear * 2
+            end
+            number spotRange = spotFar - spotNear
+            number spotRatio = spotFar / spotNear
+
+            number fieldOfView = light:GetOuterAngle() * 2 + SPOT_SHADOW_MARGIN
+            if fieldOfView > 170
+                fieldOfView = 170
+            end
+
+            Vector3 spotUp
+            spotUp:Set(0, 1, 0)
+            if math:AbsoluteValue(spotDirection:GetY()) > 0.99
+                spotUp:Set(0, 0, 1)
+            end
+            Vector3 spotTarget
+            spotTarget:Set(spotPosition):Add(spotDirection)
+            CameraMatrix4 spotView
+            spotView:SetToLookAt(spotPosition, spotTarget, spotUp)
+
+            integer j = 0
+            repeat while j < CASCADE_COUNT
+                number power = (j + 1.0) / CASCADE_COUNT
+                number log = spotNear * math:RaiseToPower(spotRatio, power)
+                number uniform = spotNear + spotRange * power
+                number cascadeFar = 0.95 * (log - uniform) + uniform
+
+                CascadeShadowData shadowData = light:GetShadowData(j)
+                if shadowData = undefined
+                    CascadeShadowData newData
+                    light:SetShadowData(j, newData)
+                    shadowData = newData
+                end
+
+                CameraMatrix4 spotProjection
+                spotProjection:PerspectiveProjection(spotNear, cascadeFar, fieldOfView, 1)
+                Matrix4 shadowDataMatrix = shadowData:GetProjectionMatrix(0)
+                shadowDataMatrix:Set(spotProjection):Multiply(spotView)
+                shadowData:SetSplitDistance(cascadeFar)
+                j = j + 1
+            end
+
+            lightCounter = lightCounter + 1
+            i = i + 1
+        end
     end
 
     action GetMaxLights returns integer
         return maxLights
+    end
+
+    /*
+    This action returns how many lights have shadow maps: directional
+    lights, then point lights, then spotlights (Lighting plan L7), at most
+    the most lights. Light number i in the shader's list has map number i.
+
+    Attribute: Returns The number of lights with shadow maps.
+    */
+    action GetShadowLightCount returns integer
+        integer count = directionalLights:GetSize() + pointLights:GetSize() + spotLights:GetSize()
+        if count > maxLights
+            count = maxLights
+        end
+        return count
+    end
+
+    /*
+    This action returns a spotlight's direction in the world: its own
+    direction turned by its world transform, of length 1.
+
+    Attribute: Parameter light The spotlight.
+    Attribute: Parameter result The vector the direction is written into.
+    */
+    private action GetWorldSpotDirection(SpotLight light, Vector3 result)
+        Matrix4 transform = light:GetTransform()
+        Vector3 localDirection = light:GetDirection()
+        number x = transform:row0column0 * localDirection:GetX() + transform:row0column1 * localDirection:GetY() + transform:row0column2 * localDirection:GetZ()
+        number y = transform:row1column0 * localDirection:GetX() + transform:row1column1 * localDirection:GetY() + transform:row1column2 * localDirection:GetZ()
+        number z = transform:row2column0 * localDirection:GetX() + transform:row2column1 * localDirection:GetY() + transform:row2column2 * localDirection:GetZ()
+        number length = lightMath:SquareRoot(x * x + y * y + z * z)
+        if length > 0.000001
+            result:Set(x / length, y / length, z / length)
+        else
+            result:Set(0, -1, 0)
+        end
     end
 
     action SetMaxLights(integer maxLights)

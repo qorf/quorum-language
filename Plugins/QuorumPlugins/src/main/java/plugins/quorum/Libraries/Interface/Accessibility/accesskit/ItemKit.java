@@ -5,8 +5,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Game.DesktopDisplay_;
-import quorum.Libraries.Game.Layer3D_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
+import quorum.Libraries.Interface.Behaviors.Behavior_;
+import quorum.Libraries.Interface.Behaviors.Blocks.CodeEditorOpenPopupMenuBehavior;
+import quorum.Libraries.Interface.Behaviors.Controls.OpenPopupMenuBehavior;
+import quorum.Libraries.Interface.Behaviors.Controls.TextBoxOpenPopupMenuBehavior;
+import quorum.Libraries.Interface.Controls.Blocks.CodeEditor_;
+import quorum.Libraries.Interface.Controls.Control_;
+import quorum.Libraries.Interface.Controls.TextBox_;
+import quorum.Libraries.Interface.Controls.TextField_;
+import quorum.Libraries.Interface.Events.BehaviorEvent;
 import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
@@ -27,6 +35,9 @@ public class ItemKit {
     private ItemKit parent = null;
     private int indexInParent = -1;
     private ArrayList<ItemKit> children = new ArrayList<ItemKit>();
+
+    // True while Mac.so holds a HAS_MENU fact for this node (SendExtras).
+    private boolean sentMenuFlag = false;
 
     public ItemKit() {
         SetRole(Role.UNKNOWN);
@@ -55,11 +66,106 @@ public class ItemKit {
     }
 
     /*
+        What MacAccessibility sends: the kit's Build, plus what every item
+        has: a role description for items with no standard role (the codes
+        ITEM and CUSTOM, such as a Block or a scene editor's 3D item), and
+        the actions VoiceOver may ask for. Labels set a role description of
+        their own ("Label") for other platforms; AccessKit's "text" is
+        right on the Mac, so standard roles keep theirs.
+    */
+    public final Node BuildNode() {
+        Node node = Build();
+        Item_ item = GetItem();
+        if (node != null && item != null) {
+            int code = item.GetAccessibilityCode();
+            if (code == item.Get_Libraries_Interface_Item__ITEM_() || code == item.Get_Libraries_Interface_Item__CUSTOM_()) {
+                String roleDescription = item.GetAccessibilityRoleDescription();
+                if (roleDescription != null && !roleDescription.isEmpty()) {
+                    node.setRoleDescription(roleDescription);
+                }
+            }
+            AddActions(node, item);
+        }
+        return node;
+    }
+
+    /*
+        The actions this item supports. Each one listed here must be
+        carried out by DoAction. A kit that overrides this should call it.
+        A context menu isn't an AccessKit action on the Mac: Mac.so offers
+        it from the HAS_MENU fact (SendExtras).
+    */
+    protected void AddActions(Node node, Item_ item) {
+        if (item.IsFocusable()) {
+            node.addAction(Action.FOCUS);
+        }
+    }
+
+    /*
+        Carries out a VoiceOver request, from MacAccessibility.NativeUpdate
+        (never while AccessKit or AppKit is calling back). A kit that
+        overrides this should call it for the actions it doesn't handle.
+    */
+    public void DoAction(ActionRequest request) {
+        Item_ item = GetItem();
+        if (item == null) {
+            return;
+        }
+        if (request.action == Action.FOCUS && item.IsFocusable()) {
+            item.Focus();
+        } else if (request.action == Action.SHOW_CONTEXT_MENU) {
+            ShowPopupMenu(item);
+        }
+    }
+
+    /*
+        Opens an item's context menu the way Shift+F10 does: the behavior
+        DefaultInputSets gives that kind of control runs with the item and
+        no mouse event, so the menu opens at the item (or at the caret of
+        a text control).
+    */
+    protected static void ShowPopupMenu(Item_ item) {
+        if (!HasPopupMenu(item)) {
+            return;
+        }
+        Behavior_ behavior;
+        if (item instanceof CodeEditor_) {
+            behavior = new CodeEditorOpenPopupMenuBehavior();
+        } else if (item instanceof TextBox_ || item instanceof TextField_) {
+            behavior = new TextBoxOpenPopupMenuBehavior();
+        } else {
+            behavior = new OpenPopupMenuBehavior();
+        }
+        BehaviorEvent event = new BehaviorEvent();
+        event.SetItem(item);
+        behavior.Run(event);
+    }
+
+    protected static boolean HasPopupMenu(Item_ item) {
+        return item instanceof Control_ && ((Control_) item).GetPopupMenu() != null;
+    }
+
+    // MacAccessibilityExtras.HAS_MENU if the item has a context menu, else 0.
+    protected final int GetMenuFlag() {
+        return HasPopupMenu(GetItem()) ? MacAccessibilityExtras.HAS_MENU : 0;
+    }
+
+    /*
         Sends what VoiceOver needs but AccessKit's macOS adapter leaves out
-        (MacAccessibilityExtras), each time this kit's node is built. Most
-        kits have nothing to send.
+        (MacAccessibilityExtras), each time this kit's node is built. Kits
+        that send facts of their own add GetMenuFlag to their flags; this
+        one sends only whether there is a context menu, and only when that
+        changes.
     */
     public void SendExtras() {
+        int flags = GetMenuFlag();
+        if (flags != 0) {
+            MacAccessibilityExtras.setInfo(GetNodeID(), flags, 0, -1, -1, 0, null);
+            sentMenuFlag = true;
+        } else if (sentMenuFlag) {
+            MacAccessibilityExtras.remove(GetNodeID());
+            sentMenuFlag = false;
+        }
     }
 
     // A node with only this kit's role and children (MacAccessibility.SafeBuild).
@@ -80,6 +186,15 @@ public class ItemKit {
 
     public NodeId GetNodeID() {
         return id;
+    }
+
+    /*
+        The node AccessKit's focus goes to while this item has Quorum's
+        focus: its own node, or a node inside it (Item3DKit's cursor row,
+        when that kit moves the focus to it).
+    */
+    public NodeId GetFocusTarget() {
+        return GetNodeID();
     }
 
     public Item_ GetItem() {
@@ -172,21 +287,30 @@ public class ItemKit {
         }
         else if (item instanceof Item3D_)
         {
-            // A placeholder (step 8 of the plan fixes 3D bounds).
-            Item3D_ item3D = ((Item3D_) item);
-            Rectangle_ rectangle = item3D.GetScreenBounds();
-
-            Layer3D_ layer3D = item3D.GetLayer();
-            int viewX = layer3D.GetViewportX();
-            int viewY = layer3D.GetViewportY();
-
-            double x1 = viewX + rectangle.GetX();
-            double x2 = viewX + rectangle.GetWidth() + rectangle.GetX();
-            double y1 = windowHeight - rectangle.GetY() - viewY - rectangle.GetHeight();
-            double y2 = windowHeight - rectangle.GetY() - viewY;
-            return new Rect( x1, y1, x2, y2);
+            // The part of the window the item covers, in pixels from the
+            // bottom left like an Item2D's screen position, viewport
+            // included and clipped to it, or undefined if none of it shows
+            // (Item3D:GetScreenBounds).
+            Rectangle_ rectangle = ((Item3D_) item).GetScreenBounds();
+            if (rectangle == null)
+            {
+                return new Rect(0,0,0,0);
+            }
+            double left = rectangle.GetX();
+            double bottom = rectangle.GetY();
+            return new Rect(
+                    left,
+                    windowHeight - bottom - rectangle.GetHeight(),
+                    left + rectangle.GetWidth(),
+                    windowHeight - bottom
+            );
         }
         return new Rect(0,0,0,0);
+    }
+
+    // True for a rectangle with no area (a 3D item that doesn't show).
+    public static boolean IsEmpty(Rect rect) {
+        return rect.x1 <= rect.x0 || rect.y1 <= rect.y0;
     }
 
     public Iterable<NodeId> GetInternalChildren() {
