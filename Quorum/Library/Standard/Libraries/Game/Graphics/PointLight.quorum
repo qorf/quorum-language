@@ -183,6 +183,47 @@ class PointLight is Light, Item3D
 
         intensity = newIntensity
     end
+
+    /*
+    This action turns the light off without changing its intensity or
+    color, so Show turns it back on as it was. A hidden light lights
+    nothing and draws no shadows.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.PointLight
+
+        class Main is Game
+            PointLight lamp
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                lamp:SetIntensity(5)
+                Add(lamp)
+                lamp:Hide()
+            end
+        end
+    */
+    action Hide
+        parent:Item3D:Hide()
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
+
+    /*
+    This action turns a hidden light back on, as bright as it was.
+    */
+    action Show
+        parent:Item3D:Show()
+        if GetEnvironment() not= undefined
+            GetEnvironment():LightChanged(me)
+        end
+    end
     
     action MoveX(number x)
         parent:Item3D:MoveX(x)

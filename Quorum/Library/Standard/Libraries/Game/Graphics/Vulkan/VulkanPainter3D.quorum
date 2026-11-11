@@ -157,9 +157,11 @@ class VulkanPainter3D is Painter3D
 
     // The 3D camera uniform's contents (Item 38, Water plan W1): the
     // projection-view matrix, then the camera's position, time, the screen
-    // size, and the near and far planes. 24 numbers, 96 bytes.
+    // size, and the near and far planes; then 1 if lighting is linear
+    // (Linear lighting plan), and 3 numbers of padding. 28 numbers, 112
+    // bytes.
     Number32BitArray cameraDataArray
-    constant integer CAMERA_DATA_SIZE = 24
+    constant integer CAMERA_DATA_SIZE = 28
 
     // Seconds since this painter started drawing, wrapped every hour, for
     // shaders that animate (Item 38).
@@ -2864,16 +2866,23 @@ BindDescriptorSetCommand resultDescriptorBind
             commandBuffer:Record(resultDescriptorBind)
 
         // The exposure and tone mapping the copy applies (Lighting plan L2),
-        // and the bloom's strength (L3): 12 bytes.
+        // the bloom's strength (L3), and 1 if the light is linear, so the
+        // copy turns it back into screen colors (Linear lighting plan): 16
+        // bytes.
         if toneMappingPushConstants = undefined
             VulkanPushConstantBuffer toneBuffer
-            toneBuffer:Create(12)
+            toneBuffer:Create(16)
             toneMappingPushConstants = toneBuffer
         end
         toneMappingPushConstants:ResetWritePosition()
         toneMappingPushConstants:AddNumber32Bit(environment:GetExposure())
         toneMappingPushConstants:AddNumber32Bit(environment:GetToneMapping())
         toneMappingPushConstants:AddNumber32Bit(bloomStrength)
+        if environment:IsLinearLighting()
+            toneMappingPushConstants:AddNumber32Bit(1)
+        else
+            toneMappingPushConstants:AddNumber32Bit(0)
+        end
         SetPushConstantsCommand tonePushConstants
         tonePushConstants:SetData(toneMappingPushConstants)
         tonePushConstants:SetPipelineLayout(resultPipelineLayout)
@@ -4450,6 +4459,16 @@ BindDescriptorSetCommand resultDescriptorBind
         cameraDataArray:Set(21, frameSwapchain:GetImageHeight())
         cameraDataArray:Set(22, camera:GetNear())
         cameraDataArray:Set(23, camera:GetFar())
+
+        // Whether the shaders work in linear light (Linear lighting plan).
+        if environment = undefined or environment:IsLinearLighting()
+            cameraDataArray:Set(24, 1)
+        else
+            cameraDataArray:Set(24, 0)
+        end
+        cameraDataArray:Set(25, 0)
+        cameraDataArray:Set(26, 0)
+        cameraDataArray:Set(27, 0)
     end
 
     /*

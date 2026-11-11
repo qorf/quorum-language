@@ -91,9 +91,10 @@ layout(scalar, set = 1, binding = 1) uniform SceneInfo
 	float fogAmount;
 	float fogBaseHeight;
 	float fogHeightFalloff;
-	// The light from the sky (Lighting plan L5): strength (0 for none) and
-	// whether there are reflections; its tint; the sky's rotation as three
-	// columns; nine diffuse light coefficients (rgb).
+	// The light from the sky (Lighting plan L5): strength (0 for none),
+	// whether there are reflections, and 1 if lighting is linear (Linear
+	// lighting plan); its tint; the sky's rotation as three columns; nine
+	// diffuse light coefficients (rgb).
 	vec4 skyLight;
 	vec4 skyTint;
 	vec4 skyRotation[3];
@@ -241,11 +242,11 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
-// A color as stored in a picture (sRGB) turned into linear light. A
-// metal's reflections take its base color, and the reflection math needs
-// that color linear: used as stored, a dark bronze (0.32, 0.26, 0.19)
-// reflects like a pale, bright gray, so metals look like chrome. Only the
-// reflection color is turned; the diffuse color is used as before.
+// A color as stored in a picture (sRGB) turned into linear light. With
+// linear lighting (Linear lighting plan), the G-buffer's colors already
+// are; the sky's cubes are turned here. Without it, only a metal's
+// reflection color is turned, as before: used as stored, a dark bronze
+// (0.32, 0.26, 0.19) reflects like a pale, bright gray.
 vec3 linearFromPicture(vec3 color)
 {
 	vec3 c = clamp(color, 0.0, 1.0);
@@ -348,7 +349,7 @@ vec3 skyIrradiance(vec3 normal)
 }
 
 // One of the sky light's cubes: 0 is the sky itself, 4 the blurriest.
-vec3 skyCubeLevel(int level, vec3 direction)
+vec3 skyCubeColor(int level, vec3 direction)
 {
 	if (level <= 0)
 		return textureLod(skyLightCube0, direction, 0.0).rgb;
@@ -359,6 +360,16 @@ vec3 skyCubeLevel(int level, vec3 direction)
 	if (level == 3)
 		return textureLod(skyLightCube3, direction, 0.0).rgb;
 	return textureLod(skyLightCube4, direction, 0.0).rgb;
+}
+
+// A sky cube's color as light: turned from the picture's colors when
+// lighting is linear (Linear lighting plan).
+vec3 skyCubeLevel(int level, vec3 direction)
+{
+	vec3 color = skyCubeColor(level, direction);
+	if (sceneInfo.skyLight.z > 0.5)
+		return linearFromPicture(color);
+	return color;
 }
 
 // The sky seen along a reflection, blurrier for rougher surfaces: the two
@@ -459,7 +470,12 @@ void main()
     vec3 V = normalize(sceneInfo.cameraPosition - worldPosition);
 
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, linearFromPicture(albedo), metallic);
+    // With linear lighting the albedo is already light (Linear lighting
+    // plan); otherwise only the metal's reflection color is turned.
+    if (sceneInfo.skyLight.z > 0.5)
+        F0 = mix(F0, albedo, metallic);
+    else
+        F0 = mix(F0, linearFromPicture(albedo), metallic);
 
     vec3 Lo = vec3(0.0);
 	

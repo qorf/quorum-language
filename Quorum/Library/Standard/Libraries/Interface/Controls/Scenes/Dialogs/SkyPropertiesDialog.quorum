@@ -4,6 +4,9 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Game.Graphics.Environment
+use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Interface.Controls.FileChooser
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Skybox
@@ -27,6 +30,10 @@ use Libraries.System.File
     lined up with the scene's light. The sky is saved with the scene, and
     every change can be undone.
 
+    It also has the layer's Linear lighting checkbox (Linear lighting plan):
+    on, the default, colors are lit as amounts of light, as glTF and most
+    engines expect; off, they are lit as stored, as Quorum did before.
+
     It shows in the scene editor's Properties panel when a 3D layer is
     selected and no item is.
 */
@@ -34,6 +41,7 @@ class SkyPropertiesDialog is PropertiesDialog
     // What a button does.
     public constant integer CHOOSE_FOLDER = 0
     public constant integer REMOVE = 1
+    public constant integer LINEAR_LIGHTING = 2
 
     constant number FIELD_LABEL_WIDTH = 120
 
@@ -41,6 +49,7 @@ class SkyPropertiesDialog is PropertiesDialog
     Button chooseButton = undefined
     Button removeButton = undefined
     TextField turnField = undefined
+    Checkbox linearCheckbox = undefined
 
     EditorLayer3D layer = undefined
     boolean updating = false
@@ -101,6 +110,33 @@ class SkyPropertiesDialog is PropertiesDialog
         line:Add(turnField)
         card:Add(line)
         focusArray:Add(turnField)
+
+        Control linearLine = MakeCardLine()
+        Checkbox linear
+        linearCheckbox = linear
+        linearCheckbox:SetName("Linear lighting")
+        linearCheckbox:SetDescription("Light colors as amounts of light, as glTF models expect, instead of as stored")
+        SkyButtonBehavior linearBehavior
+        linearBehavior:Setup(me, LINEAR_LIGHTING)
+        linearBehavior:SetCheckbox(true)
+        linearCheckbox:SetBehavior(linearBehavior)
+        linearLine:Add(linearCheckbox)
+        card:Add(linearLine)
+        focusArray:Add(linearCheckbox)
+    end
+
+    /*
+        Returns the layer's Vulkan environment, or undefined.
+    */
+    private action GetLayerEnvironment returns EnvironmentVulkan
+        if layer = undefined
+            return undefined
+        end
+        Environment environment = layer:GetEnvironment()
+        if environment is EnvironmentVulkan
+            return cast(EnvironmentVulkan, environment)
+        end
+        return undefined
     end
 
     /*
@@ -176,6 +212,12 @@ class SkyPropertiesDialog is PropertiesDialog
             skyLabel:SetText("Sky: " + folder)
             turnField:SetText("" + sky:GetTurn())
         end
+        EnvironmentVulkan environment = GetLayerEnvironment()
+        if environment not= undefined
+            linearCheckbox:SetToggleState(environment:IsLinearLighting())
+        else
+            linearCheckbox:SetToggleState(true)
+        end
         updating = false
     end
 
@@ -206,7 +248,7 @@ class SkyPropertiesDialog is PropertiesDialog
     /*
         This action is called by the section's buttons.
 
-        Attribute: Parameter kind CHOOSE_FOLDER or REMOVE
+        Attribute: Parameter kind CHOOSE_FOLDER, REMOVE or LINEAR_LIGHTING
     */
     action ButtonActivated(integer kind)
         SceneEditor editor = GetSceneEditor()
@@ -223,6 +265,8 @@ class SkyPropertiesDialog is PropertiesDialog
         elseif kind = REMOVE
             editor:RemoveLayerSky(layer)
             chooseButton:Focus()
+        elseif kind = LINEAR_LIGHTING
+            editor:SetLayerLinearLighting(layer, linearCheckbox:GetToggleState())
         end
     end
 

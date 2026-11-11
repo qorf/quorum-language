@@ -89,6 +89,8 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.SkyPropertiesDialog
 use Libraries.Interface.Undo.SceneEditorSkyEdit
+use Libraries.Interface.Undo.SceneEditorLinearLightingEdit
+use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Game.Graphics.Skybox
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainPropertiesDialog
@@ -4564,6 +4566,36 @@ action Update(number seconds)
         edit:Create(me, layer, sky, before, sky, degrees, "turn sky")
         editManager:Add(edit)
         SkyEdited(layer, "Sky turned to " + degrees + " degrees.")
+    end
+
+    /*
+    This action turns a 3D layer's linear lighting on or off (Linear
+    lighting plan): on, colors are lit as amounts of light; off, as stored.
+    The change is saved with the scene and can be undone.
+
+    Attribute: Parameter layer The layer
+    Attribute: Parameter linear True for linear lighting
+    */
+    action SetLayerLinearLighting(EditorLayer3D layer, boolean linear)
+        if layer = undefined or not (layer:GetEnvironment() is EnvironmentVulkan)
+            return now
+        end
+        EnvironmentVulkan environment = cast(EnvironmentVulkan, layer:GetEnvironment())
+        boolean before = environment:IsLinearLighting()
+        if before = linear
+            return now
+        end
+        environment:SetLinearLighting(linear)
+        text changeName = "turn off linear lighting"
+        text message = "Linear lighting off."
+        if linear
+            changeName = "turn on linear lighting"
+            message = "Linear lighting on."
+        end
+        SceneEditorLinearLightingEdit edit
+        edit:Create(me, layer, before, linear, changeName)
+        editManager:Add(edit)
+        SkyEdited(layer, message)
     end
 
     /*

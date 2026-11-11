@@ -55,10 +55,11 @@ any Vulkan resources that will be needed to send or change shader data.*/
         // layout has the same two bindings.
         creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 
-        // The exposure and tone mapping (Lighting plan L2), and the bloom's
-        // strength (L3): three numbers.
+        // The exposure and tone mapping (Lighting plan L2), the bloom's
+        // strength (L3), and whether the light is linear (Linear lighting
+        // plan): four numbers.
         VulkanPushConstantRange pushConstants
-        pushConstants:SetSize(12)
+        pushConstants:SetSize(16)
         pushConstants:SetStage(constants:SHADER_STAGE_FRAGMENT_BIT)
         pushConstants:Create()
         creator:SetPushConstantRange(pushConstants)

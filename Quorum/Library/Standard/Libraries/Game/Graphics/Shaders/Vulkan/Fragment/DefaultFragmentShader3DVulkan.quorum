@@ -29,6 +29,19 @@ class DefaultFragmentShader3DVulkan is Shader
 #extension GL_EXT_scalar_block_layout: require
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
+// The 3D camera uniform (Item 38); only whether lighting is linear is
+// used here (Linear lighting plan).
+layout(set = 0, binding = 0) uniform Camera
+{
+    mat4 projectionViewMatrix;
+    vec3 cameraPosition;
+    float time;
+    vec2 screenSize;
+    float nearPlane;
+    float farPlane;
+    float linearLighting;
+} camera;
+
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 
@@ -83,6 +96,18 @@ layout (location = 3) out vec4 outputPBR;
 // The light the surface gives off (Lighting plan L1), added after the
 // lights by the lighting pass.
 layout (location = 4) out vec4 outputEmissive;
+
+// A color as pictures store it (sRGB) turned into an amount of light, for
+// linear lighting (Linear lighting plan); as it is otherwise.
+vec3 shaderColor(vec3 color)
+{
+	if (camera.linearLighting < 0.5)
+		return color;
+	vec3 c = clamp(color, 0.0, 1.0);
+	vec3 low = c / 12.92;
+	vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+	return mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
+}
 
 vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
 {
@@ -160,6 +185,9 @@ void main()
 
     vec4 sampled = texture(nonuniformEXT(sampler2D(globalTextures[textureIndex], immutableSampler)), coordinates);
     outputColor = sampled * diffuse;
+    // The color as an amount of light (Linear lighting plan). Alpha, and
+    // a texture set's height in it, are left alone.
+    outputColor.rgb = shaderColor(outputColor.rgb);
 
 	if (textureSet)
 	{
@@ -238,10 +266,12 @@ void main()
 
 	// The emissive light: its color times its strength, times its texture
 	// if it has one (Lighting plan L1).
-	vec3 emissive = unpackUnorm4x8(material.emissiveColor).rgb * material.emissiveStrength;
+	// Each color is turned into light before the strength scales it
+	// (Linear lighting plan).
+	vec3 emissive = shaderColor(unpackUnorm4x8(material.emissiveColor).rgb) * material.emissiveStrength;
 	if ((material.flags & 2u) != 0u)
 	{
-		emissive *= texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb;
+		emissive *= shaderColor(texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb);
 	}
 
 	// An unlit material shows its color as it is: it goes into the emissive

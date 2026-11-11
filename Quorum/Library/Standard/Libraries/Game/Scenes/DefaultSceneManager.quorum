@@ -14,6 +14,7 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Layer
 use Libraries.Game.Layer2D
 use Libraries.Game.Layer3D
+use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Game.Graphics.Drawable
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.AmbientLight
@@ -200,6 +201,14 @@ class DefaultSceneManager is SceneManager
                 Layer3D skyLayer = cast(Layer3D, layer)
                 if skyLayer:GetSkybox() not= undefined
                     skyLayer:GetSkybox():SetTurn(json:GetNumber(key))
+                end
+            elseif key = properties:LINEAR_LIGHTING
+                // Whether the layer lights in linear light (Linear lighting
+                // plan); on unless the scene says otherwise.
+                Layer3D lightingLayer = cast(Layer3D, layer)
+                if lightingLayer:GetEnvironment() is EnvironmentVulkan
+                    EnvironmentVulkan lightingEnvironment = cast(EnvironmentVulkan, lightingLayer:GetEnvironment())
+                    lightingEnvironment:SetLinearLighting(json:GetBoolean(key))
                 end
             end
 
@@ -1281,6 +1290,14 @@ number restitution = 0
                 json:Add(properties:SKYBOX, SaveSkybox(skybox))
                 if skybox:GetTurn() not= 0
                     json:Add(properties:SKYBOX_TURN, skybox:GetTurn())
+                end
+            end
+
+            // Linear lighting (Linear lighting plan), saved only when off.
+            if layer3D:GetEnvironment() is EnvironmentVulkan
+                EnvironmentVulkan savedEnvironment = cast(EnvironmentVulkan, layer3D:GetEnvironment())
+                if not savedEnvironment:IsLinearLighting()
+                    json:Add(properties:LINEAR_LIGHTING, false)
                 end
             end
         end

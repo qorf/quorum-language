@@ -45,6 +45,9 @@ shared class SceneProperties
     public constant text VIEWPORT = "Viewport"
     public constant text SKYBOX = "Skybox"
     public constant text SKYBOX_TURN = "Skybox Turn"
+    // False when a 3D layer lights colors as stored instead of in linear
+    // light (Linear lighting plan). Saved only when off; on is the default.
+    public constant text LINEAR_LIGHTING = "Linear Lighting"
 
     /*
     Properties used for the camera in a Layer.

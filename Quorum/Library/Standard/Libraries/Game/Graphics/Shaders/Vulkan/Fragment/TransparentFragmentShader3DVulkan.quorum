@@ -50,6 +50,8 @@ layout(set = 0, binding = 0) uniform Camera
     vec2 screenSize;
     float nearPlane;
     float farPlane;
+    // 1 if lighting is linear (Linear lighting plan).
+    float linearLighting;
 } camera;
 
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
@@ -216,6 +218,15 @@ vec3 linearFromPicture(vec3 color)
 	return mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
 }
 
+// A color as pictures store it turned into an amount of light when
+// lighting is linear (Linear lighting plan); as it is otherwise.
+vec3 shaderColor(vec3 color)
+{
+	if (camera.linearLighting < 0.5)
+		return color;
+	return linearFromPicture(color);
+}
+
 void lightSurface(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 F0, vec3 albedo, float metallic, float roughness, inout vec3 diffuseLight, inout vec3 glint)
 {
     float NdotL = max(dot(N, L), 0.0);
@@ -289,7 +300,7 @@ vec3 skyIrradiance(vec3 normal)
 	return max(light, vec3(0.0));
 }
 
-vec3 skyCubeLevel(int level, vec3 direction)
+vec3 skyCubeColor(int level, vec3 direction)
 {
 	if (level <= 0)
 		return textureLod(skyLightCube0, direction, 0.0).rgb;
@@ -300,6 +311,12 @@ vec3 skyCubeLevel(int level, vec3 direction)
 	if (level == 3)
 		return textureLod(skyLightCube3, direction, 0.0).rgb;
 	return textureLod(skyLightCube4, direction, 0.0).rgb;
+}
+
+// A sky cube's color as light (Linear lighting plan).
+vec3 skyCubeLevel(int level, vec3 direction)
+{
+	return shaderColor(skyCubeColor(level, direction));
 }
 
 vec3 skyReflection(vec3 direction, float roughness)
@@ -351,7 +368,8 @@ vec3 skyBehind(vec3 direction)
 {
     vec3 turned = vec3(dot(direction, pushConstants.skyColumn0), dot(direction, pushConstants.skyColumn1), dot(direction, pushConstants.skyColumn2));
     turned.x = turned.x * pushConstants.skyInverter;
-    return textureLod(skyCube, turned, 0.0).rgb;
+    // The sky picture's colors as light (Linear lighting plan).
+    return shaderColor(textureLod(skyCube, turned, 0.0).rgb);
 }
 
 // Fades a color into the fog, as the lighting pass does (library item 40).
@@ -433,7 +451,8 @@ void main()
     if (textureSet)
         color.a = diffuse.a;
     float alpha = clamp(color.a, 0.0, 1.0);
-    vec3 albedo = color.rgb;
+    // The color as an amount of light (Linear lighting plan).
+    vec3 albedo = shaderColor(color.rgb);
 
     // The normal, roughness, metal and ambient occlusion, as the default 3D
     // fragment shader works them out.
@@ -474,9 +493,9 @@ void main()
     if (transmission > 0.0 && (material.transmission & 256u) != 0u)
         transmission *= texture(nonuniformEXT(sampler2D(globalTextures[material.transmission >> 9u], immutableSampler)), coordinates).r;
 
-    vec3 emissive = unpackUnorm4x8(material.emissiveColor).rgb * material.emissiveStrength;
+    vec3 emissive = shaderColor(unpackUnorm4x8(material.emissiveColor).rgb) * material.emissiveStrength;
     if ((material.flags & 2u) != 0u)
-        emissive *= texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb;
+        emissive *= shaderColor(texture(nonuniformEXT(sampler2D(globalTextures[material.emissiveMapIndex], immutableSampler)), coordinates).rgb);
 
     vec3 diffuseLight = vec3(0.0);
     vec3 glint = vec3(0.0);
@@ -489,7 +508,11 @@ void main()
     }
     else
     {
-        vec3 F0 = mix(vec3(0.04), linearFromPicture(albedo), metallic);
+        // With linear lighting the albedo is already light; otherwise only
+        // the metal's reflection color is turned (Linear lighting plan).
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
+        if (camera.linearLighting < 0.5)
+            F0 = mix(vec3(0.04), linearFromPicture(albedo), metallic);
         for (uint i = 0u; i < sceneInfo.lightsCount; i++)
         {
             Light light = lights.array[i];

@@ -5,13 +5,16 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.Dialogs.SkyPropertiesDialog
 
 /*
-    The SkyButtonBehavior is a button in a 3D layer's Sky section
-    (QuincyWorld demo D3): "Choose sky folder..." or "Remove sky". It tells
-    the section which was pressed.
+    The SkyButtonBehavior is a button or checkbox in a 3D layer's Sky
+    section (QuincyWorld demo D3): "Choose sky folder...", "Remove sky", or
+    the Linear lighting checkbox (Linear lighting plan). It tells the
+    section which was pressed.
 */
 class SkyButtonBehavior is Behavior
     SkyPropertiesDialog dialog = undefined
     integer kind = 0
+    // True for a checkbox's behavior, which also passes on unchecking.
+    boolean checkbox = false
 
     /*
         Sets which section and button this is.
@@ -28,5 +31,27 @@ class SkyButtonBehavior is Behavior
         if dialog not= undefined
             dialog:ButtonActivated(kind)
         end
+    end
+
+    /*
+        A checkbox runs its behavior only when it is checked, and calls
+        Dispose when it is unchecked, so unchecking is passed on the same
+        way. The section reads the checkbox's state, so it sees the change.
+    */
+    action Dispose
+        if checkbox and dialog not= undefined
+            dialog:ButtonActivated(kind)
+        end
+    end
+
+    /*
+        Marks the behavior as a checkbox's, so unchecking is passed on too.
+        A button's behavior may be disposed with its button, which mustn't
+        press it.
+
+        Attribute: Parameter value True for a checkbox's behavior
+    */
+    action SetCheckbox(boolean value)
+        checkbox = value
     end
 end

@@ -126,6 +126,9 @@ class EnvironmentVulkan is Environment
     constant integer FOG_HEIGHT_FALLOFF_INDEX = 31
     constant integer SKY_LIGHT_STRENGTH_INDEX = 32
     constant integer SKY_LIGHT_REFLECTIONS_INDEX = 33
+    // 1 if lighting is linear (Linear lighting plan), in the sky light's
+    // spare third number.
+    constant integer LINEAR_LIGHTING_INDEX = 34
     constant integer SKY_LIGHT_TINT_INDEX = 36
     constant integer SKY_ROTATION_INDEX = 40
     constant integer SKY_IRRADIANCE_INDEX = 52
@@ -147,11 +150,18 @@ class EnvironmentVulkan is Environment
 
     // How the lit image is fit to the screen (Lighting plan L2): the
     // exposure scales the light, and the tone mapping is one of the
-    // TONE_MAPPING constants.
+    // TONE_MAPPING constants. ACES (2) by default (Linear lighting plan
+    // LL7), so bright light rolls off instead of clipping.
     number exposure = 1.0
-    integer toneMapping = 0
+    integer toneMapping = 2
 
-    /* No tone mapping: light brighter than white clips to white, as before. */
+    // Whether lighting is worked out in linear light (Linear lighting plan):
+    // colors are turned from how pictures store them into light, lit, and
+    // turned back for the screen at the end. On by default. Off lights the
+    // stored colors as they are, as before.
+    boolean linearLighting = true
+
+    /* No tone mapping: light brighter than white clips to white. */
     public constant integer TONE_MAPPING_NONE = 0
     /* Reinhard tone mapping: gentle; bright light nears white slowly. */
     public constant integer TONE_MAPPING_REINHARD = 1
@@ -690,6 +700,69 @@ end
     end
 
     /*
+    This action sets whether lighting is worked out in linear light (Linear
+    lighting plan). On, the default, the colors of pictures and of Color
+    values are turned into amounts of light, lit, and turned back for the
+    screen at the end, as glTF and most engines expect: metals keep their
+    color, shadows aren't black, and light falls off naturally. Off lights
+    colors as they are stored, as Quorum did before.
+
+    Attribute: Parameter linear True for linear lighting.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            EnvironmentVulkan environment = cast(EnvironmentVulkan, GetCurrentLayer3D():GetEnvironment())
+            environment:SetLinearLighting(false)
+        end
+    end
+    */
+    action SetLinearLighting(boolean linear)
+        if linearLighting = linear
+            return now
+        end
+        linearLighting = linear
+        SetLightsDirty()
+        SetSceneDataDirty()
+    end
+
+    /*
+    This action returns whether lighting is worked out in linear light. See
+    SetLinearLighting.
+
+    Attribute: Returns True for linear lighting, the default.
+    */
+    action IsLinearLighting returns boolean
+        return linearLighting
+    end
+
+    /*
+    This action returns one part of a color (red, green or blue, 0 to 1) as
+    the shaders should get it: with linear lighting, turned from how
+    pictures store it (sRGB) into an amount of light; otherwise as it is.
+
+    Attribute: Parameter value The color part, as stored.
+    Attribute: Returns The value for the shaders.
+    */
+    private action ShaderColorPart(number value) returns number
+        if not linearLighting
+            return value
+        end
+        if value <= 0.04045
+            return value / 12.92
+        end
+        Math math
+        return math:RaiseToPower((value + 0.055) / 1.055, 2.4)
+    end
+
+    /*
     This action sets the light from the sky (Lighting plan L5): the soft
     light a skybox gives from every direction, and the sky seen in shiny
     surfaces. The Vulkan 3D painter sets it on its own from the layer's
@@ -916,7 +989,7 @@ end
         if light = undefined
             return false
         end
-        return light:CastsShadows()
+        return DrawsShadows(light)
     end
     
     action GetDevice returns VulkanDevice
@@ -934,6 +1007,54 @@ end
     Attribute: Parameter index Where the record starts.
     */
     /*
+    This action returns true if a light should draw shadows now: it casts
+    shadows and it isn't hidden.
+
+    Attribute: Parameter light The light.
+    Attribute: Returns True if its shadows should be drawn.
+    */
+    private action DrawsShadows(Light light) returns boolean
+        if not LightIsShowing(light)
+            return false
+        end
+        return light:CastsShadows()
+    end
+
+    /*
+    This action returns the intensity to write for a light: its own, or 0
+    if it is hidden, so a hidden light keeps its place in the list (and
+    its shadow map number) but lights nothing.
+
+    Attribute: Parameter light The light.
+    Attribute: Parameter intensity The light's intensity.
+    Attribute: Returns The intensity to write.
+    */
+    private action ShownIntensity(Light light, number intensity) returns number
+        if not LightIsShowing(light)
+            return 0
+        end
+        return intensity
+    end
+
+    /*
+    This action returns false if a point or spot light is hidden (with
+    Hide), and true otherwise. Directional lights can't be hidden.
+
+    Attribute: Parameter light The light.
+    Attribute: Returns False if the light is hidden.
+    */
+    private action LightIsShowing(Light light) returns boolean
+        if light is PointLight
+            PointLight point = cast(PointLight, light)
+            return point:IsShowing()
+        elseif light is SpotLight
+            SpotLight spot = cast(SpotLight, light)
+            return spot:IsShowing()
+        end
+        return true
+    end
+
+    /*
     This action writes whether a light casts shadows into its record
     (Shadow plan S4): 1 if it does, 0 if not, so the lighting skips the
     shadow map of a light without one.
@@ -941,7 +1062,7 @@ end
     private action WriteCastsShadows(integer index, Light light)
         NumberUtilities utility
         integer casts = 0
-        if light:CastsShadows()
+        if DrawsShadows(light)
             casts = 1
         end
         lightMappingArray:Set(index + CASTS_SHADOWS_INDEX, utility:EncodeIntegerAsNumber(casts))
@@ -965,9 +1086,9 @@ end
     */
     private action WriteIntensityAndColor(integer index, number intensity, Color color)
         lightMappingArray:Set(index + INTENSITY_INDEX, intensity)
-        lightMappingArray:Set(index + COLOR_INDEX, color:GetRed())
-        lightMappingArray:Set(index + COLOR_INDEX + 1, color:GetGreen())
-        lightMappingArray:Set(index + COLOR_INDEX + 2, color:GetBlue())
+        lightMappingArray:Set(index + COLOR_INDEX, ShaderColorPart(color:GetRed()))
+        lightMappingArray:Set(index + COLOR_INDEX + 1, ShaderColorPart(color:GetGreen()))
+        lightMappingArray:Set(index + COLOR_INDEX + 2, ShaderColorPart(color:GetBlue()))
     end
 
     action UpdateBuffers(integer resourceIndex)
@@ -1034,7 +1155,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, direction:GetY())
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, direction:GetZ())
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(DIRECTIONAL_LIGHT_TYPE))
-                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteIntensityAndColor(index, ShownIntensity(light, light:GetIntensity()), light:GetColor())
                 WriteCastsShadows(index, light)
                 written = written + 1
                 i = i + 1
@@ -1052,7 +1173,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(POINT_LIGHT_TYPE))
-                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteIntensityAndColor(index, ShownIntensity(light, light:GetIntensity()), light:GetColor())
                 WriteCastsShadows(index, light)
                 lightMappingArray:Set(index + RANGE_INDEX, light:GetRange())
                 written = written + 1
@@ -1069,7 +1190,7 @@ end
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 1, transform:row1column3)
                 lightMappingArray:Set(index + POSITION_DIRECTION_INDEX + 2, transform:row2column3)
                 lightMappingArray:Set(index + TYPE_INDEX, utility:EncodeIntegerAsNumber(SPOT_LIGHT_TYPE))
-                WriteIntensityAndColor(index, light:GetIntensity(), light:GetColor())
+                WriteIntensityAndColor(index, ShownIntensity(light, light:GetIntensity()), light:GetColor())
                 WriteCastsShadows(index, light)
 
                 // The cone's direction turned by the light's world rotation,
@@ -1113,9 +1234,9 @@ end
             end
             if ambientLight not= undefined
                 Color color = ambientLight:GetColor()
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, color:GetRed())
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, color:GetGreen())
-                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, color:GetBlue())
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX, ShaderColorPart(color:GetRed()))
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 1, ShaderColorPart(color:GetGreen()))
+                sceneDataMappingArray:Set(AMBIENT_LIGHT_COLOR_INDEX + 2, ShaderColorPart(color:GetBlue()))
             else
                 // If there's no lighting at all, set ambient light to full white (all pixels receive full color)
                 if pointLights:IsEmpty() and directionalLights:IsEmpty() and spotLights:IsEmpty()
@@ -1155,9 +1276,9 @@ end
 
             // The fog (Item 40). With no color set, it is off.
             if fogColor not= undefined and fogAmount > 0
-                sceneDataMappingArray:Set(FOG_COLOR_INDEX, fogColor:GetRed())
-                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, fogColor:GetGreen())
-                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, fogColor:GetBlue())
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX, ShaderColorPart(fogColor:GetRed()))
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 1, ShaderColorPart(fogColor:GetGreen()))
+                sceneDataMappingArray:Set(FOG_COLOR_INDEX + 2, ShaderColorPart(fogColor:GetBlue()))
                 sceneDataMappingArray:Set(FOG_AMOUNT_INDEX, fogAmount)
             else
                 sceneDataMappingArray:Set(FOG_COLOR_INDEX, 0)
@@ -1171,6 +1292,14 @@ end
             sceneDataMappingArray:Set(FOG_HEIGHT_FALLOFF_INDEX, fogHeightFalloff)
 
             WriteSkyLight()
+            // Whether the shaders work in linear light (Linear lighting
+            // plan): the sky light's third number, after WriteSkyLight
+            // clears it. 1 for linear.
+            if linearLighting
+                sceneDataMappingArray:Set(LINEAR_LIGHTING_INDEX, 1)
+            else
+                sceneDataMappingArray:Set(LINEAR_LIGHTING_INDEX, 0)
+            end
 
             sceneDataMemory:Set(sceneDataMappingArray)
             sceneDataDirty:Set(resourceIndex, false)
@@ -1281,9 +1410,9 @@ end
 
         if ambientLight not= undefined
             Color tint = ambientLight:GetColor()
-            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX, tint:GetRed())
-            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 1, tint:GetGreen())
-            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 2, tint:GetBlue())
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX, ShaderColorPart(tint:GetRed()))
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 1, ShaderColorPart(tint:GetGreen()))
+            sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 2, ShaderColorPart(tint:GetBlue()))
         else
             sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX, 1)
             sceneDataMappingArray:Set(SKY_LIGHT_TINT_INDEX + 1, 1)
@@ -1304,7 +1433,12 @@ end
         sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 9, rotation:row1column2)
         sceneDataMappingArray:Set(SKY_ROTATION_INDEX + 10, rotation:row2column2)
 
+        // With linear lighting, the sky's light worked out from its
+        // pictures turned into light (Linear lighting plan).
         Number32BitArray coefficients = skyLight:GetIrradiance()
+        if linearLighting
+            coefficients = skyLight:GetLinearIrradiance()
+        end
         integer coefficient = 0
         repeat while coefficient < 9
             integer target = SKY_IRRADIANCE_INDEX + coefficient * 4

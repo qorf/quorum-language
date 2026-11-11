@@ -49,7 +49,13 @@ public class ModelLoader {
         // Lights are read from this import, where the node tree is intact;
         // aiProcess_PreTransformVertices drops them below (Lighting plan L8).
         Array_ fileLights = new Array();
-        ProcessLights(aiSceneCheck, vulkanLoading, fileLights);
+        // glTF stores its color numbers (factors, vertex colors, light
+        // colors) as amounts of light; Quorum keeps every color as a
+        // picture stores it (sRGB) and the shaders turn it into light, so
+        // glTF's are turned into picture colors here (Linear lighting plan
+        // LL4). Other formats' colors are already picture colors.
+        boolean linearColors = IsGLTF(path);
+        ProcessLights(aiSceneCheck, vulkanLoading, fileLights, linearColors);
         aiReleaseImport(aiSceneCheck);
 
         // Most model files are right-handed and the world is left-handed, so z is
@@ -82,7 +88,7 @@ public class ModelLoader {
         int numMaterials = aiScene.mNumMaterials();
         for (int i = 0; i < numMaterials; i++) {
             AIMaterial aiMaterial = AIMaterial.create(aiScene.mMaterials().get(i));
-            Material_ material = ProcessMaterial(aiMaterial, textures, embeddedPaths);
+            Material_ material = ProcessMaterial(aiMaterial, textures, embeddedPaths, linearColors);
             materials.Add(material);
         }
 
@@ -91,7 +97,7 @@ public class ModelLoader {
         Array_ meshes = data.GetMeshes();
         for (int i = 0; i < numMeshes; i++) {
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
-            MeshData_ mesh = ProcessMesh(aiMesh, vulkanLoading);
+            MeshData_ mesh = ProcessMesh(aiMesh, vulkanLoading, linearColors);
             meshes.Add(mesh);
         }
 
@@ -475,7 +481,35 @@ public class ModelLoader {
     Area lights are read as point lights; ambient and unknown lights are
     skipped.
     */
-    private static void ProcessLights(AIScene aiScene, boolean leftHanded, Array_ lights) {
+    /*
+     * Returns true if the file is glTF (.gltf or .glb), whose color numbers
+     * are amounts of light rather than picture colors (Linear lighting plan
+     * LL4).
+     */
+    private static boolean IsGLTF(String path) {
+        String lower = path.toLowerCase();
+        return lower.endsWith(".gltf") || lower.endsWith(".glb");
+    }
+
+    /*
+     * Turns an amount of light (0 to 1) into the color a picture would store
+     * for it (sRGB), the inverse of the shaders' decoding (Linear lighting
+     * plan LL4). Values outside 0 to 1 are kept to that range.
+     */
+    private static double PictureFromLinear(double value) {
+        if (value <= 0) {
+            return 0;
+        }
+        if (value >= 1) {
+            return 1;
+        }
+        if (value <= 0.0031308) {
+            return value * 12.92;
+        }
+        return 1.055 * Math.pow(value, 1.0 / 2.4) - 0.055;
+    }
+
+    private static void ProcessLights(AIScene aiScene, boolean leftHanded, Array_ lights, boolean linearColors) {
         int numLights = aiScene.mNumLights();
         if (numLights <= 0) {
             return;
@@ -562,6 +596,12 @@ public class ModelLoader {
             double range = 0;
             if (found[0] != null) {
                 range = ReadLightRange(found[0]);
+            }
+
+            if (linearColors) {
+                red = PictureFromLinear(red);
+                green = PictureFromLinear(green);
+                blue = PictureFromLinear(blue);
             }
 
             ModelLightData_ light = new ModelLightData();
@@ -694,7 +734,7 @@ public class ModelLoader {
         return result;
     }
 
-    private static MeshData_ ProcessMesh(AIMesh aiMesh, boolean vulkanLoading) {
+    private static MeshData_ ProcessMesh(AIMesh aiMesh, boolean vulkanLoading, boolean linearColors) {
         Number32BitArray_ vertices = ProcessVertices(aiMesh);
         Integer32BitArray_ indices = ProcessIndices(aiMesh);
         Number32BitArray_ coordinates = ProcessTextureCoordinates(aiMesh, vulkanLoading);
@@ -726,9 +766,15 @@ public class ModelLoader {
             int index = 0;
             while (aiColors.remaining() > 0) {
                 AIColor4D color = aiColors.get();
-                colors.Set(index, color.r());
-                colors.Set(index + 1, color.g());
-                colors.Set(index + 2, color.b());
+                if (linearColors) {
+                    colors.Set(index, PictureFromLinear(color.r()));
+                    colors.Set(index + 1, PictureFromLinear(color.g()));
+                    colors.Set(index + 2, PictureFromLinear(color.b()));
+                } else {
+                    colors.Set(index, color.r());
+                    colors.Set(index + 1, color.g());
+                    colors.Set(index + 2, color.b());
+                }
                 colors.Set(index + 3, color.a());
                 index = index + 4;
             }
@@ -983,7 +1029,18 @@ public class ModelLoader {
         return array;
     }
 
-    private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir, String[] embeddedPaths) {
+    /*
+     * One part of a material's color: turned into a picture color if the
+     * file stores amounts of light (glTF), as it is otherwise.
+     */
+    private static double ColorPart(double value, boolean linearColors) {
+        if (linearColors) {
+            return PictureFromLinear(value);
+        }
+        return value;
+    }
+
+    private static Material_ ProcessMaterial(AIMaterial aiMaterial, String texturesDir, String[] embeddedPaths, boolean linearColors) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             AIColor4D colour = AIColor4D.create();
 
@@ -991,7 +1048,7 @@ public class ModelLoader {
             int result = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0,
                     colour);
             if (result == aiReturn_SUCCESS) {
-                diffuse.Set(colour.r(), colour.g(), colour.b(), colour.a());
+                diffuse.Set(ColorPart(colour.r(), linearColors), ColorPart(colour.g(), linearColors), ColorPart(colour.b(), linearColors), colour.a());
             }
             String texturePath = GetTexturePath(aiMaterial, aiTextureType_DIFFUSE, texturesDir, embeddedPaths, stack);
             if (texturePath.length() == 0) {
@@ -1004,7 +1061,7 @@ public class ModelLoader {
                 diffuse.Set(1.0, 1.0, 1.0, 1.0);
                 result = aiGetMaterialColor(aiMaterial, AI_MATKEY_BASE_COLOR, aiTextureType_NONE, 0, colour);
                 if (result == aiReturn_SUCCESS) {
-                    diffuse.Set(colour.r(), colour.g(), colour.b(), colour.a());
+                    diffuse.Set(ColorPart(colour.r(), linearColors), ColorPart(colour.g(), linearColors), ColorPart(colour.b(), linearColors), colour.a());
                 }
             }
 
@@ -1042,7 +1099,7 @@ public class ModelLoader {
             result = aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_EMISSIVE,
                     aiTextureType_NONE, 0, colour);
             if(result == aiReturn_SUCCESS) {
-                emissive.Set(colour.r(), colour.g(), colour.b(), colour.a());
+                emissive.Set(ColorPart(colour.r(), linearColors), ColorPart(colour.g(), linearColors), ColorPart(colour.b(), linearColors), colour.a());
             }
 
             float[] opacityArr = new float[]{1.0f};

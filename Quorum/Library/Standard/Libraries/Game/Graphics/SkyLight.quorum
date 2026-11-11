@@ -52,6 +52,9 @@ class SkyLight
     // numbers), already scaled so the shader's sum gives the light a white
     // surface facing that way receives, divided by pi.
     Number32BitArray irradiance
+    // The same, worked out from the pictures' colors turned into amounts of
+    // light, for linear lighting (Linear lighting plan).
+    Number32BitArray linearIrradiance
 
     // The four reflection cubes, largest first.
     Array<Texture> reflectionCubes
@@ -71,6 +74,7 @@ class SkyLight
 
     on create
         irradiance:SetSize(IRRADIANCE_SIZE)
+        linearIrradiance:SetSize(IRRADIANCE_SIZE)
         ClearIrradiance()
     end
 
@@ -128,7 +132,8 @@ class SkyLight
             step = step + 1
         end
 
-        ComputeIrradiance(irradianceLevel, irradianceSize)
+        ComputeIrradiance(irradianceLevel, irradianceSize, irradiance, false)
+        ComputeIrradiance(irradianceLevel, irradianceSize, linearIrradiance, true)
         loaded = true
         return true
     end
@@ -180,6 +185,17 @@ class SkyLight
     end
 
     /*
+    This action returns the diffuse light for linear lighting (Linear
+    lighting plan): as GetIrradiance, but worked out from the sky pictures'
+    colors turned from how pictures store them (sRGB) into amounts of light.
+
+    Attribute: Returns The 27 numbers.
+    */
+    action GetLinearIrradiance returns Number32BitArray
+        return linearIrradiance
+    end
+
+    /*
     This action returns how many reflection cubes there are, 4.
 
     Attribute: Returns The number of reflection cubes.
@@ -220,6 +236,7 @@ class SkyLight
         integer i = 0
         repeat while i < IRRADIANCE_SIZE
             irradiance:Set(i, 0)
+            linearIrradiance:Set(i, 0)
             i = i + 1
         end
     end
@@ -407,8 +424,10 @@ class SkyLight
 
     Attribute: Parameter level The cube's colors.
     Attribute: Parameter size The cube's side, in pixels.
+    Attribute: Parameter result Where the 27 numbers go.
+    Attribute: Parameter linear True to turn each color into an amount of light first.
     */
-    private action ComputeIrradiance(Number32BitArray level, integer size)
+    private action ComputeIrradiance(Number32BitArray level, integer size, Number32BitArray result, boolean linear)
         Number32BitArray sums
         sums:SetSize(IRRADIANCE_SIZE)
         integer i = 0
@@ -477,9 +496,17 @@ class SkyLight
                     basis:Set(8, 0.546274 * (directionX * directionX - directionY * directionY))
 
                     integer index = ((face * size + y) * size + x) * 3
-                    number red = level:Get(index) * weight
-                    number green = level:Get(index + 1) * weight
-                    number blue = level:Get(index + 2) * weight
+                    number red = level:Get(index)
+                    number green = level:Get(index + 1)
+                    number blue = level:Get(index + 2)
+                    if linear
+                        red = LinearFromPicture(red)
+                        green = LinearFromPicture(green)
+                        blue = LinearFromPicture(blue)
+                    end
+                    red = red * weight
+                    green = green * weight
+                    blue = blue * weight
                     integer k = 0
                     repeat while k < 9
                         number b = basis:Get(k)
@@ -511,10 +538,24 @@ class SkyLight
             end
             integer channel = 0
             repeat while channel < 3
-                irradiance:Set(coefficient * 3 + channel, sums:Get(coefficient * 3 + channel) * scale * band)
+                result:Set(coefficient * 3 + channel, sums:Get(coefficient * 3 + channel) * scale * band)
                 channel = channel + 1
             end
             coefficient = coefficient + 1
         end
+    end
+
+    /*
+    This action turns one part of a color, as pictures store it (sRGB, 0 to
+    1), into an amount of light (Linear lighting plan).
+
+    Attribute: Parameter value The color part, as stored.
+    Attribute: Returns The amount of light, 0 to 1.
+    */
+    private action LinearFromPicture(number value) returns number
+        if value <= 0.04045
+            return value / 12.92
+        end
+        return math:RaiseToPower((value + 0.055) / 1.055, 2.4)
     end
 end

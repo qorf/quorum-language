@@ -47,6 +47,8 @@ layout(set = 0, binding = 0) uniform Camera
     vec2 screenSize;
     float nearPlane;
     float farPlane;
+    // 1 if lighting is linear (Linear lighting plan).
+    float linearLighting;
 } camera;
 
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
@@ -253,6 +255,18 @@ float rangeAttenuation(float distance, float range)
     return inverseSquare * window * window;
 }
 
+// A color as pictures store it (sRGB) turned into an amount of light when
+// lighting is linear (Linear lighting plan); as it is otherwise.
+vec3 shaderColor(vec3 color)
+{
+	if (camera.linearLighting < 0.5)
+		return color;
+	vec3 c = clamp(color, 0.0, 1.0);
+	vec3 low = c / 12.92;
+	vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+	return mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
+}
+
 // The sky seen along a world direction, turned as the skybox is drawn
 // (Water plan W4). With no sky, the fog's color if there is fog, or else
 // the ambient light.
@@ -266,7 +280,7 @@ vec3 skyColor(vec3 direction)
     }
     vec3 turned = vec3(dot(direction, water.skyColumn0), dot(direction, water.skyColumn1), dot(direction, water.skyColumn2));
     turned.x = turned.x * water.skyInverter;
-    return texture(skyCube, turned).rgb;
+    return shaderColor(texture(skyCube, turned).rgb);
 }
 
 // One light on the water (Cook-Torrance, as the lighting pass, with
@@ -376,7 +390,7 @@ void main()
     // Deeper water is darker. The more water the eye looks through, the
     // less of the ground shows.
     float clarity = max(water.look.x, 0.0);
-    vec3 waterColor = mix(water.shallowColor.rgb, water.deepColor.rgb, 1.0 - exp(-depth * clarity));
+    vec3 waterColor = mix(shaderColor(water.shallowColor.rgb), shaderColor(water.deepColor.rgb), 1.0 - exp(-depth * clarity));
     float opacity = mix(water.shallowColor.a, water.deepColor.a, 1.0 - exp(-thickness * clarity));
     // A soft edge where the water meets the shore. The reflection fades
     // with it too.

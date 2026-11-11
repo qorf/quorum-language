@@ -1715,7 +1715,7 @@ Painter3D painter = GetPainter()
         Iterator<PointLight> pointLights = GetPointLights()
         repeat while pointLights:HasNext()
             PointLight bulb = pointLights:Next()
-            if bulb:CastsShadows()
+            if bulb:CastsShadows() and bulb:IsShowing()
                 if place < MAXIMUM_SHADOW_BITS
                     found:SetShadowBit(bits:ShiftLeft(1, place))
                 end

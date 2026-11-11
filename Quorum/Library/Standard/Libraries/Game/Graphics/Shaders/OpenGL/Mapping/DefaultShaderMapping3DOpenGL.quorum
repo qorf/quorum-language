@@ -599,6 +599,10 @@ openGL:SetDepthMask(mask)
                 Color color = current:GetColor()
                 Vector3 position = current:GetGlobalPosition()
                 number intensity = current:GetIntensity()
+                // A hidden light lights nothing.
+                if not current:IsShowing()
+                    intensity = 0
+                end
 
                 if counter < max
                     glProgram:SetShaderInput(pointLightColorID:Get(counter), color:GetRed() * intensity, color:GetGreen() * intensity, color:GetBlue() * intensity)

@@ -274,6 +274,43 @@ class SpotLight is Light, Item3D
     end
 
     /*
+    This action turns the light off without changing its intensity or
+    color, so Show turns it back on as it was. A hidden light lights
+    nothing and draws no shadows.
+
+    Attribute: Example
+
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.SpotLight
+
+        class Main is Game
+            SpotLight lamp
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                lamp:SetIntensity(5)
+                Add(lamp)
+                lamp:Hide()
+            end
+        end
+    */
+    action Hide
+        parent:Item3D:Hide()
+        NotifyChanged()
+    end
+
+    /*
+    This action turns a hidden light back on, as bright as it was.
+    */
+    action Show
+        parent:Item3D:Show()
+        NotifyChanged()
+    end
+
+    /*
     This action tells the light's environment that the light has changed.
     */
     private action NotifyChanged

@@ -113,6 +113,19 @@ class TerrainSplatFragmentShader is Shader
 // How many world units one tile of each ground texture covers.
 const float LAYER_REPEAT = " + tileText + ";
 
+// The 3D camera uniform (library item 38); only whether lighting is
+// linear is used here (Linear lighting plan).
+layout(set = 0, binding = 0) uniform Camera
+{
+    mat4 projectionViewMatrix;
+    vec3 cameraPosition;
+    float time;
+    vec2 screenSize;
+    float nearPlane;
+    float farPlane;
+    float linearLighting;
+} camera;
+
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
 layout(set = 1, binding = 0) uniform texture2D globalTextures[];
 
@@ -347,6 +360,18 @@ void splatTerrain(Material material)
     outputPBR = vec4(1.0, material.roughness, 0.0, 1.0);
 }
 
+// The color written, as pictures store it (sRGB), turned into an amount of
+// light for linear lighting (Linear lighting plan). Alpha is left alone.
+void decodeOutputColor()
+{
+	if (camera.linearLighting < 0.5)
+		return;
+	vec3 c = clamp(outputColor.rgb, 0.0, 1.0);
+	vec3 low = c / 12.92;
+	vec3 high = pow((c + 0.055) / 1.055, vec3(2.4));
+	outputColor.rgb = mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
+}
+
 void main()
 {
    Instances instances = pushConstants.instances;
@@ -359,6 +384,7 @@ void main()
    if (material.metallic < 0.0)
    {
        splatTerrain(material);
+       decodeOutputColor();
        return;
    }
 
@@ -404,6 +430,7 @@ void main()
 
 	// The first channel is ambient occlusion (library item 24): 1 for none.
 	outputPBR = vec4(1.0, roughnessFactor, metallicFactor, 1.0);
+	decodeOutputColor();
 
 }"
         )
