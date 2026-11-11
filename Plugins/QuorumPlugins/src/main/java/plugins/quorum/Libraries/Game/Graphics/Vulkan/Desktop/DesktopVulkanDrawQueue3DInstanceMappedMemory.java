@@ -10,6 +10,8 @@ import quorum.Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan_;
 import quorum.Libraries.Game.Graphics.Models.Vulkan.MeshVulkan_;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock_;
+import plugins.quorum.Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock;
 
 import java.nio.ByteBuffer;
 
@@ -97,6 +99,19 @@ public class DesktopVulkanDrawQueue3DInstanceMappedMemory implements VulkanDrawQ
         byteBuffer.putFloat((float)modelMatrix.Get_Libraries_Compute_Matrix4__row1column3_());
         byteBuffer.putFloat((float)modelMatrix.Get_Libraries_Compute_Matrix4__row2column3_());
         byteBuffer.putFloat((float)modelMatrix.Get_Libraries_Compute_Matrix4__row3column3_());
+    }
+
+    /*
+    Copies instances packed in a VulkanInstanceBlock into the mapped buffer
+    at the current position, in one move (Dense grass plan DG2). The block
+    is packed in the same layout and byte order TransferInstanceData writes.
+    */
+    public void TransferInstanceBlock(VulkanInstanceBlock_ block, int first, int count)
+    {
+        if (count <= 0)
+            return;
+        VulkanInstanceBlock plugin = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock)block).plugin_;
+        byteBuffer.put(plugin.GetPacked(first, count));
     }
 
     public void Dispose()

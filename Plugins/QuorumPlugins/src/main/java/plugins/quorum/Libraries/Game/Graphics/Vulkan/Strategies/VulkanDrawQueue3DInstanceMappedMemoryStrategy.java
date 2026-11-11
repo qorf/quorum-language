@@ -5,6 +5,7 @@ import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan_;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock_;
 
 /*
 The platform-neutral part of VulkanDrawQueue3DInstanceMappedMemory: what the desktop (LWJGL) and native
@@ -15,5 +16,6 @@ public interface VulkanDrawQueue3DInstanceMappedMemoryStrategy
     void CreateNative(VulkanBuffer_ quorumBuffer);
     void PrepareForTransfers();
     void TransferInstanceData(VulkanBuffer_ vertexBuffer, VulkanBuffer_ indexBuffer, MaterialVulkan_ material, Texture_ texture, Color_ color, Matrix4_ modelMatrix);
+    void TransferInstanceBlock(VulkanInstanceBlock_ block, int first, int count);
     void Dispose();
 }

@@ -32,7 +32,16 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
         ByteBuffer target = NativeVulkan.Wrap(pluginBuffer.GetMappedMemoryPointer(), quorumBuffer.GetSize());
         target.put(pixelBytes);
     }
-    public void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals)
+    /*
+    Writes the full size and each smaller level. With a cutout above 0 (a
+    cut-out picture, such as a grass card, Dense grass plan DG5), each
+    smaller level's alpha is scaled so the same share of its pixels passes
+    the cutout as in the full size: plain averaging mixes thin blades with
+    the clear space around them and drops them below the cutout, so far
+    grass thins out and flickers. The levels are still made from each
+    other unscaled; only what is written is scaled.
+    */
+    public void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals, double cutout)
     {
         PixelMap pluginMap = ((quorum.Libraries.Game.Graphics.PixelMap)quorumMap).plugin_;
         VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
@@ -48,11 +57,17 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
         for (int i = 0; i < level.length; i++)
             level[i] = pixelBytes.get(i);
 
+        double threshold = cutout * 255.0;
+        double fullCoverage = cutout > 0 ? Coverage(level, threshold, 1.0) : 0;
+
         int offset = 0;
         for (int index = 0; index < levels; index++)
         {
             target.position(offset);
-            target.put(level);
+            if (cutout > 0 && index > 0)
+                target.put(KeepCoverage(level, threshold, fullCoverage));
+            else
+                target.put(level);
             offset += level.length;
 
             if (index + 1 < levels)
@@ -133,6 +148,49 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
                 result[out + 3] = (byte)((alphaSum + 2) / 4);
             }
         }
+        return result;
+    }
+
+    // The share of a level's pixels whose alpha, times a scale, reaches the
+    // threshold (Dense grass plan DG5).
+    private static double Coverage(byte[] level, double threshold, double scale)
+    {
+        int pixels = level.length / 4;
+        if (pixels == 0)
+            return 0;
+        int passing = 0;
+        for (int i = 3; i < level.length; i += 4)
+        {
+            if ((level[i] & 0xFF) * scale >= threshold)
+                passing++;
+        }
+        return passing / (double)pixels;
+    }
+
+    // A copy of a level with its alpha scaled so its coverage is about the
+    // full size's: the smallest scale that reaches it, found by halving
+    // (Castano's coverage-preserving mipmaps). Colors are unchanged.
+    private static byte[] KeepCoverage(byte[] level, double threshold, double fullCoverage)
+    {
+        double low = 0.0;
+        double high = 16.0;
+        if (Coverage(level, threshold, high) < fullCoverage)
+            low = high;
+        else
+        {
+            for (int step = 0; step < 12; step++)
+            {
+                double middle = (low + high) / 2.0;
+                if (Coverage(level, threshold, middle) < fullCoverage)
+                    low = middle;
+                else
+                    high = middle;
+            }
+        }
+        double scale = high;
+        byte[] result = level.clone();
+        for (int i = 3; i < result.length; i += 4)
+            result[i] = ToByte((level[i] & 0xFF) * scale);
         return result;
     }
 

@@ -22,9 +22,9 @@ public class VulkanTextureManager
         strategy.TransferPixelData(quorumMap, quorumBuffer);
     }
 
-    public void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals)
+    public void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals, double cutout)
     {
-        strategy.TransferPixelDataWithMipMaps(quorumMap, quorumBuffer, levels, packedNormals);
+        strategy.TransferPixelDataWithMipMaps(quorumMap, quorumBuffer, levels, packedNormals, cutout);
     }
 
     public VulkanTextureManagerStrategy GetStrategy()

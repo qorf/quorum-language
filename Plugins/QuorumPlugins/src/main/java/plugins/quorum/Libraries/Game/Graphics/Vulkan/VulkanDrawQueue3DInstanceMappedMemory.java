@@ -5,6 +5,7 @@ import quorum.Libraries.Game.Graphics.Color_;
 import quorum.Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan_;
 import quorum.Libraries.Game.Graphics.Texture_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer_;
+import quorum.Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock_;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Desktop.DesktopVulkanDrawQueue3DInstanceMappedMemory;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanDrawQueue3DInstanceMappedMemory;
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanDrawQueue3DInstanceMappedMemoryStrategy;
@@ -33,6 +34,12 @@ public class VulkanDrawQueue3DInstanceMappedMemory
     public void TransferInstanceData(VulkanBuffer_ vertexBuffer, VulkanBuffer_ indexBuffer, MaterialVulkan_ material, Texture_ texture, Color_ color, Matrix4_ modelMatrix)
     {
         strategy.TransferInstanceData(vertexBuffer, indexBuffer, material, texture, color, modelMatrix);
+    }
+
+    // Copies instances packed in a block in one move (Dense grass plan DG2).
+    public void TransferInstanceBlock(VulkanInstanceBlock_ block, int first, int count)
+    {
+        strategy.TransferInstanceBlock(block, first, count);
     }
 
     public void Dispose()

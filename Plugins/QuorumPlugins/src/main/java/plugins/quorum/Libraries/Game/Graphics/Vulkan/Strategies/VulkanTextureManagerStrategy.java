@@ -10,5 +10,5 @@ The platform-neutral part of VulkanTextureManager: what the desktop (LWJGL) and 
 public interface VulkanTextureManagerStrategy
 {
     void TransferPixelData(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer);
-    void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals);
+    void TransferPixelDataWithMipMaps(PixelMap_ quorumMap, VulkanBuffer_ quorumBuffer, int levels, boolean packedNormals, double cutout);
 }
