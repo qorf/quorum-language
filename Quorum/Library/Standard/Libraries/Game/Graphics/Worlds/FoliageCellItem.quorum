@@ -381,9 +381,10 @@ class FoliageCellItem is Item3D
     This action works out every copy's transform, shade and thinning number
     for the drawn level (Foliage plan F5), and the tallest copy's reach. A
     copy stands at its place, turned about the up axis and scaled. A card
-    has one entry per plane: the plane lies flat, so it is pitched up 90
-    degrees, raised by half its height, and each plane is turned an equal
-    share of half a circle.
+    has one entry per plane: the plane lies flat, so it is pitched -90
+    degrees, which stands it up with the picture's top up (+90 put the
+    picture upside down), raised by half its height, and each plane is
+    turned an equal share of half a circle.
 
     Attribute: Parameter card True for a card level.
     Attribute: Parameter height The model's height before scaling, 1 for a card.
@@ -418,7 +419,7 @@ class FoliageCellItem is Item3D
             integer plane = 0
             repeat while plane < planes
                 if card
-                    WriteTransform(entry, cell:GetTurn(i) + plane * 180.0 / planes, 90, scale, x, y + scale / 2, z)
+                    WriteTransform(entry, cell:GetTurn(i) + plane * 180.0 / planes, -90, scale, x, y + scale / 2, z)
                 else
                     WriteTransform(entry, cell:GetTurn(i), 0, scale, x, y, z)
                 end
