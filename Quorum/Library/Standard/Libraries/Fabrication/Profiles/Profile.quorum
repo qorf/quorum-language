@@ -1,0 +1,643 @@
+package Libraries.Fabrication.Profiles
+
+use Libraries.Containers.Array
+use Libraries.Data.Formats.NumberFormatter
+
+/*
+    The Profile class is a named set of slicer settings (printer, filament
+    and print settings together), checked against ProfileSchema.
+
+    A profile only stores the settings it sets itself. Anything else comes
+    from its parent profile ("inherits" in the JSON file), and in the end
+    from the defaults in ProfileSchema. So a filament or quality variant can
+    be a few lines that change only what differs:
+
+        "bambu-p2s-petg": {
+            "inherits": "bambu-p2s",
+            "filamentType": "PETG",
+            "nozzleTemperature": 250,
+            "bedTemperature": 70
+        }
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        class Main
+            action Main
+                ProfileManager manager
+                manager:Load("Profiles/profiles.json")
+                Profile profile = manager:Require("bambu-p2s-petg")
+                number height = profile:GetNumber("layerHeight")
+                profile:SetNumber("layerHeight", 0.16)      // this run only
+                output profile:Describe()
+            end
+        end
+*/
+class Profile
+    text name = ""
+    text inherits = ""
+    Profile parentProfile = undefined
+    ProfileSchema schema
+
+    // only the settings this profile sets itself, as text
+    Array<text> keys
+    Array<text> values
+
+    /*
+    The profile's name, as profiles.json lists it.
+
+    Attribute: Returns The name.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        output profile:GetName()       // ender3-v2
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    Renames the profile. ProfileManager:Derive names new profiles itself.
+
+    Attribute: Parameter value The new name.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.Profile
+
+        Profile profile
+        profile:SetName("my-printer")
+    */
+    action SetName(text value)
+        name = value
+    end
+
+    /*
+    The name of the parent profile, or "" for none.
+
+    Attribute: Returns The name of the parent profile, or "" for none.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2-fine")
+        output profile:GetInherits()       // ender3-v2
+    */
+    action GetInherits returns text
+        return inherits
+    end
+
+    /*
+    Names the parent profile without linking it; ProfileManager links it with SetParent when the profile is added.
+
+    Attribute: Parameter parentName The parent's name, or "" for none.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.Profile
+        use Libraries.Fabrication.Profiles.ProfileManager
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile petg
+        petg:SetName("ender3-v2-petg")
+        petg:SetInherits("ender3-v2")
+        profiles:Add(petg)
+    */
+    action SetInherits(text parentName)
+        inherits = parentName
+        if parentName = ""
+            parentProfile = undefined
+        end
+    end
+
+    /*
+    The parent profile settings are inherited from.
+
+    Attribute: Returns The parent, or undefined for none.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        Profile parent = fine:GetParent()
+        output parent:GetName()      // ender3-v2
+    */
+    action GetParent returns Profile
+        return parentProfile
+    end
+
+    /*
+    Links the parent profile. ProfileManager does this after loading.
+
+    Attribute: Parameter value The parent, or undefined for none.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.Profile
+
+        Profile base
+        base:SetName("base")
+        Profile child
+        child:SetName("child")
+        child:SetParent(base)
+        output child:GetInherits()      // base
+    */
+    action SetParent(Profile value)
+        parentProfile = value
+        if value = undefined
+            inherits = ""
+        else
+            inherits = value:GetName()
+        end
+    end
+
+    /*
+    The list of every setting with its type, default and range.
+
+    Attribute: Returns The schema.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        ProfileSchema schema = profile:GetSchema()
+        output schema:GetSize() + " settings"
+    */
+    action GetSchema returns ProfileSchema
+        return schema
+    end
+
+    /*
+    True if this profile sets the key itself (not inherited or default).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns True if this profile sets the key itself (not inherited or default).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetNumber("layerHeight", 0.12)
+        output fine:SetsOwn("layerHeight")      // true
+        output fine:SetsOwn("bedWidth")         // false: inherited
+    */
+    action SetsOwn(text key) returns boolean
+        return IndexOf(key) >= 0
+    end
+
+    /*
+    The keys this profile sets itself, in the order they were set.
+
+    Attribute: Returns The keys this profile sets itself, in the order they were set.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetNumber("layerHeight", 0.12)
+        Array<text> own = fine:GetOwnKeys()
+        output own:Get(0)      // layerHeight
+    */
+    action GetOwnKeys returns Array<text>
+        Array<text> copy
+        integer i = 0
+        repeat while i < keys:GetSize()
+            copy:Add(keys:Get(i))
+            i = i + 1
+        end
+        return copy
+    end
+
+    /*
+    Where a value comes from: this profile's name, a parent's name, or "default".
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns Where a value comes from: this profile's name, a parent's name, or "default".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        output fine:GetSource("bedWidth")        // ender3-v2
+        output fine:GetSource("zHop")            // default, unless a profile sets it
+    */
+    action GetSource(text key) returns text
+        RequireKnown(key)
+        if SetsOwn(key)
+            return name
+        end
+        if parentProfile not= undefined
+            return parentProfile:GetSource(key)
+        end
+        return "default"
+    end
+
+    /*
+    The value as text: own value, else the parent's, else the schema default.
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns The value as text: own value, else the parent's, else the schema default.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        output profile:GetText("adhesionType")
+    */
+    action GetText(text key) returns text
+        integer index = IndexOf(key)
+        if index >= 0
+            return values:Get(index)
+        end
+        if parentProfile not= undefined
+            return parentProfile:GetText(key)
+        end
+        ProfileField field = RequireKnown(key)
+        return field:GetDefault()
+    end
+
+    /*
+    The value of a number setting (see GetText for where it comes from).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        number layerHeight = profile:GetNumber("layerHeight")
+    */
+    action GetNumber(text key) returns number
+        text value = GetText(key)
+        number result = 0.0
+        check
+            result = cast(number, value)
+        detect e
+            alert("Profile '" + name + "' (set by '" + GetSource(key) + "'): " + key + " = '" + value + "' isn't a number")
+        end
+        return result
+    end
+
+    /*
+    The value of a whole-number setting (see GetText for where it comes from).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        integer nozzle = profile:GetInteger("nozzleTemperature")
+    */
+    action GetInteger(text key) returns integer
+        number amount = GetNumber(key)
+        return cast(integer, amount)
+    end
+
+    /*
+    The value of a true / false setting (see GetText for where it comes from).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Returns The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        if profile:GetBoolean("supportsEnabled")
+            output "Tree supports are on."
+        end
+    */
+    action GetBoolean(text key) returns boolean
+        text value = GetText(key)
+        text lower = value:ToLowerCase()
+        return lower = "true" or lower = "1"
+    end
+
+    /*
+    Sets a value written as text. Stops with an alert if the key is unknown
+    or the value doesn't fit the setting.
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Parameter value The value, written as profiles.json would hold it.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:Set("adhesionType", "brim")
+    */
+    action Set(text key, text value)
+        text problem = TrySet(key, value)
+        if problem not= ""
+            alert("Profile '" + name + "': " + problem)
+        end
+    end
+
+    /*
+    Like Set, but returns what is wrong ("" when it worked) instead of stopping.
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Parameter value The value, written as profiles.json would hold it.
+    Attribute: Returns "" if the value was set, otherwise a sentence saying what is wrong.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        text problem = fine:TrySet("layerHeight", "2")
+        if problem not= ""
+            output problem       // the value is above the allowed range
+        end
+    */
+    action TrySet(text key, text value) returns text
+        ProfileField field = schema:Find(key)
+        if field = undefined
+            return "unknown setting '" + key + "'"
+        end
+        text clean = value
+        if field:GetKind() = "boolean"
+            text lower = value:ToLowerCase()
+            if lower = "1"
+                clean = "true"
+            elseif lower = "0"
+                clean = "false"
+            else
+                clean = lower
+            end
+        end
+        text problem = field:Check(clean)
+        if problem not= ""
+            return key + ": " + problem
+        end
+        integer index = IndexOf(key)
+        if index >= 0
+            values:Set(index, clean)
+        else
+            keys:Add(key)
+            values:Add(clean)
+        end
+        return ""
+    end
+
+    /*
+    Sets a number setting (see Set).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Parameter value The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetNumber("layerHeight", 0.12)
+    */
+    action SetNumber(text key, number value)
+        NumberFormatter format
+        Set(key, format:Short(value))
+    end
+
+    /*
+    Sets a whole-number setting (see Set).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Parameter value The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetInteger("wallCount", 4)
+    */
+    action SetInteger(text key, integer value)
+        Set(key, "" + value)
+    end
+
+    /*
+    Sets a true / false setting (see Set).
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+    Attribute: Parameter value The value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetBoolean("supportsEnabled", true)
+    */
+    action SetBoolean(text key, boolean value)
+        if value
+            Set(key, "true")
+        else
+            Set(key, "false")
+        end
+    end
+
+    /*
+    Removes this profile's own value, so the inherited or default one applies again.
+
+    Attribute: Parameter key The setting's key, as listed in ProfileSchema.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile fine = profiles:Derive("ender3-v2", "ender3-v2-test")
+        fine:SetNumber("layerHeight", 0.12)
+        fine:Clear("layerHeight")
+        output fine:GetSource("layerHeight")      // ender3-v2 again
+    */
+    action Clear(text key)
+        integer index = IndexOf(key)
+        if index >= 0
+            keys:RemoveAt(index)
+            values:RemoveAt(index)
+        end
+    end
+
+    /*
+    Checks that the settings make sense together. Returns one sentence
+    per problem; an empty array means the profile is fine.
+
+    Attribute: Returns One sentence per problem; empty if the profile is fine.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        Array<text> problems = profile:Validate()
+        output problems:GetSize() + " problems"
+    */
+    action Validate returns Array<text>
+        Array<text> problems
+
+        // every value, own or inherited, against its own range
+        integer i = 0
+        repeat while i < schema:GetSize()
+            ProfileField field = schema:Get(i)
+            text problem = field:Check(GetText(field:GetKey()))
+            if problem not= ""
+                problems:Add(field:GetKey() + ": " + problem)
+            end
+            i = i + 1
+        end
+
+        number nozzle = GetNumber("nozzleDiameter")
+        number width = GetNumber("lineWidth")
+        number height = GetNumber("layerHeight")
+        if width < nozzle * 0.6 or width > nozzle * 2.0
+            problems:Add("lineWidth " + width + " mm is far from the " + nozzle + " mm nozzle (keep it 0.6x to 2x)")
+        end
+        if height > nozzle * 0.8
+            problems:Add("layerHeight " + height + " mm is more than 80% of the " + nozzle + " mm nozzle")
+        end
+        if GetInteger("nozzleTemperature") > GetInteger("maxNozzleTemperature")
+            problems:Add("nozzleTemperature is above maxNozzleTemperature")
+        end
+        if GetInteger("bedTemperature") > GetInteger("maxBedTemperature")
+            problems:Add("bedTemperature is above maxBedTemperature")
+        end
+        if GetInteger("fanFullLayer") < GetInteger("fanOffLayers")
+            problems:Add("fanFullLayer comes before fanOffLayers")
+        end
+        if GetBoolean("write3mf")
+            if not GetBoolean("bambuExtras")
+                problems:Add("write3mf needs bambuExtras: the 3MF packer reads Bambu's header block")
+            end
+            if GetText("bambuSettingsTemplate") = ""
+                problems:Add("write3mf needs bambuSettingsTemplate")
+            end
+        end
+        text colour = GetText("filamentColor")
+        if colour:GetSize() not= 7 or not colour:StartsWith("#")
+            problems:Add("filamentColor must look like #RRGGBB")
+        end
+        return problems
+    end
+
+    /*
+    A short summary for printing.
+
+    Attribute: Returns One line: the name, bed size, nozzle, filament, nozzle temperature and layer height.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("ender3-v2")
+        output profile:Describe()
+    */
+    action Describe returns text
+        text summary = name
+        if inherits not= ""
+            summary = summary + " (inherits " + inherits + ")"
+        end
+        return summary + ": " + GetText("bedWidth") + " x " + GetText("bedDepth") + " x " + GetText("bedHeight")
+            + " mm, " + GetText("nozzleDiameter") + " mm nozzle, "
+            + GetText("filamentType") + " at " + GetText("nozzleTemperature") + " C, "
+            + GetText("layerHeight") + " mm layers"
+    end
+
+    private action IndexOf(text key) returns integer
+        integer i = 0
+        repeat while i < keys:GetSize()
+            if keys:Get(i) = key
+                return i
+            end
+            i = i + 1
+        end
+        return -1
+    end
+
+    private action RequireKnown(text key) returns ProfileField
+        ProfileField field = schema:Find(key)
+        if field = undefined
+            alert("Profile '" + name + "': unknown setting '" + key + "'. Add it to ProfileSchema first.")
+        end
+        return field
+    end
+end

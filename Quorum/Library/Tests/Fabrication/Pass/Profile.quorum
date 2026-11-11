@@ -1,0 +1,142 @@
+use Libraries.Containers.Array
+use Libraries.Fabrication.Profiles.Profile
+use Libraries.Fabrication.Profiles.ProfileField
+use Libraries.Fabrication.Profiles.ProfileSchema
+
+/* Tests Profile, ProfileField and ProfileSchema: settings, defaults, inheritance and validation. */
+class Main
+    action Main
+        Defaults()
+        SettingValues()
+        Inheritance()
+        Validation()
+        FieldChecks()
+        SchemaIsConsistent()
+    end
+
+    action Defaults
+        // defaults come from the schema
+        Profile profile
+        profile:SetName("plain")
+        output "layerHeight: " + Near(profile:GetNumber("layerHeight"), 0.2, 0)
+        output "wallCount: " + profile:GetInteger("wallCount")
+        output "supportsEnabled: " + (not profile:GetBoolean("supportsEnabled"))
+        output "adhesionType: " + profile:GetText("adhesionType")
+        output "GetSource of a default: " + profile:GetSource("layerHeight")
+        output "SetsOwn of a default: " + (not profile:SetsOwn("layerHeight"))
+    end
+
+    action SettingValues
+        // Set, TrySet and Clear
+        Profile profile
+        profile:SetName("custom")
+        profile:SetNumber("layerHeight", 0.16)
+        profile:SetInteger("wallCount", 4)
+        profile:SetBoolean("supportsEnabled", true)
+        profile:Set("adhesionType", "brim")
+        output "SetNumber: " + Near(profile:GetNumber("layerHeight"), 0.16, 0.0000001)
+        output "numbers are stored in short form: " + profile:GetText("layerHeight")
+        output "SetInteger: " + profile:GetInteger("wallCount")
+        output "SetBoolean: " + profile:GetBoolean("supportsEnabled")
+        output "Set of a choice: " + profile:GetText("adhesionType")
+        output "GetSource of an own value: " + profile:GetSource("wallCount")
+
+        profile:Set("bambuExtras", "1")
+        output "1 means true: " + profile:GetBoolean("bambuExtras")
+        output "an out-of-range value is refused: " + profile:TrySet("layerHeight", "5")
+        output "a fraction for an integer: " + profile:TrySet("wallCount", "2.5")
+        output "an unknown choice: " + profile:TrySet("adhesionType", "raft")
+        output "an unknown key: " + profile:TrySet("noSuchSetting", "1")
+        output "a bad boolean: " + profile:TrySet("supportsEnabled", "yes")
+        output "a refused value leaves the old one: " + Near(profile:GetNumber("layerHeight"), 0.16, 0.0000001)
+
+        profile:Clear("layerHeight")
+        output "Clear goes back to the default: " + Near(profile:GetNumber("layerHeight"), 0.2, 0)
+
+        boolean stopped = false
+        check
+            profile:Set("layerHeight", "-1")
+        detect e
+            stopped = true
+        end
+        output "Set stops on a bad value: " + stopped
+    end
+
+    action Inheritance
+        // inheritance
+        Profile parentProfile
+        parentProfile:SetName("parent")
+        parentProfile:SetInteger("wallCount", 5)
+        parentProfile:SetNumber("layerHeight", 0.28)
+        Profile child
+        child:SetName("child")
+        child:SetParent(parentProfile)
+        child:SetNumber("layerHeight", 0.12)
+        output "inherited from the parent: " + child:GetInteger("wallCount")
+        output "the child's own value wins: " + Near(child:GetNumber("layerHeight"), 0.12, 0.0000001)
+        output "GetSource names the parent: " + child:GetSource("wallCount")
+        output "GetInherits: " + child:GetInherits()
+        Array<text> own = child:GetOwnKeys()
+        output "only its own keys: " + own:GetSize()
+    end
+
+    action Validation
+        // Validate
+        Profile fine
+        fine:SetName("fine")
+        Array<text> none = fine:Validate()
+        output "the defaults are consistent: " + none:GetSize()
+
+        Profile bad
+        bad:SetName("bad")
+        bad:SetNumber("nozzleDiameter", 0.4)
+        bad:SetNumber("lineWidth", 1.2)
+        bad:SetNumber("layerHeight", 0.4)
+        bad:SetInteger("nozzleTemperature", 300)
+        bad:SetBoolean("write3mf", true)
+        Array<text> problems = bad:Validate()
+        // line width 3x the nozzle, layer height = the nozzle, nozzle over its maximum,
+        // and write3mf without bambuExtras or a template
+        output "each inconsistency is reported: " + problems:GetSize()
+    end
+
+    action FieldChecks
+        // ProfileField:Check
+        ProfileField field
+        field:Setup("test", "speed", "number", "10", "a speed")
+        field:SetRange(1, 100)
+        output "a value in range: " + (field:Check("50") = "")
+        output "below the range: " + field:Check("0")
+        output "not a number: " + field:Check("fast")
+    end
+
+    action SchemaIsConsistent
+        // every schema default passes its own check
+        ProfileSchema schema
+        output "the schema lists the settings: " + (schema:GetSize() > 80)
+        text failing = ""
+        integer i = 0
+        repeat while i < schema:GetSize()
+            ProfileField field = schema:Get(i)
+            if field:Check(field:GetDefault()) not= ""
+                failing = failing + " " + field:GetKey()
+            end
+            i = i + 1
+        end
+        output "settings whose default fails its own check:" + failing
+        output "Has: " + (schema:Has("layerHeight") and not schema:Has("nope"))
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

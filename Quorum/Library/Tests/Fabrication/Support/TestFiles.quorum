@@ -1,0 +1,88 @@
+package Tests.Fabrication
+
+use Libraries.System.File
+use Libraries.Data.Compression.ZipWriter
+use Libraries.Data.Compression.Decompresser
+
+/*
+The TestFiles class manages the scratch files the Fabrication tests write,
+under FabricationScratch/ in the folder the tests run in (Output/Run, which
+CompilerTestSuite deletes when it starts), and reads entries of the archives
+they write.
+*/
+class TestFiles
+    text root = "FabricationScratch"
+    integer checksums = 0
+
+    /* The path of a scratch file, such as Path("gcode/cube.gcode"). */
+    action Path(text name) returns text
+        return root + "/" + name
+    end
+
+    /* Writes a scratch file, creating its folder. Returns its path. */
+    action Write(text name, text content) returns text
+        return WriteAt(Path(name), content)
+    end
+
+    /* Writes any file (relative to the folder the tests run in), creating its folder. Returns its path. */
+    action WriteAt(text path, text content) returns text
+        File file
+        file:SetPath(path)
+        File folder = file:GetParentDirectory()
+        if not folder:Exists()
+            folder:CreateDirectories()
+        end
+        file:Write(content)
+        return path
+    end
+
+    /* Deletes a scratch file if it exists. */
+    action Delete(text name)
+        File file
+        file:SetPath(Path(name))
+        if file:Exists()
+            file:Delete()
+        end
+    end
+
+    /*
+    The MD5 (32 upper-case hex digits) of the text's UTF-8 bytes. The
+    standard library's only MD5 is ZipWriter:AddMd5, so this writes it into
+    a scratch archive and reads it back (a new archive each time).
+    */
+    action Md5(text content) returns text
+        checksums = checksums + 1
+        text archive = Path("md5/checksum-" + checksums + ".zip")
+        ZipWriter zip
+        zip:Open(archive)
+        zip:AddMd5("checksum.md5", content)
+        zip:Close()
+        return ReadZipEntry(archive, "checksum.md5")
+    end
+
+    /* Whether the archive at zipPath exists and has the entry. */
+    action HasZipEntry(text zipPath, text entryName) returns boolean
+        File archive
+        archive:SetPath(zipPath)
+        if not archive:IsFile()
+            return false
+        end
+        Decompresser zip
+        return zip:HasZipEntry(archive, entryName)
+    end
+
+    /* The entry of the archive at zipPath, as UTF-8 text. */
+    action ReadZipEntry(text zipPath, text entryName) returns text
+        File archive
+        archive:SetPath(zipPath)
+        Decompresser zip
+        return zip:ReadZipEntry(archive, entryName)
+    end
+
+    /* Whether a scratch file exists. */
+    action Exists(text name) returns boolean
+        File file
+        file:SetPath(Path(name))
+        return file:Exists()
+    end
+end

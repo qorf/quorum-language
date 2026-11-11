@@ -1,0 +1,309 @@
+package Libraries.Fabrication.Profiles
+
+/*
+    The ProfileField class describes one setting a profile can hold: its JSON key, its kind, the value used
+    when no profile in the inheritance chain sets it, and the allowed range.
+
+    kind is one of "number", "integer", "boolean" or "text".
+    For "text" settings with a fixed set of choices, choices holds them
+    separated by "|" (for example "none|skirt|brim").
+*/
+class ProfileField
+    text key = ""
+    text kind = "number"
+    text defaultValue = ""
+    text section = ""
+    text description = ""
+    boolean hasRange = false
+    number minimum = 0.0
+    number maximum = 0.0
+    text choices = ""
+
+    /*
+    Fills in the field. ProfileSchema calls this when it builds the list.
+
+    Attribute: Parameter fieldSection The section the setting is listed under, such as "machine".
+    Attribute: Parameter fieldKey The key used in profiles.json.
+    Attribute: Parameter fieldKind "number", "integer", "boolean" or "text".
+    Attribute: Parameter fieldDefault The default value, written as text.
+    Attribute: Parameter fieldDescription A short description, with the unit.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileField field
+        field:Setup("slicing", "layerHeight", "number", "0.2", "Layer height (mm)")
+        field:SetRange(0.04, 1.0)
+    */
+    action Setup(text fieldSection, text fieldKey, text fieldKind, text fieldDefault, text fieldDescription)
+        section = fieldSection
+        key = fieldKey
+        kind = fieldKind
+        defaultValue = fieldDefault
+        description = fieldDescription
+    end
+
+    /*
+    Number and integer settings: the smallest and largest allowed value.
+
+    Attribute: Parameter low The smallest allowed value.
+    Attribute: Parameter high The largest allowed value.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileField field
+        field:Setup("filament", "nozzleTemperature", "integer", "210", "Nozzle temperature (C)")
+        field:SetRange(0, 500)
+    */
+    action SetRange(number low, number high)
+        hasRange = true
+        minimum = low
+        maximum = high
+    end
+
+    /*
+    Text settings with fixed choices, separated by "|" (for example "none|skirt|brim").
+
+    Attribute: Parameter allowed The choices, separated by "|".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileField field
+        field:Setup("adhesion", "adhesionType", "text", "none", "Skirt, brim or neither")
+        field:SetChoices("none|skirt|brim")
+    */
+    action SetChoices(text allowed)
+        choices = allowed
+    end
+
+    /*
+    The key used in profiles.json.
+
+    Attribute: Returns The key.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetKey()        // layerHeight
+    */
+    action GetKey returns text
+        return key
+    end
+
+    /*
+    What kind of value the setting holds.
+
+    Attribute: Returns "number", "integer", "boolean" or "text".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetKind()       // number
+    */
+    action GetKind returns text
+        return kind
+    end
+
+    /*
+    The value used when no profile sets it.
+
+    Attribute: Returns The default, written as text.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetDefault()        // 0.2
+    */
+    action GetDefault returns text
+        return defaultValue
+    end
+
+    /*
+    The section the setting is listed under.
+
+    Attribute: Returns The section, such as "machine" or "slicing".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetSection()        // slicing
+    */
+    action GetSection returns text
+        return section
+    end
+
+    /*
+    A short description of the setting, with its unit.
+
+    Attribute: Returns The description.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetDescription()        // Layer height (mm)
+    */
+    action GetDescription returns text
+        return description
+    end
+
+    /*
+    Whether the setting has a smallest and largest allowed value.
+
+    Attribute: Returns True for number and integer settings with a range.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        if field:HasRange()
+            output field:GetMinimum() + " to " + field:GetMaximum()
+        end
+    */
+    action HasRange returns boolean
+        return hasRange
+    end
+
+    /*
+    The smallest allowed value (see HasRange).
+
+    Attribute: Returns The minimum.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetMinimum()        // 0.04
+    */
+    action GetMinimum returns number
+        return minimum
+    end
+
+    /*
+    The largest allowed value (see HasRange).
+
+    Attribute: Returns The maximum.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetMaximum()        // 1.0
+    */
+    action GetMaximum returns number
+        return maximum
+    end
+
+    /*
+    The allowed values of a text setting with fixed choices, separated by "|".
+
+    Attribute: Returns The choices, or "" if any text is allowed.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField adhesion = schema:Find("adhesionType")
+        output adhesion:GetChoices()      // none|skirt|brim
+    */
+    action GetChoices returns text
+        return choices
+    end
+
+    /*
+    Checks a value written as text against this field. Returns "" if it is
+    fine, otherwise a sentence saying what is wrong.
+
+    Attribute: Parameter value The value, written as text.
+    Attribute: Returns "" if the value is fine, otherwise what is wrong.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:Check("0.2")         // nothing: fine
+        output field:Check("2")           // above the allowed range
+    */
+    action Check(text value) returns text
+        if kind = "text"
+            if choices = ""
+                return ""
+            end
+            text wrapped = "|" + choices + "|"
+            if wrapped:Contains("|" + value + "|")
+                return ""
+            end
+            return "'" + value + "' isn't one of " + choices:Replace("|", ", ")
+        end
+
+        if kind = "boolean"
+            text lower = value:ToLowerCase()
+            if lower = "true" or lower = "false" or lower = "1" or lower = "0"
+                return ""
+            end
+            return "'" + value + "' isn't true or false"
+        end
+
+        number amount = 0.0
+        boolean parsed = true
+        check
+            amount = cast(number, value)
+        detect e
+            parsed = false
+        end
+        if not parsed
+            return "'" + value + "' isn't a number"
+        end
+        if kind = "integer"
+            integer whole = cast(integer, amount)
+            number back = whole
+            if back not= amount
+                return "'" + value + "' isn't a whole number"
+            end
+        end
+        if hasRange
+            if amount < minimum or amount > maximum
+                return value + " is outside " + minimum + " to " + maximum
+            end
+        end
+        return ""
+    end
+end

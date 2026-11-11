@@ -1,0 +1,263 @@
+package Libraries.Fabrication.Profiles
+
+use Libraries.Containers.Array
+
+/*
+    The ProfileSchema class lists every setting a profile can hold, in one
+    place, with its kind, default, allowed range and description.
+
+    The defaults are the defaults of the geometry classes themselves, so a
+    profile that leaves a setting out behaves exactly as if the matching Set
+    action had never been called. To add a setting:
+        1. add one line below,
+        2. pass it on in SliceJob (and BambuSettingsMap if Bambu Studio has
+           a matching key).
+    Two settings with the same key stop the program when the schema is made.
+    ProfileManager, Profile:Validate and the JSON files pick it up on their own.
+*/
+class ProfileSchema
+    Array<ProfileField> fields
+
+    on create
+        // ---- machine ----
+        AddNumber("machine", "bedWidth", "220", 1, 2000, "Bed size along X (mm)")
+        AddNumber("machine", "bedDepth", "220", 1, 2000, "Bed size along Y (mm)")
+        AddNumber("machine", "bedHeight", "250", 1, 2000, "Tallest print the printer can make (mm); caps {PARK_Z}")
+        AddNumber("machine", "nozzleDiameter", "0.4", 0.1, 2.0, "Nozzle size (mm), for {NOZZLE_DIAMETER} in start / end G-code")
+        AddInteger("machine", "maxNozzleTemperature", "260", 0, 500, "Highest nozzle temperature the printer allows (C)")
+        AddInteger("machine", "maxBedTemperature", "100", 0, 200, "Highest bed temperature the printer allows (C)")
+        AddText("machine", "startGcodeFile", "start.gcode", "The printer's own start G-code")
+        AddText("machine", "endGcodeFile", "end.gcode", "The printer's own end G-code")
+        AddBoolean("machine", "bambuExtras", "false", "Write Bambu's header block and M73 / M991 progress reports")
+        AddBoolean("machine", "write3mf", "false", "Package the G-code as a Bambu .gcode.3mf after slicing")
+        AddText("machine", "printerModelId", "N7", "Bambu printer_model_id: P2S = N7, A1 = N2S, A1 mini = N1, P1S = C12, X1C = BL-P001")
+        AddText("machine", "bambuSettingsTemplate", "", "project_settings JSON, or a .gcode.3mf exported by Bambu Studio for this printer")
+
+        // ---- filament ----
+        AddChoice("filament", "filamentType", "PLA", "PLA|PETG|ABS|ASA|TPU|PC|PA", "Filament material")
+        AddText("filament", "filamentColor", "#F2754E", "Colour shown on the printer's filament mapping screen, #RRGGBB")
+        AddText("filament", "filamentId", "", "Bambu filament ID; empty = the generic ID for the type")
+        AddNumber("filament", "filamentDiameter", "1.75", 1.0, 3.5, "Filament diameter (mm)")
+        AddNumber("filament", "flow", "1.0", 0.5, 1.5, "Extrusion multiplier")
+        AddNumber("filament", "firstLayerFlow", "1.15", 0.5, 2.0, "Extra extrusion multiplier on the first layer")
+        AddNumber("filament", "maxFlow", "0", 0, 100, "Hotend melt limit (mm^3/s); 0 = none")
+        AddInteger("filament", "nozzleTemperature", "210", 0, 500, "Nozzle temperature (C)")
+        AddInteger("filament", "bedTemperature", "60", 0, 200, "Bed temperature (C)")
+        AddChoice("filament", "bedType", "textured_plate", "textured_plate|hot_plate|eng_plate|cool_plate|supertack_plate", "Bambu build plate")
+
+        // ---- slicing ----
+        AddNumber("slicing", "unitScale", "0", 0, 10000, "Model unit scale; 0 = detect from the model size, 25.4 for inch files")
+        AddNumber("slicing", "layerHeight", "0.2", 0.04, 1.0, "Layer height (mm)")
+        AddNumber("slicing", "cutAmount", "0", 0, 1000, "Height cut off the bottom of the model (mm)")
+        AddNumber("slicing", "contourMaxGap", "0.2", 0, 5, "Largest gap closed when joining slice segments into loops (mm)")
+        AddNumber("slicing", "simplifyTolerance", "0.02", 0, 1, "How far loops may move when simplified (mm)")
+        AddNumber("slicing", "minContourArea", "0.05", 0, 100, "Loops smaller than this are dropped (mm^2)")
+
+        // ---- walls and infill ----
+        AddNumber("paths", "lineWidth", "0.4", 0.1, 3.0, "Extrusion width (mm)")
+        AddInteger("paths", "wallCount", "2", 0, 50, "Number of walls")
+        AddNumber("paths", "infillDensity", "0.2", 0, 1, "Sparse infill: 0 = none, 1 = solid")
+        AddNumber("paths", "infillOverlap", "0.25", 0, 1, "How far infill reaches into the inner wall, as a fraction of the line width")
+        AddInteger("paths", "topLayers", "4", 0, 100, "Solid layers under top surfaces")
+        AddInteger("paths", "bottomLayers", "4", 0, 100, "Solid layers over bottom surfaces")
+        AddBoolean("paths", "joinFirstLayer", "true", "Chain the first layer's solid fill into continuous zigzags")
+
+        // ---- tree supports ----
+        AddBoolean("supports", "supportsEnabled", "false", "Generate tree supports")
+        AddNumber("supports", "supportOverhangAngle", "50", 0, 90, "Overhangs leaning further than this from vertical get supports (degrees)")
+        AddNumber("supports", "supportBranchAngle", "40", 0, 89, "Steepest lean a branch may take from vertical (degrees)")
+        AddNumber("supports", "supportTipSpacing", "3.0", 0.5, 50, "Distance between neighbouring tines (mm)")
+        AddNumber("supports", "supportTipDiameter", "1.0", 0.1, 10, "Contact tip diameter (mm)")
+        AddNumber("supports", "supportTipLength", "1.0", 0, 50, "How far a tip runs straight down before it may lean (mm)")
+        AddNumber("supports", "supportGrowthAngle", "5.0", 0, 45, "How fast branches thicken going down (degrees)")
+        AddNumber("supports", "supportMaxRadius", "4.0", 0.2, 50, "Thickest a branch may get (mm radius)")
+        AddNumber("supports", "supportXYGap", "0.8", 0, 10, "Gap between branches and the model (mm)")
+        AddNumber("supports", "supportTineXYGap", "0.3", 0, 10, "Gap between tines and the model (mm)")
+        AddInteger("supports", "supportTopGapLayers", "1", 0, 20, "Empty layers between a tip and the model above it")
+        AddInteger("supports", "supportBottomGapLayers", "1", 0, 20, "Empty layers between a branch and the model it rests on")
+        AddNumber("supports", "supportDensity", "0.15", 0.01, 1, "Fill density inside branches")
+        AddInteger("supports", "supportRoofLayers", "2", 0, 20, "Dense layers at the top of each tip")
+        AddNumber("supports", "supportRoofDensity", "0.8", 0, 1, "Fill density of the roof layers")
+        AddNumber("supports", "supportBaseFlare", "1.0", 0, 20, "Extra width where branches meet the bed (mm)")
+        AddInteger("supports", "supportBaseLayers", "5", 0, 100, "Layers the base flare spreads over")
+        AddNumber("supports", "supportRestWidth", "3.0", 0, 50, "Branches rest on the model only where it is at least this wide (mm); 0 = anywhere")
+        AddNumber("supports", "supportRestLookAhead", "3.0", 0, 50, "How far down branches look to steer off narrow parts (mm)")
+        AddBoolean("supports", "supportBedRouting", "true", "Route branches around the model down to the bed")
+        AddNumber("supports", "supportMaxBridge", "0", 0, 100, "Longest span left to bridge instead of supported (mm); 0 = off")
+        AddNumber("supports", "supportMinOverhangArea", "0.5", 0, 1000, "Overhang islands smaller than this get no tines (mm^2); 0 = off")
+
+        // ---- skirt / brim ----
+        AddChoice("adhesion", "adhesionType", "none", "none|skirt|brim", "Skirt, brim or neither")
+        AddInteger("adhesion", "skirtLoops", "2", 0, 50, "Skirt loops")
+        AddNumber("adhesion", "skirtDistance", "3.0", 0, 50, "Gap between the skirt and the model (mm)")
+        AddInteger("adhesion", "skirtLayers", "1", 1, 1000, "Skirt height in layers")
+        AddInteger("adhesion", "brimLoops", "8", 0, 100, "Brim loops")
+        AddNumber("adhesion", "brimGap", "0", 0, 10, "Gap between the brim and the model (mm)")
+
+        // ---- path order ----
+        AddNumber("order", "seamX", "0", -1000000, 1000000, "Seams are placed nearest this point (mm)")
+        AddNumber("order", "seamY", "1000000", -1000000, 1000000, "Seams are placed nearest this point (mm); the default puts them at the back")
+        AddNumber("order", "minLoopLength", "1.0", 0, 100, "Loops shorter than this are dropped (mm)")
+        AddNumber("order", "minLineLength", "0.4", 0, 100, "Lines shorter than this are dropped (mm)")
+        AddNumber("order", "minSegmentLength", "0.05", 0, 100, "Segments shorter than this are merged (mm)")
+
+        // ---- speeds (mm/s) ----
+        AddNumber("speed", "outerWallSpeed", "30", 1, 2000, "Outer wall speed (mm/s)")
+        AddNumber("speed", "innerWallSpeed", "50", 1, 2000, "Inner wall speed (mm/s)")
+        AddNumber("speed", "skinSpeed", "40", 1, 2000, "Top / bottom solid fill speed (mm/s)")
+        AddNumber("speed", "infillSpeed", "60", 1, 2000, "Sparse infill speed (mm/s)")
+        AddNumber("speed", "supportSpeed", "50", 1, 2000, "Support speed (mm/s)")
+        AddNumber("speed", "firstLayerSpeed", "20", 1, 2000, "Speed of everything on the first layer (mm/s)")
+        AddNumber("speed", "travelSpeed", "150", 1, 2000, "Travel speed (mm/s)")
+        AddNumber("speed", "infillTravelLimit", "5.0", 0, 1000, "Travels inside infill shorter than this don't retract (mm)")
+
+        // ---- accelerations (mm/s^2, 0 = leave what the start G-code set) ----
+        AddNumber("acceleration", "accelOuterWall", "0", 0, 100000, "Outer wall acceleration")
+        AddNumber("acceleration", "accelInnerWall", "0", 0, 100000, "Inner wall acceleration")
+        AddNumber("acceleration", "accelSkin", "0", 0, 100000, "Solid fill acceleration")
+        AddNumber("acceleration", "accelInfill", "0", 0, 100000, "Sparse infill acceleration")
+        AddNumber("acceleration", "accelSupport", "0", 0, 100000, "Support acceleration")
+        AddNumber("acceleration", "accelFirstLayer", "0", 0, 100000, "First layer acceleration")
+        AddNumber("acceleration", "accelTravel", "0", 0, 100000, "Travel acceleration")
+
+        // ---- retraction and z hop ----
+        AddNumber("retraction", "retractLength", "1.0", 0, 20, "Retraction length (mm): ~1 direct drive, 4-6 Bowden")
+        AddNumber("retraction", "retractSpeed", "35", 1, 200, "Retraction speed (mm/s)")
+        AddNumber("retraction", "retractMinTravel", "1.5", 0, 100, "Only travels longer than this retract (mm)")
+        AddInteger("retraction", "retractLimitCount", "10", 0, 1000, "At most this many retracts...")
+        AddNumber("retraction", "retractLimitWindow", "0", 0, 100, "...within this much extruded filament (mm); 0 = same as retractLength")
+        AddNumber("retraction", "zHop", "0", 0, 5, "Lift on travels that retract (mm); 0 = off")
+        AddNumber("retraction", "zHopMinTravel", "1.5", 0, 100, "Only travels longer than this hop (mm)")
+        AddBoolean("retraction", "zHopNeedsRetract", "true", "Hop only on travels that also retract")
+
+        // ---- cooling ----
+        AddNumber("cooling", "minLayerTime", "10", 0, 600, "Slow down layers that would print faster than this (s)")
+        AddNumber("cooling", "minPrintSpeed", "10", 1, 1000, "Slowest speed the slowdown may use (mm/s)")
+        AddInteger("cooling", "fanMax", "255", 0, 255, "Part fan speed, 0-255")
+        AddInteger("cooling", "fanOffLayers", "1", 0, 1000, "Layers printed with the fan off")
+        AddInteger("cooling", "fanFullLayer", "3", 0, 1000, "Layer by which the fan reaches fanMax")
+        AddNumber("cooling", "coolingLift", "3.0", 0, 50, "Cooling pause: lift (mm); 0 = no pause")
+        AddNumber("cooling", "coolingClearance", "10", 0, 500, "Cooling pause: park this far beside the model (mm)")
+
+        // ---- testing ----
+        AddBoolean("debug", "dryRun", "false", "Trace the print in the air with heaters off and no extrusion")
+        AddNumber("debug", "dryRunLift", "20", 0, 500, "Dry run height above the bed (mm)")
+    end
+
+    /*
+    The number of settings.
+
+    Attribute: Returns The number of settings.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+
+        ProfileSchema schema
+        output schema:GetSize() + " settings"
+    */
+    action GetSize returns integer
+        return fields:GetSize()
+    end
+
+    /*
+    A setting by position, in the order the schema lists them.
+
+    Attribute: Parameter index The position, from 0 to GetSize() - 1.
+    Attribute: Returns The setting.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        integer i = 0
+        repeat while i < schema:GetSize()
+            ProfileField field = schema:Get(i)
+            output field:GetKey() + ": " + field:GetDescription()
+            i = i + 1
+        end
+    */
+    action Get(integer index) returns ProfileField
+        return fields:Get(index)
+    end
+
+    /*
+    The field with this key, or undefined.
+
+    Attribute: Parameter key The key used in profiles.json.
+    Attribute: Returns The field with this key, or undefined.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+        use Libraries.Fabrication.Profiles.ProfileField
+
+        ProfileSchema schema
+        ProfileField field = schema:Find("layerHeight")
+        output field:GetDefault()      // 0.2
+    */
+    action Find(text key) returns ProfileField
+        integer i = 0
+        repeat while i < fields:GetSize()
+            ProfileField field = fields:Get(i)
+            if field:GetKey() = key
+                return field
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+
+    /*
+    Whether a key names a setting.
+
+    Attribute: Parameter key The key to look up.
+    Attribute: Returns True if the schema has the setting.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileSchema
+
+        ProfileSchema schema
+        output schema:Has("layerHeight")      // true
+        output schema:Has("layerHieght")      // false: a typo
+    */
+    action Has(text key) returns boolean
+        return Find(key) not= undefined
+    end
+
+    private action AddField(text section, text key, text kind, text defaultValue, text description) returns ProfileField
+        if Find(key) not= undefined
+            alert("ProfileSchema has the setting '" + key + "' twice")
+        end
+        ProfileField field
+        field:Setup(section, key, kind, defaultValue, description)
+        fields:Add(field)
+        return field
+    end
+
+    private action AddNumber(text section, text key, text defaultValue, number minimum, number maximum, text description)
+        ProfileField field = AddField(section, key, "number", defaultValue, description)
+        field:SetRange(minimum, maximum)
+    end
+
+    private action AddInteger(text section, text key, text defaultValue, number minimum, number maximum, text description)
+        ProfileField field = AddField(section, key, "integer", defaultValue, description)
+        field:SetRange(minimum, maximum)
+    end
+
+    private action AddBoolean(text section, text key, text defaultValue, text description)
+        AddField(section, key, "boolean", defaultValue, description)
+    end
+
+    private action AddText(text section, text key, text defaultValue, text description)
+        AddField(section, key, "text", defaultValue, description)
+    end
+
+    private action AddChoice(text section, text key, text defaultValue, text choices, text description)
+        ProfileField field = AddField(section, key, "text", defaultValue, description)
+        field:SetChoices(choices)
+    end
+end

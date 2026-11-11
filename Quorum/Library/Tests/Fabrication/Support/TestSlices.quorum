@@ -1,0 +1,38 @@
+package Tests.Fabrication
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.TriangleMesh
+use Libraries.Fabrication.Slicing.MeshSlicer
+use Libraries.Fabrication.Slicing.ContourGenerator
+
+/*
+The TestSlices class slices a TestModels model with default settings, for
+the tests of the stages after slicing.
+*/
+class TestSlices
+    integer lastPlaneCount = 0
+
+    /*
+    Slices a model with default settings and returns its outlines (what
+    PathGenerator, TreeSupport and PathOrderer take). GetLastPlaneCount
+    gives the number of layers.
+    */
+    action Outlines(ModelData model, number layerHeight) returns Array<Contour>
+        TriangleMesh mesh
+        mesh:Load(model)
+        MeshSlicer slicer
+        slicer:SetTriangles(mesh)
+        Array<number> range = slicer:GetSliceRange()
+        Array<number> planes = slicer:BuildPlanes(range:Get(0), range:Get(1), layerHeight)
+        lastPlaneCount = planes:GetSize()
+        ContourGenerator generator
+        return generator:Build(slicer:Slice(planes), lastPlaneCount, 0.2)
+    end
+
+    /* The number of layers of the last Outlines. */
+    action GetLastPlaneCount returns integer
+        return lastPlaneCount
+    end
+end
