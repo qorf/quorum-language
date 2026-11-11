@@ -1,0 +1,421 @@
+package Libraries.Fabrication.Printing.Bambu
+
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Data.Formats.NumberFormatter
+use Libraries.Fabrication.Profiles.Profile
+
+/*
+The BambuSettingsMap class writes a slicer Profile's settings into a Bambu
+Studio project_settings template, under Bambu's own key names.
+
+Bambu Studio needs the complete set of about 580 settings in exactly the
+shape its version writes, so this never builds the file from scratch: it
+starts from a template that Bambu Studio exported for the same printer,
+nozzle and filament (see BambuProjectSettings) and changes only the keys
+listed in Apply. Keys the template doesn't have (another Bambu Studio
+version) are skipped and listed in the warnings.
+
+The printer runs the G-code inside the 3MF, not these settings. They are
+what Bambu Studio and the printer's screen show for the print, and the
+printer checks the nozzle, filament and plate against them, so they should
+describe what was actually sliced.
+
+To map another setting, add it to ProfileSchema and add one line to Apply.
+
+Attribute: Example
+
+    use Libraries.Fabrication.Profiles.ProfileManager
+    use Libraries.Fabrication.Profiles.Profile
+    use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+    class Main
+        action Main
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            Profile profile = profiles:Require("bambu-p2s")
+            BambuSettingsMap map
+            // the settings that go inside the .gcode.3mf
+            text json = map:FilledTemplate(profile, profile:GetText("bambuSettingsTemplate"))
+            // or a standalone copy to look at, diff or import
+            map:WriteTemplate(profile, profile:GetText("bambuSettingsTemplate"), "Outputs/project_settings.json")
+        end
+    end
+*/
+class BambuSettingsMap
+    BambuProjectSettings template
+    NumberFormatter format
+    Array<text> missing
+    Array<text> warnings
+    integer filled = 0
+    boolean reportMissing = true
+
+    /*
+    Whether keys missing from the template are listed as a warning (on by default).
+
+    Attribute: Parameter toggle True to list missing keys as a warning.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        map:SetReportMissing(false)
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json")
+    */
+    action SetReportMissing(boolean toggle)
+        reportMissing = toggle
+    end
+
+    /*
+    Reads the template (a project_settings JSON, or a .gcode.3mf exported
+    by Bambu Studio), fills in the profile and returns the JSON text.
+
+    Attribute: Parameter profile The profile to copy the settings from.
+    Attribute: Parameter templatePath The template exported by Bambu Studio.
+    Attribute: Returns The filled project_settings JSON.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json")
+        output map:GetFilledCount() + " settings filled in"
+    */
+    action FilledTemplate(Profile profile, text templatePath) returns text
+        if templatePath = ""
+            alert("Profile '" + profile:GetName() + "' has no bambuSettingsTemplate. Set it to a project_settings JSON, or a .gcode.3mf exported by Bambu Studio for this printer.")
+        end
+        template:LoadFile(templatePath)
+        Apply(profile)
+        template:Check()
+        return template:ToText()
+    end
+
+    /*
+    Like FilledTemplate, and writes the result to outputPath. Returns outputPath.
+
+    Attribute: Parameter profile The profile to copy the settings from.
+    Attribute: Parameter templatePath The template exported by Bambu Studio.
+    Attribute: Parameter outputPath Where to write the filled JSON.
+    Attribute: Returns outputPath.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        text written = map:WriteTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json", "Outputs/project_settings.json")
+    */
+    action WriteTemplate(Profile profile, text templatePath, text outputPath) returns text
+        text json = FilledTemplate(profile, templatePath)
+        File file
+        file:SetPath(outputPath)
+        file:Write(json)
+        return outputPath
+    end
+
+    /* Fills the template that is already loaded with the profile's settings. */
+    private action Apply(Profile profile)
+        missing:Empty()
+        warnings:Empty()
+        filled = 0
+        CheckTemplateMatches(profile)
+
+        // ---- machine ----
+        number bedWidth = profile:GetNumber("bedWidth")
+        number bedDepth = profile:GetNumber("bedDepth")
+        Array<text> corners
+        corners:Add("0x0")
+        corners:Add(format:Short(bedWidth) + "x0")
+        corners:Add(format:Short(bedWidth) + "x" + format:Short(bedDepth))
+        corners:Add("0x" + format:Short(bedDepth))
+        FillItems("printable_area", corners)
+        Num("printable_height", profile:GetNumber("bedHeight"))
+        Num("nozzle_diameter", profile:GetNumber("nozzleDiameter"))
+
+        // ---- filament ----
+        Txt("filament_type", profile:GetText("filamentType"))
+        Num("filament_diameter", profile:GetNumber("filamentDiameter"))
+        Num("filament_flow_ratio", profile:GetNumber("flow"))
+        if profile:GetNumber("maxFlow") > 0
+            Num("filament_max_volumetric_speed", profile:GetNumber("maxFlow"))
+        end
+        Int("nozzle_temperature", profile:GetInteger("nozzleTemperature"))
+        Int("nozzle_temperature_initial_layer", profile:GetInteger("nozzleTemperature"))
+        text bedKey = profile:GetText("bedType") + "_temp"
+        Int(bedKey, profile:GetInteger("bedTemperature"))
+        Int(bedKey + "_initial_layer", profile:GetInteger("bedTemperature"))
+
+        // ---- quality ----
+        number layerHeight = profile:GetNumber("layerHeight")
+        number lineWidth = profile:GetNumber("lineWidth")
+        Num("layer_height", layerHeight)
+        Num("initial_layer_print_height", layerHeight)
+        Num("resolution", profile:GetNumber("simplifyTolerance"))
+        // GcodeWriter prints every feature at one width
+        Num("line_width", lineWidth)
+        Num("initial_layer_line_width", lineWidth)
+        Num("outer_wall_line_width", lineWidth)
+        Num("inner_wall_line_width", lineWidth)
+        Num("top_surface_line_width", lineWidth)
+        Num("internal_solid_infill_line_width", lineWidth)
+        Num("sparse_infill_line_width", lineWidth)
+        Num("support_line_width", lineWidth)
+
+        // ---- walls and infill ----
+        Int("wall_loops", profile:GetInteger("wallCount"))
+        Pct("sparse_infill_density", profile:GetNumber("infillDensity"))
+        // PathGenerator's sparse infill: straight lines at 45 / 135 degrees on alternate layers
+        Txt("sparse_infill_pattern", "line")
+        Pct("infill_wall_overlap", profile:GetNumber("infillOverlap"))
+        Int("top_shell_layers", profile:GetInteger("topLayers"))
+        Int("bottom_shell_layers", profile:GetInteger("bottomLayers"))
+        // PathGenerator counts solid layers only; 0 stops Bambu adding layers to reach a thickness
+        Txt("top_shell_thickness", "0")
+        Txt("bottom_shell_thickness", "0")
+
+        // ---- supports ----
+        boolean supports = profile:GetBoolean("supportsEnabled")
+        Flag("enable_support", supports)
+        if supports
+            Txt("support_type", "tree(auto)")
+        end
+        // TreeSupport measures overhangs from vertical, Bambu from horizontal
+        Num("support_threshold_angle", 90.0 - profile:GetNumber("supportOverhangAngle"))
+        Num("tree_support_branch_angle", profile:GetNumber("supportBranchAngle"))
+        Num("tree_support_branch_diameter_angle", profile:GetNumber("supportGrowthAngle"))
+        Num("support_object_xy_distance", profile:GetNumber("supportXYGap"))
+        Num("support_top_z_distance", profile:GetNumber("supportTopGapLayers") * layerHeight)
+        Num("support_bottom_z_distance", profile:GetNumber("supportBottomGapLayers") * layerHeight)
+        Int("support_interface_top_layers", profile:GetInteger("supportRoofLayers"))
+        Num("support_interface_spacing", Spacing(lineWidth, profile:GetNumber("supportRoofDensity")))
+        Num("support_base_pattern_spacing", Spacing(lineWidth, profile:GetNumber("supportDensity")))
+
+        // ---- skirt / brim ----
+        text adhesion = profile:GetText("adhesionType")
+        if adhesion = "skirt"
+            Int("skirt_loops", profile:GetInteger("skirtLoops"))
+            Num("skirt_distance", profile:GetNumber("skirtDistance"))
+            Int("skirt_height", profile:GetInteger("skirtLayers"))
+        else
+            Int("skirt_loops", 0)
+        end
+        if adhesion = "brim"
+            Txt("brim_type", "outer_only")
+            Num("brim_width", profile:GetNumber("brimLoops") * lineWidth)
+            Num("brim_object_gap", profile:GetNumber("brimGap"))
+        else
+            Txt("brim_type", "no_brim")
+        end
+
+        // ---- speeds ----
+        Num("outer_wall_speed", profile:GetNumber("outerWallSpeed"))
+        Num("inner_wall_speed", profile:GetNumber("innerWallSpeed"))
+        Num("top_surface_speed", profile:GetNumber("skinSpeed"))
+        Num("internal_solid_infill_speed", profile:GetNumber("skinSpeed"))
+        Num("sparse_infill_speed", profile:GetNumber("infillSpeed"))
+        Num("support_speed", profile:GetNumber("supportSpeed"))
+        Num("initial_layer_speed", profile:GetNumber("firstLayerSpeed"))
+        Num("initial_layer_infill_speed", profile:GetNumber("firstLayerSpeed"))
+        Num("travel_speed", profile:GetNumber("travelSpeed"))
+
+        // ---- accelerations: 0 means GcodeWriter leaves the printer's, so the template's stays ----
+        Accel("outer_wall_acceleration", profile:GetNumber("accelOuterWall"))
+        Accel("inner_wall_acceleration", profile:GetNumber("accelInnerWall"))
+        Accel("top_surface_acceleration", profile:GetNumber("accelSkin"))
+        Accel("sparse_infill_acceleration", profile:GetNumber("accelInfill"))
+        Accel("initial_layer_acceleration", profile:GetNumber("accelFirstLayer"))
+        Accel("travel_acceleration", profile:GetNumber("accelTravel"))
+
+        // ---- retraction ----
+        Num("retraction_length", profile:GetNumber("retractLength"))
+        Num("retraction_speed", profile:GetNumber("retractSpeed"))
+        Num("retraction_minimum_travel", profile:GetNumber("retractMinTravel"))
+        Num("z_hop", profile:GetNumber("zHop"))
+
+        // ---- cooling ----
+        Num("slow_down_layer_time", profile:GetNumber("minLayerTime"))
+        Num("slow_down_min_speed", profile:GetNumber("minPrintSpeed"))
+        // GcodeWriter ramps the fan up to one speed and keeps it there
+        number fanPercent = profile:GetNumber("fanMax") * 100.0 / 255.0
+        Txt("fan_max_speed", format:Rounded(fanPercent))
+        Txt("fan_min_speed", format:Rounded(fanPercent))
+        Int("close_fan_the_first_x_layers", profile:GetInteger("fanOffLayers"))
+        Int("full_fan_speed_layer", profile:GetInteger("fanFullLayer"))
+
+        if reportMissing and missing:GetSize() > 0
+            text list = ""
+            integer i = 0
+            repeat while i < missing:GetSize()
+                if i > 0
+                    list = list + ", "
+                end
+                list = list + missing:Get(i)
+                i = i + 1
+            end
+            warnings:Add("The Bambu template has no " + list + " (skipped). It may be from another Bambu Studio version.")
+        end
+    end
+
+    /*
+    How many keys the last FilledTemplate changed.
+
+    Attribute: Returns How many keys the last FilledTemplate changed.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json")
+        output map:GetFilledCount() + " settings changed"
+    */
+    action GetFilledCount returns integer
+        return filled
+    end
+
+    /*
+    The keys the last FilledTemplate wanted but the template doesn't have.
+
+    Attribute: Returns The keys the last FilledTemplate wanted but the template doesn't have.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json")
+        Array<text> missing = map:GetMissingKeys()
+        output missing:GetSize() + " settings the template doesn't have"
+    */
+    action GetMissingKeys returns Array<text>
+        return missing
+    end
+
+    /*
+    Warnings from the last FilledTemplate (missing keys, a template for another nozzle or filament), as sentences.
+
+    Attribute: Returns Warnings from the last FilledTemplate (missing keys, a template for another nozzle or filament), as sentences.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json")
+        Array<text> warnings = map:GetWarnings()
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            output "warning: " + warnings:Get(i)
+            i = i + 1
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings
+    end
+
+    /*
+        The template was exported for one nozzle and filament; its other
+        ~500 settings (and printer_settings_id) still describe those. Say so
+        when the profile is for something else.
+    */
+    private action CheckTemplateMatches(Profile profile)
+        text templateNozzle = template:GetText("nozzle_diameter", "")
+        if templateNozzle not= ""
+            number nozzle = 0.0
+            check
+                nozzle = cast(number, templateNozzle)
+            detect e
+                alert("Bambu settings error: the template's nozzle_diameter '" + templateNozzle + "' isn't a number.")
+            end
+            number wanted = profile:GetNumber("nozzleDiameter")
+            if nozzle - wanted > 0.001 or wanted - nozzle > 0.001
+                warnings:Add("The Bambu template is for a " + templateNozzle + " mm nozzle, profile '" + profile:GetName() + "' is for " + format:Short(wanted) + " mm. Export a sliced plate with that nozzle from Bambu Studio and use it as bambuSettingsTemplate.")
+            end
+        end
+        text templateType = template:GetText("filament_type", "")
+        text upperTemplateType = templateType:ToUpperCase()
+        text type = profile:GetText("filamentType")
+        if templateType not= "" and upperTemplateType not= type
+            warnings:Add("The Bambu template is for " + templateType + ", profile '" + profile:GetName() + "' is " + type + ". Export a sliced plate with " + type + " from Bambu Studio and use it as bambuSettingsTemplate.")
+        end
+    end
+
+    /* Gap between support lines for a fill density (Bambu stores the gap, Profile the density). */
+    private action Spacing(number lineWidth, number density) returns number
+        if density <= 0
+            return 0.0
+        end
+        number gap = lineWidth / density - lineWidth
+        if gap < 0
+            return 0.0
+        end
+        return gap
+    end
+
+    private action Txt(text key, text value)
+        if template:Has(key)
+            template:Fill(key, value)
+            filled = filled + 1
+        else
+            missing:Add(key)
+        end
+    end
+
+    private action Num(text key, number value)
+        Txt(key, format:Short(value))
+    end
+
+    private action Int(text key, integer value)
+        Txt(key, "" + value)
+    end
+
+    private action Pct(text key, number fraction)
+        Txt(key, format:Percent(fraction))
+    end
+
+    private action Flag(text key, boolean value)
+        if value
+            Txt(key, "1")
+        else
+            Txt(key, "0")
+        end
+    end
+
+    private action Accel(text key, number value)
+        if value > 0
+            Num(key, value)
+        end
+    end
+
+    private action FillItems(text key, Array<text> items)
+        if template:Has(key)
+            template:FillList(key, items)
+            filled = filled + 1
+        else
+            missing:Add(key)
+        end
+    end
+end

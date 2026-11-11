@@ -1,0 +1,224 @@
+use Libraries.Containers.Array
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Slicing.PathGenerator
+use Libraries.Fabrication.Slicing.PathOrderer
+use Libraries.Fabrication.Printing.GcodeWriter
+use Libraries.Fabrication.Printing.Bambu.BambuPackager
+use Libraries.Fabrication.Printing.Bambu.BambuProjectSettings
+use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+use Libraries.Fabrication.Profiles.ProfileManager
+use Libraries.Fabrication.Profiles.Profile
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestSlices
+use Tests.Fabrication.TestFiles
+
+/*
+Tests the Bambu Lab printing classes (BambuPackager, BambuProjectSettings,
+BambuSettingsMap) with the P2S settings template in Templates/bambu-p2s.
+*/
+class Main
+    TestModels models
+    TestSlices slices
+    TestFiles files
+    text settingsTemplate = "../../Library/Tests/Fabrication/Resources/Templates/bambu-p2s/p2s_project_settings.json"
+    text gcodePath = ""
+    text lf = ""
+
+    on create
+        lf = lf:GetLineFeed()
+    end
+
+    action Main
+        // a cube's G-code with Bambu's header block and a T0 in its start code
+        Array<Contour> outlines = slices:Outlines(models:Cube(), 0.2)
+        integer planes = slices:GetLastPlaneCount()
+        PathGenerator paths
+        paths:Generate(outlines, planes)
+        PathOrderer orderer
+        Array<Contour> ordered = orderer:Order(outlines, paths:GetWalls(), paths:GetSkin(), paths:GetInfill(), planes)
+        GcodeWriter gcode
+        gcode:SetBambuExtras(true)
+        gcode:SetTemperatures(220, 65)
+        gcode:SetStartGCodeFile(files:Write("bambu/start.gcode", "M190 S{BED_TEMP}" + lf + "M109 S{NOZZLE_TEMP}" + lf + "T0"))
+        gcode:SetEndGCodeFile(files:Write("bambu/end.gcode", "M104 S0"))
+        gcodePath = files:Path("bambu/cube.gcode")
+        gcode:Write(ordered, gcodePath)
+
+        PackagesACube()
+        PackagingProblems()
+        ProjectSettings()
+        SettingsFromAProfile()
+        A1Settings()
+    end
+
+    action PackagesACube
+        // a .gcode.3mf for a cube
+        BambuPackager packer
+        packer:SetSettingsTemplate(settingsTemplate)
+        packer:SetFilamentColor("#ff0000")
+        text archive = packer:Pack(gcodePath)
+        output "the archive goes next to the G-code: " + (archive = files:Path("bambu/cube.gcode.3mf"))
+        Array<text> warnings = packer:GetWarnings()
+        output "no warnings: " + warnings:GetSize()
+        output "layers read from the header: " + packer:GetLayerCount()
+        output "a plausible weight for a 20 mm cube: " + (packer:GetFilamentGrams() > 1 and packer:GetFilamentGrams() < 15)
+        output "the template's Bambu Studio version: " + packer:GetSettingsVersion()
+        text entries = "[Content_Types].xml Metadata/plate_1.png Metadata/plate_1_small.png Metadata/plate_no_light_1.png Metadata/top_1.png Metadata/pick_1.png Metadata/plate_1.json 3D/3dmodel.model Metadata/project_settings.config Metadata/plate_1.gcode.md5 Metadata/plate_1.gcode Metadata/_rels/model_settings.config.rels Metadata/model_settings.config Metadata/cut_information.xml Metadata/slice_info.config Metadata/filament_sequence.json _rels/.rels"
+        Array<text> names = entries:Split(" ")
+        text missing = ""
+        integer i = 0
+        repeat while i < names:GetSize()
+            if not files:HasZipEntry(archive, names:Get(i))
+                missing = missing + " " + names:Get(i)
+            end
+            i = i + 1
+        end
+        output "entries missing from the archive:" + missing
+
+        text plateGcode = files:ReadZipEntry(archive, "Metadata/plate_1.gcode")
+        output "the MD5 matches the G-code inside: " + (files:ReadZipEntry(archive, "Metadata/plate_1.gcode.md5") = files:Md5(plateGcode))
+        output "the header block is rewritten with the filament use: " + plateGcode:Contains("; total filament weight [g] :")
+
+        JavaScriptObjectNotationTemplate settings
+        settings:Load(files:ReadZipEntry(archive, "Metadata/project_settings.config"))
+        output "the colour, upper case: " + settings:GetText("filament_colour", "?")
+        output "the nozzle temperature read from the G-code: " + settings:GetText("nozzle_temperature", "?")
+        output "the bed temperature read from the G-code: " + settings:GetText("textured_plate_temp", "?")
+        output "the plate: " + settings:GetText("curr_bed_type", "?")
+        text sliceInfo = files:ReadZipEntry(archive, "Metadata/slice_info.config")
+        output "slice_info names the printer: " + sliceInfo:Contains("printer_model_id")
+        output "the P2S model id: " + sliceInfo:Contains("N7")
+    end
+
+    action PackagingProblems
+        // packaging problems
+        BambuPackager noT0
+        noT0:SetSettingsTemplate(settingsTemplate)
+        text plain = files:Write("bambu/no-t0.gcode", "; HEADER_BLOCK_START" + lf + "; HEADER_BLOCK_END" + lf + "G1 X1 Y1 E1")
+        text archive = noT0:Pack(plain)
+        Array<text> warnings = noT0:GetWarnings()
+        output "G-code that never selects T0 is warned about: " + warnings:GetSize()
+
+        output "G-code without Bambu's header block: " + (PackFails("#FFFFFF", "textured_plate", files:Write("bambu/no-header.gcode", "G1 X1 Y1 E1")))
+        output "a colour that isn't #RRGGBB: " + PackFails("red", "textured_plate", gcodePath)
+        output "an unknown bed type: " + PackFails("#FFFFFF", "glass_plate", gcodePath)
+        output "a missing G-code file: " + (PackFails("#FFFFFF", "textured_plate", files:Path("bambu/missing.gcode")))
+    end
+
+    action PackFails(text colour, text bed, text path) returns boolean
+        boolean failed = false
+        check
+            BambuPackager packer
+            packer:SetSettingsTemplate(settingsTemplate)
+            packer:SetFilamentColor(colour)
+            packer:SetBedType(bed)
+            text archive = packer:Pack(path, files:Path("bambu/failed.gcode.3mf"))
+        detect e
+            failed = true
+        end
+        return failed
+    end
+
+    action ProjectSettings
+        // BambuProjectSettings
+        BambuProjectSettings settings
+        settings:LoadFile(settingsTemplate)
+        output "the template loads: " + settings:GetText("name", "?")
+        boolean fine = true
+        check
+            settings:Check()
+        detect e1
+            fine = false
+        end
+        output "the shipped template passes Bambu Studio's checks: " + fine
+
+        BambuProjectSettings wrong
+        wrong:Load("{ " + Quoted("name") + ": " + Quoted("something_else") + " }")
+        boolean refused = false
+        check
+            wrong:Check()
+        detect e2
+            refused = true
+        end
+        output "a file that isn't project_settings fails Check: " + refused
+
+        boolean missing = false
+        check
+            BambuProjectSettings nowhere
+            nowhere:LoadFile(files:Path("bambu/missing.json"))
+        detect e3
+            missing = true
+        end
+        output "a missing template file: " + missing
+    end
+
+    action SettingsFromAProfile
+        // BambuSettingsMap from the bambu-p2s profile
+        ProfileManager profiles
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        Profile profile = profiles:Require("bambu-p2s")
+        BambuSettingsMap map
+        JavaScriptObjectNotationTemplate filled
+        filled:Load(map:FilledTemplate(profile, settingsTemplate))
+        output "layer_height: " + filled:GetText("layer_height", "?")
+        output "wall_loops from wallCount: " + filled:GetText("wall_loops", "?")
+        output "the infill density as a percentage: " + filled:GetText("sparse_infill_density", "?")
+        output "the bed temperature: " + filled:GetText("textured_plate_temp", "?")
+        output "the filament: " + filled:GetText("filament_type", "?")
+        output "no brim: " + filled:GetText("brim_type", "?")
+        output "the bed corners: " + filled:Count("printable_area")
+        output "most of the mapped settings were found in the template: " + (map:GetFilledCount() > 40)
+
+        profile:SetNumber("nozzleDiameter", 0.6)
+        profile:SetNumber("lineWidth", 0.6)
+        text json = map:FilledTemplate(profile, settingsTemplate)
+        Array<text> warnings = map:GetWarnings()
+        boolean nozzleWarned = false
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            text warning = warnings:Get(i)
+            if warning:Contains("nozzle")
+                nozzleWarned = true
+            end
+            i = i + 1
+        end
+        output "a template for another nozzle is warned about: " + nozzleWarned
+    end
+
+    action A1Settings
+        // the A1 settings template and the bambu-a1 profile
+        text a1Template = "../../Library/Tests/Fabrication/Resources/Templates/bambu-a1/a1_project_settings.json"
+        BambuProjectSettings settings
+        settings:LoadFile(a1Template)
+        boolean fine = true
+        check
+            settings:Check()
+        detect e1
+            fine = false
+        end
+        output "the A1 template passes Bambu Studio's checks: " + fine
+        output "it is for the A1: " + settings:GetText("printer_model", "?")
+        output "with a 0.4 mm nozzle: " + settings:GetText("printer_settings_id", "?")
+        output "a bed slinger: " + settings:GetText("printer_structure", "?")
+        output "the A1's stock nozzle: " + settings:GetText("nozzle_type", "?")
+
+        ProfileManager profiles
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        BambuSettingsMap map
+        JavaScriptObjectNotationTemplate filled
+        filled:Load(map:FilledTemplate(profiles:Require("bambu-a1"), a1Template))
+        Array<text> warnings = map:GetWarnings()
+        output "the bambu-a1 profile matches its template (nozzle, filament, keys): " + warnings:GetSize()
+        output "wall_loops from the A1 profile: " + filled:GetText("wall_loops", "?")
+        output "the A1's PLA bed temperature: " + filled:GetText("textured_plate_temp", "?")
+        output "the A1's PLA nozzle temperature: " + filled:GetText("nozzle_temperature", "?")
+        output "travel at the A1 firmware's cap: " + filled:GetText("travel_speed", "?")
+    end
+
+    action Quoted(text value) returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        return dq + value + dq
+    end
+end

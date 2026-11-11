@@ -1,0 +1,1473 @@
+package Libraries.Fabrication.Printing.Bambu
+
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+use Libraries.System.DateTime
+use Libraries.System.File
+use Libraries.Data.Compression.ZipWriter
+use Libraries.Data.Formats.NumberFormatter
+use Libraries.Fabrication.ArgumentChecker
+
+/*
+The BambuPackager class packages a G-code file as a Bambu Lab .gcode.3mf
+(single plate), the archive Bambu Studio writes for "Export plate sliced
+file", so it can be sent to a Bambu printer. It reads the print time,
+layers, filament use and temperatures back from the G-code, draws the
+thumbnails, and fills in a settings template (see BambuProjectSettings): a
+project_settings.config from a .gcode.3mf that your own Bambu Studio exported
+for the same printer and filament. Only the values that describe this print
+are changed in it.
+
+The G-code must have Bambu's header block (GcodeWriter:SetBambuExtras) and
+should select T0 (Bambu's M620 S0A / T0 / M621 S0A blocks in the start code)
+so the printer can map filament 1 to an AMS slot or the external spool.
+
+Relative paths are resolved against the folder the program runs in; in
+Quorum Studio that is the project folder.
+
+Attribute: Example
+
+    use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+    class Main
+        action Main
+            BambuPackager packer
+            packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+            packer:SetFilamentColor("#FFFFFF")
+            text archive = packer:Pack("Outputs/cube.gcode")   // writes Outputs/cube.gcode.3mf
+            output "Wrote " + archive + ": " + packer:GetFilamentGrams() + " g"
+        end
+    end
+*/
+class BambuPackager
+    // Options. Change them with the Set actions before calling Pack.
+    text settingsPath = ""
+    text settingsText = ""
+    text printerModelId = "N7"
+    number nozzleDiameter = 0.4
+    text filamentType = "PLA"
+    text filamentColor = "#F2754E"
+    text filamentId = ""
+    text bedType = "textured_plate"
+    number layerHeight = 0.0
+
+    // What Scan found in the G-code.
+    integer seconds = 0
+    integer layers = 0
+    number maxZ = 0.0
+    number lengthMm = 0.0
+    number firstLayerSeconds = 0.0
+    integer nozzleTemperature = 0
+    integer bedTemperature = 0
+    number filamentDiameter = 1.75
+    text generatorName = "Quorum Libraries.Fabrication"
+
+    // Extrusion segments, five numbers each: x0, y0, x1, y1, z.
+    Number64BitArray segments
+    integer segmentCount = 0
+    integer segmentCapacity = 0
+    number boundsMinX = 0.0
+    number boundsMaxX = 0.0
+    number boundsMinY = 0.0
+    number boundsMaxY = 0.0
+    number boundsMinZ = 0.0
+    number boundsMaxZ = 0.0
+
+    // Position while walking the moves.
+    number x = 0.0
+    number y = 0.0
+    number z = 0.0
+    number feed = 3000.0
+    integer layer = -1
+
+    // Results of the last Pack.
+    number filamentGrams = 0.0
+    text settingsVersion = ""
+    Array<text> warnings
+
+    // Progress messages: when each step finished, in milliseconds.
+    boolean reportProgress = false
+    DateTime timer
+    number packStartTime = 0.0
+    number lastStepTime = 0.0
+
+    Math math
+    NumberFormatter format
+    ArgumentChecker checker
+    text lf = ""
+    text cr = ""
+    text tab = ""
+    text dq = ""
+    text digitCharacters = "0123456789"
+    text hexCharacters = "0123456789ABCDEF"
+    text wordCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"
+
+    on create
+        lf = lf:GetLineFeed()
+        cr = cr:GetCarriageReturn()
+        tab = tab:GetTab()
+        dq = dq:GetDoubleQuote()
+    end
+
+    /*
+    The program named in the header block, as for GcodeWriter:SetGeneratorName.
+
+    Attribute: Parameter name The name.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("p2s_project_settings.json")
+        packer:SetGeneratorName("My Slicer")
+        text archive = packer:Pack("cube.gcode")
+    */
+    action SetGeneratorName(text name)
+        generatorName = name
+    end
+
+    /*
+    A project_settings JSON file, or a .gcode.3mf exported by Bambu Studio.
+
+    Attribute: Parameter path The JSON file or the .gcode.3mf.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetSettingsTemplate(text path)
+        settingsPath = path
+    end
+
+    /*
+    The project_settings JSON itself, already filled in (for example by
+    BambuSettingsMap from a profile). When set, Pack uses it instead of
+    reading SetSettingsTemplate's file, and only changes the values it
+    controls itself on top of it. "" goes back to the file.
+
+    Attribute: Parameter json The settings as JSON text; "" goes back to SetSettingsTemplate's file.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        BambuSettingsMap map
+        BambuPackager packer
+        packer:SetSettingsText(map:FilledTemplate(profiles:Require("bambu-p2s"), "Templates/bambu-p2s/p2s_project_settings.json"))
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetSettingsText(text json)
+        settingsText = json
+    end
+
+    /*
+    printer_model_id: P2S = N7, A1 = N2S, A1 mini = N1, P1S = C12, X1C = BL-P001.
+
+    Attribute: Parameter id The printer model ID.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetPrinterModelId("N7")      // a P2S
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetPrinterModelId(text id)
+        printerModelId = id
+    end
+
+    /*
+    The nozzle diameter (mm) recorded in the archive.
+
+    Attribute: Parameter diameter The diameter (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetNozzleDiameter(0.4)
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetNozzleDiameter(number diameter)
+        checker:RequirePositive("BambuPackager:SetNozzleDiameter diameter", diameter)
+        nozzleDiameter = diameter
+    end
+
+    /*
+    PLA, PETG, ABS, ASA, TPU, PC or PA.
+
+    Attribute: Parameter type The material.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetFilamentType("PETG")
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetFilamentType(text type)
+        filamentType = type
+    end
+
+    /*
+    The colour shown on the filament mapping screen, as #RRGGBB.
+
+    Attribute: Parameter color The colour, such as "#FF8000".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetFilamentColor("#FF8000")
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetFilamentColor(text color)
+        filamentColor = color
+    end
+
+    /*
+    Bambu filament ID. If not set, the generic ID for the filament type is used.
+
+    Attribute: Parameter id The filament ID, such as "GFA00".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetFilamentId("GFA00")      // Bambu PLA Basic
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetFilamentId(text id)
+        filamentId = id
+    end
+
+    /*
+    textured_plate, hot_plate, eng_plate, cool_plate or supertack_plate.
+
+    Attribute: Parameter type The plate.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetBedType("textured_plate")
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetBedType(text type)
+        bedType = type
+    end
+
+    /*
+    If not set (or 0), the layer height is read from the G-code's "Layer height:" comment.
+
+    Attribute: Parameter height The layer height (mm); 0 reads it from the G-code.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetLayerHeight(0.16)
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetLayerHeight(number height)
+        checker:RequireAtLeast("BambuPackager:SetLayerHeight height", height, 0)
+        layerHeight = height
+    end
+
+    /*
+    Whether Pack prints a timed line after each step (off by default). If
+    a run seems stuck, the step after the last line printed is the slow one.
+
+    Attribute: Parameter report True to print a line per step.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:SetReportProgress(true)
+        text archive = packer:Pack("Outputs/cube.gcode")
+    */
+    action SetReportProgress(boolean report)
+        reportProgress = report
+    end
+
+    /*
+    Packages gcodePath as gcodePath without ".gcode", plus ".gcode.3mf". Returns the output path.
+
+    Attribute: Parameter gcodePath The G-code file, written with Bambu extras on.
+    Attribute: Returns The path of the archive written.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output "Wrote " + archive
+    */
+    action Pack(text gcodePath) returns text
+        return Pack(gcodePath, WithoutGcodeExtension(gcodePath) + ".gcode.3mf")
+    end
+
+    /*
+    Packages gcodePath as outputPath. Returns the output path.
+
+    Attribute: Parameter gcodePath The G-code file, written with Bambu extras on.
+    Attribute: Parameter outputPath Where to write the archive.
+    Attribute: Returns outputPath.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode", "Outputs/plates/cube.gcode.3mf")
+    */
+    action Pack(text gcodePath, text outputPath) returns text
+        warnings:Empty()
+        packStartTime = timer:Now()
+        lastStepTime = packStartTime
+        if reportProgress
+            output "Packing " + gcodePath + " as " + outputPath
+        end
+        text type = filamentType:ToUpperCase()
+        text trayId = filamentId
+        if trayId = ""
+            trayId = GenericFilamentId(type)
+        end
+        if not IsHexColor(filamentColor)
+            alert("BambuPackager: the filament colour must look like #RRGGBB, not '" + filamentColor + "'.")
+        end
+        text colour = filamentColor:ToUpperCase()
+        text bedName = BedName(bedType)
+        if bedName = ""
+            alert("BambuPackager: unknown bed type '" + bedType + "'. Use textured_plate, hot_plate, eng_plate, cool_plate or supertack_plate.")
+        end
+        text temperatureKey = bedType + "_temp"
+
+        checker:RequireFile("G-code", gcodePath)
+        if settingsText = ""
+            if settingsPath = ""
+                alert("BambuPackager:Pack has no settings: call SetSettingsTemplate (a project_settings JSON or a Bambu-exported .gcode.3mf) or SetSettingsText first.")
+            end
+            checker:RequireFile("Bambu settings template", settingsPath)
+        end
+        File gcodeFile
+        gcodeFile:SetPath(gcodePath)
+        text gcode = gcodeFile:Read()
+        Report("read the G-code (" + gcode:GetSize() + " characters)")
+        text top = Beginning(gcode, 2000)
+        if not top:Contains("; HEADER_BLOCK_START")
+            alert(gcodePath + " has no '; HEADER_BLOCK_START' at the top, so it can't be packed for a Bambu printer. Write it with bambuExtras on (GcodeWriter:SetBambuExtras(true)).")
+        end
+        if not SelectsToolZero(gcode)
+            warnings:Add("The G-code never selects T0, so the printer's filament mapping won't load anything. Put Bambu's M620 S0A / T0 / M621 S0A blocks back in the start G-code.")
+        end
+        number height = layerHeight
+        if height <= 0
+            height = FindLayerHeight(Beginning(gcode, 3000))
+        end
+
+        Report("checked the header, T0 and layer height")
+
+        Scan(gcode)
+        Report("scanned the moves: " + segmentCount + " extrusion segments, " + layers + " layers, " + Fixed(lengthMm / 1000.0, 2) + " m of filament, nozzle " + nozzleTemperature + ", bed " + bedTemperature)
+        number density = FilamentDensity(type)
+        number radius = filamentDiameter / 2.0
+        number volumeCm3 = lengthMm * math:pi * radius * radius / 1000.0
+        filamentGrams = volumeCm3 * density
+        number metres = lengthMm / 1000.0
+
+        BambuProjectSettings template
+        if settingsText not= ""
+            template:Load(settingsText)
+        else
+            template:LoadFile(settingsPath)
+        end
+        text version = template:GetText("version", "02.08.02.61")
+        settingsVersion = version
+        text templateType = template:GetText("filament_type", "?")
+        text upperTemplateType = templateType:ToUpperCase()
+        if upperTemplateType not= type
+            warnings:Add("The settings template is for " + templateType + ", the print is " + type + ". Export a sliced plate with " + type + " from Bambu Studio and pass it to SetSettingsTemplate.")
+        end
+        template:Fill("filament_type", type)
+        template:Fill("filament_colour", colour)
+        template:Fill("filament_multi_colour", colour)
+        template:Fill("filament_ids", trayId)
+        template:Fill("filament_diameter", Short(filamentDiameter))
+        if nozzleTemperature > 0
+            template:Fill("nozzle_temperature", "" + nozzleTemperature)
+            template:Fill("nozzle_temperature_initial_layer", "" + nozzleTemperature)
+        end
+        if bedTemperature > 0
+            template:Fill(temperatureKey, "" + bedTemperature)
+            template:Fill(temperatureKey + "_initial_layer", "" + bedTemperature)
+        end
+        if height > 0
+            template:Fill("layer_height", Short(height))
+            template:Fill("initial_layer_print_height", Short(height))
+        end
+        template:Put("curr_bed_type", bedName)
+        template:Check()
+        text settings = template:ToText()
+        Report("filled in the settings template (Bambu Studio " + version + ")")
+
+        text newGcode = RewriteHeader(gcode, filamentGrams, volumeCm3, density)
+        text fileName = FileName(outputPath)
+        text name = fileName:Replace(".gcode.3mf", "")
+        DateTime clock
+        text today = "" + clock:GetYear() + "-" + TwoDigits(clock:GetMonth()) + "-" + TwoDigits(clock:GetDayOfMonth())
+        ComputeBounds()
+        Report("rewrote the G-code header")
+
+        // same entries, same order as Bambu Studio's own export
+        ZipWriter zip
+        zip:Open(outputPath)
+        zip:AddText("[Content_Types].xml", ContentTypes())
+        RenderThumbnail(zip, 512, colour)
+        zip:AddImage("Metadata/plate_1.png")
+        Report("drew the 512 px thumbnail")
+        RenderThumbnail(zip, 128, colour)
+        zip:AddImage("Metadata/plate_1_small.png")
+        Report("drew the 128 px thumbnail")
+        zip:AddCopy("Metadata/plate_no_light_1.png", "Metadata/plate_1.png")
+        zip:BeginImage(1, 1)
+        zip:AddImage("Metadata/top_1.png")
+        zip:AddCopy("Metadata/pick_1.png", "Metadata/top_1.png")
+        zip:AddText("Metadata/plate_1.json", PlateJson(colour, height, name))
+        zip:AddText("3D/3dmodel.model", Model(version, today))
+        zip:AddText("Metadata/project_settings.config", settings)
+        zip:AddMd5("Metadata/plate_1.gcode.md5", newGcode)
+        zip:AddText("Metadata/plate_1.gcode", newGcode)
+        Report("added the G-code and its MD5")
+        zip:AddText("Metadata/_rels/model_settings.config.rels", ModelSettingsRels())
+        zip:AddText("Metadata/model_settings.config", ModelSettings())
+        zip:AddText("Metadata/cut_information.xml", CutInformation())
+        zip:AddText("Metadata/slice_info.config", SliceInfo(version, type, trayId, colour, filamentGrams, metres, name))
+        zip:AddText("Metadata/filament_sequence.json", Q("{'plate_1':{'nozzle_sequence':[0],'optimal_assignment':[0],'sequence':[1]}}"))
+        zip:AddText("_rels/.rels", Rels())
+        zip:Close()
+        Report("finished the archive")
+
+        if reportProgress
+            output "  packing took " + Fixed((timer:Now() - packStartTime) / 1000.0, 2) + " s in all"
+        end
+        return outputPath
+    end
+
+    /*
+    The print time the last Pack read from the G-code header (s).
+
+    Attribute: Returns The print time the last Pack read from the G-code header (s).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output packer:GetPrintSeconds() + " s"
+    */
+    action GetPrintSeconds returns integer
+        return seconds
+    end
+
+    /*
+    The print time as text, such as "1h 2m 3s".
+
+    Attribute: Returns The print time as text, such as "1h 2m 3s".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output "Printing takes " + packer:GetPrintTime()
+    */
+    action GetPrintTime returns text
+        return FormatTime(seconds)
+    end
+
+    /*
+    The number of layers the last Pack read from the G-code header.
+
+    Attribute: Returns The number of layers the last Pack read from the G-code header.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output packer:GetLayerCount() + " layers"
+    */
+    action GetLayerCount returns integer
+        return layers
+    end
+
+    /*
+    The filament the last Pack's G-code extrudes (mm).
+
+    Attribute: Returns The filament the last Pack's G-code extrudes (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output packer:GetFilamentLength() + " mm of filament"
+    */
+    action GetFilamentLength returns number
+        return lengthMm
+    end
+
+    /*
+    The filament's weight (g), from its length, diameter and type.
+
+    Attribute: Returns The filament's weight (g), from its length, diameter and type.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output packer:GetFilamentGrams() + " g of filament"
+    */
+    action GetFilamentGrams returns number
+        return filamentGrams
+    end
+
+    /*
+    The Bambu Studio version the settings template came from.
+
+    Attribute: Returns The Bambu Studio version the settings template came from.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        output "Settings from Bambu Studio " + packer:GetSettingsVersion()
+    */
+    action GetSettingsVersion returns text
+        return settingsVersion
+    end
+
+    /*
+    Warnings from the last Pack, as sentences.
+
+    Attribute: Returns Warnings from the last Pack, as sentences.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        text archive = packer:Pack("Outputs/cube.gcode")
+        Array<text> warnings = packer:GetWarnings()
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            output "warning: " + warnings:Get(i)
+            i = i + 1
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings
+    end
+
+    /* Prints one progress line with the time since the previous one. */
+    private action Report(text message)
+        number current = timer:Now()
+        if reportProgress
+            output "  " + Fixed((current - lastStepTime) / 1000.0, 2) + " s  " + message
+        end
+        lastStepTime = current
+    end
+
+    /*
+    Reads time, layers, height, filament use, temperatures, first-layer time
+    and XY extrusion segments (for the thumbnail and bounding box) from the
+    G-code. Pack calls this; it is public so the numbers can be inspected.
+
+    Attribute: Parameter gcode The G-code text.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        File file
+        file:SetPath("Outputs/cube.gcode")
+        BambuPackager packer
+        packer:Scan(file:Read())
+        output packer:GetLayerCount() + " layers, " + packer:GetFilamentLength() + " mm of filament"
+    */
+    action Scan(text gcode)
+        seconds = 0
+        layers = 0
+        maxZ = 0.0
+        lengthMm = 0.0
+        firstLayerSeconds = 0.0
+        nozzleTemperature = 0
+        bedTemperature = 0
+        filamentDiameter = 1.75
+        segmentCount = 0
+        x = 0.0
+        y = 0.0
+        z = 0.0
+        feed = 3000.0
+        layer = -1
+
+        text value = HeaderValue(gcode, "; total estimated time:")
+        if value not= ""
+            seconds = ParseDuration(value)
+        end
+        value = HeaderValue(gcode, "; total layer number:")
+        text digits = Leading(value, digitCharacters)
+        if digits not= ""
+            layers = digits:ParseInteger()
+        end
+        value = HeaderValue(gcode, "; max_z_height:")
+        digits = Leading(value, "0123456789.")
+        if IsNumber(digits)
+            maxZ = digits:ParseNumber()
+        end
+        value = HeaderValue(gcode, "; filament_diameter:")
+        digits = Leading(value, "0123456789.")
+        if IsNumber(digits)
+            filamentDiameter = digits:ParseNumber()
+        end
+
+        integer size = gcode:GetSize()
+        integer startCodeEnd = gcode:IndexOf(";========== END OF START G-CODE")
+        integer headEnd = size
+        integer bodyStart = 0
+        if startCodeEnd >= 0
+            headEnd = startCodeEnd
+            bodyStart = startCodeEnd
+        end
+
+        // temperatures from the start code
+        integer position = 0
+        repeat while position < headEnd
+            integer lineEnd = gcode:IndexOf(lf, position)
+            if lineEnd < 0 or lineEnd > headEnd
+                lineEnd = headEnd
+            end
+            text line = TrimStart(gcode:GetSubtext(position, lineEnd))
+            position = lineEnd + 1
+            integer nozzle = CommandTemperature(line, "M109 S", true)
+            if nozzle > nozzleTemperature
+                nozzleTemperature = nozzle
+            end
+            integer bed = CommandTemperature(line, "M190 S", false)
+            if bed > bedTemperature
+                bedTemperature = bed
+            end
+        end
+
+        // moves from the end of the start code onward
+        position = bodyStart
+        repeat while position < size
+            integer moveLineEnd = gcode:IndexOf(lf, position)
+            if moveLineEnd < 0
+                moveLineEnd = size
+            end
+            ScanLine(gcode:GetSubtext(position, moveLineEnd))
+            position = moveLineEnd + 1
+        end
+    end
+
+    private action ScanLine(text line)
+        if line:StartsWith(";LAYER:")
+            text layerText = line:GetSubtext(7)
+            layerText = layerText:Trim()
+            layer = ToInteger(layerText, -1)
+            return now
+        end
+        text code = line
+        integer semicolon = line:IndexOf(";")
+        if semicolon >= 0
+            code = line:GetSubtext(0, semicolon)
+        end
+        code = code:Replace(tab, " ")
+        code = code:Trim()
+        if code = ""
+            return now
+        end
+        Array<text> words = code:Split(" ", false)
+        text command = words:Get(0)
+        if command not= "G0" and command not= "G1"
+            return now
+        end
+
+        // later copies of a letter win, like the Python dictionary
+        text xText = ""
+        text yText = ""
+        text zText = ""
+        text fText = ""
+        text eText = ""
+        integer i = 1
+        repeat while i < words:GetSize()
+            text word = words:Get(i)
+            if word:GetSize() > 1
+                text letter = word:GetCharacter(0)
+                text amount = word:GetSubtext(1)
+                if letter = "X"
+                    xText = amount
+                elseif letter = "Y"
+                    yText = amount
+                elseif letter = "Z"
+                    zText = amount
+                elseif letter = "F"
+                    fText = amount
+                elseif letter = "E"
+                    eText = amount
+                end
+            end
+            i = i + 1
+        end
+
+        number nextX = x
+        if xText not= ""
+            nextX = ToNumber(xText, x)
+        end
+        number nextY = y
+        if yText not= ""
+            nextY = ToNumber(yText, y)
+        end
+        if zText not= ""
+            z = ToNumber(zText, z)
+        end
+        if fText not= ""
+            number newFeed = ToNumber(fText, feed)
+            if newFeed not= 0
+                feed = newFeed
+            end
+        end
+        number extruded = 0.0
+        if eText not= ""
+            extruded = ToNumber(eText, 0.0)
+        end
+
+        number dx = nextX - x
+        number dy = nextY - y
+        number distance = math:SquareRoot(dx * dx + dy * dy)
+        if layer = 0
+            firstLayerSeconds = firstLayerSeconds + distance / (feed / 60.0)
+        end
+        if extruded > 0
+            lengthMm = lengthMm + extruded  // GcodeWriter prints with M83 (relative E)
+            if distance > 0
+                AddSegment(x, y, nextX, nextY, z)
+            end
+        end
+        x = nextX
+        y = nextY
+    end
+
+    /*
+        For a line like "M109 S220" returns 220, or 0 if the line isn't that
+        command. With mustEnd, only a comment may follow the number.
+    */
+    private action CommandTemperature(text line, text prefix, boolean mustEnd) returns integer
+        if not line:StartsWith(prefix)
+            return 0
+        end
+        text rest = line:GetSubtext(prefix:GetSize())
+        text digits = Leading(rest, digitCharacters)
+        if digits = ""
+            return 0
+        end
+        if mustEnd
+            text after = rest:GetSubtext(digits:GetSize())
+            after = after:Trim()
+            if after not= "" and not after:StartsWith(";")
+                return 0
+            end
+        end
+        return digits:ParseInteger()
+    end
+
+    private action AddSegment(number x0, number y0, number x1, number y1, number segmentZ)
+        integer needed = (segmentCount + 1) * 5
+        if needed > segmentCapacity
+            integer capacity = segmentCapacity * 2
+            if capacity < 5000
+                capacity = 5000
+            end
+            repeat while capacity < needed
+                capacity = capacity * 2
+            end
+            Number64BitArray bigger
+            bigger:SetSize(capacity)
+            integer used = segmentCount * 5
+            integer i = 0
+            repeat while i < used
+                bigger:Set(i, segments:Get(i))
+                i = i + 1
+            end
+            segments = bigger
+            segmentCapacity = capacity
+        end
+        integer base = segmentCount * 5
+        segments:Set(base, x0)
+        segments:Set(base + 1, y0)
+        segments:Set(base + 2, x1)
+        segments:Set(base + 3, y1)
+        segments:Set(base + 4, segmentZ)
+        segmentCount = segmentCount + 1
+    end
+
+    private action ComputeBounds
+        if segmentCount = 0
+            return now
+        end
+        boundsMinX = segments:Get(0)
+        boundsMaxX = boundsMinX
+        boundsMinY = segments:Get(1)
+        boundsMaxY = boundsMinY
+        boundsMinZ = segments:Get(4)
+        boundsMaxZ = boundsMinZ
+        integer i = 0
+        repeat while i < segmentCount
+            integer base = i * 5
+            boundsMinX = math:MinimumOf(boundsMinX, math:MinimumOf(segments:Get(base), segments:Get(base + 2)))
+            boundsMaxX = math:MaximumOf(boundsMaxX, math:MaximumOf(segments:Get(base), segments:Get(base + 2)))
+            boundsMinY = math:MinimumOf(boundsMinY, math:MinimumOf(segments:Get(base + 1), segments:Get(base + 3)))
+            boundsMaxY = math:MaximumOf(boundsMaxY, math:MaximumOf(segments:Get(base + 1), segments:Get(base + 3)))
+            boundsMinZ = math:MinimumOf(boundsMinZ, segments:Get(base + 4))
+            boundsMaxZ = math:MaximumOf(boundsMaxZ, segments:Get(base + 4))
+            i = i + 1
+        end
+    end
+
+    /* Top-down view of the print, shaded by height, on a transparent background. */
+    private action RenderThumbnail(ZipWriter zip, integer size, text colour)
+        if segmentCount = 0
+            zip:BeginImage(1, 1)
+            return now
+        end
+        number span = math:MaximumOf(math:MaximumOf(boundsMaxX - boundsMinX, boundsMaxY - boundsMinY), 0.000001)
+        number scale = (size * 0.84) / span
+        number offsetX = (size - (boundsMaxX - boundsMinX) * scale) / 2.0
+        number offsetY = (size - (boundsMaxY - boundsMinY) * scale) / 2.0
+        integer red = HexByte(colour, 1)
+        integer green = HexByte(colour, 3)
+        integer blue = HexByte(colour, 5)
+
+        Number64BitArray depth
+        depth:SetSize(size * size)
+        integer cell = 0
+        repeat while cell < size * size
+            depth:Set(cell, -1.0)
+            cell = cell + 1
+        end
+
+        zip:BeginImage(size, size)
+        integer s = 0
+        repeat while s < segmentCount
+            integer base = s * 5
+            number segmentZ = segments:Get(base + 4)
+            number ax = offsetX + (segments:Get(base) - boundsMinX) * scale
+            number ay = size - 1 - (offsetY + (segments:Get(base + 1) - boundsMinY) * scale)
+            number bx = offsetX + (segments:Get(base + 2) - boundsMinX) * scale
+            number by = size - 1 - (offsetY + (segments:Get(base + 3) - boundsMinY) * scale)
+            integer steps = cast(integer, math:MaximumOf(math:AbsoluteValue(bx - ax), math:AbsoluteValue(by - ay))) + 1
+            number shade = 1.0
+            if boundsMaxZ > boundsMinZ
+                shade = (segmentZ - boundsMinZ) / (boundsMaxZ - boundsMinZ)
+            end
+            shade = 0.55 + 0.45 * shade
+            integer r = cast(integer, red * shade)
+            integer g = cast(integer, green * shade)
+            integer b = cast(integer, blue * shade)
+            integer i = 0
+            repeat while i <= steps
+                number t = cast(number, i) / steps
+                integer px = cast(integer, ax + (bx - ax) * t)
+                integer py = cast(integer, ay + (by - ay) * t)
+                if px >= 0 and px < size and py >= 0 and py < size
+                    integer index = py * size + px
+                    if segmentZ >= depth:Get(index)
+                        depth:Set(index, segmentZ)
+                        zip:SetPixel(px, py, r, g, b, 255)
+                    end
+                end
+                i = i + 1
+            end
+            s = s + 1
+        end
+    end
+
+    /* Bambu's HEADER_BLOCK lines (filament length / volume / weight). */
+    private action RewriteHeader(text gcode, number grams, number volumeCm3, number density) returns text
+        integer blockStart = gcode:IndexOf("; HEADER_BLOCK_START")
+        if blockStart < 0
+            return gcode
+        end
+        integer blockEnd = gcode:IndexOf("; HEADER_BLOCK_END", blockStart)
+        if blockEnd < 0
+            return gcode
+        end
+        blockEnd = blockEnd + 18
+        text top = Beginning(gcode, 2000)
+        text nl = lf
+        if top:Contains(cr + lf)
+            nl = cr + lf
+        end
+        text time = FormatTime(seconds)
+        text block = "; HEADER_BLOCK_START" + nl
+        block = block + "; generated by " + generatorName + nl
+        block = block + "; model printing time: " + time + "; total estimated time: " + time + nl
+        block = block + "; total layer number: " + layers + nl
+        block = block + "; total filament length [mm] : " + Fixed(lengthMm, 2) + nl
+        block = block + "; total filament volume [cm^3] : " + Fixed(volumeCm3 * 1000, 2) + nl  // Bambu writes mm^3 here
+        block = block + "; total filament weight [g] : " + Fixed(grams, 2) + nl
+        block = block + "; filament_density: " + Short(density) + nl
+        block = block + "; filament_diameter: " + Short(filamentDiameter) + nl
+        block = block + "; max_z_height: " + Fixed(maxZ, 2) + nl
+        block = block + "; filament: 1" + nl
+        block = block + "; support_material_on_wipe_tower: 0" + nl
+        block = block + "; HEADER_BLOCK_END"
+        return gcode:GetSubtext(0, blockStart) + block + gcode:GetSubtext(blockEnd)
+    end
+
+    // ------------------------------------------------------------ archive parts
+    // Templates are written with ' for " (Quorum text has no escapes); Q swaps them.
+
+    private action ContentTypes returns text
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<Types xmlns='http://schemas.openxmlformats.org/package/2006/content-types'>")
+        result = result + Line(" <Default Extension='rels' ContentType='application/vnd.openxmlformats-package.relationships+xml'/>")
+        result = result + Line(" <Default Extension='model' ContentType='application/vnd.ms-package.3dmanufacturing-3dmodel+xml'/>")
+        result = result + Line(" <Default Extension='png' ContentType='image/png'/>")
+        result = result + Line(" <Default Extension='gcode' ContentType='text/x.gcode'/>")
+        return result + "</Types>"
+    end
+
+    private action Rels returns text
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>")
+        result = result + Line(" <Relationship Target='/3D/3dmodel.model' Id='rel-1' Type='http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel'/>")
+        result = result + Line(" <Relationship Target='/Metadata/plate_1.png' Id='rel-2' Type='http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail'/>")
+        result = result + Line(" <Relationship Target='/Metadata/plate_1.png' Id='rel-4' Type='http://schemas.bambulab.com/package/2021/cover-thumbnail-middle'/>")
+        result = result + Line(" <Relationship Target='/Metadata/plate_1_small.png' Id='rel-5' Type='http://schemas.bambulab.com/package/2021/cover-thumbnail-small'/>")
+        return result + "</Relationships>"
+    end
+
+    private action Model(text version, text date) returns text
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<model unit='millimeter' xml:lang='en-US' xmlns='http://schemas.microsoft.com/3dmanufacturing/core/2015/02' xmlns:BambuStudio='http://schemas.bambulab.com/package/2021' xmlns:p='http://schemas.microsoft.com/3dmanufacturing/production/2015/06' requiredextensions='p'>")
+        result = result + Q(" <metadata name='Application'>BambuStudio-") + version + "</metadata>" + lf
+        result = result + Line(" <metadata name='BambuStudio:3mfVersion'>1</metadata>")
+        result = result + Line(" <metadata name='Copyright'></metadata>")
+        result = result + Q(" <metadata name='CreationDate'>") + date + "</metadata>" + lf
+        result = result + Line(" <metadata name='Description'></metadata>")
+        result = result + Line(" <metadata name='Designer'></metadata>")
+        result = result + Line(" <metadata name='DesignerCover'></metadata>")
+        result = result + Line(" <metadata name='DesignerUserId'></metadata>")
+        result = result + Line(" <metadata name='License'></metadata>")
+        result = result + Q(" <metadata name='ModificationDate'>") + date + "</metadata>" + lf
+        result = result + Line(" <metadata name='Origin'></metadata>")
+        result = result + Line(" <metadata name='ProfileCover'></metadata>")
+        result = result + Line(" <metadata name='ProfileDescription'></metadata>")
+        result = result + Line(" <metadata name='ProfileTitle'></metadata>")
+        result = result + Line(" <metadata name='Title'></metadata>")
+        result = result + Line(" <resources>")
+        result = result + Line(" </resources>")
+        result = result + Line(" <build/>")
+        return result + Line("</model>")
+    end
+
+    private action ModelSettings returns text
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<config>")
+        result = result + Line("  <plate>")
+        result = result + Line("    <metadata key='plater_id' value='1'/>")
+        result = result + Line("    <metadata key='plater_name' value=''/>")
+        result = result + Line("    <metadata key='locked' value='false'/>")
+        result = result + Line("    <metadata key='filament_map_mode' value='Auto For Flush'/>")
+        result = result + Line("    <metadata key='filament_maps' value='1'/>")
+        result = result + Line("    <metadata key='filament_volume_maps' value='0'/>")
+        result = result + Line("    <metadata key='gcode_file' value='Metadata/plate_1.gcode'/>")
+        result = result + Line("    <metadata key='thumbnail_file' value='Metadata/plate_1.png'/>")
+        result = result + Line("    <metadata key='thumbnail_no_light_file' value='Metadata/plate_no_light_1.png'/>")
+        result = result + Line("    <metadata key='top_file' value='Metadata/top_1.png'/>")
+        result = result + Line("    <metadata key='pick_file' value='Metadata/pick_1.png'/>")
+        result = result + Line("    <metadata key='pattern_bbox_file' value='Metadata/plate_1.json'/>")
+        result = result + Line("  </plate>")
+        return result + Line("</config>")
+    end
+
+    private action ModelSettingsRels returns text
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<Relationships xmlns='http://schemas.openxmlformats.org/package/2006/relationships'>")
+        result = result + Line(" <Relationship Target='/Metadata/plate_1.gcode' Id='rel-1' Type='http://schemas.bambulab.com/package/2021/gcode'/>")
+        return result + "</Relationships>"
+    end
+
+    private action CutInformation returns text
+        text result = Line("<?xml version='1.0' encoding='utf-8'?>")
+        result = result + Line("<objects>")
+        result = result + Line(" <object id='1'>")
+        result = result + Line("  <cut_id id='0' check_sum='1' connectors_cnt='0'/>")
+        result = result + Line(" </object>")
+        return result + Line("</objects>")
+    end
+
+    private action SliceInfo(text version, text type, text trayId, text colour, number grams, number metres, text name) returns text
+        integer lastLayer = layers - 1
+        if lastLayer < 0
+            lastLayer = 0
+        end
+        text result = Line("<?xml version='1.0' encoding='UTF-8'?>")
+        result = result + Line("<config>")
+        result = result + Line("  <header>")
+        result = result + Line("    <header_item key='X-BBL-Client-Type' value='slicer'/>")
+        result = result + Metadata("    <header_item key=", "X-BBL-Client-Version", Xml(version))
+        result = result + Line("  </header>")
+        result = result + Line("  <plate>")
+        result = result + Value("index", "1")
+        result = result + Value("extruder_type", "0")
+        result = result + Value("nozzle_volume_type", "0")
+        result = result + Value("printer_model_id", Xml(printerModelId))
+        result = result + Value("nozzle_diameters", Short(nozzleDiameter))
+        result = result + Value("timelapse_type", "0")
+        result = result + Value("prediction", "" + seconds)
+        result = result + Value("weight", Fixed(grams, 2))
+        result = result + Value("pause_count", "0")
+        result = result + Value("first_layer_time", Fixed(firstLayerSeconds, 6))
+        result = result + Value("outside", "false")
+        result = result + Value("support_used", "false")
+        result = result + Value("label_object_enabled", "false")
+        result = result + Value("support_material_on_wipe_tower", "false")
+        result = result + Value("enable_filament_dynamic_map", "false")
+        result = result + Value("has_filament_switcher", "false")
+        result = result + Value("filament_maps", "1")
+        result = result + Value("limit_filament_maps", "0")
+        result = result + Q("    <object identify_id='1' name='") + Xml(name) + Q("' skipped='false' />") + lf
+        result = result + Q("    <filament id='1' tray_info_idx='") + Xml(trayId) + Q("' type='") + Xml(type) + Q("' color='") + Xml(colour)
+        result = result + Q("' used_m='") + Fixed(metres, 2) + Q("' used_g='") + Fixed(grams, 2) + Q("' group_id='0' nozzle_diameter='") + Fixed(nozzleDiameter, 2)
+        result = result + Q("' volume_type='Standard' used_for_object='true' used_for_support='false' total_load_time='0.00' total_unload_time='0.00'/>") + lf
+        result = result + Q("    <nozzle id='0' extruder_id='1' nozzle_diameter='") + Short(nozzleDiameter) + Q("' volume_type='Standard'/>") + lf
+        result = result + Line("    <layer_filament_lists>")
+        result = result + Q("      <layer_filament_list filament_list='0' layer_ranges='0 ") + lastLayer + Q("' />") + lf
+        result = result + Line("    </layer_filament_lists>")
+        result = result + Line("  </plate>")
+        return result + Line("</config>")
+    end
+
+    /* One <metadata key="..." value="..."/> line of slice_info.config. */
+    private action Value(text key, text value) returns text
+        return Metadata("    <metadata key=", key, value)
+    end
+
+    private action Metadata(text opening, text key, text value) returns text
+        return opening + dq + key + dq + " value=" + dq + value + dq + "/>" + lf
+    end
+
+    private action PlateJson(text colour, number height, text name) returns text
+        text result = "{"
+        if segmentCount > 0
+            text box = "[" + JsonNumber(boundsMinX) + "," + JsonNumber(boundsMinY) + "," + JsonNumber(boundsMaxX) + "," + JsonNumber(boundsMaxY) + "]"
+            number area = (boundsMaxX - boundsMinX) * (boundsMaxY - boundsMinY)
+            number objectHeight = height
+            if objectHeight <= 0
+                objectHeight = 0.2
+            end
+            result = result + Q("'bbox_all':") + box + ","
+            result = result + Q("'bbox_objects':[{'area':") + JsonNumber(area) + Q(",'bbox':") + box
+            result = result + Q(",'id':1,'layer_height':") + JsonNumber(objectHeight) + Q(",'name':") + JsonText(name) + "}],"
+        end
+        result = result + Q("'bed_type':") + JsonText(bedType) + Q(",'filament_colors':[") + JsonText(colour)
+        result = result + Q("],'filament_ids':[0],'first_extruder':0,'first_layer_time':") + JsonNumber(firstLayerSeconds)
+        result = result + Q(",'is_seq_print':false,'nozzle_diameter':") + JsonNumber(nozzleDiameter) + Q(",'version':2}")
+        return result
+    end
+
+    // ------------------------------------------------------------ small helpers
+
+    private action Q(text template) returns text
+        return template:Replace("'", dq)
+    end
+
+    private action Line(text template) returns text
+        return Q(template) + lf
+    end
+
+    private action Xml(text value) returns text
+        text result = value:Replace("&", "&amp;")
+        result = result:Replace("<", "&lt;")
+        result = result:Replace(">", "&gt;")
+        return result:Replace(dq, "&quot;")
+    end
+
+    private action JsonText(text value) returns text
+        text result = value:Replace("\", "\\")
+        result = result:Replace(dq, "\" + dq)
+        return dq + result + dq
+    end
+
+    /* A JSON number. Java's own number text, like Python's json for these values. */
+    private action JsonNumber(number value) returns text
+        return "" + value
+    end
+
+    /* Like Python's f"{value:.Nf}". */
+    private action Fixed(number value, integer decimals) returns text
+        return format:Fixed(value, decimals)
+    end
+
+    /* Like Python's f"{value:g}" for everyday values: 6 significant digits, no trailing zeros. */
+    private action Short(number value) returns text
+        return format:Short(value)
+    end
+
+    private action FormatTime(integer total) returns text
+        integer hours = total / 3600
+        integer rest = total mod 3600
+        integer minutes = rest / 60
+        integer secs = rest mod 60
+        text result = ""
+        if hours > 0
+            result = result + hours + "h "
+        end
+        if hours > 0 or minutes > 0
+            result = result + minutes + "m "
+        end
+        return result + secs + "s"
+    end
+
+    private action TwoDigits(integer value) returns text
+        if value < 10
+            return "0" + value
+        end
+        return "" + value
+    end
+
+    /* Adds up "1d 2h 3m 4s" style durations. */
+    private action ParseDuration(text value) returns integer
+        integer total = 0
+        integer size = value:GetSize()
+        integer i = 0
+        repeat while i < size
+            if IsDigit(value:GetCharacter(i))
+                integer j = i
+                repeat while j < size and IsDigit(value:GetCharacter(j))
+                    j = j + 1
+                end
+                text amountText = value:GetSubtext(i, j)
+                integer amount = amountText:ParseInteger()
+                integer k = j
+                repeat while k < size and IsSpace(value:GetCharacter(k))
+                    k = k + 1
+                end
+                if k < size
+                    text unit = value:GetCharacter(k)
+                    if unit = "d"
+                        total = total + amount * 86400
+                    elseif unit = "h"
+                        total = total + amount * 3600
+                    elseif unit = "m"
+                        total = total + amount * 60
+                    elseif unit = "s"
+                        total = total + amount
+                    end
+                end
+                i = j
+            else
+                i = i + 1
+            end
+        end
+        return total
+    end
+
+    /* The rest of the first line that starts with prefix, trimmed; "" if there is none. */
+    private action HeaderValue(text gcode, text prefix) returns text
+        integer position = gcode:IndexOf(prefix)
+        repeat while position > 0 and gcode:GetCharacter(position - 1) not= lf
+            position = gcode:IndexOf(prefix, position + 1)
+        end
+        if position < 0
+            return ""
+        end
+        integer valueStart = position + prefix:GetSize()
+        integer lineEnd = gcode:IndexOf(lf, valueStart)
+        if lineEnd < 0
+            lineEnd = gcode:GetSize()
+        end
+        text value = gcode:GetSubtext(valueStart, lineEnd)
+        return value:Trim()
+    end
+
+    /* True if a line (ignoring leading spaces) is T0, alone or followed by a non-word character. */
+    private action SelectsToolZero(text gcode) returns boolean
+        integer size = gcode:GetSize()
+        integer position = 0
+        repeat while position < size
+            integer lineEnd = gcode:IndexOf(lf, position)
+            if lineEnd < 0
+                lineEnd = size
+            end
+            text line = TrimStart(gcode:GetSubtext(position, lineEnd))
+            if line:StartsWith("T0")
+                if line:GetSize() = 2
+                    return true
+                end
+                text following = line:GetCharacter(2)
+                if not wordCharacters:Contains(following)
+                    return true
+                end
+            end
+            position = lineEnd + 1
+        end
+        return false
+    end
+
+    /* The number after "Layer height:", or 0 if there is none. */
+    private action FindLayerHeight(text top) returns number
+        integer position = top:IndexOf("Layer height:")
+        if position < 0
+            return 0.0
+        end
+        text rest = TrimStart(top:GetSubtext(position + 13))
+        text digits = Leading(rest, "0123456789.")
+        if IsNumber(digits)
+            return digits:ParseNumber()
+        end
+        return 0.0
+    end
+
+    private action Beginning(text value, integer count) returns text
+        if value:GetSize() <= count
+            return value
+        end
+        return value:GetSubtext(0, count)
+    end
+
+    private action TrimStart(text value) returns text
+        integer i = 0
+        integer size = value:GetSize()
+        repeat while i < size and IsSpace(value:GetCharacter(i))
+            i = i + 1
+        end
+        return value:GetSubtext(i)
+    end
+
+    /* The longest beginning of value made only of the allowed characters. */
+    private action Leading(text value, text allowed) returns text
+        integer i = 0
+        integer size = value:GetSize()
+        repeat while i < size and allowed:Contains(value:GetCharacter(i))
+            i = i + 1
+        end
+        return value:GetSubtext(0, i)
+    end
+
+    private action IsDigit(text c) returns boolean
+        return c:GetSize() = 1 and digitCharacters:Contains(c)
+    end
+
+    private action IsSpace(text c) returns boolean
+        return c = " " or c = tab or c = cr or c = lf
+    end
+
+    /* True for text like 12, -3.5, .25 or 1e-3, which ParseNumber can read. */
+    private action IsNumber(text value) returns boolean
+        integer size = value:GetSize()
+        if size = 0
+            return false
+        end
+        integer i = 0
+        text first = value:GetCharacter(0)
+        if first = "-" or first = "+"
+            i = 1
+        end
+        integer mantissaDigits = 0
+        repeat while i < size and IsDigit(value:GetCharacter(i))
+            i = i + 1
+            mantissaDigits = mantissaDigits + 1
+        end
+        if i < size and value:GetCharacter(i) = "."
+            i = i + 1
+            repeat while i < size and IsDigit(value:GetCharacter(i))
+                i = i + 1
+                mantissaDigits = mantissaDigits + 1
+            end
+        end
+        if mantissaDigits = 0
+            return false
+        end
+        if i < size and (value:GetCharacter(i) = "e" or value:GetCharacter(i) = "E")
+            i = i + 1
+            if i < size and (value:GetCharacter(i) = "-" or value:GetCharacter(i) = "+")
+                i = i + 1
+            end
+            integer exponentDigits = 0
+            repeat while i < size and IsDigit(value:GetCharacter(i))
+                i = i + 1
+                exponentDigits = exponentDigits + 1
+            end
+            if exponentDigits = 0
+                return false
+            end
+        end
+        return i = size
+    end
+
+    private action ToNumber(text value, number fallback) returns number
+        if IsNumber(value)
+            return value:ParseNumber()
+        end
+        return fallback
+    end
+
+    private action ToInteger(text value, integer fallback) returns integer
+        text digits = value
+        if value:StartsWith("-")
+            digits = value:GetSubtext(1)
+        end
+        if digits = "" or Leading(digits, digitCharacters) not= digits
+            return fallback
+        end
+        return value:ParseInteger()
+    end
+
+    private action IsHexColor(text value) returns boolean
+        if value:GetSize() not= 7 or not value:StartsWith("#")
+            return false
+        end
+        text upper = value:ToUpperCase()
+        integer i = 1
+        repeat while i < 7
+            if not hexCharacters:Contains(upper:GetCharacter(i))
+                return false
+            end
+            i = i + 1
+        end
+        return true
+    end
+
+    /* The byte written as two hex digits at index in a #RRGGBB colour. */
+    private action HexByte(text colour, integer index) returns integer
+        text upper = colour:ToUpperCase()
+        integer high = hexCharacters:IndexOf(upper:GetCharacter(index))
+        integer low = hexCharacters:IndexOf(upper:GetCharacter(index + 1))
+        return high * 16 + low
+    end
+
+    private action WithoutGcodeExtension(text path) returns text
+        if path:EndsWith(".gcode")
+            return path:GetSubtext(0, path:GetSize() - 6)
+        end
+        return path
+    end
+
+    private action FileName(text path) returns text
+        integer i = path:GetSize() - 1
+        repeat while i >= 0
+            text c = path:GetCharacter(i)
+            if c = "/" or c = "\"
+                return path:GetSubtext(i + 1)
+            end
+            i = i - 1
+        end
+        return path
+    end
+
+    private action FilamentDensity(text type) returns number
+        if type = "PLA"
+            return 1.24
+        elseif type = "PETG"
+            return 1.27
+        elseif type = "ABS"
+            return 1.04
+        elseif type = "ASA"
+            return 1.07
+        elseif type = "TPU"
+            return 1.21
+        elseif type = "PC"
+            return 1.20
+        elseif type = "PA"
+            return 1.14
+        end
+        return 1.24
+    end
+
+    private action GenericFilamentId(text type) returns text
+        if type = "PLA"
+            return "GFL99"
+        elseif type = "PETG"
+            return "GFG99"
+        elseif type = "ABS"
+            return "GFB99"
+        elseif type = "ASA"
+            return "GFB98"
+        elseif type = "TPU"
+            return "GFU99"
+        elseif type = "PC"
+            return "GFC99"
+        elseif type = "PA"
+            return "GFN99"
+        end
+        return "GFL99"
+    end
+
+    /* The project_settings name for a plate_1.json bed type, or "" if unknown. */
+    private action BedName(text type) returns text
+        if type = "textured_plate"
+            return "Textured PEI Plate"
+        elseif type = "hot_plate"
+            return "High Temp Plate"
+        elseif type = "eng_plate"
+            return "Engineering Plate"
+        elseif type = "cool_plate"
+            return "Cool Plate"
+        elseif type = "supertack_plate"
+            return "Supertack Plate"
+        end
+        return ""
+    end
+end
