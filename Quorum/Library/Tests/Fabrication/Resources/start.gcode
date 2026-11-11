@@ -1,0 +1,8 @@
+; regression test start G-code
+M140 S{BED_TEMP}
+M104 S{NOZZLE_TEMP}
+G28
+M190 S{BED_TEMP}
+M109 S{NOZZLE_TEMP}
+T0
+G1 Z2.0 F3000

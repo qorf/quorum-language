@@ -1,0 +1,50 @@
+{
+    "_about": "Frozen profiles for the regression tests (SourceCode/Tests/Integration/RegressionTest.quorum). Kept apart from Profiles/profiles.json so tuning a real printer doesn't change the baselines; only a change in the slicer's code does. Edit only together with the baselines in Tests/Baselines/.",
+
+    "marlin": {
+        "_note": "A Bowden Marlin printer with every optional feature on: tree supports, a skirt, z hop, cooling.",
+        "bedWidth": 220,
+        "bedDepth": 220,
+        "bedHeight": 250,
+        "startGcodeFile": "../../Library/Tests/Fabrication/Resources/start.gcode",
+        "endGcodeFile": "../../Library/Tests/Fabrication/Resources/end.gcode",
+        "layerHeight": 0.2,
+        "lineWidth": 0.4,
+        "wallCount": 3,
+        "infillDensity": 0.2,
+        "topLayers": 4,
+        "bottomLayers": 3,
+        "supportsEnabled": true,
+        "adhesionType": "skirt",
+        "retractLength": 5.0,
+        "retractSpeed": 40,
+        "zHop": 0.4,
+        "minLayerTime": 8,
+        "fanMax": 255
+    },
+
+    "bambu": {
+        "_note": "A Bambu-style printer: header block and progress reports, accelerations, a brim, no supports.",
+        "bedWidth": 256,
+        "bedDepth": 256,
+        "bedHeight": 256,
+        "startGcodeFile": "../../Library/Tests/Fabrication/Resources/start.gcode",
+        "endGcodeFile": "../../Library/Tests/Fabrication/Resources/end.gcode",
+        "bambuExtras": true,
+        "layerHeight": 0.16,
+        "lineWidth": 0.42,
+        "wallCount": 2,
+        "infillDensity": 0.15,
+        "adhesionType": "brim",
+        "brimLoops": 4,
+        "outerWallSpeed": 200,
+        "innerWallSpeed": 300,
+        "infillSpeed": 270,
+        "travelSpeed": 500,
+        "maxFlow": 21,
+        "accelOuterWall": 5000,
+        "accelTravel": 10000,
+        "retractLength": 0.8,
+        "minLayerTime": 4
+    }
+}
