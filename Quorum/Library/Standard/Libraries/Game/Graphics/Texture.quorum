@@ -61,6 +61,9 @@ class Texture is Disposable
     // normal-roughness texture does (Item 24). Its mipmaps then average
     // the normals' directions and lengths separately (Item 25).
     boolean packedNormalMipMaps = false
+    // The alpha a cut-out picture is cut at, so its smaller mip levels keep
+    // the same share of pixels past it (Dense grass plan DG5); 0 for none.
+    number cutoutMipMaps = 0
     
     // Whether or not this texture should support mip mapping. Mip mapping is used for performance when rendering textures far from the camera.
     boolean useMipMaps = false
@@ -226,6 +229,37 @@ then these arrays are defined and contain the dimensions of the Nth image at the
     */
     action HasPackedNormalMipMaps returns boolean
         return packedNormalMipMaps
+    end
+
+    /*
+    This action says the texture is a cut-out picture, such as a grass card
+    or a leaf, drawn only where its alpha reaches a cutoff. Its smaller mip
+    levels then keep the same share of pixels past the cutoff as the full
+    size, so thin parts don't fade away and flicker in the distance (Dense
+    grass plan DG5). Set it before loading. Only the Vulkan renderer uses
+    it.
+
+    Attribute: Parameter cutoff The alpha it is cut at, such as 0.5; 0 for an ordinary texture.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Texture
+
+    Texture grass
+    grass:SetCutoutMipMaps(0.5)
+    grass:LoadFromFile("Pictures/Grass.png")
+    */
+    action SetCutoutMipMaps(number cutoff)
+        cutoutMipMaps = cutoff
+    end
+
+    /*
+    This action returns the cutoff a cut-out picture's mip levels keep (see
+    SetCutoutMipMaps).
+
+    Attribute: Returns The cutoff, or 0 for an ordinary texture.
+    */
+    action GetCutoutMipMaps returns number
+        return cutoutMipMaps
     end
 
     /*

@@ -77,6 +77,34 @@ class FoliageAsset
     number wind = 0
     number windDirection = 0
 
+    // Shadows by level of detail (Dense grass plan DG3): the farthest level
+    // that casts shadows (levels past it cast none), and the level whose
+    // mesh throws the shadow for nearer levels (0 for each level's own).
+    integer lastShadowLevel = 3
+    integer shadowLevel = 0
+
+    // Placement (Dense grass plan DG4), worked out for each copy when its
+    // cell is built, from where it stands, so painted copies follow a
+    // change: whether copies lean with the ground's slope; a fixed lean and
+    // a random lean of up to so many degrees, in a random direction; a
+    // fixed turn about the up axis, added to the random one; the color
+    // copies are tinted (red, green, blue, from 0 to 1, white for none);
+    // and how far each copy's hue may turn either way, in degrees.
+    boolean alignToNormal = false
+    number fixedTilt = 0
+    number randomTilt = 0
+    number fixedTurn = 0
+    number tintRed = 1
+    number tintGreen = 1
+    number tintBlue = 1
+    number randomHue = 0
+
+    // How far, in world units, a level of detail fades into the next
+    // (Dense grass plan DG6): over this distance before the next level's
+    // start, a growing share of the copies switch, so a cell doesn't change
+    // all at once. 0 switches at once.
+    number fadeMargin = 0
+
     on create
         levelDistances:SetSize(MAXIMUM_LEVELS + 1)
         integer i = 0
@@ -623,6 +651,275 @@ class FoliageAsset
     end
 
     /*
+    This action returns the farthest level of detail that casts shadows
+    (Dense grass plan DG3). Levels past it cast none, which saves drawing
+    far copies into the shadows.
+
+    Attribute: Returns The level, from 0 to MAXIMUM_LEVELS; MAXIMUM_LEVELS (the default) lets every level cast.
+    */
+    action GetLastShadowLevel returns integer
+        return lastShadowLevel
+    end
+
+    /*
+    This action sets the farthest level of detail that casts shadows (Dense
+    grass plan DG3). It only matters if the asset casts shadows.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset pine
+    pine:SetModelPath("Models/Pine.glb")
+    pine:SetLevelCardPicture(1, "Pictures/PineCard.png")
+    pine:SetLevelDistance(1, 60)
+    pine:SetLastShadowLevel(0)
+    */
+    action SetLastShadowLevel(integer level)
+        if level < 0 or level > MAXIMUM_LEVELS
+            alert("A foliage asset's last shadow level must be from 0 to " + MAXIMUM_LEVELS + ", but was given " + level + ".")
+        end
+        lastShadowLevel = level
+    end
+
+    /*
+    This action returns the level of detail whose mesh throws the shadow
+    for nearer levels (Dense grass plan DG3), or 0 for each level's own.
+
+    Attribute: Returns The level, from 0 to MAXIMUM_LEVELS.
+    */
+    action GetShadowLevel returns integer
+        return shadowLevel
+    end
+
+    /*
+    This action sets the level of detail whose mesh throws the shadow for
+    nearer levels (Dense grass plan DG3), a "shadow stand-in": a detailed
+    tree near the camera is drawn without its own shadow, and a simpler
+    level is drawn only into the shadows in its place. Levels from this one
+    on throw their own shadows. 0 lets every level throw its own.
+
+    Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset pine
+    pine:SetModelPath("Models/Pine.glb")
+    pine:SetLevelModel(1, "Models/PineSimple.glb")
+    pine:SetLevelDistance(1, 40)
+    pine:SetShadowLevel(1)
+    */
+    action SetShadowLevel(integer level)
+        if level < 0 or level > MAXIMUM_LEVELS
+            alert("A foliage asset's shadow level must be from 0 to " + MAXIMUM_LEVELS + ", but was given " + level + ".")
+        end
+        shadowLevel = level
+    end
+
+    /*
+    This action returns whether copies lean with the ground's slope (Dense
+    grass plan DG4).
+
+    Attribute: Returns True if they lean with the slope.
+    */
+    action IsAlignedToNormal returns boolean
+        return alignToNormal
+    end
+
+    /*
+    This action sets whether copies lean with the ground's slope (Dense
+    grass plan DG4), standing at right angles to it, as grass and rocks
+    often do; trees usually stand upright.
+
+    Attribute: Parameter value True to lean with the slope.
+    */
+    action SetAlignedToNormal(boolean value)
+        alignToNormal = value
+    end
+
+    /*
+    This action returns how far every copy leans, in degrees (Dense grass
+    plan DG4).
+
+    Attribute: Returns The lean, in degrees from upright.
+    */
+    action GetFixedTilt returns number
+        return fixedTilt
+    end
+
+    /*
+    This action sets how far every copy leans, in degrees from upright, in
+    a direction chosen for each copy (Dense grass plan DG4).
+
+    Attribute: Parameter degrees The lean, from 0 to 90.
+    */
+    action SetFixedTilt(number degrees)
+        fixedTilt = degrees
+    end
+
+    /*
+    This action returns how much more each copy may lean, at random, in
+    degrees (Dense grass plan DG4).
+
+    Attribute: Returns The most extra lean, in degrees.
+    */
+    action GetRandomTilt returns number
+        return randomTilt
+    end
+
+    /*
+    This action sets how much more each copy may lean, at random, in
+    degrees, on top of the fixed lean (Dense grass plan DG4), so grass and
+    reeds don't all stand straight.
+
+    Attribute: Parameter degrees The most extra lean, from 0 to 90.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset grass
+    grass:SetCardPicturePath("Pictures/Grass.png")
+    grass:SetRandomTilt(12)
+    grass:SetAlignedToNormal(true)
+    */
+    action SetRandomTilt(number degrees)
+        randomTilt = degrees
+    end
+
+    /*
+    This action returns the turn every copy gets about the up axis, in
+    degrees, added to its random turn (Dense grass plan DG4).
+
+    Attribute: Returns The turn, in degrees.
+    */
+    action GetFixedTurn returns number
+        return fixedTurn
+    end
+
+    /*
+    This action sets a turn every copy gets about the up axis, in degrees,
+    added to its random turn (Dense grass plan DG4), such as to face a
+    model's front one way when random turn is off.
+
+    Attribute: Parameter degrees The turn, in degrees.
+    */
+    action SetFixedTurn(number degrees)
+        fixedTurn = degrees
+    end
+
+    /*
+    This action returns the red part of the color copies are tinted (Dense
+    grass plan DG4).
+
+    Attribute: Returns The red part, from 0 to 1.
+    */
+    action GetTintRed returns number
+        return tintRed
+    end
+
+    /*
+    This action returns the green part of the color copies are tinted
+    (Dense grass plan DG4).
+
+    Attribute: Returns The green part, from 0 to 1.
+    */
+    action GetTintGreen returns number
+        return tintGreen
+    end
+
+    /*
+    This action returns the blue part of the color copies are tinted (Dense
+    grass plan DG4).
+
+    Attribute: Returns The blue part, from 0 to 1.
+    */
+    action GetTintBlue returns number
+        return tintBlue
+    end
+
+    /*
+    This action sets the color copies are tinted (Dense grass plan DG4): it
+    replaces the model's color, which its textures are multiplied by, and
+    each copy's shade and hue vary it. White, the default, leaves the
+    model's own color.
+
+    Attribute: Parameter red The red part, from 0 to 1.
+    Attribute: Parameter green The green part, from 0 to 1.
+    Attribute: Parameter blue The blue part, from 0 to 1.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.FoliageAsset
+
+    FoliageAsset grass
+    grass:SetCardPicturePath("Pictures/Grass.png")
+    grass:SetTint(0.8, 1, 0.6)
+    grass:SetRandomHue(15)
+    */
+    action SetTint(number red, number green, number blue)
+        tintRed = red
+        tintGreen = green
+        tintBlue = blue
+    end
+
+    /*
+    This action returns true if copies are tinted a color other than white.
+
+    Attribute: Returns True if tinted.
+    */
+    action IsTinted returns boolean
+        return tintRed not= 1 or tintGreen not= 1 or tintBlue not= 1
+    end
+
+    /*
+    This action returns how far each copy's hue may turn either way, in
+    degrees (Dense grass plan DG4).
+
+    Attribute: Returns The most turn, in degrees.
+    */
+    action GetRandomHue returns number
+        return randomHue
+    end
+
+    /*
+    This action sets how far each copy's hue may turn either way, in
+    degrees (Dense grass plan DG4), so a field of grass has greener and
+    yellower tufts. It turns the tint's hue, so it shows only on a colored
+    tint, or a model whose textures are colored and whose tint is set.
+
+    Attribute: Parameter degrees The most turn, from 0 to 180.
+    */
+    action SetRandomHue(number degrees)
+        randomHue = degrees
+    end
+
+    /*
+    This action returns how far a level of detail fades into the next
+    (Dense grass plan DG6).
+
+    Attribute: Returns The distance, in world units; 0 switches at once.
+    */
+    action GetFadeMargin returns number
+        return fadeMargin
+    end
+
+    /*
+    This action sets how far a level of detail fades into the next (Dense
+    grass plan DG6): over this distance before the next level's start, a
+    growing share of the copies switch, chosen by where they stand, so a
+    cell changes a little at a time instead of all at once.
+
+    Attribute: Parameter distance The distance, in world units; 0, the default, switches at once.
+    */
+    action SetFadeMargin(number distance)
+        if distance < 0
+            alert("A foliage asset's fade margin must be 0 or more, but was given " + distance + ".")
+        end
+        fadeMargin = distance
+    end
+
+    /*
     This action returns a copy of the asset.
 
     Attribute: Returns The copy.
@@ -662,6 +959,17 @@ class FoliageAsset
         end
         wind = other:GetWind()
         windDirection = other:GetWindDirection()
+        lastShadowLevel = other:GetLastShadowLevel()
+        shadowLevel = other:GetShadowLevel()
+        alignToNormal = other:IsAlignedToNormal()
+        fixedTilt = other:GetFixedTilt()
+        randomTilt = other:GetRandomTilt()
+        fixedTurn = other:GetFixedTurn()
+        tintRed = other:GetTintRed()
+        tintGreen = other:GetTintGreen()
+        tintBlue = other:GetTintBlue()
+        randomHue = other:GetRandomHue()
+        fadeMargin = other:GetFadeMargin()
     end
 
     /*
@@ -708,6 +1016,38 @@ class FoliageAsset
         end
         if windDirection not= 0
             json:Add("Wind Direction", windDirection)
+        end
+        // Shadow levels, placement and fading (Dense grass plan DG3, DG4,
+        // DG6), written only when not the defaults, so older files and
+        // readers are unaffected.
+        if lastShadowLevel not= MAXIMUM_LEVELS
+            json:Add("Last Shadow Level", lastShadowLevel)
+        end
+        if shadowLevel not= 0
+            json:Add("Shadow Level", shadowLevel)
+        end
+        if alignToNormal
+            json:Add("Align To Normal", true)
+        end
+        if fixedTilt not= 0
+            json:Add("Tilt", fixedTilt)
+        end
+        if randomTilt not= 0
+            json:Add("Random Tilt", randomTilt)
+        end
+        if fixedTurn not= 0
+            json:Add("Turn", fixedTurn)
+        end
+        if IsTinted()
+            json:Add("Tint Red", tintRed)
+            json:Add("Tint Green", tintGreen)
+            json:Add("Tint Blue", tintBlue)
+        end
+        if randomHue not= 0
+            json:Add("Random Hue", randomHue)
+        end
+        if fadeMargin not= 0
+            json:Add("Fade Margin", fadeMargin)
         end
         return json
     end
@@ -784,6 +1124,41 @@ class FoliageAsset
         end
         if HasNumber(json, "Wind Direction")
             windDirection = ReadNumber(json, "Wind Direction")
+        end
+        // Dense grass plan DG3, DG4 and DG6; files without them keep the
+        // defaults.
+        if HasNumber(json, "Last Shadow Level")
+            lastShadowLevel = cast(integer, ReadNumber(json, "Last Shadow Level"))
+        end
+        if HasNumber(json, "Shadow Level")
+            shadowLevel = cast(integer, ReadNumber(json, "Shadow Level"))
+        end
+        if HasBoolean(json, "Align To Normal")
+            alignToNormal = json:GetBoolean("Align To Normal")
+        end
+        if HasNumber(json, "Tilt")
+            fixedTilt = ReadNumber(json, "Tilt")
+        end
+        if HasNumber(json, "Random Tilt")
+            randomTilt = ReadNumber(json, "Random Tilt")
+        end
+        if HasNumber(json, "Turn")
+            fixedTurn = ReadNumber(json, "Turn")
+        end
+        if HasNumber(json, "Tint Red")
+            tintRed = ReadNumber(json, "Tint Red")
+        end
+        if HasNumber(json, "Tint Green")
+            tintGreen = ReadNumber(json, "Tint Green")
+        end
+        if HasNumber(json, "Tint Blue")
+            tintBlue = ReadNumber(json, "Tint Blue")
+        end
+        if HasNumber(json, "Random Hue")
+            randomHue = ReadNumber(json, "Random Hue")
+        end
+        if HasNumber(json, "Fade Margin")
+            fadeMargin = ReadNumber(json, "Fade Margin")
         end
     end
 

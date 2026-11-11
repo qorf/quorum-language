@@ -1,0 +1,284 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Number64BitArray
+use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
+
+/*
+VulkanCopyBlocks keeps a model's copies packed for drawing (Dense grass plan
+DG2): one VulkanInstanceBlock per mesh of the model, with what they were
+packed from. The 3D painter's batch keeps one on each model with copies
+(Model:SetCopyDrawingCache) and asks it for a mesh's block each frame. A
+block is packed again only when something it was packed from has changed:
+the copies (Model:GetCopyVersion), the model's place, the mesh's buffers,
+its material's buffer (which changes when the material is uploaded again,
+as for wind), the texture or color in place of the material's, or the
+texture's place in its group. Otherwise the block is copied into the draw
+queue as it is, so a foliage cell that hasn't changed costs one copy a
+frame, not a calculation per copy.
+
+Most programs never use this class directly.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.VulkanCopyBlocks
+
+VulkanCopyBlocks blocks
+*/
+class VulkanCopyBlocks
+    // By the mesh's place in the model: its block, and what it was packed
+    // from. Entries are undefined until the mesh is first packed.
+    Array<VulkanInstanceBlock> blocks
+    Array<VulkanBuffer> vertexBuffers
+    Array<VulkanBuffer> indexBuffers
+    Array<VulkanBuffer> materialBuffers
+    Array<Texture> textures
+    Number64BitArray packedNumbers
+
+    // For each mesh: the copies' version, the texture's place in its
+    // group, and the color (red, green, blue, alpha, and 1 if there was
+    // one): 7 numbers per mesh in packedNumbers. Then the model's
+    // transform, 16 numbers, shared by all meshes.
+    constant integer NUMBERS_PER_MESH = 7
+    Number64BitArray modelTransform
+    boolean hasTransform = false
+
+    // Kept so packing makes nothing per copy: a copy's full transform, and
+    // its color.
+    Matrix4 copyTransform
+    Color copyColor
+
+    on create
+        packedNumbers:SetSize(NUMBERS_PER_MESH)
+        modelTransform:SetSize(16)
+    end
+
+    /*
+    This action returns the block for one mesh of a model with copies,
+    packing it first if anything it was packed from has changed.
+
+    Attribute: Parameter model The model with copies.
+    Attribute: Parameter meshIndex The mesh's place in the model.
+    Attribute: Parameter mesh The mesh.
+    Attribute: Parameter textureOverride The model's texture for this mesh, or undefined.
+    Attribute: Parameter diffuseOverride The model's color for this mesh, or undefined.
+    Attribute: Returns The block, holding one instance per copy.
+    */
+    action GetBlock(Model model, integer meshIndex, MeshVulkan mesh, Texture textureOverride, Color diffuseOverride) returns VulkanInstanceBlock
+        EnsureMeshes(meshIndex + 1)
+        boolean transformChanged = CheckTransform(model:GetTransform())
+        VulkanInstanceBlock block = blocks:Get(meshIndex)
+        MaterialVulkan material = mesh:GetMaterial()
+        VulkanBuffer materialBuffer = material:GetBuffer()
+        integer textureLocal = -1
+        if textureOverride not= undefined
+            textureLocal = textureOverride:GetVulkanTextureLocalIndex()
+        end
+        integer base = meshIndex * NUMBERS_PER_MESH
+        boolean stale = (block = undefined) or transformChanged
+        if not stale
+            stale = vertexBuffers:Get(meshIndex) not= mesh:GetVertexBuffer() or indexBuffers:Get(meshIndex) not= mesh:GetIndexBuffer() or materialBuffers:Get(meshIndex) not= materialBuffer or textures:Get(meshIndex) not= textureOverride
+        end
+        if not stale
+            stale = packedNumbers:Get(base) not= model:GetCopyVersion() or packedNumbers:Get(base + 1) not= textureLocal or not SameColor(base + 2, diffuseOverride)
+        end
+        if not stale
+            return block
+        end
+
+        if block = undefined
+            VulkanInstanceBlock made
+            block = made
+            blocks:Set(meshIndex, block)
+        end
+        Pack(block, model, mesh, material, textureOverride, diffuseOverride)
+        vertexBuffers:Set(meshIndex, mesh:GetVertexBuffer())
+        indexBuffers:Set(meshIndex, mesh:GetIndexBuffer())
+        materialBuffers:Set(meshIndex, materialBuffer)
+        textures:Set(meshIndex, textureOverride)
+        packedNumbers:Set(base, model:GetCopyVersion())
+        packedNumbers:Set(base + 1, textureLocal)
+        KeepColor(base + 2, diffuseOverride)
+        return block
+    end
+
+    /*
+    This action packs one instance per copy: the model's transform times
+    the copy's, and the copy's color, or its shade as a gray, or the
+    model's color, as VulkanPainter3DBatch wrote them one by one before.
+    */
+    private action Pack(VulkanInstanceBlock block, Model model, MeshVulkan mesh, MaterialVulkan material, Texture textureOverride, Color diffuseOverride)
+        integer count = model:GetCopyCount()
+        block:SetCapacity(count)
+        Number32BitArray transforms = model:GetCopyTransforms()
+        Number32BitArray shades = model:GetCopyShades()
+        Number32BitArray colors = model:GetCopyColors()
+        Matrix4 base = model:GetTransform()
+        VulkanBuffer vertexBuffer = mesh:GetVertexBuffer()
+        VulkanBuffer indexBuffer = mesh:GetIndexBuffer()
+        integer copy = 0
+        repeat while copy < count
+            MultiplyCopy(base, transforms, copy * 16)
+            Color color = diffuseOverride
+            if colors not= undefined
+                copyColor:SetColor(colors:Get(copy * 3), colors:Get(copy * 3 + 1), colors:Get(copy * 3 + 2), 1)
+                color = copyColor
+            elseif shades not= undefined
+                number shade = shades:Get(copy)
+                if shade < 0.999
+                    copyColor:SetColor(shade, shade, shade, 1)
+                    color = copyColor
+                end
+            end
+            block:AddInstance(vertexBuffer, indexBuffer, material, textureOverride, color, copyTransform)
+            copy = copy + 1
+        end
+    end
+
+    /*
+    This action makes sure there are entries for a number of meshes.
+    */
+    private action EnsureMeshes(integer meshes)
+        repeat while blocks:GetSize() < meshes
+            blocks:Add(undefined)
+            vertexBuffers:Add(undefined)
+            indexBuffers:Add(undefined)
+            materialBuffers:Add(undefined)
+            textures:Add(undefined)
+        end
+        if packedNumbers:GetSize() < meshes * NUMBERS_PER_MESH
+            Number64BitArray larger
+            larger:SetSize(meshes * NUMBERS_PER_MESH)
+            integer i = 0
+            repeat while i < packedNumbers:GetSize()
+                larger:Set(i, packedNumbers:Get(i))
+                i = i + 1
+            end
+            packedNumbers = larger
+        end
+    end
+
+    /*
+    This action returns true if the model's transform differs from the one
+    the blocks were packed with, and keeps the new one. Every block is
+    packed again then.
+    */
+    private action CheckTransform(Matrix4 m) returns boolean
+        boolean changed = not hasTransform
+        if not changed
+            changed = modelTransform:Get(0) not= m:row0column0 or modelTransform:Get(1) not= m:row1column0 or modelTransform:Get(2) not= m:row2column0 or modelTransform:Get(3) not= m:row3column0
+        end
+        if not changed
+            changed = modelTransform:Get(4) not= m:row0column1 or modelTransform:Get(5) not= m:row1column1 or modelTransform:Get(6) not= m:row2column1 or modelTransform:Get(7) not= m:row3column1
+        end
+        if not changed
+            changed = modelTransform:Get(8) not= m:row0column2 or modelTransform:Get(9) not= m:row1column2 or modelTransform:Get(10) not= m:row2column2 or modelTransform:Get(11) not= m:row3column2
+        end
+        if not changed
+            changed = modelTransform:Get(12) not= m:row0column3 or modelTransform:Get(13) not= m:row1column3 or modelTransform:Get(14) not= m:row2column3 or modelTransform:Get(15) not= m:row3column3
+        end
+        if not changed
+            return false
+        end
+        modelTransform:Set(0, m:row0column0)
+        modelTransform:Set(1, m:row1column0)
+        modelTransform:Set(2, m:row2column0)
+        modelTransform:Set(3, m:row3column0)
+        modelTransform:Set(4, m:row0column1)
+        modelTransform:Set(5, m:row1column1)
+        modelTransform:Set(6, m:row2column1)
+        modelTransform:Set(7, m:row3column1)
+        modelTransform:Set(8, m:row0column2)
+        modelTransform:Set(9, m:row1column2)
+        modelTransform:Set(10, m:row2column2)
+        modelTransform:Set(11, m:row3column2)
+        modelTransform:Set(12, m:row0column3)
+        modelTransform:Set(13, m:row1column3)
+        modelTransform:Set(14, m:row2column3)
+        modelTransform:Set(15, m:row3column3)
+        hasTransform = true
+        // Every mesh's block must be packed again.
+        integer i = 0
+        repeat while i < packedNumbers:GetSize()
+            packedNumbers:Set(i, -1)
+            i = i + 1
+        end
+        return true
+    end
+
+    /*
+    This action returns true if a color matches the one kept at a place in
+    packedNumbers: both undefined, or the same parts.
+    */
+    private action SameColor(integer place, Color color) returns boolean
+        if color = undefined
+            return packedNumbers:Get(place + 4) = 0
+        end
+        return packedNumbers:Get(place + 4) = 1 and packedNumbers:Get(place) = color:GetRed() and packedNumbers:Get(place + 1) = color:GetGreen() and packedNumbers:Get(place + 2) = color:GetBlue() and packedNumbers:Get(place + 3) = color:GetAlpha()
+    end
+
+    /*
+    This action keeps a color's parts at a place in packedNumbers.
+    */
+    private action KeepColor(integer place, Color color)
+        if color = undefined
+            packedNumbers:Set(place, 0)
+            packedNumbers:Set(place + 1, 0)
+            packedNumbers:Set(place + 2, 0)
+            packedNumbers:Set(place + 3, 0)
+            packedNumbers:Set(place + 4, 0)
+            return now
+        end
+        packedNumbers:Set(place, color:GetRed())
+        packedNumbers:Set(place + 1, color:GetGreen())
+        packedNumbers:Set(place + 2, color:GetBlue())
+        packedNumbers:Set(place + 3, color:GetAlpha())
+        packedNumbers:Set(place + 4, 1)
+    end
+
+    /*
+    This action sets copyTransform to a model's transform times one copy's
+    transform. The copy's 16 numbers are column by column, as a Matrix4 is
+    written to the GPU.
+    */
+    private action MultiplyCopy(Matrix4 m, Number32BitArray t, integer b)
+        number c00 = t:Get(b)
+        number c10 = t:Get(b + 1)
+        number c20 = t:Get(b + 2)
+        number c30 = t:Get(b + 3)
+        number c01 = t:Get(b + 4)
+        number c11 = t:Get(b + 5)
+        number c21 = t:Get(b + 6)
+        number c31 = t:Get(b + 7)
+        number c02 = t:Get(b + 8)
+        number c12 = t:Get(b + 9)
+        number c22 = t:Get(b + 10)
+        number c32 = t:Get(b + 11)
+        number c03 = t:Get(b + 12)
+        number c13 = t:Get(b + 13)
+        number c23 = t:Get(b + 14)
+        number c33 = t:Get(b + 15)
+        Matrix4 r = copyTransform
+        r:row0column0 = m:row0column0 * c00 + m:row0column1 * c10 + m:row0column2 * c20 + m:row0column3 * c30
+        r:row0column1 = m:row0column0 * c01 + m:row0column1 * c11 + m:row0column2 * c21 + m:row0column3 * c31
+        r:row0column2 = m:row0column0 * c02 + m:row0column1 * c12 + m:row0column2 * c22 + m:row0column3 * c32
+        r:row0column3 = m:row0column0 * c03 + m:row0column1 * c13 + m:row0column2 * c23 + m:row0column3 * c33
+        r:row1column0 = m:row1column0 * c00 + m:row1column1 * c10 + m:row1column2 * c20 + m:row1column3 * c30
+        r:row1column1 = m:row1column0 * c01 + m:row1column1 * c11 + m:row1column2 * c21 + m:row1column3 * c31
+        r:row1column2 = m:row1column0 * c02 + m:row1column1 * c12 + m:row1column2 * c22 + m:row1column3 * c32
+        r:row1column3 = m:row1column0 * c03 + m:row1column1 * c13 + m:row1column2 * c23 + m:row1column3 * c33
+        r:row2column0 = m:row2column0 * c00 + m:row2column1 * c10 + m:row2column2 * c20 + m:row2column3 * c30
+        r:row2column1 = m:row2column0 * c01 + m:row2column1 * c11 + m:row2column2 * c21 + m:row2column3 * c31
+        r:row2column2 = m:row2column0 * c02 + m:row2column1 * c12 + m:row2column2 * c22 + m:row2column3 * c32
+        r:row2column3 = m:row2column0 * c03 + m:row2column1 * c13 + m:row2column2 * c23 + m:row2column3 * c33
+        r:row3column0 = m:row3column0 * c00 + m:row3column1 * c10 + m:row3column2 * c20 + m:row3column3 * c30
+        r:row3column1 = m:row3column0 * c01 + m:row3column1 * c11 + m:row3column2 * c21 + m:row3column3 * c31
+        r:row3column2 = m:row3column0 * c02 + m:row3column1 * c12 + m:row3column2 * c22 + m:row3column3 * c32
+        r:row3column3 = m:row3column0 * c03 + m:row3column1 * c13 + m:row3column2 * c23 + m:row3column3 * c33
+    end
+end

@@ -9,6 +9,8 @@ use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
 use Libraries.Compute.Math
 use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Trees.CullingVolume3D
+use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Texture
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
@@ -104,6 +106,11 @@ class TerrainItem is Item3D
     constant number FOLIAGE_CHECK_SECONDS = 0.25
     // For the cells' distances from the camera (Foliage plan F5).
     Math foliageMath
+
+    // For hiding cells outside the camera's view (Dense grass plan DG1),
+    // kept so nothing is made each frame.
+    CullingVolume3D foliageView
+    BoundingBox foliageBox
 
     // Water (Water plan W5): a sea and lakes, saved beside the heights in
     // water.json, and drawn as the item's children.
@@ -584,12 +591,12 @@ class TerrainItem is Item3D
         end
         File assetFile = GetFoliageAssetFile(asset)
         item:Set(cell, asset, assetFile)
+        // For copies that lean with the slope (Dense grass plan DG4).
+        item:SetGround(terrain:GetData())
         if asset:IsCard() and assetFile:Exists()
             text textureKey = assetFile:GetAbsolutePath()
             if not cardTextures:HasKey(textureKey)
-                Texture texture
-                texture:LoadFromFile(assetFile)
-                cardTextures:Add(textureKey, texture)
+                cardTextures:Add(textureKey, LoadCardTexture(assetFile))
             end
             item:SetCardTexture(cardTextures:GetValue(textureKey))
         end
@@ -640,11 +647,27 @@ class TerrainItem is Item3D
     private action GetCardTexture(File file) returns Texture
         text textureKey = file:GetAbsolutePath()
         if not cardTextures:HasKey(textureKey)
-            Texture texture
-            texture:LoadFromFile(file)
-            cardTextures:Add(textureKey, texture)
+            cardTextures:Add(textureKey, LoadCardTexture(file))
         end
         return cardTextures:GetValue(textureKey)
+    end
+
+    /*
+    This action loads a card's picture with mipmaps, as a cut-out picture
+    (Dense grass plan DG5): without mipmaps, distant cards are read from the
+    full-size picture and flicker; with plain mipmaps, thin blades fade
+    below the cut and the grass thins out far away. A cut-out picture's
+    smaller levels keep the same share of pixels past the cut (a half, the
+    cut a card's plane uses).
+
+    Attribute: Parameter file The picture.
+    Attribute: Returns The texture.
+    */
+    action LoadCardTexture(File file) returns Texture
+        Texture texture
+        texture:SetCutoutMipMaps(0.5)
+        texture:LoadFromFile(file:GetAbsolutePath(), true)
+        return texture
     end
 
     /*
@@ -700,11 +723,9 @@ class TerrainItem is Item3D
             // half its diagonal.
             number reachOut = item:GetAsset():GetDrawDistance() + item:GetCell():GetCellSize() * 0.71
             boolean near = offsetX * offsetX + offsetZ * offsetZ <= reachOut * reachOut
-            if near and not item:IsShowing()
-                item:Show()
-            elseif not near and item:IsShowing()
-                item:Hide()
-            end
+            // Shown when near and in the camera's view (Dense grass plan
+            // DG1); the view is checked every frame by CullFoliageByView.
+            item:SetNearCamera(near)
             // A shown cell picks its level of detail and thins its copies
             // near the draw distance (Foliage plan F5 and F6); it only
             // draws again when either changes.
@@ -720,6 +741,54 @@ class TerrainItem is Item3D
                 end
             end
         end
+    end
+
+    /*
+    This action returns how many foliage cells the terrain draws from:
+    one per cell and asset with copies (Dense grass plan DG0).
+
+    Attribute: Returns The number of cells.
+    */
+    action GetFoliageCellCount returns integer
+        return foliageItems:GetSize()
+    end
+
+    /*
+    This action returns how many foliage cells are shown now: within their
+    asset's draw distance of the camera and, for assets that cast no
+    shadows, in its view (Dense grass plan DG0 and DG1).
+
+    Attribute: Returns The number of cells shown.
+    */
+    action GetShownFoliageCellCount returns integer
+        integer shown = 0
+        Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()
+        repeat while items:HasNext()
+            FoliageCellItem item = items:Next()
+            if item:IsShowing()
+                shown = shown + 1
+            end
+        end
+        return shown
+    end
+
+    /*
+    This action returns how many foliage instances the shown cells draw
+    now, after thinning (Dense grass plan DG0): a card's planes count as
+    one each, so a two-plane card counts twice.
+
+    Attribute: Returns The number of instances drawn.
+    */
+    action GetDrawnFoliageCount returns integer
+        integer drawn = 0
+        Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()
+        repeat while items:HasNext()
+            FoliageCellItem item = items:Next()
+            if item:IsShowing()
+                drawn = drawn + item:GetDrawnCopyCount()
+            end
+        end
+        return drawn
     end
 
     /*
@@ -946,6 +1015,42 @@ class TerrainItem is Item3D
         if foliageCheckTime >= FOLIAGE_CHECK_SECONDS and not foliageItems:IsEmpty()
             foliageCheckTime = 0
             ShowFoliageNear(layer:GetCamera():GetPosition():GetX(), layer:GetCamera():GetPosition():GetZ())
+        end
+        if not foliageItems:IsEmpty()
+            CullFoliageByView(layer)
+        end
+    end
+
+    /*
+    This action hides the foliage cells outside the camera's view, every
+    frame (Dense grass plan DG1), so grass behind the camera isn't drawn.
+    The layer only culls the terrain as a whole, and the cells are its
+    children. Cells of assets that cast shadows stay shown while near,
+    since a tree just out of view can still throw its shadow into it.
+    The test treats the terrain item as standing at the origin, as foliage
+    cells' boxes are in world units.
+
+    Attribute: Parameter layer The layer whose camera is used.
+    */
+    private action CullFoliageByView(Layer3D layer)
+        Camera camera = layer:GetCamera()
+        if camera = undefined
+            return now
+        end
+        foliageView:Set(camera:GetCombinedMatrix())
+        integer outside = foliageView:OUTSIDE
+        Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()
+        repeat while items:HasNext()
+            FoliageCellItem item = items:Next()
+            if item:IsNearCamera()
+                boolean visible = true
+                if not item:GetAsset():CastsShadows()
+                    if item:GetRenderBounds(foliageBox)
+                        visible = foliageView:Test(foliageBox) not= outside
+                    end
+                end
+                item:SetInView(visible)
+            end
         end
     end
 

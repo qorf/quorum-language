@@ -3091,6 +3091,19 @@ end
     number copyHighestZ = 0
     number copyLargestScale = 1
 
+    // Each copy's color, three numbers (red, green, blue) per copy, or
+    // undefined to use the shades (Dense grass plan DG4); a number that
+    // changes whenever the copies do, so the renderer knows to pack them
+    // again; and what the renderer keeps for drawing them (Dense grass plan
+    // DG2), which the model only holds.
+    Number32BitArray copyColors = undefined
+    integer copyVersion = 0
+    Object copyDrawingCache = undefined
+
+    // True if the model draws only its shadow, not itself (Dense grass plan
+    // DG3), such as a simpler stand-in that throws a detailed model's shadow.
+    boolean shadowOnly = false
+
     /*
     This action gives the model copies: it is drawn once at each copy's
     transform, times the model's own, instead of once (Foliage plan F5).
@@ -3152,6 +3165,8 @@ end
         copyTransforms = transforms
         copyShades = shades
         copyCount = count
+        copyColors = undefined
+        copyVersion = copyVersion + 1
 
         Math copyMath
         copyLargestScale = 0
@@ -3203,8 +3218,98 @@ end
     action ClearCopies
         copyTransforms = undefined
         copyShades = undefined
+        copyColors = undefined
         copyCount = 0
+        copyVersion = copyVersion + 1
         NotifyCopiesChanged()
+    end
+
+    /*
+    This action gives each copy its own color (Dense grass plan DG4), in
+    place of its shade: three numbers per copy, red, green and blue, from 0
+    to 1. The color replaces the model's color, which its textures are
+    multiplied by. Call it after SetCopies, which clears the colors.
+
+    Attribute: Parameter colors Three numbers per copy, or undefined to use the shades.
+    */
+    action SetCopyColors(Number32BitArray colors)
+        if colors not= undefined and colors:GetSize() < copyCount * 3
+            alert("A model's copies need three color numbers each, but " + copyCount + " copies were given " + colors:GetSize() + " numbers.")
+        end
+        copyColors = colors
+        copyVersion = copyVersion + 1
+    end
+
+    /*
+    This action returns the copies' colors (Dense grass plan DG4), three
+    numbers per copy.
+
+    Attribute: Returns The colors, or undefined if the copies use their shades.
+    */
+    action GetCopyColors returns Number32BitArray
+        return copyColors
+    end
+
+    /*
+    This action returns a number that changes whenever the copies, their
+    shades or their colors change (Dense grass plan DG2), so the renderer
+    can tell when to pack them again.
+
+    Attribute: Returns The version.
+    */
+    action GetCopyVersion returns integer
+        return copyVersion
+    end
+
+    /*
+    This action returns what the renderer keeps for drawing the copies
+    (Dense grass plan DG2). Only the renderer uses it.
+
+    Attribute: Returns The renderer's data, or undefined.
+    */
+    action GetCopyDrawingCache returns Object
+        return copyDrawingCache
+    end
+
+    /*
+    This action sets what the renderer keeps for drawing the copies (Dense
+    grass plan DG2). Only the renderer uses it.
+
+    Attribute: Parameter cache The renderer's data, or undefined.
+    */
+    action SetCopyDrawingCache(Object cache)
+        copyDrawingCache = cache
+    end
+
+    /*
+    This action sets whether the model draws only its shadow (Dense grass
+    plan DG3): it is not seen, but casts shadows like the model would. A
+    foliage asset uses it to throw a detailed level's shadow from a simpler
+    level. It needs CastsShadows to be true to have any effect. Only the
+    Vulkan renderer draws shadows only, and not for animated models.
+
+    Attribute: Parameter value True to draw only the shadow.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Model
+
+    Model stand
+    stand:Load("Models/TreeSimple.glb")
+    stand:SetCastsShadows(true)
+    stand:SetShadowOnly(true)
+    */
+    action SetShadowOnly(boolean value)
+        shadowOnly = value
+    end
+
+    /*
+    This action returns whether the model draws only its shadow (Dense
+    grass plan DG3).
+
+    Attribute: Returns True if only the shadow is drawn.
+    */
+    action IsShadowOnly returns boolean
+        return shadowOnly
     end
 
     /*

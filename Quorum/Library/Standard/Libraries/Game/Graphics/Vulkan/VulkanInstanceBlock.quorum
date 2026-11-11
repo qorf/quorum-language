@@ -1,0 +1,60 @@
+package Libraries.Game.Graphics.Vulkan
+
+use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Matrix4
+
+/*
+A VulkanInstanceBlock holds the GPU instance data for many copies of one
+mesh, packed once in the same layout a VulkanDrawQueue3D writes (Dense
+grass plan DG2). The 3D painter keeps one per mesh of a model with copies,
+such as a foliage cell, and copies the whole block into a draw queue each
+frame in one move (VulkanDrawQueue3D:AddInstanceBlock), instead of working
+out and writing every copy again. It is packed again only when the copies,
+the mesh's buffers, its material's buffer, its texture or its color change.
+
+Most programs never use this class directly.
+
+Attribute: Example
+use Libraries.Game.Graphics.Vulkan.VulkanInstanceBlock
+
+VulkanInstanceBlock block
+block:SetCapacity(100)
+*/
+class VulkanInstanceBlock
+    /*
+    This action empties the block and makes room for a number of instances,
+    so packing that many makes nothing new.
+
+    Attribute: Parameter count How many instances it should hold.
+    */
+    system action SetCapacity(integer count)
+
+    /*
+    This action empties the block, keeping its room.
+    */
+    system action Empty
+
+    /*
+    This action packs one instance at the end of the block, as a draw
+    queue would write it: the mesh's vertex and index buffers, its
+    material, an optional texture and color in place of the material's,
+    and the instance's transform. The block grows if it is full.
+
+    Attribute: Parameter vertexBuffer The mesh's vertex buffer.
+    Attribute: Parameter indexBuffer The mesh's index buffer.
+    Attribute: Parameter material The mesh's material.
+    Attribute: Parameter texture A texture in place of the material's, or undefined.
+    Attribute: Parameter diffuse A color in place of the material's, or undefined.
+    Attribute: Parameter transform The instance's transform.
+    */
+    system action AddInstance(VulkanBuffer vertexBuffer, VulkanBuffer indexBuffer, MaterialVulkan material, Texture texture, Color diffuse, Matrix4 transform)
+
+    /*
+    This action returns how many instances are packed.
+
+    Attribute: Returns The count.
+    */
+    system action GetCount returns integer
+end

@@ -1,0 +1,523 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Interface.Item3D
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Texture
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Compute.Quaternion
+use Libraries.Compute.Math
+use Libraries.Containers.Number32BitArray
+use Libraries.System.File
+
+/*
+A FoliageCellDrawing is one model drawing some of a foliage cell's copies at
+one level of detail (Dense grass plan DG3 and DG6). A FoliageCellItem uses up
+to three: the level the cell is drawn at; the next level, which a growing
+share of the copies fade into near its distance; and a shadow stand-in, a
+simpler level drawn only into the shadows in place of a detailed one.
+
+A drawing works out every copy's transform, color and a number from 0 to 1
+fixed by where the copy stands (Make), then draws only the copies whose
+number falls in a range (Keep), so thinning and fading pick the same copies
+each time. Copies are placed as Foliage plan F5 placed them, plus the
+asset's lean, slope and tint (Dense grass plan DG4).
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.FoliageCellDrawing
+
+FoliageCellDrawing drawing
+*/
+class FoliageCellDrawing
+    // The level of detail drawn, and whether it is a card; -1 before Load.
+    integer level = -1
+    boolean card = false
+    Model model = undefined
+    // Whether the model is one of the cell item's children.
+    boolean added = false
+
+    // Every copy's transform (16 numbers), color (3 numbers, when the asset
+    // tints them) and number from 0 to 1. A card has one entry per plane,
+    // sharing its copy's number.
+    Number32BitArray fullTransforms
+    Number32BitArray fullShades
+    Number32BitArray fullColors
+    Number32BitArray fullHashes
+    integer fullCount = 0
+    boolean colored = false
+
+    // The range of numbers kept, as last given to Keep; -1 before.
+    number keptLow = -1
+    number keptHigh = -1
+
+    // How tall the tallest copy reaches above where it stands.
+    number reach = 0
+
+    // Kept to work out transforms without making objects.
+    Matrix4 rotation
+    Quaternion angles
+    Math math
+
+    on create
+        // A Number32BitArray has no storage until SetSize.
+        fullTransforms:SetSize(16)
+        fullShades:SetSize(1)
+        fullColors:SetSize(3)
+        fullHashes:SetSize(1)
+    end
+
+    /*
+    This action loads a level's model, or for a card level, makes an
+    upright picture one unit tall. It returns the card's picture, loaded
+    if it wasn't given, so the cell can keep it.
+
+    Attribute: Parameter owner The cell item an earlier model belongs to, so it can be taken out.
+    Attribute: Parameter levelNumber The level of detail.
+    Attribute: Parameter isCard True for a card level.
+    Attribute: Parameter file The model or card picture file.
+    Attribute: Parameter cardTexture The card's picture if already loaded, or undefined.
+    Attribute: Returns The card's picture, or undefined for a model.
+    */
+    action Load(Item3D owner, integer levelNumber, boolean isCard, File file, Texture cardTexture) returns Texture
+        Dispose(owner)
+        level = levelNumber
+        card = isCard
+        Model made
+        model = made
+        Texture texture = cardTexture
+        if card
+            if texture = undefined
+                // With mipmaps, as a cut-out picture (Dense grass plan
+                // DG5), as TerrainItem:LoadCardTexture loads them.
+                Texture loaded
+                loaded:SetCutoutMipMaps(0.5)
+                loaded:LoadFromFile(file:GetAbsolutePath(), true)
+                texture = loaded
+            end
+            number width = 1
+            if texture:GetHeight() > 0
+                width = texture:GetWidth() / cast(number, texture:GetHeight())
+            end
+            model:LoadPlane(width, 1, texture, true)
+        else
+            model:Load(file)
+            texture = undefined
+        end
+        keptLow = -1
+        keptHigh = -1
+        return texture
+    end
+
+    /*
+    This action returns the level of detail drawn, or -1 before Load.
+
+    Attribute: Returns The level.
+    */
+    action GetLevel returns integer
+        return level
+    end
+
+    /*
+    This action returns the model.
+
+    Attribute: Returns The model, or undefined before Load.
+    */
+    action GetModel returns Model
+        return model
+    end
+
+    /*
+    This action returns how tall the tallest copy reaches above where it
+    stands, after Make.
+
+    Attribute: Returns The height, in world units.
+    */
+    action GetReach returns number
+        return reach
+    end
+
+    /*
+    This action returns how many copies are drawn now; a card's planes
+    count as one each.
+
+    Attribute: Returns The count.
+    */
+    action GetDrawnCount returns integer
+        if model = undefined or not added
+            return 0
+        end
+        return model:GetCopyCount()
+    end
+
+    /*
+    This action sets how the model draws: whether it casts shadows, whether
+    it draws only its shadow (a stand-in), whether it takes the mouse, and
+    the asset's wind.
+
+    Attribute: Parameter shadows True if it casts shadows.
+    Attribute: Parameter onlyShadow True if it draws only its shadow.
+    Attribute: Parameter mouse True if it takes mouse input.
+    Attribute: Parameter asset The asset, for its wind.
+    */
+    action Configure(boolean shadows, boolean onlyShadow, boolean mouse, FoliageAsset asset)
+        if model = undefined
+            return now
+        end
+        model:SetCastsShadows(shadows)
+        model:SetShadowOnly(onlyShadow)
+        model:SetAcceptsMouseInput(mouse)
+        model:SetSway(asset:GetWind(), asset:GetWindDirection())
+    end
+
+    /*
+    This action works out every copy's transform, color and number, from
+    the cell and the asset; Keep then draws them. A
+    copy stands at its place, turned about the up axis by its turn plus the
+    asset's, and scaled. It leans with the ground if the asset says so,
+    then by the asset's fixed lean plus a random lean, each copy in its own
+    direction (Dense grass plan DG4). A card has one entry per plane: the
+    plane lies flat, so it is pitched -90 degrees, which stands it with the
+    picture's top up, raised by half its height, and each plane is turned
+    an equal share of half a circle.
+
+    Attribute: Parameter cell The cell.
+    Attribute: Parameter asset The cell's asset.
+    Attribute: Parameter ground The terrain's heights, for leaning with the slope, or undefined.
+    */
+    action Make(FoliageCell cell, FoliageAsset asset, TerrainData ground)
+        if model = undefined
+            return now
+        end
+        number height = 1
+        if not card
+            height = model:GetHeight()
+        end
+        integer planes = 1
+        if card
+            planes = asset:GetCardPlanes()
+        end
+        integer count = cell:GetCount()
+        integer total = count * planes
+        if fullTransforms:GetSize() not= total * 16
+            fullTransforms:SetSize(total * 16)
+        end
+        if fullShades:GetSize() not= total
+            fullShades:SetSize(total)
+        end
+        if fullHashes:GetSize() not= total
+            fullHashes:SetSize(total)
+        end
+        // Copies get their own colors only when the asset is tinted; the
+        // hue turns the tint, so white with a hue is still white.
+        colored = asset:IsTinted()
+        if colored and fullColors:GetSize() not= total * 3
+            fullColors:SetSize(total * 3)
+        end
+        fullCount = total
+        reach = 0
+        boolean leans = asset:IsAlignedToNormal() or asset:GetFixedTilt() not= 0 or asset:GetRandomTilt() not= 0
+        integer entry = 0
+        integer i = 0
+        repeat while i < count
+            number scale = cell:GetScale(i)
+            number x = cell:GetX(i)
+            number y = cell:GetY(i)
+            number z = cell:GetZ(i)
+            number shade = cell:GetShade(i)
+            number hash = GetHash(x, z, 0)
+            number turn = cell:GetTurn(i) + asset:GetFixedTurn()
+
+            // The direction the copy leans toward, as an up vector.
+            number upX = 0
+            number upY = 1
+            number upZ = 0
+            if leans
+                if asset:IsAlignedToNormal() and ground not= undefined
+                    Vector3 normal = ground:GetNormal(x, z)
+                    upX = normal:GetX()
+                    upY = normal:GetY()
+                    upZ = normal:GetZ()
+                end
+                number tilt = asset:GetFixedTilt() + asset:GetRandomTilt() * GetHash(x, z, 1)
+                if tilt not= 0
+                    number direction = GetHash(x, z, 2) * 2 * math:pi
+                    number tiltRadians = tilt * math:pi / 180
+                    // Lean the up vector by about the tilt, toward the
+                    // direction (exact on flat ground).
+                    number tx = math:Sine(tiltRadians) * math:Cosine(direction)
+                    number ty = math:Cosine(tiltRadians)
+                    number tz = math:Sine(tiltRadians) * math:Sine(direction)
+                    number nx = upX + tx
+                    number ny = upY - (1 - ty)
+                    number nz = upZ + tz
+                    number length = math:SquareRoot(nx * nx + ny * ny + nz * nz)
+                    if length > 0.0001
+                        upX = nx / length
+                        upY = ny / length
+                        upZ = nz / length
+                    end
+                end
+            end
+
+            integer plane = 0
+            repeat while plane < planes
+                if card
+                    WriteTransform(entry, turn + plane * 180.0 / planes, -90, scale, x, y + scale / 2, z, upX, upY, upZ, leans)
+                else
+                    WriteTransform(entry, turn, 0, scale, x, y, z, upX, upY, upZ, leans)
+                end
+                fullShades:Set(entry, shade)
+                fullHashes:Set(entry, hash)
+                if colored
+                    WriteColor(entry, asset, shade, GetHash(x, z, 3))
+                end
+                entry = entry + 1
+                plane = plane + 1
+            end
+            if height * scale > reach
+                reach = height * scale
+            end
+            i = i + 1
+        end
+        // The copies changed, so the next Keep draws them again, even in
+        // the same range.
+        keptLow = -1
+        keptHigh = -1
+    end
+
+    /*
+    This action draws only the copies whose number is at least low and
+    below high, adding the model to the cell item, or taking it out when
+    none are kept, since a model without copies would be drawn once at the
+    origin. Nothing is redone if the range hasn't changed since the last
+    Keep or Make.
+
+    Attribute: Parameter low The lowest number kept, from 0 to 1.
+    Attribute: Parameter high The number kept below, from 0 to 1.
+    Attribute: Parameter owner The cell item the model belongs to.
+    */
+    action Keep(number low, number high, Item3D owner)
+        if model = undefined
+            return now
+        end
+        if low = keptLow and high = keptHigh
+            return now
+        end
+        keptLow = low
+        keptHigh = high
+        integer kept = 0
+        integer i = 0
+        repeat while i < fullCount
+            number value = fullHashes:Get(i)
+            if value >= low and value < high
+                kept = kept + 1
+            end
+            i = i + 1
+        end
+        if kept <= 0
+            if added and owner not= undefined
+                boolean removed = owner:Remove(model)
+                added = false
+            end
+            model:ClearCopies()
+            return now
+        end
+        if kept = fullCount
+            model:SetCopies(fullTransforms, fullShades)
+            if colored
+                model:SetCopyColors(fullColors)
+            end
+        else
+            Number32BitArray transforms
+            transforms:SetSize(kept * 16)
+            Number32BitArray shades
+            shades:SetSize(kept)
+            Number32BitArray colors = undefined
+            if colored
+                Number32BitArray madeColors
+                madeColors:SetSize(kept * 3)
+                colors = madeColors
+            end
+            integer keptIndex = 0
+            i = 0
+            repeat while i < fullCount
+                number value = fullHashes:Get(i)
+                if value >= low and value < high
+                    integer source = i * 16
+                    integer target = keptIndex * 16
+                    integer k = 0
+                    repeat while k < 16
+                        transforms:Set(target + k, fullTransforms:Get(source + k))
+                        k = k + 1
+                    end
+                    shades:Set(keptIndex, fullShades:Get(i))
+                    if colored
+                        colors:Set(keptIndex * 3, fullColors:Get(i * 3))
+                        colors:Set(keptIndex * 3 + 1, fullColors:Get(i * 3 + 1))
+                        colors:Set(keptIndex * 3 + 2, fullColors:Get(i * 3 + 2))
+                    end
+                    keptIndex = keptIndex + 1
+                end
+                i = i + 1
+            end
+            model:SetCopies(transforms, shades)
+            if colored
+                model:SetCopyColors(colors)
+            end
+        end
+        if not added and owner not= undefined
+            owner:Add(model)
+            added = true
+        end
+    end
+
+    /*
+    This action takes the model out of the cell item and disposes it.
+
+    Attribute: Parameter owner The cell item, or undefined if the model was never added.
+    */
+    action Dispose(Item3D owner)
+        if model not= undefined
+            if added and owner not= undefined
+                boolean removed = owner:Remove(model)
+            end
+            model:Dispose()
+        end
+        model = undefined
+        added = false
+        level = -1
+        fullCount = 0
+        reach = 0
+        keptLow = -1
+        keptHigh = -1
+    end
+
+    /*
+    This action writes one copy's transform into fullTransforms, column by
+    column, as Item3D builds a transform: its rotation from yaw and pitch,
+    leaned so its up axis points along the given direction if it leans,
+    times its scale, then its place.
+    */
+    private action WriteTransform(integer entry, number yaw, number pitch, number scale, number x, number y, number z, number upX, number upY, number upZ, boolean leans)
+        angles:SetEulerAngles(yaw, pitch, 0)
+        rotation:IdentityMatrix()
+        rotation:Rotate(angles)
+        number r00 = rotation:row0column0
+        number r01 = rotation:row0column1
+        number r02 = rotation:row0column2
+        number r10 = rotation:row1column0
+        number r11 = rotation:row1column1
+        number r12 = rotation:row1column2
+        number r20 = rotation:row2column0
+        number r21 = rotation:row2column1
+        number r22 = rotation:row2column2
+        if leans and upY < 0.99999
+            // The turn taking straight up to the lean's up (Rodrigues):
+            // about the axis up × lean, by the angle between them.
+            number axisX = upZ
+            number axisZ = -upX
+            number axisLength = math:SquareRoot(axisX * axisX + axisZ * axisZ)
+            if axisLength > 0.00001
+                axisX = axisX / axisLength
+                axisZ = axisZ / axisLength
+                number c = upY
+                number s = axisLength
+                number t = 1 - c
+                // Rotation about (axisX, 0, axisZ).
+                number l00 = t * axisX * axisX + c
+                number l01 = -s * axisZ
+                number l02 = t * axisX * axisZ
+                number l10 = s * axisZ
+                number l11 = c
+                number l12 = -s * axisX
+                number l20 = t * axisX * axisZ
+                number l21 = s * axisX
+                number l22 = t * axisZ * axisZ + c
+                number n00 = l00 * r00 + l01 * r10 + l02 * r20
+                number n01 = l00 * r01 + l01 * r11 + l02 * r21
+                number n02 = l00 * r02 + l01 * r12 + l02 * r22
+                number n10 = l10 * r00 + l11 * r10 + l12 * r20
+                number n11 = l10 * r01 + l11 * r11 + l12 * r21
+                number n12 = l10 * r02 + l11 * r12 + l12 * r22
+                number n20 = l20 * r00 + l21 * r10 + l22 * r20
+                number n21 = l20 * r01 + l21 * r11 + l22 * r21
+                number n22 = l20 * r02 + l21 * r12 + l22 * r22
+                r00 = n00
+                r01 = n01
+                r02 = n02
+                r10 = n10
+                r11 = n11
+                r12 = n12
+                r20 = n20
+                r21 = n21
+                r22 = n22
+            end
+        end
+        integer base = entry * 16
+        fullTransforms:Set(base, r00 * scale)
+        fullTransforms:Set(base + 1, r10 * scale)
+        fullTransforms:Set(base + 2, r20 * scale)
+        fullTransforms:Set(base + 3, 0)
+        fullTransforms:Set(base + 4, r01 * scale)
+        fullTransforms:Set(base + 5, r11 * scale)
+        fullTransforms:Set(base + 6, r21 * scale)
+        fullTransforms:Set(base + 7, 0)
+        fullTransforms:Set(base + 8, r02 * scale)
+        fullTransforms:Set(base + 9, r12 * scale)
+        fullTransforms:Set(base + 10, r22 * scale)
+        fullTransforms:Set(base + 11, 0)
+        fullTransforms:Set(base + 12, x)
+        fullTransforms:Set(base + 13, y)
+        fullTransforms:Set(base + 14, z)
+        fullTransforms:Set(base + 15, 1)
+    end
+
+    /*
+    This action writes one copy's color: the asset's tint with its hue
+    turned by up to the asset's random hue either way, times the copy's
+    shade (Dense grass plan DG4). The hue is turned about the gray axis,
+    which keeps the color's brightness about the same.
+    */
+    private action WriteColor(integer entry, FoliageAsset asset, number shade, number random)
+        number red = asset:GetTintRed()
+        number green = asset:GetTintGreen()
+        number blue = asset:GetTintBlue()
+        number hue = asset:GetRandomHue() * (random * 2 - 1)
+        if hue not= 0
+            number radians = hue * math:pi / 180
+            number c = math:Cosine(radians)
+            number s = math:Sine(radians)
+            number newRed = red * (0.299 + 0.701 * c + 0.168 * s) + green * (0.587 - 0.587 * c + 0.330 * s) + blue * (0.114 - 0.114 * c - 0.497 * s)
+            number newGreen = red * (0.299 - 0.299 * c - 0.328 * s) + green * (0.587 + 0.413 * c + 0.035 * s) + blue * (0.114 - 0.114 * c + 0.292 * s)
+            number newBlue = red * (0.299 - 0.300 * c + 1.250 * s) + green * (0.587 - 0.588 * c - 1.050 * s) + blue * (0.114 + 0.886 * c - 0.203 * s)
+            red = newRed
+            green = newGreen
+            blue = newBlue
+        end
+        fullColors:Set(entry * 3, Clamp(red * shade))
+        fullColors:Set(entry * 3 + 1, Clamp(green * shade))
+        fullColors:Set(entry * 3 + 2, Clamp(blue * shade))
+    end
+
+    /*
+    This action keeps a color part between 0 and 1.
+    */
+    private action Clamp(number value) returns number
+        if value < 0
+            return 0
+        elseif value > 1
+            return 1
+        end
+        return value
+    end
+
+    /*
+    This action returns a number from 0 to 1 fixed by where a copy stands
+    and a seed, so each kind of randomness (thinning, lean, direction,
+    hue) is its own, and the same each time (Foliage plan F5).
+    */
+    private action GetHash(number x, number z, integer seed) returns number
+        number value = math:Sine(x * 12.9898 + z * 78.233 + seed * 37.719) * 43758.5453
+        return value - math:Floor(value)
+    end
+end

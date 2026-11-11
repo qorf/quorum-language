@@ -260,6 +260,22 @@ Matrix4 modelMatrix)
         currentInstanceIndex = currentInstanceIndex + 1
     end
     
+    /*
+    This action adds instances packed in a block, in one copy (Dense grass
+    plan DG2): the first count of them. The caller makes sure they fit
+    (GetRoom), as for AddInstanceData.
+
+    Attribute: Parameter block The packed instances.
+    Attribute: Parameter count How many of them to add, from the first.
+    */
+    action AddInstanceBlock(VulkanInstanceBlock block, integer count)
+        if count <= 0
+            return now
+        end
+        instanceMapping:TransferInstanceBlock(block, 0, count)
+        currentInstanceIndex = currentInstanceIndex + count
+    end
+
     action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows)
         AddDrawIndirectCommand(vertexCount, instanceCount, hasShadows, -1)
     end
@@ -276,7 +292,24 @@ Matrix4 modelMatrix)
     Attribute: Parameter shadowLights The point lights' bits, or -1 for all.
     */
     action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows, integer shadowLights)
-        drawDataMemory:Set(currentDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
+        AddDrawIndirectCommand(vertexCount, instanceCount, hasShadows, shadowLights, true)
+    end
+
+    /*
+    This action adds a draw command for the shadows and, unless the
+    instances draw only their shadows (Dense grass plan DG3), for the
+    scene, as the action without inScene does.
+
+    Attribute: Parameter vertexCount How many vertices each instance draws.
+    Attribute: Parameter instanceCount How many instances the command draws.
+    Attribute: Parameter hasShadows True if the instances cast shadows.
+    Attribute: Parameter shadowLights The point lights' bits, or -1 for all.
+    Attribute: Parameter inScene False if the instances draw only their shadows.
+    */
+    action AddDrawIndirectCommand(integer vertexCount, integer instanceCount, boolean hasShadows, integer shadowLights, boolean inScene)
+        if inScene
+            drawDataMemory:Set(currentDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
+        end
         
         if hasShadows
             shadowDrawDataMemory:Set(currentShadowDrawCommandIndex, vertexCount, instanceCount, 0, currentDrawInstanceIndex)
@@ -289,7 +322,9 @@ Matrix4 modelMatrix)
             currentShadowDrawCommandIndex = currentShadowDrawCommandIndex + 1
         end
         
-        currentDrawCommandIndex = currentDrawCommandIndex + 1
+        if inScene
+            currentDrawCommandIndex = currentDrawCommandIndex + 1
+        end
         currentDrawInstanceIndex = currentDrawInstanceIndex + instanceCount
     end
     

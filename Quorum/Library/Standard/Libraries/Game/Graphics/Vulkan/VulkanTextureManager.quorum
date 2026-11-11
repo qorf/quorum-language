@@ -512,7 +512,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         if levels = 1
             TransferPixelData(pixelMap, buffer)
         else
-            TransferPixelDataWithMipMaps(pixelMap, buffer, levels, texture:HasPackedNormalMipMaps())
+            TransferPixelDataWithMipMaps(pixelMap, buffer, levels, texture:HasPackedNormalMipMaps(), texture:GetCutoutMipMaps())
         end
     end
 
@@ -881,7 +881,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     each smaller mip level, made by averaging 2 by 2 pixels. For packed
     normals, directions and lengths are averaged separately.
     */
-    private system action TransferPixelDataWithMipMaps(PixelMap pixelMap, VulkanBuffer buffer, integer levels, boolean packedNormals)
+    private system action TransferPixelDataWithMipMaps(PixelMap pixelMap, VulkanBuffer buffer, integer levels, boolean packedNormals, number cutout)
 
     action GetGlobalTextureDescriptorSetLayout returns VulkanDescriptorSetLayout
         return globalTextureDescriptorSetLayout

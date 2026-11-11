@@ -42,6 +42,16 @@ class VulkanDrawQueue3DInstanceMappedMemory
     end
     
     system action TransferInstanceData(VulkanBuffer vertexBuffer, VulkanBuffer indexBuffer, MaterialVulkan material, Texture texture, Color diffuse, Matrix4 transform)
+
+    /*
+    This action copies instances packed in a block to the current insertion
+    position, in one move (Dense grass plan DG2).
+
+    Attribute: Parameter block The packed instances.
+    Attribute: Parameter first The first instance in the block to copy.
+    Attribute: Parameter count How many instances to copy.
+    */
+    system action TransferInstanceBlock(VulkanInstanceBlock block, integer first, integer count)
     
     action GetByteSize returns integer
         return parentBuffer:GetSize()

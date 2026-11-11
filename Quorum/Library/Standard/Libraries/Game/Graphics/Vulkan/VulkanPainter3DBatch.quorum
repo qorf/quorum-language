@@ -57,11 +57,6 @@ class VulkanPainter3DBatch
     Integer32BitArray drawQueueMasks
     BitwiseOperations bits
 
-    // Kept to write a model's copies (Foliage plan F5) without making
-    // objects each frame: a copy's full transform, and its shade's color.
-    Matrix4 copyTransform
-    Color copyColor
-
     on create
         // Integer32BitArray has no storage until SetSize. A few texture
         // groups is the usual most, and it grows if more are needed.
@@ -250,18 +245,26 @@ class VulkanPainter3DBatch
                 // The models that cast shadows are written first, then the
                 // others, each with their own draw commands, so a command's
                 // shadow setting is right for every instance in it. (It used
-                // to come from the last model for all of them.)
+                // to come from the last model for all of them.) Last come
+                // the models that draw only their shadows (Dense grass plan
+                // DG3), whose commands go to the shadows alone.
                 integer pass = 0
-                repeat while pass < 2
-                    boolean shadowPass = true
-                    if pass = 1
-                        shadowPass = false
-                    end
+                repeat while pass < 3
+                    boolean shadowPass = pass not= 1
+                    boolean onlyShadows = pass = 2
                     
                     integer j = 0
                     repeat while j < models:GetSize()
                         Model model = models:Get(j)
-                        if model:CastsShadows() = shadowPass
+                        boolean belongs = false
+                        if pass = 0
+                            belongs = model:CastsShadows() and not model:IsShadowOnly()
+                        elseif pass = 1
+                            belongs = not model:CastsShadows() and not model:IsShadowOnly()
+                        else
+                            belongs = model:CastsShadows() and model:IsShadowOnly()
+                        end
+                        if belongs
                             integer shadowMask = 0
                             if shadowPass
                                 shadowMask = painter:GetShadowLightMask(model)
@@ -277,8 +280,9 @@ class VulkanPainter3DBatch
                             VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, group)
                             
                             if model:GetCopyCount() > 0
-                                // One instance per copy (Foliage plan F5).
-                                integer written = AddCopies(queue, mesh, model, textureOverride, diffuseOverride)
+                                // One instance per copy (Foliage plan F5),
+                                // packed once (Dense grass plan DG2).
+                                integer written = AddCopies(queue, i, mesh, model, textureOverride, diffuseOverride)
                                 AddUses(group, written, shadowMask)
                             elseif queue:GetRoom() > 0
                                 queue:AddInstanceData(mesh, textureOverride, diffuseOverride, model:GetTransform())
@@ -290,7 +294,7 @@ class VulkanPainter3DBatch
                         j = j + 1
                     end
                     
-                    FlushDrawCommands(painter, mesh, shadowPass)
+                    FlushDrawCommands(painter, mesh, shadowPass, not onlyShadows)
                     pass = pass + 1
                 end
                 end
@@ -308,8 +312,9 @@ class VulkanPainter3DBatch
     Attribute: Parameter painter The painter, whose queues are used.
     Attribute: Parameter mesh The mesh the instances draw.
     Attribute: Parameter castsShadows True if every one of these instances casts shadows.
+    Attribute: Parameter inScene False if these instances draw only their shadows (Dense grass plan DG3).
     */
-    private action FlushDrawCommands(VulkanPainter3D painter, MeshVulkan mesh, boolean castsShadows)
+    private action FlushDrawCommands(VulkanPainter3D painter, MeshVulkan mesh, boolean castsShadows, boolean inScene)
         integer j = 0
         repeat while j < drawQueueUseCount
             integer uses = drawQueueUses:Get(j)
@@ -318,7 +323,7 @@ class VulkanPainter3DBatch
                 // used, since looking one up makes it if it doesn't
                 // exist yet.
                 VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, j)
-                queue:AddDrawIndirectCommand(mesh:GetIndexCount(), uses, castsShadows, drawQueueMasks:Get(j))
+                queue:AddDrawIndirectCommand(mesh:GetIndexCount(), uses, castsShadows, drawQueueMasks:Get(j), inScene)
                 drawQueueUses:Set(j, 0)
                 drawQueueMasks:Set(j, 0)
             end
@@ -327,89 +332,41 @@ class VulkanPainter3DBatch
     end
 
     /*
-    This action writes one instance for each of a model's copies (Foliage
-    plan F5): the model's transform times the copy's, and the copy's shade.
-    A shade below 1 replaces the model's color with gray, as a separate
-    model's color would. Copies that don't fit in the queue are left out
+    This action adds one instance for each of a model's copies (Foliage
+    plan F5), from the copies packed once for this mesh (Dense grass plan
+    DG2): the model keeps a VulkanCopyBlocks, which packs the model's
+    transform times each copy's, with the copy's color or shade, and packs
+    again only when something changed. A frame copies the packed block into
+    the queue in one move. Copies that don't fit in the queue are left out
     this frame, and the queue grows for the next.
 
     Attribute: Parameter queue The draw queue for the mesh's texture group.
+    Attribute: Parameter meshIndex The mesh's place in the model.
     Attribute: Parameter mesh The mesh to draw.
     Attribute: Parameter model The model with copies.
     Attribute: Parameter textureOverride The model's texture for this mesh, or undefined.
     Attribute: Parameter diffuseOverride The model's color for this mesh, or undefined.
     Attribute: Returns How many instances were written.
     */
-    private action AddCopies(VulkanDrawQueue3D queue, MeshVulkan mesh, Model model, Texture textureOverride, Color diffuseOverride) returns integer
-        integer count = model:GetCopyCount()
+    private action AddCopies(VulkanDrawQueue3D queue, integer meshIndex, MeshVulkan mesh, Model model, Texture textureOverride, Color diffuseOverride) returns integer
+        VulkanCopyBlocks blocks = undefined
+        Object cache = model:GetCopyDrawingCache()
+        if cache not= undefined and cache is VulkanCopyBlocks
+            blocks = cast(VulkanCopyBlocks, cache)
+        else
+            VulkanCopyBlocks made
+            blocks = made
+            model:SetCopyDrawingCache(blocks)
+        end
+        VulkanInstanceBlock block = blocks:GetBlock(model, meshIndex, mesh, textureOverride, diffuseOverride)
+        integer count = block:GetCount()
         integer room = queue:GetRoom()
         if count > room
             queue:NoteDropped(count - room)
             count = room
         end
-        Number32BitArray transforms = model:GetCopyTransforms()
-        Number32BitArray shades = model:GetCopyShades()
-        Matrix4 base = model:GetTransform()
-        integer copy = 0
-        repeat while copy < count
-            MultiplyCopy(base, transforms, copy * 16)
-            Color color = diffuseOverride
-            if shades not= undefined
-                number shade = shades:Get(copy)
-                if shade < 0.999
-                    copyColor:SetColor(shade, shade, shade, 1)
-                    color = copyColor
-                end
-            end
-            queue:AddInstanceData(mesh, textureOverride, color, copyTransform)
-            copy = copy + 1
-        end
+        queue:AddInstanceBlock(block, count)
         return count
-    end
-
-    /*
-    This action sets copyTransform to a model's transform times one copy's
-    transform (Foliage plan F5). The copy's 16 numbers are column by
-    column, as a Matrix4 is written to the GPU.
-
-    Attribute: Parameter m The model's transform.
-    Attribute: Parameter t The copies' transforms.
-    Attribute: Parameter b Where the copy's first number is.
-    */
-    private action MultiplyCopy(Matrix4 m, Number32BitArray t, integer b)
-        number c00 = t:Get(b)
-        number c10 = t:Get(b + 1)
-        number c20 = t:Get(b + 2)
-        number c30 = t:Get(b + 3)
-        number c01 = t:Get(b + 4)
-        number c11 = t:Get(b + 5)
-        number c21 = t:Get(b + 6)
-        number c31 = t:Get(b + 7)
-        number c02 = t:Get(b + 8)
-        number c12 = t:Get(b + 9)
-        number c22 = t:Get(b + 10)
-        number c32 = t:Get(b + 11)
-        number c03 = t:Get(b + 12)
-        number c13 = t:Get(b + 13)
-        number c23 = t:Get(b + 14)
-        number c33 = t:Get(b + 15)
-        Matrix4 r = copyTransform
-        r:row0column0 = m:row0column0 * c00 + m:row0column1 * c10 + m:row0column2 * c20 + m:row0column3 * c30
-        r:row0column1 = m:row0column0 * c01 + m:row0column1 * c11 + m:row0column2 * c21 + m:row0column3 * c31
-        r:row0column2 = m:row0column0 * c02 + m:row0column1 * c12 + m:row0column2 * c22 + m:row0column3 * c32
-        r:row0column3 = m:row0column0 * c03 + m:row0column1 * c13 + m:row0column2 * c23 + m:row0column3 * c33
-        r:row1column0 = m:row1column0 * c00 + m:row1column1 * c10 + m:row1column2 * c20 + m:row1column3 * c30
-        r:row1column1 = m:row1column0 * c01 + m:row1column1 * c11 + m:row1column2 * c21 + m:row1column3 * c31
-        r:row1column2 = m:row1column0 * c02 + m:row1column1 * c12 + m:row1column2 * c22 + m:row1column3 * c32
-        r:row1column3 = m:row1column0 * c03 + m:row1column1 * c13 + m:row1column2 * c23 + m:row1column3 * c33
-        r:row2column0 = m:row2column0 * c00 + m:row2column1 * c10 + m:row2column2 * c20 + m:row2column3 * c30
-        r:row2column1 = m:row2column0 * c01 + m:row2column1 * c11 + m:row2column2 * c21 + m:row2column3 * c31
-        r:row2column2 = m:row2column0 * c02 + m:row2column1 * c12 + m:row2column2 * c22 + m:row2column3 * c32
-        r:row2column3 = m:row2column0 * c03 + m:row2column1 * c13 + m:row2column2 * c23 + m:row2column3 * c33
-        r:row3column0 = m:row3column0 * c00 + m:row3column1 * c10 + m:row3column2 * c20 + m:row3column3 * c30
-        r:row3column1 = m:row3column0 * c01 + m:row3column1 * c11 + m:row3column2 * c21 + m:row3column3 * c31
-        r:row3column2 = m:row3column0 * c02 + m:row3column1 * c12 + m:row3column2 * c22 + m:row3column3 * c32
-        r:row3column3 = m:row3column0 * c03 + m:row3column1 * c13 + m:row3column2 * c23 + m:row3column3 * c33
     end
 
     /*

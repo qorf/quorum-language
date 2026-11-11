@@ -50,6 +50,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     public constant integer CLOSE_SETTINGS = 6
     public constant integer RANDOM_TURN = 7
     public constant integer CASTS_SHADOWS = 8
+    public constant integer ALIGN_TO_NORMAL = 9
 
     // How much of an asset's title line its arrows take, in pixels before
     // the interface scale.
@@ -82,6 +83,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     Array<TextField> settingsFields
     Checkbox randomTurnCheckbox = undefined
     Checkbox shadowsCheckbox = undefined
+    Checkbox alignCheckbox = undefined
     Button closeButton = undefined
 
     // The settings fields, by place.
@@ -99,6 +101,16 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     constant integer WIND_FIELD = 9
     constant integer FIRST_LEVEL_FIELD = 10
     constant integer LEVEL_FIELD_COUNT = 3
+    // Shadow levels, placement and fading (Dense grass plan DG3, DG4 and
+    // DG6), after the levels' fields.
+    constant integer LAST_SHADOW_FIELD = 16
+    constant integer SHADOW_LEVEL_FIELD = 17
+    constant integer TILT_FIELD = 18
+    constant integer RANDOM_TILT_FIELD = 19
+    constant integer TURN_FIELD = 20
+    constant integer TINT_FIELD = 21
+    constant integer HUE_FIELD = 22
+    constant integer FADE_FIELD = 23
 
     // The terrain whose foliage is shown, or undefined.
     EditorTerrain terrain = undefined
@@ -263,6 +275,14 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
             AddSettingsField(card, "Level " + level + " from:", "The distance from the camera level of detail " + level + " is used from")
             level = level + 1
         end
+        AddSettingsField(card, "Last shadow level:", "The farthest level of detail that casts shadows, from 0 to 3; levels past it cast none")
+        AddSettingsField(card, "Shadow from level:", "A simpler level of detail whose shadow stands in for nearer levels' shadows, or 0 for each level's own")
+        AddSettingsField(card, "Lean:", "How far every copy leans, in degrees from upright")
+        AddSettingsField(card, "Lean varies:", "How much more each copy may lean at random, in degrees")
+        AddSettingsField(card, "Turn:", "A turn every copy gets about the up axis, in degrees, added to its random turn")
+        AddSettingsField(card, "Tint:", "The color copies are tinted, as red, green and blue from 0 to 1, such as 0.8, 1, 0.6; 1, 1, 1 for none")
+        AddSettingsField(card, "Hue varies:", "How far each copy's hue may turn either way, in degrees; it turns the tint")
+        AddSettingsField(card, "Fade margin:", "How far before a level of detail's distance copies start fading into it, or 0 to switch at once")
 
         Control turnLine = MakeCardLine()
         Checkbox turn
@@ -287,6 +307,18 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         shadowsCheckbox:SetBehavior(shadowBehavior)
         shadowLine:Add(shadowsCheckbox)
         card:Add(shadowLine)
+
+        Control alignLine = MakeCardLine()
+        Checkbox align
+        alignCheckbox = align
+        alignCheckbox:SetName("Lean with slope")
+        alignCheckbox:SetDescription("Whether copies lean with the ground's slope, as grass and rocks often do")
+        TerrainFoliageButtonBehavior alignBehavior
+        alignBehavior:Setup(me, ALIGN_TO_NORMAL, 0)
+        alignBehavior:SetCheckbox(true)
+        alignCheckbox:SetBehavior(alignBehavior)
+        alignLine:Add(alignCheckbox)
+        card:Add(alignLine)
 
         Control closeLine = MakeCardLine()
         closeButton = MakeButton(closeLine, "Close settings", "Close this asset's settings", CLOSE_SETTINGS, 0)
@@ -536,8 +568,17 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
             end
             level = level + 1
         end
+        SetTextIfDifferent(settingsFields:Get(LAST_SHADOW_FIELD), "" + asset:GetLastShadowLevel())
+        SetTextIfDifferent(settingsFields:Get(SHADOW_LEVEL_FIELD), "" + asset:GetShadowLevel())
+        SetTextIfDifferent(settingsFields:Get(TILT_FIELD), "" + asset:GetFixedTilt())
+        SetTextIfDifferent(settingsFields:Get(RANDOM_TILT_FIELD), "" + asset:GetRandomTilt())
+        SetTextIfDifferent(settingsFields:Get(TURN_FIELD), "" + asset:GetFixedTurn())
+        SetTextIfDifferent(settingsFields:Get(TINT_FIELD), asset:GetTintRed() + ", " + asset:GetTintGreen() + ", " + asset:GetTintBlue())
+        SetTextIfDifferent(settingsFields:Get(HUE_FIELD), "" + asset:GetRandomHue())
+        SetTextIfDifferent(settingsFields:Get(FADE_FIELD), "" + asset:GetFadeMargin())
         randomTurnCheckbox:SetToggleState(asset:HasRandomTurn())
         shadowsCheckbox:SetToggleState(asset:CastsShadows())
+        alignCheckbox:SetToggleState(asset:IsAlignedToNormal())
     end
 
     /*
@@ -581,6 +622,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
             end
             chain:Add(randomTurnCheckbox)
             chain:Add(shadowsCheckbox)
+            chain:Add(alignCheckbox)
             chain:Add(closeButton)
         end
         chain:Add(addButton)
@@ -671,6 +713,9 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         elseif kind = CASTS_SHADOWS
             settings:SetCastsShadows(shadowsCheckbox:GetToggleState())
             editor:FoliageAssetSettingsChanged(terrain)
+        elseif kind = ALIGN_TO_NORMAL
+            settings:SetAlignedToNormal(alignCheckbox:GetToggleState())
+            editor:FoliageAssetSettingsChanged(terrain)
         end
     end
 
@@ -744,6 +789,10 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
             if not TakeLevelField(asset, place, field)
                 return now
             end
+        elseif place = TINT_FIELD
+            if not TakeTintField(asset, field)
+                return now
+            end
         else
             number value = 0
             boolean parsed = true
@@ -756,7 +805,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
             if not parsed
                 return now
             end
-            if value < 0 and place not= OFFSET_FIELD
+            if value < 0 and place not= OFFSET_FIELD and place not= TURN_FIELD
                 return now
             end
             if place = DENSITY_FIELD and value > 0
@@ -780,12 +829,66 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
                     return now
                 end
                 asset:SetWind(value)
+            elseif place = LAST_SHADOW_FIELD and value <= asset:MAXIMUM_LEVELS
+                asset:SetLastShadowLevel(cast(integer, value))
+            elseif place = SHADOW_LEVEL_FIELD and value <= asset:MAXIMUM_LEVELS
+                asset:SetShadowLevel(cast(integer, value))
+            elseif place = TILT_FIELD and value <= 90
+                asset:SetFixedTilt(value)
+            elseif place = RANDOM_TILT_FIELD and value <= 90
+                asset:SetRandomTilt(value)
+            elseif place = TURN_FIELD
+                asset:SetFixedTurn(value)
+            elseif place = HUE_FIELD and value <= 180
+                asset:SetRandomHue(value)
+            elseif place = FADE_FIELD
+                asset:SetFadeMargin(value)
             else
                 return now
             end
         end
         editor:FoliageAssetSettingsChanged(terrain)
         SetTerrain(terrain)
+    end
+
+    /*
+        Takes the Tint field (Dense grass plan DG4): three numbers from 0
+        to 1, red, green and blue, separated by commas or spaces. Anything
+        else is ignored.
+
+        Attribute: Parameter asset The asset whose settings are open.
+        Attribute: Parameter field The field.
+        Attribute: Returns True if the asset changed.
+    */
+    private action TakeTintField(FoliageAsset asset, TextField field) returns boolean
+        text value = field:GetText():Trim():Replace(",", " ")
+        Array<text> parts = value:Split(" ")
+        Array<number> numbers
+        integer i = 0
+        repeat while i < parts:GetSize()
+            text part = parts:Get(i):Trim()
+            if part not= ""
+                number parsed = 0
+                check
+                    parsed = part:ParseNumber()
+                detect e is Error
+                    return false
+                end
+                if parsed < 0 or parsed > 1
+                    return false
+                end
+                numbers:Add(parsed)
+            end
+            i = i + 1
+        end
+        if numbers:GetSize() not= 3
+            return false
+        end
+        if numbers:Get(0) = asset:GetTintRed() and numbers:Get(1) = asset:GetTintGreen() and numbers:Get(2) = asset:GetTintBlue()
+            return false
+        end
+        asset:SetTint(numbers:Get(0), numbers:Get(1), numbers:Get(2))
+        return true
     end
 
     /*

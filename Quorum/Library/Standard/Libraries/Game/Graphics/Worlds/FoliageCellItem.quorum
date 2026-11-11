@@ -5,11 +5,7 @@ use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Vector3
-use Libraries.Compute.Matrix4
-use Libraries.Compute.Quaternion
-use Libraries.Compute.Math
 use Libraries.Containers.Array
-use Libraries.Containers.Number32BitArray
 use Libraries.System.File
 
 /*
@@ -18,10 +14,16 @@ F5 it draws them all with one model that has copies (Model:SetCopies), so
 the renderer draws every copy in one instanced draw: the asset's model, or
 for a card asset, one upright two-sided picture, copied once per plane of
 each copy. A TerrainItem makes one per cell and holds them as children,
-hides the cells farther from the camera than their asset's draw distance,
-and tells the shown ones how far away they are (UpdateForDistance), which
-picks the level of detail and thins the copies near the draw distance
-(Foliage plan F6).
+hides the cells farther from the camera than their asset's draw distance
+or outside its view (Dense grass plan DG1), and tells the shown ones how
+far away they are (UpdateForDistance), which picks the level of detail and
+thins the copies near the draw distance (Foliage plan F6).
+
+Each model is a FoliageCellDrawing. Besides the level drawn, a cell may
+draw the next level for a growing share of its copies near that level's
+distance, so it changes a little at a time (Dense grass plan DG6), and a
+simpler level only into the shadows in place of a detailed level's shadow
+(Dense grass plan DG3).
 
 The item stands at the origin, so each copy's place is its world place. The
 model shares its file's blueprint, so the file is loaded once however many
@@ -55,35 +57,38 @@ class FoliageCellItem is Item3D
     Array<File> levelFiles
     Array<Texture> levelTextures
 
-    // The level of detail wanted at the camera's distance, the one drawn
-    // (0 when the wanted one's file is missing), and the thinning band: 0
-    // draws every copy, each higher band fewer (Foliage plan F5 and F6).
+    // The terrain's heights, for copies that lean with the slope (Dense
+    // grass plan DG4), or undefined.
+    TerrainData ground = undefined
+
+    // The level of detail wanted at the camera's distance, and the
+    // thinning band: 0 draws every copy, each higher band fewer (Foliage
+    // plan F5 and F6).
     integer level = 0
-    integer drawnLevel = 0
     integer band = 0
 
-    // The model drawing the copies, or undefined, and whether it is one of
-    // the item's children (it isn't while thinning leaves no copy).
-    Model drawn = undefined
-    boolean drawnAdded = false
+    // Fading into the next level (Dense grass plan DG6): the level faded
+    // into, or -1 for none, and how far along, in steps from 0 to
+    // FADE_STEPS, so copies are only drawn again when a step changes.
+    integer fadeLevel = -1
+    integer fadeStep = 0
+    constant integer FADE_STEPS = 8
 
-    // The drawn level's copies (Foliage plan F5): every copy's transform,
-    // 16 numbers each, its shade, and a number from 0 to 1 fixed by where it
-    // stands, which thinning compares with the share it keeps. A card has
-    // one entry per plane of each copy, sharing the copy's number.
-    Number32BitArray fullTransforms
-    Number32BitArray fullShades
-    Number32BitArray fullHashes
-    integer fullCount = 0
+    // The drawings: the level drawn, the level faded into, and the shadow
+    // stand-in (Dense grass plan DG3 and DG6).
+    FoliageCellDrawing main
+    FoliageCellDrawing fading
+    FoliageCellDrawing standIn
 
-    // How tall the tallest copy reaches above where it stands, found by
-    // Build, for the terrain's render box.
+    // How tall the tallest copy reaches above where it stands, for the
+    // terrain's render box.
     number reach = 0
 
-    // Kept to work out copies' transforms without making objects.
-    Matrix4 rotation
-    Quaternion angles
-    Math hashMath
+    // Whether the cell is within its asset's draw distance of the camera,
+    // and inside the camera's view (Dense grass plan DG1). It is shown only
+    // when both are true; TerrainItem sets them.
+    boolean nearCamera = false
+    boolean inView = true
 
     // Thinning (Foliage plan F5): past this share of the draw distance,
     // copies thin out in this many bands, each keeping fewer.
@@ -97,11 +102,6 @@ class FoliageCellItem is Item3D
             levelTextures:Add(undefined)
             i = i + 1
         end
-        // A Number32BitArray has no storage until SetSize, and GetSize
-        // fails before it; the copies' arrays are resized as needed.
-        fullTransforms:SetSize(16)
-        fullShades:SetSize(1)
-        fullHashes:SetSize(1)
     end
 
     /*
@@ -116,6 +116,16 @@ class FoliageCellItem is Item3D
         cell = foliageCell
         asset = foliageAsset
         levelFiles:Set(0, file)
+    end
+
+    /*
+    This action sets the terrain's heights, so copies of an asset that
+    leans with the slope can find it (Dense grass plan DG4).
+
+    Attribute: Parameter data The terrain's heights, or undefined.
+    */
+    action SetGround(TerrainData data)
+        ground = data
     end
 
     /*
@@ -170,42 +180,44 @@ class FoliageCellItem is Item3D
     Attribute: Returns The level.
     */
     action GetLevel returns integer
-        return drawnLevel
+        if main:GetLevel() < 0
+            return 0
+        end
+        return main:GetLevel()
     end
 
     /*
-    This action returns the model drawing the copies (Foliage plan F5).
+    This action returns the model drawing the copies at the level drawn
+    (Foliage plan F5).
 
     Attribute: Returns The model, or undefined before Build.
     */
     action GetModel returns Model
-        return drawn
+        return main:GetModel()
     end
 
     /*
     This action returns how many copies are drawn after thinning (Foliage
-    plan F5). A card's planes count as one copy each.
+    plan F5), at the level drawn and the level faded into. A card's planes
+    count as one copy each.
 
     Attribute: Returns The count.
     */
     action GetDrawnCopyCount returns integer
-        if drawn = undefined or not drawnAdded
-            return 0
-        end
-        return drawn:GetCopyCount()
+        return main:GetDrawnCount() + fading:GetDrawnCount()
     end
 
     /*
-    This action makes the item's model again from its cell's copies, after
+    This action makes the item's models again from its cell's copies, after
     copies were added, removed or moved, or the asset changed (Foliage plan
-    F5). The old model is taken out and disposed.
+    F5). The old models are taken out and disposed.
     */
     action Build
         Clear()
         if cell = undefined or asset = undefined
             return now
         end
-        BuildLevel()
+        UpdateDrawings()
     end
 
     /*
@@ -218,25 +230,23 @@ class FoliageCellItem is Item3D
         if cell = undefined or asset = undefined
             return now
         end
-        if drawn = undefined
+        if main:GetModel() = undefined
             Build()
             return now
         end
-        boolean card = asset:IsLevelCard(drawnLevel)
-        number height = 1
-        if not card
-            height = drawn:GetHeight()
-        end
-        MakeCopies(card, height)
-        Thin()
+        MakeDrawing(main)
+        MakeDrawing(fading)
+        MakeDrawing(standIn)
+        KeepCopies()
     end
 
     /*
     This action tells the item how far the camera is from the cell's
     nearest side (Foliage plan F5 and F6). It picks the level of detail for
-    that distance, and how much the copies thin out near the draw distance,
-    and draws them again only if either changed, so calling it a few times
-    a second costs little.
+    that distance, how much the copies thin out near the draw distance, and
+    how far they have faded into the next level (Dense grass plan DG6), and
+    draws them again only if any of these changed, so calling it a few
+    times a second costs little.
 
     Attribute: Parameter distance How far the camera is, in world units.
     Attribute: Returns True if what is drawn changed.
@@ -247,26 +257,98 @@ class FoliageCellItem is Item3D
         end
         integer newLevel = asset:GetLevelForDistance(distance)
         integer newBand = GetBandFor(distance)
-        if newLevel not= level
+        integer newFadeLevel = -1
+        integer newFadeStep = 0
+        number margin = asset:GetFadeMargin()
+        if margin > 0
+            integer nextLevel = asset:GetLevelForDistance(distance + margin)
+            if nextLevel not= newLevel
+                number start = asset:GetLevelDistance(nextLevel)
+                number share = (distance - (start - margin)) / margin
+                newFadeStep = cast(integer, share * FADE_STEPS)
+                if newFadeStep < 0
+                    newFadeStep = 0
+                elseif newFadeStep > FADE_STEPS
+                    newFadeStep = FADE_STEPS
+                end
+                if newFadeStep > 0
+                    newFadeLevel = nextLevel
+                end
+            end
+        end
+        if newLevel not= level or newFadeLevel not= fadeLevel
             level = newLevel
             band = newBand
-            Build()
+            fadeLevel = newFadeLevel
+            fadeStep = newFadeStep
+            UpdateDrawings()
             return true
         end
-        if newBand not= band
+        if newBand not= band or newFadeStep not= fadeStep
             band = newBand
-            if drawn not= undefined
-                Thin()
-            end
+            fadeStep = newFadeStep
+            KeepCopies()
             return true
         end
         return false
     end
 
     /*
-    This action takes out and disposes the model.
+    This action sets whether the cell is within its asset's draw distance
+    of the camera (Dense grass plan DG1). The cell shows when it is near
+    and in view.
+
+    Attribute: Parameter near True if the cell is near enough to draw.
+    */
+    action SetNearCamera(boolean near)
+        nearCamera = near
+        ShowIfWanted()
+    end
+
+    /*
+    This action returns whether the cell is within its asset's draw
+    distance of the camera (Dense grass plan DG1).
+
+    Attribute: Returns True if it is near enough to draw.
+    */
+    action IsNearCamera returns boolean
+        return nearCamera
+    end
+
+    /*
+    This action sets whether the cell is inside the camera's view (Dense
+    grass plan DG1). The cell shows when it is near and in view.
+
+    Attribute: Parameter visible True if any of the cell is in view.
+    */
+    action SetInView(boolean visible)
+        if inView = visible
+            return now
+        end
+        inView = visible
+        ShowIfWanted()
+    end
+
+    /*
+    This action shows the cell if it is near the camera and in view, and
+    hides it otherwise (Dense grass plan DG1).
+    */
+    private action ShowIfWanted
+        boolean wanted = nearCamera and inView
+        if wanted and not IsShowing()
+            Show()
+        elseif not wanted and IsShowing()
+            Hide()
+        end
+    end
+
+    /*
+    This action takes out and disposes the models.
     */
     action Clear
+        main:Dispose(me)
+        fading:Dispose(me)
+        standIn:Dispose(me)
         repeat while GetItemCount() > 0
             Item3D child = Remove(GetItemCount() - 1)
             if child is Model
@@ -274,12 +356,6 @@ class FoliageCellItem is Item3D
                 model:Dispose()
             end
         end
-        if drawn not= undefined and not drawnAdded
-            drawn:Dispose()
-        end
-        drawn = undefined
-        drawnAdded = false
-        fullCount = 0
         reach = 0
     end
 
@@ -330,146 +406,159 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action makes the model for the wanted level of detail, or the
-    asset's own mesh if that level can't be drawn, with one copy per copy
-    in the cell (and per plane, for a card), and adds it (Foliage plan F5
-    and F6). The model sways with the asset's wind.
+    This action loads each drawing whose level should change, or disposes
+    it when it isn't needed, then sets how each draws and which copies it
+    keeps (Dense grass plan DG3 and DG6). The level drawn falls back to
+    the asset's own mesh if its file is missing.
     */
-    private action BuildLevel
-        integer chosen = level
-        if not IsLevelUsable(chosen)
-            chosen = 0
+    private action UpdateDrawings
+        integer mainLevel = level
+        if not IsLevelUsable(mainLevel)
+            mainLevel = 0
         end
-        if not IsLevelUsable(chosen)
+        if not IsLevelUsable(mainLevel)
+            Clear()
             return now
         end
-        File file = levelFiles:Get(chosen)
-        boolean card = asset:IsLevelCard(chosen)
-        Model model
-        number height = 1
-        if card
-            Texture texture = levelTextures:Get(chosen)
-            if texture = undefined
-                Texture loaded
-                loaded:LoadFromFile(file)
-                levelTextures:Set(chosen, loaded)
-                texture = loaded
-            end
-            number width = 1
-            if texture:GetHeight() > 0
-                width = texture:GetWidth() / cast(number, texture:GetHeight())
-            end
-            // A card is one unit tall, and as wide as its picture's shape,
-            // before the copy's scale.
-            model:LoadPlane(width, 1, texture, true)
-        else
-            model:Load(file)
-            // Its height before scaling, from its blueprint.
-            height = model:GetHeight()
+        LoadDrawing(main, mainLevel)
+
+        integer wantedFade = -1
+        if fadeLevel >= 0 and fadeLevel not= mainLevel and IsLevelUsable(fadeLevel)
+            wantedFade = fadeLevel
         end
-        model:SetCastsShadows(asset:CastsShadows())
-        model:SetAcceptsMouseInput(IsAcceptingMouseInput())
-        model:SetSway(asset:GetWind(), asset:GetWindDirection())
-        drawn = model
-        drawnAdded = false
-        drawnLevel = chosen
-        MakeCopies(card, height)
-        Thin()
+        LoadDrawing(fading, wantedFade)
+
+        LoadDrawing(standIn, GetStandInLevel())
+        ConfigureDrawings()
+        KeepCopies()
     end
 
     /*
-    This action works out every copy's transform, shade and thinning number
-    for the drawn level (Foliage plan F5), and the tallest copy's reach. A
-    copy stands at its place, turned about the up axis and scaled. A card
-    has one entry per plane: the plane lies flat, so it is pitched -90
-    degrees, which stands it up with the picture's top up (+90 put the
-    picture upside down), raised by half its height, and each plane is
-    turned an equal share of half a circle.
-
-    Attribute: Parameter card True for a card level.
-    Attribute: Parameter height The model's height before scaling, 1 for a card.
+    This action returns the shadow stand-in's level (Dense grass plan DG3):
+    the asset's shadow level, if the asset casts shadows, the level is
+    usable and casts shadows, and a level drawn now is nearer than it.
+    Otherwise -1, for none.
     */
-    private action MakeCopies(boolean card, number height)
-        integer planes = 1
-        if card
-            planes = asset:GetCardPlanes()
+    private action GetStandInLevel returns integer
+        integer standInLevel = asset:GetShadowLevel()
+        if not asset:CastsShadows() or standInLevel <= 0 or standInLevel > asset:GetLastShadowLevel()
+            return -1
         end
-        integer count = cell:GetCount()
-        integer total = count * planes
-        if fullTransforms:GetSize() not= total * 16
-            fullTransforms:SetSize(total * 16)
+        if not IsLevelUsable(standInLevel)
+            return -1
         end
-        if fullShades:GetSize() not= total
-            fullShades:SetSize(total)
+        boolean covers = (main:GetLevel() >= 0 and main:GetLevel() < standInLevel) or (fading:GetLevel() >= 0 and fading:GetLevel() < standInLevel)
+        if not covers
+            return -1
         end
-        if fullHashes:GetSize() not= total
-            fullHashes:SetSize(total)
+        return standInLevel
+    end
+
+    /*
+    This action makes a drawing draw a level, loading it if it draws
+    another, or disposes it for -1. A loaded drawing works out its copies.
+    */
+    private action LoadDrawing(FoliageCellDrawing drawing, integer wanted)
+        if wanted < 0
+            drawing:Dispose(me)
+            return now
         end
-        fullCount = total
+        if drawing:GetLevel() = wanted
+            return now
+        end
+        boolean card = asset:IsLevelCard(wanted)
+        Texture texture = drawing:Load(me, wanted, card, levelFiles:Get(wanted), levelTextures:Get(wanted))
+        if card and texture not= undefined
+            levelTextures:Set(wanted, texture)
+        end
+        MakeDrawing(drawing)
+    end
+
+    /*
+    This action works out a loaded drawing's copies, and the cell's reach.
+    */
+    private action MakeDrawing(FoliageCellDrawing drawing)
+        if drawing:GetModel() = undefined
+            return now
+        end
+        drawing:Make(cell, asset, ground)
         reach = 0
-        integer entry = 0
-        integer i = 0
-        repeat while i < count
-            number scale = cell:GetScale(i)
-            number x = cell:GetX(i)
-            number y = cell:GetY(i)
-            number z = cell:GetZ(i)
-            number shade = cell:GetShade(i)
-            number hash = GetHash(x, z)
-            integer plane = 0
-            repeat while plane < planes
-                if card
-                    WriteTransform(entry, cell:GetTurn(i) + plane * 180.0 / planes, -90, scale, x, y + scale / 2, z)
-                else
-                    WriteTransform(entry, cell:GetTurn(i), 0, scale, x, y, z)
-                end
-                fullShades:Set(entry, shade)
-                fullHashes:Set(entry, hash)
-                entry = entry + 1
-                plane = plane + 1
-            end
-            if height * scale > reach
-                reach = height * scale
-            end
-            i = i + 1
+        if main:GetReach() > reach
+            reach = main:GetReach()
+        end
+        if fading:GetReach() > reach
+            reach = fading:GetReach()
+        end
+        if standIn:GetReach() > reach
+            reach = standIn:GetReach()
         end
     end
 
     /*
-    This action writes one copy's transform into fullTransforms, column by
-    column, as Item3D builds a transform: its rotation from yaw and pitch,
-    times its scale, then its place.
+    This action sets how each drawing draws (Dense grass plan DG3): a level
+    casts shadows if the asset does, the level isn't past the asset's last
+    shadow level, and no stand-in throws its shadow; the stand-in draws
+    only its shadow.
     */
-    private action WriteTransform(integer entry, number yaw, number pitch, number scale, number x, number y, number z)
-        angles:SetEulerAngles(yaw, pitch, 0)
-        rotation:IdentityMatrix()
-        rotation:Rotate(angles)
-        integer base = entry * 16
-        fullTransforms:Set(base, rotation:row0column0 * scale)
-        fullTransforms:Set(base + 1, rotation:row1column0 * scale)
-        fullTransforms:Set(base + 2, rotation:row2column0 * scale)
-        fullTransforms:Set(base + 3, 0)
-        fullTransforms:Set(base + 4, rotation:row0column1 * scale)
-        fullTransforms:Set(base + 5, rotation:row1column1 * scale)
-        fullTransforms:Set(base + 6, rotation:row2column1 * scale)
-        fullTransforms:Set(base + 7, 0)
-        fullTransforms:Set(base + 8, rotation:row0column2 * scale)
-        fullTransforms:Set(base + 9, rotation:row1column2 * scale)
-        fullTransforms:Set(base + 10, rotation:row2column2 * scale)
-        fullTransforms:Set(base + 11, 0)
-        fullTransforms:Set(base + 12, x)
-        fullTransforms:Set(base + 13, y)
-        fullTransforms:Set(base + 14, z)
-        fullTransforms:Set(base + 15, 1)
+    private action ConfigureDrawings
+        integer standInLevel = standIn:GetLevel()
+        boolean mouse = IsAcceptingMouseInput()
+        main:Configure(CastsOwnShadow(main:GetLevel(), standInLevel), false, mouse, asset)
+        fading:Configure(CastsOwnShadow(fading:GetLevel(), standInLevel), false, mouse, asset)
+        standIn:Configure(true, true, false, asset)
     end
 
     /*
-    This action returns a number from 0 to 1 fixed by where a copy stands,
-    so the same copies thin out each time (Foliage plan F5).
+    This action returns true if a level throws its own shadow (Dense grass
+    plan DG3).
     */
-    private action GetHash(number x, number z) returns number
-        number value = hashMath:Sine(x * 12.9898 + z * 78.233) * 43758.5453
-        return value - hashMath:Floor(value)
+    private action CastsOwnShadow(integer drawnLevel, integer standInLevel) returns boolean
+        if not asset:CastsShadows() or drawnLevel < 0 or drawnLevel > asset:GetLastShadowLevel()
+            return false
+        end
+        if standInLevel >= 0 and drawnLevel < standInLevel
+            return false
+        end
+        return true
+    end
+
+    /*
+    This action gives each drawing the copies it keeps, by their numbers
+    from 0 to 1 (Foliage plan F5, Dense grass plan DG3 and DG6). Thinning
+    keeps those below a share; of those, the ones below the fade's share
+    are drawn at the next level, the rest at the level drawn. The stand-in
+    keeps the copies of every level nearer than its own.
+    */
+    private action KeepCopies
+        number share = 1
+        if band > 0
+            share = 1 - band / cast(number, THINNING_BANDS + 1)
+        end
+        number faded = 0
+        if fading:GetModel() not= undefined
+            faded = fadeStep / cast(number, FADE_STEPS)
+            if faded > share
+                faded = share
+            end
+        end
+        main:Keep(faded, share, me)
+        if fading:GetModel() not= undefined
+            fading:Keep(0, faded, me)
+        end
+        if standIn:GetModel() not= undefined
+            integer standInLevel = standIn:GetLevel()
+            boolean mainCovered = main:GetLevel() >= 0 and main:GetLevel() < standInLevel
+            boolean fadingCovered = fading:GetLevel() >= 0 and fading:GetLevel() < standInLevel
+            number low = faded
+            number high = share
+            if fadingCovered and mainCovered
+                low = 0
+            elseif fadingCovered
+                low = 0
+                high = faded
+            end
+            standIn:Keep(low, high, me)
+        end
     end
 
     /*
@@ -488,73 +577,6 @@ class FoliageCellItem is Item3D
             result = THINNING_BANDS
         end
         return result
-    end
-
-    /*
-    This action gives the model the copies its band keeps (Foliage plan
-    F5): every copy in band 0, and in each higher band a smaller share
-    (4 in 5, then 3, 2 and 1 in 5), those whose thinning number is below
-    it. It runs only when the band or the copies change, not every frame.
-    */
-    private action Thin
-        if drawn = undefined
-            return now
-        end
-        if band <= 0
-            SetDrawnCopies(fullTransforms, fullShades, fullCount)
-            return now
-        end
-        number share = 1 - band / cast(number, THINNING_BANDS + 1)
-        integer kept = 0
-        integer i = 0
-        repeat while i < fullCount
-            if fullHashes:Get(i) < share
-                kept = kept + 1
-            end
-            i = i + 1
-        end
-        Number32BitArray transforms
-        transforms:SetSize(kept * 16)
-        Number32BitArray shades
-        shades:SetSize(kept)
-        integer keptIndex = 0
-        i = 0
-        repeat while i < fullCount
-            if fullHashes:Get(i) < share
-                integer source = i * 16
-                integer target = keptIndex * 16
-                integer k = 0
-                repeat while k < 16
-                    transforms:Set(target + k, fullTransforms:Get(source + k))
-                    k = k + 1
-                end
-                shades:Set(keptIndex, fullShades:Get(i))
-                keptIndex = keptIndex + 1
-            end
-            i = i + 1
-        end
-        SetDrawnCopies(transforms, shades, kept)
-    end
-
-    /*
-    This action gives the model its copies, and adds it to the item, or
-    takes it out when there are none, since a model without copies would be
-    drawn once at the origin (Foliage plan F5).
-    */
-    private action SetDrawnCopies(Number32BitArray transforms, Number32BitArray shades, integer count)
-        if count <= 0
-            if drawnAdded
-                boolean removed = Remove(drawn)
-                drawnAdded = false
-            end
-            drawn:ClearCopies()
-            return now
-        end
-        drawn:SetCopies(transforms, shades)
-        if not drawnAdded
-            Add(drawn)
-            drawnAdded = true
-        end
     end
 
     /*
