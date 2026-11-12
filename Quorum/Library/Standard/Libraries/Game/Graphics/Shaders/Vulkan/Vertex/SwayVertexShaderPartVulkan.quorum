@@ -2,7 +2,7 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Vertex
 
 /*
 The SwayVertexShaderPartVulkan gives the GLSL shared by the 3D vertex
-shaders and the shadow vertex shaders for the wind (Foliage plan F6): the
+shaders and the shadow vertex shaders for the wind: the
 GPU material as MaterialVulkan writes it, and a function giving how far a
 vertex of a swaying material moves. Using the same text in each shader
 keeps a model and its shadow swaying together.
@@ -30,8 +30,7 @@ class SwayVertexShaderPartVulkan
     /*
     This action returns the GLSL for the GPU material and the Materials
     buffer reference, to come before the InstanceData struct, which then
-    holds a Materials member where its material's address is (Foliage plan
-    F6). The shader needs GL_EXT_buffer_reference and
+    holds a Materials member where its material's address is. The shader needs GL_EXT_buffer_reference and
     GL_EXT_scalar_block_layout.
 
     Attribute: Returns The GLSL text.
@@ -39,7 +38,7 @@ class SwayVertexShaderPartVulkan
     action GetMaterialCode returns text
         return "
 // The GPU material (MaterialVulkan), as the 3D fragment shader reads it.
-// The vertex shaders use its flags and its wind words (Foliage plan F6):
+// The vertex shaders use its flags and its wind words:
 // flag 128 sways; swayStrength is how far a point moves sideways per unit
 // of height above its model's origin; swayDirection is the wind's
 // direction about the up axis, in radians from +x toward +z.
@@ -80,15 +79,15 @@ layout(scalar, buffer_reference) buffer Materials
     /*
     This action returns the GLSL function swayOffset(materials, origin,
     worldPosition, time), which returns how far a vertex moves in the
-    world: nothing unless its material sways (Foliage plan F6). It must
+    world: nothing unless its material sways. It must
     come after GetMaterialCode's text.
 
     Attribute: Returns The GLSL text.
     */
     action GetSwayFunction returns text
         return "
-// How far a vertex of a swaying material moves in the wind (Foliage plan
-// F6). origin is the instance's place; worldPosition the vertex's place
+// How far a vertex of a swaying material moves in the wind. origin is the instance's place;
+// worldPosition the vertex's place
 // before swaying; time the shader time in seconds.
 vec3 swayOffset(Materials materials, vec3 origin, vec3 worldPosition, float time)
 {

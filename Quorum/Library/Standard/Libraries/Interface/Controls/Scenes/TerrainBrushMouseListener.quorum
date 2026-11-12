@@ -5,7 +5,7 @@ use Libraries.Interface.Events.MouseEvent
 
 /*
     The TerrainBrushMouseListener moves a terrain's brush to the ground under
-    the pointer, while a terrain tool is chosen in the scene editor (step 7).
+    the pointer, while a terrain tool is chosen in the scene editor.
     The SceneEditor adds one to itself.
 */
 class TerrainBrushMouseListener is MouseMovementListener
@@ -32,20 +32,19 @@ class TerrainBrushMouseListener is MouseMovementListener
             editor:MovePreviewGhostToPointer(event:GetX(), event:GetY())
         elseif editor:IsRiverToolActive()
             // The River tool shows the next stretch of the river being
-            // drawn instead (River plan R5).
+            // drawn instead.
             editor:MoveRiverLineToPointer(event:GetX(), event:GetY())
         else
             editor:MoveTerrainGhostToPointer(event:GetX(), event:GetY())
         end
     end
 
-    // During a stroke with the mouse, the brush follows the pointer (step 8).
+    // During a stroke with the mouse, the brush follows the pointer.
     action DraggedMouse(MouseEvent event)
         if editor not= undefined and editor:IsTerrainStroking()
             editor:MoveTerrainBrushToPointer(event:GetX(), event:GetY())
         elseif editor not= undefined and editor:IsDraggingRiverPoint()
-            // A river's point being moved follows the pointer (River plan
-            // R6).
+            // A river's point being moved follows the pointer.
             editor:DragRiverPoint(event:GetX(), event:GetY())
         end
     end

@@ -20,8 +20,7 @@ use Libraries.Game.Graphics.DeviceCoordinates
 
 use Libraries.Game.DesktopConfiguration
 class VulkanGraphics is GraphicsManager
-    // Times the GPU's phases of each frame, when turned on (Graphics timing
-    // plan T2). Game:SetGraphicsTiming turns it on.
+    // Times the GPU's phases of each frame, when turned on. Game:SetGraphicsTiming turns it on.
     GraphicsTimer graphicsTimer
     
 VulkanConstants constants
@@ -36,13 +35,13 @@ VulkanConstants constants
     VulkanCommandPool commandPool = undefined
     VulkanRenderPass renderPass = undefined
 
-    // MSAA for 3D (Item 27): how many samples per pixel the game asked for.
+    // MSAA for 3D: how many samples per pixel the game asked for.
     // 1 is off. GetUsableMultisampleCount gives the count the device can do.
     integer multisampleCount = 1
     boolean warnedAboutSampleCount = false
 
     // MSAA for everything drawn on the swapchain image: 2D layers, and the
-    // 3D layers' final copy and sky (Item 29). 1 is off.
+    // 3D layers' final copy and sky. 1 is off.
     integer multisampleCount2D = 1
     boolean warnedAboutSampleCount2D = false
 
@@ -87,12 +86,11 @@ VulkanImage depthBufferImage = undefined
     integer currentSwapchainIndex = - 1
     integer currentResourceIndex = -1
 
-    // Counts frames: BeginNextFrame adds one (Item 31). Objects handed to
+    // Counts frames: BeginNextFrame adds one. Objects handed to
     // Retire are freed by frame number.
     integer frameNumber = 0
 
-    // Objects waiting until no frame on the GPU can use them, oldest first
-    // (Item 31).
+    // Objects waiting until no frame on the GPU can use them, oldest first.
     Array<VulkanRetirable> retired
     VulkanFramebuffer currentFramebuffer = undefined
     
@@ -319,7 +317,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
             end
 
         // The render pass, depth image and framebuffers for the swapchain's
-        // images, and with 2D MSAA the multisampled color image (Item 29).
+        // images, and with 2D MSAA the multisampled color image.
         success = MakeSwapchainFramebuffers()
         if not success
             return false
@@ -379,7 +377,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
 
     /*
     This action returns the GPU timer, which times each frame's phases when
-    turned on (Graphics timing plan T2).
+    turned on.
 
     Attribute: Returns The timer
     */
@@ -465,11 +463,11 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         currentRenderFence:Wait()
 
         // The frame that last used this slot has finished, so its GPU times
-        // can be read (Graphics timing plan T2).
+        // can be read.
         graphicsTimer:Collect(currentResourceIndex)
 
         // Frame frameNumber - N, the last to use this slot, has now
-        // finished, so whatever was retired by then can be freed (Item 31).
+        // finished, so whatever was retired by then can be freed.
         ReleaseRetired(false)
         
         GameDisplay display = gameState:GetGameDisplay()
@@ -491,7 +489,7 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         end
 
         // If the 2D sample count changed, remake the swapchain's
-        // framebuffers for it (Item 29), as a resize would. The painters
+        // framebuffers for it, as a resize would. The painters
         // see their passes no longer match, and remake them.
         if GetUsableMultisampleCount2D() not= swapchainSampleCount
             device:WaitUntilIdle()
@@ -525,7 +523,7 @@ currentFramebuffer = swapchainFramebuffers:Get(currentSwapchainIndex)
         // Begin recording commands for our chosen command buffer.
         currentRenderCommandBuffer:BeginRecording()
 
-        // Stamp the frame's start, when timing (Graphics timing plan T2).
+        // Stamp the frame's start, when timing.
         graphicsTimer:BeginFrame(currentRenderCommandBuffer, currentResourceIndex, frameNumber)
     end
 
@@ -595,7 +593,7 @@ boolean success = swapchain:Create(device, surface, info)
         end
         
         // The depth image, multisampled image and framebuffers at the new
-        // size (Item 29).
+        // size.
         if not MakeSwapchainFramebuffers()
             alert("Failed to create framebuffers during swapchain regeneration!")
         end
@@ -606,7 +604,7 @@ boolean success = swapchain:Create(device, surface, info)
         repeat while i < swapchain:GetImageCount()
             // The old semaphore may still have a signal pending from the
             // acquire that found the swapchain out of date, so it is freed
-            // a few frames later rather than now (Item 32).
+            // a few frames later rather than now.
             if i < imageAcquiredSemaphores:GetSize()
                 Retire(imageAcquiredSemaphores:Get(i))
             end
@@ -769,7 +767,7 @@ boolean success = swapchain:Create(device, surface, info)
     swapchain image, and returns its one subpass. The 2D painter, the 3D
     painter's result pass, and the swapchain's framebuffers all use it, so
     they always match. Without MSAA the attachments are [swapchain image,
-    depth]; with 2D MSAA (Item 29) they are [multisampled color, multisampled
+    depth]; with 2D MSAA they are [multisampled color, multisampled
     depth, swapchain image], and the subpass resolves the multisampled color
     into the swapchain image as it ends. Either way the clear color is at 0
     and depth at 1.
@@ -878,7 +876,7 @@ boolean success = swapchain:Create(device, surface, info)
         Array<VulkanSubpassDependency> subpassDependencies
         subpassDependencies:Add(dependency)
 
-        // The old pass is freed once no frame uses it (Item 32).
+        // The old pass is freed once no frame uses it.
         Retire(renderPass)
         VulkanRenderPass pass
         renderPass = pass

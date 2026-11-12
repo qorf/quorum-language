@@ -12,7 +12,7 @@ use Libraries.System.File
 
 /*
 A FoliageCellDrawing is one model drawing some of a foliage cell's copies at
-one level of detail (Dense grass plan DG3 and DG6). A FoliageCellItem uses up
+one level of detail. A FoliageCellItem uses up
 to three: the level the cell is drawn at; the next level, which a growing
 share of the copies fade into near its distance; and a shadow stand-in, a
 simpler level drawn only into the shadows in place of a detailed one.
@@ -20,8 +20,8 @@ simpler level drawn only into the shadows in place of a detailed one.
 A drawing works out every copy's transform, color and a number from 0 to 1
 fixed by where the copy stands (Make), then draws only the copies whose
 number falls in a range (Keep), so thinning and fading pick the same copies
-each time. Copies are placed as Foliage plan F5 placed them, plus the
-asset's lean, slope and tint (Dense grass plan DG4).
+each time. Copies are placed where the cell puts them, plus the asset's
+lean, slope and tint.
 
 Attribute: Example
 use Libraries.Game.Graphics.Worlds.FoliageCellDrawing
@@ -87,8 +87,7 @@ class FoliageCellDrawing
         Texture texture = cardTexture
         if card
             if texture = undefined
-                // With mipmaps, as a cut-out picture (Dense grass plan
-                // DG5), as TerrainItem:LoadCardTexture loads them.
+                // With mipmaps, as a cut-out picture, as TerrainItem:LoadCardTexture loads them.
                 Texture loaded
                 loaded:SetCutoutMipMaps(0.5)
                 loaded:LoadFromFile(file:GetAbsolutePath(), true)
@@ -175,7 +174,7 @@ class FoliageCellDrawing
     copy stands at its place, turned about the up axis by its turn plus the
     asset's, and scaled. It leans with the ground if the asset says so,
     then by the asset's fixed lean plus a random lean, each copy in its own
-    direction (Dense grass plan DG4). A card has one entry per plane: the
+    direction. A card has one entry per plane: the
     plane lies flat, so it is pitched -90 degrees, which stands it with the
     picture's top up, raised by half its height, and each plane is turned
     an equal share of half a circle.
@@ -475,7 +474,7 @@ class FoliageCellDrawing
     /*
     This action writes one copy's color: the asset's tint with its hue
     turned by up to the asset's random hue either way, times the copy's
-    shade (Dense grass plan DG4). The hue is turned about the gray axis,
+    shade. The hue is turned about the gray axis,
     which keeps the color's brightness about the same.
     */
     private action WriteColor(integer entry, FoliageAsset asset, number shade, number random)
@@ -514,7 +513,7 @@ class FoliageCellDrawing
     /*
     This action returns a number from 0 to 1 fixed by where a copy stands
     and a seed, so each kind of randomness (thinning, lean, direction,
-    hue) is its own, and the same each time (Foliage plan F5).
+    hue) is its own, and the same each time.
     */
     private action GetHash(number x, number z, integer seed) returns number
         number value = math:Sine(x * 12.9898 + z * 78.233 + seed * 37.719) * 43758.5453

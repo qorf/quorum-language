@@ -29,7 +29,7 @@ class MaterialManagerVulkan
 
     // Textures shared by materials, by key: a file's path (with ":normal"
     // for normal maps), or a texture set's key. Each counts its users, and
-    // is disposed when none is left (Item 34).
+    // is disposed when none is left.
     HashTable<text, Texture> sharedTextures
     HashTable<text, integer> sharedTextureUsers
     HashTable<Texture, text> sharedTextureKeys
@@ -72,7 +72,7 @@ class MaterialManagerVulkan
             end
             pendingMaterials:Empty()
 
-            // Drawing waits for the material copies (Item 34).
+            // Drawing waits for the material copies.
             if copied
                 VulkanConstants constants
                 VulkanMemoryBarrier afterCopy

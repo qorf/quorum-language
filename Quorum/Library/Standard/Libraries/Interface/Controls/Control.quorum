@@ -27,6 +27,34 @@ use Libraries.Containers.Iterator
 use Libraries.Containers.Support.EmptyIterator
 use Libraries.Interface.Forms.FormConstants
 
+/*
+The Control class is the parent of the user interface elements in Quorum,
+such as Button, Checkbox, Slider and TextBox. A Control is an Item2D that
+can be placed by a Layout, can arrange its own children with a Layout,
+can take the focus, and can be activated to run a Behavior. Its size,
+font, colors and borders are kept in LayoutProperties. Any value that
+isn't set on the control itself comes from the interface options, looked
+up by the control's interface options key.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Color
+
+Form form
+Page page = form:GetMainPage()
+
+// A Button, like everything a page adds, is a Control.
+Control control = page:AddButton("Play")
+Color color
+control:SetBackgroundColor(color:Green())
+
+form:Display()
+*/
 class Control is Item2D
 
     // The following constants are used for SetHorizontalLayoutMode() and
@@ -299,12 +327,56 @@ class Control is Item2D
         return undefined
     end
 
+    /*
+        This action activates the control, as if the user had used it, such as
+        by clicking a button. It makes a BehaviorEvent for this control and
+        passes it to Activate(BehaviorEvent). If the control has an activation
+        behavior, that behavior runs.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Forms.FormBehavior
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Events.BehaviorEvent
+
+        class Main is FormBehavior
+            action Main
+                Form form
+                Page page = form:GetMainPage()
+                Button button = page:AddButton("Start")
+                button:SetBehavior(me)
+                button:Activate()
+                form:Display()
+            end
+
+            action Run(BehaviorEvent event)
+                output "The button was activated."
+            end
+        end
+    */
     action Activate
         BehaviorEvent event
         event:SetItem(me)
         Activate(event)
     end
 
+    /*
+        This action activates the control with the given event. If the control
+        has an activation behavior, the behavior runs with the event. When the
+        event names a different item, a copy that names this control is used
+        instead. Then the control activation listeners are told.
+
+        Attribute: Parameter event The event to activate the control with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Events.BehaviorEvent
+        Button button
+        BehaviorEvent event
+        event:SetItem(button)
+        button:Activate(event)
+    */
     action Activate(BehaviorEvent event)
         if GetActivationBehavior() not= undefined
             if event:GetItem() = undefined or not event:GetItem():Equals(me)
@@ -401,6 +473,19 @@ class Control is Item2D
         return parent:Item2D:Remove(index)
     end
 
+    /*
+        This action adds a listener that is told each time this control is
+        activated and runs its activation behavior.
+
+        Attribute: Parameter listener The listener to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Events.ControlActivationListener
+        Button button
+        ControlActivationListener listener
+        button:AddControlActivationListener(listener)
+    */
     action AddControlActivationListener(ControlActivationListener listener)
         if listeners = undefined
             Array<ControlActivationListener> array
@@ -410,6 +495,20 @@ class Control is Item2D
         listeners:Add(listener)
     end
 
+    /*
+        This action removes a listener, so it is no longer told when this
+        control is activated.
+
+        Attribute: Parameter listener The listener to remove.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Events.ControlActivationListener
+        Button button
+        ControlActivationListener listener
+        button:AddControlActivationListener(listener)
+        button:RemoveControlActivationListener(listener)
+    */
     action RemoveControlActivationListener(ControlActivationListener listener)
         if listeners = undefined
             return now
@@ -422,6 +521,13 @@ class Control is Item2D
         end
     end
 
+    /*
+        This action tells every control activation listener on this control,
+        and then the game's input handler, that the control was activated.
+        Activate calls this, so most users won't need to call it directly.
+
+        Attribute: Parameter event The event describing the activation.
+    */
     action NotifyControlActivationListeners(ControlActivationEvent event)
         if listeners not= undefined
             integer counter = 0
@@ -435,14 +541,55 @@ class Control is Item2D
         manager:GetInput():NotifyControlActivationListeners(event)
     end
 
+    /*
+        This action sets the layout used to place this control's children. The
+        layout is used each time the control is laid out, such as after a call
+        to RequestLayout.
+
+        Attribute: Parameter layout The layout to arrange the children with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Control
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Layouts.FlowLayout
+        Control container
+        FlowLayout layout
+        container:SetLayout(layout)
+        Button first
+        Button second
+        container:Add(first)
+        container:Add(second)
+    */
     action SetLayout(Layout layout)
         me:layout = layout
     end
 
+    /*
+        This action returns the layout used to place this control's children, or
+        undefined if it has none.
+
+        Attribute: Returns The layout of this control.
+    */
     action GetLayout returns Layout
         return layout
     end
 
+    /*
+        This action adds a LayoutProperties to this control. A control can keep
+        several, and when it is laid out it uses the one that fits its
+        container's size best (see GetLayoutProperties(number, number)). The
+        list is sorted again after each one is added.
+
+        Attribute: Parameter properties The LayoutProperties to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Layouts.LayoutProperties
+        Button button
+        LayoutProperties halfWidth
+        halfWidth:SetPercentageWidth(0.5)
+        button:AddLayoutProperties(halfWidth)
+    */
     action AddLayoutProperties(LayoutProperties properties)
         if layoutProperties = undefined
             Array<LayoutProperties> array
@@ -453,6 +600,20 @@ class Control is Item2D
         layoutProperties:Sort()
     end
 
+    /*
+        This action removes a LayoutProperties that was added with
+        AddLayoutProperties. The default LayoutProperties is not affected.
+
+        Attribute: Parameter properties The LayoutProperties to remove.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Layouts.LayoutProperties
+        Button button
+        LayoutProperties halfWidth
+        button:AddLayoutProperties(halfWidth)
+        button:RemoveLayoutProperties(halfWidth)
+    */
     action RemoveLayoutProperties(LayoutProperties properties)
         if layoutProperties = undefined
             return now
@@ -465,6 +626,24 @@ class Control is Item2D
         end
     end
 
+    /*
+        This action returns an iterator over the LayoutProperties added with
+        AddLayoutProperties. If none have been added, the iterator is empty.
+
+        Attribute: Returns An iterator over the added LayoutProperties.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Layouts.LayoutProperties
+        use Libraries.Containers.Iterator
+        Button button
+        LayoutProperties halfWidth
+        button:AddLayoutProperties(halfWidth)
+        Iterator<LayoutProperties> iterator = button:GetLayoutProperties()
+        repeat while iterator:HasNext()
+            LayoutProperties properties = iterator:Next()
+        end
+    */
     action GetLayoutProperties returns Iterator<LayoutProperties>
         if layoutProperties not= undefined
             return layoutProperties:GetIterator()
@@ -1309,10 +1488,34 @@ class Control is Item2D
         return defaultProperties:GetFontSize()
     end
 
+    /*
+        This action sets the key used to look up this control's look in the
+        interface options, such as "Button" or "Slider". Colors, borders and
+        other values that are not set on the control itself come from the
+        options stored under this key.
+
+        Attribute: Parameter key The interface options key.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetInterfaceOptionsKey("ToggleButton")
+    */
     action SetInterfaceOptionsKey(text key)
         defaultProperties:SetInterfaceOptionsKey(key)
     end
 
+    /*
+        This action returns the key used to look up this control's look in the
+        interface options.
+
+        Attribute: Returns The interface options key.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        output button:GetInterfaceOptionsKey()
+    */
     action GetInterfaceOptionsKey returns text
         return defaultProperties:GetInterfaceOptionsKey()
     end
@@ -1432,6 +1635,22 @@ defaultProperties:SetInterfaceScale(scale)
         return GetDefaultProportionalFontName()
     end
     
+/*
+    This action returns the name of a proportional font, one whose letters
+    have different widths, that is available on this system. It tries
+    FiraSans-Regular, Arial, Roboto, Helvetica, Georgia, Times New Roman and
+    a few others in order. If none is available, it returns the path of the
+    first available font file, or undefined when there is none.
+    GetDefaultFontName uses this by default.
+
+    Attribute: Returns The name of an available proportional font.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TextBox
+    TextBox box
+    text name = box:GetDefaultProportionalFontName()
+    output name
+*/
 action GetDefaultProportionalFontName returns text
 text name = undefined
         Font font
@@ -1463,6 +1682,22 @@ elseif font:IsFontAvailable("Roboto-Black")
     end
     
     
+/*
+    This action returns the name of a monospaced font, one whose letters all
+    have the same width, that is available on this system. It tries
+    FiraMono-Regular, Courier New Bold, Lato, Courier, Courier New and a few
+    others in order. If none is available, it returns the path of the first
+    available font file, or undefined when there is none. Controls that show
+    code can use this for their default font.
+
+    Attribute: Returns The name of an available monospaced font.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TextBox
+    TextBox box
+    text name = box:GetDefaultMonospaceFontName()
+    output name
+*/
 action GetDefaultMonospaceFontName returns text
         text name = undefined
         Font font
@@ -1620,7 +1855,7 @@ elseif font:IsFontAvailable("courbd")
                 // layout that skips hidden children never clears their
                 // flag, so a hidden child that once asked (such as a hidden
                 // label whose text was set) laid its parent out on every
-                // update (Studio plan TeamTabSpeed.md, 2026-11-06). Its flag
+                // update. Its flag
                 // stays set, so it is laid out once it shows.
                 if control:IsShowing() and control:NeedsLayout()
                     Resize()
@@ -1955,10 +2190,31 @@ elseif font:IsFontAvailable("courbd")
         return defaultProperties:GetMouseOverFontColor()
     end
 
+    /*
+        This action sets the border color used while the mouse is over the
+        control. If it isn't set on the control, the color comes from the
+        interface options.
+
+        Attribute: Parameter value The mouse over border color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Game.Graphics.Color
+        Button button
+        Color color
+        button:SetMouseOverBorderColor(color:Blue())
+    */
     action SetMouseOverBorderColor(ColorGroup value)
         defaultProperties:SetMouseOverBorderColor(value)
     end
 
+    /*
+        This action returns the border color used while the mouse is over the
+        control: the one set on the control, or else the one from the interface
+        options.
+
+        Attribute: Returns The mouse over border color.
+    */
     action GetMouseOverBorderColor returns ColorGroup
         return defaultProperties:GetMouseOverBorderColor()
     end
@@ -2212,26 +2468,76 @@ elseif font:IsFontAvailable("courbd")
         return defaultProperties:HasBorderThickness()
     end
 
+    /*
+        This action sets the border thickness used while the control is
+        selected. If it isn't set on the control, the thickness comes from the
+        interface options.
+
+        Attribute: Parameter value The selection border thickness.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetSelectionBorderThickness(2)
+    */
     action SetSelectionBorderThickness(number value)
         defaultProperties:SetSelectionBorderThickness(value)
     end
 
+    /*
+        This action returns the border thickness used while the control is
+        selected: the one set on the control, or else the one from the interface
+        options, or 0 when neither has one.
+
+        Attribute: Returns The selection border thickness.
+    */
     action GetSelectionBorderThickness returns number
         return defaultProperties:GetSelectionBorderThickness()
     end
 
+    /*
+        This action returns whether a selection border thickness has been set,
+        either on the control or in the interface options.
+
+        Attribute: Returns True if a selection border thickness has been set.
+    */
     action HasSelectionBorderThickness returns boolean
         return defaultProperties:HasSelectionBorderThickness()
     end
 
+    /*
+        This action sets the border thickness used while the mouse is over the
+        control. If it isn't set on the control, the thickness comes from the
+        interface options.
+
+        Attribute: Parameter value The mouse over border thickness.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetMouseOverBorderThickness(2)
+    */
     action SetMouseOverBorderThickness(number value)
         defaultProperties:SetMouseOverBorderThickness(value)
     end
 
+    /*
+        This action returns the border thickness used while the mouse is over
+        the control: the one set on the control, or else the one from the
+        interface options, or 0 when neither has one.
+
+        Attribute: Returns The mouse over border thickness.
+    */
     action GetMouseOverBorderThickness returns number
         return defaultProperties:GetMouseOverBorderThickness()
     end
 
+    /*
+        This action returns whether a mouse over border thickness has been set,
+        either on the control or in the interface options.
+
+        Attribute: Returns True if a mouse over border thickness has been set.
+    */
     action HasMouseOverBorderThickness returns boolean
         return defaultProperties:HasMouseOverBorderThickness()
     end
@@ -2246,10 +2552,23 @@ elseif font:IsFontAvailable("courbd")
         defaultProperties:SetFocusBorderThickness(value)
     end
 
+    /*
+        This action returns the border thickness used while the control has the
+        focus: the one set on the control, or else the one from the interface
+        options, or 0 when neither has one.
+
+        Attribute: Returns The focus border thickness.
+    */
     action GetFocusBorderThickness returns number
         return defaultProperties:GetFocusBorderThickness()
     end
 
+    /*
+        This action returns whether a focus border thickness has been set,
+        either on the control or in the interface options.
+
+        Attribute: Returns True if a focus border thickness has been set.
+    */
     action HasFocusBorderThickness returns boolean
         return defaultProperties:HasFocusBorderThickness()
     end

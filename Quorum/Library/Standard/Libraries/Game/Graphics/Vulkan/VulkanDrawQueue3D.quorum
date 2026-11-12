@@ -51,7 +51,7 @@ queued elements for the scene render pass, only sending draw commands for models
     integer currentShadowDrawCommandIndex = 0
 
     // Each shadow command's numbers and the point lights whose shadow
-    // searches found its models, one bit per light (Shadow plan S2), so
+    // searches found its models, one bit per light, so
     // each point light gets a list of only its own commands
     // (BuildPointShadowLists). -1 is every light.
     Integer32BitArray shadowCommandVertexCounts
@@ -61,7 +61,7 @@ queued elements for the scene render pass, only sending draw commands for models
 
     // The point lights' lists, one after another, and where each starts
     // and how many commands it has, by the light's place among the point
-    // lights (Shadow plan S2). The buffer grows by doubling, and an old one
+    // lights. The buffer grows by doubling, and an old one
     // is retired, as frames on the GPU may still read it.
     VulkanBuffer pointShadowDrawCommandBuffer = undefined
     VulkanDrawIndirectDataMappedMemory pointShadowDrawDataMemory = undefined
@@ -80,7 +80,7 @@ queued elements for the scene render pass, only sending draw commands for models
     
     integer textureGroupID = -1
 
-    // Room for more instances (Foliage plan F5). A queue holds maxInstances;
+    // Room for more instances. A queue holds maxInstances;
     // instances that don't fit are counted here and not drawn, and the
     // queue grows to fit them the next time it starts empty, so nothing
     // already written is lost. The old buffers are retired, since frames
@@ -100,8 +100,7 @@ queued elements for the scene render pass, only sending draw commands for models
     /*
     This action makes the queue's instance buffer and its two draw command
     buffers (for the scene and the shadows), with room for a number of
-    instances, and maps them. Create uses it, and growing does again
-    (Foliage plan F5).
+    instances, and maps them. Create uses it, and growing does again.
 
     Attribute: Parameter capacity How many instances the queue holds.
     */
@@ -134,8 +133,7 @@ queued elements for the scene render pass, only sending draw commands for models
         shadowDrawCommandBuffer:CreateMappableBuffer(device, drawCommandBuffer:GetSize(), constants:BUFFER_USAGE_INDIRECT_BUFFER_BIT)
         shadowDrawDataMemory = shadowDrawCommandBuffer:MapToDrawIndirectDataMemory()
 
-        // Each shadow command's numbers, for the point lights' lists
-        // (Shadow plan S2).
+        // Each shadow command's numbers, for the point lights' lists.
         shadowCommandVertexCounts:SetSize(capacity)
         shadowCommandInstanceCounts:SetSize(capacity)
         shadowCommandFirstInstances:SetSize(capacity)
@@ -143,8 +141,8 @@ queued elements for the scene render pass, only sending draw commands for models
     end
 
     /*
-    This action returns how many more instances fit in the queue this frame
-    (Foliage plan F5). If instances were turned away in an earlier frame and
+    This action returns how many more instances fit in the queue this frame.
+If instances were turned away in an earlier frame and
     nothing has been written yet this frame, the queue grows first.
 
     Attribute: Returns How many more instances fit.
@@ -157,8 +155,8 @@ queued elements for the scene render pass, only sending draw commands for models
     end
 
     /*
-    This action counts instances that didn't fit this frame (Foliage plan
-    F5), so the queue grows to fit them in a later frame. Once it can't
+    This action counts instances that didn't fit this frame, so the queue grows to fit them in a
+    later frame. Once it can't
     grow any more, it says so once.
 
     Attribute: Parameter count How many instances were left out.
@@ -185,8 +183,8 @@ queued elements for the scene render pass, only sending draw commands for models
 
     /*
     This action makes the queue's buffers larger, doubling until they hold
-    the number of instances needed, up to MAXIMUM_INSTANCES (Foliage plan
-    F5). It is only used while the queue is empty this frame. The old
+    the number of instances needed, up to MAXIMUM_INSTANCES. It is only used while the queue is
+    empty this frame. The old
     buffers are retired, as frames on the GPU may still read them.
 
     Attribute: Parameter needed How many instances must fit.
@@ -222,7 +220,7 @@ queued elements for the scene render pass, only sending draw commands for models
     
     action Begin
         // Instances left out last time this queue was used make it grow
-        // the next time it starts empty (Foliage plan F5).
+        // the next time it starts empty.
         if droppedThisFrame > 0
             integer needed = currentInstanceIndex + droppedThisFrame
             if needed > pendingCapacity
@@ -261,8 +259,7 @@ Matrix4 modelMatrix)
     end
     
     /*
-    This action adds instances packed in a block, in one copy (Dense grass
-    plan DG2): the first count of them. The caller makes sure they fit
+    This action adds instances packed in a block, in one copy: the first count of them. The caller makes sure they fit
     (GetRoom), as for AddInstanceData.
 
     Attribute: Parameter block The packed instances.
@@ -283,8 +280,7 @@ Matrix4 modelMatrix)
     /*
     This action adds a draw command for the scene and, if the instances
     cast shadows, for the shadows, with the point lights whose shadow
-    searches found the instances' models, one bit per light (Shadow plan
-    S2). -1 is every point light.
+    searches found the instances' models, one bit per light. -1 is every point light.
 
     Attribute: Parameter vertexCount How many vertices each instance draws.
     Attribute: Parameter instanceCount How many instances the command draws.
@@ -297,7 +293,7 @@ Matrix4 modelMatrix)
 
     /*
     This action adds a draw command for the shadows and, unless the
-    instances draw only their shadows (Dense grass plan DG3), for the
+    instances draw only their shadows, for the
     scene, as the action without inScene does.
 
     Attribute: Parameter vertexCount How many vertices each instance draws.
@@ -359,7 +355,7 @@ Matrix4 modelMatrix)
 
     /*
     This action makes each point light's list of shadow commands, the ones
-    whose models its shadow search found (Shadow plan S2), for this frame.
+    whose models its shadow search found, for this frame.
     Lights past Layer3D's MAXIMUM_SHADOW_BITS have no bit, and use every
     shadow command (GetShadowDrawCommandBuffer). Call it once, after the
     frame's commands are added and before the shadow pass is recorded.
@@ -425,7 +421,7 @@ Matrix4 modelMatrix)
 
     /*
     This action makes sure the point lights' list buffer holds a number of
-    commands, doubling its size as needed (Shadow plan S2). An old buffer
+    commands, doubling its size as needed. An old buffer
     is retired, since frames on the GPU may still read it.
 
     Attribute: Parameter needed How many commands must fit.
@@ -458,8 +454,7 @@ Matrix4 modelMatrix)
 
     /*
     This action returns true if the point light at a place among the point
-    lights has its own list of shadow commands this frame (Shadow plan
-    S2). If not, it uses every shadow command.
+    lights has its own list of shadow commands this frame. If not, it uses every shadow command.
 
     Attribute: Parameter place The light's place among the point lights.
     Attribute: Returns True if it has its own list.
@@ -470,7 +465,7 @@ Matrix4 modelMatrix)
 
     /*
     This action returns the buffer holding the point lights' lists of
-    shadow commands (Shadow plan S2). It is undefined until a list has had
+    shadow commands. It is undefined until a list has had
     a command.
 
     Attribute: Returns The buffer.
@@ -481,7 +476,7 @@ Matrix4 modelMatrix)
 
     /*
     This action returns where a point light's list of shadow commands
-    starts in GetPointShadowDrawCommandBuffer, in bytes (Shadow plan S2).
+    starts in GetPointShadowDrawCommandBuffer, in bytes.
 
     Attribute: Parameter place The light's place among the point lights.
     Attribute: Returns The list's offset in bytes.
@@ -492,8 +487,7 @@ Matrix4 modelMatrix)
     end
 
     /*
-    This action returns how many shadow commands a point light's list has
-    (Shadow plan S2).
+    This action returns how many shadow commands a point light's list has.
 
     Attribute: Parameter place The light's place among the point lights.
     Attribute: Returns The number of commands.

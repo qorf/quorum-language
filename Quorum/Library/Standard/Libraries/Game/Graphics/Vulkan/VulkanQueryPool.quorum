@@ -4,7 +4,7 @@ use Libraries.Containers.Number64BitArray
 
 /*
 A VulkanQueryPool is a pool of Vulkan queries: numbers the GPU writes while
-it works, read back afterward (Graphics timing plan T1). There are three
+it works, read back afterward. There are three
 kinds:
 - TIMESTAMP: the GPU's clock when it reached a point in a command buffer
   (WriteTimestampCommand). Read with ReadTimestamps, in milliseconds.

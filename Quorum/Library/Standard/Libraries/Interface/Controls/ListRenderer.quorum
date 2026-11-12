@@ -7,6 +7,34 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+The ListRenderer class is the scrolling area inside a List that holds and
+draws the List's entries. Each List makes its own ListRenderer, so users
+rarely need this class directly. On each refresh it places only the entries
+that are on screen and hides the rest, which keeps long lists fast to draw.
+It also draws the List's box, using the List's background color.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.List
+use Libraries.Interface.Controls.ListRenderer
+use Libraries.Interface.Controls.ListItem
+
+Form form
+Page page = form:GetMainPage()
+
+List fruits = page:AddList("Fruits")
+fruits:Add("Apples")
+
+ListRenderer renderer = cast(ListRenderer, fruits:GetScrollableRegion())
+ListItem first = renderer:GetListItem(0)
+output first:GetText()
+
+form:Display()
+*/
 class ListRenderer is Control
 
     Array<ListItem> drawnItems
@@ -26,19 +54,41 @@ class ListRenderer is Control
         SetChildrenProcessingMouseEvents(true)
     end
 
+    /*
+    This action returns the List this renderer belongs to.
+
+    Attribute: Returns The parent List, or undefined if the renderer is not in a List.
+    */
     action GetList returns List
         return cast(List, GetParent())
     end
 
+    /*
+    This action returns the entry at the given index.
+
+    Attribute: Parameter index The index of the entry.
+
+    Attribute: Returns The ListItem at that index.
+    */
     action GetListItem(integer index) returns ListItem
         return cast(ListItem, GetChildren():Get(index))
     end
 
+    /*
+    This action removes every entry from the renderer and forgets which
+    entries it last drew.
+    */
     action Empty
         parent:Item2D:Empty()
         drawnItems:Empty()
     end
 
+    /*
+    This action sets up the renderer's graphics, making the view that draws
+    the List's box if there is none yet.
+
+    Attribute: Parameter properties The layout properties to load the graphics from.
+    */
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
             ControlShaderView newView
@@ -49,6 +99,13 @@ class ListRenderer is Control
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+    This action places the entries for the List's current scroll position.
+    Entries above the first visible line, and entries past the bottom of the
+    box, are hidden. The rest are shown, laid out if needed, set just inside
+    the box's left and right edges, and remembered as the entries to draw.
+    The List calls it when its scroll position or size changes.
+    */
     action RefreshContents
         drawnItems:Empty()
 
@@ -99,6 +156,12 @@ class ListRenderer is Control
         end
     end
 
+    /*
+    This action draws the List's box and then the entries that are on
+    screen.
+
+    Attribute: Parameter painter The painter used to draw.
+    */
     action Draw(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
@@ -112,6 +175,13 @@ class ListRenderer is Control
         end
     end
 
+    /*
+    This action returns the background color of the renderer. Unless the
+    renderer's own background color was set, it uses the List's background
+    color, so the box matches the List.
+
+    Attribute: Returns The background color.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()

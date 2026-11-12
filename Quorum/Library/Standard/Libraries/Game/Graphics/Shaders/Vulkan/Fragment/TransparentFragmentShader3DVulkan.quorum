@@ -4,11 +4,11 @@ use Libraries.Game.Graphics.Shaders.Shader
 
 /*
 TransparentFragmentShader3DVulkan colors see-through models, such as glass
-and alpha-blended materials (Lighting plan L6). It is a forward shader:
+and alpha-blended materials. It is a forward shader:
 drawn after the deferred lighting and water, over the lit image, back to
 front. It reads the model's material as the default 3D fragment shader does,
 lights it with every light (no shadows are received yet) and the light from
-the sky (Lighting plan L5), and blends it by its alpha: the texture's alpha
+the sky, and blends it by its alpha: the texture's alpha
 times the material's (or the model's color's) alpha. Reflections and glints
 aren't faded with the alpha, so clear glass still shines. It compares its
 distance with the G-buffer's position, so models in front hide it.
@@ -41,7 +41,7 @@ class TransparentFragmentShader3DVulkan is Shader
 
 const float PI = 3.14159265359;
 
-// The 3D camera uniform (library item 38).
+// The 3D camera uniform.
 layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
@@ -50,7 +50,7 @@ layout(set = 0, binding = 0) uniform Camera
     vec2 screenSize;
     float nearPlane;
     float farPlane;
-    // 1 if lighting is linear (Linear lighting plan).
+    // 1 if lighting is linear.
     float linearLighting;
 } camera;
 
@@ -91,24 +91,24 @@ layout(scalar, set = 3, binding = 1) uniform SceneInfo
 	float fogAmount;
 	float fogBaseHeight;
 	float fogHeightFalloff;
-	// The light from the sky (Lighting plan L5).
+	// The light from the sky.
 	vec4 skyLight;
 	vec4 skyTint;
 	vec4 skyRotation[3];
 	vec4 skyIrradiance[9];
 } sceneInfo;
 
-// The sky's own cube (Water plan W4), for what shows behind over the sky.
+// The sky's own cube, for what shows behind over the sky.
 layout(set = 4, binding = 0) uniform samplerCube skyCube;
 
-// The sky light's cubes (Lighting plan L5): the sky, then four blurrier.
+// The sky light's cubes: the sky, then four blurrier.
 layout(set = 5, binding = 0) uniform samplerCube skyLightCube0;
 layout(set = 5, binding = 1) uniform samplerCube skyLightCube1;
 layout(set = 5, binding = 2) uniform samplerCube skyLightCube2;
 layout(set = 5, binding = 3) uniform samplerCube skyLightCube3;
 layout(set = 5, binding = 4) uniform samplerCube skyLightCube4;
 
-// What is behind (Transmission plan T3): the lit image before see-through
+// What is behind: the lit image before see-through
 // models are drawn, copied down four times, each half the size of the last
 // from half the window's size, the sharpest first.
 layout(set = 6, binding = 0) uniform sampler2D behind0;
@@ -141,7 +141,7 @@ struct Material {
 	float uvRotation;
 	uint reserved1;
 	uint reserved2;
-	// How much light goes through (Transmission plan T1): the amount, 0 to
+	// How much light goes through: the amount, 0 to
 	// 255, in the low 8 bits; bit 8 if there is a texture; its index above.
 	uint transmission;
 };
@@ -168,7 +168,7 @@ layout(scalar, buffer_reference) buffer Instances {
    InstanceData[] data;
 };
 
-// 128 bytes (library item 39): the instance address, 18 numbers the
+// 128 bytes: the instance address, 18 numbers the
 // program doesn't use, then the painter's 12 numbers of forward scene data.
 layout(scalar, push_constant) uniform PushConstants {
    Instances instances;
@@ -192,7 +192,7 @@ layout(location = 7) in mat3 v_tangentBitangentNormal;
 
 layout(location = 0) out vec4 outputColor;
 
-// How much of a light's strength reaches a distance (library item 37).
+// How much of a light's strength reaches a distance.
 float rangeAttenuation(float distance, float range)
 {
     float inverseSquare = 1.0 / max(distance * distance, 0.0001);
@@ -219,7 +219,7 @@ vec3 linearFromPicture(vec3 color)
 }
 
 // A color as pictures store it turned into an amount of light when
-// lighting is linear (Linear lighting plan); as it is otherwise.
+// lighting is linear; as it is otherwise.
 vec3 shaderColor(vec3 color)
 {
 	if (camera.linearLighting < 0.5)
@@ -251,7 +251,7 @@ void lightSurface(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 F0, vec3 albedo, f
 }
 
 // The light from behind a thin surface that lets light through, such as
-// paper or frosted glass (Transmission plan T2), as the Khronos sample
+// paper or frosted glass, as the Khronos sample
 // viewer works it out for thin walls: the light is mirrored to the
 // viewer's side of the surface, then spread by the roughness (GGX), and
 // tinted by the surface's color.
@@ -278,7 +278,7 @@ void lightThrough(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 albedo, float roug
     through += albedo * transmission * btdf * radiance * NdotM;
 }
 
-// A direction turned into the sky cube's own directions (Lighting plan L5).
+// A direction turned into the sky cube's own directions.
 vec3 skyTurn(vec3 direction)
 {
 	return vec3(dot(direction, sceneInfo.skyRotation[0].xyz), dot(direction, sceneInfo.skyRotation[1].xyz), dot(direction, sceneInfo.skyRotation[2].xyz));
@@ -313,7 +313,7 @@ vec3 skyCubeColor(int level, vec3 direction)
 	return textureLod(skyLightCube4, direction, 0.0).rgb;
 }
 
-// A sky cube's color as light (Linear lighting plan).
+// A sky cube's color as light.
 vec3 skyCubeLevel(int level, vec3 direction)
 {
 	return shaderColor(skyCubeColor(level, direction));
@@ -329,7 +329,7 @@ vec3 skyReflection(vec3 direction, float roughness)
 	return mix(skyCubeLevel(first, turned), skyCubeLevel(second, turned), level - lower);
 }
 
-// Karis's fit of the environment BRDF for mobile (Lighting plan L5).
+// Karis's fit of the environment BRDF for mobile.
 vec3 environmentBRDF(vec3 F0, float roughness, float NdotV)
 {
 	const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
@@ -340,7 +340,7 @@ vec3 environmentBRDF(vec3 F0, float roughness, float NdotV)
 	return F0 * AB.x + AB.y;
 }
 
-// One copy of what is behind (Transmission plan T3).
+// One copy of what is behind.
 vec3 behindLevel(int level, vec2 uv)
 {
 	if (level <= 0)
@@ -352,8 +352,8 @@ vec3 behindLevel(int level, vec2 uv)
 	return textureLod(behind3, uv, 0.0).rgb;
 }
 
-// What is behind at a point on the screen, blurrier for rougher surfaces
-// (Transmission plan T3), as rough glass or paper blurs what is behind it.
+// What is behind at a point on the screen, blurrier for rougher surfaces,
+// as rough glass or paper blurs what is behind it.
 vec3 seenBehind(vec2 uv, float roughness)
 {
 	float level = clamp(roughness, 0.0, 1.0) * 3.0;
@@ -363,16 +363,16 @@ vec3 seenBehind(vec2 uv, float roughness)
 	return mix(behindLevel(first, uv), behindLevel(second, uv), level - lower);
 }
 
-// The sky seen behind, as the skybox draws it (Water plan W4).
+// The sky seen behind, as the skybox draws it.
 vec3 skyBehind(vec3 direction)
 {
     vec3 turned = vec3(dot(direction, pushConstants.skyColumn0), dot(direction, pushConstants.skyColumn1), dot(direction, pushConstants.skyColumn2));
     turned.x = turned.x * pushConstants.skyInverter;
-    // The sky picture's colors as light (Linear lighting plan).
+    // The sky picture's colors as light.
     return shaderColor(textureLod(skyCube, turned, 0.0).rgb);
 }
 
-// Fades a color into the fog, as the lighting pass does (library item 40).
+// Fades a color into the fog, as the lighting pass does.
 vec3 applyFog(vec3 color, vec3 worldPosition)
 {
 	if (sceneInfo.fogAmount <= 0.0)
@@ -401,12 +401,12 @@ void main()
     if (!gl_FrontFacing && !twoSided)
         discard;
 
-    // How much light goes through the surface (Transmission plan T1): the
+    // How much light goes through the surface: the
     // amount in the low 8 bits, times the red of its texture if bit 8 is
     // set. The see-through pass has no depth, so a two-sided surface's
     // inside and outside would cover each other in any order; for a thin
     // surface that lets light through, the back is left out, since the
-    // light from behind comes through the front (T2).
+    // light from behind comes through the front.
     float transmission = 0.0;
     if ((material.flags & 256u) != 0u)
     {
@@ -451,7 +451,7 @@ void main()
     if (textureSet)
         color.a = diffuse.a;
     float alpha = clamp(color.a, 0.0, 1.0);
-    // The color as an amount of light (Linear lighting plan).
+    // The color as an amount of light.
     vec3 albedo = shaderColor(color.rgb);
 
     // The normal, roughness, metal and ambient occlusion, as the default 3D
@@ -499,7 +499,7 @@ void main()
 
     vec3 diffuseLight = vec3(0.0);
     vec3 glint = vec3(0.0);
-    // The light that comes through from behind (Transmission plan T2).
+    // The light that comes through from behind.
     vec3 through = vec3(0.0);
     if ((material.flags & 8u) != 0u)
     {
@@ -509,7 +509,7 @@ void main()
     else
     {
         // With linear lighting the albedo is already light; otherwise only
-        // the metal's reflection color is turned (Linear lighting plan).
+        // the metal's reflection color is turned.
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
         if (camera.linearLighting < 0.5)
             F0 = mix(vec3(0.04), linearFromPicture(albedo), metallic);
@@ -544,7 +544,7 @@ void main()
         }
 
         // The flat ambient light, and the light from the sky taking its
-        // place as its strength grows to 1 (Lighting plan L5).
+        // place as its strength grows to 1.
         vec3 ambient = sceneInfo.ambientColor * sceneInfo.ambientIntensity * albedo;
         float skyStrength = sceneInfo.skyLight.x;
         if (skyStrength > 0.0)
@@ -562,7 +562,7 @@ void main()
         }
         diffuseLight += ambient * occlusion;
 
-        // What is behind comes through too (Transmission plan T3), tinted
+        // What is behind comes through too, tinted
         // by the surface's color: the copy of the lit image where the scene
         // is behind, or else the sky, which is drawn after.
         if (transmission > 0.0)
@@ -576,13 +576,13 @@ void main()
         }
 
         // Light that goes through takes the place of the light the surface
-        // scatters (Transmission plan T2): glTF mixes the two by the
+        // scatters: glTF mixes the two by the
         // transmission. Reflections are kept.
         if (transmission > 0.0)
             diffuseLight = diffuseLight * (1.0 - transmission) + through;
     }
 
-    // A surface that lets light through draws what is behind itself (T3),
+    // A surface that lets light through draws what is behind itself,
     // so it covers what is behind instead of blending with it.
     if (transmission > 0.0)
         alpha = 1.0;

@@ -23,11 +23,11 @@ use Libraries.Game.Graphics.Worlds.FoliageList
 use Libraries.Interface.Controls.ToggleButton
 
 /*
-    The TerrainBrushPropertiesDialog is a selected terrain's Brush section
-    (step 7): which tool is chosen, then only what that tool uses (step 16):
+    The TerrainBrushPropertiesDialog is a selected terrain's Brush section:
+which tool is chosen, then only what that tool uses:
     the paint layer for Paint; what Flatten evens the ground to, and its
-    height when it is a set height; the foliage asset for Foliage (Terrain
-    plan F3), with how to remove copies; and the Brush Settings (size, strength
+    height when it is a set height; the foliage asset for Foliage, with how to remove copies; and
+    the Brush Settings (size, strength
     and falloff) for the tools that use them. Choosing a tool here does the
     same as its key: a ring shows the brush on the ground, and the arrow
     keys and pointer move it. "No tool" leaves the tool.
@@ -38,17 +38,17 @@ use Libraries.Interface.Controls.ToggleButton
 class TerrainBrushPropertiesDialog is PropertiesDialog
 
     ButtonGroup toolGroup = undefined
-    // The layer the Paint tool paints (step 9), named from the terrain's
+    // The layer the Paint tool paints, named from the terrain's
     // materials.
     ButtonGroup layerGroup = undefined
     // Flatten's setting: the height where each stroke starts, or a set
-    // height (step 8).
+    // height.
     ButtonGroup flattenGroup = undefined
     TextField flattenHeightField = undefined
     Button takeButton = undefined
 
-    // The section's parts, each shown only for the tools that use it
-    // (step 16), and the parts shown now, in order, after the heading.
+    // The section's parts, each shown only for the tools that use it,
+    // and the parts shown now, in order, after the heading.
     Control sectionBody = undefined
     Control toolPart = undefined
     Control paintLabelPart = undefined
@@ -65,7 +65,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     Control falloffPart = undefined
     Array<Control> partsShown
 
-    // The Foliage tool's part (Terrain plan F3): the asset it paints, one
+    // The Foliage tool's part: the asset it paints, one
     // button per asset of the terrain's foliage list, made again when the
     // list's names change, and a note on removing copies.
     Control foliageLabelPart = undefined
@@ -78,7 +78,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     // them.
     Array<integer> foliageOrder
 
-    // The water tools' part (Water plan W6): how far above the ground under
+    // The water tools' part: how far above the ground under
     // the brush the water's level goes.
     Control waterLabelPart = undefined
     Control waterPart = undefined
@@ -114,7 +114,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         // Each part is a card with its title, in one container, so a part
@@ -149,15 +149,15 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddToolButton("Stamp")
         AddToolButton("Erode")
         AddToolButton("Auto paint")
-        // Paints foliage (EditorTerrain's FOLIAGE_TOOL, Terrain plan F3).
+        // Paints foliage (EditorTerrain's FOLIAGE_TOOL).
         AddToolButton("Foliage")
         // The water tools (EditorTerrain's FILL_WATER_TOOL and
-        // PAINT_WATER_TOOL, Water plan W6). Fill water uses only the water
+        // PAINT_WATER_TOOL). Fill water uses only the water
         // depth; Paint water uses it and the size.
         AddToolButton("Fill water")
         AddToolButton("Paint water")
-        // Draws rivers along a path of points (EditorTerrain's RIVER_TOOL,
-        // River plan R5). Its width and depth are in the Water section.
+        // Draws rivers along a path of points (EditorTerrain's RIVER_TOOL). Its width and depth
+        // are in the Water section.
         AddToolButton("River")
         toolGroup:AddSelectionListener(me)
 
@@ -192,7 +192,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         paintPart = layerCard
         focusArray:Add(layerGroup)
 
-        // Flatten: what it evens the ground to (step 8), in one card. The
+        // Flatten: what it evens the ground to, in one card. The
         // height and its button show only for a set height (ShowToolParts).
         flattenLabelPart = MakeCardTitle("Flatten")
         panel:Add(flattenLabelPart)
@@ -221,7 +221,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         takeHeightPart = takeLine
         focusArray:Add(takeButton)
 
-        // The Foliage tool's asset (Terrain plan F3): a title, then a card
+        // The Foliage tool's asset: a title, then a card
         // with a button per asset and a note on removing copies.
         foliageLabelPart = MakeCardTitle("Foliage Asset")
         panel:Add(foliageLabelPart)
@@ -254,7 +254,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         focusArray:Add(foliageGroup)
         focusArray:Add(foliageNote)
 
-        // The water tools' depth (Water plan W6), in a card titled Water.
+        // The water tools' depth, in a card titled Water.
         waterLabelPart = MakeCardTitle("Water")
         panel:Add(waterLabelPart)
         Control waterCard = MakeCard()
@@ -263,16 +263,16 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         waterDepthField = AddSliderNumber(waterCard, focusArray, "Water depth:", "Water depth", "How far above the ground under the brush the water's level goes", 0.1, 20, 0.1, 1, false)
 
         // The ramp has no controls here: its ends are set with the Ramp
-        // tool, by clicking or with the ramp point key (step 8).
+        // tool, by clicking or with the ramp point key.
 
-        // Size, strength and falloff, in the Brush Settings card (step 16).
+        // Size, strength and falloff, in the Brush Settings card.
         // The strength and falloff show only for the tools that use them.
         settingsLabelPart = MakeCardTitle("Brush Settings")
         panel:Add(settingsLabelPart)
         Control settingsCard = MakeCard()
         panel:Add(settingsCard)
         settingsPart = settingsCard
-        // Sliders with number fields (Slider plan). The size, strength and
+        // Sliders with number fields. The size, strength and
         // falloff's useful values are spread unevenly, so their tracks are
         // spread by ratios, and each key press changes them by the factor
         // the scene editor's own keys use.
@@ -311,7 +311,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Shows only the parts the chosen tool uses (step 16), and links the
+        Shows only the parts the chosen tool uses, and links the
         Tab order through them:
         - Paint: the paint layer;
         - Flatten: what it flattens to, and the height when it is a set
@@ -505,7 +505,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     */
     /*
         Adds a setting with a bounded range to a card: a label, a slider and
-        a number field (Slider plan), both in the Tab order. Moving the
+        a number field, both in the Tab order. Moving the
         slider writes the number in the field, which this section hears as
         typing, so the brush changes as the slider moves. Returns the
         number field; its parent is the slider field, the part to hide.
@@ -577,7 +577,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             if choice:GetButtonGroup() = flattenGroup
                 if choice:GetIndex() >= 0
                     GetSceneEditor():SetTerrainFlattenToStart(terrain, choice:GetIndex() = 0)
-                    // The height shows only for a set height (step 16).
+                    // The height shows only for a set height.
                     ShowToolParts()
                 end
                 return now
@@ -680,7 +680,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     /*
         Shows a button for each of the terrain's foliage assets, in
         alphabetical order of their names as the Foliage section lists them,
-        the one the Foliage tool paints chosen (Terrain plan F3). The buttons
+        the one the Foliage tool paints chosen. The buttons
         are made again only when the names or their order changed.
     */
     private action ShowFoliageAssets

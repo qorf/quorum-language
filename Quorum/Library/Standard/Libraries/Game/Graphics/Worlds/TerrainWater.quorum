@@ -13,7 +13,7 @@ use Libraries.Compute.Math
 use Libraries.System.File
 
 /*
-TerrainWater is a terrain's water (Water plan W5, from library item 43): a
+TerrainWater is a terrain's water: a
 sea at a level, and any number of lakes. TerrainItem holds one, draws it as
 its children, and saves it beside the terrain's heights, in water.json, so
 games get the water with no code.
@@ -23,7 +23,7 @@ terrain follows, in steps of 100 units, so it always reaches the horizon.
 Where the ground is higher than the water, the ground hides it, so the
 shore follows the ground by itself. Past the terrain's edge, the sea is open
 deep water. Lakes are rectangles at their own level; they too are hidden
-where the ground rises above them. Rivers (River plan) run downhill along
+where the ground rises above them. Rivers run downhill along
 a path, from or into a lake or the sea, their ripples flowing downstream.
 
 The sea and the lakes share one WaterShaderProgram, so they share one look,
@@ -72,7 +72,7 @@ class TerrainWater
 
     Array<TerrainLake> lakes
 
-    // The rivers (River plan R1), and those whose sheet must be made again
+    // The rivers, and those whose sheet must be made again
     // on the next update.
     Array<TerrainRiver> rivers
     Array<TerrainRiver> changedRivers
@@ -81,7 +81,7 @@ class TerrainWater
     boolean changed = false
 
     // Lakes whose own sheet must be made again, on the next update, such as
-    // while one is painted (Water plan W6).
+    // while one is painted.
     Array<TerrainLake> changedLakes
 
     // The item the sheets are children of, from Update, so a removed lake's
@@ -319,7 +319,7 @@ class TerrainWater
 
     /*
     This action adds an empty lake that follows the ground, for painting
-    into with PaintLake (Water plan W6): its water stands a depth above the
+    into with PaintLake: its water stands a depth above the
     ground wherever it is painted, and thins to the ground at its edge.
 
     Attribute: Parameter depth How far above the ground the water stands.
@@ -336,8 +336,7 @@ class TerrainWater
     end
 
     /*
-    This action adds or removes a lake's water under a brush (Water plan
-    W6). A rectangle lake becomes a lake of cells.
+    This action adds or removes a lake's water under a brush. A rectangle lake becomes a lake of cells.
 
     Attribute: Parameter lake The lake.
     Attribute: Parameter x The brush's middle along x.
@@ -409,7 +408,7 @@ class TerrainWater
             changedLakes:Add(lake)
         end
         // A river starting from, or ending in, this lake follows its new
-        // level (River plan R7).
+        // level.
         integer i = 0
         repeat while i < rivers:GetSize()
             TerrainRiver river = rivers:Get(i)
@@ -433,7 +432,7 @@ class TerrainWater
     end
 
     /*
-    This action adds a new river with no points (River plan R1). Add its
+    This action adds a new river with no points. Add its
     points with the river's AddPoint, then call RiverChanged.
 
     Attribute: Returns The river.
@@ -568,7 +567,7 @@ class TerrainWater
     This action finds a river's line and water again, after its points
     changed, and draws it again on the next update. A river whose first
     point is in a lake or the sea starts at that water's level, and one
-    whose last point is in one ends at its level (River plan R7).
+    whose last point is in one ends at its level.
 
     Attribute: Parameter river The river.
     */
@@ -618,7 +617,7 @@ class TerrainWater
     This action returns the level of the still water at a point: the sea,
     where the ground is below it or there is no ground, or a lake covering
     it, whichever is higher; NO_WATER where there is none. Rivers join
-    still water at their ends (River plan R7).
+    still water at their ends.
 
     Attribute: Parameter x The point along x.
     Attribute: Parameter z The point along z.
@@ -822,7 +821,7 @@ class TerrainWater
             i = i + 1
         end
         // Rivers are found again first, so one starting from or ending in a
-        // lake or the sea follows that water's level now (River plan R7).
+        // lake or the sea follows that water's level now.
         integer riverIndex = 0
         repeat while riverIndex < rivers:GetSize()
             TerrainRiver river = rivers:Get(riverIndex)
@@ -1086,7 +1085,7 @@ class TerrainWater
                 if item:HasValue("Name")
                     lake:SetName(item:GetValue("Name"))
                 end
-                // A lake of cells (Water plan W6): its cell size and its
+                // A lake of cells: its cell size and its
                 // runs of water, three numbers each.
                 JavaScriptObjectNotation runHolder = item:GetObject("Runs")
                 if runHolder not= undefined
@@ -1109,7 +1108,7 @@ class TerrainWater
                 i = i + 1
             end
         end
-        // Rivers (River plan R1): name, speed, points as four numbers each
+        // Rivers: name, speed, points as four numbers each
         // (x, z, width, depth), and the ground each carved, four numbers
         // per sample (x, z, height before, height after).
         rivers:Empty()
@@ -1305,7 +1304,7 @@ class TerrainWater
         if look:HasValue("Ripple Strength")
             program:SetNormalStrength(ReadNumber(look, "Ripple Strength"))
         end
-        // How strongly the sky is reflected (Water plan W4).
+        // How strongly the sky is reflected.
         if look:HasValue("Reflection")
             program:SetReflectionStrength(ReadNumber(look, "Reflection"))
         end

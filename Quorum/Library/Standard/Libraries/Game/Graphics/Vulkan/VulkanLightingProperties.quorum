@@ -15,18 +15,18 @@ class VulkanLightingProperties
     integer maximumLights = 16
     integer shadowMapCascadeCount = 1
     integer shadowMapSize = 4096
-    // Each face of a point light's shadow map (Shadow plan S1).
+    // Each face of a point light's shadow map.
     integer pointShadowMapSize = 512
     
     VulkanDescriptorSetLayout shadowCubemapsLayout = undefined
 
-    // The sky light's cubes (Lighting plan L5): the sky's own, then four
+    // The sky light's cubes: the sky's own, then four
     // smaller ones. Their set's layout is made the first time it is asked for.
     constant integer SKY_LIGHT_CUBE_COUNT = 5
     VulkanDescriptorSetLayout skyLightLayout = undefined
 
-    // What is behind see-through models, for those that let light through
-    // (Transmission plan T3): BEHIND_LEVEL_COUNT copies of the lit image,
+    // What is behind see-through models, for those that let light through:
+    // BEHIND_LEVEL_COUNT copies of the lit image,
     // each half the size of the last, from half the window's size. Their
     // set's layout is made the first time it is asked for.
     public constant integer BEHIND_LEVEL_COUNT = 4
@@ -58,7 +58,7 @@ class VulkanLightingProperties
 
     /*
     This action returns the size, in pixels, of each face of a point
-    light's shadow map (Shadow plan S1), from DesktopConfiguration's
+    light's shadow map, from DesktopConfiguration's
     pointShadowMapSize.
 
     Attribute: Returns The size of a point light's shadow map face.
@@ -96,8 +96,8 @@ class VulkanLightingProperties
     end
 
     /*
-    This action returns how many cubes the sky light's descriptor set holds
-    (Lighting plan L5): the sky's own cube, then four smaller, blurrier
+    This action returns how many cubes the sky light's descriptor set holds:
+the sky's own cube, then four smaller, blurrier
     ones (64, 32, 16 and 8 pixels a side).
 
     Attribute: Returns The number of cubes, 5.
@@ -108,7 +108,7 @@ class VulkanLightingProperties
 
     /*
     This action returns the layout of the set holding what is behind
-    see-through models (Transmission plan T3): BEHIND_LEVEL_COUNT bindings,
+    see-through models: BEHIND_LEVEL_COUNT bindings,
     0 to 3, each one image sampler for the fragment shader, the sharpest
     first. Forward programs use it as set 6. It is made the first time.
 
@@ -136,8 +136,8 @@ class VulkanLightingProperties
     end
 
     /*
-    This action returns the layout of the sky light's descriptor set
-    (Lighting plan L5): SKY_LIGHT_CUBE_COUNT bindings, 0 to 4, each one
+    This action returns the layout of the sky light's descriptor set:
+SKY_LIGHT_CUBE_COUNT bindings, 0 to 4, each one
     cube sampler for the fragment shader. The lighting pass uses it as set
     3, and forward programs, such as water and see-through models, as set
     5. It is made the first time.

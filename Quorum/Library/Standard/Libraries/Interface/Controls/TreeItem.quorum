@@ -24,6 +24,42 @@ use Libraries.Interface.Controls.TreeItemContent
 use Libraries.Interface.Controls.DefaultTreeItemContent
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The TreeItem class is one entry in a Tree, such as a file or a folder. Each
+item has a name, shown on its row and read by screen readers, and it can
+hold other TreeItems under it. An item with children shows an arrow button;
+opening the item shows its children, indented below it, and closing it
+hides them. A row can also show an icon, a short text after the name
+(SetTrailingText) and a colored bar at the tree's left edge
+(SetLeadingBar). Double clicking an item opens or closes it and runs its
+activation behavior, if it has one (SetBehavior).
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+Form form
+Page page = form:GetMainPage()
+Tree tree = page:AddTree("Files")
+
+TreeItem scripts
+scripts:SetName("Scripts")
+tree:Add(scripts)
+
+TreeItem main
+main:SetName("Main.quorum")
+scripts:Add(main)
+
+scripts:Open()
+main:Select()
+
+form:Display()
+*/
 class TreeItem is Control
 
     TreePanel panel
@@ -99,6 +135,14 @@ class TreeItem is Control
         SetAccessibilityCode(parent:Item:TREE_ITEM)
     end
 
+    /*
+    This action sets the key used to look up this item's colors and other
+    settings in the interface options. The row's highlight, its content and its
+    trailing text use the same key, so the whole row follows it. The default
+    key is "TreeItem".
+
+    Attribute: Parameter key The interface options key for this item.
+    */
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         rowHighlight:SetInterfaceOptionsKey(key)
@@ -110,28 +154,60 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns the font size a TreeItem uses when it hasn't been given
+    one, which is 14.
+
+    Attribute: Returns The default font size for tree items.
+    */
     action GetDefaultFontSize returns integer
         return 14
     end
     
+    /*
+    This action asks the row's content, if it has been made, to hide its arrow
+    button. It is used when the last child is removed.
+    */
     private action HideExpandButton
         if contents not= undefined
             contents:HideExpandButton()
         end
     end
 
+    /*
+    This action asks the row's content, if it has been made, to show its arrow
+    button. It is used when the first child is added.
+    */
     private action ShowExpandButton
         if contents not= undefined
             contents:ShowExpandButton()
         end
     end
 
+    /*
+    This action tells the row's content, if it has been made, whether the item
+    is open, so its arrow button can show it.
+
+    Attribute: Parameter expand True if the item is open, false if it is closed.
+    */
     private action SetContentExpandState(boolean expand)
         if contents not= undefined
             contents:SetExpandState(expand)
         end
     end
 
+    /*
+    This action sets this item's name, which is shown on its row and read by
+    screen readers. If the row's content has been made, it is told about the
+    new name.
+
+    Attribute: Parameter name The item's name.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem item
+    item:SetName("Main.quorum")
+    */
     action SetName(text name)
         parent:Item:SetName(name)
         if contents not= undefined
@@ -139,6 +215,22 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action adds an item under this one, after its other children. If it
+    is the first child, the arrow button is shown. The new child joins this
+    item's Tree and takes this item's font size. It can only be seen while
+    this item is open.
+
+    Attribute: Parameter item The TreeItem to add under this one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    */
     action Add(TreeItem item)
         if panel:GetChildren():IsEmpty()
             ShowExpandButton()
@@ -151,6 +243,26 @@ class TreeItem is Control
         item:SetFontSize(GetFontSize())
     end
 
+    /*
+    This action adds an item under this one at the given position, counting
+    from 0. If it is the first child, the arrow button is shown. The new child
+    joins this item's Tree and takes this item's font size.
+
+    Attribute: Parameter location Where to put the item among this item's children.
+
+    Attribute: Parameter item The TreeItem to add under this one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    TreeItem first
+    first:SetName("Hero.quorum")
+    folder:Add(0, first)
+    */
     action Add(integer location, TreeItem item)
         if panel:GetChildren():IsEmpty()
             ShowExpandButton()
@@ -184,6 +296,26 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action adds each item in the array under this one, in order, as the
+    Add action does for one item.
+
+    Attribute: Parameter items The TreeItems to add under this one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    use Libraries.Containers.Array
+    TreeItem folder
+    folder:SetName("Scripts")
+    Array<TreeItem> files
+    TreeItem main
+    main:SetName("Main.quorum")
+    files:Add(main)
+    TreeItem player
+    player:SetName("Player.quorum")
+    files:Add(player)
+    folder:Add(files)
+    */
     action Add(Array<TreeItem> items)
         integer counter = 0
         repeat while counter < items:GetSize()
@@ -192,6 +324,23 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action removes a child item from under this one. If the child is
+    selected, it is closed and the selection moves down first. If no children
+    are left, this item is closed and its arrow button is hidden. The removed
+    item no longer belongs to a tree.
+
+    Attribute: Parameter item The child TreeItem to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Remove(file)
+    */
     action Remove(TreeItem item)
         if item:IsSelected()
             if item:IsOpen()
@@ -216,6 +365,21 @@ class TreeItem is Control
         item:SetParentTreeItem(undefined)
     end
 
+    /*
+    This action opens this item, showing the items under it. The arrow button
+    shows that it is open, the tree lays itself out again, and the tree's
+    change listeners are told the item opened. It does nothing if the item is
+    already open.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Open()
+    */
     action Open
         if not open
             if panel:GetInterfaceScale() not= GetInterfaceScale()
@@ -236,6 +400,22 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action closes this item, hiding the items under it. The arrow button
+    shows that it is closed, the tree lays itself out again, and the tree's
+    change listeners are told the item closed. It does nothing if the item is
+    already closed.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Open()
+    folder:Close()
+    */
     action Close
         if open
             parent:Item2D:Remove(panel)
@@ -253,22 +433,51 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns true if this item is open, showing the items under it.
+
+    Attribute: Returns True if the item is open, false if it is closed.
+    */
     action IsOpen returns boolean
         return open
     end
 
+    /*
+    This action sets the item this one was added under.
+
+    Attribute: Parameter parentItem The parent TreeItem, or undefined.
+    */
     private action SetParentTreeItem(TreeItem parentItem)
         parentTreeItem = parentItem
     end
 
+    /*
+    This action returns the item this one was added under, or undefined if it
+    is a top-level item or hasn't been added to anything.
+
+    Attribute: Returns The parent TreeItem, or undefined.
+    */
     action GetParentTreeItem returns TreeItem
         return parentTreeItem
     end
 
+    /*
+    This action returns the TreeLayout of the panel that holds this item's
+    children.
+
+    Attribute: Returns The layout of this item's panel.
+    */
     private action GetPanelLayout returns TreeLayout
         return cast(TreeLayout, panel:GetLayout())
     end
 
+    /*
+    This action sets the Tree this item belongs to, and does the same for
+    every item under it. It is called automatically when the item is added to
+    a Tree or to another item, so most programs never call it directly.
+
+    Attribute: Parameter tree The Tree this item belongs to, or undefined.
+    */
     action SetTree(Tree tree)
         parentTree = tree
 
@@ -279,10 +488,24 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns the Tree this item belongs to, or undefined if it
+    hasn't been added to one.
+
+    Attribute: Returns The Tree holding this item, or undefined.
+    */
     action GetTree returns Tree
         return parentTree
     end
 
+    /*
+    This action returns the last item in the given path, or undefined if the
+    path is empty.
+
+    Attribute: Parameter path A path of TreeItems.
+
+    Attribute: Returns The last item in the path, or undefined.
+    */
     private action GetTreeItem(Array<TreeItem> path) returns TreeItem
         if path:IsEmpty()
             return undefined
@@ -291,10 +514,47 @@ class TreeItem is Control
         return path:GetFromEnd()
     end
 
+    /*
+    This action returns an iterator over the items added directly under this
+    one. Items under those are not included.
+
+    Attribute: Returns An iterator over this item's children.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    use Libraries.Containers.Iterator
+    TreeItem folder
+    folder:SetName("Scripts")
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    Iterator<TreeItem> children = folder:GetTreeItems()
+    repeat while children:HasNext()
+        output children:Next():GetName()
+    end
+    */
     action GetTreeItems returns Iterator<TreeItem>
         return treeItems:GetIterator()
     end
 
+    /*
+    This action sets the control that draws this item's row, replacing any it
+    had. A TreeItem makes a DefaultTreeItemContent the first time it is drawn
+    if it wasn't given one, so this is only needed to draw rows another way.
+    The content takes this item's interface options key. Only a
+    DefaultTreeItemContent row shows the highlight band; other contents draw
+    their own selection.
+
+    Attribute: Parameter content The content that draws this item's row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    use Libraries.Interface.Controls.DefaultTreeItemContent
+    TreeItem item
+    item:SetName("Main.quorum")
+    DefaultTreeItemContent content
+    item:SetTreeItemContent(content)
+    */
     action SetTreeItemContent(TreeItemContent content)
         if contents not= undefined
             parent:Item2D:Remove(contents)
@@ -310,10 +570,29 @@ class TreeItem is Control
         parent:Item2D:Add(0, rowHighlight)
     end
 
+    /*
+    This action returns the control that draws this item's row, or undefined
+    if it hasn't been set or drawn yet.
+
+    Attribute: Returns The content of this item's row, or undefined.
+    */
     action GetTreeItemContent returns TreeItemContent
         return contents
     end
 
+    /*
+    This action moves the selection's drawing from one path to another under
+    this item. Each path starts with the child of this item it goes through,
+    and an empty path means this item itself. Where the two paths are the
+    same, nothing changes; where they part, the old items are drawn as not
+    selected and the new item as selected. Items are taken off the front of
+    both paths as it works. The Tree calls it when the selection changes, so
+    most programs use Select instead.
+
+    Attribute: Parameter oldPath The path below this item to the old selection.
+
+    Attribute: Parameter newPath The path below this item to the new selection.
+    */
     action UpdateSelection(Array<TreeItem> oldPath, Array<TreeItem> newPath)
 
         TreeItem oldItem = undefined
@@ -347,6 +626,14 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action follows the path down from this item and draws the last item on
+    it as selected, or this item if the path is empty. Items are taken off the
+    front of the path as it works. The Tree calls it, so most programs use
+    Select instead.
+
+    Attribute: Parameter path The path below this item to the selected item.
+    */
     action RecursiveSelect(Array<TreeItem> path)
         if not path:IsEmpty()
             TreeItem item = path:RemoveFromFront()
@@ -358,6 +645,13 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action follows the path down from this item and draws every item on
+    it, and this item, as not selected. Items are taken off the front of the
+    path as it works. The Tree calls it, so most programs use Deselect instead.
+
+    Attribute: Parameter path The path below this item to the old selection.
+    */
     action RecursiveDeselect(Array<TreeItem> path)
         if not path:IsEmpty()
             TreeItem item = path:RemoveFromFront()
@@ -368,6 +662,14 @@ class TreeItem is Control
         LostSelection()
     end
 
+    /*
+    This action returns the height of this item along with the items showing
+    under it. When the item is open, the heights of the items under it, and
+    the gaps between them, are added to its own height. When it is closed,
+    this is just its own height.
+
+    Attribute: Returns The height of this item and the items showing under it.
+    */
     action GetTreeHeight returns number
         if open
             number height = GetHeight()
@@ -399,6 +701,14 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns the width needed to show this item and, when it is
+    open, the items under it. Each child's width is measured from the tree's
+    left edge, so its indent counts. When the item is closed, this is just its
+    own width.
+
+    Attribute: Returns The width of this item and the items showing under it.
+    */
     action GetTreeWidth returns number
         if open
             number width = GetWidth()
@@ -428,10 +738,45 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action sets the behavior run when this item is activated, such as when
+    it is double clicked or when enter is pressed while it is selected.
+
+    Attribute: Parameter behavior The behavior to run, or undefined for none.
+
+    Attribute: Example
+    // In the file OpenFileBehavior.quorum:
+    use Libraries.Interface.Behaviors.Behavior
+    use Libraries.Interface.Events.BehaviorEvent
+
+    class OpenFileBehavior is Behavior
+        action Run(BehaviorEvent event)
+            output "Opening " + event:GetItem():GetName()
+        end
+    end
+
+    // In the file Main.quorum:
+    use Libraries.Interface.Controls.TreeItem
+
+    class Main
+        action Main
+            TreeItem item
+            item:SetName("Main.quorum")
+            OpenFileBehavior behavior
+            item:SetBehavior(behavior)
+        end
+    end
+    */
     action SetBehavior(Behavior behavior)
         activationBehavior = behavior
     end
 
+    /*
+    This action returns the behavior set with SetBehavior, or undefined if
+    there is none.
+
+    Attribute: Returns The item's activation behavior, or undefined.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
@@ -451,16 +796,33 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action is called when the item is double clicked. It opens the item
+    if it is closed, or closes it if it is open, and then activates it, which
+    runs its behavior.
+
+    Attribute: Parameter event The event for the double click.
+    */
     action OnDoubleClick(BehaviorEvent event)
         ToggleOpen()
         Activate()
     end
 
+    /*
+    This action is called when the item is clicked with the mouse. It selects
+    the item.
+    */
     action ClickedMouse
         parent:Control:ClickedMouse()
         Select()
     end
 
+    /*
+    This action is called when this item becomes the selected item. It draws
+    the row as selected: the content in the selection colors and the highlight
+    band behind the row in the focused selection color. The Tree calls it, so
+    most programs use Select instead.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         if contents not= undefined
@@ -476,6 +838,12 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action is called when this item stops being the selected item. The
+    row is drawn in its normal colors again, and the highlight band is hidden
+    unless the mouse is over the row. The Tree calls it, so most programs use
+    Deselect instead.
+    */
     action LostSelection
         parent:Control:LostSelection()
         if contents not= undefined
@@ -488,6 +856,10 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action is called when this item is selected and its Tree loses the
+    focus. The row is drawn in the unfocused selection colors.
+    */
     action UnfocusedSelection
         if contents not= undefined
             contents:UnfocusedSelection()
@@ -666,8 +1038,16 @@ class TreeItem is Control
         ApplyTrailingText(value, color)
     end
 
-    // Shows, changes or removes the trailing text. A color of undefined is
-    // only passed by SetTrailingText(value): the theme's color.
+    /*
+        This action shows, changes or removes the text after this item's name on
+        its row. An empty value hides it. A color of undefined, which
+        SetTrailingText(value) passes, leaves the text in the theme's color. The row
+        is laid out again when the text's width may have changed.
+
+        Attribute: Parameter value The text to show, or "" to remove it.
+
+        Attribute: Parameter color The text's color, or undefined for the theme's color.
+    */
     private action ApplyTrailingText(text value, ColorGroup color)
         if value = ""
             trailingText = ""
@@ -754,7 +1134,12 @@ class TreeItem is Control
         return trailingLabel:GetWidth() + TRAILING_GAP * GetInterfaceScale()
     end
 
-    // Makes the trailing label the first time this row has trailing text.
+    /*
+        This action makes the label for the trailing text, the first time this row
+        has some. The label starts hidden, is skipped by screen readers and the
+        mouse, uses the row's font size, and draws no selection box of its own. It
+        is drawn on top of the row's band.
+    */
     private action MakeTrailingLabel
         ControlLabel newLabel
         trailingLabel = newLabel
@@ -789,7 +1174,10 @@ class TreeItem is Control
         end
     end
 
-    // The label uses the row's font, at the row's size.
+    /*
+        This action gives the trailing label the row's font, at the row's own font
+        size, when the row's font has changed.
+    */
     private action SyncTrailingFont
         Font font = GetFont()
         if font = undefined or font = trailingFont
@@ -957,7 +1345,11 @@ class TreeItem is Control
         return leadingBar:IsShowing()
     end
 
-    // Makes the leading bar the first time this row has one.
+    /*
+        This action makes the leading bar, the first time this row has one: a bar
+        with fully rounded ends, drawn on top of the row's band. It starts hidden,
+        and screen readers, the mouse and the focus all skip it.
+    */
     private action MakeLeadingBar
         Control newBar
         leadingBar = newBar
@@ -1034,8 +1426,12 @@ class TreeItem is Control
         end
     end
 
-    // Only the standard row draws its selection with the band; other
-    // contents (such as the scene editor's palette) draw their own.
+    /*
+        This action places and shows the band that marks the row as selected or
+        under the pointer. Only the standard row content draws its selection with
+        the band; other contents, such as the scene editor's palette, draw their
+        own, so for them nothing happens.
+    */
     private action ShowRowHighlight
         if not (contents is DefaultTreeItemContent)
             return now
@@ -1044,7 +1440,10 @@ class TreeItem is Control
         rowHighlight:Show()
     end
 
-    // Hides the highlight once the row is neither selected nor hovered.
+    /*
+        This action hides the row's band once the row is neither selected nor
+        under the pointer.
+    */
     private action UpdateRowHighlightVisibility
         if not rowHighlight:IsRenderingSelection() and not rowHighlight:IsRenderingMouseOver()
             rowHighlight:Hide()
@@ -1087,6 +1486,22 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action makes this item the selected item of its Tree. If the item
+    isn't in a tree, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    file:Select()
+    */
     action Select
         // Don't actually select here! Go to Tree and ask it to select us.
         // We do this to allow the Tree to fully update its information,
@@ -1096,6 +1511,23 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action clears the selection of this item's Tree, so no item is
+    selected. If the item isn't in a tree, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    file:Select()
+    file:Deselect()
+    */
     action Deselect
         // Don't actually select here! Go to Tree and ask it to deselect us.
         // We do this to allow the Tree to fully update its information,
@@ -1105,10 +1537,33 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns true if this item has items under it.
+
+    Attribute: Returns True if the item has children, false otherwise.
+    */
     action IsSubtree returns boolean
         return not treeItems:IsEmpty()
     end
 
+    /*
+    This action returns the path from the top-level item down to this item,
+    with this item last. The Tree's Select action takes a path in this form.
+
+    Attribute: Returns The items from the top level down to this item.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    tree:Select(file:GetTreePath())
+    */
     action GetTreePath returns Array<TreeItem>
         Array<TreeItem> path
         path:Add(me)
@@ -1119,6 +1574,14 @@ class TreeItem is Control
         return path
     end
 
+    /*
+    This action puts this item at the front of the given path, then has its
+    parent do the same, building the path from the top level down.
+
+    Attribute: Parameter array The path built so far, below this item.
+
+    Attribute: Returns The finished path.
+    */
     private action GetTreePath(Array<TreeItem> array) returns Array<TreeItem>
         array:AddToFront(me)
         if parentTreeItem not= undefined
@@ -1128,6 +1591,25 @@ class TreeItem is Control
         return array
     end
 
+    /*
+    This action selects the row below this item: its first child if it is
+    open, or else the next item after it, moving up through its parents as
+    needed. The Tree calls it for the down arrow key.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Open()
+    folder:Select()
+    folder:SelectionDown()
+    */
     action SelectionDown
         if IsSubtree() and IsOpen()
             treeItems:Get(0):Select()
@@ -1173,6 +1655,26 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action selects the row above this item: the last showing row of the
+    item before it, or its parent if it is the first child. For a top-level
+    item, it is the last showing row of the top-level item before it. The Tree
+    calls it for the up arrow key.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Open()
+    file:Select()
+    file:SelectionUp()
+    */
     action SelectionUp
         if parentTreeItem not= undefined
             parentTreeItem:SelectionUp(me)
@@ -1209,6 +1711,23 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action selects the last showing row inside this item: if it is open,
+    the last showing row of its last child, or else this item itself.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem folder
+    folder:SetName("Scripts")
+    tree:Add(folder)
+    TreeItem file
+    file:SetName("Main.quorum")
+    folder:Add(file)
+    folder:Open()
+    folder:SelectLastElement()
+    */
     action SelectLastElement
         if IsSubtree() and IsOpen()
             treeItems:Get(treeItems:GetSize() - 1):SelectLastElement()
@@ -1217,6 +1736,12 @@ class TreeItem is Control
         end
     end
 
+    /*
+    This action returns how many items have been added directly under this
+    one. Items under those are not counted.
+
+    Attribute: Returns The number of children of this item.
+    */
     action GetSize returns integer
         return treeItems:GetSize()
     end
@@ -1279,6 +1804,13 @@ class TreeItem is Control
         return path:GetFromEnd() = me
     end
 
+    /*
+    This action returns true, because a TreeItem can hold other accessible
+    items (its children). Screen readers use this to treat it as the parent of
+    the items under it. Most programs never use this action directly.
+
+    Attribute: Returns True, since a TreeItem is always an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end

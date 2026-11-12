@@ -6,7 +6,23 @@ use Libraries.Game.GameStateManager
 
 /*
 The label inside a Checkbox or a RadioButton. It shows its control's focus
-as a line under its text (CD, R1), without taking the focus itself.
+as a line under its text, without taking the focus itself.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Controls.ChoiceLabel
+use Libraries.Interface.Controls.Checkbox
+
+class Main
+    action Main
+        Checkbox box
+        ChoiceLabel label
+        label:SetOwner(box)
+        label:SetText("Remember me")
+    end
+end
 */
 class ChoiceLabel is Label
     Control owner = undefined
@@ -20,10 +36,24 @@ class ChoiceLabel is Label
         owner = choice
     end
 
+    /*
+        This action returns whether this label draws a focus line under its text.
+        It does once it belongs to a control, set with SetOwner.
+
+        Attribute: Returns True if the label has an owner whose focus it shows.
+    */
     action ShowsFocusIndicator returns boolean
         return owner not= undefined
     end
 
+    /*
+        This action returns whether the focus line under the text should show
+        now. For a radio button, it follows the radio button's own choice focus,
+        which is also on while it is the selected button in a focused group. For
+        any other owner, it is on while the owner has the focus in a running game.
+
+        Attribute: Returns True if the focus line should show.
+    */
     action IsShowingFocus returns boolean
         GameStateManager focusState
         if owner is RadioButton
@@ -33,11 +63,23 @@ class ChoiceLabel is Label
         return owner not= undefined and focusState:GetGame() not= undefined and owner:IsFocused()
     end
 
+    /*
+        This action returns true, so this label shows its owner's focus as a
+        line under its text instead of a box around it.
+
+        Attribute: Returns True, since the focus is shown as an underline.
+    */
     action UsesFocusUnderline returns boolean
         return true
     end
 
-    // The line is in its control's focus border color, the accent.
+    /*
+        This action returns the color of the focus line under the text. It is
+        the owner's focus border color, which is the accent color, when the owner
+        has one. Otherwise it is the label's own focus color.
+
+        Attribute: Returns The color used for the focus line.
+    */
     action GetFocusColor returns ColorGroup
         if owner not= undefined and owner:GetFocusBorderColor() not= undefined
             return owner:GetFocusBorderColor()

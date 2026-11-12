@@ -1982,7 +1982,7 @@ InputSet shiftF10SetTextBox
         selectionTable:Add(selectionDeleteSet2, selectionDeleteBehavior)
         selectionTable:Add(selectionCancelSet, selectionCancelBehavior)
         // Enter on a selected terrain finishes a river being drawn with the
-        // River tool (River plan R5); otherwise it does nothing there.
+        // River tool; otherwise it does nothing there.
         selectionTable:Add(cursorSelectItemsInput, cursorSelectItemsBehavior)
 
         selectionTable:Add(toggleGridInput, toggleGridBehavior)
@@ -1997,7 +1997,7 @@ InputSet shiftF10SetTextBox
 
         selectionTable:Add(resetScaleSet, selectionResetScaleBehavior)
 
-        // A selected terrain's tools, Alt+1 to Alt+9 by default (step 7),
+        // A selected terrain's tools, Alt+1 to Alt+9 by default,
         // then stamp, erode, auto paint, foliage, fill water, paint water and
         // river, Shift+Alt+1 to Shift+Alt+7.
         integer toolNumber = 1
@@ -2006,7 +2006,7 @@ InputSet shiftF10SetTextBox
             toolNumber = toolNumber + 1
         end
 
-        // A selected terrain's brush (step 8): Space, held, makes a stroke,
+        // A selected terrain's brush: Space, held, makes a stroke,
         // and Alt+] and Alt+[ change its strength, by default.
         InputSet brushUseSet = sceneKeys:GetTerrainBrushUseKey()
         TerrainBrushUseBehavior terrainBrushUseBehavior
@@ -2021,12 +2021,12 @@ InputSet shiftF10SetTextBox
         terrainStrengthDownBehavior:SetStronger(false)
         selectionTable:Add(sceneKeys:GetTerrainStrengthDownKey(), terrainStrengthDownBehavior)
 
-        // The next paint layer, Alt+L by default (step 9).
+        // The next paint layer, Alt+L by default.
         TerrainNextLayerBehavior terrainNextLayerBehavior
         selectionTable:Add(sceneKeys:GetTerrainNextLayerKey(), terrainNextLayerBehavior)
 
         // The ramp's ends, start then end, Alt+G, and the flatten height from
-        // under the brush, Alt+M, by default (step 8).
+        // under the brush, Alt+M, by default.
         TerrainRampPointBehavior terrainRampPointBehavior
         selectionTable:Add(sceneKeys:GetTerrainRampPointKey(), terrainRampPointBehavior)
         TerrainTakeHeightBehavior terrainTakeHeightBehavior
@@ -2240,7 +2240,7 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         propertiesDialogTable:Add(unfocusPropertiesSet1, unfocusPropertiesBehavior)
         propertiesDialogTable:Add(unfocusPropertiesSet2, unfocusPropertiesBehavior)
 
-        // Closing and opening the section the focus is in (step 15).
+        // Closing and opening the section the focus is in.
         PropertiesSectionKeyBehavior closeSectionBehavior
         closeSectionBehavior:SetOpening(false)
         propertiesDialogTable:Add(sceneKeys:GetPropertiesSectionCloseKey(), closeSectionBehavior)
@@ -3040,7 +3040,7 @@ connectorTable:Add(startDrag, dragBehavior)
     
     /*
         Binds the key for one of a selected terrain's tools to a behavior of
-        its own, which chooses that tool (step 7).
+        its own, which chooses that tool.
     */
     /*
         This action adds one of the 3D camera's keys: the move starts as the

@@ -68,10 +68,10 @@ class TerrainItem is Item3D
 
     // How the terrain can be collided with: WorldTerrain's COLLISION_FULL
     // (every region), COLLISION_DYNAMIC (only near moving bodies) or
-    // COLLISION_DISABLED (step 13).
+    // COLLISION_DISABLED.
     integer collisionMode = 2
 
-    // Streaming (step 13): the terrain loads and draws only the regions near
+    // Streaming: the terrain loads and draws only the regions near
     // the camera, or near an item it follows, instead of every region. It
     // starts on the item's first update in a layer.
     boolean streaming = false
@@ -79,19 +79,19 @@ class TerrainItem is Item3D
     number drawRadius = 100
     Item3D followItem = undefined
 
-    // The ground's look (step 9): undefined for plain ground, and the
+    // The ground's look: undefined for plain ground, and the
     // terrain material file's path, as the scene names it.
     TerrainMaterial material = undefined
     text materialFile = ""
 
-    // Foliage (Terrain plan F1): the list of assets, its file's path as the
+    // Foliage: the list of assets, its file's path as the
     // scene names it, and where every copy stands, saved per region beside
     // the heights.
     FoliageList foliageList = undefined
     text foliageFile = ""
     TerrainFoliage foliage
 
-    // The foliage's drawing (Terrain plan F2): one FoliageCellItem per
+    // The foliage's drawing: one FoliageCellItem per
     // cell, as the item's children, by "asset/cellX/cellZ", and each card
     // asset's picture, shared by its cells. They are made again on the next
     // update after the foliage or its list changes.
@@ -104,15 +104,15 @@ class TerrainItem is Item3D
     // second, not every frame.
     number foliageCheckTime = 0
     constant number FOLIAGE_CHECK_SECONDS = 0.25
-    // For the cells' distances from the camera (Foliage plan F5).
+    // For the cells' distances from the camera.
     Math foliageMath
 
-    // For hiding cells outside the camera's view (Dense grass plan DG1),
+    // For hiding cells outside the camera's view,
     // kept so nothing is made each frame.
     CullingVolume3D foliageView
     BoundingBox foliageBox
 
-    // Water (Water plan W5): a sea and lakes, saved beside the heights in
+    // Water: a sea and lakes, saved beside the heights in
     // water.json, and drawn as the item's children.
     TerrainWater water
 
@@ -154,11 +154,11 @@ class TerrainItem is Item3D
         end
         missing = false
         // The water is small, so it loads whether the terrain streams or
-        // not (Water plan W5).
+        // not.
         water:SetTerrainData(terrain:GetData())
         water:Load(GetFolder(file))
         // A streaming terrain loads its regions as it starts, on its first
-        // update in a layer (step 13).
+        // update in a layer.
         if streaming
             return now
         end
@@ -239,8 +239,8 @@ class TerrainItem is Item3D
             file = plainFile
         end
         // Regions removed in a scene editor are left out of terrain.json, so
-        // they don't load again; their files stay in the folder, unused
-        // (step 11). The item holds every region, so a saved region that
+        // they don't load again; their files stay in the folder, unused.
+        // The item holds every region, so a saved region that
         // isn't in memory was removed.
         // A streaming terrain has only some regions in memory, so the others
         // stay listed.
@@ -249,15 +249,15 @@ class TerrainItem is Item3D
         end
         terrain:GetData():Save(GetFolder(file))
         // Each region with foliage, or that had a foliage file, writes it
-        // beside its heights (Terrain plan F1).
+        // beside its heights.
         foliage:Save(GetFolder(file))
-        // The sea and lakes, if there are any, in water.json (Water plan W5).
+        // The sea and lakes, if there are any, in water.json.
         water:Save(GetFolder(file))
     end
 
     /*
     This action returns the terrain's water: its sea and lakes, and their
-    look (Water plan W5). After changing it, call WaterChanged so it is
+    look. After changing it, call WaterChanged so it is
     drawn again. It is loaded and saved with the terrain.
 
     Attribute: Returns The water.
@@ -275,7 +275,7 @@ class TerrainItem is Item3D
     end
 
     /*
-    This action puts a sea around the terrain at a height (Water plan W5):
+    This action puts a sea around the terrain at a height:
     water reaching the horizon, hidden wherever the ground is higher.
 
     Attribute: Parameter level The sea's height.
@@ -334,7 +334,7 @@ class TerrainItem is Item3D
 
     /*
     This action makes the region models again after regions were added or
-    removed, such as by a scene editor's region tools (step 11).
+    removed, such as by a scene editor's region tools.
     */
     action RebuildRegionModels
         RebuildModels()
@@ -385,8 +385,7 @@ class TerrainItem is Item3D
 
     /*
     This action gives the terrain one layer of its material again, after a
-    map of that layer's Material changed, and makes the region models again
-    (step 14).
+    map of that layer's Material changed, and makes the region models again.
 
     Attribute: Parameter layer The layer, from 0.
     */
@@ -433,7 +432,7 @@ class TerrainItem is Item3D
 
     /*
     This action gives the terrain its foliage list: the assets its copies
-    are of (Terrain plan F1). The copies themselves are in
+    are of. The copies themselves are in
     GetTerrainFoliage, by each asset's number in the list.
 
     Attribute: Parameter list The foliage list, or undefined for none.
@@ -470,7 +469,7 @@ class TerrainItem is Item3D
     /*
     This action makes the foliage's drawing again on the next update, after
     copies were added or removed by code, or the foliage list's assets
-    changed (Terrain plan F2). The foliage brush in a scene editor calls
+    changed. The foliage brush in a scene editor calls
     RefreshFoliage with the area it changed instead, which is quicker.
     */
     action FoliageChanged
@@ -480,7 +479,7 @@ class TerrainItem is Item3D
     /*
     This action makes the drawing of the foliage cells in an area again now,
     after copies there were added, removed or moved, such as by a brush
-    stroke or by sculpting under them (Terrain plan F2 to F4).
+    stroke or by sculpting under them.
 
     Attribute: Parameter x The area's middle along x, in world units.
     Attribute: Parameter z The area's middle along z, in world units.
@@ -507,8 +506,8 @@ class TerrainItem is Item3D
 
     /*
     This action moves the foliage in an area onto the ground under it, after
-    the ground there was sculpted, keeping each asset's height offset
-    (Terrain plan F4). A scene editor calls it as the ground changes.
+    the ground there was sculpted, keeping each asset's height offset.
+A scene editor calls it as the ground changes.
 
     Attribute: Parameter x The area's middle along x, in world units.
     Attribute: Parameter z The area's middle along z, in world units.
@@ -591,7 +590,7 @@ class TerrainItem is Item3D
         end
         File assetFile = GetFoliageAssetFile(asset)
         item:Set(cell, asset, assetFile)
-        // For copies that lean with the slope (Dense grass plan DG4).
+        // For copies that lean with the slope.
         item:SetGround(terrain:GetData())
         if asset:IsCard() and assetFile:Exists()
             text textureKey = assetFile:GetAbsolutePath()
@@ -600,7 +599,7 @@ class TerrainItem is Item3D
             end
             item:SetCardTexture(cardTextures:GetValue(textureKey))
         end
-        // Levels of detail (Foliage plan F6): their files, and a card
+        // Levels of detail: their files, and a card
         // level's picture, shared like the asset's own.
         integer level = 1
         repeat while level <= asset:MAXIMUM_LEVELS
@@ -638,8 +637,7 @@ class TerrainItem is Item3D
 
     /*
     This action returns a card picture's texture, loading it the first time
-    and sharing it with every cell after (Foliage plan F6 uses it for card
-    levels of detail).
+    and sharing it with every cell after. Card levels of detail use it.
 
     Attribute: Parameter file The picture.
     Attribute: Returns The texture.
@@ -653,8 +651,8 @@ class TerrainItem is Item3D
     end
 
     /*
-    This action loads a card's picture with mipmaps, as a cut-out picture
-    (Dense grass plan DG5): without mipmaps, distant cards are read from the
+    This action loads a card's picture with mipmaps, as a cut-out picture:
+without mipmaps, distant cards are read from the
     full-size picture and flicker; with plain mipmaps, thin blades fade
     below the cut and the grass thins out far away. A cut-out picture's
     smaller levels keep the same share of pixels past the cut (a half, the
@@ -673,8 +671,7 @@ class TerrainItem is Item3D
     /*
     This action returns the file for a path in the foliage list, such as an
     asset's model or a level of detail's picture: a full path as it is,
-    and any other relative to the foliage list's file (Foliage plan F6
-    split it out of GetFoliageAssetFile).
+    and any other relative to the foliage list's file.
 
     Attribute: Parameter path The path.
     Attribute: Returns The file.
@@ -723,11 +720,10 @@ class TerrainItem is Item3D
             // half its diagonal.
             number reachOut = item:GetAsset():GetDrawDistance() + item:GetCell():GetCellSize() * 0.71
             boolean near = offsetX * offsetX + offsetZ * offsetZ <= reachOut * reachOut
-            // Shown when near and in the camera's view (Dense grass plan
-            // DG1); the view is checked every frame by CullFoliageByView.
+            // Shown when near and in the camera's view; the view is checked every frame by CullFoliageByView.
             item:SetNearCamera(near)
             // A shown cell picks its level of detail and thins its copies
-            // near the draw distance (Foliage plan F5 and F6); it only
+            // near the draw distance; it only
             // draws again when either changes.
             if near
                 number distance = foliageMath:SquareRoot(offsetX * offsetX + offsetZ * offsetZ) - item:GetCell():GetCellSize() * 0.71
@@ -745,7 +741,7 @@ class TerrainItem is Item3D
 
     /*
     This action returns how many foliage cells the terrain draws from:
-    one per cell and asset with copies (Dense grass plan DG0).
+    one per cell and asset with copies.
 
     Attribute: Returns The number of cells.
     */
@@ -756,7 +752,7 @@ class TerrainItem is Item3D
     /*
     This action returns how many foliage cells are shown now: within their
     asset's draw distance of the camera and, for assets that cast no
-    shadows, in its view (Dense grass plan DG0 and DG1).
+    shadows, in its view.
 
     Attribute: Returns The number of cells shown.
     */
@@ -774,7 +770,7 @@ class TerrainItem is Item3D
 
     /*
     This action returns how many foliage instances the shown cells draw
-    now, after thinning (Dense grass plan DG0): a card's planes count as
+    now, after thinning: a card's planes count as
     one each, so a two-plane card counts twice.
 
     Attribute: Returns The number of instances drawn.
@@ -995,9 +991,9 @@ class TerrainItem is Item3D
 
     /*
     This action keeps the water and foliage drawn: the water after it
-    changed, with the sea following a place (Water plan W5), and the
+    changed, with the sea following a place, and the
     foliage after it changed, with its cells shown within their draw
-    distance of the camera (Terrain plan F2).
+    distance of the camera.
 
     Attribute: Parameter layer The layer the terrain is in.
     Attribute: Parameter x The place the sea follows, along x.
@@ -1023,7 +1019,7 @@ class TerrainItem is Item3D
 
     /*
     This action hides the foliage cells outside the camera's view, every
-    frame (Dense grass plan DG1), so grass behind the camera isn't drawn.
+    frame, so grass behind the camera isn't drawn.
     The layer only culls the terrain as a whole, and the cells are its
     children. Cells of assets that cast shadows stay shown while near,
     since a tree just out of view can still throw its shadow into it.
@@ -1162,7 +1158,7 @@ class TerrainItem is Item3D
         number maximumZ = (highZ + 1) * regionWidth
         number lowest = data:GetLowestHeight()
         number highest = data:GetHighestHeight()
-        // The water (Water plan W5): the sea's sheet reaches far past the
+        // The water: the sea's sheet reaches far past the
         // regions, and water can stand above or below the ground.
         if water:HasWater()
             number waterLow = water:GetLowestLevel()

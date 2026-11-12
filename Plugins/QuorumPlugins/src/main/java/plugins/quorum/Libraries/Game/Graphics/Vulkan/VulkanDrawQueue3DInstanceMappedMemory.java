@@ -36,7 +36,7 @@ public class VulkanDrawQueue3DInstanceMappedMemory
         strategy.TransferInstanceData(vertexBuffer, indexBuffer, material, texture, color, modelMatrix);
     }
 
-    // Copies instances packed in a block in one move (Dense grass plan DG2).
+    // Copies instances packed in a block in one move.
     public void TransferInstanceBlock(VulkanInstanceBlock_ block, int first, int count)
     {
         strategy.TransferInstanceBlock(block, first, count);

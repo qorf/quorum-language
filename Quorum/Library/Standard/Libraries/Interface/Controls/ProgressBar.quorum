@@ -23,6 +23,31 @@ use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The ProgressBar class shows how far along a task is, as a rounded bar
+that fills from left to right. The fill covers the share of the bar
+between the minimum and the maximum value, which are 0 and 100 by
+default. The track takes the background color and the fill takes the
+foreground color, from the interface options under the key
+"ProgressBar". Screen readers are told each time the value changes.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.ProgressBar
+
+Form form
+Page page = form:GetMainPage()
+
+page:AddLabel("Loading")
+ProgressBar bar = page:AddProgressBar("Loading", 0, 10)
+bar:SetValue(3)
+
+form:Display()
+*/
 class ProgressBar is Control
     Label label = undefined
     Icon icon = undefined
@@ -36,7 +61,7 @@ class ProgressBar is Control
     number value = 0
 
     // The bar's height, and the space between its edge and the fill, in
-    // points before the interface scale (P3).
+    // points before the interface scale.
     constant number BAR_HEIGHT = 20
     constant number FILL_INSET = 4
 
@@ -79,11 +104,32 @@ class ProgressBar is Control
         SetAccessibilityCode(parent:Item:PROGRESS_BAR)
     end
 
+    /*
+        This action sets the key used to look up the progress bar's look in the
+        interface options. The filled part of the bar uses the same key, so both
+        take their colors from the same options.
+
+        Attribute: Parameter key The interface options key, such as "ProgressBar".
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ProgressBar
+        ProgressBar bar
+        bar:SetInterfaceOptionsKey("ProgressBar")
+    */
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         bar:SetInterfaceOptionsKey(key)
     end
 
+    /*
+        This action loads the graphics for the progress bar. The first time, it
+        gives the bar and its fill their views. Then it colors the fill with the
+        foreground color, rounds both ends of the bar and the fill, places the
+        fill inside the bar's edge, and sizes the fill to the value. The game
+        engine calls this as needed, so most users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the bar.
+    */
     action LoadGraphics(LayoutProperties properties)
         if properties = undefined
             return now
@@ -120,26 +166,110 @@ class ProgressBar is Control
     end
 
 
+    /*
+        This action returns the smallest value of the progress bar. At this
+        value the bar is empty. The default is 0.
+
+        Attribute: Returns The minimum value.
+    */
     action GetMinimum returns number
         return minimum
     end
 
+    /*
+        This action sets the smallest value of the progress bar. At this value
+        the bar is empty. The default is 0. The fill is resized the next time the
+        value is set or the bar is drawn again.
+
+        Attribute: Parameter minimum The minimum value.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ProgressBar
+        ProgressBar bar
+        bar:SetMinimum(0)
+        bar:SetMaximum(10)
+        bar:SetValue(4)
+    */
     action SetMinimum(number minimum)
         me:minimum = minimum
     end
 
+    /*
+        This action returns the largest value of the progress bar. At this value
+        the bar is full. The default is 100.
+
+        Attribute: Returns The maximum value.
+    */
     action GetMaximum returns number
         return maximum
     end
 
+    /*
+        This action sets the largest value of the progress bar. At this value
+        the bar is full. The default is 100. The fill is resized the next time
+        the value is set or the bar is drawn again.
+
+        Attribute: Parameter maximum The maximum value.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ProgressBar
+        ProgressBar bar
+        bar:SetMaximum(10)
+        bar:SetValue(4)
+    */
     action SetMaximum(number maximum)
         me:maximum = maximum
     end
 
+    /*
+        This action returns the current value of the progress bar.
+
+        Attribute: Returns The current value.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ProgressBar
+        ProgressBar bar
+        bar:SetValue(25)
+        number value = bar:GetValue()
+    */
     action GetValue returns number
         return value
     end
 
+    /*
+        This action sets the current value of the progress bar and resizes the
+        fill to show it. The fill covers the share of the bar between the minimum
+        and the maximum; a value outside the range shows an empty or full bar.
+        Screen readers are told of the change.
+
+        Attribute: Parameter value The new value.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.ProgressBar
+
+        class Main is Game
+            ProgressBar bar
+            number done = 0
+
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                bar:SetName("Download")
+                bar:SetPosition(100, 100)
+                Add(bar)
+            end
+
+            action Update(number seconds)
+                if done < 100
+                    done = done + seconds * 10
+                    bar:SetValue(done)
+                end
+            end
+        end
+    */
     action SetValue(number value)
         Accessibility access = manager:GetAccessibility()
         if access not= undefined

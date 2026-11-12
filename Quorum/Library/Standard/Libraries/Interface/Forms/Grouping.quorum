@@ -85,12 +85,12 @@ class Grouping is FormContainerControl, ButtonGroup
     public constant integer CARD_STYLE = 1
     public constant integer FOOTER_STYLE = 2
     public constant integer SUBSECTION_STYLE = 3
-    // A grouping of only choices beside a label, drawn as a shaded track (G3).
+    // A grouping of only choices beside a label, drawn as a shaded track.
     public constant integer CHOICE_STYLE = 4
     constant number CHOICE_ROUNDING = 8
 
-    // The group's 3-point left line while one of its choices has the focus
-    // (G3), like a focused text field's.
+    // The group's 3-point left line while one of its choices has the focus,
+    // like a focused text field's.
     boolean choiceFocus = false
     constant number CHOICE_FOCUS_THICKNESS = 3
     integer drawStyle = PLAIN_STYLE
@@ -163,7 +163,7 @@ class Grouping is FormContainerControl, ButtonGroup
 
     /*
         For radio buttons: sets whether one of this group's choices has the
-        focus, which draws the group's left line (G3).
+        focus, which draws the group's left line.
 
         Attribute: Parameter focused True while a choice in this group has the focus.
     */
@@ -177,7 +177,7 @@ class Grouping is FormContainerControl, ButtonGroup
         RequestVerticesUpdate()
     end
 
-    // A group of radio buttons takes the focus itself (G3): its left line,
+    // A group of radio buttons takes the focus itself: its left line,
     // and the selected button's circle edge and underline.
     action GainedFocus(FocusEvent event)
         parent:ButtonGroup:GainedFocus(event)

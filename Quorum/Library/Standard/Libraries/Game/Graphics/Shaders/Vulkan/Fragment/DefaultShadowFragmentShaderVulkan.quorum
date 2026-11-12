@@ -127,7 +127,7 @@ class DefaultShadowFragmentShaderVulkan is Shader
 			
 			float depth = gl_FragCoord.z;
 			// A point light stores the distance from the light over its far
-			// distance, which is as precise near as far (Shadow plan S1).
+			// distance, which is as precise near as far.
 			// Its shadow data's split distance holds the far distance, then
 			// where the light is.
 			if (pushConstants.isPointLight == 1u)

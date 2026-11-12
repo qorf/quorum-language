@@ -93,7 +93,7 @@ end
     end
     
     action SetFromBlueprint(ModelBlueprint schematic)
-        // Buffers made for a previous blueprint go first (Item 33).
+        // Buffers made for a previous blueprint go first.
         Release()
 
         // If the blueprint has animations, create one buffer per mesh to store post-animation transformed vertices.

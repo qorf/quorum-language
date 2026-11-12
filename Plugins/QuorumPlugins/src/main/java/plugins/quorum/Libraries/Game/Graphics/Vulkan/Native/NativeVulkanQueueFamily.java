@@ -36,8 +36,7 @@ public class NativeVulkanQueueFamily implements VulkanQueueFamilyStrategy
         return -1;
     }
 
-    // Not in quorum-natives' layer yet, so timestamps read as unsupported
-    // (Graphics timing plan T7).
+    // Not in quorum-natives' layer yet, so timestamps read as unsupported.
     public int GetTimestampValidBits()
     {
         return 0;

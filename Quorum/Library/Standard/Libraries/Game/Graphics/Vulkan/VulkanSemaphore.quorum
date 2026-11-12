@@ -23,7 +23,7 @@ class VulkanSemaphore is VulkanRetirable
 
     /*
     This action frees the semaphore once VulkanGraphics:Retire knows no
-    frame still uses it (Item 32). It is the same as Dispose.
+    frame still uses it. It is the same as Dispose.
     */
     action Release
         Dispose()

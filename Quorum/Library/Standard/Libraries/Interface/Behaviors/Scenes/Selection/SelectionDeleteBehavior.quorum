@@ -17,7 +17,7 @@ class SelectionDeleteBehavior is Behavior
             SelectionHighlight highlight = cast(SelectionHighlight, event:GetItem())
             // With the River tool, Delete removes the chosen point of a
             // river, or the last point of one being drawn, never the
-            // terrain (River plan R6).
+            // terrain.
             if highlight is TerrainSelectionHighlight and highlight:GetSceneEditor() not= undefined
                 if highlight:GetSceneEditor():IsRiverToolActive()
                     boolean handled = highlight:GetSceneEditor():RemoveChosenRiverPoint()

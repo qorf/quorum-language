@@ -33,18 +33,18 @@ class EditorTerrain is TerrainItem
     boolean changed = false
 
     // Whether the terrain's material files have changes that the next save
-    // of the scene must write (step 9).
+    // of the scene must write.
     boolean materialChanged = false
 
     // How the terrain collides in games, and whether it streams there, as
-    // saved in the scene (steps 5 and 13): WorldTerrain's COLLISION_FULL,
+    // saved in the scene: WorldTerrain's COLLISION_FULL,
     // COLLISION_DYNAMIC or COLLISION_DISABLED. The editor's own region models
     // never collide, and the editor loads every region.
     integer gameCollisionMode = 2
     boolean streamingInGames = false
     number gameDrawRadius = 100
 
-    // The brush (step 7). The tool is numbered as in the in-game terrain
+    // The brush. The tool is numbered as in the in-game terrain
     // editor, 1 to 9, or 0 for no tool: then the terrain is only selected.
     TerrainBrush brush
     TerrainTool tools
@@ -54,33 +54,31 @@ class EditorTerrain is TerrainItem
     public constant integer STAMP_TOOL = 10
     public constant integer ERODE_TOOL = 11
     public constant integer AUTO_PAINT_TOOL = 12
-    // Paints foliage, the assets of the terrain's foliage list (Terrain
-    // plan F3).
+    // Paints foliage, the assets of the terrain's foliage list.
     public constant integer FOLIAGE_TOOL = 13
     // Fills the hollow under the brush with water, and paints water with
-    // the brush (Water plan W6).
+    // the brush.
     public constant integer FILL_WATER_TOOL = 14
     public constant integer PAINT_WATER_TOOL = 15
-    // Draws a river along a path of points (River plan R5).
+    // Draws a river along a path of points.
     public constant integer RIVER_TOOL = 16
     public constant integer LAST_TOOL = 16
 
-    // A new river's width and depth, set in the Water section (River plan
-    // R6).
+    // A new river's width and depth, set in the Water section.
     number riverWidth = 4
     number riverDepth = 1.5
 
     // How far above the ground under the brush the Fill water and Paint
-    // water tools put the water's level (Water plan W6).
+    // water tools put the water's level.
     number waterDepth = 2
 
     // The foliage asset the Foliage tool paints, by its number in the
-    // foliage list (Terrain plan F3), and whether the foliage list file has
+    // foliage list, and whether the foliage list file has
     // changes the next save of the scene must write.
     integer foliageAsset = 0
     boolean foliageListChanged = false
 
-    // The ramp tool's two ends (step 8): set at the brush, each with the
+    // The ramp tool's two ends: set at the brush, each with the
     // ground's height there. The brush gets the ramp once both are set.
     boolean rampStartSet = false
     boolean rampEndSet = false
@@ -92,11 +90,11 @@ class EditorTerrain is TerrainItem
     number rampEndHeight = 0
     integer toolNumber = 0
     // The tool that was chosen when the user last left this terrain, so it
-    // comes back when they return (Round 2), or 0. It isn't saved with the
+    // comes back when they return, or 0. It isn't saved with the
     // scene.
     integer savedToolNumber = 0
 
-    // The Stamp tool's settings (step 10), set in the Generate section: its
+    // The Stamp tool's settings, set in the Generate section: its
     // shape, as TerrainGenerator's STAMP_HILL and the others; how it meets
     // the ground, -1 for the shape's usual way or TerrainGenerator's
     // STAMP_ADD, STAMP_SUBTRACT or STAMP_RAISE; its height; and its turn,
@@ -114,10 +112,10 @@ class EditorTerrain is TerrainItem
         // The editor only draws the terrain.
         parent:TerrainItem:SetCollision(false)
         // Clicks over the terrain go to the scene editor, which picks the
-        // ground itself (step 7); the terrain's models don't take them.
+        // ground itself; the terrain's models don't take them.
         SetAcceptsMouseInput(false)
         // A stronger brush than the library's default of 1, which felt slow
-        // in the editor (the user, 2026-10-21).
+        // in the editor.
         brush:SetStrength(DEFAULT_STRENGTH)
         // Flatten starts by evening the ground to the height where each
         // stroke begins, which needs no setting first.
@@ -148,7 +146,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Sets how the terrain collides in games (step 13): WorldTerrain's
+        Sets how the terrain collides in games: WorldTerrain's
         COLLISION_FULL (2), COLLISION_DYNAMIC (1) or COLLISION_DISABLED (0).
         It is saved in the scene. In the editor, the terrain only draws.
 
@@ -172,7 +170,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Sets whether the terrain streams in games, and its draw radius
-        there (step 13). It is saved in the scene. The editor always loads
+        there. It is saved in the scene. The editor always loads
         every region.
 
         Attribute: Parameter stream True to stream in games
@@ -270,7 +268,7 @@ class EditorTerrain is TerrainItem
             changed = false
         end
         // The foliage list file, after assets were added, removed, moved or
-        // changed in the Foliage section (Terrain plan F3).
+        // changed in the Foliage section.
         if foliageListChanged
             FoliageList list = GetFoliageList()
             if list not= undefined and list:GetFile() not= undefined
@@ -300,7 +298,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Sets whether the terrain's foliage list file has changes that the
-        next save of the scene must write (Terrain plan F3).
+        next save of the scene must write.
 
         Attribute: Parameter changed True if the list has changed
     */
@@ -320,7 +318,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Returns the foliage asset the Foliage tool paints, by its number in
-        the terrain's foliage list (Terrain plan F3).
+        the terrain's foliage list.
 
         Attribute: Returns The asset's number, from 0
     */
@@ -339,7 +337,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Returns how far above the ground under the brush the Fill water and
-        Paint water tools put the water's level (Water plan W6).
+        Paint water tools put the water's level.
 
         Attribute: Returns The depth, in world units
     */
@@ -348,7 +346,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Returns how wide a new river is (River plan R6).
+        Returns how wide a new river is.
 
         Attribute: Returns The width
     */
@@ -417,7 +415,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Describes the foliage under the brush, such as "12 Pine, 3 Rock", or
-        "no foliage" (Terrain plan F3).
+        "no foliage".
 
         Attribute: Returns The description
     */
@@ -474,7 +472,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Sets whether the terrain's material files have changes that the next
-        save of the scene must write (step 9).
+        save of the scene must write.
 
         Attribute: Parameter changed True if the material has changed
     */
@@ -484,7 +482,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Returns how many ground layers the terrain's material has, from 0 to
-        4 (step 9).
+        4.
 
         Attribute: Returns The number of layers
     */
@@ -498,7 +496,7 @@ class EditorTerrain is TerrainItem
     /*
         Keeps a copy of every region in a stroke, before an operation that
         changes the whole terrain's painting, such as removing a layer, so
-        it can be undone (step 9).
+        it can be undone.
 
         Attribute: Parameter stroke A stroke begun with BeginOperation
     */
@@ -635,8 +633,7 @@ class EditorTerrain is TerrainItem
             brush:SetTool(tools:TEXTURE, tools:ADD)
         elseif tool = FOLIAGE_TOOL or tool = FILL_WATER_TOOL or tool = PAINT_WATER_TOOL or tool = RIVER_TOOL
             // The Foliage and water tools don't change the ground with the
-            // brush; the scene editor places copies and water itself
-            // (Terrain plan F3, Water plan W6, River plan R5).
+            // brush; the scene editor places copies and water itself.
             brush:SetTool(tools:TEXTURE, tools:ADD)
         end
         if tool > 0 and not brushPlaced
@@ -664,7 +661,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Remembers the tool that was chosen when the user left this terrain,
-        so the scene editor can choose it again when they return (Round 2).
+        so the scene editor can choose it again when they return.
 
         Attribute: Parameter tool The tool's number, from 0 to 16
     */
@@ -847,7 +844,7 @@ class EditorTerrain is TerrainItem
     */
     action IsBrushOnGround returns boolean
         // Add region works past the edge of the ground, anywhere in the
-        // grid of regions (step 11).
+        // grid of regions.
         if toolNumber = 8
             return brushPlaced and IsBrushInGrid()
         end
@@ -866,7 +863,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Describes the terrain cursor for a screen reader, with or without a
-        tool, for the focus, a key's release and the report key (Round 2):
+        tool, for the focus, a key's release and the report key:
         where it is, the ground's height there, the brush's size, and the
         tool if one is chosen, such as "Terrain cursor at 12, 30, height
         7.4. Size 5. Raise tool." There is no slope: under a big brush there
@@ -941,7 +938,7 @@ class EditorTerrain is TerrainItem
 
     /*
         Returns the smallest sample along x or z that any region has, or the
-        largest (step 10).
+        largest.
 
         Attribute: Parameter alongX True for x, false for z
         Attribute: Parameter smallest True for the smallest, false for the largest
@@ -995,10 +992,10 @@ class EditorTerrain is TerrainItem
             result = result + ", " + GetLayerLabel(GetMainLayer(code))
         end
         if toolNumber = FOLIAGE_TOOL
-            // What foliage the brush is over (Terrain plan F3).
+            // What foliage the brush is over.
             result = result + ", " + DescribeFoliageUnderBrush()
         end
-        // Water over the ground there (Water plan W6).
+        // Water over the ground there.
         number waterDepth = GetWater():GetWaterDepthAt(brushX, brushZ)
         if waterDepth > 0
             result = result + ", under water, " + Round(waterDepth) + " deep"
@@ -1007,8 +1004,8 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Sets one end of the ramp at the brush, with the ground's height there
-        (step 8). Once both ends are set, the ramp tool shapes the ground
+        Sets one end of the ramp at the brush, with the ground's height there.
+Once both ends are set, the ramp tool shapes the ground
         under the brush toward a straight slope between them.
 
         Attribute: Parameter isEnd True for the ramp's end, false for its start
@@ -1047,7 +1044,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Sets the ramp's next end at the brush, for its key (step 8): the
+        Sets the ramp's next end at the brush, for its key: the
         start if none is set or both are, which begins a new ramp; otherwise
         the end.
 
@@ -1101,7 +1098,7 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Clears the ramp, so its start and end are set again (step 8).
+        Clears the ramp, so its start and end are set again.
     */
     action ClearRamp
         rampStartSet = false
@@ -1141,7 +1138,7 @@ class EditorTerrain is TerrainItem
     /*
         Says the ground's height under the brush in a few words, such as    /*
         Says the ground's height under the brush in a few words, such as
-        "Height 3.2", for each arrow key move (step 12).
+        "Height 3.2", for each arrow key move.
 
         Attribute: Returns The description
     */
@@ -1158,7 +1155,7 @@ class EditorTerrain is TerrainItem
     /*
         Says how the ground's height changed with an arrow key step, such
         as "Up 1.4, height 5.6", "Down 2.3, height 5.1" or "Level, height
-        7.4" (Round 2).
+        7.4".
 
         Attribute: Parameter before The ground's height where the step began
         Attribute: Returns The description
@@ -1179,8 +1176,8 @@ class EditorTerrain is TerrainItem
 
     /*
         Describes the ground under the whole brush: its lowest and highest
-        heights, their average, and how much of it each layer covers
-        (step 12). There is no slope (Round 2).
+        heights, their average, and how much of it each layer covers.
+There is no slope.
 
         Attribute: Returns The description
     */

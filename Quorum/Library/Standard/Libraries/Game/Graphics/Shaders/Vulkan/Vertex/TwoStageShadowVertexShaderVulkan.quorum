@@ -13,7 +13,7 @@ class TwoStageShadowVertexShaderVulkan is Shader
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:TWO_STAGE_SHADOW_VERTEX_SHADER)
         // The material and the wind's sway, shared with the 3D vertex
-        // shader (Foliage plan F6).
+        // shader.
         SwayVertexShaderPartVulkan sway
 		
 		VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
@@ -34,8 +34,7 @@ class TwoStageShadowVertexShaderVulkan is Shader
 layout(location = 0) out vec2 v_textureCoords;
 layout(location = 1) flat out uint v_entityID;
 layout(location = 2) flat out uint v_cascadeIndex;
-// Where the point is in the world, for a point light's distance (Shadow
-// plan S1).
+// Where the point is in the world, for a point light's distance.
 layout(location = 3) out vec3 v_worldPosition;
 
 struct CascadeShadow
@@ -88,7 +87,7 @@ layout(push_constant) uniform PushConstants {
    uint lightIndex;
    uint targetCascade;
    uint targetFace;
-   // The shader time, for swaying materials (Foliage plan F6).
+   // The shader time, for swaying materials.
    float time;
 } pushConstants;
 		
@@ -109,7 +108,7 @@ void main()
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
-	// Shadows sway as their models do (Foliage plan F6).
+	// Shadows sway as their models do.
 	worldPosition.xyz += swayOffset(instanceData.materials, modelTransform[3].xyz, worldPosition.xyz, pushConstants.time);
 	
 	v_textureCoords = vertex.textureCoordinates;
@@ -121,7 +120,7 @@ void main()
 	uint targetFace = pushConstants.targetFace;
 	
 	// Six layers per cascade for a point light, one for a directional
-	// light (Item 35).
+	// light.
 	gl_Layer = int(targetCascade * (1 + pushConstants.isPointLight * 5) + targetFace);
 	v_cascadeIndex = targetCascade;
 	

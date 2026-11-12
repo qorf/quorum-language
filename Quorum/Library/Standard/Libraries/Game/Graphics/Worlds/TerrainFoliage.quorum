@@ -10,7 +10,7 @@ use Libraries.System.File
 
 /*
 TerrainFoliage holds where every copy of every foliage asset stands on one
-terrain (Terrain plan F1). The copies are kept in FoliageCells: each region
+terrain. The copies are kept in FoliageCells: each region
 of the terrain is split into square cells about 32 units wide, and each cell
 holds one asset's copies, so a cell can be drawn and culled as one piece.
 
@@ -214,7 +214,7 @@ class TerrainFoliage
 
     /*
     This action moves the copies in an area up or down onto the ground
-    under them, after the ground was sculpted (Terrain plan F4), keeping
+    under them, after the ground was sculpted, keeping
     their asset's height offset. Copies with no ground under them, such as
     on a removed region, stay where they are.
 

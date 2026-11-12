@@ -8,6 +8,53 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
 use Libraries.Interface.Behaviors.Behavior
 
+/*
+The Spreadsheet class is a control that shows a grid of text Cells, arranged
+in Columns. The user can select a Cell with the mouse or move the selection
+with the arrow keys, and can activate a Cell, such as by double-clicking it.
+Screen readers read the Spreadsheet as a table. To fill it, make Columns,
+add Cells to them, and add the Columns to the Spreadsheet.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Column
+use Libraries.Interface.Controls.Cell
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Spreadsheet sheet
+
+        Column names
+        Cell ada
+        ada:SetText("Ada")
+        names:Add(ada)
+        Cell grace
+        grace:SetText("Grace")
+        names:Add(grace)
+        sheet:Add(names)
+
+        Column years
+        Cell adaYear
+        adaYear:SetText("1815")
+        years:Add(adaYear)
+        Cell graceYear
+        graceYear:SetText("1906")
+        years:Add(graceYear)
+        sheet:Add(years)
+
+        sheet:SetPosition(50, 50)
+        Add(sheet)
+        sheet:Select(0, 0)
+    end
+end
+*/
 class Spreadsheet is Control
     Array<Column> columns
     SpreadsheetSelection selection
@@ -32,41 +79,159 @@ class Spreadsheet is Control
         SetName("Table")
     end
 
+    /*
+    This action returns true, because a Spreadsheet is a parent for
+    accessibility: screen readers treat its Cells as parts of the table.
+
+    Attribute: Returns True, since a Spreadsheet is an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+    This action adds a Column to the right side of the Spreadsheet and
+    connects the Column to it, so the Column's Cells can be selected.
+
+    Attribute: Parameter column The Column to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    */
     action Add(Column column)
         columns:Add(column)
         column:SetSpreadsheet(me)
         parent:Item2D:Add(column)
     end
 
+    /*
+    This action adds a Column to the Spreadsheet's list of Columns at the
+    given position. Position 0 is the leftmost Column. Unlike Add with only
+    a Column, this action does not connect the Column to the Spreadsheet, so
+    call the Column's SetSpreadsheet action as well.
+
+    Attribute: Parameter position The index the new Column will have.
+
+    Attribute: Parameter column The Column to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column years
+    sheet:Add(years)
+    Column names
+    names:SetSpreadsheet(sheet)
+    sheet:Add(0, names)
+    */
     action Add(integer position, Column column)
         columns:Add(position, column)
 
         parent:Item2D:Add(column)
     end
 
+    /*
+    This action returns the Column at the given index. The leftmost Column
+    is at index 0.
+
+    Attribute: Parameter i The index of the Column.
+
+    Attribute: Returns The Column at that index.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column names
+    sheet:Add(names)
+    Column first = sheet:GetColumn(0)
+    */
     action GetColumn(integer i) returns Column
         return columns:Get(i)
     end
 
+    /*
+    This action removes the given Column, with its Cells, from the
+    Spreadsheet.
+
+    Attribute: Parameter column The Column to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column names
+    sheet:Add(names)
+    sheet:RemoveColumn(names)
+    */
     action RemoveColumn(Column column)
         columns:Remove(column)
         column:SetSpreadsheet(undefined)
         parent:Item2D:Remove(column)
     end
 
+    /*
+    This action removes the Column at the given index, with its Cells, from
+    the Spreadsheet. Columns to its right move left by one.
+
+    Attribute: Parameter column The index of the Column to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column names
+    sheet:Add(names)
+    sheet:RemoveColumnAt(0)
+    */
     action RemoveColumnAt(integer column)
         Column c = columns:RemoveAt(column)
         parent:Item2D:Remove(c)
     end
 
+    /*
+    This action returns how many Columns the Spreadsheet has.
+
+    Attribute: Returns The number of Columns.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column names
+    sheet:Add(names)
+    integer columns = sheet:GetColumnsSize()
+    */
     action GetColumnsSize returns integer
         return columns:GetSize()
     end
 
+    /*
+    This action returns how many rows the Spreadsheet has, which is the
+    number of Cells in its longest Column.
+
+    Attribute: Returns The number of rows.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    integer rows = sheet:GetRowsSize()
+    */
     action GetRowsSize returns integer
         integer max = 0
         integer counter = 0
@@ -81,14 +246,57 @@ class Spreadsheet is Control
         return max
     end
 
+    /*
+    This action returns the Spreadsheet's selection, which says which Cell,
+    if any, is selected, and at which row and column.
+
+    Attribute: Returns The SpreadsheetSelection of this Spreadsheet.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    use Libraries.Interface.Selections.SpreadsheetSelection
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    sheet:Select(0, 0)
+    SpreadsheetSelection selection = sheet:GetSelection()
+    integer row = selection:GetRow()
+    */
     action GetSelection returns SpreadsheetSelection
         return selection
     end
 
+    /*
+    This action returns true if the Spreadsheet has no Columns.
+
+    Attribute: Returns True if there are no Columns.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    Spreadsheet sheet
+    boolean empty = sheet:IsColumnsEmpty()
+    */
     action IsColumnsEmpty returns boolean
         return columns:IsEmpty()
     end
 
+    /*
+    This action removes every Column and Cell from the Spreadsheet and
+    clears the selection.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    Spreadsheet sheet
+    Column names
+    sheet:Add(names)
+    sheet:Empty()
+    */
     action Empty
         selection:Empty()
         columns:Empty()
@@ -130,6 +338,22 @@ class Spreadsheet is Control
         selection:Set(row, column)
     end
 
+    /*
+    This action clears the selection, so no Cell is selected.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    sheet:Select(0, 0)
+    sheet:Deselect()
+    */
     action Deselect
         Cell oldSelection = selection:Get()
         if oldSelection not= undefined
@@ -139,6 +363,26 @@ class Spreadsheet is Control
         selection:Empty()
     end
 
+    /*
+    This action selects the Cell just above the selected one, in the same
+    Column. If the selection is already in the top row, nothing changes.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    Cell grace
+    grace:SetText("Grace")
+    names:Add(grace)
+    sheet:Add(names)
+    sheet:Select(1, 0)
+    sheet:MoveSelectionUp()
+    */
     action MoveSelectionUp
         integer row = selection:GetRow()
         integer column = selection:GetColumn()
@@ -148,6 +392,27 @@ class Spreadsheet is Control
         end
     end
 
+    /*
+    This action selects the Cell just below the selected one, in the same
+    Column. If the selection is already the last Cell in its Column,
+    nothing changes.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    Cell grace
+    grace:SetText("Grace")
+    names:Add(grace)
+    sheet:Add(names)
+    sheet:Select(0, 0)
+    sheet:MoveSelectionDown()
+    */
     action MoveSelectionDown
         integer row = selection:GetRow()
         integer col = selection:GetColumn()
@@ -160,6 +425,29 @@ class Spreadsheet is Control
         end
     end
 
+    /*
+    This action selects the Cell just left of the selected one, in the same
+    row. If the selection is already in the leftmost Column, nothing
+    changes.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    Column years
+    Cell year
+    year:SetText("1815")
+    years:Add(year)
+    sheet:Add(years)
+    sheet:Select(0, 1)
+    sheet:MoveSelectionLeft()
+    */
     action MoveSelectionLeft
         integer row = selection:GetRow()
         integer column = selection:GetColumn()
@@ -169,6 +457,29 @@ class Spreadsheet is Control
         end
     end
 
+    /*
+    This action selects the Cell just right of the selected one, in the
+    same row. If the selection is already in the rightmost Column, nothing
+    changes.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    Column years
+    Cell year
+    year:SetText("1815")
+    years:Add(year)
+    sheet:Add(years)
+    sheet:Select(0, 0)
+    sheet:MoveSelectionRight()
+    */
     action MoveSelectionRight
         integer row = selection:GetRow()
         integer column = selection:GetColumn()

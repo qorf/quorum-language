@@ -195,12 +195,12 @@ class Game
     // press (HideFocusOutlineUntilTouch).
     boolean focusOutlineHidden = false
 
-    // MSAA for 3D under Vulkan (Item 27), passed to the graphics when they
+    // MSAA for 3D under Vulkan, passed to the graphics when they
     // start. 1 is off.
     integer multisampleCount = 1
-    // MSAA for 2D and the screen's final image under Vulkan (Item 29).
+    // MSAA for 2D and the screen's final image under Vulkan.
     integer multisampleCount2D = 1
-    // GPU timing (Graphics timing plan T4): whether it was asked for, passed
+    // GPU timing: whether it was asked for, passed
     // to the graphics when they start, and a timer that reports itself
     // unsupported, for graphics without timing.
     boolean graphicsTiming = false
@@ -4033,7 +4033,7 @@ if gl20 is OpenGLManager
     end
 
     /*
-    This action turns GPU timing on or off (Graphics timing plan T4). On, the
+    This action turns GPU timing on or off. On, the
     GPU's time for each phase of each frame, such as shadows, the G-buffer
     and lighting, is measured with Vulkan timestamps and can be read from
     GetGraphicsTimer, kept with a GraphicsTimingLog, charted or written as
@@ -4085,7 +4085,7 @@ if gl20 is OpenGLManager
     end
 
     /*
-    This action returns the GPU timer (Graphics timing plan T2), to read
+    This action returns the GPU timer, to read
     each frame's GPU times, give it a GraphicsTimingLog, or time phases of
     one's own. Without Vulkan it is a timer whose IsSupported is false.
 

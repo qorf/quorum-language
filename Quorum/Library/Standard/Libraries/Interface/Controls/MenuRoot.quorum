@@ -13,6 +13,35 @@ use Libraries.Containers.Iterator
 The MenuRoot class is a blueprint that represents the top-most level of a menu.
 It's used for classes like the MenuBar. Most users will never need to use this
 class directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.MenuRoot
+use Libraries.Interface.Controls.MenuBar
+use Libraries.Interface.Controls.MenuItem
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        MenuBar bar
+        MenuItem file
+        file:SetName("File")
+        MenuItem exit
+        exit:SetName("Exit")
+        file:Add(exit)
+        bar:Add(file)
+        Add(bar)
+
+        // A MenuBar is one kind of MenuRoot.
+        MenuRoot root = bar
+        output "Menus on the bar: " + root:GetSize()
+    end
+end
 */
 class MenuRoot is Control
 
@@ -31,24 +60,162 @@ class MenuRoot is Control
         SetInputGroup("MenuRoot")
     end
 
+    /*
+        This action adds each MenuItem in the array to the top level of the menu, in
+        order. Each kind of MenuRoot decides where the items go: a MenuBar puts them
+        along the bar, and a PopupMenu lists them in its panel.
+
+        Attribute: Parameter menuHeaders The MenuItems to add to the top level of the menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem file
+                file:SetName("File")
+                MenuItem edit
+                edit:SetName("Edit")
+
+                Array<MenuItem> menus
+                menus:Add(file)
+                menus:Add(edit)
+
+                MenuBar bar
+                bar:Add(menus)
+                Add(bar)
+            end
+        end
+    */
     blueprint action Add(Array<MenuItem> menuHeaders)
 
+    /*
+        This action adds a MenuItem to the top level of the menu, after the items
+        already there. The item, and any items inside it, are connected to this
+        MenuRoot so their selections and events go through it.
+
+        Attribute: Parameter item The MenuItem to add to the top level of the menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+
+                MenuBar bar
+                bar:Add(file)
+                Add(bar)
+            end
+        end
+    */
     blueprint action Add(MenuItem item)
 
+    /*
+        This action closes every open menu and submenu in this MenuRoot. A MenuBar
+        stays on the screen with its menus closed, while a PopupMenu hides itself.
+    */
     blueprint action Close
 
+    /*
+        This action moves the selection one step to the left, as the left arrow key
+        does. In a MenuBar this moves to the menu before the selected one, or out of a
+        submenu to its parent. In a PopupMenu it moves out of a submenu to its parent.
+        The menu's keyboard behaviors call this, so most users shouldn't need to.
+    */
     blueprint action MoveSelectionLeft
 
+    /*
+        This action moves the selection one step to the right, as the right arrow key
+        does. If the selected item opens a submenu, the submenu opens and its first
+        item is selected. In a MenuBar, if the selected item has no submenu, the
+        selection moves on to the next menu along the bar. The menu's keyboard
+        behaviors call this, so most users shouldn't need to.
+    */
     blueprint action MoveSelectionRight
 
+    /*
+        This action moves the selection up to the item above the selected one, as the
+        up arrow key does. The menu's keyboard behaviors call this, so most users
+        shouldn't need to.
+    */
     blueprint action MoveSelectionUp
 
+    /*
+        This action moves the selection down to the item below the selected one, as
+        the down arrow key does. In a MenuBar, if a menu on the bar is selected, its
+        menu opens and its first item is selected. The menu's keyboard behaviors call
+        this, so most users shouldn't need to.
+    */
     blueprint action MoveSelectionDown
 
+    /*
+        This action returns how many MenuItems are on the top level of this menu. It
+        does not count the items inside submenus.
+
+        Attribute: Returns The number of MenuItems on the top level of the menu.
+    */
     blueprint action GetSize returns integer
 
+    /*
+        This action returns an Iterator that goes through the MenuItems on the top
+        level of this menu, in order.
+
+        Attribute: Returns An Iterator over the top level MenuItems.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Iterator
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem edit
+                edit:SetName("Edit")
+                bar:Add(file)
+                bar:Add(edit)
+                Add(bar)
+
+                Iterator<MenuItem> iterator = bar:GetIterator()
+                repeat while iterator:HasNext()
+                    MenuItem menu = iterator:Next()
+                    output menu:GetName()
+                end
+            end
+        end
+    */
     blueprint action GetIterator returns Iterator<MenuItem>
 
+    /*
+        This action tells whether the top level of this menu has no MenuItems in it.
+
+        Attribute: Returns true if the menu has no items, or false if it has at least one.
+    */
     action IsEmpty returns boolean
         return GetSize() = 0
     end
@@ -60,18 +227,104 @@ class MenuRoot is Control
     */
     blueprint action HasBar returns boolean
 
+    /*
+        This action returns the menu's selection. The selection holds the path from
+        the top level of the menu down to the selected item, such as File and then
+        Exit when Exit in the File menu is selected.
+
+        Attribute: Returns The MenuSelection of this menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+        use Libraries.Interface.Selections.MenuSelection
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem exit
+                exit:SetName("Exit")
+                file:Add(exit)
+                bar:Add(file)
+                Add(bar)
+
+                exit:Select()
+                MenuSelection selection = bar:GetSelection()
+                output "Items in the selected path: " + selection:GetPathLength()
+            end
+        end
+    */
     action GetSelection returns MenuSelection
         return selection
     end
 
+    /*
+        This action would return a group of selections, for controls that can select
+        more than one thing at a time. A menu only ever selects one item, so this
+        always returns undefined. Use GetSelection instead.
+
+        Attribute: Returns undefined, because a menu has only one selection.
+    */
     action GetMultipleSelection returns Array<MenuSelection>
         return undefined
     end
 
+    /*
+        This action tells whether this control can select more than one thing at a
+        time. A menu only ever selects one item, so this always returns false.
+
+        Attribute: Returns false, because a menu has only one selection.
+    */
     action HasMultipleSelection returns boolean
         return false
     end
 
+    /*
+        This action selects the item at the end of the given path. The path lists the
+        MenuItems from the top level of the menu down to the item to select, such as
+        File and then Exit. Items that were on the old path but not the new one lose
+        their selection, items on the new path gain it, and the selection is updated,
+        which tells any selection listeners. An empty path clears the selection.
+        Calling Select on a MenuItem does the same thing for that item.
+
+        Attribute: Parameter path The MenuItems from the top level down to the item to select.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem exit
+                exit:SetName("Exit")
+                file:Add(exit)
+                bar:Add(file)
+                Add(bar)
+
+                file:Open()
+                Array<MenuItem> path
+                path:Add(file)
+                path:Add(exit)
+                bar:Select(path)
+            end
+        end
+    */
     action Select(Array<MenuItem> path)
         if path:IsEmpty()//if the user sent an empty path, deselect everything 
             Deselect()
@@ -107,11 +360,22 @@ class MenuRoot is Control
         selection:Set(path)
     end
 
+    /*
+        This action clears the menu's selection, so no item is selected. Every item on
+        the old selection path loses its selection.
+    */
     action Deselect
         MenuSelection selection = GetSelection()
         Deselect(selection:GetPath())
     end
 
+    /*
+        This action removes the selection from each item on the given path, then
+        clears the menu's selection. The path is left as it was when the action
+        finishes.
+
+        Attribute: Parameter path The path of MenuItems that are losing their selection.
+    */
     private action Deselect(Array<MenuItem> path)
         MenuItem item = undefined
         if not path:IsEmpty()
@@ -129,6 +393,14 @@ class MenuRoot is Control
         selection:Set(newPath)
     end
 
+    /*
+        This action returns the last MenuItem in a path, which is the item the path
+        leads to, or undefined if the path is empty.
+
+        Attribute: Parameter path The path of MenuItems to look in.
+
+        Attribute: Returns The last MenuItem in the path, or undefined if the path is empty.
+    */
     private action GetMenuItem(Array<MenuItem> path) returns MenuItem
         if not path:IsEmpty()
             return path:GetFromEnd()
@@ -136,10 +408,25 @@ class MenuRoot is Control
         return undefined
     end
 
+    /*
+        This action tells whether the menu is being used, meaning the user has
+        selected something in it and is moving through it. While a menu is in this
+        state, moving the mouse over the items opens and selects them, and clicking an
+        item activates it.
+
+        Attribute: Returns true if the menu is being used, or false if not.
+    */
     action IsSelecting returns boolean
         return isSelecting
     end
 
+    /*
+        This action sets whether the menu is being used. Selecting a MenuItem sets
+        this to true. Setting it to false also clears the menu's selection, which is
+        what happens when an item is activated and the menu is done.
+
+        Attribute: Parameter selecting true if the menu is being used, or false to stop using it.
+    */
     action SetSelectingState(boolean selecting)
         if selecting = false
             Deselect()
@@ -147,6 +434,12 @@ class MenuRoot is Control
         isSelecting = selecting
     end
 
+    /*
+        This action acts on the selected item, as the Enter key does. If the selected
+        item has a submenu, the submenu opens. Otherwise the item is activated and its
+        behavior runs. Nothing happens if the menu is not being used or nothing is
+        selected.
+    */
     action ActivateSelection
         if IsSelecting()
             MenuItem item = GetMenuItem(selection:GetPath())
@@ -162,14 +455,68 @@ class MenuRoot is Control
         end
     end
 
+    /*
+        This action adds a listener that is told whenever a menu in this MenuRoot
+        opens or closes. The listener's OpenedMenu action is called when a menu opens,
+        and its ClosedMenu action is called when one closes.
+
+        Attribute: Parameter listener The MenuChangeListener to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+        use Libraries.Interface.Events.MenuChangeListener
+        use Libraries.Interface.Events.MenuChangeEvent
+
+        class Main is Game, MenuChangeListener
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem exit
+                exit:SetName("Exit")
+                file:Add(exit)
+                bar:Add(file)
+                bar:AddMenuChangeListener(me)
+                Add(bar)
+            end
+
+            action OpenedMenu(MenuChangeEvent event)
+                output "Opened " + event:GetMenuItem():GetName()
+            end
+
+            action ClosedMenu(MenuChangeEvent event)
+                output "Closed " + event:GetMenuItem():GetName()
+            end
+        end
+    */
     action AddMenuChangeListener(MenuChangeListener listener)
         listeners:Add(listener)
     end
 
+    /*
+        This action removes a listener added with AddMenuChangeListener, so it is no
+        longer told when menus open or close.
+
+        Attribute: Parameter listener The MenuChangeListener to remove.
+    */
     action RemoveMenuChangeListener(MenuChangeListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+        This action tells every MenuChangeListener on this MenuRoot that a menu opened
+        or closed, depending on the event's type, and then passes the event on to the
+        game's input system. MenuItems call this when they open and close, so most
+        users shouldn't need to call it directly.
+
+        Attribute: Parameter event The event that describes which menu opened or closed.
+    */
     action NotifyMenuChangeListeners(MenuChangeEvent event)
         integer counter = 0
         if event:GetEventType() = event:OPENED
@@ -187,11 +534,25 @@ class MenuRoot is Control
         manager:GetInput():NotifyMenuChangeListeners(event)
     end
 
+    /*
+        This action is called when the menu gains the focus. It remembers which item
+        had the focus before, so RestoreLastFocus can give the focus back to it when
+        the user is done with the menu.
+
+        Attribute: Parameter event The FocusEvent that describes the change of focus.
+    */
     action GainedFocus(FocusEvent event)
         previousFocus = event:GetLastFocus()
         parent:Control:GainedFocus(event)
     end
 
+    /*
+        This action is called when the menu loses the focus. It clears the selection
+        and closes every open menu, so a menu doesn't stay open after the user moves
+        on to something else.
+
+        Attribute: Parameter event The FocusEvent that describes the change of focus.
+    */
     action LostFocus(FocusEvent event)
         Deselect()
         Close()

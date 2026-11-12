@@ -46,7 +46,7 @@ shared class SceneProperties
     public constant text SKYBOX = "Skybox"
     public constant text SKYBOX_TURN = "Skybox Turn"
     // False when a 3D layer lights colors as stored instead of in linear
-    // light (Linear lighting plan). Saved only when off; on is the default.
+    // light. Saved only when off; on is the default.
     public constant text LINEAR_LIGHTING = "Linear Lighting"
 
     /*
@@ -169,13 +169,13 @@ shared class SceneProperties
     public constant text FILE = "File"
 
     // A terrain's terrain material file, relative to the project, such as
-    // "Scenes/Materials/Terrain1.json" (step 9). Written only when the
+    // "Scenes/Materials/Terrain1.json". Written only when the
     // terrain has one.
     public constant text MATERIAL = "Material"
-    // A terrain's foliage list file (Terrain plan F1).
+    // A terrain's foliage list file.
     public constant text FOLIAGE = "Foliage"
 
-    // A terrain's collision in games (step 13): "Full" (every region),
+    // A terrain's collision in games: "Full" (every region),
     // "Dynamic" (only near moving bodies) or "Disabled". Older scenes have
     // only "Physics Enabled", which is still written.
     public constant text COLLISION = "Collision"
@@ -184,7 +184,7 @@ shared class SceneProperties
     public constant text COLLISION_DISABLED_VALUE = "Disabled"
 
     // Whether a terrain streams its regions in games, and how near a region
-    // must be to be drawn (step 13). Written only for a streaming terrain.
+    // must be to be drawn. Written only for a streaming terrain.
     public constant text STREAMING = "Streaming"
     public constant text DRAW_RADIUS = "Draw Radius"
 

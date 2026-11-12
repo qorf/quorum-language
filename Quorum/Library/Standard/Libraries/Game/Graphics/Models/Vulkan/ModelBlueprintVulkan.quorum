@@ -27,14 +27,13 @@ class ModelBlueprintVulkan is ModelBlueprint
     
     BoundingBox boundingBox
 
-    // How many models have this blueprint loaded (Item 33).
+    // How many models have this blueprint loaded.
     integer userCount = 0
 
-    // True once the blueprint's GPU memory has been freed (Item 33).
+    // True once the blueprint's GPU memory has been freed.
     boolean released = false
 
-    // The lights read from the model file, kept after the data is released
-    // (Lighting plan L8).
+    // The lights read from the model file, kept after the data is released.
     Array<ModelLightData> lights = undefined
     
     on create
@@ -42,7 +41,7 @@ class ModelBlueprintVulkan is ModelBlueprint
     end
     
 action HasAnimations returns boolean
-        // A released blueprint has let go of its data (Item 33).
+        // A released blueprint has let go of its data.
         if data = undefined
             return false
         end
@@ -88,7 +87,7 @@ Animations animations = data:GetAnimations()
 
     /*
     This action returns the lights read from the model file the blueprint
-    was made from, or undefined if it has none (Lighting plan L8). Model:Load
+    was made from, or undefined if it has none. Model:Load
     turns each into a light on the model.
 
     Attribute: Returns The file's lights, or undefined.
@@ -98,7 +97,7 @@ Animations animations = data:GetAnimations()
     end
 
     /*
-    This action sets the lights read from the model file (Lighting plan L8).
+    This action sets the lights read from the model file.
     The model manager calls it when it makes the blueprint.
 
     Attribute: Parameter lights The file's lights, or undefined.
@@ -195,8 +194,8 @@ Animations animations = data:GetAnimations()
 
     /*
     This action returns true if any of the blueprint's materials lets light
-    through (Transmission plan T1), so the painter copies what is behind
-    before drawing its see-through meshes (T3).
+    through, so the painter copies what is behind
+    before drawing its see-through meshes.
 
     Attribute: Returns True if a material has transmission.
     */
@@ -218,7 +217,7 @@ Animations animations = data:GetAnimations()
     /*
     This action returns true if some of the blueprint's meshes have a
     see-through material and others an opaque one, as a lamp with a glass
-    or paper shade (Transmission plan, the mesh split). The painter then
+    or paper shade. The painter then
     draws the opaque meshes in the scene pass, where they hide one another,
     and only the see-through ones after the lighting. It is worked out each
     time, as the materials only know once they are loaded; the painter only
@@ -251,7 +250,7 @@ Animations animations = data:GetAnimations()
     /*
     This action returns true if any of the blueprint's materials is
     two-sided, so the painter draws its models without hiding the backs of
-    faces (Lighting plan L4).
+    faces.
 
     Attribute: Returns True if a material is two-sided.
     */
@@ -370,7 +369,7 @@ Animations animations = data:GetAnimations()
             bindPoseAnimationFrame:Release()
         end
         // Each blueprint makes its own materials, so nothing else holds
-        // them (Item 34).
+        // them.
         if materials not= undefined
             i = 0
             repeat while i < materials:GetSize()

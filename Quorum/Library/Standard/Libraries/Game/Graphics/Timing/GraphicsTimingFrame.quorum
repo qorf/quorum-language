@@ -4,7 +4,7 @@ use Libraries.Containers.Array
 
 /*
 A GraphicsTimingFrame is the GPU time one frame took, measured by a
-GraphicsTimer (Graphics timing plan T2): the whole frame, and each phase,
+GraphicsTimer: the whole frame, and each phase,
 such as "Shadows" or "G-buffer", in milliseconds. A phase timed more than
 once in a frame, such as one shadow pass per light, is added up, and its
 call count says how many times.

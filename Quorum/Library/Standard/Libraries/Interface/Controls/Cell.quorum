@@ -12,6 +12,32 @@ use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.ControlActivationEvent
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The Cell class is one box of text in a Spreadsheet. Cells are added to a
+Column, and Columns are added to a Spreadsheet. A Cell can be selected by
+clicking it, and activated, such as by double-clicking it. A Cell can have
+its own activation behavior, or use the Spreadsheet's.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Column
+use Libraries.Interface.Controls.Cell
+
+class Main
+    action Main
+        Spreadsheet sheet
+        Column names
+        Cell ada
+        ada:SetText("Ada")
+        names:Add(ada)
+        sheet:Add(names)
+        ada:Select()
+        output ada:GetText()
+    end
+end
+*/
 class Cell is Control
     text value = ""
     constant integer DEFAULT_PADDING = 6
@@ -52,6 +78,15 @@ class Cell is Control
         SetName("Cell")
     end
 
+    /*
+    This action sets up the Cell's graphics from the given layout
+    properties. It sets the text's font, font size, and color, and moves the
+    text a little in from the left edge. The text color comes from the
+    Cell's own properties, then the Spreadsheet's, and is black if neither
+    sets one.
+
+    Attribute: Parameter properties The layout properties to load the graphics from.
+    */
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
 
@@ -87,15 +122,43 @@ class Cell is Control
         label:SetInterfaceScale(properties:GetInterfaceScale())
     end
 
+    /*
+    This action sets the text shown in the Cell.
+
+    Attribute: Parameter value The new text of the Cell.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Cell
+    Cell cell
+    cell:SetText("Ada")
+    */
     action SetText(text value)
         me:value = value
         label:SetText(value)
     end
 
+    /*
+    This action returns the text shown in the Cell.
+
+    Attribute: Returns The Cell's text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Cell
+    Cell cell
+    cell:SetText("Ada")
+    text value = cell:GetText()
+    */
     action GetText returns text
         return value
     end
 
+    /*
+    This action is called when the Cell becomes the Spreadsheet's
+    selection. It changes the Cell's background to the selection color and
+    its text to the selection font color. Each color comes from the Cell's
+    own properties, then the Spreadsheet's, and is blue for the background
+    or white for the text if neither sets one.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         Spreadsheet sheet = GetSpreadsheet()
@@ -135,6 +198,13 @@ class Cell is Control
         label:SetColor(textColor)
     end
 
+    /*
+    This action is called when the Cell stops being the Spreadsheet's
+    selection. It puts the Cell's background and text back to their usual
+    colors. Each color comes from the Cell's own properties, then the
+    Spreadsheet's, and is white for the background or black for the text
+    if neither sets one.
+    */
     action LostSelection
         parent:Control:LostSelection()
         Spreadsheet sheet = GetSpreadsheet()
@@ -174,11 +244,32 @@ class Cell is Control
         label:SetColor(textColor)
     end
 
+    /*
+    This action is called when the user clicks the Cell. It does what any
+    control does on a click and then selects the Cell in its Spreadsheet.
+    */
     action ClickedMouse
         parent:Control:ClickedMouse()
         Select()
     end
 
+    /*
+    This action selects this Cell. It asks the Spreadsheet the Cell is in to
+    select it, so the Spreadsheet can deselect the old Cell. If the Cell is
+    not in a Spreadsheet, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    ada:Select()
+    */
     action Select
         // Don't actually select here! Go to the Spreadsheet and ask it to 
         // select us. We do this to allow the Spreadsheet to update the
@@ -189,6 +280,24 @@ class Cell is Control
         end
     end
 
+    /*
+    This action clears the selection of the Spreadsheet the Cell is in, so
+    no Cell is selected. If the Cell is not in a Spreadsheet, nothing
+    happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    sheet:Add(names)
+    ada:Select()
+    ada:Deselect()
+    */
     action Deselect
         // Don't actually select here! Go to the Spreadsheet and ask it to 
         // select us. We do this to allow the Spreadsheet to update the
@@ -199,6 +308,19 @@ class Cell is Control
         end
     end
 
+    /*
+    This action returns the Column holding this Cell.
+
+    Attribute: Returns The Column, or undefined if the Cell is not in one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    names:Add(ada)
+    Column holder = ada:GetColumn()
+    */
     action GetColumn returns Column
         Item2D item = GetParent()
         repeat while (item is Column = false) and (item not= undefined)
@@ -207,6 +329,22 @@ class Cell is Control
         return cast(Column, item)
     end
 
+    /*
+    This action returns the Spreadsheet holding this Cell's Column.
+
+    Attribute: Returns The Spreadsheet, or undefined if the Cell is not in one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Spreadsheet sheet
+    Column names
+    Cell ada
+    names:Add(ada)
+    sheet:Add(names)
+    Spreadsheet holder = ada:GetSpreadsheet()
+    */
     action GetSpreadsheet returns Spreadsheet
         Column column = GetColumn()
         if column not= undefined
@@ -216,18 +354,62 @@ class Cell is Control
         end
     end
 
+    /*
+    This action returns the behavior this Cell runs when it is activated,
+    such as by a double-click. If it is undefined, the Spreadsheet's cell
+    activation behavior is used instead.
+
+    Attribute: Returns The Cell's own activation behavior, or undefined.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
 
+    /*
+    This action sets the behavior this Cell runs when it is activated, such
+    as by a double-click. A Cell with its own behavior does not use the
+    Spreadsheet's cell activation behavior.
+
+    Attribute: Parameter behavior The behavior to run, or undefined to use the Spreadsheet's behavior.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Cell
+    use Libraries.Interface.Behaviors.Behavior
+    Cell cell
+    cell:SetText("Ada")
+    Behavior showDetails
+    cell:SetActivationBehavior(showDetails)
+    */
     action SetActivationBehavior(Behavior behavior)
         activationBehavior = behavior
     end
 
+    /*
+    This action returns the Label that draws the Cell's text. Use it to
+    change how the text looks.
+
+    Attribute: Returns The Cell's Label.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Cell
+    use Libraries.Game.Graphics.Label
+    Cell cell
+    cell:SetText("Ada")
+    Label label = cell:GetLabel()
+    */
     action GetLabel returns Label
         return label
     end
 
+    /*
+    This action activates the Cell, such as when it is double-clicked. If
+    the Cell has its own activation behavior, that behavior runs. Otherwise
+    the Spreadsheet's cell activation behavior runs with this Cell as the
+    event's item, and the control activation listeners are told. If neither
+    has a behavior, nothing happens.
+
+    Attribute: Parameter event The event that caused the activation.
+    */
     action Activate(BehaviorEvent event)
         if GetActivationBehavior() not= undefined
             parent:Control:Activate(event)

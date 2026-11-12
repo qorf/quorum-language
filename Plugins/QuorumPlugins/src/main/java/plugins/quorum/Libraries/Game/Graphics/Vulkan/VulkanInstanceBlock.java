@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /*
-The Java side of Quorum's VulkanInstanceBlock (Dense grass plan DG2): many
+The Java side of Quorum's VulkanInstanceBlock: many
 instances' data packed once, in the layout VulkanDrawQueue3DInstanceMappedMemory
 writes, so a draw queue can take them all in one copy each frame. It is plain
 Java memory in the processor's byte order, the same order the mapped GPU

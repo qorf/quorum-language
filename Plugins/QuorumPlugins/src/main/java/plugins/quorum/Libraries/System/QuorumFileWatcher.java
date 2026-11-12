@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  * has been quiet for the settle time. Changes to the same path in that time
  * are merged (see Combine). Only the watcher thread uses the pending maps.
  *
- * How changes are found (Studio plan FileWatching.md, 2026-11-06):
+ * How changes are found:
  * - macOS, with Mac.so loaded: FSEvents (MacFileEvents and
  *   quorum-natives/src/mac/FileWatcherMac.c), one stream per watched
  *   folder and everything in it. The JDK's WatchService polls on macOS:
@@ -360,7 +360,7 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
         final int id;
         volatile boolean active = true;
 
-        // How the tree is watched (FileWatching.md): an FSEvents stream, or
+        // How the tree is watched: an FSEvents stream, or
         // one FILE_TREE registration on Windows. Neither: one per folder.
         volatile long macStream = 0;
         volatile boolean tree = false;
@@ -644,7 +644,7 @@ final class QuorumFileWatcher implements FileWatcherImplementation {
             // "Look again" for a folder inside an excluded folder asks for
             // nothing this watcher reports, so it isn't an OVERFLOW. Heavy
             // writing in an excluded Build or Run folder made one, and the
-            // program then checked everything (Studio plan 11b, 2026-11-07).
+            // program then checked everything.
             // A path outside the root, or the root itself, still overflows.
             if ((flags & lost) != 0 && text != null) {
                 Path lostReal = Paths.get(text);

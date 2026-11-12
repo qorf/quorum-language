@@ -51,19 +51,15 @@ use Libraries.Containers.Number32BitArray
     use Libraries.Interface.Forms.Page
     use Libraries.Interface.Controls.TextBox
     
-    class Main 
-        action Main 
-            Form form
-            Page page = form:GetMainPage()
+    Form form
+    Page page = form:GetMainPage()
 
-            page:AddCheckbox("on")
-            TextBox txtBox
-            txtBox:SetName("myTxt")
-            page:Add(txtBox)
+    page:AddCheckbox("on")
+    TextBox txtBox
+    txtBox:SetName("myTxt")
+    page:Add(txtBox)
 
-            form:Display()
-        end
-    end
+    form:Display()
 */
 class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
 
@@ -295,6 +291,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         GetLineDrawables()
     end
 
+    /*
+        This action changes the interface scale of the TextBox, which makes its text
+        and parts larger or smaller. It also marks the width of the scrollable area
+        to be measured again, because the text width changes with the scale.
+
+        Attribute: Parameter scale The new interface scale, where 1 is normal size.
+    */
     action SetInterfaceScale(number scale)
         parent:Control:SetInterfaceScale(scale)
         scrollRegionWidth = -1
@@ -322,6 +325,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         leftCharacterPadding = padding
     end
 
+    /*
+        This action returns the plain white texture that is used to draw selection
+        boxes. The selection color is applied on top of it.
+
+        Attribute: Returns The shared unit texture.
+    */
     private action GetSelectionTexture returns Texture
         GameStateManager manager
         SharedTextureManager textureManager = manager:GetSharedTextureManager()
@@ -639,6 +648,19 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         PositionCaret()
     end
 
+    /*
+        This action adds Drawables for newly inserted characters to a line that is
+        on screen, without rebuilding the whole text area. It places the new
+        characters after the character before them, then moves the rest of the line
+        to the right and places the caret again. If the line is not on screen,
+        nothing happens.
+
+        Attribute: Parameter lineIndex The index of the line the text was inserted on.
+
+        Attribute: Parameter index The position within the line where the text was inserted.
+
+        Attribute: Parameter inserted The text that was inserted.
+    */
     private action InsertInLine(integer lineIndex, integer index, text inserted)
         // The current text of the line. This is the "actual" text, rather than
         // the drawables for the line (which we are updating in this action).
@@ -699,6 +721,17 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         PositionCaret()
     end
 
+    /*
+        This action removes the Drawables for deleted characters from a line on
+        screen, then moves the rest of the line to the left and places the caret
+        again.
+
+        Attribute: Parameter lineIndex The index of the line the text was deleted from.
+
+        Attribute: Parameter index The position within the line of the first deleted character.
+
+        Attribute: Parameter charactersDeleted How many characters were deleted.
+    */
     private action DeleteInLine(integer lineIndex, integer index, integer charactersDeleted)
         integer counter = 0
         repeat while counter < charactersDeleted
@@ -711,21 +744,49 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         PositionCaret()
     end
 
+    /*
+        This action returns the x position of the caret inside the TextBox's text
+        area. This can be used to place something next to the caret, such as a pop-
+        up list of suggestions.
+
+        Attribute: Returns The local x position of the caret.
+    */
     action GetCaretX returns number
         Drawable caret = background:GetCaret()
         return caret:GetX()
     end
 
+    /*
+        This action returns the y position of the caret inside the TextBox's text
+        area. This can be used to place something next to the caret, such as a pop-
+        up list of suggestions.
+
+        Attribute: Returns The local y position of the caret.
+    */
     action GetCaretY returns number
         Drawable caret = background:GetCaret()
         return caret:GetY()
     end
 
+    /*
+        This action returns the x position of the caret on the screen, in global
+        coordinates. This can be used to place something next to the caret, such as
+        a pop-up list of suggestions.
+
+        Attribute: Returns The global x position of the caret.
+    */
     action GetCaretGlobalX returns number
         Drawable caret = background:GetCaret()
         return caret:GetGlobalX()
     end
 
+    /*
+        This action returns the y position of the caret on the screen, in global
+        coordinates. This can be used to place something next to the caret, such as
+        a pop-up list of suggestions.
+
+        Attribute: Returns The global y position of the caret.
+    */
     action GetCaretGlobalY returns number
         Drawable caret = background:GetCaret()
         return caret:GetGlobalY()
@@ -769,6 +830,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action makes sure the caret Drawable is loaded, then sizes it to the
+        caret thickness and the height of one line, and colors it with the icon
+        color. The thickness grows with the interface scale.
+    */
     private action InitializeCaret
         Drawable caret = background:GetCaret()
 
@@ -834,18 +900,46 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return background:GetLineCount()
     end
     
+    /*
+        This action sets which line of the text is shown first in the text area. It
+        passes the value on to the renderer that draws the text.
+
+        Attribute: Parameter startLine The index of the line to show first.
+    */
     action SetStartLine (integer startLine)
         background:SetStartLine(startLine)
     end
 
+    /*
+        This action returns which line of the text is shown first in the text area.
+
+        Attribute: Returns The index of the first line shown.
+    */
     action GetStartLine returns integer
         return background:GetStartLine()
     end
 
+    /*
+        This action estimates the x position of a character in the text area. It
+        uses one fixed width for every character, so it is exact only for fonts
+        where all characters are the same width.
+
+        Attribute: Parameter index The index of the character in the whole text.
+
+        Attribute: Returns The estimated x position of the character.
+    */
     action GetCharacterX(integer index) returns number
         return lineBeginningX + (index - textValue:CharacterIndexFromLineIndex(textValue:LineIndexFromCharacterIndex(index))) * glyphWidth
     end
 
+    /*
+        This action returns the y position of the line that holds a character,
+        measured inside the text area.
+
+        Attribute: Parameter index The index of the character in the whole text.
+
+        Attribute: Returns The y position of the character's line.
+    */
     action GetCharacterY(integer index) returns number
         integer lineIndex = textValue:LineIndexFromCharacterIndex(index)
         integer firstLine = GetStartLine()
@@ -853,42 +947,161 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return startLineY - (lineIndex - firstLine) * lineHeight + GetTotalLineHeightPadding() / 2
     end
 
+    /*
+        This action adds a fixed number of pixels of extra space to every line of
+        text. This makes the lines sit farther apart. It can be used together with
+        SetPercentageLineHeightPadding.
+
+        Attribute: Parameter padding The number of extra pixels to add to each line.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("First line" + box:GetLineSeparator() + "Second line")
+                box:SetPixelLineHeightPadding(6)
+            end
+        end
+    */
     action SetPixelLineHeightPadding(number padding)
         pixelLinePadding = padding
     end
 
+    /*
+        This action returns how many pixels of extra space are added to every line.
+
+        Attribute: Returns The extra pixels added to each line.
+    */
     action GetPixelLineHeightPadding returns number
         return pixelLinePadding
     end
 
+    /*
+        This action adds extra space to every line as a part of the font's line
+        height. For example, 0.5 adds half a line of space. It can be used together
+        with SetPixelLineHeightPadding.
+
+        Attribute: Parameter padding The extra space as a part of the line height, where 1 means one more full line.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("First line" + box:GetLineSeparator() + "Second line")
+                box:SetPercentageLineHeightPadding(0.5)
+            end
+        end
+    */
     action SetPercentageLineHeightPadding(number padding)
         percentageLinePadding = padding
     end
 
+    /*
+        This action returns the extra line space set as a part of the font's line
+        height.
+
+        Attribute: Returns The extra space as a part of the line height.
+    */
     action GetPercentageLineHeightPadding returns number
         return percentageLinePadding
     end
 
+    /*
+        This action returns the height of one line using only the font, without any
+        line padding.
+
+        Attribute: Returns The font's line height in pixels.
+    */
     action GetUnpaddedLineHeight returns number
         return font:GetLineHeight()
     end
 
+    /*
+        This action returns how far selection boxes and the caret are moved down
+        from the line's base position, so they cover the parts of letters that hang
+        below the line. It is a quarter of the unpadded line height.
+
+        Attribute: Returns The downward offset in pixels.
+    */
     action GetSelectionYOffset returns number
         return GetUnpaddedLineHeight() / 4.0
     end
 
+    /*
+        This action returns the total extra space added to each line. It adds the
+        pixel padding to the percentage padding times the font's line height.
+
+        Attribute: Returns The total extra space per line in pixels.
+    */
     action GetTotalLineHeightPadding returns number
         return GetPixelLineHeightPadding() + (GetUnpaddedLineHeight() * GetPercentageLineHeightPadding())
     end
 
+    /*
+        This action returns the full height of one line of text, which is the font's
+        line height plus any line padding.
+
+        Attribute: Returns The height of one line in pixels.
+    */
     action GetLineHeight returns number
         return GetUnpaddedLineHeight() + GetTotalLineHeightPadding()
     end
 
+    /*
+        This action returns the height of the given line. All lines in a TextBox
+        have the same height, so this gives the same value as GetLineHeight with no
+        parameter.
+
+        Attribute: Parameter line The index of the line.
+
+        Attribute: Returns The height of the line in pixels.
+    */
     action GetLineHeight(integer line) returns number
         return GetLineHeight()
     end
 
+    /*
+        This action returns the y position of the given line inside the text area.
+        It takes the current vertical scroll into account.
+
+        Attribute: Parameter line The index of the line.
+
+        Attribute: Returns The y position of the line in pixels.
+    */
     action GetLineY(integer line) returns number
         number contentHeight = GetTotalContentHeight()
 
@@ -898,12 +1111,22 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return baseY + scrollOffset
     end
 
+    /*
+        This action clears the selection so it is empty at the caret's position.
+
+        Attribute: Parameter textChanged Whether the selection changed because the text changed.
+    */
     private action EmptySelectionEvent(boolean textChanged)
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
 
         UpdateSelection(index, index, true, textChanged)
     end
 
+    /*
+        This action updates the selection after the caret moved left while
+        selecting. It grows the selection to the left or shrinks it from the right,
+        depending on which side the caret is on.
+    */
     private action SelectionMoveLeft
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -917,6 +1140,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action updates the selection after the caret moved right while
+        selecting. It grows the selection to the right or shrinks it from the left,
+        depending on which side the caret is on.
+    */
     private action SelectionMoveRight
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -930,6 +1158,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action updates the selection after the caret moved up a line while
+        selecting. It grows or shrinks the selection so it runs between its fixed
+        end and the caret.
+    */
     private action SelectionMoveUp
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -948,6 +1181,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action updates the selection after the caret moved down a line while
+        selecting. It grows or shrinks the selection so it runs between its fixed
+        end and the caret.
+    */
     private action SelectionMoveDown
 
         integer index = textValue:CharacterIndexFromLineIndex(caretLine) + caretCharacter
@@ -970,6 +1208,19 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action sets the selection to a new range and redraws it. The range is
+        kept inside any locked region. Characters that were selected before but are
+        no longer selected get their normal colors back.
+
+        Attribute: Parameter startIndex The index where the new selection starts.
+
+        Attribute: Parameter endIndex The index where the new selection ends.
+
+        Attribute: Parameter caretAtEnd Whether the caret is at the end of the selection, rather than the start.
+
+        Attribute: Parameter textChanged Whether the selection changed because the text changed.
+    */
     private action UpdateSelection(integer startIndex, integer endIndex, boolean caretAtEnd, boolean textChanged)
         integer lockStart = selection:GetLockStart()
         integer lockEnd = selection:GetLockEnd()
@@ -1005,6 +1256,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action sets the characters in a range back to the colors their text
+        styles give them. Nothing happens if the range is empty.
+
+        Attribute: Parameter startIndex The index of the first character to update.
+
+        Attribute: Parameter endIndex The index just past the last character to update.
+    */
     private action ResetFontColors(integer startIndex, integer endIndex)
         if startIndex >= endIndex
             return now
@@ -1405,6 +1664,11 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         ResetCaretBlinkTimer()
     end
 
+    /*
+        This action shows the caret and restarts its blink timer, so the caret stays
+        visible for a moment after it moves. Nothing happens if the caret is not
+        active.
+    */
     private action ResetCaretBlinkTimer()
         if caretActive
             background:GetCaret():Show()
@@ -1422,6 +1686,37 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         caretActive = false
     end
     
+    /*
+        This action clears the selection, so no text is selected. The text itself is
+        not changed, and the caret stays where it is.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                box:Select(0, 5)
+                box:RemoveSelection()
+            end
+        end
+    */
     action RemoveSelection
         EmptySelectionEvent(false)
     end
@@ -1546,10 +1841,24 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         DeleteSelection(true)
     end
 
+    /*
+        This action deletes the selected text and clears the selection.
+
+        Attribute: Parameter triggerTextChangeEvent Whether to tell text change listeners about the deletion.
+    */
     private action DeleteSelection(boolean triggerTextChangeEvent)
         DeleteSelection(triggerTextChangeEvent, true)
     end
 
+    /*
+        This action deletes the selected text, moves the caret to where the
+        selection started, and redraws the text. Nothing happens if the selection is
+        empty.
+
+        Attribute: Parameter triggerTextChangeEvent Whether to tell text change listeners about the deletion.
+
+        Attribute: Parameter triggerSelectionEvent Whether to clear the selection with a selection event. If false, only the text colors are reset.
+    */
     private action DeleteSelection(boolean triggerTextChangeEvent, boolean triggerSelectionEvent)
         if selection:IsEmpty()
             return now
@@ -1797,14 +2106,37 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         EmptySelectionEvent(true)
     end
 
+    /*
+        This action returns the custom edit manager set for this TextBox with
+        SetEditManager. An edit manager keeps track of changes so they can be undone
+        and redone. If no custom edit manager is set, this returns undefined and the
+        game's default edit manager is used.
+
+        Attribute: Returns The custom EditManager, or undefined if none is set.
+    */
     action GetEditManager returns EditManager
         return customEditManager
     end
 
+    /*
+        This action sets a custom edit manager for this TextBox, which keeps track
+        of changes so they can be undone and redone. Set it to undefined to use the
+        game's default edit manager.
+
+        Attribute: Parameter edits The EditManager to use for this TextBox.
+    */
     action SetEditManager(EditManager edits)
         customEditManager = edits
     end
 
+    /*
+        This action sets the TextBoxEditManager that records each change to the
+        text, so the changes can be undone. The old manager stops listening for text
+        changes, and the new one is connected to this TextBox and starts listening.
+        Passing undefined turns off this recording.
+
+        Attribute: Parameter manager The TextBoxEditManager to use, or undefined.
+    */
     action SetTextBoxEditManager(TextBoxEditManager manager)
         if textEditManager not= undefined
             RemoveTextChangeListener(textEditManager)
@@ -1816,16 +2148,36 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action returns the TextBoxEditManager that records changes to the text
+        so they can be undone.
+
+        Attribute: Returns The TextBoxEditManager for this TextBox.
+    */
     action GetTextBoxEditManager returns TextBoxEditManager
         return textEditManager
     end
 
+    /*
+        This action is called by the system when the mouse is dragged. If the drag
+        began inside the text, it moves the caret to the mouse and selects the text
+        between. Most users don't call this directly.
+
+        Attribute: Parameter event The mouse event for the drag.
+    */
     action DraggedMouse(MouseEvent event)
         if draggingInText
             MousePositionCaret(event, true)
         end
     end
 
+    /*
+        This action is called by the system when the mouse is pressed. A left click
+        places the caret at the nearest character and starts a drag selection. Most
+        users don't call this directly.
+
+        Attribute: Parameter event The mouse event for the click.
+    */
     action ClickedMouse(MouseEvent event)
         if event:GetSource() not= undefined and event:GetSource() is Item2D
             if event:mouseButton = event:LEFT
@@ -1835,6 +2187,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action is called by the system when a mouse button is released. It ends
+        any drag selection. Most users don't call this directly.
+
+        Attribute: Parameter event The mouse event for the release.
+    */
     action ReleasedMouse(MouseEvent event)
         draggingInText = false
     end
@@ -1874,9 +2232,17 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         draggingInText = false
     end
 
-    // A touch is in screen coordinates, and the caret is placed in world
-    // coordinates, through the layer's camera (which the display's safe
-    // region may have moved).
+    /*
+        This action turns a touch's position on the screen into the point in the
+        world where the caret is placed. The layer's viewport position is taken off,
+        then the point goes through the layer's camera, which the display's safe
+        region may have moved. If there is no layer or camera, the touch's screen
+        position is used as it is.
+
+        Attribute: Parameter event The touch event.
+
+        Attribute: Returns The touch's position in world coordinates, on the camera's near plane.
+    */
     private action GetTouchPoint(TouchEvent event) returns Vector3
         Layer2D touchLayer = GetLayer()
         if touchLayer = undefined or touchLayer:GetCamera() = undefined
@@ -1941,6 +2307,15 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         ResetCaretBlinkTimer()
     end
 
+    /*
+        This action places the caret at the character nearest to a point inside the
+        text area. It finds the line under the point, and then the closest character
+        on that line.
+
+        Attribute: Parameter x The x position inside the text area.
+
+        Attribute: Parameter y The y position inside the text area.
+    */
     private action PositionCaretFromCoordinates(number x, number y)
         integer totalLines = textValue:GetLines():GetSize()
         number lineHeight = GetLineHeight()
@@ -1966,16 +2341,34 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action is called by the system when the TextBox gains focus. It shows
+        the caret so the user can type. Most users don't call this directly.
+
+        Attribute: Parameter event The focus event.
+    */
     action GainedFocus(FocusEvent event)
         ShowCaret()
         parent:Control:GainedFocus(event)
     end
 
+    /*
+        This action is called by the system when the TextBox loses focus. It hides
+        the caret. Most users don't call this directly.
+
+        Attribute: Parameter event The focus event.
+    */
     action LostFocus(FocusEvent event)
         HideCaret()
         parent:Control:LostFocus(event)
     end
 
+    /*
+        This action returns the size of the corner where the scroll bars meet. When
+        both scroll bars show, this is the bar thickness. Otherwise it is 0.
+
+        Attribute: Returns The size of the shared corner in pixels.
+    */
     private action GetSharedSpaceOffset returns number
         if IsShowingHorizontalBar() and IsShowingVerticalBar()
             return GetBarThickness()
@@ -1983,12 +2376,26 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return 0
     end
 
+    /*
+        This action returns the height of all the text, which is the number of lines
+        times the line height. It is used to size the vertical scroll bar.
+
+        Attribute: Returns The total height of the text in pixels.
+    */
     action GetTotalContentHeight returns number
         // This approach works so long as the font is universally styled (and
         // thus all lines are the same height).
         return textValue:GetLineCount() * GetLineHeight()
     end
 
+    /*
+        This action returns the width of all the text, based on the longest line
+        plus the left padding. It is used to size the horizontal scroll bar. The
+        width is measured again only when the text changes in a way that may change
+        it.
+
+        Attribute: Returns The total width of the text in pixels.
+    */
     action GetTotalContentWidth returns number
         if scrollRegionWidth = -1
             CalculateRegionWidth()
@@ -2044,6 +2451,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         scrollRegionWidth = width + leftCharacterPadding
     end
 
+    /*
+        This action estimates the width of one line by multiplying the number of
+        characters by the width of the letter W.
+
+        Attribute: Parameter index The index of the line.
+
+        Attribute: Returns The estimated width of the line in pixels.
+    */
     private action GetLineWidth(integer index) returns number
         
         MultipleLineText line = textValue:GetLine(index)
@@ -2060,6 +2475,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return glyphWidth * line:GetWidth()
     end
 
+    /*
+        This action is called by the game every frame. While the caret is active, it
+        counts down the blink timer and switches the caret between shown and hidden.
+        It also asks the display to draw again, so the blinking keeps going on
+        displays that only draw when needed. Most users don't call this directly.
+
+        Attribute: Parameter seconds The number of seconds since the last frame.
+    */
     action Update(number seconds)
         if caretActive
             // The caret blinks only while frames come, so it asks for them
@@ -2116,14 +2539,32 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         caretMoveTime = time
     end
 
+    /*
+        This action returns how long the caret stays visible after it moves, before
+        it starts to blink.
+
+        Attribute: Returns The idle time in seconds.
+    */
     action GetCaretIdleTime returns number
         return caretIdleTime
     end
 
+    /*
+        This action returns how long a movement key must be held before the caret
+        starts to move on its own.
+
+        Attribute: Returns The delay in seconds.
+    */
     action GetCaretMoveDelay returns number
         return caretMoveDelay
     end
 
+    /*
+        This action returns how long the caret takes to move one character while a
+        movement key is held down.
+
+        Attribute: Returns The time per character in seconds.
+    */
     action GetCaretMoveTime returns number
         return caretMoveTime
     end
@@ -2213,26 +2654,177 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return textValue:GetSize()
     end
 
+    /*
+        This action returns the MultipleLineText object that holds all of the text
+        in the TextBox, split into lines.
+
+        Attribute: Returns The MultipleLineText holding the text.
+    */
     action GetMultipleLineText returns MultipleLineText
         return textValue
     end
 
+    /*
+        This action returns all of the text in the TextBox.
+
+        Attribute: Returns The text in the TextBox.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                text value = box:GetText()
+                output value
+            end
+        end
+    */
     action GetText returns text
         return textValue:GetText()
     end
 
+    /*
+        This action returns part of the text in the TextBox. The character at the
+        start index is included, and the character at the end index is not.
+
+        Attribute: Parameter startIndex The index of the first character to get.
+
+        Attribute: Parameter endIndex The index just past the last character to get.
+
+        Attribute: Returns The text between the two indices.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                text word = box:GetText(0, 5)
+                output word
+            end
+        end
+    */
     action GetText(integer startIndex, integer endIndex) returns text
         return textValue:GetText(startIndex, endIndex)
     end
 
+    /*
+        This action returns the text of the line the caret is on. The line separator
+        at the end of the line, if any, is included.
+
+        Attribute: Returns The text of the caret's line.
+    */
     action GetCurrentLineText returns text
         return textValue:GetLine(caretLine):GetText()
     end
 
+    /*
+        This action returns the text of one line. The line separator at the end of
+        the line, if any, is included.
+
+        Attribute: Parameter line The index of the line, where 0 is the first line.
+
+        Attribute: Returns The text of the line.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("First line" + box:GetLineSeparator() + "Second line")
+                text second = box:GetLine(1)
+                output second
+            end
+        end
+    */
     action GetLine(integer line) returns text
         return textValue:GetLine(line):GetText()
     end
 
+    /*
+        This action replaces the text of one line with new text. Text change
+        listeners are told about the change, but the change is not recorded for
+        undo.
+
+        Attribute: Parameter line The index of the line to replace, where 0 is the first line.
+
+        Attribute: Parameter value The new text for the line.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("First line" + box:GetLineSeparator() + "Second line")
+                box:SetLine(1, "A new second line")
+            end
+        end
+    */
     action SetLine(integer line, text value)
         TextChangeEvent changeEvent
 
@@ -2262,6 +2854,36 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action removes all of the text from the TextBox and puts the caret at
+        the start. Text change listeners are told about the change.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                box:Empty()
+            end
+        end
+    */
     action Empty
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, "", GetText(), 0)
@@ -2283,6 +2905,39 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         EmptySelectionEvent(true)
     end
 
+    /*
+        This action replaces all of the text in the TextBox with new text and puts
+        the caret at the start. Line breaks in the new text are changed to match the
+        TextBox's line separator. Text change listeners are told about the change,
+        but the change is not recorded for undo.
+
+        Attribute: Parameter inputValue The new text for the TextBox.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+            end
+        end
+    */
     action SetText(text inputValue)
         text value = SanitizeNewLines(inputValue)
 
@@ -2316,6 +2971,39 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action adds text to the end of the text in the TextBox, then scrolls
+        down to the last line. This is handy for logs or chat windows, where new
+        text keeps arriving at the bottom.
+
+        Attribute: Parameter value The text to add to the end.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Starting up.")
+                box:AppendToText(box:GetLineSeparator() + "Ready.")
+            end
+        end
+    */
     action AppendToText(text value)
         TextChangeEvent changeEvent
         changeEvent:Initialize(me, value, "", textValue:GetSize())
@@ -2345,6 +3033,42 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         me:moveFocusOnTab = move
     end
 
+    /*
+        This action adds indentation at the caret, as if the user pressed the tab
+        key. The IndentationStrategy decides what is added, which by default is
+        spaces.
+
+        By default, the TextBox is set to move focus on tab (see SetMoveFocusOnTab),
+        and then this action moves the focus to the next item instead of changing
+        the text.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetMoveFocusOnTab(false)
+                box:SetText("Hello")
+                box:AddIndentation()
+            end
+        end
+    */
     action AddIndentation
         if moveFocusOnTab
             gameStateManager:GetFocusManager():FocusNextItem()
@@ -2355,6 +3079,44 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action moves the caret to the given index and adds indentation there,
+        as if the user pressed the tab key. The IndentationStrategy decides what is
+        added, which by default is spaces.
+
+        By default, the TextBox is set to move focus on tab (see SetMoveFocusOnTab),
+        and then this action moves the focus to the next item instead of changing
+        the text.
+
+        Attribute: Parameter index The index in the whole text to move the caret to before indenting.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetMoveFocusOnTab(false)
+                box:SetText("Hello")
+                box:AddIndentation(0)
+            end
+        end
+    */
     action AddIndentation(integer index)
         if moveFocusOnTab
             gameStateManager:GetFocusManager():FocusNextItem()
@@ -2366,6 +3128,41 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action removes indentation at the caret, as if the user pressed shift
+        and tab. The IndentationStrategy decides what is removed.
+
+        By default, the TextBox is set to move focus on tab (see SetMoveFocusOnTab),
+        and then this action moves the focus to the previous item instead of
+        changing the text.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetMoveFocusOnTab(false)
+                box:SetText("    Hello")
+                box:RemoveIndentation()
+            end
+        end
+    */
     action RemoveIndentation
         if moveFocusOnTab
             gameStateManager:GetFocusManager():FocusPreviousItem()
@@ -2376,6 +3173,44 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action moves the caret to the given index and removes indentation
+        there, as if the user pressed shift and tab. The IndentationStrategy decides
+        what is removed.
+
+        By default, the TextBox is set to move focus on tab (see SetMoveFocusOnTab),
+        and then this action moves the focus to the previous item instead of
+        changing the text.
+
+        Attribute: Parameter index The index in the whole text to move the caret to before removing indentation.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetMoveFocusOnTab(false)
+                box:SetText("    Hello")
+                box:RemoveIndentation(4)
+            end
+        end
+    */
     action RemoveIndentation(integer index)
         if moveFocusOnTab
             gameStateManager:GetFocusManager():FocusPreviousItem()
@@ -2387,10 +3222,83 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action selects the text between two indices and puts the caret at the
+        end of the selection. The character at the start index is selected, and the
+        character at the end index is not.
+
+        Attribute: Parameter startIndex The index of the first character to select.
+
+        Attribute: Parameter endIndex The index just past the last character to select.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                box:Select(7, 12)
+            end
+        end
+    */
     action Select(integer startIndex, integer endIndex)
         Select(startIndex, endIndex, true)
     end
 
+    /*
+        This action selects the text between two indices. The character at the start
+        index is selected, and the character at the end index is not. Indices
+        outside the text are moved to the nearest end, and the selection stays
+        inside any locked region.
+
+        Attribute: Parameter startIndex The index of the first character to select.
+
+        Attribute: Parameter endIndex The index just past the last character to select.
+
+        Attribute: Parameter caretAtEnd True to put the caret at the end of the selection, or false to put it at the start.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                box:Select(7, 12, false)
+            end
+        end
+    */
     action Select(integer startIndex, integer endIndex, boolean caretAtEnd)
         if startIndex < 0
             startIndex = 0
@@ -2412,22 +3320,140 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         UpdateSelection(startIndex, endIndex, caretAtEnd, false)
     end
 
+    /*
+        This action returns the TextBoxSelection, which tells which part of the text
+        is selected.
+
+        Attribute: Returns The selection for this TextBox.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Selections.TextBoxSelection
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                box:Select(0, 5)
+                TextBoxSelection selection = box:GetSelection()
+                text selected = selection:GetText()
+            end
+        end
+    */
     action GetSelection returns TextBoxSelection
         return selection
     end
 
+    /*
+        This action adds a listener that is told every time the text in the TextBox
+        changes, whether by typing or by actions such as SetText and Insert. To
+        react to changes, make a class that is a TextChangeListener and write its
+        TextChanged action.
+
+        Attribute: Parameter listener The listener to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Events.TextChangeListener
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                TextChangeListener listener
+                box:AddTextChangeListener(listener)
+                box:SetText("Hello")
+            end
+        end
+    */
     action AddTextChangeListener(TextChangeListener listener)
         textChangeListeners:Add(listener)
     end
 
+    /*
+        This action removes a text change listener, so it is no longer told when the
+        text changes.
+
+        Attribute: Parameter listener The listener to remove.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Events.TextChangeListener
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                TextChangeListener listener
+                box:AddTextChangeListener(listener)
+                box:RemoveTextChangeListener(listener)
+            end
+        end
+    */
     action RemoveTextChangeListener(TextChangeListener listener)
         textChangeListeners:Remove(listener)
     end
 
+    /*
+        This action returns all of the listeners that are told when the text
+        changes.
+
+        Attribute: Returns The array of text change listeners.
+    */
     action GetTextChangeListeners returns Array<TextChangeListener>
         return textChangeListeners
     end
 
+    /*
+        This action handles a change to the text. If part of the text is locked, it
+        grows or shrinks the locked region by the amount of text added or removed.
+        Then it tells the listeners.
+
+        Attribute: Parameter event The event describing the change.
+    */
     private action OnTextChange(TextChangeEvent event)
         if selection:IsLocked()
             integer offset = event:GetAddedText():GetSize() - event:GetDeletedText():GetSize()
@@ -2439,6 +3465,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         NotifyTextChangeListeners(event)
     end
 
+    /*
+        This action tells every text change listener on this TextBox, and the game's
+        input system, about a change to the text.
+
+        Attribute: Parameter event The event describing the change.
+    */
     private action NotifyTextChangeListeners(TextChangeEvent event)
         integer counter = 0
         repeat while counter < textChangeListeners:GetSize()
@@ -2448,10 +3480,23 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         gameStateManager:GetInput():NotifyTextChangeListeners(event)
     end
 
+    /*
+        This action sets the IndentationStrategy, which decides what is added and
+        removed when the text is indented with the tab key or the indentation
+        actions.
+
+        Attribute: Parameter strategy The IndentationStrategy to use.
+    */
     action SetIndentationStrategy(IndentationStrategy strategy)
         indentation = strategy
     end
 
+    /*
+        This action returns the IndentationStrategy, which decides what is added and
+        removed when the text is indented.
+
+        Attribute: Returns The IndentationStrategy in use.
+    */
     action GetIndentationStrategy returns IndentationStrategy
         return indentation
     end
@@ -2488,6 +3533,50 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return textValue:GetDefaultLineSeparator()
     end
 
+    /*
+        This action adds a TextStyle to the text, which changes how part of the text
+        looks, such as its color or a highlight behind it. The style starts at its
+        index and covers its size in characters. If the name is not empty, the style
+        can later be found or removed by that name.
+
+        Attribute: Parameter name A name for the style, or an empty text if it does not need one.
+
+        Attribute: Parameter style The TextStyle to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+            end
+        end
+    */
     action AddTextStyle(text name, TextStyle style)
         if style = undefined
             return now
@@ -2522,6 +3611,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action makes and places the Drawable for a style's highlight, if the
+        style has one and its text is on screen. Highlights that should show over a
+        selection are drawn above it, and the rest are drawn behind it.
+
+        Attribute: Parameter style The TextStyle whose highlight to add.
+    */
     private action AddTextStyleHighlight(TextStyle style)
         TextHighlight highlight = style:GetHighlight()
                 
@@ -2609,7 +3705,15 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
-    // Update the characters starting at the given index. Sets them to correct colors / styling.
+    /*
+        This action sets the colors of the characters in a range, based on the text
+        styles that cover them and on whether they are selected. Only characters on
+        screen are changed.
+
+        Attribute: Parameter index The index of the first character to update.
+
+        Attribute: Parameter length How many characters to update.
+    */
     private action UpdateTextStylesAt(integer index, integer length)
         integer endIndex = index + length
         integer currentGlobalIndex = index
@@ -2687,6 +3791,49 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action removes the TextStyle with the given name, so that part of the
+        text goes back to its normal look.
+
+        Attribute: Parameter name The name the style was added with.
+
+        Attribute: Returns True if a style with that name was found and removed, or false if not.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                boolean removed = box:RemoveTextStyle("greeting")
+            end
+        end
+    */
     action RemoveTextStyle(text name) returns boolean
         if styleTable:HasKey(name)
             TextStyle style = styleTable:RemoveKey(name)
@@ -2703,6 +3850,48 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action returns the TextStyle that was added with the given name.
+
+        Attribute: Parameter name The name the style was added with.
+
+        Attribute: Returns The TextStyle with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                TextStyle found = box:GetTextStyle("greeting")
+            end
+        end
+    */
     action GetTextStyle(text name) returns TextStyle
         if styleTable:HasKey(name)
             TextStyle style = styleTable:GetValue(name)
@@ -2712,6 +3901,48 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action checks whether a TextStyle was added with the given name.
+
+        Attribute: Parameter name The name to look for.
+
+        Attribute: Returns True if a style with that name exists, or false if not.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                boolean exists = box:HasTextStyle("greeting")
+            end
+        end
+    */
     action HasTextStyle(text name) returns boolean
         if styleTable:HasKey(name)
             return true
@@ -2720,6 +3951,50 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action removes a TextStyle from the text, so that part of the text goes
+        back to its normal look. This works whether or not the style was given a
+        name.
+
+        Attribute: Parameter style The TextStyle to remove.
+
+        Attribute: Returns True if the style was found and removed, or false if not.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                boolean removed = box:RemoveTextStyle(style)
+            end
+        end
+    */
     action RemoveTextStyle(TextStyle style) returns boolean
         boolean hadValue = textStyles:Remove(style)
         if hadValue = false
@@ -2736,8 +4011,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return true
     end
 
-    // Removes any effects this text style is currently having on the text by deleting its highlight and updating the font at the style's indices.
-    // To be used internally after the style is removed from the table via RemoveTextStyle.
+    /*
+        This action undoes the effects a removed TextStyle has on the screen. It
+        removes the style's highlight and resets the colors of the characters it
+        covered. It is used after the style is removed with RemoveTextStyle.
+
+        Attribute: Parameter style The TextStyle that was removed.
+    */
     private action ClearTextStyle(TextStyle style)
         TextHighlight highlight = style:GetHighlight()
         if highlight not= undefined
@@ -2751,6 +4031,49 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         UpdateTextStylesAt(style:GetIndex(), style:GetSize())
     end
 
+    /*
+        This action returns every TextStyle that covers the given index in the text.
+
+        Attribute: Parameter index The index in the whole text to check.
+
+        Attribute: Returns An array of the TextStyles at that index.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                Array<TextStyle> styles = box:GetTextStylesAtIndex(2)
+            end
+        end
+    */
     action GetTextStylesAtIndex(integer index) returns Array<TextStyle>
         Array<TextStyle> styles
         integer i = 0
@@ -2773,6 +4096,49 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return styles
     end
 
+    /*
+        This action returns every TextStyle that covers any part of the given line.
+
+        Attribute: Parameter line The index of the line, where 0 is the first line.
+
+        Attribute: Returns An array of the TextStyles on that line.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                Array<TextStyle> styles = box:GetTextStylesOnLine(0)
+            end
+        end
+    */
     action GetTextStylesOnLine(integer line) returns Array<TextStyle>
         integer startIndex = GetIndexOfLine(line)
         integer endIndex = startIndex + GetLine(line):GetSize()
@@ -2798,6 +4164,45 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return styles
     end
 
+    /*
+        This action removes every TextStyle from the text, so all of the text goes
+        back to its normal look.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                box:AddTextStyle("greeting", style)
+                box:EmptyTextStyles()
+            end
+        end
+    */
     action EmptyTextStyles
         textStyles:Empty()
         styleTable:Empty()
@@ -3142,6 +4547,15 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action checks whether a token, such as a word, number or symbol, starts
+        at the given index. The accessibility system uses it to move through the
+        text word by word.
+
+        Attribute: Parameter index The index in the whole text to check.
+
+        Attribute: Returns True if a token starts at the index, or false if not.
+    */
     private action IsBeginningOfToken(integer index) returns boolean
         // Used by the accessibility system, which can ignore the "private" flag.
         // It's not clear if this will be necessary in the future.
@@ -3201,6 +4615,41 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return false
     end
 
+    /*
+        This action finds where the next token, such as a word, number or symbol,
+        starts after the caret. If the caret is at the start of a token, it finds
+        the start of the token after that one. This is useful for moving the caret
+        one word to the right.
+
+        Attribute: Returns The index in the whole text where the next token starts.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello there world")
+                box:SetCaretPosition(0)
+                integer nextStart = box:GetNextTokenStartIndex()
+            end
+        end
+    */
     action GetNextTokenStartIndex returns integer
         return GetNextTokenStartIndex(GetCaretPosition())
     end
@@ -3453,6 +4902,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         end
     end
 
+    /*
+        This action checks whether a character is a space, tab, carriage return or
+        line feed.
+
+        Attribute: Parameter value The character to check.
+
+        Attribute: Returns True if the character is white space, or false if not.
+    */
     private action IsWhiteSpace(text value) returns boolean
         boolean isWhiteSpace = false
         if value = " " or value = value:GetCarriageReturn() or value = value:GetLineFeed() or 
@@ -3462,6 +4919,15 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return isWhiteSpace
     end
 
+    /*
+        This action checks whether a character is one of the symbols that count as a
+        token on their own, such as a period, a parenthesis, an operator or a double
+        quote.
+
+        Attribute: Parameter value The character to check.
+
+        Attribute: Returns True if the character is a special character, or false if not.
+    */
     private action IsSpecialCharacter(text value) returns boolean
         boolean isSpecialCharacter = false
         if value = "." or value = "/" or value = "*" or value = "-" or value = "+"
@@ -3472,6 +4938,13 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return isSpecialCharacter
     end
 
+    /*
+        This action checks whether a character is a carriage return or a line feed.
+
+        Attribute: Parameter value The character to check.
+
+        Attribute: Returns True if the character ends a line, or false if not.
+    */
     private action IsEndOfLine(text value) returns boolean
         boolean isEndOfLine = false
         if value = value:GetCarriageReturn() or value = value:GetLineFeed()
@@ -3495,6 +4968,45 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return previousCaretPosition
     end
 
+    /*
+        This action finds a rectangle, in global coordinates, around the lines that
+        hold the given range of text. It uses the character Drawables on screen, so
+        the text should be visible. This can be used to point at or outline part of
+        the text.
+
+        Attribute: Parameter startIndex The index of the first character in the range.
+
+        Attribute: Parameter endIndex The index of the last character in the range.
+
+        Attribute: Returns A Rectangle around the text.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Game.Shapes.Rectangle
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(400)
+                box:SetPixelHeight(200)
+                box:SetPixelX(50)
+                box:SetPixelY(50)
+                Add(box)
+
+                box:SetText("Hello, world")
+                Rectangle bounds = box:GetTextBoundingBox(0, 5)
+            end
+        end
+    */
     action GetTextBoundingBox(integer startIndex, integer endIndex) returns Rectangle
         Rectangle rectangle
 
@@ -3546,6 +5058,12 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         return rectangle
     end
 
+    /*
+        This action returns the width of the letter W in the TextBox's font. The
+        TextBox uses this width to estimate how wide lines of text are.
+
+        Attribute: Returns The width of the letter W in pixels.
+    */
     action GetGlyphWidth returns number
         if glyphWidth = 0
             glyphWidth = font:GetGlyph("W"):horizontalAdvance

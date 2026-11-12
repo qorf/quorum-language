@@ -44,7 +44,7 @@ class DarkModeOptions is InterfaceOptions
         Color controlBackground = color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1)
         Color hoverBlue = color:CustomColor(78.0 / MAX, 139.0 / MAX, 175.0 / MAX, 1)
         number defaultButtonRounding = 0.5
-        //Buttons (F4): a soft top-to-bottom gradient, a 2-point accent line
+        //Buttons: a soft top-to-bottom gradient, a 2-point accent line
         //along the top (its own shape, hidden while focused), and a soft
         //shadow below. The 2-point border is the fill's top color, so it
         //only shows as the focus ring.
@@ -120,7 +120,7 @@ class DarkModeOptions is InterfaceOptions
         SetCheckboxBottomRightRounding(defaultButtonRounding)
         
         SetCheckboxBackgroundColor(controlBackground)
-        // Checks and radio choices use the accent, like main buttons (K3).
+        // Checks and radio choices use the accent, like main buttons.
         SetCheckboxSelectionColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
         SetCheckboxFocusColor(color:CustomColor(0,0,0,0))
         SetCheckboxUnfocusedSelectionColor(color:CustomColor(0,0,0,0))
@@ -131,7 +131,7 @@ class DarkModeOptions is InterfaceOptions
         SetCheckboxSelectionBorderColor(color:CustomColor(58.0 / MAX, 115.0 / MAX, 214.0 / MAX, 1))
         SetCheckboxAccentColor(controlBackground)
 
-        // ProgressBar (P3): an outlined pill with the accent fill. Focus
+        // ProgressBar: an outlined pill with the accent fill. Focus
         // keeps the track's color and adds the 2-point ring.
         Color progressTrack = color:CustomColor(47.0 / MAX, 50.0 / MAX, 53.0 / MAX, 1)
         SetProgressBarBackgroundColor(progressTrack)
@@ -141,7 +141,7 @@ class DarkModeOptions is InterfaceOptions
         SetFocusBorderColor("ProgressBar", color:CustomColor(125.0 / MAX, 176.0 / MAX, 255.0 / MAX, 1))
         SetFocusBorderThickness("ProgressBar", 2)
 
-        // Slider (S1): a thin track in the field color, filled in the
+        // Slider: a thin track in the field color, filled in the
         // accent up to a round, light thumb with the field's edge. When
         // focused, the thumb turns the accent with a white edge and a
         // soft halo of the accent.
@@ -187,7 +187,7 @@ class DarkModeOptions is InterfaceOptions
         Color tabMutedText = color:CustomColor(138.0 / MAX, 147.0 / MAX, 158.0 / MAX, 1)
         SetTabFontColor(tabMutedText)
         SetTabSelectionColor(color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
-        // The selected tab's name has a hint of the accent blue (T3) while
+        // The selected tab's name has a hint of the accent blue while
         // its file has the focus.
         SetTabSelectionFontColor(color:CustomColor(194.0 / MAX, 215.0 / MAX, 245.0 / MAX, 1))
         SetTabFocusColor(color:CustomColor(30.0 / MAX, 61.0 / MAX, 92.0 / MAX, 1))
@@ -239,7 +239,7 @@ class DarkModeOptions is InterfaceOptions
         SetTopRightRounding("MenuItem", 0.3)
         SetBottomLeftRounding("MenuItem", 0.3)
         SetBottomRightRounding("MenuItem", 0.3)
-        // The menu panel's rounded corners (M4).
+        // The menu panel's rounded corners.
         SetTopLeftPixelRounding("MenuPanel", 6)
         SetTopRightPixelRounding("MenuPanel", 6)
         SetBottomLeftPixelRounding("MenuPanel", 6)
@@ -255,7 +255,7 @@ class DarkModeOptions is InterfaceOptions
 
         //TEXT FIELD
         // A 1.5-point edge (4.6 to 1 on the field). Focus adds the accent
-        // edge and the thick line on the left (FD).
+        // edge and the thick line on the left.
         SetTextFieldBorderThickness(1.5)
         SetTextFieldTopLeftRounding(defaultButtonRounding)
         SetTextFieldTopRightRounding(defaultButtonRounding)
@@ -417,7 +417,7 @@ class DarkModeOptions is InterfaceOptions
 SetLabelBottomRightPixelRounding(6)
 SetLabelTopLeftPixelRounding(6)
 SetLabelTopRightPixelRounding(6)
-        // The accent blue: the bar beside a focused label (LC).
+        // The accent blue: the bar beside a focused label.
         SetLabelFocusColor(color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
         
 // Values for ControlLabels.

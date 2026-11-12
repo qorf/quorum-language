@@ -27,6 +27,44 @@ use Libraries.Interface.Behaviors.Controls.MouseOnBehavior
 use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Iterator
 
+/*
+    The Dialog class is a window that appears above the rest of a game or
+    application, such as a settings window or a message that needs an answer. A
+    Dialog is not added to another item. Instead, calling Show places it on its
+    own layer in the middle of the screen, and Hide takes it away. By default a
+    Dialog has a top bar with its name and a close button. A modal Dialog, set
+    with SetModal, blocks input to everything else until it closes. The easiest
+    way to fill a Dialog is to call InitializeDefaultPage, which gives a Page to
+    add buttons, labels and other controls to. The OnShow and OnHide actions can
+    be overridden in a subclass to do work when the Dialog opens or closes.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.Dialog
+    use Libraries.Interface.Forms.Page
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Dialog dialog
+            dialog:SetName("Settings")
+            dialog:SetModal(true)
+            dialog:SetPixelWidth(400)
+            dialog:SetPixelHeight(250)
+
+            Page page = dialog:InitializeDefaultPage()
+            page:AddLabel("Choose your options.")
+            page:AddButton("Done")
+
+            dialog:Show()
+        end
+    end
+*/
 class Dialog is Control, FormPrimitiveContainer
     Behavior defaultBehavior = undefined
     
@@ -164,7 +202,7 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
             buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
             closeButton:SetInterfaceOptionsKey("DialogClose")
-            // The button draws its own hover square behind the X (X1); with
+            // The button draws its own hover square behind the X; with
             // no label or icon, Button gives it no view of its own.
             ControlShaderView closeSurface
             closeSurface:Initialize()
@@ -333,6 +371,12 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         showTopBar = enable
     end
 
+    /*
+        This action works out the size and position of the Dialog and its contents.
+        It first makes the Dialog's layer cover the whole game window, so the Dialog
+        stays centered when the window changes size. This is called automatically as
+        needed, and most users shouldn't need to call it directly.
+    */
     action Resize
         Layer layer = GetLayer()
         if layer not= undefined
@@ -342,6 +386,15 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         parent:Control:Resize()
     end
 
+    /*
+        This action is used to load the graphical components of the Dialog, which by
+        default is a view that draws the Dialog with a drop shadow. A view given in
+        the layout properties is used instead, if there is one. This is handled
+        automatically by the Game engine as needed, and most users shouldn't need to
+        use this action directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+    */
     action LoadGraphics(LayoutProperties properties)
         if properties:GetView2D() not= undefined and properties:GetView2D() not= GetView2D()
             SetView2D(properties:GetView2D())
@@ -364,6 +417,13 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         return showTopBar
     end
 
+    /*
+        This action tells accessibility tools, such as screen readers, that the
+        Dialog is the parent of the controls inside it, so they are announced as part
+        of the Dialog.
+
+        Attribute: Returns true, because a Dialog contains its controls for accessibility.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
@@ -386,6 +446,40 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         return page
     end
     
+    /*
+        This action styles a Page to fit inside the Dialog the same way the default
+        page does. If the top bar is shown, the page is made shorter by the height of
+        the bar so it fits below it. The page also gets the Dialog's border thickness
+        and rounded bottom corners. InitializeDefaultPage calls this on the page it
+        makes, and it can be used on other pages given to SetCurrentPage so they match.
+
+        Attribute: Parameter page The Page to style.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Dialog
+        use Libraries.Interface.Pages.StackedRowPage
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Dialog dialog
+                dialog:SetName("About")
+                dialog:SetPixelWidth(400)
+                dialog:SetPixelHeight(200)
+
+                StackedRowPage page
+                page:AddLabel("Version 1.0")
+                dialog:ApplyDefaultStyleToPage(page)
+                dialog:SetCurrentPage(page)
+
+                dialog:Show()
+            end
+        end
+    */
     action ApplyDefaultStyleToPage(Page page)
         if showTopBar
             page:SetPixelHeight(-BAR_HEIGHT)
@@ -407,6 +501,38 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
     end
     
     
+    /*
+        This action makes the given Page the one shown in the Dialog. Any Page
+        already in the Dialog is removed first, so this can be used to switch a
+        Dialog between pages, such as the steps of a setup window.
+
+        Attribute: Parameter page The Page to show in the Dialog.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Dialog
+        use Libraries.Interface.Pages.StackedRowPage
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Dialog dialog
+                dialog:SetName("Setup")
+                dialog:SetPixelWidth(400)
+                dialog:SetPixelHeight(200)
+
+                StackedRowPage firstStep
+                firstStep:AddLabel("Welcome!")
+                dialog:ApplyDefaultStyleToPage(firstStep)
+                dialog:SetCurrentPage(firstStep)
+
+                dialog:Show()
+            end
+        end
+    */
     action SetCurrentPage(Page page)
             integer i = 0
             Iterator<Item2D> iterator = GetChildren():GetIterator()
@@ -420,6 +546,13 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         Add(currentPage)
     end
     
+    /*
+        This action returns the Page most recently given to SetCurrentPage, or
+        undefined if SetCurrentPage has not been called. The page made by
+        InitializeDefaultPage is returned by GetDefaultPage instead.
+
+        Attribute: Returns The current Page, or undefined.
+    */
     action GetCurrentPage returns Page
         return currentPage
     end

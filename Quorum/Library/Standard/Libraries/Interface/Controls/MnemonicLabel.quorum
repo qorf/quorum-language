@@ -7,6 +7,33 @@ use Libraries.Game.GameStateManager
 use Libraries.Interface.Item2D
 use Libraries.Game.Graphics.Glyph
 
+/*
+The MnemonicLabel class is a Label that can underline one of its
+characters, the mnemonic, to show which key picks it, such as the F in a
+File menu. The underline can be shown or hidden, as menus often do when
+the ALT key is pressed.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Interface.Controls.MnemonicLabel
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        MnemonicLabel label
+        label:SetText("File")
+        label:SetMnemonic("F")
+        label:SetPosition(100, 100)
+        Add(label)
+    end
+end
+*/
 class MnemonicLabel is Label
 
     text mnemonic = undefined
@@ -14,15 +41,71 @@ class MnemonicLabel is Label
     boolean visible = true
     GameStateManager manager
 
+    /*
+        This action sets the mnemonic character of this label: the letter that
+        is underlined to show the key that picks it, such as the F in File. The
+        first match in the text is underlined, trying the upper case letter first
+        and then the lower case one. The label redraws its text the next time it
+        loads.
+
+        Attribute: Parameter mnemonic The character to underline.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MnemonicLabel
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MnemonicLabel label
+                label:SetText("File")
+                label:SetMnemonic("F")
+                label:SetPosition(100, 100)
+                Add(label)
+            end
+        end
+    */
     action SetMnemonic(text mnemonic)
         parent:Label:textChanged = true
         me:mnemonic = mnemonic
     end
 
+    /*
+        This action returns the mnemonic character of this label, or undefined
+        if none has been set.
+
+        Attribute: Returns The character that is underlined.
+    */
     action GetMnemonic returns text
         return mnemonic
     end
 
+    /*
+        This action shows the line under the mnemonic character. Menus often show
+        it only while the ALT key is held down.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MnemonicLabel
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MnemonicLabel label
+                label:SetText("Edit")
+                label:SetMnemonic("E")
+                label:ShowUnderline()
+                label:SetPosition(100, 100)
+                Add(label)
+            end
+        end
+    */
     action ShowUnderline
         visible = true
         if underline not= undefined
@@ -30,6 +113,29 @@ class MnemonicLabel is Label
         end
     end
 
+    /*
+        This action hides the line under the mnemonic character. The label
+        remembers this, so the line stays hidden when the label is drawn again.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MnemonicLabel
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MnemonicLabel label
+                label:SetText("Edit")
+                label:SetMnemonic("E")
+                label:HideUnderline()
+                label:SetPosition(100, 100)
+                Add(label)
+            end
+        end
+    */
     action HideUnderline
         visible = false
         if underline not= undefined
@@ -37,6 +143,13 @@ class MnemonicLabel is Label
         end
     end
 
+    /*
+        This action loads the label's letters, then adds the underline below the
+        mnemonic character. It finds the character in the text, measures it with
+        the font's glyph, and places a thin rectangle at the font's underline
+        position. Nothing is added when there is no display, no loaded font, no
+        mnemonic, or when the character isn't in the text.
+    */
     private action LoadDrawables
         if not manager:IsDisplayAvailable()
             return now

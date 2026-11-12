@@ -17,6 +17,80 @@ use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The TreeTableCell class is one cell of a TreeTable: the text shown for one
+row in one column. Cells are made by a TreeTableColumn's CreateCell action
+and filled in by its SetCell action, so programs usually work with them
+inside a column class. A cell in the first column also shows a button that
+opens and closes its row, indented by the row's depth, when the row has
+child rows. Clicking a cell selects it, and a cell can have its own
+activation behavior, which runs when it is activated.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+// In the file FileRow.quorum:
+use Libraries.Interface.Controls.TreeTableRow
+
+class FileRow is TreeTableRow
+    text fileName = ""
+
+    action SetFileName(text value)
+        fileName = value
+    end
+
+    action GetFileName returns text
+        return fileName
+    end
+end
+
+// In the file NameColumn.quorum:
+use Libraries.Interface.Controls.TreeTableColumn
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+
+class NameColumn is TreeTableColumn
+    action CreateCell returns TreeTableCell
+        TreeTableCell cell
+        return cell
+    end
+
+    action SetCell(integer index, TreeTableRow row)
+        if row is FileRow
+            FileRow file = cast(FileRow, row)
+            GetCell(index):SetText(file:GetFileName())
+        end
+    end
+end
+
+// In the file Main.quorum:
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Game.Game
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TreeTable table
+        NameColumn names
+        table:Add(names)
+
+        FileRow folder
+        folder:SetFileName("Scripts")
+        FileRow script
+        script:SetFileName("Main.quorum")
+        folder:AddRow(script)
+        table:Add(folder)
+
+        table:SetPosition(50, 300)
+        Add(table)
+        table:ExpandRow(folder)
+    end
+end
+*/
 class TreeTableCell is Control
     
     TreeTableRow row = undefined
@@ -86,6 +160,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetBorderThickness(1)
     end
 
+    /*
+    This action is used to load the graphics of the cell. It sets the text's
+    font and color, and in the first column of a table it adds the button that
+    opens and closes the row, indents it by the row's depth, shows it only when
+    the row has child rows, and colors it to match the text. This is handled
+    automatically, and most programs never call it directly.
+
+    Attribute: Parameter properties The layout properties used to draw the cell.
+    */
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
         
@@ -188,15 +271,43 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action sets the text shown in this cell. A column's SetCell action
+    usually calls it to show a row's information.
+
+    Attribute: Parameter value The text to show in the cell.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTableCell cell
+    cell:SetText("Main.quorum")
+    */
     action SetText(text value)
         me:value = value
         label:SetText(value)
     end
 
+    /*
+    This action returns the text shown in this cell.
+
+    Attribute: Returns The cell's text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTableCell cell
+    cell:SetText("Main.quorum")
+    text value = cell:GetText()
+    */
     action GetText returns text
         return value
     end
 
+    /*
+    This action is called when this cell becomes the selected cell of its
+    table. It draws the text, and the open and close button if the cell has
+    no accent color, in the selection text color. The TreeTable calls it, so
+    most programs use Select instead.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
 
@@ -210,6 +321,12 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action is called when this cell stops being the selected cell of its
+    table. It draws the text, and the open and close button if the cell has no
+    accent color, in the normal text color again. The TreeTable calls it, so
+    most programs use Deselect instead.
+    */
     action LostSelection
         parent:Control:LostSelection()
 
@@ -243,10 +360,23 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action returns whether the cell is drawn as selected, which is true
+    when it is the selected cell of its table.
+
+    Attribute: Returns True if the cell is drawn as selected.
+    */
     action IsRenderingSelection returns boolean
         return IsSelected()
     end
 
+    /*
+    This action returns whether the cell is drawn as having the focus. A cell
+    never has the focus itself, so this is true when its TreeTable is drawn as
+    having the focus.
+
+    Attribute: Returns True if the cell's table is drawn as having the focus.
+    */
     action IsRenderingFocus returns boolean
         TreeTable table = GetTreeTable()
         return table not= undefined and table:IsRenderingFocus()
@@ -267,11 +397,29 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         return table:GetSelection():Get() = me
     end
 
+    /*
+    This action is called when the cell is clicked with the mouse. It selects
+    the cell in its table.
+    */
     action ClickedMouse
         parent:Control:ClickedMouse()
         Select()
     end
 
+    /*
+    This action makes this cell the selected cell of its TreeTable. The table
+    does the selecting, so the old selection is cleared. If the cell isn't in
+    a table, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTable table
+    if table:GetColumnsSize() > 0 and table:GetColumn(0):GetSize() > 0
+        TreeTableCell cell = table:GetCell(0, 0)
+        cell:Select()
+    end
+    */
     action Select
         // Don't actually select here! Go to the TreeTable and ask it to 
         // select us. We do this to allow the TreeTable to update the
@@ -282,6 +430,20 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action clears the selection of this cell's TreeTable, so no cell is
+    selected. If the cell isn't in a table, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTable table
+    if table:GetColumnsSize() > 0 and table:GetColumn(0):GetSize() > 0
+        TreeTableCell cell = table:GetCell(0, 0)
+        cell:Select()
+        cell:Deselect()
+    end
+    */
     action Deselect
         // Don't actually select here! Go to the TreeTable and ask it to 
         // select us. We do this to allow the TreeTable to update the
@@ -292,6 +454,12 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action returns the TreeTableColumn holding this cell, found by looking
+    up through the cell's parents, or undefined if it isn't in a column.
+
+    Attribute: Returns The column holding this cell, or undefined.
+    */
     action GetColumn returns TreeTableColumn
         Item2D item = GetParent()
         repeat while (item is TreeTableColumn = false) and (item not= undefined)
@@ -300,6 +468,12 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         return cast(TreeTableColumn, item)
     end
 
+    /*
+    This action returns the TreeTable holding this cell's column, or undefined
+    if the cell isn't in a column that belongs to a table.
+
+    Attribute: Returns The TreeTable holding this cell, or undefined.
+    */
     action GetTreeTable returns TreeTable
         TreeTableColumn column = GetColumn()
         if column not= undefined
@@ -309,14 +483,37 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action returns the behavior this cell runs when it is activated, or
+    undefined if it has none of its own. A cell without one uses its table's
+    cell activation behavior instead.
+
+    Attribute: Returns The cell's own activation behavior, or undefined.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
 
+    /*
+    This action sets the behavior this cell runs when it is activated, such as
+    by a double click or the space key. If it is undefined, the cell uses its
+    table's cell activation behavior instead (see the TreeTable's
+    SetCellActivationBehavior action).
+
+    Attribute: Parameter behavior The behavior to run, or undefined to use the table's.
+    */
     action SetActivationBehavior(Behavior behavior)
         activationBehavior = behavior
     end
 
+    /*
+    This action activates the cell. If the cell has its own activation
+    behavior, it runs that behavior. Otherwise it runs its table's cell
+    activation behavior, if there is one, with this cell as the event's item,
+    and tells the control activation listeners.
+
+    Attribute: Parameter event The event that caused the activation.
+    */
     action Activate(BehaviorEvent event)
         if GetActivationBehavior() not= undefined
             parent:Control:Activate(event)
@@ -340,10 +537,22 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         end
     end
 
+    /*
+    This action sets the row this cell shows. The TreeTable and its columns
+    call it when they make cells, so most programs never call it directly.
+
+    Attribute: Parameter row The row this cell belongs to.
+    */
     action SetRow(TreeTableRow row)
         me:row = row
     end
 
+    /*
+    This action returns the row this cell shows, which a column's SetCell
+    action or an activation behavior can use to find the row's information.
+
+    Attribute: Returns The row this cell belongs to.
+    */
     action GetRow returns TreeTableRow
         return row
     end
@@ -392,6 +601,12 @@ expandButton:SetLeftMargin(PADDING_PER_DEPTH * row:GetTreeDepth() * GetInterface
         accessibleParent = parentCell
     end
 
+    /*
+    This action returns false, because a cell doesn't hold other accessible
+    items. Screen readers treat the TreeTable as the parent of its cells.
+
+    Attribute: Returns False, since a cell is not an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         // This should return true if/when TreeTableCells can host other cells.
         //return true

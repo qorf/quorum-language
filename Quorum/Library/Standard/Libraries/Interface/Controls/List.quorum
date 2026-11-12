@@ -13,6 +13,31 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.Color
 
+/*
+The List class is a control that shows a column of text entries, one per
+line, that the user can scroll through and select. Each entry is a ListItem.
+The user can move the selection with the arrow keys, jump to an entry by
+typing its first letters, and activate an entry, such as by double-clicking
+it. Screen readers read the list and its selected entry.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.List
+
+Form form
+Page page = form:GetMainPage()
+
+List fruits = page:AddList("Fruits")
+fruits:Add("Apples")
+fruits:Add("Bananas")
+fruits:Add("Cherries")
+fruits:Select(0)
+
+form:Display()
+*/
 class List is ScrollableLineControl, FirstLetterNavigator
 
     ListSelection selection
@@ -31,11 +56,10 @@ class List is ScrollableLineControl, FirstLetterNavigator
     Behavior accessibilityCollapseBehavior = undefined
 
     // A thick accent line along the list's left edge while it has the
-    // focus (LS5), like a focused text field's (FD).
+    // focus, like a focused text field's.
     Control focusLine = undefined
     // When above 0, every line is this many pixels tall, and heights are
-    // worked out without laying out lines off screen (Studio plan
-    // TeamTabSpeed.md, fix 2). 0, the default, measures each line.
+    // worked out without laying out lines off screen. 0, the default, measures each line.
     number fixedLineHeight = 0
     constant number FOCUS_LINE_THICKNESS = 4
     
@@ -57,23 +81,49 @@ class List is ScrollableLineControl, FirstLetterNavigator
         SetLayoutRows(5)
     end
 
+    /*
+    This action returns true, because a List is a parent for accessibility:
+    screen readers treat its items as children of the list.
+
+    Attribute: Returns True, since a List is an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+    This action is called when the list gains the focus. It shows the focus
+    line along the list's left edge and redraws the selected item so it looks
+    focused.
+
+    Attribute: Parameter event The event describing the focus change.
+    */
     action GainedFocus(FocusEvent event)
         parent:ScrollableLineControl:GainedFocus(event)
         ShowFocusLine(true)
         RefreshSelectedItem()
     end
 
+    /*
+    This action is called when the list loses the focus. It hides the focus
+    line along the list's left edge and redraws the selected item so it no
+    longer looks focused.
+
+    Attribute: Parameter event The event describing the focus change.
+    */
     action LostFocus(FocusEvent event)
         parent:ScrollableLineControl:LostFocus(event)
         ShowFocusLine(false)
         RefreshSelectedItem()
     end
 
-    // The line is made the first time it's shown, when the graphics exist.
+    /*
+        This action shows or hides the line along the list's left edge that marks
+        it as focused, drawn in the focus border color. The line is made the first
+        time it is shown, once the list's graphics exist.
+
+        Attribute: Parameter show True to show the focus line, or false to hide it.
+    */
     private action ShowFocusLine(boolean show)
         if focusLine = undefined
             if not show
@@ -112,7 +162,11 @@ class List is ScrollableLineControl, FirstLetterNavigator
         focusLine:RequestVerticesUpdate()
     end
 
-    // The selected item's look follows the list's focus (LS5).
+    /*
+        This action updates the selected item's text color and drawing, so its look
+        follows whether the list has the focus. It does nothing if no item is
+        selected.
+    */
     private action RefreshSelectedItem
         ListItem item = selection:GetListItem()
         if item not= undefined
@@ -121,22 +175,122 @@ class List is ScrollableLineControl, FirstLetterNavigator
         end
     end
 
+    /*
+    This action adds a new entry with the given text to the end of the list.
+
+    Attribute: Parameter entry The text of the new entry.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    */
     action Add(text entry)
         Add(NewListItem(entry))
     end
 
+    /*
+    This action adds a new entry with the given text at the given position in
+    the list. Position 0 is the top of the list, and entries at or after the
+    position move down by one.
+
+    Attribute: Parameter position The index the new entry will have.
+
+    Attribute: Parameter entry The text of the new entry.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Bananas")
+    fruits:Add(0, "Apples")
+    */
     action Add(integer position, text entry)
         Add(position, NewListItem(entry))
     end
 
+    /*
+    This action adds a new entry with the given text and icon to the end of
+    the list. The icon is drawn next to the entry's text.
+
+    Attribute: Parameter entry The text of the new entry.
+
+    Attribute: Parameter icon The icon to show with the entry.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.Icon
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            List files
+            Icon icon
+            icon:Load("Resources/FileIcon.png")
+            files:Add("Notes.txt", icon)
+            Add(files)
+        end
+    end
+    */
     action Add(text entry, Icon icon)
         Add(NewListItem(entry, icon))
     end
 
+    /*
+    This action adds a new entry with the given text and icon at the given
+    position in the list. Position 0 is the top of the list, and entries at
+    or after the position move down by one.
+
+    Attribute: Parameter position The index the new entry will have.
+
+    Attribute: Parameter entry The text of the new entry.
+
+    Attribute: Parameter icon The icon to show with the entry.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.Icon
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            List files
+            files:Add("Notes.txt")
+            Icon icon
+            icon:Load("Resources/FileIcon.png")
+            files:Add(0, "Readme.txt", icon)
+            Add(files)
+        end
+    end
+    */
     action Add(integer position, text entry, Icon icon)
         Add(position, NewListItem(entry, icon))
     end
 
+    /*
+    This action adds an item to the end of the list. The item must be a
+    ListItem; any other kind of item raises an error. Use it to add a ListItem
+    you made and set up yourself, such as one with its own activation
+    behavior.
+
+    Attribute: Parameter item The ListItem to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    ListItem item
+    item:SetText("Apples")
+    fruits:Add(item)
+    */
     action Add(Item2D item)
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
@@ -148,6 +302,24 @@ class List is ScrollableLineControl, FirstLetterNavigator
         renderer:Add(item)
     end
 
+    /*
+    This action adds an item at the given position in the list. The item must
+    be a ListItem; any other kind of item raises an error. Position 0 is the
+    top of the list, and items at or after the position move down by one.
+
+    Attribute: Parameter index The index the new item will have.
+
+    Attribute: Parameter item The ListItem to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    fruits:Add("Bananas")
+    ListItem item
+    item:SetText("Apples")
+    fruits:Add(0, item)
+    */
     action Add(integer index, Item2D item)
         if not (item is ListItem)
             alert("I could not add the item called " + item:GetName() + " to the List -- only ListItems can be added to Lists.")
@@ -159,6 +331,21 @@ class List is ScrollableLineControl, FirstLetterNavigator
         renderer:Add(index, item)
     end
 
+    /*
+    This action removes the first entry whose text matches the given text.
+
+    Attribute: Parameter entry The text of the entry to remove.
+
+    Attribute: Returns The ListItem that was removed, or undefined if no entry had that text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    ListItem removed = fruits:Remove("Apples")
+    */
     action Remove(text entry) returns ListItem
         integer i = 0
         repeat while i < GetSize()
@@ -173,18 +360,67 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return undefined
     end
 
+    /*
+    This action removes the entry at the given index. Entries after it move
+    up by one.
+
+    Attribute: Parameter index The index of the entry to remove.
+
+    Attribute: Returns The item that was removed.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Item2D
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    Item2D removed = fruits:Remove(0)
+    */
     action Remove(integer index) returns Item2D
         return renderer:Remove(index)
     end
 
+    /*
+    This action removes the given item from the list.
+
+    Attribute: Parameter item The item to remove.
+
+    Attribute: Returns True if the item was in the list and was removed, or false if not.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    fruits:Add("Apples")
+    ListItem item = fruits:GetListItem(0)
+    boolean removed = fruits:Remove(item)
+    */
     action Remove(Item2D item) returns boolean
         return renderer:Remove(item)
     end
 
+    /*
+    This action makes a new ListItem with the given text and no icon, using
+    the list's font size.
+
+    Attribute: Parameter value The text of the new item.
+
+    Attribute: Returns The new ListItem.
+    */
     private action NewListItem(text value) returns Control
         return NewListItem(value, undefined)
     end
 
+    /*
+    This action makes a new ListItem with the given text and icon, using the
+    list's font size. If the icon is undefined, the item has no icon.
+
+    Attribute: Parameter value The text of the new item.
+
+    Attribute: Parameter icon The icon to show with the item, or undefined.
+
+    Attribute: Returns The new ListItem.
+    */
     private action NewListItem(text value, Icon icon) returns Control
         LayoutProperties properties = GetDefaultLayoutProperties()
 
@@ -199,6 +435,18 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return newItem
     end
 
+    /*
+    This action sets the font size of the list and of every entry already in
+    it. Entries added later use this size too.
+
+    Attribute: Parameter size The new font size.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:SetFontSize(20)
+    */
     action SetFontSize(integer size)
         parent:Control:SetFontSize(size)
         integer i = 0
@@ -208,14 +456,58 @@ class List is ScrollableLineControl, FirstLetterNavigator
         end
     end
 
+    /*
+    This action returns the text of the entry at the given index.
+
+    Attribute: Parameter index The index of the entry.
+
+    Attribute: Returns The entry's text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    text first = fruits:Get(0)
+    */
     action Get(integer index) returns text
         return GetListItem(index):GetText()
     end
 
+    /*
+    This action returns the ListItem at the given index. Use it to change one
+    entry, such as to give it its own activation behavior.
+
+    Attribute: Parameter index The index of the entry.
+
+    Attribute: Returns The ListItem at that index.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    fruits:Add("Apples")
+    ListItem item = fruits:GetListItem(0)
+    */
     action GetListItem(integer index) returns ListItem
         return renderer:GetListItem(index)
     end
 
+    /*
+    This action returns the list's selection, which says which entry, if any,
+    is selected.
+
+    Attribute: Returns The ListSelection of this list.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Selections.ListSelection
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    fruits:Select(1)
+    ListSelection selection = fruits:GetSelection()
+    integer index = selection:GetIndex()
+    */
     action GetSelection returns ListSelection
         return selection
     end
@@ -299,10 +591,37 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return accessibilityCollapseBehavior
     end
 
+    /*
+    This action returns the index of the given ListItem in the list.
+
+    Attribute: Parameter item The ListItem to look for.
+
+    Attribute: Returns The item's index, or -1 if it is not in the list.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    ListItem item = fruits:GetListItem(1)
+    integer index = fruits:GetIndexOf(item)
+    */
     action GetIndexOf(ListItem item) returns integer
         return renderer:GetChildren():GetFirstLocation(item)
     end
 
+    /*
+    This action returns how many entries are in the list.
+
+    Attribute: Returns The number of entries.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    integer size = fruits:GetSize()
+    */
     action GetSize returns integer
         return renderer:GetItemCount()
     end
@@ -348,14 +667,32 @@ class List is ScrollableLineControl, FirstLetterNavigator
         selection:Set(index)
     end
 
-    // Whether the line is wholly inside the box at the current scroll.
-    // GetLineY is where RefreshContents would draw it; an item's own
-    // position is stale while it's off screen.
+    /*
+        This action returns whether a line is wholly inside the list's visible area
+        at the current scroll. It uses GetLineY, where RefreshContents would draw the
+        line, because an item's own position is out of date while it is off screen.
+
+        Attribute: Parameter index The index of the line.
+
+        Attribute: Parameter item The list item on that line. Its place comes from the index, not from the item.
+
+        Attribute: Returns True if the whole line can be seen, or false if it cannot.
+    */
     private action IsLineVisible(integer index, ListItem item) returns boolean
         number y = GetLineY(index)
         return y >= 0 and y + GetLineHeight(index) <= renderer:GetHeight()
     end
 
+    /*
+    This action clears the selection, so no entry is selected.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:Select(0)
+    fruits:Deselect()
+    */
     action Deselect
         ListItem oldSelection = selection:GetListItem()
         if oldSelection not= undefined
@@ -365,6 +702,19 @@ class List is ScrollableLineControl, FirstLetterNavigator
         selection:Empty()
     end
 
+    /*
+    This action selects the entry just above the selected one. If the top
+    entry is already selected, nothing changes. The list scrolls if the new
+    selection is off screen.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    fruits:Select(1)
+    fruits:MoveSelectionUp()
+    */
     action MoveSelectionUp
         integer index = selection:GetIndex()
         
@@ -373,6 +723,19 @@ class List is ScrollableLineControl, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the entry just below the selected one. If the bottom
+    entry is already selected, nothing changes. The list scrolls if the new
+    selection is off screen.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    fruits:Select(0)
+    fruits:MoveSelectionDown()
+    */
     action MoveSelectionDown
         integer index = selection:GetIndex()
         
@@ -401,6 +764,22 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return itemBehavior
     end
 
+    /*
+    This action returns all of the entries in the list, in order. The array is
+    the list's own, so add and remove entries with the list's actions, not
+    the array's.
+
+    Attribute: Returns An array of the list's ListItems.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    use Libraries.Containers.Array
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    Array<ListItem> items = fruits:GetListItems()
+    */
     action GetListItems returns Array<ListItem>
         return cast(Array<ListItem>, renderer:GetChildren())
     end
@@ -639,7 +1018,7 @@ class List is ScrollableLineControl, FirstLetterNavigator
     lines on screen are laid out, as they are drawn. Use it for a list of
     one-line rows, such as files. A line taller than this overlaps the next
     one, so choose the tallest row's height. 0 measures each line again,
-    the default (Studio plan TeamTabSpeed.md, fix 2).
+    the default.
 
     Attribute: Parameter height The height of every line, in pixels, or 0 to measure each line.
 
@@ -669,6 +1048,20 @@ class List is ScrollableLineControl, FirstLetterNavigator
         return fixedLineHeight
     end
 
+    /*
+    This action scrolls the list so the entry at the given index is near the
+    middle of the list's visible area. Select uses it to bring an entry that
+    is off screen into view.
+
+    Attribute: Parameter index The index of the entry to scroll to.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    List fruits
+    fruits:Add("Apples")
+    fruits:Add("Bananas")
+    fruits:GoToItem(1)
+    */
     action GoToItem(integer index)
         // ScrollPercentY = (y - (height - heightThroughLine)) / contentHeight
         number height = renderer:GetHeight()

@@ -49,8 +49,7 @@ class TwoStageShadowShaderMappingVulkan is VulkanShaderMapping
         // Now, add the pre-existing layout to the set of layouts used by the pipeline we're making.
         creator:AddDescriptorSetLayout(textureManager:GetGlobalTextureDescriptorSetLayout())
         
-        // The last 4 bytes are the shader time, for swaying materials
-        // (Foliage plan F6).
+        // The last 4 bytes are the shader time, for swaying materials.
         VulkanPushConstantRange pushConstants
         pushConstants:SetSize(28)
         pushConstants:SetStage(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT)

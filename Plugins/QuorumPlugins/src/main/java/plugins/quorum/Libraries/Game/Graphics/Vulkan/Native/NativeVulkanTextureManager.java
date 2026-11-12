@@ -25,7 +25,7 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
         PixelMap pluginMap = ((quorum.Libraries.Game.Graphics.PixelMap)quorumMap).plugin_;
         VulkanBuffer pluginBuffer = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanBuffer)quorumBuffer).plugin_;
         // A duplicate from the start, so the PixelMap's own position never
-        // moves and the same pixels can be copied again (Item 34).
+        // moves and the same pixels can be copied again.
         ByteBuffer pixelBytes = pluginMap.GetPixels().duplicate();
         pixelBytes.position(0);
 
@@ -34,7 +34,7 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
     }
     /*
     Writes the full size and each smaller level. With a cutout above 0 (a
-    cut-out picture, such as a grass card, Dense grass plan DG5), each
+    cut-out picture, such as a grass card), each
     smaller level's alpha is scaled so the same share of its pixels passes
     the cutout as in the full size: plain averaging mixes thin blades with
     the clear space around them and drops them below the cutout, so far
@@ -152,7 +152,7 @@ public class NativeVulkanTextureManager implements VulkanTextureManagerStrategy
     }
 
     // The share of a level's pixels whose alpha, times a scale, reaches the
-    // threshold (Dense grass plan DG5).
+    // threshold.
     private static double Coverage(byte[] level, double threshold, double scale)
     {
         int pixels = level.length / 4;

@@ -7,7 +7,7 @@ import plugins.quorum.Libraries.Game.Graphics.Vulkan.Native.NativeVulkanQueryPoo
 import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanQueryPoolStrategy;
 
 /*
-The Java side of Quorum's VulkanQueryPool (Graphics timing plan T1). Its work
+The Java side of Quorum's VulkanQueryPool. Its work
 is done by a strategy: LWJGL on the desktop (DesktopVulkanQueryPool), or
 Quorum's own Vulkan layer in C on iOS and Android (NativeVulkanQueryPool,
 which reports queries as unsupported until quorum-natives has them).

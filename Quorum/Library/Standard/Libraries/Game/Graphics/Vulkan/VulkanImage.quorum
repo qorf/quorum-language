@@ -61,7 +61,7 @@ class VulkanImage is VulkanRetirable
 
     /*
     This action frees the object once VulkanGraphics:Retire knows no frame
-    on the GPU still uses it (Item 31). It is the same as Dispose.
+    on the GPU still uses it. It is the same as Dispose.
     */
     action Release
         Dispose()

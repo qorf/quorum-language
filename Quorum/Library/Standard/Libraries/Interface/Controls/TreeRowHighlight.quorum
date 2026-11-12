@@ -10,6 +10,28 @@ one, hidden until it is needed, and stretches it across the tree's width. It
 uses the TreeItem colors from the interface options: the selection color, the
 unfocused selection color when the tree doesn't have the focus, and the mouse
 over color. Most programs never use this class directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+Form form
+Page page = form:GetMainPage()
+Tree tree = page:AddTree("Files")
+
+TreeItem hero
+hero:SetName("Hero.quorum")
+tree:Add(hero)
+
+// Selecting an item shows its row's highlight behind it.
+hero:Select()
+
+form:Display()
 */
 class TreeRowHighlight is Control
     // Whether a selection is drawn in the focused color (see SetShowsFocus).
@@ -44,6 +66,14 @@ class TreeRowHighlight is Control
         return showsFocus
     end
 
+    /*
+    This action is used to load the graphics of the highlight. The first time
+    it is called, it gives the highlight a ControlShaderView, which draws the
+    rounded band in the colors from the interface options. This is handled
+    automatically, and most programs never call it directly.
+
+    Attribute: Parameter properties The layout properties used to draw the highlight.
+    */
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
             ControlShaderView view

@@ -7,6 +7,37 @@ use Libraries.Containers.Support.SortableContainer
 use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Graphics.Painter2D
 
+/*
+    The TextFieldBackground class is the part of a TextField that draws the
+    field's background and its text. The TextField makes one and fills it with
+    a drawable for each character, drawables that show the selection,
+    highlights from text styles, and the caret. It draws them in this order:
+    highlights that are hidden under a selection, the selection, highlights
+    that stay visible over a selection, the characters, and then the caret.
+    To avoid making new drawables each time the text changes, it keeps a pool
+    of drawables that can be used again. Unless they are set on the
+    background itself, its colors, border and corner rounding come from the
+    TextField that holds it. Most programs never use this class directly.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.TextField
+    use Libraries.Interface.Controls.TextFieldBackground
+
+    Form form
+    Page page = form:GetMainPage()
+
+    TextField field = page:AddTextField("Name")
+
+    // The background is the first item inside a TextField.
+    TextFieldBackground background = cast(TextFieldBackground, field:GetItem(0))
+    number thickness = background:GetBorderThickness()
+
+    form:Display()
+*/
 class TextFieldBackground is Control
 
     Array<Drawable> glyphs
@@ -30,17 +61,39 @@ class TextFieldBackground is Control
         Add(caret)
     end
 
+    /*
+        This action draws the background and then everything on it. The background
+        uses custom drawing, so the engine calls this instead of drawing its
+        children one by one. Most programs don't need to call it.
+
+        Attribute: Parameter painter The painter used to draw.
+    */
     action Draw(Painter2D painter)
         DrawView(painter)
         DrawContents(painter)
     end
 
+    /*
+        This action draws the background's view, the shape behind the text, if it
+        has one.
+
+        Attribute: Parameter painter The painter used to draw.
+    */
     action DrawView(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
         end
     end
 
+    /*
+        This action draws everything on the background except its view: highlights
+        that are hidden under a selection, the selection, highlights that stay
+        visible over a selection, the characters, and then the caret. Highlights
+        are drawn in order of their render priority. If one is found out of
+        order, its list is sorted before the next draw.
+
+        Attribute: Parameter painter The painter used to draw.
+    */
     action DrawContents(Painter2D painter)
         if sortPreHighlights
             preSelectionHighlights:Sort()
@@ -105,6 +158,24 @@ class TextFieldBackground is Control
         caret:Draw(painter)
     end
 
+    /*
+        This action returns a drawable to use for a character or a selection. It
+        reuses one from the pool if there is one, and otherwise makes a new one.
+        The drawable does not take mouse input.
+
+        Attribute: Returns A drawable that is ready to be loaded.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextFieldBackground
+        use Libraries.Game.Graphics.Drawable
+
+        class Main
+            action Main
+                TextFieldBackground background
+                Drawable character = background:GetDrawable()
+            end
+        end
+    */
     action GetDrawable returns Drawable
         if drawablePool:IsEmpty() = false
             Drawable drawable = drawablePool:RemoveFromEnd()
@@ -116,6 +187,13 @@ class TextFieldBackground is Control
         end
     end
 
+    /*
+        This action puts a drawable back in the pool so GetDrawable can use it
+        again. It does not remove the drawable from the background. Undefined
+        values are ignored.
+
+        Attribute: Parameter drawable The drawable to put back in the pool.
+    */
     action RecycleDrawable(Drawable drawable)
         if drawable = undefined
             return now
@@ -124,6 +202,13 @@ class TextFieldBackground is Control
         drawablePool:Add(drawable)
     end
 
+    /*
+        This action returns a container that pairs a text highlight with its
+        drawable. It reuses one from the pool if there is one, and otherwise
+        makes a new one.
+
+        Attribute: Returns An empty container for a highlight and its drawable.
+    */
     action GetHighlightContainer returns SortableContainer<TextHighlight, Drawable>
         if highlightContainerPool:IsEmpty() = false
             return highlightContainerPool:RemoveFromEnd()
@@ -133,6 +218,14 @@ class TextFieldBackground is Control
         end
     end
 
+    /*
+        This action empties a highlight container and puts it back in the pool so
+        GetHighlightContainer can use it again. The drawable inside is not put
+        in the drawable pool, since the background did not make it. Undefined
+        values are ignored.
+
+        Attribute: Parameter container The container to put back in the pool.
+    */
     action RecycleHighlightContainer(SortableContainer<TextHighlight, Drawable> container)
         if container = undefined
             return now
@@ -146,16 +239,49 @@ class TextFieldBackground is Control
         highlightContainerPool:Add(container)
     end
 
+    /*
+        This action adds the drawable for a character to the end of the
+        background's characters.
+
+        Attribute: Parameter character The drawable for the character.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextFieldBackground
+        use Libraries.Game.Graphics.Drawable
+
+        class Main
+            action Main
+                TextFieldBackground background
+                Drawable character = background:GetDrawable()
+                background:AddCharacter(character)
+            end
+        end
+    */
     action AddCharacter(Drawable character)
         Add(character)
         glyphs:Add(character)
     end
 
+    /*
+        This action adds the drawable for a character at a given place in the
+        background's characters.
+
+        Attribute: Parameter index The place in the list of characters to put the drawable.
+
+        Attribute: Parameter character The drawable for the character.
+    */
     action AddCharacter(integer index, Drawable character)
         Add(character)
         glyphs:Add(index, character)
     end
 
+    /*
+        This action removes the character drawable at a given place and puts it
+        back in the pool. If there is no character at that place, nothing
+        happens.
+
+        Attribute: Parameter index The place in the list of characters to remove.
+    */
     action RemoveCharacter(integer index)
         if index >= glyphs:GetSize()
             return now
@@ -165,17 +291,35 @@ class TextFieldBackground is Control
         RecycleDrawable(character)
     end
 
+    /*
+        This action adds a drawable that shows part of the selection.
+
+        Attribute: Parameter selection The drawable that shows the selection.
+    */
     action AddSelectionDrawable(Drawable selection)
         Add(selection)
         selectionDrawables:Add(selection)
     end
 
+    /*
+        This action removes a selection drawable and puts it back in the pool.
+
+        Attribute: Parameter selection The selection drawable to remove.
+    */
     action RemoveSelectionDrawable(Drawable selection)
         selectionDrawables:Remove(selection)
         Remove(selection)
         RecycleDrawable(selection)
     end
 
+    /*
+        This action adds a highlight that is drawn under the selection, so a
+        selection hides it.
+
+        Attribute: Parameter highlight The text highlight the drawable belongs to.
+
+        Attribute: Parameter drawable The drawable that shows the highlight.
+    */
     action AddPreSelectionHighlight(TextHighlight highlight, Drawable drawable)
         Add(drawable)
         SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
@@ -184,6 +328,12 @@ class TextFieldBackground is Control
         sortPreHighlights = true
     end
 
+    /*
+        This action removes a highlight that is drawn under the selection, along
+        with its drawable.
+
+        Attribute: Parameter highlight The text highlight to remove.
+    */
     action RemovePreSelectionHighlight(TextHighlight highlight)
         integer counter = 0
         repeat while counter < preSelectionHighlights:GetSize()
@@ -199,6 +349,14 @@ class TextFieldBackground is Control
         end
     end
 
+    /*
+        This action adds a highlight that is drawn over the selection, so it stays
+        visible when its text is selected.
+
+        Attribute: Parameter highlight The text highlight the drawable belongs to.
+
+        Attribute: Parameter drawable The drawable that shows the highlight.
+    */
     action AddPostSelectionHighlight(TextHighlight highlight, Drawable drawable)
         Add(drawable)
         SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
@@ -207,6 +365,12 @@ class TextFieldBackground is Control
         sortPostHighlights = true
     end
 
+    /*
+        This action removes a highlight that is drawn over the selection, along
+        with its drawable.
+
+        Attribute: Parameter highlight The text highlight to remove.
+    */
     action RemovePostSelectionHighlight(TextHighlight highlight)
         integer counter = 0
         repeat while counter < postSelectionHighlights:GetSize()
@@ -222,10 +386,21 @@ class TextFieldBackground is Control
         end
     end
 
+    /*
+        This action returns the drawable used for the caret, the line that shows
+        where typing goes.
+
+        Attribute: Returns The caret drawable.
+    */
     action GetCaret returns Drawable
         return caret
     end
 
+    /*
+        This action returns the drawables for the characters, in order.
+
+        Attribute: Returns An array of the character drawables.
+    */
     action GetCharacters returns Array<Drawable>
         return glyphs
     end
@@ -243,6 +418,10 @@ class TextFieldBackground is Control
         EmptyPostSelectionHighlights()
     end
 
+    /*
+        This action removes all of the character drawables and puts them back in
+        the pool.
+    */
     action EmptyGlyphs
         repeat until glyphs:IsEmpty()
             Drawable drawable = glyphs:RemoveFromEnd()
@@ -251,18 +430,30 @@ class TextFieldBackground is Control
         end
     end
 
-    // The TextBoxRenderer will only resize if we explicitly request it, or an
-    // underlying component has to.
+    /*
+        This action always returns false, so the background is not laid out again
+        on its own. It changes size only when asked to, such as by its TextField.
+
+        Attribute: Returns Always false.
+    */
     action NeedsLayout returns boolean
         return false
     end
 
+    /*
+        This action removes all of the selection drawables and puts them back in
+        the pool.
+    */
     action EmptySelectionDrawables
         repeat until selectionDrawables:IsEmpty()
             RemoveSelectionDrawable(selectionDrawables:Get(0))
         end
     end
 
+    /*
+        This action removes all of the highlights that are drawn under the
+        selection.
+    */
     action EmptyPreSelectionHighlights
         repeat until preSelectionHighlights:IsEmpty()
             SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:RemoveFromEnd()
@@ -271,6 +462,10 @@ class TextFieldBackground is Control
         sortPreHighlights = false
     end
 
+    /*
+        This action removes all of the highlights that are drawn over the
+        selection.
+    */
     action EmptyPostSelectionHighlights
         repeat until postSelectionHighlights:IsEmpty()
             SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:RemoveFromEnd()
@@ -279,6 +474,13 @@ class TextFieldBackground is Control
         sortPostHighlights = false
     end
 
+    /*
+        This action returns the border color. If one was set on the background
+        itself, that is used. Otherwise it uses the border color of the TextField
+        that holds it.
+
+        Attribute: Returns The border color.
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -287,6 +489,13 @@ class TextFieldBackground is Control
         return GetParentTextField():GetBorderColor()
     end
 
+    /*
+        This action returns the border color used while the field has the focus.
+        If one was set on the background itself, that is used. Otherwise it uses
+        the focus border color of the TextField that holds it.
+
+        Attribute: Returns The focus border color.
+    */
     action GetFocusBorderColor returns ColorGroup
         if HasColorPropertyOverride("focusBorderColor")
             return parent:Control:GetFocusBorderColor()
@@ -295,6 +504,13 @@ class TextFieldBackground is Control
         return GetParentTextField():GetFocusBorderColor()
     end
 
+    /*
+        This action returns the background color. If one was set on the
+        background itself, that is used. Otherwise it uses the background color
+        of the TextField that holds it.
+
+        Attribute: Returns The background color.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -303,6 +519,14 @@ class TextFieldBackground is Control
         return GetParentTextField():GetBackgroundColor()
     end
     
+/*
+    This action returns the color used while the mouse is over the field. If
+    one was set on the background itself, that is used. Otherwise it uses the
+    value from the TextField that holds it, or the normal value if there is
+    no TextField.
+
+    Attribute: Returns The mouse over color.
+*/
 action GetMouseOverColor returns ColorGroup
         if HasColorPropertyOverride("mouseOverColor")
             return parent:Control:GetMouseOverColor()
@@ -316,6 +540,14 @@ action GetMouseOverColor returns ColorGroup
         end
     end
     
+/*
+    This action returns the border color used while the mouse is over the
+    field. If one was set on the background itself, that is used. Otherwise
+    it uses the value from the TextField that holds it, or the normal value
+    if there is no TextField.
+
+    Attribute: Returns The mouse over border color.
+*/
 action GetMouseOverBorderColor returns ColorGroup
         if HasColorPropertyOverride("mouseOverBorderColor")
             return parent:Control:GetMouseOverBorderColor()
@@ -329,6 +561,13 @@ action GetMouseOverBorderColor returns ColorGroup
         end
     end
 
+    /*
+        This action returns the border thickness. If one was set on the background
+        itself, that is used. Otherwise it uses the border thickness of the
+        TextField that holds it.
+
+        Attribute: Returns The border thickness.
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -337,6 +576,14 @@ action GetMouseOverBorderColor returns ColorGroup
         return GetParentTextField():GetBorderThickness()
     end
     
+/*
+    This action returns the border thickness used while the mouse is over the
+    field. If one was set on the background itself, that is used. Otherwise
+    it uses the value from the TextField that holds it, or the normal value
+    if there is no TextField.
+
+    Attribute: Returns The mouse over border thickness.
+*/
 action GetMouseOverBorderThickness returns number
         if HasNumberPropertyOverride("mouseOverBorderThickness")
             return parent:Control:GetMouseOverBorderThickness()
@@ -350,6 +597,14 @@ action GetMouseOverBorderThickness returns number
         end
     end
     
+/*
+    This action returns whether a border thickness for when the mouse is over
+    the field has been set. If one was set on the background itself, that is
+    checked. Otherwise it asks the TextField that holds it, or uses the
+    normal answer if there is no TextField.
+
+    Attribute: Returns True if a mouse over border thickness has been set.
+*/
 action HasMouseOverBorderThickness returns boolean
         if HasNumberPropertyOverride("mouseOverBorderThickness")
             return parent:Control:HasMouseOverBorderThickness()
@@ -363,6 +618,13 @@ TextField box = GetParentTextField()
         end
     end
 
+    /*
+        This action returns how round the top left corner of the background
+        is. If a value was set on the background itself, that is used. Otherwise
+        it uses the value from the TextField that holds it.
+
+        Attribute: Returns How round the top left corner is.
+    */
     action GetTopLeftRounding returns number
         if HasNumberPropertyOverride("topLeftRounding")
             return parent:Control:GetTopLeftRounding()
@@ -371,6 +633,13 @@ TextField box = GetParentTextField()
         return GetParentTextField():GetTopLeftRounding()
     end
 
+    /*
+        This action returns how round the top right corner of the background
+        is. If a value was set on the background itself, that is used. Otherwise
+        it uses the value from the TextField that holds it.
+
+        Attribute: Returns How round the top right corner is.
+    */
     action GetTopRightRounding returns number
         if HasNumberPropertyOverride("topRightRounding")
             return parent:Control:GetTopRightRounding()
@@ -379,6 +648,13 @@ TextField box = GetParentTextField()
         return GetParentTextField():GetTopRightRounding()
     end
 
+    /*
+        This action returns how round the bottom left corner of the background
+        is. If a value was set on the background itself, that is used. Otherwise
+        it uses the value from the TextField that holds it.
+
+        Attribute: Returns How round the bottom left corner is.
+    */
     action GetBottomLeftRounding returns number
         if HasNumberPropertyOverride("bottomLeftRounding")
             return parent:Control:GetBottomLeftRounding()
@@ -387,6 +663,13 @@ TextField box = GetParentTextField()
         return GetParentTextField():GetBottomLeftRounding()
     end
 
+    /*
+        This action returns how round the bottom right corner of the background
+        is. If a value was set on the background itself, that is used. Otherwise
+        it uses the value from the TextField that holds it.
+
+        Attribute: Returns How round the bottom right corner is.
+    */
     action GetBottomRightRounding returns number
         if HasNumberPropertyOverride("bottomRightRounding")
             return parent:Control:GetBottomRightRounding()
@@ -395,6 +678,12 @@ TextField box = GetParentTextField()
         return GetParentTextField():GetBottomRightRounding()
     end
 
+    /*
+        This action finds the TextField that holds this background, by looking at
+        its parent, then that item's parent, and so on.
+
+        Attribute: Returns The TextField that holds this background, or undefined if there is none.
+    */
     private action GetParentTextField returns TextField
         Item2D result = GetParent()
         repeat until result is TextField or result = undefined

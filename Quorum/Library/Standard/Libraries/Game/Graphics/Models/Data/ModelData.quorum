@@ -8,7 +8,7 @@ class ModelData
     Animations animations = undefined
     text ID = undefined
 
-    // The lights read from the model file (Lighting plan L8).
+    // The lights read from the model file.
     Array<ModelLightData> lights
     
     action GetMaterials returns Array<Material>
@@ -53,7 +53,7 @@ class ModelData
 
     /*
     This action returns the lights read from the model file, such as a
-    lamp's bulb in a glTF file (Lighting plan L8). It is empty if the file
+    lamp's bulb in a glTF file. It is empty if the file
     has none.
 
     Attribute: Returns The file's lights.
@@ -63,7 +63,7 @@ class ModelData
     end
 
     /*
-    This action sets the lights read from the model file (Lighting plan L8).
+    This action sets the lights read from the model file.
     The model loader calls it.
 
     Attribute: Parameter lights The file's lights.

@@ -5,6 +5,35 @@ use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Layouts.ManualLayout
 
+/*
+    The ScrollBarTrack class is the long bar that a scroll bar's handle slides
+    along. A ScrollableControl, such as a ScrollPane, makes one track for up
+    and down scrolling and one for left and right scrolling, and puts a
+    ScrollBarControl handle inside each. A click or tap on the track moves the
+    view one page toward that spot. Unless a background color is set on the
+    track itself, it is drawn in the foreground color of the scrollable control
+    that holds it. Most programs never make a track directly.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollBarTrack
+    use Libraries.Interface.Controls.ScrollBarControl
+
+    Form form
+    Page page = form:GetMainPage()
+
+    page:AddButton("Hello")
+
+    // The second item inside a page is its up and down scroll bar.
+    ScrollBarTrack track = cast(ScrollBarTrack, page:GetItem(1))
+    ScrollBarControl handle = track:GetHandle()
+    boolean vertical = handle:IsVertical()
+
+    form:Display()
+*/
 class ScrollBarTrack is Control
 
     boolean vertical = true
@@ -19,6 +48,14 @@ class ScrollBarTrack is Control
         SetLayout(layout)
     end
 
+    /*
+        This action loads the graphics for the track. The first time, it makes the
+        view that draws the track's shape, then it loads the rest of the control's
+        graphics. The game engine calls it as needed, so most programs don't need
+        to call it directly.
+
+        Attribute: Parameter properties The layout properties used to load the graphics.
+    */
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
             ControlShaderView view
@@ -30,6 +67,15 @@ class ScrollBarTrack is Control
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action returns the color the track is drawn in. If a background color
+        was set on this track, that color is used. Otherwise the track uses the
+        foreground color of the ScrollableControl that holds it, so it matches
+        that control. If the track is not inside a ScrollableControl, the normal
+        background color is used.
+
+        Attribute: Returns The color of the track.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -43,6 +89,12 @@ class ScrollBarTrack is Control
         return parent:Control:GetBackgroundColor()
     end
 
+    /*
+        This action finds the ScrollableControl that holds this track, by looking
+        at its parent, then that item's parent, and so on.
+
+        Attribute: Returns The ScrollableControl that holds this track, or undefined if there is none.
+    */
     action GetScrollableControl returns ScrollableControl
         Item2D result = GetParent()
         repeat until result is ScrollableControl or result = undefined
@@ -51,7 +103,12 @@ class ScrollBarTrack is Control
         return cast(ScrollableControl, result)
     end
 
-    // The handle inside this track, or undefined.
+    /*
+        This action returns the handle inside this track: the part that is dragged
+        along it. It is the track's first child that is a ScrollBarControl.
+
+        Attribute: Returns The handle, or undefined if the track has none.
+    */
     action GetHandle returns ScrollBarControl
         integer i = 0
         repeat while i < GetChildren():GetSize()
@@ -63,10 +120,22 @@ class ScrollBarTrack is Control
         return undefined
     end
 
+    /*
+        This action returns whether the track runs up and down (for vertical
+        scrolling) or left and right (for horizontal scrolling).
+
+        Attribute: Returns True if the track runs up and down, false if it runs left and right.
+    */
     action IsVertical returns boolean
         return vertical
     end
 
+    /*
+        This action sets whether the track runs up and down or left and right. A
+        ScrollableControl sets this when it makes its scroll bars.
+
+        Attribute: Parameter vertical True for a track that runs up and down, false for one that runs left and right.
+    */
     action SetVertical(boolean vertical)
         me:vertical = vertical
     end

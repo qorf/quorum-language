@@ -47,16 +47,16 @@ Alpha cutoff (float, 4 bytes): pixels with less alpha aren't drawn
 Normal strength (float, 4 bytes): how strongly the normal map bends light
 Texture offset x and y, scale x and y, and turn in radians (5 floats)
 Sway strength (float, 4 bytes): with the SWAY flag, how far a point moves
-sideways per unit of height above its model's origin (Foliage plan F6)
+sideways per unit of height above its model's origin
 Sway direction (float, 4 bytes): the wind's direction about the up axis, in
-radians from +x toward +z (Foliage plan F6). A per-material angle was chosen
+radians from +x toward +z. A per-material angle was chosen
 over two packed halves: it is one number, and the shader turns it with cos
 and sin.
 Transmission (uint, 4 bytes): with the TRANSMISSION flag, how much light goes
 through the surface, 0 to 255 in the low 8 bits; bit 8 set if there is a
-transmission texture; and that texture's index in the bits above
-(Transmission plan T1).
-The emissive and later words are Lighting plan L1 and L4.*/
+transmission texture; and that texture's index in the bits above.
+The emissive and later words hold the light the surface gives off, and
+the maps and settings that model files bring.*/
     constant integer DIFFUSE_INDEX = 0
     constant integer TEXTURE_INDEX = 1
     constant integer HAS_NORMAL_MAP_INDEX = 2
@@ -90,10 +90,9 @@ The emissive and later words are Lighting plan L1 and L4.*/
     constant integer TWO_SIDED_FLAG = 16
     constant integer TEXTURE_TRANSFORM_FLAG = 32
     constant integer ALPHA_RELATIVE_FLAG = 64
-    // The vertex shaders move the material's points sideways in the wind
-    // (Foliage plan F6).
+    // The vertex shaders move the material's points sideways in the wind.
     constant integer SWAY_FLAG = 128
-    // Light goes through the surface (Transmission plan T1).
+    // Light goes through the surface.
     constant integer TRANSMISSION_FLAG = 256
 
     constant integer MATERIAL_BYTE_SIZE = 4 * 24
@@ -111,17 +110,17 @@ The emissive and later words are Lighting plan L1 and L4.*/
     Texture preloadOcclusionMap = undefined
     Texture preloadTransmissionMap = undefined
 
-    // Whether both sides of each face are drawn (Lighting plan L4), kept
+    // Whether both sides of each face are drawn, kept
     // after loading so the painter can draw the model without culling.
     boolean twoSided = false
 
     // Whether the material is drawn after the lighting, back to front: it
-    // is less than opaque, blends ("BLEND"), or lets light through
-    // (Transmission plan T1). Kept after loading, so the painter can draw a
+    // is less than opaque, blends ("BLEND"), or lets light through.
+    // Kept after loading, so the painter can draw a
     // model's see-through meshes apart from its opaque ones.
     boolean seeThrough = false
-    // Whether light goes through it (Transmission plan T1), so the painter
-    // copies what is behind before drawing it (T3).
+    // Whether light goes through it, so the painter
+    // copies what is behind before drawing it.
     boolean transmissive = false
 
     // For a texture set: whether this material is one, and its two packed
@@ -134,8 +133,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
     integer textureGroupIndex = -1
 
     // When the material's textures are not all in one texture group, a
-    // block of places in one group that holds them all (Texture groups
-    // plan): its first place in the global array, or -1, and the textures
+    // block of places in one group that holds them all: its first place in the global array, or -1, and the textures
     // linked into it, in order. The shader binds one group and finds every
     // map inside it, so a map in another group would read another texture.
     integer blockStart = -1
@@ -143,17 +141,17 @@ The emissive and later words are Lighting plan L1 and L4.*/
 
     // The textures this material uses that it got from the material
     // manager (files and texture sets, not the unit texture), given back
-    // in Release (Item 34).
+    // in Release.
     Array<Texture> usedTextures
 
     // A texture set's packed pixels, disposed once both textures are
-    // copied (Item 34).
+    // copied.
     PixelMap packedAlbedoHeight = undefined
     PixelMap packedNormalRoughness = undefined
 
     boolean released = false
 
-    // The wind's sway (Foliage plan F6): its strength, its direction in
+    // The wind's sway: its strength, its direction in
     // radians, the flags without the sway's, and the words last loaded, so
     // a change of sway can send the material again.
     number swayStrength = 0
@@ -172,7 +170,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
         if mode not= undefined and mode = "BLEND"
             seeThrough = true
         end
-        // The wind's sway (Foliage plan F6).
+        // The wind's sway.
         Math swayMath
         swayStrength = data:GetSway()
         swayDirection = data:GetSwayDirection() * swayMath:pi / 180
@@ -195,7 +193,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
             SharedTextureManager sharedTextures = unitState:GetSharedTextureManager()
             preloadTexture = sharedTextures:GetUnitTexture()
         else
-            // Mipmaps keep distant models from shimmering (Item 25).
+            // Mipmaps keep distant models from shimmering.
             preloadTexture = UseFileTexture(texturePath, false)
         end
         if normalPath = undefined or normalPath = ""
@@ -211,7 +209,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
             preloadRoughMap = UseFileTexture(roughPath, false)
         end
 
-        // The emissive and ambient occlusion maps (Lighting plan L1 and L4).
+        // The emissive and ambient occlusion maps.
         // A texture set packs its own occlusion, so this is only for other
         // materials, such as those loaded from model files.
         text emissivePath = data:GetEmissiveMapPath()
@@ -222,7 +220,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
         if occlusionPath not= undefined and occlusionPath not= ""
             preloadOcclusionMap = UseFileTexture(occlusionPath, false)
         end
-        // The transmission texture (Transmission plan T1).
+        // The transmission texture.
         text transmissionPath = data:GetTransmissionMapPath()
         if data:GetTransmission() > 0 and transmissionPath not= undefined and transmissionPath not= ""
             preloadTransmissionMap = UseFileTexture(transmissionPath, false)
@@ -248,7 +246,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
         usesTextureSet = true
         textureScale = data:GetTextureScale()
 
-        // A set already packed for another material is shared (Item 34).
+        // A set already packed for another material is shared.
         ModelManagerVulkan models
         MaterialManagerVulkan materials = models:GetMaterialManager()
         text setKey = "set:" + data:GetColorMapPath() + "|" + data:GetHeightMapPath() + "|" +
@@ -314,7 +312,7 @@ The emissive and later words are Lighting plan L1 and L4.*/
         albedoHeight:SetDisposeAfterTextureLoad(false)
         normalRoughness:SetDisposeAfterTextureLoad(false)
 
-        // Both get mipmaps (Item 25). The normals' mipmaps keep the
+        // Both get mipmaps. The normals' mipmaps keep the
         // ambient occlusion carried in their length.
         Texture albedo
         albedo:LoadFromPixelMap(albedoHeight, albedoHeight:GetFormat(), true)
@@ -416,7 +414,7 @@ default material loading system, as part of the model load system).*/
         end
         
         // All the material's textures in one group, in a block of its own
-        // if they are spread over more than one (Texture groups plan).
+        // if they are spread over more than one.
         KeepTexturesInOneGroup()
 
         // There is always a texture, whether its custom or the default unit texture.
@@ -450,7 +448,7 @@ default material loading system, as part of the model load system).*/
             flags = flags + TEXTURE_SET_FLAG
         end
 
-        // The light the surface gives off (Lighting plan L1).
+        // The light the surface gives off.
         Vector4 emissive = data:GetEmissive()
         if emissive = undefined
             dataArray:Set(EMISSIVE_COLOR_INDEX, utility:PackNormalizedVector4(0, 0, 0, 0))
@@ -465,7 +463,7 @@ default material loading system, as part of the model load system).*/
         end
         dataArray:Set(EMISSIVE_STRENGTH_INDEX, data:GetEmissiveStrength())
 
-        // What model files bring (Lighting plan L4).
+        // What model files bring.
         if preloadOcclusionMap = undefined
             dataArray:Set(OCCLUSION_MAP_INDEX, utility:EncodeIntegerAsNumber(0))
         else
@@ -481,7 +479,7 @@ default material loading system, as part of the model load system).*/
         // How transparent pixels are cut out. "OPAQUE" cuts out nothing;
         // "MASK" cuts out below its cutoff. A material that doesn't say
         // keeps the old rule: the texture's alpha below half. "BLEND" uses
-        // the old rule too until see-through drawing (L6).
+        // the old rule too until see-through drawing.
         text alphaMode = data:GetAlphaMode()
         if alphaMode = "OPAQUE"
             dataArray:Set(ALPHA_CUTOFF_INDEX, 0.0)
@@ -501,7 +499,7 @@ default material loading system, as part of the model load system).*/
         dataArray:Set(UV_SCALE_Y_INDEX, data:GetTextureScaleY())
         dataArray:Set(UV_ROTATION_INDEX, data:GetTextureRotation())
 
-        // How much light goes through (Transmission plan T1): the amount in
+        // How much light goes through: the amount in
         // the low 8 bits, the texture's place in the rest.
         integer transmissionWord = 0
         if data:GetTransmission() > 0
@@ -513,8 +511,7 @@ default material loading system, as part of the model load system).*/
             end
         end
         dataArray:Set(TRANSMISSION_INDEX, utility:EncodeIntegerAsNumber(transmissionWord))
-        // The flags, with the sway's flag and its two words (Foliage plan
-        // F6). The words are kept so SetSway can send them again.
+        // The flags, with the sway's flag and its two words. The words are kept so SetSway can send them again.
         loadedFlags = flags
         WriteSwayWords(dataArray)
         loadedWords = dataArray
@@ -543,7 +540,7 @@ default material loading system, as part of the model load system).*/
 
     /*
     This action makes sure all the material's textures can be found in one
-    texture group (Texture groups plan). The painter binds one group for the
+    texture group. The painter binds one group for the
     material, its color texture's, and the shader finds every map by its
     place inside that group, so a map whose texture is in another group
     would read whatever texture is at that place. Usually all are in one
@@ -675,7 +672,7 @@ default material loading system, as part of the model load system).*/
 
     /*
     This action returns true if both sides of the material's faces are
-    drawn, as for leaves and cards (Lighting plan L4).
+    drawn, as for leaves and cards.
 
     Attribute: Returns True for two-sided.
     */
@@ -686,7 +683,7 @@ default material loading system, as part of the model load system).*/
     /*
     This action returns true if the material is drawn see-through, after
     the lighting: it is less than opaque, blends ("BLEND"), or lets light
-    through (Transmission plan T1).
+    through.
 
     Attribute: Returns True for a see-through material.
     */
@@ -695,8 +692,7 @@ default material loading system, as part of the model load system).*/
     end
 
     /*
-    This action returns true if light goes through the material
-    (Transmission plan T1).
+    This action returns true if light goes through the material.
 
     Attribute: Returns True if the material has transmission.
     */
@@ -725,7 +721,7 @@ default material loading system, as part of the model load system).*/
             return now
         end
 
-        // A material sent again after its sway changed (Foliage plan F6)
+        // A material sent again after its sway changed
         // gets a new buffer; frames already recorded may still read the
         // old one, so it is retired.
         if materialBuffer not= undefined
@@ -750,7 +746,7 @@ default material loading system, as part of the model load system).*/
         
         dataTransferred = true
 
-        // The copy is the staging buffer's only use (Item 34).
+        // The copy is the staging buffer's only use.
         GameStateManager gameState
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         graphics:Retire(stagingBuffer)
@@ -815,7 +811,7 @@ default material loading system, as part of the model load system).*/
 
     /*
     This action returns the texture for an image file, shared with every
-    material using the same file, loading it the first time (Item 34).
+    material using the same file, loading it the first time.
 
     Attribute: Parameter path The file's path.
     Attribute: Parameter packedNormals True for a normal map.
@@ -842,7 +838,7 @@ default material loading system, as part of the model load system).*/
 
     /*
     This action writes the flags and the sway's two words into the
-    material's words (Foliage plan F6): the SWAY flag is added when the
+    material's words: the SWAY flag is added when the
     strength is more than 0.
 
     Attribute: Parameter words The material's 24 words.
@@ -859,7 +855,7 @@ default material loading system, as part of the model load system).*/
     end
 
     /*
-    This action sets how the material sways in the wind (Foliage plan F6).
+    This action sets how the material sways in the wind.
     The 3D and shadow vertex shaders move a point sideways by the strength
     times its height above its model's origin, back and forth over time,
     along the direction. A material already on the GPU is sent again, with
@@ -898,7 +894,7 @@ default material loading system, as part of the model load system).*/
     end
 
     /*
-    This action returns how much the material sways (Foliage plan F6).
+    This action returns how much the material sways.
 
     Attribute: Returns The strength, 0 for none.
     */
@@ -929,8 +925,7 @@ default material loading system, as part of the model load system).*/
         stagingBuffer = undefined
         materialBuffer = undefined
 
-        // The block that kept its textures in one group (Texture groups
-        // plan), once no frame draws with it.
+        // The block that kept its textures in one group, once no frame draws with it.
         if blockStart >= 0
             graphics:GetTextureManager():ReleaseBlock(blockStart, blockTextures:GetSize())
             blockStart = -1

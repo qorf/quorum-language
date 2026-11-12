@@ -31,7 +31,7 @@ use Libraries.System.File
     lined up with the scene's light. The sky is saved with the scene, and
     every change can be undone.
 
-    It also has the layer's Linear lighting checkbox (Linear lighting plan):
+    It also has the layer's Linear lighting checkbox:
     on, the default, colors are lit as amounts of light, as glTF and most
     engines expect; off, they are lit as stored, as Quorum did before.
 
@@ -85,7 +85,7 @@ class SkyPropertiesDialog is PropertiesDialog
         focusArray:Add(chooseButton)
         focusArray:Add(removeButton)
 
-        // The turn is a slider with a number field (Slider plan); a final
+        // The turn is a slider with a number field; a final
         // change is taken as when the focus leaves a field (SliderTaken).
         SliderField turnSlider = MakeSliderField("Turn:", "Sky turn", "How far the sky is turned about the up axis, in degrees", 0, 360, 1, 15, FIELD_LABEL_WIDTH)
         turnSlider:SetUnits("degrees")

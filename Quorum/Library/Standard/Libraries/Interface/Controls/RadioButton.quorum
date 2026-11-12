@@ -37,25 +37,21 @@ use Libraries.Interface.Forms.Grouping
     use Libraries.Interface.Forms.FormBehavior
     use Libraries.Interface.Forms.Grouping
     
-    class Main 
-        action Main 
-            Form form
-            Page page = form:GetMainPage()
-            
-            Grouping value = page:AddGrouping("radio group")
-            value:AddRadioButton("on")
-            value:AddRadioButton("off")
-            
-            form:Display()
-        end
-    end
+    Form form
+    Page page = form:GetMainPage()
+
+    Grouping value = page:AddGrouping("radio group")
+    value:AddRadioButton("on")
+    value:AddRadioButton("off")
+
+    form:Display()
 */
 class RadioButton is ToggleButton
 
     Icon buttonIcon
     Control innerIcon
     // A thin accent ring just outside the circle, with a small gap, while
-    // this radio button shows the focus (G3).
+    // this radio button shows the focus.
     Control focusRing
     constant number FOCUS_RING_GAP = 2
     constant number FOCUS_RING_THICKNESS = 2
@@ -77,7 +73,7 @@ class RadioButton is ToggleButton
   if false then instead the radio button will use a 'ring' style where the border changes to the selection color
   and the border thickens. 
 */
-    // A selected radio button is a thick ring around a white center (G3).
+    // A selected radio button is a thick ring around a white center.
     // UseDotSelectionStyle brings back the dot.
     boolean dotStyleSelection = false
 
@@ -116,6 +112,18 @@ class RadioButton is ToggleButton
         buttonIcon:SetCornerRounding(1, 1, 1, 1)
     end
 
+    /*
+        This action sets the key used to look up the radio button's look in the
+        interface options. The circle uses the same key, so the button and its
+        circle take their colors from the same options.
+
+        Attribute: Parameter key The interface options key, such as "RadioButton".
+
+        Attribute: Example
+        use Libraries.Interface.Controls.RadioButton
+        RadioButton button
+        button:SetInterfaceOptionsKey("RadioButton")
+    */
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         buttonIcon:SetInterfaceOptionsKey(key)
@@ -132,20 +140,16 @@ class RadioButton is ToggleButton
         use Libraries.Interface.Forms.Grouping
         use Libraries.Interface.Controls.RadioButton
         
-        class Main 
-            action Main 
-                Form form
-                Page page = form:GetMainPage()
-                
-                Grouping value = page:AddGrouping("radio group")
-                RadioButton btn1 = value:AddRadioButton("on")
-                RadioButton btn2 = value:AddRadioButton("off")
-    
-                btn2:SetToggleState(true)
-                
-                form:Display()
-            end
-        end
+        Form form
+        Page page = form:GetMainPage()
+
+        Grouping value = page:AddGrouping("radio group")
+        RadioButton btn1 = value:AddRadioButton("on")
+        RadioButton btn2 = value:AddRadioButton("off")
+
+        btn2:SetToggleState(true)
+
+        form:Display()
     */
     action SetToggleState(boolean toggleState)
         /*
@@ -186,7 +190,7 @@ else
                     buttonIcon:SetBorderThickness(radioBorderThickness)
             end
 end
-            // The outer ring shows focus (G3); the circle keeps its own
+            // The outer ring shows focus; the circle keeps its own
             // colors. There's no focus before the game exists.
             if IsShowingChoiceFocus()
                 focusRing:Show()
@@ -244,7 +248,7 @@ label:SetColor(GetFontColor())
     end
 
     /*
-    This action returns whether this radio button shows the focus (G3): when
+    This action returns whether this radio button shows the focus: when
     it has the focus itself, or when it's the selected one in a group that
     has the focus.
 
@@ -334,6 +338,18 @@ label:SetColor(GetFontColor())
         return parent:Item:GetPreviousFocus()
     end
     
+    /*
+        This action sets the radius of the radio button's circle, in pixels
+        before the interface scale. By default, the radius is 0.375 times the
+        font size of the label.
+
+        Attribute: Parameter radius The radius of the circle.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.RadioButton
+        RadioButton button
+        button:SetIconRadius(10)
+    */
     action SetIconRadius(number radius) 
         me:iconRadius = radius
         buttonIcon:SetPixelHeight(iconRadius * 2)
@@ -341,10 +357,31 @@ label:SetColor(GetFontColor())
         RequestLayout()
     end
     
+    /*
+        This action makes a selected radio button show a filled dot in the
+        middle of its circle. By default, a selected radio button shows a thick
+        ring instead. The new style is used the next time the button is selected.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.RadioButton
+        RadioButton button
+        button:UseDotSelectionStyle()
+    */
     action UseDotSelectionStyle
         dotStyleSelection = true
     end
     
+    /*
+        This action makes a selected radio button show a thick ring in the
+        selection color around its circle, instead of a dot. This is the default
+        style. The new style is used the next time the button is selected.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.RadioButton
+        RadioButton button
+        button:UseDotSelectionStyle()
+        button:UseRingSelectionStyle()
+    */
     action UseRingSelectionStyle
         dotStyleSelection = false
     end
@@ -435,7 +472,7 @@ label:SetColor(GetFontColor())
             
             buttonIcon:Add(innerIcon)
 
-            // The outer focus ring (G3), centered on the circle like the
+            // The outer focus ring, centered on the circle like the
             // dot, and a little larger on every side.
             ControlShaderView ringView
             ringView:Initialize()
@@ -492,8 +529,13 @@ label:SetColor(GetFontColor())
      end
     end
 
-    // H3: the theme's hover band for this choice (its mouse-over color), or
-    // clear when the theme has none.
+    /*
+        This action returns the color of the band drawn behind the whole choice
+        while the mouse is over it. It is the mouse-over color from the interface
+        options for this button's key, or a clear color when there is none.
+
+        Attribute: Returns The mouse-over color from the options, or a clear color.
+    */
     private action GetStyleMouseOverColor returns ColorGroup
         GameStateManager styleState
         InterfaceOptions options = styleState:GetInterfaceOptions()
@@ -508,8 +550,11 @@ label:SetColor(GetFontColor())
         return clear
     end
 
-    // H3: a firmer box or circle edge under the mouse, unless it shows
-    // focus or a selection.
+    /*
+        This action is called when the mouse moves over the radio button. Along
+        with the band behind the choice, the circle's edge turns the mouse-over
+        border color, unless the button shows the focus or is selected.
+    */
     action BeginMouseOver
         parent:Control:BeginMouseOver()
         if not IsShowingChoiceFocus() and not GetToggleState() and GetMouseOverBorderColor() not= undefined
@@ -518,6 +563,11 @@ label:SetColor(GetFontColor())
         end
     end
 
+    /*
+        This action is called when the mouse leaves the radio button. The
+        circle's edge goes back to its normal border color, unless the button
+        shows the focus or is selected.
+    */
     action EndMouseOver
         parent:Control:EndMouseOver()
         // Back to its own edge.

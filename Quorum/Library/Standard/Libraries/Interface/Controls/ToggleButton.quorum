@@ -12,6 +12,22 @@ use Libraries.Game.GameStateManager
     and CheckBox buttons.
 
     Attribute: Author Andreas Stefik, William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.Grouping
+    use Libraries.Interface.Controls.ToggleButton
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Grouping style = page:AddGrouping("Style")
+    ToggleButton bold = style:AddToggleButton("Bold")
+    bold:SetToggleState(true)
+
+    form:Display()
 */
 class ToggleButton is Button
     
@@ -94,6 +110,13 @@ class ToggleButton is Button
         return toggled
     end
 
+    /*
+        This action is called each frame while the game runs. While the button
+        is toggled on and has an activation behavior, the behavior is updated
+        too, so a behavior can keep working while the button stays on.
+
+        Attribute: Parameter seconds The number of seconds since the last update.
+    */
     action Update(number seconds)
         Behavior behavior = GetActivationBehavior()
         if toggled and behavior not= undefined
@@ -132,10 +155,46 @@ class ToggleButton is Button
         return canToggleOff
     end
 
+    /*
+        This action is called each time the button is toggled on, before its
+        behavior runs. It does nothing here. A class that inherits from
+        ToggleButton can override it to react to being turned on.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ToggleButton
+
+        class LightSwitch is ToggleButton
+            action OnToggleOn
+                output "The light is on."
+            end
+
+            action OnToggleOff
+                output "The light is off."
+            end
+        end
+    */
     action OnToggleOn
         
     end
 
+    /*
+        This action is called each time the button is toggled off. It does
+        nothing here. A class that inherits from ToggleButton can override it to
+        react to being turned off.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ToggleButton
+
+        class LightSwitch is ToggleButton
+            action OnToggleOn
+                output "The light is on."
+            end
+
+            action OnToggleOff
+                output "The light is off."
+            end
+        end
+    */
     action OnToggleOff
 
     end
@@ -146,6 +205,22 @@ class ToggleButton is Button
         return GetToggleState()
     end
 
+    /*
+        This action activates the toggle button, as when it is clicked. A button
+        that is off is toggled on. A button that is on is toggled off, but only
+        if it is allowed to toggle off (see AllowToggleOff).
+
+        Attribute: Parameter event The event that activated the button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ToggleButton
+        use Libraries.Interface.Events.BehaviorEvent
+        ToggleButton button
+        BehaviorEvent event
+        event:SetItem(button)
+        button:Activate(event)
+        output button:GetToggleState()
+    */
     action Activate(BehaviorEvent event)
         if toggled
             if canToggleOff

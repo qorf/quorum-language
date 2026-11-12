@@ -22,13 +22,13 @@ class SelectionCancelBehavior is Behavior
     action Run(BehaviorEvent event)
         // Escape on a terrain always leaves it for the scene's own cursor,
         // at the same place on the ground, with or without a tool, in one
-        // press (Round 2). A stroke going on is canceled first. The terrain
+        // press. A stroke going on is canceled first. The terrain
         // remembers its tool, brush and cursor for when the user returns.
         if event:GetItem() is TerrainSelectionHighlight
             TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, event:GetItem())
             if highlight:GetSceneEditor() not= undefined
                 // A river being drawn is stopped first, without leaving the
-                // terrain (River plan R5).
+                // terrain.
                 if highlight:GetSceneEditor():CancelRiverDrawing()
                     return now
                 end

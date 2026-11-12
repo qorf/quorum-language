@@ -3,14 +3,14 @@ package Libraries.Game.Graphics.Worlds
 use Libraries.Game.Graphics.Shaders.Shader
 
 /*
-WaterFragmentShader colors water (library item 39). It is drawn after the
+WaterFragmentShader colors water. It is drawn after the
 deferred lighting, over the lit image, and reads the G-buffer's position to
 see what is behind the water: deeper water is darker, the edge fades into
 the shore, and water behind the ground is hidden. Two layers of ripples
 move with time, and every light shines and glints on the surface. The sky
-is reflected in it, strongly at low angles and hardly looking down (Water
-plan W4). A river's ripples flow downstream instead (River plan R3). It
-needs the camera data of library item 38.
+is reflected in it, strongly at low angles and hardly looking down. A
+river's ripples flow downstream instead. It needs the 3D camera's data
+(its uniform: position, time and screen size).
 
 Its settings come from WaterShaderProgram, through the push constants,
 after the instance buffer address.
@@ -38,7 +38,7 @@ const float PI = 3.14159265359;
 // How much light water reflects looking straight down.
 const float WATER_REFLECTANCE = 0.02;
 
-// The 3D camera uniform (library item 38).
+// The 3D camera uniform.
 layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
@@ -47,7 +47,7 @@ layout(set = 0, binding = 0) uniform Camera
     vec2 screenSize;
     float nearPlane;
     float farPlane;
-    // 1 if lighting is linear (Linear lighting plan).
+    // 1 if lighting is linear.
     float linearLighting;
 } camera;
 
@@ -82,7 +82,7 @@ layout(scalar, set = 3, binding = 1) uniform SceneInfo
 	vec3 ambientColor;
 	uint lightsCount;
 	mat4 cameraViewMatrix;
-	// Distance fog (library item 40). An amount of 0 is no fog.
+	// Distance fog. An amount of 0 is no fog.
 	vec3 fogColor;
 	float fogStart;
 	float fogEnd;
@@ -91,7 +91,7 @@ layout(scalar, set = 3, binding = 1) uniform SceneInfo
 	float fogHeightFalloff;
 } sceneInfo;
 
-// The sky's cube (Water plan W4): the skybox's own, or a plain one when
+// The sky's cube: the skybox's own, or a plain one when
 // there is no sky.
 layout(set = 4, binding = 0) uniform samplerCube skyCube;
 
@@ -106,7 +106,7 @@ struct Material {
 	float metallic;
 	uint flags;
 	float textureScale;
-	// The rest of MaterialVulkan's 24 words (Lighting plan L1 and L4),
+	// The rest of MaterialVulkan's 24 words,
 	// unused by water.
 	uint emissiveColor;
 	uint emissiveMapIndex;
@@ -146,7 +146,7 @@ layout(scalar, buffer_reference) buffer Instances {
    InstanceData[] data;
 };
 
-// 128 bytes (library item 39): the instance address, the water program's
+// 128 bytes: the instance address, the water program's
 // 18 numbers, then the painter's 12 numbers of forward scene data.
 layout(scalar, push_constant) uniform PushConstants {
    Instances instances;
@@ -159,7 +159,7 @@ layout(scalar, push_constant) uniform PushConstants {
    vec4 look;
    // ripple strength, spare
    vec2 detail;
-   // The forward scene data: the sky's rotation (library item 41).
+   // The forward scene data: the sky's rotation.
    vec3 skyColumn0;
    vec3 skyColumn1;
    vec3 skyColumn2;
@@ -172,7 +172,7 @@ layout(location = 1) flat in uint v_entityID;
 layout(location = 4) flat in uint v_hasTextureOverride;
 layout(location = 5) flat in uint v_textureOverrideIndex;
 layout(location = 6) in vec4 v_position;
-// A river's sheet (River plan R3): how far across and along the river, in
+// A river's sheet: how far across and along the river, in
 // world units, and its across and downstream directions.
 layout(location = 0) in vec2 v_textureCoords;
 layout(location = 7) in mat3 v_tangentBitangentNormal;
@@ -217,7 +217,7 @@ vec3 waterNormal(uint normalMap, vec3 surface, float footprint)
     return normalize(vec3(slope.x, 1.0, slope.y));
 }
 
-// A river's normal (River plan R3): the ripples move downstream along the
+// A river's normal: the ripples move downstream along the
 // river at its speed. Moving a texture forever would stretch it, so two
 // copies move half a cycle apart, each starting over while it is faded
 // out, and they are blended. The slopes are then turned from across and
@@ -244,7 +244,7 @@ vec3 riverNormal(uint normalMap, vec2 riverCoordinates, vec2 acrossDirection, ve
 }
 
 // How much of a light's strength reaches a distance, as in the lighting
-// pass (library item 37).
+// pass.
 float rangeAttenuation(float distance, float range)
 {
     float inverseSquare = 1.0 / max(distance * distance, 0.0001);
@@ -256,7 +256,7 @@ float rangeAttenuation(float distance, float range)
 }
 
 // A color as pictures store it (sRGB) turned into an amount of light when
-// lighting is linear (Linear lighting plan); as it is otherwise.
+// lighting is linear; as it is otherwise.
 vec3 shaderColor(vec3 color)
 {
 	if (camera.linearLighting < 0.5)
@@ -267,8 +267,8 @@ vec3 shaderColor(vec3 color)
 	return mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
 }
 
-// The sky seen along a world direction, turned as the skybox is drawn
-// (Water plan W4). With no sky, the fog's color if there is fog, or else
+// The sky seen along a world direction, turned as the skybox is drawn.
+// With no sky, the fog's color if there is fog, or else
 // the ambient light.
 vec3 skyColor(vec3 direction)
 {
@@ -309,7 +309,7 @@ void lightOnWater(vec3 L, vec3 radiance, vec3 V, vec3 N, vec3 waterColor, float 
 }
 
 // Fades a color into the fog by its distance from the camera, and less
-// above the fog's base height (library item 40), as the lighting pass does.
+// above the fog's base height, as the lighting pass does.
 vec3 applyFog(vec3 color, vec3 worldPosition)
 {
 	if (sceneInfo.fogAmount <= 0.0)
@@ -370,7 +370,7 @@ void main()
     float roughness = sqrt(clamp(baseRoughness * baseRoughness + widening, 0.0, 1.0));
 
     // What was drawn at this pixel. The position's w is how much of the
-    // pixel was covered (MSAA, library item 27), so dividing by it gives
+    // pixel was covered (MSAA), so dividing by it gives
     // the position back at the edges of models.
     vec4 behind = texelFetch(positionSampler, ivec2(gl_FragCoord.xy), 0);
     bool hasGround = behind.w > 0.0001;
@@ -433,7 +433,7 @@ void main()
         }
     }
 
-    // The sky reflected in the water (Water plan W4): hardly any looking
+    // The sky reflected in the water: hardly any looking
     // straight down, nearly a mirror at a low angle (Schlick's fresnel). A
     // ripple can tilt the reflection below the horizon; the sky above is
     // what it would show there. Seen from below, there is none.
@@ -455,7 +455,7 @@ void main()
     float glintAlpha = clamp(max(glint.r, max(glint.g, glint.b)), 0.0, 1.0);
     alpha = clamp(alpha + glintAlpha * (1.0 - alpha), 0.0, 1.0);
     vec3 color = covered / max(alpha, 0.0001);
-    // Far water fades into the fog like the land (library item 40). The
+    // Far water fades into the fog like the land. The
     // ground behind was already fogged by the lighting pass.
     color = applyFog(color, surface);
     outputColor = vec4(color, alpha);

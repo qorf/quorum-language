@@ -18,6 +18,26 @@ The ListItem class is used internally to represent an entry in a list. Users
 typically won't need to interact with this class unless they want to create a
 unique way of representing an entry in the list. For simple use cases, use the
 actions in List to add and remove entries.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.List
+use Libraries.Interface.Controls.ListItem
+
+Form form
+Page page = form:GetMainPage()
+
+List fruits = page:AddList("Fruits")
+fruits:Add("Apples")
+fruits:Add("Bananas")
+
+ListItem item = fruits:GetListItem(1)
+item:Select()
+
+form:Display()
 */
 class ListItem is Control
 
@@ -69,19 +89,58 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetAccessibilityCode(parent:Item:LIST_ITEM)
     end
 
+    /*
+    This action sets the text shown by this entry.
+
+    Attribute: Parameter value The new text of the entry.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.ListItem
+    ListItem item
+    item:SetText("Apples")
+    */
     action SetText(text value)
         label:SetText(value)
     end
 
+    /*
+    This action returns the text shown by this entry.
+
+    Attribute: Returns The entry's text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.ListItem
+    ListItem item
+    item:SetText("Apples")
+    text value = item:GetText()
+    */
     action GetText returns text
         return label:GetText()
     end
 
+    /*
+    This action is called when the user clicks the entry. It does what any
+    control does on a click and then selects the entry in its List.
+    */
     action ClickedMouse
         parent:Control:ClickedMouse()
         Select()
     end
 
+    /*
+    This action selects this entry. It asks the List the entry is in to
+    select it, so the List can deselect the old entry and scroll this one
+    into view. If the entry is not in a List, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    ListItem item
+    item:SetText("Apples")
+    fruits:Add(item)
+    item:Select()
+    */
     action Select
         // Don't actually select here! Go to the List and ask it to 
         // select us. We do this to allow the List to update the
@@ -92,6 +151,20 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+    This action clears the selection of the List the entry is in, so no entry
+    is selected. If the entry is not in a List, nothing happens.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.List
+    use Libraries.Interface.Controls.ListItem
+    List fruits
+    ListItem item
+    item:SetText("Apples")
+    fruits:Add(item)
+    item:Select()
+    item:Deselect()
+    */
     action Deselect
         // Don't actually select here! Go to the List and ask it to 
         // select us. We do this to allow the List to update the
@@ -102,13 +175,24 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+    This action is called when the entry becomes the List's selection. It
+    marks the entry as selected and changes its text color to the selection
+    color, which depends on whether the List has the focus.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         RefreshSelectionText()
     end
 
-    // A selected list item shows the focused wash while its List has the
-    // focus, and the plain gray otherwise (LS5).
+    /*
+        This action returns whether this item shows its selection with the focused
+        look. A selected item uses the focused look while its List has the focus,
+        and the unfocused look otherwise. It returns false when no game is running
+        or the item is not in a List.
+
+        Attribute: Returns True if the item shows the focused look, or false if it does not.
+    */
     action IsRenderingFocus returns boolean
         GameStateManager focusState
         if focusState:GetGame() = undefined
@@ -121,7 +205,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return list:IsRenderingFocus()
     end
 
-    // The selected text follows its List's focus (LS5).
+    /*
+        This action sets the item's text color for its selection: the selection's
+        text color while its List has the focus, and the unfocused selection's text
+        color otherwise. The first time, it saves the label's own color, so that
+        color can be put back when the item is no longer selected.
+    */
     action RefreshSelectionText
         // The label's own color, so it comes back when the selection leaves.
         if not restingColorSaved
@@ -137,6 +226,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+    This action is called when the entry stops being the List's selection.
+    It puts the text back to the color it had before it was selected.
+    */
     action LostSelection
         parent:Control:LostSelection()
 
@@ -148,6 +241,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         restingColorSaved = false
     end
 
+    /*
+    This action sets up the entry's graphics from the given layout
+    properties. It loads the icon and its color, hides the icon if there is
+    none, and sets the label's font and font size.
+
+    Attribute: Parameter properties The layout properties to load the graphics from.
+    */
     action LoadGraphics(LayoutProperties properties)
         parent:Control:LoadGraphics(properties)
 
@@ -185,6 +285,17 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+    This action sets the font size of the entry's text.
+
+    Attribute: Parameter size The new font size.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.ListItem
+    ListItem item
+    item:SetText("Apples")
+    item:SetFontSize(20)
+    */
     action SetFontSize(integer size)
         parent:Control:SetFontSize(size)
         if label not= undefined
@@ -209,6 +320,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return cast(List, candidate)
     end
 
+    /*
+    This action returns the behavior this entry runs when it is activated,
+    such as by a double-click. If it is undefined, the List's item activation
+    behavior is used instead.
+
+    Attribute: Returns The entry's own activation behavior, or undefined.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
@@ -248,10 +366,34 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return false
     end
 
+    /*
+    This action sets the behavior this entry runs when it is activated, such
+    as by a double-click. An entry with its own behavior does not use the
+    List's item activation behavior.
+
+    Attribute: Parameter behavior The behavior to run, or undefined to use the List's behavior.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.ListItem
+    use Libraries.Interface.Behaviors.Behavior
+    ListItem item
+    item:SetText("Apples")
+    Behavior openItem
+    item:SetActivationBehavior(openItem)
+    */
     action SetActivationBehavior(Behavior behavior)
         activationBehavior = behavior
     end
 
+    /*
+    This action activates the entry, such as when it is double-clicked. If
+    the entry has its own activation behavior, that behavior runs. Otherwise
+    the List's item activation behavior runs with this entry as the event's
+    item, and the control activation listeners are told. If neither has a
+    behavior, nothing happens.
+
+    Attribute: Parameter event The event that caused the activation.
+    */
     action Activate(BehaviorEvent event)
         if GetActivationBehavior() not= undefined
             parent:Control:Activate(event)

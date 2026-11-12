@@ -6,7 +6,7 @@
 class SliderProvider;
 
 /*
-	A Quorum Slider for UI Automation (Slider plan, step 6): a range value
+	A Quorum Slider for UI Automation: a range value
 	that a screen reader can read and set, with its value as text, such as
 	"40 degrees", through the value pattern.
 */

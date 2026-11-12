@@ -7,24 +7,179 @@ use Libraries.Game.Graphics.TextureFilter
 use Libraries.Game.Graphics.Texture
 use Libraries.Game.Graphics.DrawableShape
 
+/*
+The CharacterIcon class is an Icon that shows a single character from a
+font, such as a symbol from an icon font. The character's glyph is loaded
+as the icon's picture, so it can be sized, colored and laid out like any
+other icon. When the font size or interface scale changes, the character
+is loaded again from the new font.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Controls.CharacterIcon
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        Font font
+        font:LoadFont("Arial")
+        font:SetSize(32)
+
+        CharacterIcon icon
+        icon:LoadCharacter("A", font)
+        icon:SetPosition(100, 100)
+        Add(icon)
+    end
+end
+*/
 class CharacterIcon is Icon
     text character = ""
     
     //The ID for the last loaded font. Used to determine if reloading is needed.
     text lastFontID = ""
     
+    /*
+        This action loads the character with the given Unicode value into the
+        icon, using the icon's font. If the icon has no font, it uses the font of
+        the nearest parent control that has one.
+
+        Attribute: Parameter unicodeValue The Unicode value of the character to show.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Font
+        use Libraries.Interface.Controls.CharacterIcon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                font:SetSize(32)
+
+                CharacterIcon icon
+                icon:SetFont(font)
+                icon:LoadCharacter(66)
+                icon:SetPosition(100, 100)
+                Add(icon)
+            end
+        end
+    */
     action LoadCharacter(integer unicodeValue)
         LoadCharacter(character:GetUnicodeValue(unicodeValue))
     end
     
+    /*
+        This action loads the character with the given Unicode value into the
+        icon, drawn with the given font.
+
+        Attribute: Parameter unicodeValue The Unicode value of the character to show.
+
+        Attribute: Parameter font The font to draw the character with.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Font
+        use Libraries.Interface.Controls.CharacterIcon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                font:SetSize(32)
+
+                CharacterIcon icon
+                icon:LoadCharacter(65, font)
+                icon:SetPosition(100, 100)
+                Add(icon)
+            end
+        end
+    */
     action LoadCharacter(integer unicodeValue, Font font)
 LoadCharacter(character:GetUnicodeValue(unicodeValue), font)
     end
     
+    /*
+        This action loads the given character into the icon, using the icon's
+        font. If the icon has no font, it uses the font of the nearest parent
+        control that has one.
+
+        Attribute: Parameter character The character to show.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Font
+        use Libraries.Interface.Controls.CharacterIcon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                font:SetSize(32)
+
+                CharacterIcon icon
+                icon:SetFont(font)
+                icon:LoadCharacter("Q")
+                icon:SetPosition(100, 100)
+                Add(icon)
+            end
+        end
+    */
     action LoadCharacter(text character)
         LoadCharacter(character, GetFont())
     end
     
+    /*
+        This action loads the given character into the icon, drawn with the
+        given font. If the font is undefined, the icon's own font is used, or the
+        font of the nearest parent control that has one. The character's glyph
+        is loaded as the icon's picture with smooth filtering, and the icon color
+        is set again, since loading a picture clears it.
+
+        Attribute: Parameter character The character to show.
+
+        Attribute: Parameter font The font to draw the character with.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Font
+        use Libraries.Interface.Controls.CharacterIcon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Font font
+                font:LoadFont("Arial")
+                font:SetSize(32)
+
+                CharacterIcon icon
+                icon:LoadCharacter("Q", font)
+                icon:SetPosition(100, 100)
+                Add(icon)
+            end
+        end
+    */
     action LoadCharacter(text character, Font font)
         me:character = character
         if font not= undefined and font not= GetFont()
@@ -69,10 +224,25 @@ if currentProperties not= undefined
         end
     end
     
+    /*
+        This action returns the character the icon shows, or an empty text if no
+        character has been loaded.
+
+        Attribute: Returns The character shown in the icon.
+    */
     action GetCharacter returns text
         return character
     end
     
+/*
+    This action loads the graphics for the icon. It sizes the font from the
+    properties to the icon's font size times the interface scale, and loads
+    the character again when the font has changed since it was last loaded.
+    The game engine calls this as needed, so most users won't need to call it
+    directly.
+
+    Attribute: Parameter properties The LayoutProperties used to draw the icon.
+*/
 action LoadGraphics(LayoutProperties properties)
         if properties = undefined
             return now

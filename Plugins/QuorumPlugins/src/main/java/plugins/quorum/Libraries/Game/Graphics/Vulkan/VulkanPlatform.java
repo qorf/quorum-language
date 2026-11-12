@@ -60,8 +60,7 @@ public class VulkanPlatform
         return commands;
     }
 
-    // The strategy the query and debug label commands record with
-    // (Graphics timing plan T1).
+    // The strategy the query and debug label commands record with.
     public static VulkanQueryCommandsStrategy GetQueryCommands()
     {
         if (queryCommands == null)

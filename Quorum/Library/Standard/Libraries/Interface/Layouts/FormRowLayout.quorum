@@ -20,6 +20,8 @@ use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.Slider
+use Libraries.Interface.Controls.ProgressBar
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
@@ -35,14 +37,14 @@ class FormRowLayout is Layout
     constant number DEFAULT_ROW_PERCENTAGE_WIDTH = 0.8
 
     // Sizes in points, before the interface scale.
-    // The space between items in a row (A6).
+    // The space between items in a row.
     constant number IN_ROW_GAP = 12
     // How far a card right after a page's first banner rises into it, in
-    // points (M2).
+    // points.
     constant number BANNER_CARD_OVERLAP = 20
-    // A text field with no width of its own is at most this wide (A3).
+    // A text field with no width of its own is at most this wide.
     constant number MAX_FIELD_WIDTH = 480
-    // A label and its control share a row (A8) when the space is at least
+    // A label and its control share a row when the space is at least
     // this wide and the label fits in this share of it.
     constant number ROW_LAYOUT_MIN_WIDTH = 400
     constant number ROW_LABEL_SHARE = 0.45
@@ -54,18 +56,18 @@ class FormRowLayout is Layout
     // A field holding more characters than this goes under its label at full
     // width instead (a file path, for example).
     constant integer LONG_FIELD_TEXT = 24
-    // Cards (A7): padding inside on the left and right, and above and below
+    // Cards: padding inside on the left and right, and above and below
     // each row.
     constant number CARD_PADDING = 12
     constant number CARD_ROW_PADDING = 6
     // The space between choices stacked top to bottom.
     constant number CHOICE_STACK_GAP = 4
-    // Space between a choice track's edge and its choices (G3), in points.
+    // Space between a choice track's edge and its choices, in points.
     constant number CHOICE_TRACK_PADDING = 6
-    // Footer buttons are at least this wide (A5).
+    // Footer buttons are at least this wide.
     constant number MIN_FOOTER_BUTTON_WIDTH = 88
 
-    // Labels currently drawn as captions above their field (A2), so they go
+    // Labels currently drawn as captions above their field, so they go
     // back to normal when there is room for a row again.
     HashTable<Label, Label> captionLabels
 
@@ -225,7 +227,7 @@ class FormRowLayout is Layout
                     end
                     overlapBanner = undefined
                 elseif item is Label and not isTitle and PairsWithNextOnPage(items, i)
-                    // A label and the field after it (A2, A8).
+                    // A label and the field after it.
                     Label pairLabel = cast(Label, item)
                     Control pairControl = cast(Control, items:Get(i + 1))
                     FormRow pairRow = BuildPairRow(pairLabel, pairControl, defaultRowWidth, defaultRowVerticalPadding, containerHeight, containerFont)
@@ -531,7 +533,7 @@ class FormRowLayout is Layout
                         end
                         group:SetSize(containerWidth + bannerLeft + bannerRight, bannerHeight)
                         group:SetPosition(-bannerLeft, bannerY)
-                        // A card right after it rises into its bottom edge (M2).
+                        // A card right after it rises into its bottom edge.
                         Banner thisBanner = cast(Banner, group)
                         if bannerReachesTop and thisBanner:OverlapsNextCard()
                             overlapBanner = thisBanner
@@ -588,12 +590,20 @@ class FormRowLayout is Layout
                     end
     
                     number width = defaultRowWidth
-                    if control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
+                    if control is Slider and control:GetPercentageWidth() = 0
+                        // A plain slider takes a field's width, as a slider
+                        // with its number field does. Its own pixel width
+                        // (150) wouldn't be scaled here.
+                        if width > MAX_FIELD_WIDTH * scale
+                            width = MAX_FIELD_WIDTH * scale
+                        end
+                    elseif control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
                         width = control:GetPixelWidth() + containerWidth * control:GetPercentageWidth()
-                    elseif (control is TextField or control is SliderField) and width > MAX_FIELD_WIDTH * scale
+                    elseif (control is TextField or control is SliderField or control is ProgressBar) and width > MAX_FIELD_WIDTH * scale
                         // A field with no width of its own isn't wider than
-                        // its text could need (A3). A slider with its number
-                        // field is kept to a field's width too.
+                        // its text could need. A slider with its number
+                        // field, and a progress bar, are kept to a field's
+                        // width too.
                         width = MAX_FIELD_WIDTH * scale
                     end
 
@@ -751,7 +761,7 @@ class FormRowLayout is Layout
     end
 
 
-    // Whether a grouping is a page's footer (A5): from the bottom, untitled,
+    // Whether a grouping is a page's footer: from the bottom, untitled,
     // and holding only plain buttons.
     private action IsFooter(Grouping group) returns boolean
         if group is Banner or group:GetTitle() not= "" or group:GetVerticalPosition() not= group:BOTTOM_POSITION
@@ -772,7 +782,7 @@ class FormRowLayout is Layout
         return true
     end
 
-    // Whether a grouping draws as a card (A7): titled, not a banner, and not
+    // Whether a grouping draws as a card: titled, not a banner, and not
     // laid out in set columns.
     private action IsCard(Grouping group) returns boolean
         return group:GetTitle() not= "" and not (group is Banner) and group:GetColumns() <= 0
@@ -784,10 +794,10 @@ class FormRowLayout is Layout
             return false
         end
         Item2D next = items:Get(index + 1)
-        if next is TextField or next is TextBox or next is SliderField
+        if next is TextField or next is TextBox or next is SliderField or next is Slider or next is ProgressBar
             return true
         end
-        // A field with buttons beside it, such as a path and Browse (L1).
+        // A field with buttons beside it, such as a path and Browse.
         if next is Grouping
             Grouping nextGroup = cast(Grouping, next)
             return nextGroup:GetTitle() = "" and not nextGroup:IsUsingCustomLayout() and HasField(nextGroup)
@@ -831,7 +841,7 @@ class FormRowLayout is Layout
             return false
         end
         Item2D next = items:Get(index + 1)
-        if next is TextField or next is TextBox or next is SliderField
+        if next is TextField or next is TextBox or next is SliderField or next is Slider or next is ProgressBar
             return true
         end
         if next is Grouping
@@ -1008,7 +1018,7 @@ class FormRowLayout is Layout
     end
 
     // A field's width in a row of the given width: its own if it has one,
-    // otherwise the whole width, at most MAX_FIELD_WIDTH (A3).
+    // otherwise the whole width, at most MAX_FIELD_WIDTH.
     private action FieldWidth(Control control, number available) returns number
         if control:GetPixelWidth() > 0
             return control:GetPixelWidth() * control:GetInterfaceScale()
@@ -1020,7 +1030,7 @@ class FormRowLayout is Layout
     end
 
     /*
-    Draws a label as a caption above its field (A2), or back as a normal
+    Draws a label as a caption above its field, or back as a normal
     label. Only labels at the Forms default size with no color of their own
     are changed, and the change is undone when the label goes back to a row.
     */
@@ -1048,8 +1058,8 @@ class FormRowLayout is Layout
     end
 
     /*
-    A label and its control as one row: side by side when there's room (A8),
-    otherwise the label as a caption above (A2). Sizes both, and returns the
+    A label and its control as one row: side by side when there's room,
+    otherwise the label as a caption above. Sizes both, and returns the
     row for PlaceRow.
     */
     private action BuildPairRow(Label label, Control control, number width, number gap, number containerHeight, Font fallback) returns FormRow
@@ -1081,15 +1091,17 @@ class FormRowLayout is Layout
             labelWidth = MeasureText(label, label:GetText(), fallback)
             number available = width - labelWidth - IN_ROW_GAP * scale
             number controlWidth = ROW_FIELD_WIDTH * scale
-            if control is TextField or control is Grouping or control is SliderField
-                // One column for fields, sliders and choices beside their
-                // labels.
+            if control is TextField or control is Grouping or control is SliderField or control is Slider or control is ProgressBar
+                // One column for fields, sliders, progress bars and choices
+                // beside their labels.
                 controlWidth = width * ROW_CONTROL_SHARE
                 if controlWidth > MAX_FIELD_WIDTH * scale
                     controlWidth = MAX_FIELD_WIDTH * scale
                 end
             end
-            if control:GetPixelWidth() > 0
+            // A plain slider's own pixel width (150) is only its default, so
+            // it takes the column instead.
+            if control:GetPixelWidth() > 0 and not (control is Slider)
                 controlWidth = control:GetPixelWidth() * scale
             end
             if controlWidth > available
@@ -1176,7 +1188,7 @@ class FormRowLayout is Layout
             end
         end
 
-        // Choices that fit side by side sit on a shaded track (G3), inset
+        // Choices that fit side by side sit on a shaded track, inset
         // from its edges.
         number innerWidth = width
         number trackPadding = 0
@@ -1187,7 +1199,7 @@ class FormRowLayout is Layout
         end
 
         // Plain buttons take the width of their words, and the other
-        // children share what's left (L1). A row of only buttons, such as
+        // children share what's left. A row of only buttons, such as
         // Add and Remove under a list, leaves the rest of the row empty.
         // Choices (toggle and radio buttons) share the row evenly. A width
         // below zero means "a share".
@@ -1233,7 +1245,7 @@ class FormRowLayout is Layout
     /*
     Builds and sizes the rows of a card or a subsection: label pairs (A8 or
     A2), choice groupings and untitled groupings on one row, titled groupings
-    as subsections (A9), and any other control alone across the row.
+    as subsections, and any other control alone across the row.
     */
     private action BuildRows(Array<Item2D> items, integer first, number width, number gap, number containerHeight, Font fallback) returns Array<FormRow>
         Array<FormRow> rows
@@ -1258,7 +1270,7 @@ class FormRowLayout is Layout
                 Grouping inner = cast(Grouping, item)
                 FormRow innerRow
                 if inner:GetTitle() not= ""
-                    // A subsection (A9): its title, then its own rows, with
+                    // A subsection: its title, then its own rows, with
                     // no card of its own.
                     innerRow:kind = innerRow:SUBSECTION
                     innerRow:group = inner
@@ -1277,7 +1289,7 @@ class FormRowLayout is Layout
                     innerRow:heights:Add(titleHeight)
                     innerRow:height = innerHeight
                 else
-                    // An untitled grouping is one row of its children (A9).
+                    // An untitled grouping is one row of its children.
                     innerRow:kind = innerRow:INLINE
                     innerRow:height = SizeInline(inner, width, containerHeight, fallback, innerRow)
                 end
@@ -1386,7 +1398,7 @@ class FormRowLayout is Layout
         // Each child already has its width from SizeInline.
         number gapWidth = IN_ROW_GAP * group:GetInterfaceScale()
         number childX = 0
-        // On a choice track, the choices start inside its padding (G3).
+        // On a choice track, the choices start inside its padding.
         if group:GetDrawStyle() = group:CHOICE_STYLE
             childX = CHOICE_TRACK_PADDING * group:GetInterfaceScale()
         end
@@ -1400,7 +1412,7 @@ class FormRowLayout is Layout
     end
 
     /*
-    Lays out a titled grouping as a card (A7): its title above, as a section
+    Lays out a titled grouping as a card: its title above, as a section
     heading with one and a half row gaps over it, then its rows on a rounded
     panel with thin lines between them. Returns the top of the next row.
     */
@@ -1460,7 +1472,7 @@ class FormRowLayout is Layout
     end
 
     /*
-    Lays out a page's footer (A5): across the page with a line above, and
+    Lays out a page's footer: across the page with a line above, and
     its buttons right-aligned at their natural widths, in the order added.
     Returns the top of the next row.
     */

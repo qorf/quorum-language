@@ -27,6 +27,47 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.SharedTexture
 
+/*
+The Tab class is one tab in a TabPane. A Tab shows a name, and can also show
+an icon and a close button. Each Tab has a related item, such as a panel of
+controls, that the TabPane shows in its view area while the Tab is selected.
+Clicking the close button removes the Tab from its TabPane.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.Button
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TabPane pane
+
+        Tab homeTab
+        homeTab:SetName("Home")
+        Button homeButton
+        homeButton:SetName("Welcome")
+        homeTab:SetRelatedItem(homeButton)
+        pane:Add(homeTab)
+
+        Tab settingsTab
+        settingsTab:SetName("Settings")
+        Button settingsButton
+        settingsButton:SetName("Change Settings")
+        settingsTab:SetRelatedItem(settingsButton)
+        pane:Add(settingsTab)
+
+        Add(pane)
+        pane:Select(0)
+    end
+end
+*/
 class Tab is Button
     TabPane container = undefined
     TabBar bar = undefined
@@ -47,7 +88,7 @@ class Tab is Button
     CharacterIcon icon
     Label label
     Button closeButton
-    // The close button's X, a picture on top of its hover square (X1).
+    // The close button's X, a picture on top of its hover square.
     Icon closeX
 
     // The last colors used to generate the "X" texture for the default close button.
@@ -96,7 +137,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetAccessibilityCode(parent:Item:TAB)
         closeButton:SetName("Close")
         closeButton:SetFont(undefined)
-        // The close button draws a hover square (X1), with the X as a
+        // The close button draws a hover square, with the X as a
         // picture on top of it.
         closeButton:SetInterfaceOptionsKey("TabClose")
         ManualLayout closeLayout
@@ -144,30 +185,106 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         me:container = pane
     end
 
+    /*
+        This action returns the TabBar this Tab is in.
+
+        Attribute: Returns The TabBar holding this Tab, or undefined if it is not in one.
+    */
     action GetTabBar returns TabBar
         return bar
     end
 
+    /*
+        This action sets the TabBar this Tab is in. The TabBar calls it when
+        the Tab is added or removed, so most users won't need it.
+
+        Attribute: Parameter bar The TabBar holding this Tab, or undefined.
+    */
     action SetTabBar(TabBar bar)
         me:bar = bar
     end
 
+    /*
+        This action returns true, because a Tab is a parent for accessibility:
+        screen readers treat the items inside it as its children.
+
+        Attribute: Returns True, since a Tab is an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+        This action returns the font size a Tab uses unless another size is
+        set, which is 14.
+
+        Attribute: Returns The default font size, 14.
+    */
     action GetDefaultFontSize returns integer
         return 14
     end
 
+    /*
+        This action sets the item the TabPane shows in its view area while
+        this Tab is selected. When the Tab is activated, this item, or the
+        first focusable item inside it, gets the focus.
+
+        Attribute: Parameter item The item to show for this Tab.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Interface.Controls.Button
+        Tab tab
+        tab:SetName("Home")
+        Button button
+        button:SetName("Welcome")
+        tab:SetRelatedItem(button)
+    */
     action SetRelatedItem(Item2D item)
         relatedItem = item
     end
 
+    /*
+        This action returns the item the TabPane shows in its view area while
+        this Tab is selected.
+
+        Attribute: Returns The related item, or undefined if none was set.
+    */
     action GetRelatedItem returns Item2D
         return relatedItem
     end
     
+    /*
+        This action sets the Tab's icon to a character from a font, given by
+        its unicode value. The icon is shown before the Tab's name. A value of
+        -1 removes the icon.
+
+        Attribute: Parameter unicodeValue The unicode value of the character to show, or -1 for no icon.
+
+        Attribute: Parameter font The font to draw the character with.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Game.Graphics.Font
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Tab tab
+                tab:SetName("Home")
+                Font font = tab:GetDefaultFont()
+                tab:SetIcon(9733, font)
+                pane:Add(tab)
+                Add(pane)
+            end
+        end
+    */
     action SetIcon(integer unicodeValue, Font font)
         if unicodeValue = -1
             parent:Control:SetIcon(undefined)
@@ -182,6 +299,36 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         parent:Control:SetIcon(icon)
     end
     
+    /*
+        This action sets the Tab's icon to a character from a font. The icon
+        is shown before the Tab's name. An empty text removes the icon.
+
+        Attribute: Parameter character The character to show, or "" for no icon.
+
+        Attribute: Parameter font The font to draw the character with.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Game.Graphics.Font
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Tab tab
+                tab:SetName("Notes")
+                Font font = tab:GetDefaultFont()
+                tab:SetIcon("N", font)
+                pane:Add(tab)
+                Add(pane)
+            end
+        end
+    */
     action SetIcon(text character, Font font)
         if character = ""
             parent:Control:SetIcon(undefined)
@@ -196,6 +343,36 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         parent:Control:SetIcon(icon)
     end
 
+    /*
+        This action sets the Tab's icon to the picture in the given Icon. The
+        icon is shown before the Tab's name. An undefined Icon removes the
+        icon.
+
+        Attribute: Parameter newIcon The Icon whose picture to show, or undefined for no icon.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Interface.Controls.Icon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Tab tab
+                tab:SetName("Pictures")
+                Icon picture
+                picture:Load("Resources/Picture.png")
+                tab:SetIcon(picture)
+                pane:Add(tab)
+                Add(pane)
+            end
+        end
+    */
     action SetIcon(Icon newIcon)
         parent:Control:SetIcon(newIcon)
         if newIcon = undefined
@@ -208,12 +385,35 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
 
+    /*
+        This action sets the Tab's name. The name is the text shown on the
+        Tab and read by screen readers, and the icon is named after it.
+
+        Attribute: Parameter name The new name of the Tab.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tab
+        Tab tab
+        tab:SetName("Home")
+    */
     action SetName(text name)
         label:SetText(name)
         icon:SetName(name + " Icon")
         parent:Item2D:SetName(name)
     end
 
+    /*
+        This action shows or hides the Tab's name. A Tab with an icon can hide
+        its name to save space.
+
+        Attribute: Parameter display True to show the name, false to hide it.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tab
+        Tab tab
+        tab:SetName("Home")
+        tab:DisplayName(false)
+    */
     action DisplayName(boolean display)
         displayLabel = display
         if display
@@ -223,6 +423,18 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
 
+    /*
+        This action shows or hides the Tab's close button. A Tab without a
+        close button can't be closed by the user.
+
+        Attribute: Parameter display True to show the close button, false to hide it.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tab
+        Tab tab
+        tab:SetName("Home")
+        tab:DisplayCloseButton(false)
+    */
     action DisplayCloseButton(boolean display)
         displayClose = display
         if display
@@ -232,14 +444,53 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
 
+    /*
+        This action returns true if the Tab's close button is showing.
+
+        Attribute: Returns True if the close button is showing.
+    */
     action IsDisplayingCloseButton returns boolean
         return closeButton:IsShowing()
     end
     
+    /*
+        This action returns the Tab's close button. Clicking it removes the
+        Tab from its TabPane.
+
+        Attribute: Returns The close button.
+    */
     action GetCloseButton returns Button
         return closeButton
     end
 
+    /*
+        This action selects the Tab when given true, or deselects it when
+        given false. Selecting a Tab deselects the other Tabs in its TabBar,
+        tells the TabPane to show the Tab's related item, and scrolls the Tab
+        into view. Unlike TabPane's Select, it does not move the focus.
+
+        Attribute: Parameter toggleState True to select the Tab, false to deselect it.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                tab:SetToggleState(true)
+            end
+        end
+    */
     action SetToggleState(boolean toggleState)
         if toggled = toggleState
             return now
@@ -263,6 +514,12 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         SetLabelRenderColor()
     end
 
+    /*
+        This action sets the color of the Tab's name: the selection font color
+        while the Tab is selected and focused, the unfocused selection font
+        color while it is selected but not focused, and the plain font color
+        otherwise.
+    */
     private action SetLabelRenderColor
         if label = undefined
             return now
@@ -279,10 +536,23 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
 
+    /*
+        This action returns true if the Tab is drawn as selected.
+
+        Attribute: Returns True if the Tab is selected.
+    */
     action IsRenderingSelection returns boolean
         return toggled
     end
 
+    /*
+        This action returns true if the Tab should be drawn as focused: when
+        the focus is on the Tab, its related item, its focus target, or
+        anything inside them. When the focus has moved since the last check,
+        it works the answer out again and updates the name's color.
+
+        Attribute: Returns True if the Tab should be drawn as focused.
+    */
     action IsRenderingFocus returns boolean
         if manager:GetFocus() not= lastKnownFocus
             renderFocus = CalculateRenderFocus()
@@ -292,6 +562,13 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         return renderFocus
     end
 
+    /*
+        This action records the item with the focus and returns true if that
+        item, or any item holding it, is the Tab, its related item, or its
+        focus target.
+
+        Attribute: Returns True if the focus is on or inside the Tab or its items.
+    */
     private action CalculateRenderFocus returns boolean
         lastKnownFocus = manager:GetFocus()
 
@@ -310,10 +587,20 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         return false
     end
 
+    /*
+        This action returns true if the Tab is selected.
+
+        Attribute: Returns True if the Tab is selected.
+    */
     action IsActivated returns boolean
         return toggled
     end
 
+    /*
+        This action is called when the Tab becomes selected. It tells the
+        TabPane to show the Tab's related item, and scrolls the TabBar so the
+        Tab is in view.
+    */
     action OnToggleOn
         if bar not= undefined
             TabPane pane = bar:GetTabPane()
@@ -325,6 +612,10 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
 
+    /*
+        This action is called when the Tab stops being selected. It tells the
+        TabPane to stop showing the Tab's related item.
+    */
     action OnToggleOff
         if bar not= undefined
             TabPane pane = bar:GetTabPane()
@@ -357,6 +648,11 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
     action OnClose
     end
 
+    /*
+        This action lets go of the Tab's TabPane, TabBar, related item, focus
+        target, and parts, and removes its children. The TabBar calls it after
+        it removes the Tab, so the Tab can't be used after that.
+    */
     action Dispose
         container = undefined
         bar = undefined
@@ -380,6 +676,15 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         Empty()
     end
 
+    /*
+        This action activates the Tab, such as when the user clicks it or
+        presses Enter on it. If the Tab isn't selected yet, it is selected
+        first. Then the focus moves to the Tab's focus target if it has one,
+        or else to the first focusable item in its related item. A Tab with
+        no related item takes the focus itself.
+
+        Attribute: Parameter event The event that caused the activation.
+    */
     action Activate(BehaviorEvent event)
         if IsActivated()
             if relatedItem not= undefined
@@ -403,7 +708,15 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         end
     end
     
-// Recursively depth-first searches an item's child hierarchy looking for a focusable Item. Will return the parameter if it's focusable.
+    /*
+        This action finds the first item that can take the focus, looking at an
+        item and then at its children, depth first. The item itself is returned if
+        it can take the focus.
+
+        Attribute: Parameter item The item to start the search from.
+
+        Attribute: Returns The first item that can take the focus, or undefined if there is none.
+    */
     private action GetFirstFocusableChild(Item2D item) returns Item2D
         if item:IsFocusable()
             return item
@@ -522,6 +835,25 @@ number aspectRatio = icon:GetWidth() / cast(number, icon:GetHeight())
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action makes the picture for the close button: a filled circle in
+        the background color with an X in the accent color on top. The
+        picture is square, and the X stays the buffer distance away from its
+        edges. Pictures are shared between Tabs with the same sizes and colors,
+        so each one is only made once.
+
+        Attribute: Parameter size The width and height of the picture, in pixels.
+
+        Attribute: Parameter buffer How far the X stays from the picture's edges, in pixels.
+
+        Attribute: Parameter width How thick the lines of the X are, in pixels.
+
+        Attribute: Parameter background The color of the circle.
+
+        Attribute: Parameter accent The color of the X.
+
+        Attribute: Returns The texture holding the picture.
+    */
     private action GenerateX(integer size, integer buffer, integer width, Color background, Color accent) returns Texture
         GameStateManager gameState
         SharedTextureManager textureManager = gameState:GetSharedTextureManager()
@@ -587,10 +919,32 @@ integer accentAlpha = cast(integer, accent:GetAlpha() * 255)
         return texture
     end
 
+    /*
+        This action sets the item that gets the focus when the Tab is
+        activated. Without a focus target, the first focusable item in the
+        Tab's related item gets the focus instead.
+
+        Attribute: Parameter target The item to focus, or undefined to use the related item.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Interface.Controls.TextBox
+        Tab tab
+        tab:SetName("Notes")
+        TextBox notes
+        tab:SetRelatedItem(notes)
+        tab:SetFocusTarget(notes)
+    */
     action SetFocusTarget(Item2D target)
         focusTarget = target
     end
 
+    /*
+        This action returns the item that gets the focus when the Tab is
+        activated.
+
+        Attribute: Returns The focus target, or undefined if none was set.
+    */
     action GetFocusTarget returns Item2D
         return focusTarget
     end

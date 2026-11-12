@@ -11,7 +11,7 @@ class DefaultShadowVertexShaderVulkan is Shader
         ShaderManager manager = gameState:GetShaderManager()
         SetName(manager:DEFAULT_SHADOW_VERTEX_SHADER)
         // The material and the wind's sway, shared with the 3D vertex
-        // shader (Foliage plan F6).
+        // shader.
         SwayVertexShaderPartVulkan sway
         
         SetCode(GetVersionHeader() + "
@@ -60,7 +60,7 @@ layout(push_constant) uniform PushConstants {
    Instances instances;
    uint isPointLight;
    uint lightIndex;
-   // The shader time, for swaying materials (Foliage plan F6).
+   // The shader time, for swaying materials.
    float time;
 } pushConstants;
 		
@@ -81,7 +81,7 @@ void main()
 	
 	vec3 inPos = vertex.position;
 	vec4 worldPosition = modelTransform * vec4(inPos, 1.0);
-	// Shadows sway as their models do (Foliage plan F6).
+	// Shadows sway as their models do.
 	worldPosition.xyz += swayOffset(instanceData.materials, modelTransform[3].xyz, worldPosition.xyz, pushConstants.time);
 	
 	v_textureCoords = vertex.textureCoordinates;

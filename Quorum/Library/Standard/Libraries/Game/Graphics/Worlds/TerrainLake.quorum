@@ -5,14 +5,14 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Math
 
 /*
-A TerrainLake is one lake on a terrain (Water plan W5): water at a level.
+A TerrainLake is one lake on a terrain: water at a level.
 TerrainWater holds a terrain's lakes, saves them, and draws each with a
 WaterSurface. The ground hides the water wherever it rises above it, so the
 shore follows the ground.
 
 A lake is one of two shapes:
 - a rectangle, centered on a point, set with Set;
-- a grid of water cells (W6): square cells the terrain's sample spacing
+- a grid of water cells: square cells the terrain's sample spacing
   wide, each holding water or not. Fill makes one by filling a hollow from
   a point, as poured water would, up to the level or the hollow's rim,
   whichever is lower, so it never spills or floats; Paint adds or removes
@@ -42,7 +42,7 @@ class TerrainLake
     // The sheet drawing the lake, made by TerrainWater.
     WaterSurface surface = undefined
 
-    // The water cells, if the lake has them (Water plan W6): cell (column,
+    // The water cells, if the lake has them: cell (column,
     // row) covers world x from column * cellSize to the next column, and the
     // same along z. The grid holds columns × rows cells from firstColumn and
     // firstRow, a row at a time.
@@ -581,7 +581,7 @@ class TerrainLake
 
     /*
     This action adds or removes water in the cells within a distance of a
-    point, as a brush does (Water plan W6). A lake that was a rectangle
+    point, as a brush does. A lake that was a rectangle
     becomes a grid of cells first, holding the rectangle's water.
 
     Attribute: Parameter data The terrain's data, for its sample spacing.

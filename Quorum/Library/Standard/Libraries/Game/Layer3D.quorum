@@ -148,7 +148,7 @@ class Layer3D is Layer
     // Counts frames, so an item found by more than one search is drawn once.
     integer frame = 0
     // Whether this frame's shadow casters were marked with the point lights
-    // that found them (Shadow plan S2), and how many point lights have a
+    // that found them, and how many point lights have a
     // bit: one integer's bits, less the sign.
     boolean pointShadowCastersMarked = false
     public constant integer MAXIMUM_SHADOW_BITS = 30
@@ -1696,7 +1696,7 @@ Painter3D painter = GetPainter()
     light, those within its reach.
     */
     private action CollectShadowCasters
-        // A light that casts no shadows needs no casters (Shadow plan S4).
+        // A light that casts no shadows needs no casters.
         Iterator<DirectionalLight> directionalLights = GetDirectionalLights()
         repeat while directionalLights:HasNext()
             DirectionalLight sun = directionalLights:Next()
@@ -1706,8 +1706,8 @@ Painter3D painter = GetPainter()
         end
 
         // Each point light marks the items it finds with its bit, its place
-        // among the point lights, so it draws only those into its shadows
-        // (Shadow plan S2). Past MAXIMUM_SHADOW_BITS lights, a light marks
+        // among the point lights, so it draws only those into its shadows.
+        // Past MAXIMUM_SHADOW_BITS lights, a light marks
         // nothing and draws every caster.
         pointShadowCastersMarked = renderTree:CollectsPointShadowCasters()
         BitwiseOperations bits
@@ -1728,7 +1728,7 @@ Painter3D painter = GetPainter()
 
     /*
     This action returns the frame number this layer marks shadow casters
-    with (Shadow plan S2). An item's Item3D:GetShadowLightMask with it says
+    with. An item's Item3D:GetShadowLightMask with it says
     which point lights' searches found the item this frame.
 
     Attribute: Returns The layer's frame number.
@@ -1739,7 +1739,7 @@ Painter3D painter = GetPainter()
 
     /*
     This action returns true if this frame's shadow casters were marked
-    with the point lights that found them (Shadow plan S2), so each point
+    with the point lights that found them, so each point
     light can draw only its own. It is false if the layer's render tree
     doesn't find point lights' casters.
 

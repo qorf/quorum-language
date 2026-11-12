@@ -19,7 +19,7 @@ For a terrain model, the shader reads three things:
    - Plain textures: its red, green, blue and alpha bytes are the places
      of the red, green, blue and alpha textures in the global texture
      array.
-   - Texture sets (library item 24), marked by an alpha byte of 255: its
+   - Texture sets, marked by an alpha byte of 255: its
      red byte is the place of the layer table, a 4 by 1 texture with one
      pixel per layer (see WorldTerrain's CheckLayerTableReady), and its
      green byte is how softly layers blend by height. Each layer then has
@@ -113,8 +113,8 @@ class TerrainSplatFragmentShader is Shader
 // How many world units one tile of each ground texture covers.
 const float LAYER_REPEAT = " + tileText + ";
 
-// The 3D camera uniform (library item 38); only whether lighting is
-// linear is used here (Linear lighting plan).
+// The 3D camera uniform; only whether lighting is
+// linear is used here.
 layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
@@ -162,7 +162,7 @@ layout (location = 0) out vec4 outputPosition;
 layout (location = 1) out vec4 outputColor;
 layout (location = 2) out vec4 outputNormal;
 layout (location = 3) out vec4 outputPBR;
-// The light a surface gives off (Lighting plan L1). Terrain gives none.
+// The light a surface gives off. Terrain gives none.
 layout (location = 4) out vec4 outputEmissive;
 
 vec3 calculateNormal(Material material, mat3 tanBitanNormal, vec2 textCoords)
@@ -184,7 +184,7 @@ vec4 sampleGlobalTexture(uint index, vec2 coordinates)
 
 // Reads a texture with the rates its coordinates change across the screen
 // given, so the right mip level is chosen even inside a branch that differs
-// from pixel to pixel (library item 25).
+// from pixel to pixel.
 vec4 sampleGlobalTextureGrad(uint index, vec2 coordinates, vec2 changeX, vec2 changeY)
 {
     return textureGrad(nonuniformEXT(sampler2D(globalTextures[index], immutableSampler)), coordinates, changeX, changeY);
@@ -298,7 +298,7 @@ void splatTextureSets(Material material, vec4 weights, uvec4 overrideBytes)
         {
             vec3 unpacked = normalRoughness[i].rgb * 2.0 - 1.0;
             // Terrain3D's packing: the normal's length carries ambient
-            // occlusion, as in the default shader (library item 24).
+            // occlusion, as in the default shader.
             layerOcclusion = clamp(length(unpacked) * 2.0 - 1.0, 0.0, 1.0);
             layerNormal = normalize(unpacked);
         }
@@ -361,7 +361,7 @@ void splatTerrain(Material material)
 }
 
 // The color written, as pictures store it (sRGB), turned into an amount of
-// light for linear lighting (Linear lighting plan). Alpha is left alone.
+// light for linear lighting. Alpha is left alone.
 void decodeOutputColor()
 {
 	if (camera.linearLighting < 0.5)
@@ -428,7 +428,7 @@ void main()
         metallicFactor = material.metallic;
     }
 
-	// The first channel is ambient occlusion (library item 24): 1 for none.
+	// The first channel is ambient occlusion: 1 for none.
 	outputPBR = vec4(1.0, roughnessFactor, metallicFactor, 1.0);
 	decodeOutputColor();
 

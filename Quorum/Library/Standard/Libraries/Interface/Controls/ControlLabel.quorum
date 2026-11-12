@@ -8,6 +8,35 @@ use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.SelectionHighlightView
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The ControlLabel class is a Label used inside other controls, such as the
+items of a list or a tree. It changes its font color when it is selected,
+using the selection font color while its container has the focus and the
+unfocused selection font color when it doesn't. It is not placed on its
+base line, so letters that hang down stay inside its area.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+Form form
+Page page = form:GetMainPage()
+Tree tree = page:AddTree("Files")
+
+// The name on each row is drawn by a ControlLabel, which
+// changes its color when the row is selected.
+TreeItem item
+item:SetName("Main.quorum")
+tree:Add(item)
+item:Select()
+
+form:Display()
+*/
 class ControlLabel is Label
     
     boolean useSelectionColor = false
@@ -18,29 +47,57 @@ class ControlLabel is Label
         SetInterfaceOptionsKey("ControlLabel")
     end
 
+    /*
+        This action is called when the label becomes the selected item while its
+        container has the focus. The label draws its text in the selection font
+        color and shows its focus.
+    */
     action GainedSelection
         renderFocus = true
         UseSelectionColor(true)
         parent:Control:GainedSelection()
     end
 
+    /*
+        This action is called when the label is selected but its container
+        doesn't have the focus. The label draws its text in the unfocused
+        selection font color, if one is set, and doesn't show its focus.
+    */
     action UnfocusedSelection
         renderFocus = false
         UseSelectionColor(true)
         parent:Control:GainedSelection()
     end
 
+    /*
+        This action is called when the label stops being selected. The label
+        goes back to drawing its text in its normal font color.
+    */
     action LostSelection
         renderFocus = false
         UseSelectionColor(false)
         parent:Control:LostSelection()
     end
 
+    /*
+        This action records whether the label is drawn as selected, then resets
+        the colors of its letters so the new color is used.
+
+        Attribute: Parameter useSelection True to draw the text in a selection color.
+    */
     private action UseSelectionColor(boolean useSelection)
         useSelectionColor = useSelection
         parent:Label:ResetDrawableColors()
     end
 
+    /*
+        This action picks the font color for the label's current state. A
+        selected label with the focus uses the selection font color. A selected
+        label without the focus uses the unfocused selection font color when
+        there is one. Otherwise, the normal font color is used.
+
+        Attribute: Returns The color to draw the text in.
+    */
     private action GetCurrentColor returns ColorGroup
         if useSelectionColor
             if renderFocus
@@ -52,14 +109,34 @@ class ControlLabel is Label
         return GetFontColor()
     end
 
+    /*
+        This action returns whether the label is drawn as selected.
+
+        Attribute: Returns True if the label is drawn in a selection color.
+    */
     action IsRenderingSelection returns boolean
         return useSelectionColor
     end
 
+    /*
+        This action returns whether the label shows its focus. This is true
+        after GainedSelection and false after UnfocusedSelection or LostSelection.
+
+        Attribute: Returns True if the label shows its focus.
+    */
     action IsRenderingFocus returns boolean
         return renderFocus
     end
 
+    /*
+        This action loads the graphics for the label. After the text is loaded,
+        the label uses the view from the properties when they have one. If not,
+        and the label has no view yet, it gets a ControlShaderView, which draws
+        its background and border. The game engine calls this as needed, so most
+        users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the label.
+    */
     action LoadGraphics(LayoutProperties properties)
         parent:Label:LoadGraphics(properties)
 

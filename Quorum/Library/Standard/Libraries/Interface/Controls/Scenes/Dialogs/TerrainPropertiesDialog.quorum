@@ -44,7 +44,7 @@ class TerrainPropertiesDialog is PropertiesDialog
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         Control card = AddCard(panel, "")
@@ -80,7 +80,7 @@ class TerrainPropertiesDialog is PropertiesDialog
         missingLabel:Hide()
         card:Add(missingLabel)
 
-        // Makes the terrain bigger without the brush (step 11).
+        // Makes the terrain bigger without the brush.
         FlowLayout growLayout
         Control growLine
         growLine:SetLayout(growLayout)

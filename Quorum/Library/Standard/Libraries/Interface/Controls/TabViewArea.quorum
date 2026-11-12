@@ -3,12 +3,60 @@ package Libraries.Interface.Controls
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
 
+/*
+The TabViewArea class is the part of a TabPane that shows the selected
+Tab's related item. Each TabPane makes its own TabViewArea, so most users
+won't need this class. Screen readers skip the view area itself and treat
+the item inside it as a child of the selected Tab, so they read the item as
+part of that Tab.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Layouts.ManualLayout
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TabPane pane
+        Add(pane)
+
+        // The view area places the related item with this layout.
+        ManualLayout layout
+        pane:SetViewAreaLayout(layout)
+
+        Tab tab
+        tab:SetName("Home")
+        Button button
+        button:SetName("Welcome")
+        button:SetPosition(20, 20)
+        tab:SetRelatedItem(button)
+        pane:Add(tab)
+        pane:Select(0)
+    end
+end
+*/
 class TabViewArea is Control
     on create
         SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
         SetInputGroup("TabViewArea")
     end
 
+    /*
+    This action returns the item screen readers treat as the parent of the
+    view area's contents. In a TabPane, that is the selected Tab, or the
+    TabPane itself if there is no selected Tab. Otherwise it is the usual
+    accessible parent.
+
+    Attribute: Returns The accessible parent of the view area's contents.
+    */
     action GetAccessibleParent returns Item
         Item2D parentItem = GetParent()
 
@@ -26,6 +74,12 @@ class TabViewArea is Control
         return parent:Item2D:GetAccessibleParent()
     end
 
+    /*
+    This action returns false, because screen readers skip the view area
+    and treat its contents as children of the selected Tab.
+
+    Attribute: Returns False, since the view area is not an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return false
     end

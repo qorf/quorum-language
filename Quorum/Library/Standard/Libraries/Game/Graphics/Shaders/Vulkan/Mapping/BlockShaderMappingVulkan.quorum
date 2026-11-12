@@ -101,8 +101,7 @@ notchPositionsIndex = creator:AddVertexInput(constants:FORMAT_R32G32_SFLOAT)
         
         // Made the first time only. A new pipeline (a 2D sample count
         // change) uses the same buffer and set: the set's layout is
-        // defined the same way, so the set works with the new pipeline
-        // (Item 32).
+        // defined the same way, so the set works with the new pipeline.
         if notchHeightDescriptorSet = undefined
         // Also initialize resources for the notch height descriptor.
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())

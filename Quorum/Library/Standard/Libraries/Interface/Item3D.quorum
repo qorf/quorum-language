@@ -73,7 +73,7 @@ class Item3D is Item
     number scaleY = 1
     number scaleZ = 1
     // Which point lights' shadow searches found this item, one bit per
-    // light, and the layer's frame they were found in (Shadow plan S2).
+    // light, and the layer's frame they were found in.
     integer shadowLightMask = 0
     integer shadowLightFrame = -1
 
@@ -2488,7 +2488,7 @@ class Item3D is Item
 
     /*
     This action records that a point light's shadow search found this item
-    in the given frame of its layer (Shadow plan S2), so the item is drawn
+    in the given frame of its layer, so the item is drawn
     into that light's shadows. Layers call it while searching; most
     programs never need it. The first light of a new frame clears the
     lights recorded before.
@@ -2508,8 +2508,7 @@ class Item3D is Item
 
     /*
     This action returns which point lights' shadow searches found this
-    item in the given frame of its layer, one bit per light (Shadow plan
-    S2), or 0 if none did.
+    item in the given frame of its layer, one bit per light, or 0 if none did.
 
     Attribute: Parameter frame The layer's frame.
     Attribute: Returns The lights' bits.

@@ -2,6 +2,35 @@ package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.HierarchyRenderer
 
+/*
+The ControlHierarchyRenderer class is a Control that draws all of its
+children itself, in order, when it is drawn, as a HierarchyRenderer does.
+It is used inside special components that need to draw a group of items
+together. Most users will never need to use this class.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Interface.Controls.ControlHierarchyRenderer
+use Libraries.Interface.Controls.Button
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        ControlHierarchyRenderer renderer
+        Button button
+        button:SetName("Drawn by the renderer")
+        renderer:Add(button)
+        renderer:SetPosition(100, 100)
+        Add(renderer)
+    end
+end
+*/
 class ControlHierarchyRenderer is Control, HierarchyRenderer
     
 end

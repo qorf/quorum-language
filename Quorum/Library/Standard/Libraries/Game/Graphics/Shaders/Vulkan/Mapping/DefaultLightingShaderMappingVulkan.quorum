@@ -37,8 +37,8 @@ any Vulkan resources that will be needed to send or change shader data.*/
         // Create a binding for a sampler to use during fragment shading, then add the sampler to the returned binding.
         //VulkanDescriptorSetLayoutBinding samplerBinding = creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         
-        // The G-buffer: position, albedo, normals, PBR and emissive (Lighting
-        // plan L1), as the 3D painter's G_BUFFER_COUNT and lighting set.
+        // The G-buffer: position, albedo, normals, PBR and emissive, as the 3D painter's
+        // G_BUFFER_COUNT and lighting set.
         repeat 5 times
             creator:AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         end
@@ -51,7 +51,7 @@ any Vulkan resources that will be needed to send or change shader data.*/
         
         creator:AddDescriptorSetLayout(lightingProperties:GetShadowCubemapsDescriptorSetLayout())
 
-        // Set 3: the sky light's cubes (Lighting plan L5), the same layout
+        // Set 3: the sky light's cubes, the same layout
         // the painter makes its sets from.
         creator:AddDescriptorSetLayout(lightingProperties:GetSkyLightDescriptorSetLayout())
         

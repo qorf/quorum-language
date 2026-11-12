@@ -373,7 +373,7 @@ class SceneEditorKeys
 
     /*
         Closes the Properties panel section the focus is in, and moves the
-        focus to its header (step 15). Default: Alt+Shift+Up.
+        focus to its header. Default: Alt+Shift+Up.
     */
     action GetPropertiesSectionCloseKey returns InputSet
         return WithModifiers(keys:UP, false, false, true, true)
@@ -381,7 +381,7 @@ class SceneEditorKeys
 
     /*
         Opens the Properties panel section the focus is in, and moves the
-        focus to its first control (step 15). Default: Alt+Shift+Down.
+        focus to its first control. Default: Alt+Shift+Down.
     */
     action GetPropertiesSectionOpenKey returns InputSet
         return WithModifiers(keys:DOWN, false, false, true, true)
@@ -402,15 +402,15 @@ class SceneEditorKeys
         return Plain(keys:ENTER)
     end
 
-    // ------------------------------------------------- terrain (step 6, B)
+    // ------------------------------------------------- terrain
 
     /*
         Chooses one of a terrain's tools, when a terrain is selected. The
         tools are numbered as in the in-game terrain editor: 1 raise, 2 lower,
         3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
         9 remove region; then the scene editor's own: 10 stamp, 11 erode,
-        12 auto paint, 13 foliage (Terrain plan F3), 14 fill water and 15
-        paint water (Water plan W6), and 16 river (River plan R5). Default:
+        12 auto paint, 13 foliage, 14 fill water and 15
+        paint water, and 16 river. Default:
         Alt+1 to Alt+9, then Shift+Alt+1 to Shift+Alt+7.
 
         Attribute: Parameter tool The tool's number, from 1 to 16.
@@ -441,14 +441,14 @@ class SceneEditorKeys
         return WithModifiers(keys:LEFT_BRACKET, false, false, true, false)
     end
 
-    /* Paints the next of a terrain's ground layers (step 9). Default: Alt+L. */
+    /* Paints the next of a terrain's ground layers. Default: Alt+L. */
     action GetTerrainNextLayerKey returns InputSet
         return WithModifiers(keys:L, false, false, true, false)
     end
 
     /*
         Sets the next end of a terrain's ramp at the brush: its start, then
-        its end (step 8). Default: Alt+G, for grade. Alt+R is Studio's Run
+        its end. Default: Alt+G, for grade. Alt+R is Studio's Run
         menu.
     */
     action GetTerrainRampPointKey returns InputSet
@@ -457,7 +457,7 @@ class SceneEditorKeys
 
     /*
         Takes the ground's height under a terrain's brush as the height
-        flatten evens to (step 8). Default: Alt+M, for match. Alt+T is
+        flatten evens to. Default: Alt+M, for match. Alt+T is
         Studio's Team menu.
     */
     action GetTerrainTakeHeightKey returns InputSet

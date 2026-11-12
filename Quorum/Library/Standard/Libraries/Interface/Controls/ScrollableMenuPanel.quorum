@@ -7,6 +7,45 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.DrawableView
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+    The ScrollableMenuPanel class is a menu panel that shows only some of its items
+    at a time. It is useful for a menu with a long list of items, which might
+    otherwise run off the edge of the screen. A scroll bar on the right side of the
+    panel shows which part of the list is in view, and the user can drag it, use
+    the mouse wheel, or move through the items with the keyboard to bring other
+    items into view. The easiest way to get one is to call SetScrollable(true) on a
+    PopupMenu.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.PopupMenu
+    use Libraries.Interface.Controls.MenuItem
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            PopupMenu menu
+            // Use a ScrollableMenuPanel that shows 5 items at a time.
+            menu:SetScrollable(true)
+            menu:SetItemsInView(5)
+
+            integer counter = 1
+            repeat while counter <= 20
+                MenuItem item
+                item:SetName("Item " + counter)
+                menu:Add(item)
+                counter = counter + 1
+            end
+
+            menu:OpenAt(100, 400)
+        end
+    end
+*/
 class ScrollableMenuPanel is MenuPanelBlueprint
 
     number itemsInView = 10
@@ -40,10 +79,24 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         scrollBar:Add(scrollControl)
     end
 
+    /*
+        This action tells whether this panel scrolls through its items. A
+        ScrollableMenuPanel always scrolls, so this always returns true.
+
+        Attribute: Returns true, because a ScrollableMenuPanel always scrolls.
+    */
     action IsScrollable returns boolean
         return true
     end
 
+    /*
+        This action draws the panel. It draws the panel's background, then only the
+        items that are in view, then the scroll bar. Items that are scrolled out of
+        view are skipped. This is called automatically by the Game engine each frame,
+        and most users shouldn't need to call it directly.
+
+        Attribute: Parameter painter The Painter2D used to draw the panel.
+    */
     action Draw(Painter2D painter)
         if not IsShowing()
             return now
@@ -70,6 +123,38 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         scrollBar:Draw(painter)
     end
 
+    /*
+        This action sets how many items the panel shows at once. The panel's height
+        fits this many items, and the rest can be reached by scrolling. If the panel
+        has fewer items than this, it shows all of them and hides its scroll bar. The
+        default is 10.
+
+        Attribute: Parameter itemCount How many items to show at once.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.ScrollableMenuPanel
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ScrollableMenuPanel panel
+                panel:SetItemsInView(3)
+
+                integer counter = 1
+                repeat while counter <= 8
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    panel:Add(item)
+                    counter = counter + 1
+                end
+            end
+        end
+    */
     action SetItemsInView(number itemCount)
         if itemCount = itemsInView
             return now
@@ -81,6 +166,11 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         SetScrollIndex(scrollIndex)
     end
 
+    /*
+        This action returns how many items the panel shows at once.
+
+        Attribute: Returns How many items are shown at once.
+    */
     action GetItemsInView returns number
         return itemsInView
     end
@@ -98,6 +188,42 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         return scrollIndex
     end
 
+    /*
+        This action scrolls the panel so the item at the given index is the first one
+        in view, then lays the panel out again. Index 0 is the top of the list. A value
+        with a decimal part, such as 2.5, leaves the first visible item partly scrolled
+        off the top. A value below 0 is treated as 0, and a value too large to fill the
+        panel is pulled back so the last item sits at the bottom.
+
+        Attribute: Parameter index The index of the item to show first.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.ScrollableMenuPanel
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ScrollableMenuPanel panel
+                panel:SetItemsInView(3)
+
+                integer counter = 1
+                repeat while counter <= 8
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    panel:Add(item)
+                    counter = counter + 1
+                end
+
+                // Show Item 5, Item 6 and Item 7.
+                panel:SetScrollIndex(4)
+            end
+        end
+    */
     action SetScrollIndex(number index)
         if index < 0
             index = 0
@@ -106,6 +232,15 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         Resize()
     end
 
+    /*
+        This action works out the size and position of the panel and its items. Items
+        outside the current view are hidden and the ones in view are shown, each item
+        is placed from the bottom of the view upward, every item is given the width of
+        the widest one, and the scroll bar is sized to show how much of the list is in
+        view. The panel does this itself instead of using a Layout, so that it only
+        lays out the items in view. It is called automatically as needed, and most
+        users shouldn't need to call it directly.
+    */
     action Resize
         /*
         We manually override the Resize call here to do special work.
@@ -280,6 +415,15 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         parent:Item2D:isResizing = false
     end
 
+    /*
+        This action is used to load the graphical components of the panel, including
+        the views for the scroll bar and the part of it that is dragged, and colors
+        them from the panel's foreground and accent colors. This is handled
+        automatically by the Game engine as needed, and most users shouldn't need to
+        use this action directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+    */
     action LoadGraphics(LayoutProperties properties)
         if scrollGraphicsLoaded = false
             ControlShaderView scrollBarView
@@ -309,18 +453,53 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         return dragging
     end
 
+    /*
+        This action sets whether the user is dragging the scroll bar with the mouse.
+        The panel's mouse behaviors set it to true when the user presses on the panel
+        and to false when they let go, and DragScrollControlTo only scrolls while it is
+        true.
+
+        Attribute: Parameter drag true if the scroll bar is being dragged, or false if not.
+    */
     action SetDragging(boolean drag)
         dragging = drag
     end
 
+    /*
+        This action records the point where the user pressed the mouse to start
+        dragging the scroll bar. DragScrollControlTo measures each mouse movement from
+        this point.
+
+        Attribute: Parameter x The x coordinate of the point, in pixels.
+
+        Attribute: Parameter y The y coordinate of the point, in pixels.
+    */
     action SetScrollClickPoint(number x, number y)
         scrollClickPoint:Set(x, y)
     end
 
+    /*
+        This action returns the point recorded by SetScrollClickPoint, where the
+        current drag of the scroll bar is measured from.
+
+        Attribute: Returns The point the current drag is measured from.
+    */
     private action GetScrollClickPoint returns Vector2
         return scrollClickPoint
     end
 
+    /*
+        This action scrolls the panel to follow the mouse while the user drags the
+        scroll bar. It moves the view by how far the mouse has moved up or down since
+        the last drag point, then records the new point. Dragging past the top of the
+        bar shows the start of the list, and dragging past the bottom shows the end.
+        It does nothing unless IsDragging returns true. The panel's mouse behaviors
+        call it, so most users shouldn't need to call it directly.
+
+        Attribute: Parameter x The x coordinate of the mouse, in pixels. Only the y coordinate affects the scrolling.
+
+        Attribute: Parameter y The y coordinate of the mouse, in pixels.
+    */
     action DragScrollControlTo(number x, number y)
         if not IsDragging()
             return now
@@ -339,6 +518,43 @@ class ScrollableMenuPanel is MenuPanelBlueprint
         scrollClickPoint:SetY(y)
     end
 
+    /*
+        This action scrolls the panel just far enough to bring the given item into
+        view. If the item is above the view, it becomes the first item shown. If it is
+        below the view, it becomes the last item shown. If it is already in view, or
+        is not in this panel, nothing changes. A PopupMenu calls this when the
+        selection moves, so the selected item is always visible.
+
+        Attribute: Parameter item The MenuItem to bring into view.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.ScrollableMenuPanel
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ScrollableMenuPanel panel
+                panel:SetItemsInView(3)
+
+                MenuItem last = undefined
+                integer counter = 1
+                repeat while counter <= 8
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    panel:Add(item)
+                    last = item
+                    counter = counter + 1
+                end
+
+                panel:ScrollToView(last)
+            end
+        end
+    */
     action ScrollToView(MenuItem item)
         integer index = parent:MenuPanelBlueprint:menuItems:GetFirstLocation(item)
         if index < 0

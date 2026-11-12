@@ -11,9 +11,9 @@ use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 
 /*
     A WaterState is a copy of everything about a terrain's water at one
-    moment (Water plan W6): whether it has a sea and the sea's level, its
+    moment: whether it has a sea and the sea's level, its
     lakes in order with their places, sizes, levels and names, its rivers
-    in order with their points and the ground they carved (River plan R4),
+    in order with their points and the ground they carved,
     and the water's look. The scene editor keeps one from before and one from after
     each water change, so the change can be undone and redone.
 
@@ -45,7 +45,7 @@ class WaterState
 
     // The look: the two colors' red, green, blue and alpha, then clarity,
     // shore fade, ripple size, ripple speed, roughness, ripple strength
-    // and reflection (Water plan W4).
+    // and reflection.
     Array<number> look
 
     /*

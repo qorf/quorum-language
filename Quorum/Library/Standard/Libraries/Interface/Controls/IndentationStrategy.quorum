@@ -2,6 +2,31 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.MultipleLineText
 
+/*
+The IndentationStrategy class decides how a TextBox adds and removes
+indentation, as when the TAB and SHIFT-TAB keys are pressed. It indents
+with spaces, to the next multiple of its size, which is 4 by default. A
+TextBox uses one of these, and a different one can be set with the
+TextBox's SetIndentationStrategy action.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.IndentationStrategy
+
+Form form
+Page page = form:GetMainPage()
+
+TextBox box = page:AddTextBox("Code")
+IndentationStrategy strategy = box:GetIndentationStrategy()
+strategy:SetSize(2)
+
+form:Display()
+*/
 class IndentationStrategy 
 
     integer indentationSize = 4
@@ -54,10 +79,33 @@ class IndentationStrategy
         textBox:Delete(characterIndex - toRemove, characterIndex)
     end
 
+    /*
+        This action sets how many spaces make up one level of indentation. When
+        indenting, spaces are added up to the next multiple of this size, and
+        when removing indentation, spaces are removed back to the one before.
+        The default is 4.
+
+        Attribute: Parameter size The number of spaces in one level of indentation.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.IndentationStrategy
+        IndentationStrategy strategy
+        strategy:SetSize(2)
+    */
     action SetSize(integer size)
         indentationSize = size
     end
 
+    /*
+        This action returns how many spaces make up one level of indentation.
+
+        Attribute: Returns The number of spaces in one level of indentation.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.IndentationStrategy
+        IndentationStrategy strategy
+        integer size = strategy:GetSize()
+    */
     action GetSize returns integer
         return indentationSize
     end

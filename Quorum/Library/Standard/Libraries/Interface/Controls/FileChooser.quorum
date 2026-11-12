@@ -9,6 +9,8 @@ use Libraries.Interface.Controls.FileFilter
     png image files, xml files, or something else. We can also set default 
     folders for where the chooser opens up.
 
+    Attribute: Author William Allee
+
     Attribute: Example
 
         use Libraries.Game.Game
@@ -234,6 +236,16 @@ class FileChooser
         return file
     end
 
+    /*
+        This action calls the native folder dialog, starting at the given path. It
+        returns the absolute path of the folder the user chose, or undefined if the
+        user canceled. It should not be called directly by the user. Use
+        ChooseFolderDialog instead.
+
+        Attribute: Parameter path The absolute path to start the dialog at, or undefined for the system's default location.
+
+        Attribute: Returns The absolute path of the chosen folder, or undefined if none was chosen.
+    */
     private system action ChooseFolderDialogNative(text path) returns text
     /*
         This action boots up a file choosing dialog at the default location 

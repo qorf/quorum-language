@@ -42,15 +42,15 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     Control content = undefined
 
     // The panel the dialog is docked in, or undefined for a floating
-    // dialog (step 4).
+    // dialog.
     PropertiesPanel dock = undefined
 
     // The first and last fields in the dialog's Tab order, so a panel can
-    // link one section's fields to the next (step 5).
+    // link one section's fields to the next.
     Control firstFocus = undefined
     Control lastFocus = undefined
 
-    // The section's controls, under its header (step 15). Closing the
+    // The section's controls, under its header. Closing the
     // section takes the body out, leaving the header.
     Control body = undefined
     boolean bodyShown = true
@@ -121,7 +121,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
             end
         end
 
-        // The dialog's controls go in a body under the header (step 15).
+        // The dialog's controls go in a body under the header.
         // Hidden controls in it take no room, such as the heading while the
         // header shows.
         Control sectionBody
@@ -339,7 +339,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
     end
 
     /*
-        Makes a setting with a bounded range for a card (Slider plan): its
+        Makes a setting with a bounded range for a card: its
         label, a slider and a number field, with a card line's margins, the
         label in a column of the given width so it lines up with the card's
         other labels. A narrow panel puts the slider under the label and
@@ -728,7 +728,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
     /*
         Sets the last field in the section's Tab order, for a section that
-        shows and hides its own controls (step 16), and has the panel link
+        shows and hides its own controls, and has the panel link
         it to the next section.
 
         Attribute: Parameter control The last field
@@ -760,7 +760,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
     /*
         Returns the first field in the dialog's Tab order: its header, when
-        it has one (step 15).
+        it has one.
 
         Attribute: Returns The first field, or undefined before Initialize
     */
@@ -773,7 +773,7 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
 
     /*
         Returns the last field in the dialog's Tab order: its header, when
-        it is closed (step 15).
+        it is closed.
 
         Attribute: Returns The last field, or undefined before Initialize
     */

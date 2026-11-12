@@ -15,7 +15,7 @@ import java.nio.LongBuffer;
 import static org.lwjgl.vulkan.VK10.*;
 
 /*
-A pool of Vulkan queries with LWJGL (Graphics timing plan T1). Results are
+A pool of Vulkan queries with LWJGL. Results are
 read without waiting: each query's value comes with an availability word,
 and a read with any query not yet finished returns false.
 */

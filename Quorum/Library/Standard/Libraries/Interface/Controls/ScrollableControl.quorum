@@ -6,6 +6,37 @@ use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Compute.Math
 
+/*
+    The ScrollableControl class is the base for controls whose content can be
+    bigger than the control itself, such as ScrollPane, TextBox and List. It
+    makes a scroll bar for up and down scrolling and one for left and right
+    scrolling, each a ScrollBarTrack with a ScrollBarControl handle inside it,
+    and shows or hides them as needed. It keeps track of how far the content
+    has been scrolled as a value between 0 and 1 in each direction. The mouse
+    wheel, dragging a handle, clicking a track, and touch drags all move the
+    view. Each class that extends this one says how big its content is, which
+    control shows the content, and how far one turn of the mouse wheel should
+    scroll.
+
+    Each scroll bar can be shown only when the content does not fit
+    (VISIBLE_IF_NEEDED, the default), always (ALWAYS_VISIBLE), or never
+    (NEVER_VISIBLE).
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollableControl
+
+    Form form
+    Page page = form:GetMainPage()
+
+    ScrollableControl box = page:AddTextBox("Notes")
+    box:SetVerticalBarVisibility(box:ALWAYS_VISIBLE)
+
+    form:Display()
+*/
 class ScrollableControl is Control
 
     Control scrollableRegion = undefined
@@ -124,6 +155,12 @@ class ScrollableControl is Control
         RoundEnds(horizontalControl)
     end
 
+    /*
+        This action rounds all four corners of a scroll bar track or handle, so
+        its ends are almost fully round.
+
+        Attribute: Parameter control The track or handle to round.
+    */
     private action RoundEnds(Control control)
         control:SetTopLeftRounding(BAR_ROUNDING)
         control:SetTopRightRounding(BAR_ROUNDING)
@@ -388,7 +425,15 @@ class ScrollableControl is Control
         end
     end
 
-    // Update the position of the scroll bars, then refresh the scroll region.
+    /*
+        This action scrolls the view to a position. It keeps each value within the
+        range the content allows, moves the scroll bars' handles to match, and then
+        refreshes the scrolled content and the gutter.
+
+        Attribute: Parameter percentX How far across to scroll, from 0 up to 1 minus the share of the content's width that can be seen.
+
+        Attribute: Parameter percentY How far down to scroll, from 0 up to 1 minus the share of the content's height that can be seen.
+    */
     private action RefreshPaneView(number percentX, number percentY)
         if percentX > (1.0 - horizontalViewRatio)
             percentX = 1.0 - horizontalViewRatio
@@ -414,16 +459,38 @@ class ScrollableControl is Control
         RefreshGutterRegion()
     end
 
+    /*
+        This action returns how far the content should be moved to the right to
+        make room for gutters along the left side. A plain ScrollableControl has
+        no gutters, so it returns 0. ScrollableLineControl changes this to return
+        the combined width of its gutters.
+
+        Attribute: Returns The width taken by gutters, in pixels.
+    */
     private action GetCombinedGutterWidth returns number
         // By default, this does nothing, but ScrollableLineControl overrides this to offset elements by the width of the gutters.
         return 0
     end
 
+    /*
+        This action is called after the view moves, so that gutters can be brought
+        up to date. A plain ScrollableControl has no gutters, so it does nothing.
+        ScrollableLineControl changes this to update its gutters.
+    */
     private action RefreshGutterRegion
         // By default, this does nothing, but ScrollableLineControl overrides this to handle gutter values at the right time.
     end
 
-    // This action translate a pixel value to a percentage scroll Y value. The pixel value is relative to the Spreadsheet.
+    /*
+        This action turns a place along the vertical scroll bar into how far the
+        content is scrolled down. Dragging the handle uses it. The place is in
+        pixels from the bottom of this control; when the horizontal scroll bar is
+        showing, its thickness is taken off first.
+
+        Attribute: Parameter y The place, in pixels from the bottom of this control.
+
+        Attribute: Returns How far the content is scrolled down, as a share from 0 to 1.
+    */
     action GetVerticalTrackPercentage(number y) returns number
         number sharedSpaceOffset = 0
         if horizontalBar:IsShowing()
@@ -433,17 +500,40 @@ class ScrollableControl is Control
         return FromTrack(1.0 - (y - sharedSpaceOffset) / verticalBar:GetHeight(), verticalViewRatio, verticalHandleRatio)
     end
 
-    // This action translate a pixel value to a percentage scroll X value. The pixel value is relative to the Spreadsheet.
+    /*
+        This action turns a place along the horizontal scroll bar into how far the
+        content is scrolled across. Dragging the handle uses it. The place is in
+        pixels from the left edge of this control.
+
+        Attribute: Parameter x The place, in pixels from the left edge of this control.
+
+        Attribute: Returns How far the content is scrolled across, as a share from 0 to 1.
+    */
     action GetHorizontalTrackPercentage(number x) returns number
         return FromTrack(x / horizontalBar:GetWidth(), horizontalViewRatio, horizontalHandleRatio)
     end
 
-    // The shortest a handle gets, in pixels: twice the bar's thickness.
+    /*
+        This action returns the shortest a scroll bar's handle can be, in pixels:
+        twice the bar's thickness, at the interface scale.
+
+        Attribute: Returns The shortest handle length, in pixels.
+    */
     private action MinimumHandleLength returns number
         return barThickness * 2 * GetInterfaceScale()
     end
 
-    // A handle's length as a share of its track.
+    /*
+        This action returns how long a scroll bar's handle is, as a share of its
+        track. It is the share of the content that can be seen, but never shorter
+        than MinimumHandleLength allows.
+
+        Attribute: Parameter viewRatio How much of the content can be seen at once, from 0 to 1.
+
+        Attribute: Parameter trackLength The track's length, in pixels.
+
+        Attribute: Returns The handle's length as a share of its track, or the view ratio if the track has no length.
+    */
     private action GetHandleRatio(number viewRatio, number trackLength) returns number
         if trackLength <= 0
             return viewRatio
@@ -470,6 +560,19 @@ class ScrollableControl is Control
         return scrolled * (1.0 - handleRatio) / (1.0 - viewRatio)
     end
 
+    /*
+        This action turns a handle's place on its track back into how far the
+        content is scrolled. It is the reverse of ToTrack. Both values are shares
+        between 0 and 1.
+
+        Attribute: Parameter track Where the start of the handle sits on its track.
+
+        Attribute: Parameter viewRatio How much of the content can be seen at once.
+
+        Attribute: Parameter handleRatio How long the handle is, as a share of its track.
+
+        Attribute: Returns How far the content is scrolled, or 0 if the handle fills the whole track.
+    */
     private action FromTrack(number track, number viewRatio, number handleRatio) returns number
         if handleRatio >= 1.0
             return 0
@@ -539,6 +642,15 @@ class ScrollableControl is Control
         RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + distanceY / totalHeight)
     end
 
+    /*
+        This action scrolls the view up or down when the mouse wheel turns over
+        this control. The input system calls it, so most programs don't need to.
+        Each line scrolls by the amount from GetScrollIncrement. A bigger turn of
+        the wheel scrolls more lines, but the number of lines grows slowly, so a
+        fast spin doesn't jump too far. It always scrolls at least one line.
+
+        Attribute: Parameter event The mouse event that says how far the wheel turned.
+    */
     action ScrolledMouse(MouseEvent event)
         number y = event:scrollAmount
         boolean positive = true
@@ -563,32 +675,175 @@ class ScrollableControl is Control
         RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
     end
 
+    /*
+        This action returns whether the horizontal (left and right) scroll bar is
+        showing. This depends on the bar's visibility mode and on whether the
+        content is wider than the control, and is updated when the control is
+        resized.
+
+        Attribute: Returns True if the horizontal scroll bar is showing.
+    */
     action IsShowingHorizontalBar returns boolean
         return horizontalBar:IsShowing()
     end
 
+    /*
+        This action returns whether the vertical (up and down) scroll bar is
+        showing. This depends on the bar's visibility mode and on whether the
+        content is taller than the control, and is updated when the control is
+        resized.
+
+        Attribute: Returns True if the vertical scroll bar is showing.
+    */
     action IsShowingVerticalBar returns boolean
         return verticalBar:IsShowing()
     end
 
+    /*
+        This action returns how thick the scroll bars are, in pixels, before the
+        interface scale is applied. The default is 12.
+
+        Attribute: Returns The thickness of the scroll bars.
+    */
     action GetBarThickness returns integer
         return barThickness
     end
 
+    /*
+        This action sets how thick the scroll bars are, in pixels, before the
+        interface scale is applied. It changes both bars. The handles are never
+        shorter than twice this thickness, so they stay easy to grab.
+
+        Attribute: Parameter barThickness The new thickness of the scroll bars.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetBarThickness(20)
+
+                integer i = 0
+                repeat 20 times
+                    Button button
+                    button:SetName("Item " + i)
+                    pane:Add(button)
+                    i = i + 1
+                end
+                Add(pane)
+            end
+        end
+    */
     action SetBarThickness(integer barThickness)
         me:barThickness = barThickness
         verticalBar:GetDefaultLayoutProperties():SetPixelWidth(barThickness)
         horizontalBar:GetDefaultLayoutProperties():SetPixelHeight(barThickness)
     end
 
+    /*
+        This action sets when the vertical (up and down) scroll bar is shown. The
+        mode is one of VISIBLE_IF_NEEDED (the default), which shows the bar only
+        when the content is taller than the control, ALWAYS_VISIBLE, or
+        NEVER_VISIBLE. The change shows the next time the control is resized.
+
+        Attribute: Parameter mode The visibility mode for the vertical scroll bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetVerticalBarVisibility(pane:ALWAYS_VISIBLE)
+
+                integer i = 0
+                repeat 20 times
+                    Button button
+                    button:SetName("Item " + i)
+                    pane:Add(button)
+                    i = i + 1
+                end
+                Add(pane)
+            end
+        end
+    */
     action SetVerticalBarVisibility(integer mode)
         me:verticalMode = mode
     end
 
+    /*
+        This action sets when the horizontal (left and right) scroll bar is shown.
+        The mode is one of VISIBLE_IF_NEEDED (the default), which shows the bar
+        only when the content is wider than the control, ALWAYS_VISIBLE, or
+        NEVER_VISIBLE. The change shows the next time the control is resized.
+
+        Attribute: Parameter mode The visibility mode for the horizontal scroll bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetHorizontalBarVisibility(pane:NEVER_VISIBLE)
+
+                integer i = 0
+                repeat 20 times
+                    Button button
+                    button:SetName("Item " + i)
+                    pane:Add(button)
+                    i = i + 1
+                end
+                Add(pane)
+            end
+        end
+    */
     action SetHorizontalBarVisibility(integer mode)
         me:horizontalMode = mode
     end
 
+    /*
+        This action removes the contents of the scrollable region, the control
+        returned by GetScrollableRegion. The scroll bars stay. Classes that need
+        to clear their content in a different way can change this action.
+    */
     action Empty
         /*
         We don't want to remove the scrolling elements. Most likely we want to remove the contents of the scroll region.

@@ -7,7 +7,7 @@ use Libraries.Game.Graphics.Color
 ModelLightData holds one light read from a model file, such as a lamp's
 bulb in a glTF file that uses the KHR_lights_punctual extension. A Model
 loaded from such a file turns each of these into a PointLight, SpotLight or
-DirectionalLight (Lighting plan L8).
+DirectionalLight.
 
 The position and direction are in the model's own space, the same space
 its meshes are in, so a light placed on a lamp's bulb in the file lands on
@@ -19,14 +19,14 @@ separately as the intensity, as it was in the file (candela for point and
 spot lights in glTF, lux for directional lights).
 */
 class ModelLightData
-    // The kinds of light a file can hold (Lighting plan L8).
+    // The kinds of light a file can hold.
     public constant integer POINT = 0
     public constant integer DIRECTIONAL = 1
     public constant integer SPOT = 2
 
     /*
     How many units of Quorum light intensity one unit of a file light's
-    intensity becomes (Lighting plan L8). Quorum's lighting divides a point
+    intensity becomes. Quorum's lighting divides a point
     light's color times intensity by the distance squared and uses the
     albedo over pi for diffuse light, as the glTF lights extension expects,
     so a glTF light in candela (point and spot) or lux (directional) is used
@@ -51,8 +51,7 @@ class ModelLightData
     end
 
     /*
-    This action returns the kind of light: POINT, DIRECTIONAL or SPOT
-    (Lighting plan L8).
+    This action returns the kind of light: POINT, DIRECTIONAL or SPOT.
 
     Attribute: Returns The kind of light.
     */
@@ -61,8 +60,8 @@ class ModelLightData
     end
 
     /*
-    This action sets the kind of light: POINT, DIRECTIONAL or SPOT
-    (Lighting plan L8). Any other value is treated as POINT.
+    This action sets the kind of light: POINT, DIRECTIONAL or SPOT.
+Any other value is treated as POINT.
 
     Attribute: Parameter type The kind of light.
     */
@@ -75,7 +74,7 @@ class ModelLightData
     end
 
     /*
-    This action returns true if the light is a point light (Lighting plan L8).
+    This action returns true if the light is a point light.
 
     Attribute: Returns True for a point light.
     */
@@ -85,7 +84,7 @@ class ModelLightData
 
     /*
     This action returns true if the light is a directional light, like the
-    sun (Lighting plan L8).
+    sun.
 
     Attribute: Returns True for a directional light.
     */
@@ -94,7 +93,7 @@ class ModelLightData
     end
 
     /*
-    This action returns true if the light is a spot light (Lighting plan L8).
+    This action returns true if the light is a spot light.
 
     Attribute: Returns True for a spot light.
     */
@@ -103,8 +102,8 @@ class ModelLightData
     end
 
     /*
-    This action returns the light's name, as it is in the file (Lighting
-    plan L8). For glTF files, this is the name of the node the light is on.
+    This action returns the light's name, as it is in the file. For glTF files, this is the name of
+    the node the light is on.
 
     Attribute: Returns The light's name.
     */
@@ -113,7 +112,7 @@ class ModelLightData
     end
 
     /*
-    This action sets the light's name (Lighting plan L8).
+    This action sets the light's name.
 
     Attribute: Parameter name The light's name.
     */
@@ -126,8 +125,8 @@ class ModelLightData
     end
 
     /*
-    This action returns the light's color, with its brightest part at 1
-    (Lighting plan L8). Change it with SetColor.
+    This action returns the light's color, with its brightest part at 1.
+Change it with SetColor.
 
     Attribute: Returns The light's color.
     */
@@ -137,7 +136,7 @@ class ModelLightData
 
     /*
     This action sets the light's color from its red, green and blue parts,
-    each from 0 to 1 (Lighting plan L8).
+    each from 0 to 1.
 
     Attribute: Parameter red The red part.
     Attribute: Parameter green The green part.
@@ -148,8 +147,8 @@ class ModelLightData
     end
 
     /*
-    This action returns how bright the light is, as it was in the file
-    (Lighting plan L8). For glTF, this is in candela for point and spot
+    This action returns how bright the light is, as it was in the file.
+For glTF, this is in candela for point and spot
     lights, and lux for directional lights.
 
     Attribute: Returns The light's intensity in the file's units.
@@ -159,8 +158,7 @@ class ModelLightData
     end
 
     /*
-    This action sets how bright the light is, in the file's units (Lighting
-    plan L8). A value below 0 is kept as 0.
+    This action sets how bright the light is, in the file's units. A value below 0 is kept as 0.
 
     Attribute: Parameter intensity The light's intensity.
     */
@@ -174,7 +172,7 @@ class ModelLightData
 
     /*
     This action returns how bright the light is in Quorum's units: the
-    file's intensity times INTENSITY_SCALE (Lighting plan L8).
+    file's intensity times INTENSITY_SCALE.
 
     Attribute: Returns The intensity to give a Quorum light.
     */
@@ -184,7 +182,7 @@ class ModelLightData
 
     /*
     This action returns how far the light reaches, or 0 if the file did not
-    say (Lighting plan L8). Directional lights have no range.
+    say. Directional lights have no range.
 
     Attribute: Returns The light's range, in the model's units, or 0.
     */
@@ -194,7 +192,7 @@ class ModelLightData
 
     /*
     This action sets how far the light reaches, or 0 if the file did not
-    say (Lighting plan L8). A value below 0 is kept as 0.
+    say. A value below 0 is kept as 0.
 
     Attribute: Parameter range The light's range, or 0.
     */
@@ -208,8 +206,7 @@ class ModelLightData
 
     /*
     This action returns a spot light's inner angle, in degrees, measured
-    from the direction it points: inside it, the light is at full strength
-    (Lighting plan L8).
+    from the direction it points: inside it, the light is at full strength.
 
     Attribute: Returns The inner angle, in degrees.
     */
@@ -219,8 +216,7 @@ class ModelLightData
 
     /*
     This action returns a spot light's outer angle, in degrees, measured
-    from the direction it points: past it, the light gives no light
-    (Lighting plan L8).
+    from the direction it points: past it, the light gives no light.
 
     Attribute: Returns The outer angle, in degrees.
     */
@@ -230,7 +226,7 @@ class ModelLightData
 
     /*
     This action sets a spot light's inner and outer angles, in degrees,
-    each measured from the direction it points (Lighting plan L8).
+    each measured from the direction it points.
 
     Attribute: Parameter inner The angle of full strength, in degrees.
     Attribute: Parameter outer The angle where the light ends, in degrees.
@@ -241,8 +237,8 @@ class ModelLightData
     end
 
     /*
-    This action returns where the light is, in the model's own space
-    (Lighting plan L8). Change it with SetPosition.
+    This action returns where the light is, in the model's own space.
+Change it with SetPosition.
 
     Attribute: Returns The light's position.
     */
@@ -251,8 +247,7 @@ class ModelLightData
     end
 
     /*
-    This action sets where the light is, in the model's own space (Lighting
-    plan L8).
+    This action sets where the light is, in the model's own space.
 
     Attribute: Parameter x The position along x.
     Attribute: Parameter y The position along y.
@@ -264,7 +259,7 @@ class ModelLightData
 
     /*
     This action returns the direction the light shines, in the model's own
-    space, of length 1 (Lighting plan L8). Point lights ignore it. Change it
+    space, of length 1. Point lights ignore it. Change it
     with SetDirection.
 
     Attribute: Returns The light's direction.
@@ -275,7 +270,7 @@ class ModelLightData
 
     /*
     This action sets the direction the light shines, in the model's own
-    space (Lighting plan L8). It is made length 1. A direction of zero
+    space. It is made length 1. A direction of zero
     length is ignored.
 
     Attribute: Parameter x The direction along x.

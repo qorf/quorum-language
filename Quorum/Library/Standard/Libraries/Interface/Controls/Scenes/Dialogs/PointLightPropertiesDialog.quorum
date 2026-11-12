@@ -52,7 +52,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(basicPropertiesLabel)
 
         FlowLayout nameLayout
@@ -143,7 +143,7 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionContainer:Add(positionFieldContainer)
         panel:Add(positionContainer)
 
-        // The color is three sliders with number fields (Slider plan), red,
+        // The color is three sliders with number fields, red,
         // green and blue, each from 0 to 1. Moving one writes the number in
         // its field, which this section hears as typing, so the light
         // changes as it moves.

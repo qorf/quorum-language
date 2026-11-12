@@ -4,8 +4,8 @@ import plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies.VulkanQueryComma
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer_;
 
 /*
-The query and debug label commands on iOS and Android (Graphics timing plan
-T7). Quorum's own Vulkan layer in C (quorum-natives' src/vulkan) doesn't
+The query and debug label commands on iOS and Android. Quorum's own Vulkan layer in C
+(quorum-natives' src/vulkan) doesn't
 have them yet, so nothing is recorded; NativeVulkanQueryPool never makes a
 pool, so no query command is ever asked for here. To add them,
 quorum-natives needs functions calling vkCmdResetQueryPool,

@@ -1,15 +1,62 @@
 package Libraries.Interface.Controls
 
+/*
+    The ScrollPaneRendererAnchor class holds everything that is placed in a
+    ScrollPane. To scroll, the ScrollPaneRenderer moves this one control
+    instead of moving every item inside it. A ScrollPane makes and manages its
+    anchor, so most programs never make one. An item added to a ScrollPane
+    ends up inside the anchor, so the anchor is the item's parent, which is a
+    handy way to find the pane that holds an item.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollPane
+    use Libraries.Interface.Controls.ScrollPaneRendererAnchor
+    use Libraries.Interface.Controls.Button
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Button button = page:AddButton("Hello")
+
+    ScrollPaneRendererAnchor anchor = cast(ScrollPaneRendererAnchor, button:GetParent())
+    ScrollPane holder = anchor:GetScrollPane()
+
+    form:Display()
+*/
 class ScrollPaneRendererAnchor is Control
 
+    /*
+        This action returns the ScrollPaneRenderer that holds this anchor. The
+        renderer is the anchor's parent.
+
+        Attribute: Returns The ScrollPaneRenderer that holds this anchor.
+    */
     action GetScrollPaneRenderer returns ScrollPaneRenderer
         return cast(ScrollPaneRenderer, GetParent())
     end
 
+    /*
+        This action returns the ScrollPane that this anchor belongs to, by asking
+        the anchor's renderer for its pane. It is useful for finding the pane
+        that holds an item, since an item added to a ScrollPane has the anchor
+        as its parent.
+
+        Attribute: Returns The ScrollPane that holds this anchor.
+    */
     action GetScrollPane returns ScrollPane
         return GetScrollPaneRenderer():GetScrollPane()
     end
 
+    /*
+        This action asks for this anchor to be laid out again. It also asks the
+        ScrollPane that holds the anchor to lay itself out again, because the
+        pane sizes its scroll bars from the size of its content. The engine calls
+        it when the content changes, so most programs don't need to call it.
+    */
     action RequestLayout
         parent:Control:RequestLayout()
         ScrollPane pane = GetScrollPane()

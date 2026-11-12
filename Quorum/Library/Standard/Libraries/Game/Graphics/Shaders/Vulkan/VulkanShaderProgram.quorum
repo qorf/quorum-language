@@ -47,7 +47,7 @@ class VulkanShaderProgram is ShaderProgramStrategy
     
     action CreatePipeline(VulkanRenderPass renderPass)
         // Frames already recorded may still draw with the old pipeline, so
-        // it is freed once they finish (Item 31).
+        // it is freed once they finish.
         if pipeline not= undefined
             GameStateManager retireState
             VulkanGraphics retireGraphics = cast(VulkanGraphics, retireState:GetGameGraphics())
@@ -63,7 +63,7 @@ class VulkanShaderProgram is ShaderProgramStrategy
         VulkanDevice device = renderPass:GetDevice()
         VulkanPipelineInfo info = GetShaderMapping():CreatePipelineInfo(me, device)
         // A pipeline must use the same sample count as the pass it draws in:
-        // 1, except in the scene pass with MSAA on (Item 27).
+        // 1, except in the scene pass with MSAA on.
         info:SetRasterizationSamples(renderPass:GetSampleCount())
         Array<Shader> shaders = parent:ShaderProgramStrategy:shaders
         

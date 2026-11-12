@@ -12,6 +12,48 @@ use Libraries.Interface.Events.TabChangeListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.Graphics.Font
 
+/*
+The TabPane class is a control that holds a set of Tabs. It has a TabBar
+showing the Tabs and a view area below it (or beside it, if the bar is on
+the left). Only one Tab is selected at a time, and the view area shows the
+selected Tab's related item. Users switch between Tabs with the mouse or the
+keyboard, and can close Tabs with their close buttons.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.Tab
+use Libraries.Interface.Controls.Button
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TabPane pane
+
+        Tab homeTab
+        homeTab:SetName("Home")
+        Button homeButton
+        homeButton:SetName("Welcome")
+        homeTab:SetRelatedItem(homeButton)
+        pane:Add(homeTab)
+
+        Tab settingsTab
+        settingsTab:SetName("Settings")
+        Button settingsButton
+        settingsButton:SetName("Change Settings")
+        settingsTab:SetRelatedItem(settingsButton)
+        pane:Add(settingsTab)
+
+        Add(pane)
+        pane:Select(0)
+    end
+end
+*/
 class TabPane is Control
     
     TabBar bar
@@ -106,26 +148,80 @@ this is false. */
         return bar:IsUsingLargeTabs()
     end
 
+    /*
+        This action returns true, because a TabPane is a parent for
+        accessibility: screen readers treat its Tabs and view area as its
+        children.
+
+        Attribute: Returns True, since a TabPane is an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+        This action returns the font size a TabPane uses unless another size
+        is set, which is 22.
+
+        Attribute: Returns The default font size, 22.
+    */
     action GetDefaultFontSize returns integer
         return 22
     end
 
+    /*
+        This action sets the layout of the view area, which places the
+        selected Tab's related item. The view area uses a FlowLayout unless
+        this is changed.
+
+        Attribute: Parameter layout The layout for the view area.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Layouts.ManualLayout
+        TabPane pane
+        ManualLayout layout
+        pane:SetViewAreaLayout(layout)
+    */
     action SetViewAreaLayout(Layout layout)
         viewArea:SetLayout(layout)
     end
 
+    /*
+        This action returns the layout of the view area, which places the
+        selected Tab's related item.
+
+        Attribute: Returns The view area's layout.
+    */
     action GetViewAreaLayout returns Layout
         return viewArea:GetLayout()
     end
 
+    /*
+        This action returns the layout properties of the view area. Use them
+        to change how the view area itself is sized and placed in the
+        TabPane.
+
+        Attribute: Returns The view area's layout properties.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Layouts.LayoutProperties
+        TabPane pane
+        LayoutProperties properties = pane:GetViewAreaLayoutProperties()
+        properties:SetLeftMargin(10)
+    */
     action GetViewAreaLayoutProperties returns LayoutProperties
         return viewArea:GetDefaultLayoutProperties()
     end
 
+    /*
+        This action changes what the view area shows to the given Tab's
+        related item, removing the item shown before. An undefined Tab, or a
+        Tab with no related item, leaves the view area empty.
+
+        Attribute: Parameter tab The Tab whose related item to show, or undefined.
+    */
     private action SetCurrentItem(Tab tab)
         Item2D item = undefined
 
@@ -147,10 +243,47 @@ this is false. */
         end
     end
 
+    /*
+        This action returns the item the view area is showing, which is the
+        selected Tab's related item.
+
+        Attribute: Returns The item being shown, or undefined if none is.
+    */
     action GetCurrentItem returns Item2D
         return currentItem
     end
 
+    /*
+        This action adds every Tab in the given array to the end of the
+        TabBar, in order.
+
+        Attribute: Parameter array The Tabs to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab homeTab
+                homeTab:SetName("Home")
+                Tab settingsTab
+                settingsTab:SetName("Settings")
+                Array<Tab> tabs
+                tabs:Add(homeTab)
+                tabs:Add(settingsTab)
+                pane:Add(tabs)
+            end
+        end
+    */
     action Add(Array<Tab> array)
         i = 0
         repeat while i < array:GetSize()
@@ -161,23 +294,159 @@ this is false. */
         end
     end
 
+    /*
+        This action adds a Tab to the end of the TabBar. Adding a Tab does not
+        select it.
+
+        Attribute: Parameter tab The Tab to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+            end
+        end
+    */
     action Add(Tab tab)
         tab:SetTabPane(me)
         bar:Add(tab)
     end
 
+    /*
+        This action removes a Tab, as its close button does. If the Tab was
+        selected, the Tab before it is selected instead. The removed Tab is
+        disposed of and can't be used again.
+
+        Attribute: Parameter tab The Tab to remove.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab homeTab
+                homeTab:SetName("Home")
+                pane:Add(homeTab)
+                Tab notesTab
+                notesTab:SetName("Notes")
+                pane:Add(notesTab)
+                pane:Remove(notesTab)
+            end
+        end
+    */
     action Remove(Tab tab)
         bar:Remove(tab)
     end
 
+    /*
+        This action returns the Tab at the given index. The first Tab is at
+        index 0.
+
+        Attribute: Parameter index The index of the Tab.
+
+        Attribute: Returns The Tab at that index.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                Tab first = pane:Get(0)
+            end
+        end
+    */
     action Get(integer index) returns Tab
         return bar:Get(index)
     end
 
+    /*
+        This action returns all of the Tabs, in order. The array is the
+        TabBar's own, so add and remove Tabs with the TabPane's actions, not
+        the array's.
+
+        Attribute: Returns An array of the Tabs.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                Array<Tab> tabs = pane:GetTabs()
+            end
+        end
+    */
     action GetTabs returns Array<Tab>
         return bar:GetTabs()
     end
 
+    /*
+        This action returns how many Tabs the TabPane has.
+
+        Attribute: Returns The number of Tabs.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                integer size = pane:GetSize()
+            end
+        end
+    */
     action GetSize returns integer
         return bar:GetSize()
     end
@@ -194,6 +463,32 @@ this is false. */
         end
     end
 
+    /*
+        This action selects the given Tab and shows its related item, without
+        moving the focus. If the Tab is not in this TabPane, nothing happens.
+
+        Attribute: Parameter tab The Tab to show.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Display(tab)
+            end
+        end
+    */
     action Display(Tab tab)
         integer size = GetSize()
         integer counter = 0
@@ -206,10 +501,67 @@ this is false. */
         end
     end
 
+    /*
+        This action selects the Tab at the given index, shows its related
+        item, and moves the focus into it. An index of -1 deselects the
+        selected Tab, and other indexes outside the Tabs do nothing.
+
+        Attribute: Parameter index The index of the Tab to select, or -1.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(0)
+            end
+        end
+    */
     action Select(integer index)
         Select(index, true)
     end
 
+    /*
+        This action selects the Tab at the given index and shows its related
+        item. If focusContents is true, the Tab is also activated, which moves
+        the focus into its related item. An index of -1 deselects the selected
+        Tab, and other indexes outside the Tabs do nothing.
+
+        Attribute: Parameter index The index of the Tab to select, or -1.
+
+        Attribute: Parameter focusContents True to move the focus into the Tab's related item.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(0, false)
+            end
+        end
+    */
     action Select(integer index, boolean focusContents)
         if index = -1
             Deselect()
@@ -221,10 +573,66 @@ this is false. */
         end
     end
 
+    /*
+        This action selects the given Tab, shows its related item, and moves
+        the focus into it. If the Tab is not in this TabPane, nothing happens.
+
+        Attribute: Parameter tab The Tab to select.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(tab)
+            end
+        end
+    */
     action Select(Tab tab)
         Select(tab, true)
     end
 
+    /*
+        This action selects the given Tab and shows its related item. If
+        focusContents is true, the Tab is also activated, which moves the
+        focus into its related item. If the Tab is not in this TabPane,
+        nothing happens.
+
+        Attribute: Parameter tab The Tab to select.
+
+        Attribute: Parameter focusContents True to move the focus into the Tab's related item.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(tab, false)
+            end
+        end
+    */
     action Select(Tab tab, boolean focusContents)
         integer size = GetSize()
         integer counter = 0
@@ -237,6 +645,31 @@ this is false. */
         end
     end
 
+    /*
+        This action deselects the selected Tab, so no Tab is selected and the
+        view area is empty.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(0)
+                pane:Deselect()
+            end
+        end
+    */
     action Deselect
         integer index = selection:GetIndex()
         if index >= 0 and index < GetSize()
@@ -244,6 +677,15 @@ this is false. */
         end
     end
 
+    /*
+        This action records the given Tab as the selected one and shows its
+        related item in the view area. A Tab calls it when it is selected or
+        deselected. If the Tab is undefined or not in this TabPane, the
+        selection is cleared and the view area is emptied. To select a Tab,
+        use Select or Display instead.
+
+        Attribute: Parameter tab The newly selected Tab, or undefined.
+    */
     action UpdateSelection(Tab tab)
         integer size = GetSize()
         integer index = selection:GetIndex()
@@ -275,10 +717,65 @@ this is false. */
         end
     end
 
+    /*
+        This action returns the TabPane's selection, which says which Tab, if
+        any, is selected.
+
+        Attribute: Returns The TabPaneSelection of this TabPane.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Interface.Selections.TabPaneSelection
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(0)
+                TabPaneSelection selection = pane:GetSelection()
+                integer index = selection:GetIndex()
+            end
+        end
+    */
     action GetSelection returns TabPaneSelection
         return selection
     end
 
+    /*
+        This action returns the selected Tab.
+
+        Attribute: Returns The selected Tab, or undefined if no Tab is selected.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                pane:Select(0)
+                Tab selected = pane:GetSelectedTab()
+            end
+        end
+    */
     action GetSelectedTab returns Tab
         if selection = undefined
             return undefined
@@ -287,10 +784,52 @@ this is false. */
         return selection:GetTab()
     end
 
+    /*
+        This action adds a listener that is told whenever a Tab is added to or
+        removed from this TabPane.
+
+        Attribute: Parameter listener The TabChangeListener to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.Tab
+        use Libraries.Interface.Events.TabChangeListener
+        use Libraries.Interface.Events.TabChangeEvent
+
+        class Main is Game, TabChangeListener
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                pane:AddTabChangeListener(me)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                Add(pane)
+            end
+
+            action OpenedTab(TabChangeEvent event)
+                output "Opened " + event:GetTab():GetName()
+            end
+
+            action ClosedTab(TabChangeEvent event)
+                output "Closed " + event:GetTab():GetName()
+            end
+        end
+    */
     action AddTabChangeListener(TabChangeListener listener)
         bar:AddTabChangeListener(listener)
     end
 
+    /*
+        This action removes a listener added with AddTabChangeListener, so it
+        is no longer told when Tabs are added or removed.
+
+        Attribute: Parameter listener The TabChangeListener to remove.
+    */
     action RemoveTabChangeListener(TabChangeListener listener)
         bar:RemoveTabChangeListener(listener)
     end
@@ -348,7 +887,15 @@ the first focusable item within the first generation of children of the related 
         parent:Control:GainedFocus(event)
     end
     
-    // Recursively depth-first searches an item's child hierarchy looking for a focusable Item. Will return the parameter if it's focusable.
+    /*
+        This action finds the first item that can take the focus, looking at an
+        item and then at its children, depth first. The item itself is returned if
+        it can take the focus.
+
+        Attribute: Parameter item The item to start the search from.
+
+        Attribute: Returns The first item that can take the focus, or undefined if there is none.
+    */
     private action GetFirstFocusableChild(Item2D item) returns Item2D
         if item:IsFocusable()
             return item

@@ -137,8 +137,8 @@ shadows but negatively impact performance. It is recommended to use powers of tw
 default value is 2048.*/
     public integer shadowMapSize = 2048
 
-    /*This value sets the size, in pixels, of each of the six faces of a point light's shadow map (Shadow
-plan S1). Point lights keep their own size, as a lamp's shadows are seen from close by and need far
+    /*This value sets the size, in pixels, of each of the six faces of a point light's shadow map.
+    Point lights keep their own size, as a lamp's shadows are seen from close by and need far
 fewer pixels than the sun's. Larger values give sharper point light shadows, but each point light's map
 uses 6 times this size squared times 8 bytes of GPU memory: 12.6 MB at 512, 50 MB at 1024. It is
 recommended to use powers of two, e.g. 256, 512, 1024 or 2048. The default value is 512.*/

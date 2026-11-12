@@ -7,7 +7,7 @@ class VulkanRenderPass is VulkanRetirable
     boolean initialized = false
 
     // The most samples any attachment has: 1, or the MSAA sample count for
-    // a multisampled pass (Item 27). Pipelines made for this pass use it.
+    // a multisampled pass. Pipelines made for this pass use it.
     integer sampleCount = 1
 
     action Create(VulkanDevice device, Array<VulkanAttachmentDescription> attachments,
@@ -68,7 +68,7 @@ class VulkanRenderPass is VulkanRetirable
 
     /*
     This action frees the object once VulkanGraphics:Retire knows no frame
-    on the GPU still uses it (Item 31). It is the same as Dispose.
+    on the GPU still uses it. It is the same as Dispose.
     */
     action Release
         Dispose()

@@ -24,6 +24,45 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LargeTabLayout
 use Libraries.Interface.Layouts.AlignedTabFlowLayout
 
+/*
+The TabBar class is the row of Tabs at the top of a TabPane, or the column of
+Tabs on its left side. Each TabPane makes its own TabBar, which can be
+reached with the TabPane's GetTabBar action. The TabBar places the Tabs,
+keeps track of them, and tells listeners when Tabs are added or removed.
+When a horizontal TabBar has more Tabs than fit, it shows arrows at its ends
+and can be scrolled with them or with the mouse wheel.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.TabBar
+use Libraries.Interface.Controls.Tab
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TabPane pane
+        Add(pane)
+
+        Tab homeTab
+        homeTab:SetName("Home")
+        pane:Add(homeTab)
+
+        Tab notesTab
+        notesTab:SetName("Notes")
+        pane:Add(notesTab)
+
+        TabBar bar = pane:GetTabBar()
+        bar:SetTabSpacing(8)
+        output "The bar has " + bar:GetSize() + " tabs."
+    end
+end
+*/
 class TabBar is Control, MouseWheelListener
     
     Array<Tab> tabs
@@ -64,6 +103,20 @@ class TabBar is Control, MouseWheelListener
         SetInterfaceOptionsKey("TabBar")
     end
     
+    /*
+    This action makes the TabBar a horizontal row of Tabs across the full
+    width of its parent. A horizontal bar can be scrolled with the mouse
+    wheel and with arrows at its ends when its Tabs don't all fit. This is
+    the default. Most users should call TopAlignTabBar on the TabPane
+    instead, which also sets up the view area.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TabPane
+    use Libraries.Interface.Controls.TabBar
+    TabPane pane
+    TabBar bar = pane:GetTabBar()
+    bar:SetToHorizontal()
+    */
     action SetToHorizontal
 HorizontalTabBarFlowLayout horizontalLayout
         layout = horizontalLayout
@@ -81,6 +134,20 @@ HorizontalTabBarFlowLayout horizontalLayout
         AddMouseWheelListener(me)
     end
     
+    /*
+    This action makes the TabBar a vertical column of Tabs, a fifth of its
+    parent's width and its full height. A vertical bar has no scroll arrows
+    and does not scroll with the mouse wheel. Most users should call
+    LeftAlignTabBar on the TabPane instead, which also sets up the view
+    area.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TabPane
+    use Libraries.Interface.Controls.TabBar
+    TabPane pane
+    TabBar bar = pane:GetTabBar()
+    bar:SetToVertical()
+    */
     action SetToVertical
 VerticalTabBarFlowLayout verticalLayout
         layout = verticalLayout
@@ -99,6 +166,10 @@ VerticalTabBarFlowLayout verticalLayout
         pendingFitTab = undefined
     end
 
+    /*
+    This action adds the two scroll arrows to the bar as its last two
+    children, if they aren't there already.
+    */
     private action AddScrollArrows
         if scrollArrowsAdded
             return now
@@ -109,6 +180,10 @@ VerticalTabBarFlowLayout verticalLayout
         parent:Item2D:Add(endArrow)
     end
 
+    /*
+    This action hides the two scroll arrows and takes them out of the bar,
+    if they are there.
+    */
     private action RemoveScrollArrows
         if scrollArrowsAdded = false
             return now
@@ -121,14 +196,46 @@ VerticalTabBarFlowLayout verticalLayout
         parent:Item2D:Remove(endArrow)
     end
     
+    /*
+    This action returns true if the TabBar is a horizontal row of Tabs.
+
+    Attribute: Returns True if the bar is horizontal.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TabPane
+    use Libraries.Interface.Controls.TabBar
+    TabPane pane
+    TabBar bar = pane:GetTabBar()
+    boolean horizontal = bar:IsHorizontal()
+    */
     action IsHorizontal returns boolean
         return GetLayout() is HorizontalTabBarFlowLayout
     end
     
+    /*
+    This action returns true if the TabBar is a vertical column of Tabs.
+
+    Attribute: Returns True if the bar is vertical.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TabPane
+    use Libraries.Interface.Controls.TabBar
+    TabPane pane
+    pane:LeftAlignTabBar()
+    TabBar bar = pane:GetTabBar()
+    boolean vertical = bar:IsVertical()
+    */
     action IsVertical returns boolean
         return GetLayout() is VerticalTabBarFlowLayout
     end
 
+    /*
+    This action adds every Tab in the given array to the end of the bar, in
+    order. Most users should add Tabs with the TabPane's Add action instead,
+    which also connects each Tab to the TabPane.
+
+    Attribute: Parameter array The Tabs to add.
+    */
     action Add(Array<Tab> array)
         integer counter = 0
         repeat while counter < array:GetSize()
@@ -137,6 +244,38 @@ VerticalTabBarFlowLayout verticalLayout
         end
     end
 
+    /*
+    This action adds a Tab to the end of the bar. It links the Tab into the
+    bar's focus order, so the keyboard can move from the last Tab back to the
+    first, sets up the Tab's layout and font size to match the bar, lays the
+    bar out again, and tells the tab change listeners that a Tab was opened.
+    Most users should add Tabs with the TabPane's Add action instead, which
+    also connects the Tab to the TabPane.
+
+    Attribute: Parameter tab The Tab to add.
+
+    Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                TabBar bar = pane:GetTabBar()
+                Tab tab
+                tab:SetName("Home")
+                tab:SetTabPane(pane)
+                bar:Add(tab)
+            end
+        end
+    */
     action Add(Tab tab)
         if tabs:IsEmpty() = false
 Tab firstTab = tabs:GetFromFront()
@@ -167,7 +306,10 @@ Tab firstTab = tabs:GetFromFront()
         NotifyTabChangeListeners(event)
     end
     
-    // Used when tab size or bar orientation changes. Updates all tabs with correct layouts and properties.
+    /*
+        This action gives every tab its layout and properties again. It is used
+        when the tabs' size or the bar's orientation changes.
+    */
     private action UpdateAllTabProperties
         integer i = 0
         repeat while i < tabs:GetSize()
@@ -176,6 +318,14 @@ Tab firstTab = tabs:GetFromFront()
         end
     end
     
+    /*
+    This action sets up a Tab to match the bar: its font size, and a layout
+    for large Tabs, for a vertical bar, or for a horizontal bar. In a
+    vertical bar the Tab fills the bar's width, and in a horizontal bar it
+    is as wide as its contents.
+
+    Attribute: Parameter tab The Tab to set up.
+    */
     private action SetTabProperties(Tab tab)
         tab:SetFontSize(GetFontSize())
         
@@ -224,6 +374,38 @@ this is false. */
         return useLargeTabs
     end
 
+    /*
+    This action removes a Tab from the bar and disposes of it, so it can't be
+    used again. The Tab's OnClose action is called first. If the removed Tab
+    was selected, the Tab before it is selected instead; otherwise the
+    selected Tab stays selected. The tab change listeners are told that a
+    Tab was closed. The bar must belong to a TabPane. Nothing happens if the
+    Tab is undefined.
+
+    Attribute: Parameter tab The Tab to remove.
+
+    Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.TabPane
+        use Libraries.Interface.Controls.TabBar
+        use Libraries.Interface.Controls.Tab
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                TabPane pane
+                Add(pane)
+                Tab tab
+                tab:SetName("Home")
+                pane:Add(tab)
+                TabBar bar = pane:GetTabBar()
+                bar:Remove(tab)
+            end
+        end
+    */
     action Remove(Tab tab)
         if tab = undefined
             return now
@@ -275,14 +457,36 @@ this is false. */
         NotifyTabChangeListeners(event)
     end
 
+    /*
+    This action returns the Tab at the given index. The first Tab is at
+    index 0.
+
+    Attribute: Parameter index The index of the Tab.
+
+    Attribute: Returns The Tab at that index.
+    */
     action Get(integer index) returns Tab
         return tabs:Get(index)
     end
 
+    /*
+    This action returns all of the Tabs in the bar, in order. The array is
+    the bar's own, so add and remove Tabs with the TabPane's actions, not the
+    array's.
+
+    Attribute: Returns An array of the bar's Tabs.
+    */
     action GetTabs returns Array<Tab>
         return tabs
     end
 
+    /*
+    This action sets the TabPane this bar belongs to, and takes on the font
+    and font size from the bar's layout properties. The TabPane calls it
+    when it is made, so most users won't need it.
+
+    Attribute: Parameter tabPane The TabPane the bar belongs to.
+    */
     action SetTabPane(TabPane tabPane)
         pane = tabPane
         LayoutProperties paneProperties = GetDefaultLayoutProperties()
@@ -290,6 +494,11 @@ this is false. */
         SetFontSize(paneProperties:GetFontSize())
     end
 
+    /*
+    This action returns the TabPane this bar belongs to.
+
+    Attribute: Returns The TabPane, or undefined if the bar has none.
+    */
     action GetTabPane returns TabPane
         return pane
     end
@@ -559,6 +768,14 @@ this is false. */
         endArrow:SetInterfaceOptionsKey(key)
     end
 
+    /*
+    This action scrolls the bar so the Tab at the given index starts at the
+    bar's left edge. The index can have a fraction: 2.5 lines up the middle
+    of the Tab at index 2 with the left edge. Indexes outside the Tabs are
+    moved to the first or last Tab.
+
+    Attribute: Parameter index The index of the Tab to line up, which can have a fraction.
+    */
     action LeftFitTab(number index)
         Array<Tab> children = tabs
         if index < 0
@@ -588,6 +805,14 @@ this is false. */
         Resize()
     end
 
+    /*
+    This action scrolls the bar so the Tab at the given index ends at the
+    bar's right edge. The index can have a fraction, which adds that part of
+    the next Tab's width. Indexes outside the Tabs are moved to the first or
+    last Tab.
+
+    Attribute: Parameter index The index of the Tab to line up, which can have a fraction.
+    */
     action RightFitTab(number index)
         Array<Tab> children = tabs
         if index < 0
@@ -617,6 +842,14 @@ this is false. */
         Resize()
     end
     
+/*
+    This action scrolls a vertical bar so the Tab at the given index starts
+    at the bar's top edge. The index can have a fraction: 2.5 lines up the
+    middle of the Tab at index 2 with the top edge. Indexes outside the Tabs
+    are moved to the first or last Tab.
+
+    Attribute: Parameter index The index of the Tab to line up, which can have a fraction.
+*/
 action TopFitTab(number index)
         Array<Tab> children = tabs
         if index < 0
@@ -646,6 +879,15 @@ action TopFitTab(number index)
         Resize()
     end
 
+    /*
+    This action scrolls a vertical bar so the Tab at the given index ends at
+    the bar's bottom edge. The index can have a fraction, which adds that
+    part of the next Tab's height. Indexes outside the Tabs are moved to the
+    first or last Tab. FitTab uses it to bring a Tab below the visible area
+    into view.
+
+    Attribute: Parameter index The index of the Tab to line up, which can have a fraction.
+    */
     action BottomFitTab(number index)
         Array<Tab> children = tabs
         if index < 0
@@ -675,22 +917,50 @@ action TopFitTab(number index)
         Resize()
     end
 
+    /*
+    This action returns how many Tabs are in the bar.
+
+    Attribute: Returns The number of Tabs.
+    */
     action GetSize returns integer
         return tabs:GetSize()
     end
 
+    /*
+    This action returns true if the bar has no Tabs.
+
+    Attribute: Returns True if there are no Tabs.
+    */
     action IsEmpty returns boolean
         return tabs:IsEmpty()
     end
 
+    /*
+    This action adds a listener that is told whenever a Tab is added to or
+    removed from this bar. The TabPane's AddTabChangeListener calls it.
+
+    Attribute: Parameter listener The TabChangeListener to add.
+    */
     action AddTabChangeListener(TabChangeListener listener)
         listeners:Add(listener)
     end
 
+    /*
+    This action removes a listener added with AddTabChangeListener.
+
+    Attribute: Parameter listener The TabChangeListener to remove.
+    */
     action RemoveTabChangeListener(TabChangeListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+    This action tells the game's input and every listener added to this bar
+    that a Tab was opened or closed, calling OpenedTab or ClosedTab to match
+    the event's type.
+
+    Attribute: Parameter event The event describing the Tab that was opened or closed.
+    */
     private action NotifyTabChangeListeners(TabChangeEvent event)
         GameStateManager manager
         manager:GetInput():NotifyTabChangeListeners(event)
@@ -767,6 +1037,17 @@ action TopFitTab(number index)
         end
     end
 
+    /*
+    This action deselects every Tab in the bar. A Tab calls it just before
+    it is selected, so only one Tab is selected at a time.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TabPane
+    use Libraries.Interface.Controls.TabBar
+    TabPane pane
+    TabBar bar = pane:GetTabBar()
+    bar:DeselectAll()
+    */
     action DeselectAll
         integer i = 0
         repeat while i < tabs:GetSize()

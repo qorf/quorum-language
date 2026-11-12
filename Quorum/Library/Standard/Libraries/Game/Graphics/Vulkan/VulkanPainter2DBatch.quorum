@@ -29,7 +29,7 @@ class VulkanPainter2DBatch
     // Staging buffers are visible from the host (i.e. they're mapped to memory we can access from this code).
     // We use these to put our vertex and index data into, then copy them to the output buffers before drawing.
     // One pair of staging buffers per frame slot, so the CPU never writes a
-    // buffer that an earlier frame's copy is still reading (Item 32).
+    // buffer that an earlier frame's copy is still reading.
     Array<VulkanBuffer> vertexStagingBuffers
     Array<VulkanBuffer> indexStagingBuffers
 
@@ -266,7 +266,7 @@ class VulkanPainter2DBatch
     
     /*
     This action returns the batch's pipeline: its program's current one,
-    which is made again if the 2D sample count changes (Item 29).
+    which is made again if the 2D sample count changes.
 
     Attribute: Returns The pipeline.
     */

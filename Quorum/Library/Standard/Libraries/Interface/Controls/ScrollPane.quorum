@@ -17,6 +17,32 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+    The ScrollPane class holds other items in an area that can be bigger than
+    the pane itself, and shows scroll bars so the user can move around that
+    area. Items added to the pane go into its scroll region, which moves when
+    the pane scrolls. By default, the region is as wide as the pane and grows
+    taller to fit its contents (FIT_CONTENTS_VERTICALLY), and the items inside
+    it are placed with a FlowLayout. When an item inside the pane gets the
+    focus, the pane scrolls so the item can be seen.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollPane
+    use Libraries.Interface.Controls.Button
+
+    Form form
+    Page page = form:GetMainPage()
+
+    ScrollPane pane = page
+    pane:SetVerticalBarVisibility(pane:ALWAYS_VISIBLE)
+    Button button = page:AddButton("Hello")
+
+    form:Display()
+*/
 class ScrollPane is ScrollableControl
 
     /*
@@ -72,38 +98,240 @@ class ScrollPane is ScrollableControl
         end
     end
 
+    /*
+        This action returns false, so the accessibility system does not treat the
+        pane as a parent of the items inside it. A screen reader sees those items
+        as belonging to whatever holds the pane.
+
+        Attribute: Returns False, since a ScrollPane is not an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return false
     end
 
+    /*
+        This action adds an item to the pane's scroll region, so it moves with the
+        rest of the content when the pane scrolls.
+
+        Attribute: Parameter item The item to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+
+                Button button
+                button:SetName("Hello")
+                pane:Add(button)
+                Add(pane)
+            end
+        end
+    */
     action Add(Item2D item)
         renderer:Add(item)
     end
 
+    /*
+        This action adds an item to the pane's scroll region at a given place in
+        its list of items. With a layout such as a FlowLayout, this sets where
+        the item appears among the others.
+
+        Attribute: Parameter index The place in the list of items to put the new item.
+
+        Attribute: Parameter item The item to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+
+                Button second
+                second:SetName("Second")
+                pane:Add(second)
+
+                Button first
+                first:SetName("First")
+                pane:Add(0, first)
+                Add(pane)
+            end
+        end
+    */
     action Add(integer index, Item2D item)
         renderer:Add(index, item)
     end
 
+    /*
+        This action removes an item from the pane's scroll region.
+
+        Attribute: Parameter item The item to remove.
+
+        Attribute: Returns True if the item was in the pane and was removed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+
+                Button button
+                button:SetName("Hello")
+                pane:Add(button)
+                boolean removed = pane:Remove(button)
+                Add(pane)
+            end
+        end
+    */
     action Remove(Item2D item) returns boolean
         return renderer:Remove(item)
     end
 
+    /*
+        This action removes the item at a given place in the pane's scroll region.
+
+        Attribute: Parameter index The place in the list of items of the item to remove.
+
+        Attribute: Returns The item that was removed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Item2D
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+
+                Button button
+                button:SetName("Hello")
+                pane:Add(button)
+                Item2D removed = pane:Remove(0)
+                Add(pane)
+            end
+        end
+    */
     action Remove(integer index) returns Item2D
         return renderer:Remove(index)
     end
 
+    /*
+        This action sets how far one turn of the mouse wheel scrolls the pane. The
+        pane scrolls 10 pixels for each unit of distance, so the default of 3
+        scrolls 30 pixels per line.
+
+        Attribute: Parameter distance How far to scroll for each line of a mouse wheel turn.
+    */
     action SetScrollDistance(number distance)
         scrollDistance = distance
     end
 
+    /*
+        This action returns how far one turn of the mouse wheel scrolls the pane.
+        The pane scrolls 10 pixels for each unit of distance.
+
+        Attribute: Returns The scroll distance. The default is 3.
+    */
     action GetScrollDistance returns number
         return scrollDistance
     end
 
+    /*
+        This action sets the size of the pane's scroll region, in pixels. It is
+        meant for the MANUAL_REGION_SIZING mode (see SetScrollRegionResizing). In
+        the other modes, the layout sizes the region to fit its contents, which
+        can replace these values.
+
+        Attribute: Parameter width The width of the scroll region.
+
+        Attribute: Parameter height The height of the scroll region.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetScrollRegionResizing(pane:MANUAL_REGION_SIZING)
+                pane:SetRegionSize(600, 400)
+                Add(pane)
+            end
+        end
+    */
     action SetRegionSize(number width, number height)
         renderer:SetRegionSize(width, height)
     end
 
+    /*
+        This action makes the scroll region just big enough to reach the right
+        edge and the top edge of everything inside it, including items inside
+        those items. It skips what is inside items that clip their children,
+        since that can't be seen past their edges. It measures where items are
+        now, so the items should already be laid out. It is meant for the
+        MANUAL_REGION_SIZING mode.
+    */
     action FitRegionToContents
         Number width
         width:SetValue(0)
@@ -113,6 +341,18 @@ class ScrollPane is ScrollableControl
         SetRegionSize(width:GetValue() - renderer:GetGlobalX(), height:GetValue() - renderer:GetGlobalY())
     end
 
+    /*
+        This action looks through a list of items, and the items inside them, and
+        grows width and height to reach the farthest right edge and the highest
+        top edge it finds, in global coordinates. It does not look inside items
+        that clip their children.
+
+        Attribute: Parameter items The items to measure.
+
+        Attribute: Parameter width The farthest right edge found so far. It is changed by this action.
+
+        Attribute: Parameter height The highest top edge found so far. It is changed by this action.
+    */
     private action FindDimensions(Array<Item2D> items, Number width, Number height)
         integer counter = 0
         repeat while counter < items:GetSize()
@@ -134,42 +374,201 @@ class ScrollPane is ScrollableControl
         end
     end
 
+    /*
+        This action sets the layout used to place the items inside the pane's
+        scroll region. It does not change how the pane itself is laid out. The
+        default is a FlowLayout.
+
+        Attribute: Parameter layout The layout for the items inside the pane.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.Layouts.FlowLayout
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+
+                FlowLayout flow
+                pane:SetLayout(flow)
+
+                Button button
+                button:SetName("Hello")
+                pane:Add(button)
+                Add(pane)
+            end
+        end
+    */
     action SetLayout(Layout layout)
         renderer:SetLayout(layout)
     end
 
+    /*
+        This action sets when the vertical (up and down) scroll bar is shown. The
+        mode is one of VISIBLE_IF_NEEDED (the default), ALWAYS_VISIBLE, or
+        NEVER_VISIBLE. The change shows the next time the pane is resized.
+
+        Attribute: Parameter mode The visibility mode for the vertical scroll bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetVerticalBarVisibility(pane:ALWAYS_VISIBLE)
+
+                integer i = 0
+                repeat 20 times
+                    Button button
+                    button:SetName("Item " + i)
+                    pane:Add(button)
+                    i = i + 1
+                end
+                Add(pane)
+            end
+        end
+    */
     action SetVerticalBarVisibility(integer mode)
         verticalMode = mode
     end
 
+    /*
+        This action sets when the horizontal (left and right) scroll bar is shown.
+        The mode is one of VISIBLE_IF_NEEDED (the default), ALWAYS_VISIBLE, or
+        NEVER_VISIBLE. The change shows the next time the pane is resized.
+
+        Attribute: Parameter mode The visibility mode for the horizontal scroll bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.ScrollPane
+        use Libraries.Interface.Controls.Button
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                ScrollPane pane
+                pane:SetPixelWidth(200)
+                pane:SetPixelHeight(150)
+                pane:SetHorizontalBarVisibility(pane:NEVER_VISIBLE)
+
+                integer i = 0
+                repeat 20 times
+                    Button button
+                    button:SetName("Item " + i)
+                    pane:Add(button)
+                    i = i + 1
+                end
+                Add(pane)
+            end
+        end
+    */
     action SetHorizontalBarVisibility(integer mode)
         horizontalMode = mode
     end
 
+    /*
+        This action returns the control that shows the pane's content: its
+        ScrollPaneRenderer. It stays in place inside the pane and draws the
+        pane's background, while the content inside it moves as the pane scrolls.
+
+        Attribute: Returns The ScrollPaneRenderer of this pane.
+    */
     action GetScrollableRegion returns Control
         return renderer
     end
 
+    /*
+        This action returns the width of the pane's scroll region, which holds all
+        of its content. The region is laid out first if it needs to be. If this
+        is wider than the pane, the pane can scroll left and right.
+
+        Attribute: Returns The width of the content, in pixels.
+    */
     action GetTotalContentWidth returns number
         return renderer:GetContentWidth()
     end
 
+    /*
+        This action returns the height of the pane's scroll region, which holds
+        all of its content. The region is laid out first if it needs to be. If
+        this is taller than the pane, the pane can scroll up and down.
+
+        Attribute: Returns The height of the content, in pixels.
+    */
     action GetTotalContentHeight returns number
         return renderer:GetContentHeight()
     end
 
+    /*
+        This action returns how far one line of a mouse wheel turn scrolls the
+        pane, as a share of the content's height between 0 and 1. It is 10 pixels
+        for each unit of the scroll distance (see SetScrollDistance), divided by
+        the height of the content.
+
+        Attribute: Returns How far one line of scrolling moves, as a share of the content's height.
+    */
     action GetScrollIncrement returns number
         return (scrollDistance * 10) / GetTotalContentHeight()
     end
 
+    /*
+        This action does nothing for a ScrollPane. The ScrollableControl calls it
+        after the scroll position changes, but the pane moves its content when
+        its ScrollPaneRenderer is resized instead.
+    */
     action RefreshScrollableRegion
         // Do nothing. The ScrollPane manages the view of its scrollable region via resizing.
     end
 
+    /*
+        This action returns the layout properties of the pane's scroll region. They
+        can be changed to adjust how the region is sized and placed.
+
+        Attribute: Returns The layout properties of the scroll region.
+    */
     action GetScrollRegionProperties returns LayoutProperties
         return renderer:GetScrollRegionProperties()
     end
 
+    /*
+        This action returns the items directly inside the pane's scroll region,
+        which are the items that were added to the pane.
+
+        Attribute: Returns An array of the items in the scroll region.
+    */
     action GetScrollRegionItems returns Array<Item2D>
         return renderer:GetScrollRegionItems()
     end

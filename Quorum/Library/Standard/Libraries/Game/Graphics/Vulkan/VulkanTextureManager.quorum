@@ -30,7 +30,7 @@ class VulkanTextureManager
     // same.
     HashTable<Texture, Array<VulkanBuffer>> updateStagingBuffers
 
-    // How many mip levels each loaded texture's image has (Item 25). An
+    // How many mip levels each loaded texture's image has. An
     // update in place needs the same count.
     HashTable<Texture, integer> mipLevelTable
 
@@ -43,7 +43,7 @@ class VulkanTextureManager
     // The next index to store a texture at in the global array.
     integer nextTextureID = 0
     // Places of disposed textures, given back once no frame can still draw
-    // with them (Item 34). New textures take these first.
+    // with them. New textures take these first.
     Queue<integer> recycledTextureIDs
 
     /*
@@ -82,7 +82,7 @@ class VulkanTextureManager
         
         VulkanSampler immutableSampler
         VulkanSamplerInfo defaultInfo
-        // Blend between the two nearest mip levels (Item 25). A texture
+        // Blend between the two nearest mip levels. A texture
         // with one level is read as before.
         defaultInfo:SetMipMapMode(constants:SAMPLER_MIPMAP_MODE_LINEAR)
         // Anisotropic filtering keeps textures seen at a low angle, like
@@ -213,7 +213,7 @@ class VulkanTextureManager
         // A texture loaded again at a new size keeps its place, so
         // materials that hold it still show it. Frames in flight may be
         // drawing from that place, so wait for them before freeing the old
-        // image and linking the new one there (Item 34).
+        // image and linking the new one there.
         integer keptIndex = texture:GetVulkanTextureIndex()
         VulkanImageView oldView = texture:GetVulkanImageView()
         if oldView not= undefined
@@ -281,7 +281,7 @@ class VulkanTextureManager
         transitionForReadCommand:SetMemoryBarrier(readTransition)
         commandBuffer:Record(transitionForReadCommand)
 
-        // The copy above is the buffer's only use (Item 34).
+        // The copy above is the buffer's only use.
         graphics:Retire(buffer)
 
 
@@ -297,7 +297,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         texture:SetVulkanImageView(view)
 
         // The texture's place in the global array: its own if it had one,
-        // else a given-back one, else a new one (Item 34).
+        // else a given-back one, else a new one.
         if keptIndex >= 0
             globalTextureArray:Set(keptIndex, texture)
         elseif not recycledTextureIDs:IsEmpty()
@@ -388,7 +388,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         VulkanBuffer staging = buffers:Get(slot)
         if staging = undefined or staging:GetSize() not= byteSize
             // A buffer of another size from before is freed once its last
-            // copy has run (Item 34).
+            // copy has run.
             graphics:Retire(staging)
             VulkanBuffer newStaging
             newStaging:CreateTransferSourceBuffer(device, byteSize)
@@ -566,7 +566,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         BitwiseOperations bits
 
         // A cube made again replaces the old one, which earlier frames may
-        // still draw (Item 34).
+        // still draw.
         VulkanImageView oldView = texture:GetVulkanImageView()
         if oldView not= undefined
             graphics:Retire(oldView)
@@ -763,8 +763,7 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     the group, in one byte. Places left over at the end of a group when the
     block starts the next one are given to later textures. The places start
     out showing the unit texture; LinkTextureAt puts textures in them. A
-    terrain keeps its ground textures together this way (Quorum Studio plan,
-    texture groups).
+    terrain keeps its ground textures together this way.
 
     Attribute: Parameter count How many places, from 1 to the group's size or 255, whichever is less.
     Attribute: Returns The first place, in the global array.

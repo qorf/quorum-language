@@ -7,7 +7,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanPipeline_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanQueryPool_;
 
 /*
-The Java side of Quorum's VulkanDebugNames (Graphics timing plan T1b). The
+The Java side of Quorum's VulkanDebugNames. The
 naming is done by the platform's query commands strategy, which leaves it
 out where VK_EXT_debug_utils isn't loaded.
 */

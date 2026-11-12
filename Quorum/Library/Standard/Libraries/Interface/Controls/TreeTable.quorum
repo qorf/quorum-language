@@ -13,6 +13,83 @@ use Libraries.Game.Game
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
+/*
+The TreeTable class is a control that shows rows of information in columns,
+where rows can hold other rows under them, like a Tree and a table in one.
+Each row is a TreeTableRow and each column is a TreeTableColumn, which
+holds one TreeTableCell for every row being shown. A row with child rows
+can be opened to show them, indented below it, or closed to hide them; the
+cells in the first column have the button that does this. One cell at a
+time can be selected, with the mouse or the arrow keys. In the first
+column, the right arrow opens a row and the left arrow closes it or moves
+to its parent row. Typing letters jumps to the next row whose first cell
+starts with them.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+// In the file FileRow.quorum:
+use Libraries.Interface.Controls.TreeTableRow
+
+class FileRow is TreeTableRow
+    text fileName = ""
+
+    action SetFileName(text value)
+        fileName = value
+    end
+
+    action GetFileName returns text
+        return fileName
+    end
+end
+
+// In the file NameColumn.quorum:
+use Libraries.Interface.Controls.TreeTableColumn
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+
+class NameColumn is TreeTableColumn
+    action CreateCell returns TreeTableCell
+        TreeTableCell cell
+        return cell
+    end
+
+    action SetCell(integer index, TreeTableRow row)
+        if row is FileRow
+            FileRow file = cast(FileRow, row)
+            GetCell(index):SetText(file:GetFileName())
+        end
+    end
+end
+
+// In the file Main.quorum:
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Game.Game
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TreeTable table
+        NameColumn names
+        table:Add(names)
+
+        FileRow folder
+        folder:SetFileName("Scripts")
+        FileRow script
+        script:SetFileName("Main.quorum")
+        folder:AddRow(script)
+        table:Add(folder)
+
+        table:SetPosition(50, 300)
+        Add(table)
+        table:ExpandRow(folder)
+    end
+end
+*/
 class TreeTable is Control, FirstLetterNavigator
     Array<TreeTableColumn> columns
     Array<TreeTableRow> rows
@@ -42,10 +119,31 @@ class TreeTable is Control, FirstLetterNavigator
         SetName("Tree Table")
     end
 
+    /*
+    This action returns true, because a TreeTable holds other accessible items
+    (its cells). Screen readers use this to treat the table as the parent of
+    its cells. Most programs never use this action directly.
+
+    Attribute: Returns True, since a TreeTable is always an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+    This action adds an item to this table. If the item is a TreeTableColumn,
+    it is added as the last column, and it is filled with a cell for every row
+    the table is showing. Other items are added as ordinary children.
+
+    Attribute: Parameter item The column, or other item, to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    // NameColumn is a column class, such as the one in the TreeTable class example.
+    NameColumn names
+    table:Add(names)
+    */
     action Add(Item2D item)
         if item is TreeTableColumn
             TreeTableColumn column = cast(TreeTableColumn, item)
@@ -58,6 +156,23 @@ class TreeTable is Control, FirstLetterNavigator
         parent:Item2D:Add(item)
     end
 
+    /*
+    This action adds an item to this table at the given position among its
+    children. If the item is a TreeTableColumn, it is also placed at that
+    position among the columns and filled with a cell for every row the table
+    is showing.
+
+    Attribute: Parameter position Where to put the item, counting from 0.
+
+    Attribute: Parameter item The column, or other item, to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    // NameColumn is a column class, such as the one in the TreeTable class example.
+    NameColumn names
+    table:Add(0, names)
+    */
     action Add(integer position, Item2D item)
         if item is TreeTableColumn
             TreeTableColumn column = cast(TreeTableColumn, item)
@@ -70,6 +185,15 @@ class TreeTable is Control, FirstLetterNavigator
         parent:Item2D:Add(position, item)
     end
 
+    /*
+    This action removes an item from this table. If the item is a
+    TreeTableColumn, it is also taken out of the table's columns and no longer
+    belongs to the table.
+
+    Attribute: Parameter item The column, or other item, to remove.
+
+    Attribute: Returns True if the item was removed.
+    */
     action Remove(Item2D item) returns boolean
         if item is TreeTableColumn
             TreeTableColumn column = cast(TreeTableColumn, item)
@@ -80,6 +204,19 @@ class TreeTable is Control, FirstLetterNavigator
         return parent:Item2D:Remove(item)
     end
 
+    /*
+    This action removes the column at the given position, counting from 0 at
+    the left.
+
+    Attribute: Parameter column The position of the column to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    if not table:IsColumnsEmpty()
+        table:RemoveColumnAt(0)
+    end
+    */
     action RemoveColumnAt(integer column)
         TreeTableColumn c = columns:RemoveAt(column)
         parent:Item2D:Remove(c)
@@ -118,6 +255,20 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action adds a row to the end of the table's top-level rows. The row
+    and all of the rows under it are told they belong to this table, and each
+    column gets a new cell for the row.
+
+    Attribute: Parameter row The row to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    TreeTable table
+    TreeTableRow row
+    table:Add(row)
+    */
     action Add(TreeTableRow row)
         row:SetParentTreeTable(me)
         SetParentTreeTableReferences(row:GetChildren(), me)
@@ -139,6 +290,25 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action adds a row to the table's top-level rows at the given
+    position, counting from 0. The row and all of the rows under it are told
+    they belong to this table, and each column gets a new cell for the row in
+    the matching place, after any open rows above it.
+
+    Attribute: Parameter position Where to put the row among the top-level rows.
+
+    Attribute: Parameter row The row to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    TreeTable table
+    TreeTableRow second
+    table:Add(second)
+    TreeTableRow first
+    table:Add(0, first)
+    */
     action Add(integer position, TreeTableRow row)
         row:SetParentTreeTable(me)
         SetParentTreeTableReferences(row:GetChildren(), me)
@@ -205,6 +375,14 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action tells each of the given rows, and every row under them, which
+    TreeTable they belong to.
+
+    Attribute: Parameter rows The rows to update.
+
+    Attribute: Parameter table The TreeTable the rows belong to, or undefined.
+    */
     private action SetParentTreeTableReferences(Array<TreeTableRow> rows, TreeTable table)
         integer counter = 0
         repeat while counter < rows:GetSize()
@@ -219,6 +397,18 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action removes every row from the table and clears the selection. The
+    columns stay, but they no longer have any cells.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    TreeTable table
+    TreeTableRow row
+    table:Add(row)
+    table:EmptyRows()
+    */
     action EmptyRows 
         integer i = 0
         repeat while i < columns:GetSize()
@@ -231,6 +421,26 @@ class TreeTable is Control, FirstLetterNavigator
         selection:Empty()
     end
 
+    /*
+    This action removes a row, and the rows under it, from the table. The row
+    is closed first and its cells are removed from every column. If the
+    selected cell was in the row, the cell above it in the same column is
+    selected instead. A top-level row is taken out of the table's rows; a child
+    row is taken out of its parent row, and if it was the parent's only child,
+    the parent is marked as closed.
+
+    Attribute: Parameter row The row to remove.
+
+    Attribute: Returns True if the row was removed, false if it was a top-level row that isn't in this table.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    TreeTable table
+    TreeTableRow row
+    table:Add(row)
+    boolean removed = table:Remove(row)
+    */
     action Remove(TreeTableRow row) returns boolean
         if row = undefined
             return now
@@ -297,6 +507,15 @@ class TreeTable is Control, FirstLetterNavigator
         return total
     end
 
+    /*
+    This action counts how many rows the table shows for the given row: 1 for
+    the row itself, plus, if it is open, the shown rows of each of its
+    children.
+
+    Attribute: Parameter row The row to count.
+
+    Attribute: Returns The number of shown rows for the row and its open children.
+    */
     private action GetActiveRowCount(TreeTableRow row) returns integer
         integer total = 1
         
@@ -330,6 +549,19 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action looks for a row among the given rows and the children of any
+    that are open, counting the shown rows it passes. When the row is found,
+    found is set to true and the count so far is its flattened index.
+
+    Attribute: Parameter rows The rows to search.
+
+    Attribute: Parameter targetRow The row to look for.
+
+    Attribute: Parameter found Set to true when the row is found.
+
+    Attribute: Returns The number of shown rows before the target row, or the number searched if it wasn't found.
+    */
     private action GetFlattenedIndex(Array<TreeTableRow> rows, TreeTableRow targetRow, Boolean found) returns integer
         integer counter = 0
         integer index = 0
@@ -352,22 +584,74 @@ class TreeTable is Control, FirstLetterNavigator
         return index
     end
 
+    /*
+    This action returns the column at the given position, counting from 0 at
+    the left.
+
+    Attribute: Parameter i The position of the column.
+
+    Attribute: Returns The column at that position.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableColumn
+    TreeTable table
+    if not table:IsColumnsEmpty()
+        TreeTableColumn first = table:GetColumn(0)
+    end
+    */
     action GetColumn(integer i) returns TreeTableColumn
         return columns:Get(i)
     end
 
+    /*
+    This action returns how many columns the table has.
+
+    Attribute: Returns The number of columns.
+    */
     action GetColumnsSize returns integer
         return columns:GetSize()
     end
 
+    /*
+    This action returns the table's selection, which tells which cell is
+    selected by its row and column positions.
+
+    Attribute: Returns The selection of this table.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Selections.TreeTableSelection
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTable table
+    TreeTableSelection selection = table:GetSelection()
+    if not selection:IsEmpty()
+        TreeTableCell cell = selection:Get()
+    end
+    */
     action GetSelection returns TreeTableSelection
         return selection
     end
 
+    /*
+    This action returns true if the table has no columns.
+
+    Attribute: Returns True if there are no columns, false otherwise.
+    */
     action IsColumnsEmpty returns boolean
         return columns:IsEmpty()
     end
 
+    /*
+    This action removes all of the table's columns and other children and
+    clears the selection. The table's rows are kept, so columns added
+    afterward are filled with cells for them.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:Empty()
+    */
     action Empty 
         selection:Empty()
         columns:Empty()
@@ -410,6 +694,14 @@ class TreeTable is Control, FirstLetterNavigator
         selection:Set(row, column)
     end
 
+    /*
+    This action clears the selection, so no cell is selected.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:Deselect()
+    */
     action Deselect
         TreeTableCell oldSelection = selection:Get()
         if oldSelection not= undefined
@@ -419,6 +711,15 @@ class TreeTable is Control, FirstLetterNavigator
         selection:Empty()
     end
 
+    /*
+    This action selects the cell above the selected cell, in the same column.
+    It does nothing if nothing is selected or the selection is in the top row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:MoveSelectionUp()
+    */
     action MoveSelectionUp
         if selection:IsEmpty()
             return now
@@ -432,6 +733,16 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the cell below the selected cell, in the same column.
+    It does nothing if nothing is selected or the selection is in the bottom
+    row. The down arrow key uses it.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:MoveSelectionDown()
+    */
     action MoveSelectionDown
         if selection:IsEmpty()
             return now
@@ -448,6 +759,16 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the cell to the left of the selected cell, in the same
+    row. It does nothing if nothing is selected or the selection is in the
+    first column.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:MoveSelectionLeft()
+    */
     action MoveSelectionLeft
         if selection:IsEmpty()
             return now
@@ -461,6 +782,16 @@ class TreeTable is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the cell to the right of the selected cell, in the
+    same row. It does nothing if nothing is selected or the selection is in
+    the last column.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    table:MoveSelectionRight()
+    */
     action MoveSelectionRight
         if selection:IsEmpty()
             return now
@@ -551,6 +882,37 @@ class TreeTable is Control, FirstLetterNavigator
         return cellBehavior
     end
 
+    /*
+    This action opens a row, showing its child rows below it. Each column gets
+    a cell for each child, the row's button shows that it is open, the
+    selection moves down if it was below the new rows, and the table change
+    listeners are told the row opened. It does nothing if the row is already
+    open or isn't being shown.
+
+    Attribute: Parameter parentRow The row to open.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            TreeTable table
+            TreeTableRow folder
+            TreeTableRow file
+            folder:AddRow(file)
+            table:Add(folder)
+            Add(table)
+
+            table:ExpandRow(folder)
+        end
+    end
+    */
     action ExpandRow(TreeTableRow parentRow)
         if parentRow:IsExpanded()
             return now
@@ -604,6 +966,38 @@ class TreeTable is Control, FirstLetterNavigator
         NotifyTreeTableChangeListeners(event)
     end
 
+    /*
+    This action closes a row, hiding its child rows. Open child rows are closed
+    first, their cells are removed from every column, the selection moves up if
+    it was below the row, the row's button shows that it is closed, and the
+    table change listeners are told the row closed. It does nothing if the row
+    isn't open or isn't being shown.
+
+    Attribute: Parameter row The row to close.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    use Libraries.Game.Game
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            TreeTable table
+            TreeTableRow folder
+            TreeTableRow file
+            folder:AddRow(file)
+            table:Add(folder)
+            Add(table)
+
+            table:ExpandRow(folder)
+            table:CloseRow(folder)
+        end
+    end
+    */
     action CloseRow(TreeTableRow row)
         if row:IsExpanded() = false
             return now
@@ -756,7 +1150,11 @@ class TreeTable is Control, FirstLetterNavigator
     end
 
     /*
+    This action is called when the table gains the focus. If nothing is
+    selected, it selects the first cell of the first column, if there is one.
+    The selected cell is then drawn in the focused selection color.
 
+    Attribute: Parameter event The focus event.
     */
     action GainedFocus(FocusEvent event)
         if selection:IsEmpty()
@@ -773,6 +1171,12 @@ class TreeTable is Control, FirstLetterNavigator
         parent:Control:GainedFocus(event)
     end
 
+    /*
+    This action is called when the table loses the focus. It draws the
+    selected cell in the unfocused selection color.
+
+    Attribute: Parameter event The focus event.
+    */
     action LostFocus(FocusEvent event)
         TreeTableCell cell = selection:Get()
         if cell not= undefined
@@ -782,6 +1186,12 @@ class TreeTable is Control, FirstLetterNavigator
         parent:Control:LostFocus(event)
     end
 
+    /*
+    This action tells the table's change listeners, and then the game's input
+    handler, that a row was opened or closed, depending on the event's type.
+
+    Attribute: Parameter event The event describing the row that changed.
+    */
     private action NotifyTreeTableChangeListeners(TreeTableChangeEvent event)
         integer counter = 0
         if event:GetEventType() = event:OPENED

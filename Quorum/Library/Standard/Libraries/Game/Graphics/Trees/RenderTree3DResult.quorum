@@ -43,8 +43,8 @@ class RenderTree3DResult
     Camera camera = undefined
     integer frame = 0
     integer searchCount = 0
-    // The point light being searched for, as its bit, or 0 for none
-    // (Shadow plan S2). Every item found while it is set is marked with it.
+    // The point light being searched for, as its bit, or 0 for none.
+    // Every item found while it is set is marked with it.
     integer shadowBit = 0
 
     // The view to sort items by when there is no camera, such as in a test
@@ -88,7 +88,7 @@ class RenderTree3DResult
     */
     action Add(RenderTreeNode3D leaf)
         // An item a point light's search finds is marked with the light,
-        // even if an earlier search already added it (Shadow plan S2).
+        // even if an earlier search already added it.
         if shadowBit not= 0
             leaf:GetItem():AddShadowLight(shadowBit, frame)
         end
@@ -165,7 +165,7 @@ class RenderTree3DResult
 
     /*
     This action sets the point light being searched for, as its bit, or 0
-    for none (Shadow plan S2). Every item Add is given while it is set is
+    for none. Every item Add is given while it is set is
     marked with it (Item3D:AddShadowLight), with this result's frame.
 
     Attribute: Parameter bit The light's bit, or 0.
@@ -176,7 +176,7 @@ class RenderTree3DResult
 
     /*
     This action returns the point light being searched for, as its bit, or
-    0 for none (Shadow plan S2).
+    0 for none.
 
     Attribute: Returns The light's bit, or 0.
     */

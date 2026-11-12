@@ -104,7 +104,7 @@ public class NativeVulkanDrawQueue3DInstanceMappedMemory implements VulkanDrawQu
 
     /*
     Copies instances packed in a VulkanInstanceBlock into the mapped buffer
-    at the current position, in one move (Dense grass plan DG2). The block
+    at the current position, in one move. The block
     is packed in the same layout and byte order TransferInstanceData writes.
     */
     public void TransferInstanceBlock(VulkanInstanceBlock_ block, int first, int count)

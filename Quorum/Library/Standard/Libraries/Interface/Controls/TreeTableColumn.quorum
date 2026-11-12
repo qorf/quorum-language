@@ -3,6 +3,80 @@ use Libraries.Containers.Array
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 
+/*
+The TreeTableColumn class is one column of a TreeTable. It holds one
+TreeTableCell for each row the table is showing, in order from top to
+bottom, and places them in a single column. TreeTableColumn has two
+blueprint actions, so a program makes its own column class: CreateCell
+makes a new cell, and SetCell fills in a cell from the row it shows. The
+TreeTable calls both whenever rows are added or opened. The cells of the
+first column of a table also have the buttons that open and close rows.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+// In the file FileRow.quorum:
+use Libraries.Interface.Controls.TreeTableRow
+
+class FileRow is TreeTableRow
+    text fileName = ""
+
+    action SetFileName(text value)
+        fileName = value
+    end
+
+    action GetFileName returns text
+        return fileName
+    end
+end
+
+// In the file NameColumn.quorum:
+use Libraries.Interface.Controls.TreeTableColumn
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+
+class NameColumn is TreeTableColumn
+    action CreateCell returns TreeTableCell
+        TreeTableCell cell
+        return cell
+    end
+
+    action SetCell(integer index, TreeTableRow row)
+        if row is FileRow
+            FileRow file = cast(FileRow, row)
+            GetCell(index):SetText(file:GetFileName())
+        end
+    end
+end
+
+// In the file Main.quorum:
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Game.Game
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TreeTable table
+        NameColumn names
+        table:Add(names)
+
+        FileRow folder
+        folder:SetFileName("Scripts")
+        FileRow script
+        script:SetFileName("Main.quorum")
+        folder:AddRow(script)
+        table:Add(folder)
+
+        table:SetPosition(50, 300)
+        Add(table)
+        table:ExpandRow(folder)
+    end
+end
+*/
 class TreeTableColumn is Control
     Array<TreeTableCell> cells
     boolean hasHeader = false
@@ -19,44 +93,126 @@ class TreeTableColumn is Control
         properties:SetPixelWidth(100)
     end
 
+    /*
+    This action adds a cell to the end of this column. The TreeTable uses it
+    when rows are added, so most programs never call it directly.
+
+    Attribute: Parameter cell The cell to add.
+    */
     action Add(TreeTableCell cell)
         cells:Add(cell)
 
         parent:Control:Add(cell)
     end
 
+    /*
+    This action adds a cell to this column at the given position, counting
+    from 0 at the top. The TreeTable uses it when rows are added or opened, so
+    most programs never call it directly.
+
+    Attribute: Parameter position The place in the column to put the cell.
+
+    Attribute: Parameter cell The cell to add.
+    */
     action Add(integer position, TreeTableCell cell)
         cells:Add(position, cell)
 
         parent:Control:Add(position, cell)
     end
 
+    /*
+    This action returns the cell at the given position in this column,
+    counting from 0 at the top. The position counts every row the table is
+    showing, including the child rows of open rows.
+
+    Attribute: Parameter i The position of the cell in the column.
+
+    Attribute: Returns The cell at that position.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableColumn
+    use Libraries.Interface.Controls.TreeTableCell
+    TreeTable table
+    if not table:IsColumnsEmpty()
+        TreeTableColumn column = table:GetColumn(0)
+        if not column:IsCellsEmpty()
+            TreeTableCell cell = column:GetCell(0)
+            text value = cell:GetText()
+        end
+    end
+    */
     action GetCell(integer i) returns TreeTableCell
         return cells:Get(i)
     end
 
+    /*
+    This action removes the given cell from this column. The TreeTable removes
+    cells itself when rows are removed or closed, so most programs never call
+    it directly.
+
+    Attribute: Parameter cell The cell to remove.
+    */
     action RemoveCell(TreeTableCell cell)
         cells:Remove(cell)
         parent:Control:Remove(cell)
     end
 
+    /*
+    This action removes the cell at the given position in this column. The
+    TreeTable uses it when rows are removed or closed, so most programs never
+    call it directly.
+
+    Attribute: Parameter position The position of the cell to remove.
+    */
     action RemoveCellAt(integer position)
         TreeTableCell c = cells:RemoveAt(position)
         parent:Control:Remove(position)
     end
 
+    /*
+    This action returns how many cells are in this column, which is the number
+    of rows the table is showing, including the child rows of open rows.
+
+    Attribute: Returns The number of cells in the column.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    if not table:IsColumnsEmpty()
+        integer shownRows = table:GetColumn(0):GetSize()
+    end
+    */
     action GetSize returns integer
         return cells:GetSize()
     end
 
+    /*
+    This action returns true if this column has no cells.
+
+    Attribute: Returns True if the column has no cells, false otherwise.
+    */
     action IsCellsEmpty returns boolean
         return cells:IsEmpty()
     end
 
+    /*
+    This action sets the TreeTable this column belongs to. The TreeTable calls
+    it when the column is added or removed, so most programs never call it
+    directly.
+
+    Attribute: Parameter table The TreeTable holding this column, or undefined.
+    */
     action SetTreeTable(TreeTable table)
         treeTable = table
     end
 
+    /*
+    This action returns the TreeTable this column belongs to, or undefined if
+    it hasn't been added to one.
+
+    Attribute: Returns The TreeTable holding this column, or undefined.
+    */
     action GetTreeTable returns TreeTable
         return treeTable
     end
@@ -86,6 +242,10 @@ class TreeTableColumn is Control
         return -1
     end
 
+    /*
+    This action removes every cell from this column. The TreeTable uses it when
+    its rows are emptied or rebuilt, so most programs never call it directly.
+    */
     action Empty 
         cells:Empty()
         parent:Item2D:Empty()
@@ -100,6 +260,18 @@ class TreeTableColumn is Control
         return treeTable not= undefined and treeTable:IsFirstColumn(me)
     end
 
+    /*
+    This action makes a cell for a row and puts it at the given position: it
+    calls CreateCell, sets the cell's row and accessible parent, adds it to the
+    column and fills it in with SetCell. The TreeTable uses it when a row is
+    opened or a child row is added, so most programs never call it directly.
+
+    Attribute: Parameter index The position in the column for the new cell.
+
+    Attribute: Parameter row The row the new cell shows.
+
+    Attribute: Parameter parentCell The first cell of the parent row, or undefined.
+    */
     action AddCell(integer index, TreeTableRow row, TreeTableCell parentCell)
         TreeTableCell cell = CreateCell()
         cell:SetRow(row)
@@ -108,6 +280,18 @@ class TreeTableColumn is Control
         SetCell(index, row)
     end
 
+    /*
+    This action fills in every cell of this column again by calling SetCell
+    with the cell's row, so the cells show the rows' current information. The
+    TreeTable's Refresh action calls it for each column.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    TreeTable table
+    if not table:IsColumnsEmpty()
+        table:GetColumn(0):Refresh()
+    end
+    */
     action Refresh
         integer counter = 0
         repeat while counter < cells:GetSize()
@@ -117,8 +301,24 @@ class TreeTableColumn is Control
         end
     end
 
+    /*
+    This action returns a new, empty cell for this column. The TreeTable calls
+    it each time it needs a cell, such as when a row is added or opened. A
+    column class can return a TreeTableCell or a class that is one.
+
+    Attribute: Returns A new cell for this column.
+    */
     blueprint action CreateCell returns TreeTableCell
 
+    /*
+    This action fills in the cell at the given position from the given row,
+    usually by setting its text with the cell's SetText action. The TreeTable
+    calls it after a cell is made, and again when the table is refreshed.
+
+    Attribute: Parameter index The position of the cell in this column.
+
+    Attribute: Parameter row The row whose information the cell shows.
+    */
     blueprint action SetCell(integer index, TreeTableRow row)
 
 end

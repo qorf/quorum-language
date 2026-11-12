@@ -19,8 +19,8 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlig
 use Libraries.Game.Graphics.Worlds.TerrainGenerator
 
 /*
-    The TerrainStampPropertiesDialog is a selected terrain's Stamp section
-    (step 17): the Stamp tool's shape (a hill, mountain, mesa, crater or
+    The TerrainStampPropertiesDialog is a selected terrain's Stamp section:
+the Stamp tool's shape (a hill, mountain, mesa, crater or
     ridge), how it meets the ground, its height and its turn. It shows only
     while the terrain's Stamp tool is chosen, right after the Brush section.
     Each click with the Stamp tool presses the shape into the ground at the
@@ -64,7 +64,7 @@ class TerrainStampPropertiesDialog is PropertiesDialog
         headingLabel:SetTopMargin(6)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         AddCaption(panel, "Shape:")
@@ -90,7 +90,7 @@ class TerrainStampPropertiesDialog is PropertiesDialog
         modeGroup:AddSelectionListener(me)
         AddGroup(panel, modeGroup, focusArray)
 
-        // Sliders with number fields (Slider plan), in a line's margins.
+        // Sliders with number fields, in a line's margins.
         stampHeightField = AddSlider(panel, "Height:", "Stamp height in world units", "How high the stamp's shape is, in world units", 0, 128, 0.5, 4, "15", focusArray)
         turnField = AddSlider(panel, "Turn:", "Stamp turn in degrees", "How far the stamp's shape is turned about the up axis", 0, 360, 1, 15, "0", focusArray)
         stampHeightField:AddTextChangeListener(me)

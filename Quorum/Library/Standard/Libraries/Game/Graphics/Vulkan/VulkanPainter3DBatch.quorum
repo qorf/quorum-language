@@ -22,7 +22,7 @@ class VulkanPainter3DBatch
     Array<Model> models
     integer meshesPerModel = 0
 
-    // Which of the blueprint's meshes this batch draws (the mesh split): all
+    // Which of the blueprint's meshes this batch draws: all
     // of them, only those with a see-through material, or only the others.
     // A model with a paper shade draws its opaque meshes in the scene pass,
     // where they hide one another, and only the shade after the lighting.
@@ -53,7 +53,7 @@ class VulkanPainter3DBatch
     integer drawQueueUseCount = 0
     // For each draw queue, the point lights whose shadow searches found any
     // of those meshes' models, ORed together, so each point light draws
-    // only its own casters (Shadow plan S2). Sized with drawQueueUses.
+    // only its own casters. Sized with drawQueueUses.
     Integer32BitArray drawQueueMasks
     BitwiseOperations bits
 
@@ -102,7 +102,7 @@ class VulkanPainter3DBatch
 
     /*
     This action sets which of the blueprint's meshes this batch draws:
-    ALL_MESHES, SEE_THROUGH_MESHES or OPAQUE_MESHES (the mesh split).
+    ALL_MESHES, SEE_THROUGH_MESHES or OPAQUE_MESHES.
 
     Attribute: Parameter filter Which meshes to draw.
     */
@@ -119,7 +119,7 @@ class VulkanPainter3DBatch
         return meshFilter
     end
 
-    // Whether this batch draws a mesh, by its material (the mesh split).
+    // Whether this batch draws a mesh, by its material.
     private action DrawsMesh(MeshVulkan mesh) returns boolean
         if meshFilter = ALL_MESHES
             return true
@@ -218,7 +218,7 @@ class VulkanPainter3DBatch
                     end
                     
                     // Each animated model potentially uses a different vertex buffer and must be drawn separately.
-                    // An animated model's copies (Foliage plan F5) aren't
+                    // An animated model's copies aren't
                     // drawn; only the model is. A full queue grows for the
                     // next frame.
                     if queue:GetRoom() > 0
@@ -246,8 +246,7 @@ class VulkanPainter3DBatch
                 // others, each with their own draw commands, so a command's
                 // shadow setting is right for every instance in it. (It used
                 // to come from the last model for all of them.) Last come
-                // the models that draw only their shadows (Dense grass plan
-                // DG3), whose commands go to the shadows alone.
+                // the models that draw only their shadows, whose commands go to the shadows alone.
                 integer pass = 0
                 repeat while pass < 3
                     boolean shadowPass = pass not= 1
@@ -280,8 +279,8 @@ class VulkanPainter3DBatch
                             VulkanDrawQueue3D queue = painter:GetCurrentDrawQueue(program, group)
                             
                             if model:GetCopyCount() > 0
-                                // One instance per copy (Foliage plan F5),
-                                // packed once (Dense grass plan DG2).
+                                // One instance per copy,
+                                // packed once.
                                 integer written = AddCopies(queue, i, mesh, model, textureOverride, diffuseOverride)
                                 AddUses(group, written, shadowMask)
                             elseif queue:GetRoom() > 0
@@ -307,12 +306,12 @@ class VulkanPainter3DBatch
     /*
     This action adds one draw command to each draw queue this mesh's
     instances were written to since the last commands, covering them, and
-    starts the counts again (Foliage plan F5 split this out of ProcessBatch).
+    starts the counts again.
 
     Attribute: Parameter painter The painter, whose queues are used.
     Attribute: Parameter mesh The mesh the instances draw.
     Attribute: Parameter castsShadows True if every one of these instances casts shadows.
-    Attribute: Parameter inScene False if these instances draw only their shadows (Dense grass plan DG3).
+    Attribute: Parameter inScene False if these instances draw only their shadows.
     */
     private action FlushDrawCommands(VulkanPainter3D painter, MeshVulkan mesh, boolean castsShadows, boolean inScene)
         integer j = 0
@@ -332,9 +331,8 @@ class VulkanPainter3DBatch
     end
 
     /*
-    This action adds one instance for each of a model's copies (Foliage
-    plan F5), from the copies packed once for this mesh (Dense grass plan
-    DG2): the model keeps a VulkanCopyBlocks, which packs the model's
+    This action adds one instance for each of a model's copies, from the copies packed once for
+    this mesh: the model keeps a VulkanCopyBlocks, which packs the model's
     transform times each copy's, with the copy's color or shade, and packs
     again only when something changed. A frame copies the packed block into
     the queue in one move. Copies that don't fit in the queue are left out
@@ -371,7 +369,7 @@ class VulkanPainter3DBatch
 
     /*
     This action counts instances written to a texture group's draw queue
-    since its last draw command (Foliage plan F5).
+    since its last draw command.
 
     Attribute: Parameter index The texture group.
     Attribute: Parameter count How many instances were written.

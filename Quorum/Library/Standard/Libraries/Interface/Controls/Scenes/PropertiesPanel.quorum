@@ -22,7 +22,7 @@ use Libraries.Game.GameStateManager
     editor, as in the dialogs.
 
     When it shows two or more sections, each has a header, like an item in
-    a tree, that opens and closes it (step 15). Which sections are closed
+    a tree, that opens and closes it. Which sections are closed
     is kept by title, so a section closed once stays closed for every item
     that shows it. SetClosedSections lets a program share and save that
     list.
@@ -48,7 +48,7 @@ class PropertiesPanel is Control
     // sections show in.
     Array<PropertiesDialog> docked
 
-    // The titles of the closed sections (step 15).
+    // The titles of the closed sections.
     Array<text> closedSections
 
     GameStateManager manager
@@ -113,7 +113,7 @@ class PropertiesPanel is Control
         end
         Control content = dialog:GetContent()
         // Each section is read as one named group, such as "Object
-        // Properties" or "Terrain" (step 12).
+        // Properties" or "Terrain".
         content:SetName(dialog:GetName())
         content:SetAccessibilityCode(parent:Item:GROUP)
         // A section goes in its place among those showing, in the order
@@ -143,7 +143,7 @@ class PropertiesPanel is Control
 
     /*
         Gives each showing section a header when two or more show, opened
-        or closed as last left, then links the Tab order (step 15).
+        or closed as last left, then links the Tab order.
     */
     private action UpdateSections
         boolean several = showing:GetSize() >= 2
@@ -181,7 +181,7 @@ class PropertiesPanel is Control
 
     /*
         Links the Tab order again, and lays the panel out, after a section
-        showed or hid some of its own controls (step 16).
+        showed or hid some of its own controls.
     */
     action SectionLayoutChanged
         LinkFocus()
@@ -214,7 +214,7 @@ class PropertiesPanel is Control
 
     /*
         Closes the section the focus is in, and moves the focus to its
-        header (step 15). It does nothing with one section, or with the
+        header. It does nothing with one section, or with the
         focus outside the panel.
     */
     action CloseFocusedSection
@@ -230,7 +230,7 @@ class PropertiesPanel is Control
 
     /*
         Opens the section the focus is in, from its header or inside it, and
-        moves the focus to its first control (step 15).
+        moves the focus to its first control.
     */
     action OpenFocusedSection
         PropertiesDialog dialog = GetFocusedSection()
@@ -300,7 +300,7 @@ class PropertiesPanel is Control
         Links the Tab order through every showing section, in order: each
         section's last field leads to the next section's first field, and
         the last section's leads back to the first's. With one section, its
-        own order loops as in its dialog (step 5).
+        own order loops as in its dialog.
     */
     private action LinkFocus
         integer i = 0

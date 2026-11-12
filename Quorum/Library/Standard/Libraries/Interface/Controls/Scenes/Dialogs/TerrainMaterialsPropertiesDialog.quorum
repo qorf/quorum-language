@@ -30,7 +30,7 @@ use Libraries.Game.Graphics.Color
 
 /*
     The TerrainMaterialsPropertiesDialog is a selected terrain's Materials
-    section (step 9): the ground layers it can be painted with. A new
+    section: the ground layers it can be painted with. A new
     terrain has none, and its ground is plain. "Add material..." adds a
     layer from a material file, or from a texture set's color map or
     another image, for which a material file is written. The first layer
@@ -40,7 +40,7 @@ use Libraries.Game.Graphics.Color
     Each layer is a card titled with its name, holding its tile size and
     its buttons: "Choose..." to give it another material, "Remove", and
     "Details...". Two arrows on the title line move the layer up or down
-    one place (step 18); the painting stays where it is, so the ground is
+    one place; the painting stays where it is, so the ground is
     drawn again with the materials in their new places. The blend softness, in its own card, is how softly
     texture set layers blend where they meet. A line above the cards says
     only what is worth saying, such as a missing material file. Adding,
@@ -58,7 +58,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     public constant integer ADD = 0
     public constant integer CHOOSE = 1
     public constant integer REMOVE = 2
-    // The Material details (step 14): open them for a layer, close them,
+    // The Material details: open them for a layer, close them,
     // choose or clear a map (the button's layer is then the map's kind, such
     // as Material's NORMAL_MAP), find maps by name, or make a set plain.
     public constant integer DETAILS = 3
@@ -67,7 +67,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     public constant integer CLEAR_MAP = 6
     public constant integer FIND_MAPS = 7
     public constant integer MAKE_PLAIN = 8
-    // Moving a layer up or down one place (step 18).
+    // Moving a layer up or down one place.
     public constant integer MOVE_UP = 9
     public constant integer MOVE_DOWN = 10
 
@@ -94,7 +94,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     Array<Button> chooseButtons
     Array<Button> removeButtons
     Array<Button> detailsButtons
-    // Each layer's arrows, which move it up or down one place (step 18).
+    // Each layer's arrows, which move it up or down one place.
     Array<LayerMoveButton> upButtons
     Array<LayerMoveButton> downButtons
 
@@ -102,7 +102,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     // again: the rows shown, the details, the blend softness.
     Array<Control> layersShown
 
-    // The Material details (step 14): which layer they are open for, or -1,
+    // The Material details: which layer they are open for, or -1,
     // and their controls. The details panel's lines are put together again
     // for each material, so a set and a plain texture show what they have.
     integer detailsLayer = -1
@@ -156,7 +156,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         Label status
@@ -197,7 +197,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         blendContainer:SetPercentageWidth(1.0)
         blendContainer:SetVerticalLayoutMode(blendContainer:FIT_CONTENTS)
         Control blendCard = AddCard(blendContainer, "Blending")
-        // A slider with its number field (Slider plan). Moving it writes the
+        // A slider with its number field. Moving it writes the
         // number in the field, which this section hears as typing, so the
         // ground's blending changes as it moves.
         SliderField blendSlider = MakeSliderField("Blend softness:", "Blend softness", "How softly the ground layers blend where they meet, from 0.01 to 1", 0.01, 1, 0.01, 0.1, BLEND_LABEL_WIDTH)
@@ -236,7 +236,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
         // The card's title is the layer's name. Unlike other card titles,
         // it is a focus stop, so a screen reader reads which layer it is.
-        // Its line ends with the arrows that move the layer (step 18).
+        // Its line ends with the arrows that move the layer.
         Control titleLine
         FlowLayout titleLayout
         titleLine:SetLayout(titleLayout)
@@ -286,7 +286,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         Control card = MakeCard()
         row:Add(card)
 
-        // The tile size is a slider and a number field (Slider plan). Its
+        // The tile size is a slider and a number field. Its
         // useful sizes are spread unevenly, so the track is spread by
         // ratios: each key press is a quarter more, Page Up doubles. Moving
         // it writes the number in the field, which this section hears as
@@ -346,7 +346,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Makes the Material details' controls (step 14). They are put in the
+        Makes the Material details' controls. They are put in the
         layers panel, under the rows, when Details... is pressed.
     */
     private action MakeDetails
@@ -405,7 +405,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         findButton = MakeButton(findLine, "Find maps by name", "Fill in the maps that are none, from the color map's folder, by their names", FIND_MAPS, 0)
         makePlainButton = MakeButton(findLine, "Make plain", "Make this a plain texture, with its color map as its one image", MAKE_PLAIN, 0)
 
-        // Sliders with number fields (Slider plan), each a line of its own;
+        // Sliders with number fields, each a line of its own;
         // a final change is taken as when the focus leaves a field.
         SliderField roughnessSlider = MakeDetailsSlider("Roughness:", "Roughness, from 0 to 1", "How rough the material's surface is: 0 is mirror smooth, 1 is fully rough")
         roughnessLine = roughnessSlider
@@ -726,7 +726,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
     /*
         Fills in the Material details for the layer they are open for, and
-        puts together the lines its material has (step 14). It adds the
+        puts together the lines its material has. It adds the
         details' controls, in order, to the Tab order's chain.
     */
     private action FillDetails(Array<Control> chain)
@@ -838,7 +838,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Shows the terrain's materials again, after one changed (step 14).
+        Shows the terrain's materials again, after one changed.
     */
     action Refresh
         if terrain not= undefined
@@ -975,7 +975,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Moves a layer up or down one place (step 18). The open Material
+        Moves a layer up or down one place. The open Material
         details follow the material they show. Afterward the focus is on the
         moved layer's arrow in its new place, the same way if it can go
         further, so pressing again keeps moving it, or else the other way.
@@ -1041,8 +1041,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
 
     /*
         This action is called when the focus leaves one of the Material
-        details' fields: the name, roughness or metallic is then taken
-        (step 14). A number out of range is ignored.
+        details' fields: the name, roughness or metallic is then taken.
+A number out of range is ignored.
 
         Attribute: Parameter field The field the focus left
     */

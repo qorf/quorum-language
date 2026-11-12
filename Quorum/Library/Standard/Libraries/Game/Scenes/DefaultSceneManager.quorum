@@ -45,11 +45,11 @@ class DefaultSceneManager is SceneManager
     HashTable<text, Texture> loadedTextures
 
     // The terrain materials loaded for the scene being loaded, by full
-    // path, so terrains that share one share it (step 9).
+    // path, so terrains that share one share it.
     HashTable<text, TerrainMaterial> loadedTerrainMaterials
 
     // The layer materials loaded for the scene being loaded, by full path,
-    // so layers naming the same material file share it (step 14).
+    // so layers naming the same material file share it.
     HashTable<text, Material> loadedMaterials
 
     // The terrain.json files of the terrains loaded for the scene being
@@ -203,8 +203,7 @@ class DefaultSceneManager is SceneManager
                     skyLayer:GetSkybox():SetTurn(json:GetNumber(key))
                 end
             elseif key = properties:LINEAR_LIGHTING
-                // Whether the layer lights in linear light (Linear lighting
-                // plan); on unless the scene says otherwise.
+                // Whether the layer lights in linear light; on unless the scene says otherwise.
                 Layer3D lightingLayer = cast(Layer3D, layer)
                 if lightingLayer:GetEnvironment() is EnvironmentVulkan
                     EnvironmentVulkan lightingEnvironment = cast(EnvironmentVulkan, lightingLayer:GetEnvironment())
@@ -990,7 +989,7 @@ number restitution = 0
             terrain:SetCollision(json:GetBoolean(properties:PHYSICS_ENABLED))
         end
         // The collision mode, when the scene has it, is more exact than
-        // "Physics Enabled" (step 13).
+        // "Physics Enabled".
         if json:HasValue(properties:COLLISION)
             text collisionValue = json:GetValue(properties:COLLISION)
             if collisionValue = properties:COLLISION_DYNAMIC_VALUE
@@ -1036,7 +1035,7 @@ number restitution = 0
         end
         loadedTerrainFiles:Add(terrainKey, path)
 
-        // The ground's look, if it has one (step 9). It is given before the
+        // The ground's look, if it has one. It is given before the
         // terrain loads, so the region models are made once, with it. A
         // missing file leaves the ground plain, and the scene keeps naming
         // it.
@@ -1059,7 +1058,7 @@ number restitution = 0
                 logger:Log("The terrain material " + materialFile:GetAbsolutePath() + " wasn't found, so the ground is plain.")
             end
         end
-        // The foliage list, if it has one (Terrain plan F1). The copies load
+        // The foliage list, if it has one. The copies load
         // with the terrain, from its folder. A missing list file is logged,
         // and the scene keeps naming it.
         if json:HasValue(properties:FOLIAGE)
@@ -1141,7 +1140,7 @@ number restitution = 0
     /*
     This action returns the layer materials loaded for the scene, by their
     files' full paths, so a scene editor can share them when it adds a
-    layer from the same file (step 14).
+    layer from the same file.
 
     Attribute: Returns The materials.
     */
@@ -1293,7 +1292,7 @@ number restitution = 0
                 end
             end
 
-            // Linear lighting (Linear lighting plan), saved only when off.
+            // Linear lighting, saved only when off.
             if layer3D:GetEnvironment() is EnvironmentVulkan
                 EnvironmentVulkan savedEnvironment = cast(EnvironmentVulkan, layer3D:GetEnvironment())
                 if not savedEnvironment:IsLinearLighting()

@@ -288,29 +288,29 @@ class SceneEditor is Control, DefaultSceneManager
     // A 3D layer's Sky section (QuincyWorld demo D3).
     SkyPropertiesDialog skyPropertiesDialog
 
-    // A terrain's properties (step 5). They are added only with a
+    // A terrain's properties. They are added only with a
     // Properties panel, since two floating dialogs would cover each other.
     TerrainPropertiesDialog terrainPropertiesDialog
     TerrainPhysicsPropertiesDialog terrainPhysicsPropertiesDialog
     TerrainBrushPropertiesDialog terrainBrushPropertiesDialog
     TerrainMaterialsPropertiesDialog terrainMaterialsPropertiesDialog
-    // A terrain's Foliage section (Terrain plan F3), after its Materials.
+    // A terrain's Foliage section, after its Materials.
     TerrainFoliagePropertiesDialog terrainFoliagePropertiesDialog
-    // A terrain's Water section (Water plan W6), after its Foliage.
+    // A terrain's Water section, after its Foliage.
     TerrainWaterPropertiesDialog terrainWaterPropertiesDialog
     TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
-    // The Stamp tool's settings, shown only while it is chosen (step 17).
+    // The Stamp tool's settings, shown only while it is chosen.
     TerrainStampPropertiesDialog terrainStampPropertiesDialog
 
     // Makes and changes terrain in bulk: presets, stamps, erosion and auto
-    // paint (step 10).
+    // paint.
     TerrainGenerator generator
 
     // What finding a new texture set's maps by name found, said when the
-    // layer is added (step 14).
+    // layer is added.
     text layerMaterialNote = ""
 
-    // A terrain's brush (step 7): the terrain whose tool is chosen, and the
+    // A terrain's brush: the terrain whose tool is chosen, and the
     // ring that shows the brush on its ground. The ring is placed again only
     // when the brush moves or changes size.
     EditorTerrain brushTerrain = undefined
@@ -347,12 +347,12 @@ class SceneEditor is Control, DefaultSceneManager
     // How see-through the ghost is, as a share of the preview's alpha.
     constant number GHOST_ALPHA_SHARE = 0.35
 
-    // The 3D grid's size: a patch under a selected item (option D), or the
+    // The 3D grid's size: a patch under a selected item, or the
     // large floor for the scene's cursor, in grid squares across.
     constant integer GRID_PATCH_SQUARES = 9
     constant integer GRID_FLOOR_SQUARES = 64
 
-    // The grid on a terrain (option C): lines over the ground around the
+    // The grid on a terrain: lines over the ground around the
     // terrain cursor, this many squares out each way. The flat grid hides
     // while it shows.
     TerrainGridPatch terrainGridPatch = undefined
@@ -401,7 +401,7 @@ class SceneEditor is Control, DefaultSceneManager
     boolean terrainCursorMovedByPointer = false
     boolean terrainCursorAtEdge = false
     // Said before the scene cursor's place once, as "Left Terrain1. Scene
-    // cursor. ", when Escape leaves a terrain (Round 2); cleared when the
+    // cursor. ", when Escape leaves a terrain; cleared when the
     // cursor moves or the editor loses the focus.
     text terrainLeftMessage = ""
 
@@ -414,13 +414,13 @@ class SceneEditor is Control, DefaultSceneManager
     BoundingBox shapeBox
     BoundingBox groundBox
 
-    // A ramp being marked (step 8): a green ring at its start, and a green
+    // A ramp being marked: a green ring at its start, and a green
     // outline from there to the brush, which turns red as the ramp's end.
     TerrainBrushPreview rampStartMarker = undefined
     TerrainRampPreview rampOutline = undefined
     boolean rampShown = false
 
-    // A stroke with a terrain's brush (step 8): it goes on while the key
+    // A stroke with a terrain's brush: it goes on while the key
     // that started it, or the left mouse button, is held.
     TerrainStroke terrainStroke
     boolean stroking = false
@@ -429,26 +429,26 @@ class SceneEditor is Control, DefaultSceneManager
     // its tool was chosen, so the next update gives it back.
     boolean refocusBrushHighlight = false
     // Painting is shown a few times a second during a stroke, since each
-    // showing loads the splat texture again (step 9).
+    // showing loads the splat texture again.
     number paintShownSeconds = 0
     constant number PAINT_SHOW_INTERVAL = 0.2
     integer strokeKey = 0
     InputMonitor strokeMonitor
     MouseEvent mouseButtons
 
-    // A stroke with the Foliage tool (Terrain plan F3), going while
+    // A stroke with the Foliage tool, going while
     // foliageStroking is true. It is a stroke like the others for the keys
     // and buttons that start and end it.
     FoliageStroke foliageStroke = undefined
     boolean foliageStroking = false
 
-    // A stroke with the Paint water tool (Water plan W6): the lake it
+    // A stroke with the Paint water tool: the lake it
     // paints into, whether it adds or erases, the water as it was before
     // it, for undo, and where it last painted.
     boolean waterStroking = false
     TerrainLake waterStrokeLake = undefined
 
-    // The River tool (River plan R5 and R6): the points of a river being
+    // The River tool: the points of a river being
     // drawn, the river and point chosen to edit, a point being dragged, and
     // the line that shows the path over the ground.
     boolean riverDrawing = false
@@ -486,7 +486,7 @@ class SceneEditor is Control, DefaultSceneManager
 
     // How far one arrow key step moves the terrain cursor, as a share of
     // the brush's size R, and how many sizes a second it glides with the
-    // grid off (Round 2): R/2 a step, R a second.
+    // grid off: R/2 a step, R a second.
     constant number CURSOR_STEP_SHARE = 0.5
     constant number CURSOR_GLIDE_RATE = 1
     // How much each size key grows or shrinks the brush, and its limits.
@@ -498,7 +498,7 @@ class SceneEditor is Control, DefaultSceneManager
     Array<PropertiesDialog> propertiesDialogs
 
     // The panel the properties dialogs are docked in, or undefined to show
-    // them as floating dialogs (step 4).
+    // them as floating dialogs.
     PropertiesPanel propertiesPanel = undefined
 
     // A reference to the find dialog for this controller.
@@ -702,7 +702,7 @@ class SceneEditor is Control, DefaultSceneManager
 
             Array<Item> items = cursor:GetItemsAtCursor()
             // Just after Escape left a terrain, this starts with "Left
-            // Terrain1. Scene cursor. " (Round 2).
+            // Terrain1. Scene cursor. ".
             if items:GetSize() = 0
                 return terrainLeftMessage + position
             elseif items:GetSize() <= 3
@@ -788,10 +788,10 @@ class SceneEditor is Control, DefaultSceneManager
             counter = counter + 1
         end
 
-        // A terrain's sections, after the built-in dialogs (step 5): its
-        // facts, its materials (step 9), its foliage (Terrain plan F3), its
-        // water (Water plan W6), its brush (step 7), the Stamp
-        // tool's settings (step 17), its generate tools (step 10) and its
+        // A terrain's sections, after the built-in dialogs: its
+        // facts, its materials, its foliage, its
+        // water, its brush, the Stamp
+        // tool's settings, its generate tools and its
         // physics. The panel shows them in this order.
         if firstPanel
             AddPropertiesDialog(terrainPropertiesDialog)
@@ -817,7 +817,7 @@ class SceneEditor is Control, DefaultSceneManager
     /*
         Adds a properties dialog for another kind of item. It is set up as
         the built-in ones are: it listens to the selection, and docks in the
-        panel if there is one. Step 5 adds a terrain's dialog this way.
+        panel if there is one. A terrain's dialog is added this way.
 
         Attribute: Parameter dialog The dialog
     */
@@ -878,7 +878,7 @@ class SceneEditor is Control, DefaultSceneManager
     end
 
     action FocusItemProperties
-        // A terrain's key goes to its brush settings (step 6, Part B).
+        // A terrain's key goes to its brush settings.
         if GetSelectedItem() is TerrainSelectionHighlight and terrainBrushPropertiesDialog:IsShowing()
             terrainBrushPropertiesDialog:FocusSection()
             return now
@@ -2011,7 +2011,7 @@ action Update(number seconds)
     This action chooses a terrain's tool, by its number (1 raise, 2 lower,
     3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add region,
     9 remove region, 10 stamp, 11 erode, 12 auto paint, 13 foliage), or 0
-    to leave the tool (step 7). With a tool chosen, a
+    to leave the tool. With a tool chosen, a
     ring shows the brush on the ground; the arrow keys and the pointer move
     it, and the size keys size it. A stroke going on is finished first. It is
     announced, and the Brush section of the Properties panel follows.
@@ -2027,7 +2027,7 @@ action Update(number seconds)
         if stroking
             EndTerrainStroke()
         end
-        // A river being drawn is left, unfinished (River plan R5).
+        // A river being drawn is left, unfinished.
         LeaveRiverTool()
         if brushTerrain not= undefined and brushTerrain not= terrain
             brushTerrain:SetToolNumber(0)
@@ -2070,7 +2070,7 @@ action Update(number seconds)
     /*
     This action moves a terrain's brush by a selection move: right along the
     camera's right, and forward along the way the camera faces, flat on the
-    ground (step 7).
+    ground.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter right How far to the camera's right, as the selection would move along x
@@ -2105,8 +2105,7 @@ action Update(number seconds)
         number rightX = forwardZ
         number rightZ = -forwardX
         // The move already holds the selection's speed and the frame's
-        // time, so this glides R units a second for a brush of size R
-        // (Round 2).
+        // time, so this glides R units a second for a brush of size R.
         number speed = terrain:GetBrush():GetSize() * CURSOR_GLIDE_RATE / SELECTION_DIRECTIONAL_SPEED_3D
         number x = terrain:GetBrushX() + (rightX * right + forwardX * forward) * speed
         number z = terrain:GetBrushZ() + (rightZ * right + forwardZ * forward) * speed
@@ -2145,7 +2144,7 @@ action Update(number seconds)
         cursorTerrain = terrain
         terrainCursorAtEdge = false
         // The tool chosen when the user last left this terrain comes back,
-        // quietly: the focus says it (Round 2). The saved number is used
+        // quietly: the focus says it. The saved number is used
         // once, so "No tool" chosen in the Properties panel stays.
         integer savedTool = terrain:GetSavedToolNumber()
         if savedTool > 0
@@ -2198,7 +2197,7 @@ action Update(number seconds)
 
     /*
     This action leaves a terrain for the scene's own cursor, when Escape is
-    pressed on it, with or without a tool (Round 2): a stroke going on is
+    pressed on it, with or without a tool: a stroke going on is
     canceled; the tool is remembered and left; the scene's cursor moves to
     where the terrain cursor was, on the ground; the terrain stops being
     selected; and the scene editor gets the focus, which says "Left
@@ -2234,7 +2233,7 @@ action Update(number seconds)
     /*
     This action moves the terrain cursor one step with the arrow keys,
     while the grid is on: half the brush's size, in whole grid units, at
-    least one (Round 2). Forward is the world axis nearest the way the
+    least one. Forward is the world axis nearest the way the
     camera faces, and right is across it, and the cursor lands on the grid,
     so the numbers it says are round.
 
@@ -2288,7 +2287,7 @@ action Update(number seconds)
     end
 
     /*
-    This action keeps the grid on a terrain (option C): with the grid on and
+    This action keeps the grid on a terrain: with the grid on and
     a terrain's cursor shown on the ground, grid lines lie over the ground
     around it, and the flat grid hides; otherwise the lines hide and the
     flat grid comes back.
@@ -2339,7 +2338,7 @@ action Update(number seconds)
     end
 
     /*
-    This action puts the 3D grid under an item (grid option D): a patch of
+    This action puts the 3D grid under an item: a patch of
     GRID_PATCH_SQUARES squares at the height of the item's base, so the grid
     is the plane the item steps across, on a hill or in the air. For the
     scene's own cursor, it is the large floor at height 0, as before.
@@ -2430,7 +2429,7 @@ action Update(number seconds)
 
     /*
     This action returns how far one arrow key step moves the terrain
-    cursor (Round 2): half the brush's size, and with the grid on, rounded
+    cursor: half the brush's size, and with the grid on, rounded
     to whole grid units, at least one.
 
     Attribute: Parameter terrain The terrain
@@ -2763,7 +2762,7 @@ action Update(number seconds)
 
     /*
     This action makes a terrain's brush, which is also its cursor's ring,
-    larger or smaller by one step, with or without a tool (step 7, Round 2).
+    larger or smaller by one step, with or without a tool.
     Nothing is spoken: the new size and, with the grid on, the arrow keys'
     new step are in the terrain cursor's description
     (TerrainSelectionHighlight:GetDescription).
@@ -2795,7 +2794,7 @@ action Update(number seconds)
     This action moves the brush of the terrain whose tool is chosen to the
     ground under the pointer, given in the same screen coordinates as mouse
     events. Off the ground, the brush is hidden. The pointer listener calls
-    it (step 7).
+    it.
 
     Attribute: Parameter x The pointer's x on the screen
     Attribute: Parameter y The pointer's y on the screen
@@ -2817,7 +2816,7 @@ action Update(number seconds)
     This action returns where the pointer meets a terrain's ground, in the
     same screen coordinates as mouse events, or undefined. With the Add
     region tool it reaches past the ground's edge, to the level of its base,
-    height 0 (step 11).
+    height 0.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter x The pointer's x on the screen
@@ -2907,8 +2906,7 @@ action Update(number seconds)
             return now
         end
         HideTerrainGhost()
-        // The River tool adds, chooses or moves points where the click is
-        // (River plan R5 and R6).
+        // The River tool adds, chooses or moves points where the click is.
         if terrain:GetToolNumber() = terrain:RIVER_TOOL
             terrainCursorMovedByPointer = true
             terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
@@ -3052,9 +3050,9 @@ action Update(number seconds)
 
     /*
     This action returns true if a tool's strokes are ready in the scene
-    editor for a terrain: raise, lower, smooth, flatten and ramp (step 8),
-    paint, once the terrain has two or more materials (step 9), and add and
-    remove region (step 11), and stamp, erode and auto paint. Paint and
+    editor for a terrain: raise, lower, smooth, flatten and ramp,
+    paint, once the terrain has two or more materials, and add and
+    remove region, and stamp, erode and auto paint. Paint and
     blend paint need two or more materials.
 
     Attribute: Parameter terrain The terrain
@@ -3070,11 +3068,11 @@ action Update(number seconds)
         if tool >= 10 and tool <= 12
             return true
         end
-        // The Fill water and Paint water tools (Water plan W6).
+        // The Fill water and Paint water tools.
         if terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:PAINT_WATER_TOOL)
             return true
         end
-        // The Foliage tool needs an asset to paint (Terrain plan F3).
+        // The Foliage tool needs an asset to paint.
         if terrain not= undefined and tool = terrain:FOLIAGE_TOOL
             return terrain:GetFoliageAssetCount() > 0
         end
@@ -3084,7 +3082,7 @@ action Update(number seconds)
 
     /*
     This action starts a stroke with the brush of the terrain whose tool is
-    chosen (step 8). The stroke goes on, once a frame, while the key that
+    chosen. The stroke goes on, once a frame, while the key that
     started it is held, or the left mouse button for a stroke started with
     a click, and ends when it is let go. Nothing starts if the brush is off
     the ground, if a stroke is already going, or if the tool's strokes
@@ -3101,7 +3099,7 @@ action Update(number seconds)
         integer tool = terrain:GetToolNumber()
         if tool = terrain:RIVER_TOOL
             // Not a stroke: Space adds a point at the cursor, or chooses the
-            // river point there (River plan R5).
+            // river point there.
             PressRiverTool(terrain, terrain:GetBrushX(), terrain:GetBrushZ(), false)
             return now
         end
@@ -3120,7 +3118,7 @@ action Update(number seconds)
         if tool = 5
             // The ramp isn't a stroke: the first click (or Space) marks its
             // start, and the second makes the whole ramp to where the brush
-            // is (step 8).
+            // is.
             SetNextTerrainRampPoint(terrain)
             return now
         end
@@ -3144,7 +3142,7 @@ action Update(number seconds)
         end
         if tool = terrain:FILL_WATER_TOOL
             // Not a stroke: each click (or Space) pours water at the brush,
-            // as one undoable change (Water plan W6).
+            // as one undoable change.
             FillTerrainWater(terrain, terrain:GetBrushX(), terrain:GetBrushZ())
             return now
         end
@@ -3237,8 +3235,8 @@ action Update(number seconds)
             return now
         end
         if foliageStroking
-            // The Foliage tool adds or removes copies under the brush
-            // (Terrain plan F3); the ground doesn't change.
+            // The Foliage tool adds or removes copies under the brush;
+            // the ground doesn't change.
             if brushTerrain:IsBrushOnGround()
                 number radius = brushTerrain:GetBrush():GetSize()
                 if foliageStroke:Apply(brushTerrain:GetBrushX(), brushTerrain:GetBrushZ(), radius, brushTerrain:GetFoliageDensityScale())
@@ -3273,7 +3271,7 @@ action Update(number seconds)
     end
 
     /*
-    This action starts a Foliage tool stroke (Terrain plan F3): it adds
+    This action starts a Foliage tool stroke: it adds
     copies of the chosen foliage asset, or with Ctrl held removes them, or
     with Ctrl and Shift held removes every asset's copies under the brush.
     */
@@ -3337,8 +3335,8 @@ action Update(number seconds)
     end
 
     /*
-    This action is called after a Foliage tool stroke is undone or redone
-    (Terrain plan F3): the foliage there is drawn again, the terrain is
+    This action is called after a Foliage tool stroke is undone or redone:
+the foliage there is drawn again, the terrain is
     marked changed for the next save, and what happened is announced.
 
     Attribute: Parameter terrain The terrain
@@ -3361,7 +3359,7 @@ action Update(number seconds)
     end
 
     /*
-    This action pours water at a place on a terrain (Water plan W6), with
+    This action pours water at a place on a terrain, with
     the Fill water tool: the water's level is the ground's height there plus
     the terrain's water depth, and it fills the hollow it is poured in, as
     far as the ground lower than the level reaches. Poured into a lake of
@@ -3412,8 +3410,7 @@ action Update(number seconds)
     end
 
     /*
-    This action returns true while the River tool is chosen on a terrain
-    (River plan R5).
+    This action returns true while the River tool is chosen on a terrain.
 
     Attribute: Returns True while the River tool is in use
     */
@@ -3432,7 +3429,7 @@ action Update(number seconds)
 
     /*
     This action returns true while a river's point is being dragged with
-    the mouse (River plan R6).
+    the mouse.
 
     Attribute: Returns True while dragging
     */
@@ -3442,7 +3439,7 @@ action Update(number seconds)
 
     /*
     This action is a click with the River tool, or Space, at a place on the
-    ground (River plan R5 and R6):
+    ground:
     - while a river is being drawn, it adds the next point there;
     - on one of a river's points, it chooses it, and with the mouse, holding
       the button and moving drags it;
@@ -3551,8 +3548,7 @@ action Update(number seconds)
     /*
     This action finishes the river being drawn: it becomes one of the
     terrain's rivers, its water runs downhill along its points, and its bed
-    is carved into the ground, as one change that can be undone (River plan
-    R4 and R5). A river needs two points or more.
+    is carved into the ground, as one change that can be undone. A river needs two points or more.
 
     Attribute: Returns True if a river was being drawn, so Enter did this
     */
@@ -3611,7 +3607,7 @@ action Update(number seconds)
     end
 
     /*
-    This action removes the chosen point of a river (River plan R6), or the
+    This action removes the chosen point of a river, or the
     whole river if it would have fewer than two points left. The ground it
     carved is put back where it wasn't changed since. It can be undone.
 
@@ -3694,7 +3690,7 @@ action Update(number seconds)
 
     /*
     This action moves the dragged point of a river to the ground under the
-    pointer; the river follows when the button is let go (River plan R6).
+    pointer; the river follows when the button is let go.
 
     Attribute: Parameter x The pointer's x on the screen
     Attribute: Parameter y The pointer's y on the screen
@@ -3761,7 +3757,7 @@ action Update(number seconds)
     /*
     This action follows the pointer with the River tool: while a river is
     drawn, the line reaches from its last point to the ground under the
-    pointer, to show where the next point would go (River plan R5).
+    pointer, to show where the next point would go.
 
     Attribute: Parameter x The pointer's x on the screen
     Attribute: Parameter y The pointer's y on the screen
@@ -3839,7 +3835,7 @@ action Update(number seconds)
     /*
     This action shows the path of every river on a terrain but the chosen
     one, whose path has its own line, so their points can be found and
-    clicked (River plan R6).
+    clicked.
     */
     private action ShowAllRiverLines(EditorTerrain terrain)
         EditorLayer layer = GetSelectedLayer()
@@ -3898,8 +3894,8 @@ action Update(number seconds)
     end
 
     /*
-    This action is the Water section's Edit path for a river (River plan
-    R6): the River tool is chosen, the river's first point is chosen and
+    This action is the Water section's Edit path for a river: the River tool is chosen, the river's
+    first point is chosen and
     the terrain cursor moves to it, and every river's path shows, so the
     river's points can be clicked, dragged or removed.
 
@@ -3991,7 +3987,7 @@ action Update(number seconds)
     /*
     This action starts a river change's ground edit: the ground under the
     river now is kept for undoing, and the bed it carved is put back, so the
-    river can be carved again where it goes now (River plan R4).
+    river can be carved again where it goes now.
     */
     private action StartRiverGround(EditorTerrain terrain, TerrainRiver river) returns TerrainStroke
         TerrainData data = terrain:GetWorldTerrain():GetData()
@@ -4036,7 +4032,7 @@ action Update(number seconds)
 
     /*
     This action is called after a river changed, or a change was undone or
-    redone (River plan R4): the ground is redrawn if it changed, the
+    redone: the ground is redrawn if it changed, the
     terrain is marked changed for the next save, the Water section follows,
     and what happened is said.
 
@@ -4120,7 +4116,7 @@ action Update(number seconds)
 
     /*
     This action changes a river's name, width, depth and speed, from the
-    Water section (River plan R6). The width and depth are set at every
+    Water section. The width and depth are set at every
     point, and the bed is carved again. It can be undone.
 
     Attribute: Parameter terrain The terrain
@@ -4153,7 +4149,7 @@ action Update(number seconds)
 
     /*
     This action removes one of a terrain's rivers, putting back the ground
-    it carved where it wasn't changed since (River plan R6). It can be
+    it carved where it wasn't changed since. It can be
     undone.
 
     Attribute: Parameter terrain The terrain
@@ -4182,7 +4178,7 @@ action Update(number seconds)
     end
 
     /*
-    This action starts a Paint water stroke (Water plan W6). It paints into
+    This action starts a Paint water stroke. It paints into
     the lake under the brush, or a new lake of water cells whose level is
     the ground's height under the brush plus the terrain's water depth. With
     Ctrl held, it erases the water of the lake under the brush instead, and
@@ -4301,7 +4297,7 @@ action Update(number seconds)
     end
 
     /*
-    This action turns a terrain's sea on at a level, or off (Water plan W6).
+    This action turns a terrain's sea on at a level, or off.
     It can be undone.
 
     Attribute: Parameter terrain The terrain
@@ -4334,7 +4330,7 @@ action Update(number seconds)
 
     /*
     This action changes one of a terrain's lakes: its place, size, level
-    and name (Water plan W6). It can be undone.
+    and name. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter index The lake, from 0
@@ -4371,7 +4367,7 @@ action Update(number seconds)
     end
 
     /*
-    This action removes one of a terrain's lakes (Water plan W6). It can be
+    This action removes one of a terrain's lakes. It can be
     undone.
 
     Attribute: Parameter terrain The terrain
@@ -4395,10 +4391,10 @@ action Update(number seconds)
     end
 
     /*
-    This action changes one number of a terrain's water look (Water plan
-    W6): the shallow or deep color's red, green, blue or alpha, from 0 to 1,
+    This action changes one number of a terrain's water look: the shallow or deep color's red,
+    green, blue or alpha, from 0 to 1,
     or the clarity, shore fade, ripple size, ripple speed, roughness,
-    ripple strength or reflection (W4). It can be undone.
+    ripple strength or reflection. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter kind Which number: 0 to 3 the shallow color's parts, 4 to 7 the deep color's, then 8 clarity, 9 shore fade, 10 ripple size, 11 ripple speed, 12 roughness, 13 ripple strength, 14 reflection
@@ -4569,8 +4565,7 @@ action Update(number seconds)
     end
 
     /*
-    This action turns a 3D layer's linear lighting on or off (Linear
-    lighting plan): on, colors are lit as amounts of light; off, as stored.
+    This action turns a 3D layer's linear lighting on or off: on, colors are lit as amounts of light; off, as stored.
     The change is saved with the scene and can be undone.
 
     Attribute: Parameter layer The layer
@@ -4617,7 +4612,7 @@ action Update(number seconds)
 
     /*
     This action is called after a terrain's water changed, or a change was
-    undone or redone (Water plan W6): the terrain is marked changed for the
+    undone or redone: the terrain is marked changed for the
     next save, the Water section follows, and the message is announced.
 
     Attribute: Parameter terrain The terrain
@@ -4657,8 +4652,8 @@ action Update(number seconds)
     end
 
     /*
-    This action adds a foliage asset to a terrain's foliage list (Terrain
-    plan F3): a model file (.glb, .gltf, .fbx or .obj) is drawn as itself,
+    This action adds a foliage asset to a terrain's foliage list: a model file (.glb, .gltf, .fbx
+    or .obj) is drawn as itself,
     and a picture (.png) as a card. A terrain with no foliage list is given
     one first, in the project's Scenes/Foliage folder, named after the
     terrain's folder. The asset is named after its file, and becomes the one
@@ -4717,7 +4712,7 @@ action Update(number seconds)
 
     /*
     This action removes a foliage asset from a terrain's foliage list, and
-    every copy of it (Terrain plan F3). The assets after it move up one
+    every copy of it. The assets after it move up one
     place. It can't be undone.
 
     Attribute: Parameter terrain The terrain
@@ -4749,7 +4744,7 @@ action Update(number seconds)
 
     /*
     This action moves a foliage asset up or down one place in a terrain's
-    foliage list (Terrain plan F3). Every copy keeps its asset.
+    foliage list. Every copy keeps its asset.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter asset The asset's number, from 0
@@ -4790,8 +4785,7 @@ action Update(number seconds)
     end
 
     /*
-    This action chooses the foliage asset the Foliage tool paints (Terrain
-    plan F3).
+    This action chooses the foliage asset the Foliage tool paints.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter asset The asset's number, from 0
@@ -4813,7 +4807,7 @@ action Update(number seconds)
 
     /*
     This action is called after a foliage asset's settings were changed in
-    the Foliage section (Terrain plan F3): the list is marked changed for the
+    the Foliage section: the list is marked changed for the
     next save, and the foliage is drawn again with the new settings.
 
     Attribute: Parameter terrain The terrain
@@ -4860,7 +4854,7 @@ action Update(number seconds)
     /*
     This action makes a terrain's foliage list, with its file in the
     project's Scenes/Foliage folder, named after the terrain's folder, such
-    as Scenes/Foliage/Terrain1.json (Terrain plan F3). The folder is made if
+    as Scenes/Foliage/Terrain1.json. The folder is made if
     needed, and the empty list is written.
     */
     private action CreateFoliageList(EditorTerrain terrain) returns FoliageList
@@ -4938,7 +4932,7 @@ action Update(number seconds)
     end
 
     /*
-    This action says what a finished stroke did (step 12): "Raised by up to
+    This action says what a finished stroke did: "Raised by up to
     2.4" for raise and lower, the layer for paint, and the size for the
     region tools, then the ground under the brush.
     */
@@ -5032,7 +5026,7 @@ action Update(number seconds)
             // terrain by; rebuilding the models below refreshes it too.
             terrain:RefreshRenderBounds()
         else
-            // Regions were added or removed (step 11), so the models are
+            // Regions were added or removed, so the models are
             // made again.
             terrain:RebuildRegionModels()
         end
@@ -5043,7 +5037,7 @@ action Update(number seconds)
         if not stroking
             RefreshTerrainHighlight(terrain)
         end
-        // The grid's lines over the ground follow it too (option C).
+        // The grid's lines over the ground follow it too.
         if terrainGridPatch not= undefined and terrainGridPatchShown
             terrainGridPatch:Refresh(terrain:GetWorldTerrain():GetData())
         end
@@ -5051,7 +5045,7 @@ action Update(number seconds)
         if cursorCrosshair not= undefined and cursorCrosshairShown
             cursorCrosshair:Refresh(terrain:GetWorldTerrain():GetData(), terrain:GetMinimumX(), terrain:GetMaximumX(), terrain:GetMinimumZ(), terrain:GetMaximumZ())
         end
-        // The foliage follows the ground (Terrain plan F4): under the brush
+        // The foliage follows the ground: under the brush
         // during a stroke, and everywhere after anything else, such as an
         // undo or a whole-terrain operation.
         if stroking and terrain = brushTerrain
@@ -5116,7 +5110,7 @@ action Update(number seconds)
 
     /*
     This action returns the TerrainGenerator the scene editor uses for
-    presets, stamps, erosion and auto paint (step 10).
+    presets, stamps, erosion and auto paint.
 
     Attribute: Returns The generator
     */
@@ -5125,7 +5119,7 @@ action Update(number seconds)
     end
 
     /*
-    This action remakes a terrain's whole ground with a preset (step 10):
+    This action remakes a terrain's whole ground with a preset:
     rolling hills, mountains, plateaus, canyons or flat. The same seed gives
     the same ground. With auto paint, the layers are painted by height and
     slope afterward, if the terrain has two or more materials. It can be
@@ -5165,7 +5159,7 @@ action Update(number seconds)
 
     /*
     This action wears a terrain's whole ground as weather would, with one
-    drop of rain for every eight samples (step 10). It can be undone.
+    drop of rain for every eight samples. It can be undone.
 
     Attribute: Parameter terrain The terrain
     */
@@ -5185,7 +5179,7 @@ action Update(number seconds)
     end
 
     /*
-    This action paints a terrain's whole ground by rules (step 10): layer 1
+    This action paints a terrain's whole ground by rules: layer 1
     on flat ground, layer 2 on slopes, layer 3 in hollows and layer 4 low
     down. Rules for layers the terrain doesn't have go to layer 1. It needs
     two or more materials, and can be undone.
@@ -5207,7 +5201,7 @@ action Update(number seconds)
 
     /*
     This action presses a stamp into the ground at a terrain's brush, as big
-    as the brush (step 10). The Stamp tool calls it. It can be undone.
+    as the brush. The Stamp tool calls it. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter stamp The shape, such as TerrainGenerator's STAMP_HILL
@@ -5234,7 +5228,7 @@ action Update(number seconds)
     end
 
     /*
-    This action erodes the ground under a terrain's brush (step 10). Drops
+    This action erodes the ground under a terrain's brush. Drops
     of rain start under it and may run on one brush size past it. It can be
     undone.
 
@@ -5261,7 +5255,7 @@ action Update(number seconds)
     end
 
     /*
-    This action auto paints the ground under a terrain's brush (step 10).
+    This action auto paints the ground under a terrain's brush.
     It needs two or more materials, and can be undone.
 
     Attribute: Parameter terrain The terrain
@@ -5285,7 +5279,7 @@ action Update(number seconds)
 
     /*
     This action makes a terrain one region bigger on every side, with flat
-    new regions, as far as the grid of regions allows (step 11). It can be
+    new regions, as far as the grid of regions allows. It can be
     undone.
 
     Attribute: Parameter terrain The terrain
@@ -5448,7 +5442,7 @@ action Update(number seconds)
 
     /*
     This action returns how many terrains in the scene use a terrain
-    material (step 9).
+    material.
 
     Attribute: Parameter material The terrain material
     Attribute: Returns How many terrains use it
@@ -5470,8 +5464,8 @@ action Update(number seconds)
     end
 
     /*
-    This action adds a material to a terrain as its next ground layer
-    (step 9). The file can be a material file, a texture set's color map,
+    This action adds a material to a terrain as its next ground layer.
+The file can be a material file, a texture set's color map,
     such as Ground037_1K-PNG_Color.png, or another image, used as a plain
     texture; for an image, a material file is written beside it. The first
     layer makes the terrain's terrain material file, in the project's
@@ -5559,7 +5553,7 @@ action Update(number seconds)
 
     /*
     This action moves one of a terrain's ground layers up or down one place,
-    swapping it with its neighbor (step 18). The painting stays where it
+    swapping it with its neighbor. The painting stays where it
     is, so where the layer was painted, its neighbor now shows, and the
     ground is drawn again. Every terrain sharing the terrain material
     changes. The brush's paint layer follows the material it named. It can
@@ -5694,7 +5688,7 @@ action Update(number seconds)
 
     /*
     This action returns a terrain layer's material, or undefined, for the
-    Material details (step 14).
+    Material details.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter layer The layer, from 0
@@ -5709,7 +5703,7 @@ action Update(number seconds)
 
     /*
     This action returns how many layers in the scene's terrains use a
-    material, counting each layer once (step 14).
+    material, counting each layer once.
 
     Attribute: Parameter material The material
     Attribute: Returns How many layers use it
@@ -5741,7 +5735,7 @@ action Update(number seconds)
 
     /*
     This action gives a terrain layer's material a different image for one
-    of its maps (step 14). The image must be the same size as the color map,
+    of its maps. The image must be the same size as the color map,
     or it is refused. Choosing a color map for a plain texture makes it a
     texture set. It can be undone.
 
@@ -5796,7 +5790,7 @@ action Update(number seconds)
     end
 
     /*
-    This action clears one of a terrain layer's maps (step 14). A texture
+    This action clears one of a terrain layer's maps. A texture
     set's color map, and a plain texture's image, can't be cleared. It can
     be undone.
 
@@ -5825,7 +5819,7 @@ action Update(number seconds)
 
     /*
     This action sets whether a terrain layer's normal map uses the DirectX
-    convention, rather than OpenGL's (step 14). It can be undone.
+    convention, rather than OpenGL's. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter layer The layer, from 0
@@ -5847,7 +5841,7 @@ action Update(number seconds)
 
     /*
     This action sets a terrain layer's roughness (0) or metallic (1) value,
-    from 0 to 1 (step 14). It can be undone.
+    from 0 to 1. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter layer The layer, from 0
@@ -5881,7 +5875,7 @@ action Update(number seconds)
     end
 
     /*
-    This action renames a terrain layer's material (step 14). The layer's
+    This action renames a terrain layer's material. The layer's
     name in its terrain material follows. It can be undone.
 
     Attribute: Parameter terrain The terrain
@@ -5901,7 +5895,7 @@ action Update(number seconds)
 
     /*
     This action fills in a terrain layer's empty maps from its color map's
-    folder, by name, and says what it found (step 14). It can be undone.
+    folder, by name, and says what it found. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter layer The layer, from 0
@@ -5937,7 +5931,7 @@ action Update(number seconds)
 
     /*
     This action makes a terrain layer's texture set a plain texture, with
-    its color map as its one image (step 14). It can be undone.
+    its color map as its one image. It can be undone.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter layer The layer, from 0
@@ -5954,7 +5948,7 @@ action Update(number seconds)
 
     /*
     This action is called after a material changed, or the change was
-    undone or redone (step 14): every terrain layer using it is given its
+    undone or redone: every terrain layer using it is given its
     new look, each terrain's materials are marked changed for the next
     save, the Properties panel follows, and the message is said.
 
@@ -6032,7 +6026,7 @@ action Update(number seconds)
 
     /*
     This action is called after a terrain's materials changed, or the
-    change was undone or redone (step 9). The terrain was given its new
+    change was undone or redone. The terrain was given its new
     look already; other terrains sharing the terrain material that changed
     are given theirs. Each is marked changed for the next save, the
     Properties panel follows, and the message is announced.
@@ -6134,7 +6128,7 @@ action Update(number seconds)
         end
 
         // An image with a color ending, such as _Color or _diff, is a texture
-        // set, and its other maps are found by name (step 14). Others are
+        // set, and its other maps are found by name. Others are
         // plain textures.
         Material made
         text folder = chosen:GetParentDirectory():GetAbsolutePath()
@@ -6251,8 +6245,7 @@ action Update(number seconds)
 
     /*
     This action moves a terrain's paint layer to the next layer that has a
-    material, going back to the first after the last, and says which it is
-    (step 9).
+    material, going back to the first after the last, and says which it is.
 
     Attribute: Parameter terrain The terrain
     */
@@ -6276,8 +6269,7 @@ action Update(number seconds)
     end
 
     /*
-    This action sets one end of a terrain's ramp at its brush, and says it
-    (step 8).
+    This action sets one end of a terrain's ramp at its brush, and says it.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter isEnd True for the ramp's end, false for its start
@@ -6305,7 +6297,7 @@ action Update(number seconds)
 
     /*
     This action sets the next end of a terrain's ramp at its brush, for its
-    key (step 8): the start, then the end; after both, a new start.
+    key: the start, then the end; after both, a new start.
 
     Attribute: Parameter terrain The terrain
     */
@@ -6327,7 +6319,7 @@ action Update(number seconds)
     end
 
     /*
-    This action makes a whole ramp at once (step 8): a straight slope from
+    This action makes a whole ramp at once: a straight slope from
     the ramp's start, at its height, to the brush, at the ground's height
     there, as wide as the brush. The ground across the ramp is set to the
     slope, fading back to the ground over the brush's outer edge. It can be
@@ -6409,7 +6401,7 @@ action Update(number seconds)
 
     /*
     This action clears a terrain's ramp, so the next two clicks (or Alt+G
-    presses) set a new start and end (step 8).
+    presses) set a new start and end.
 
     Attribute: Parameter terrain The terrain
     */
@@ -6424,7 +6416,7 @@ action Update(number seconds)
 
     /*
     This action sets what flatten evens the ground to: the height where each
-    stroke starts, or a set height (step 8).
+    stroke starts, or a set height.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter toStart True for the height where each stroke starts
@@ -6443,7 +6435,7 @@ action Update(number seconds)
 
     /*
     This action sets the height flatten evens the ground to, and makes it
-    flatten to that height rather than where each stroke starts (step 8).
+    flatten to that height rather than where each stroke starts.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter height The height
@@ -6459,7 +6451,7 @@ action Update(number seconds)
 
     /*
     This action takes the ground's height under a terrain's brush as the
-    height flatten evens to (step 8).
+    height flatten evens to.
 
     Attribute: Parameter terrain The terrain
     */
@@ -6480,8 +6472,8 @@ action Update(number seconds)
 
     /*
     This action says what the ground under a terrain's whole brush is like:
-    its heights and how much of it each layer covers
-    (step 12). The Brush section's "Describe the area" button calls it.
+    its heights and how much of it each layer covers.
+The Brush section's "Describe the area" button calls it.
 
     Attribute: Parameter terrain The terrain
     */
@@ -6498,7 +6490,7 @@ action Update(number seconds)
 
     /*
     This action makes a terrain's brush stronger or weaker, by one step, and
-    says its new strength (step 8).
+    says its new strength.
 
     Attribute: Parameter terrain The terrain
     Attribute: Parameter stronger True to strengthen the brush, false to weaken it
@@ -6528,29 +6520,29 @@ action Update(number seconds)
 
     /*
     This action keeps the Brush section of the Properties panel in step with
-    a terrain's brush, after a key or the pointer changed it (step 7).
+    a terrain's brush, after a key or the pointer changed it.
 
     Attribute: Parameter terrain The terrain whose brush changed
     */
     action TerrainBrushChanged(EditorTerrain terrain)
         if terrainBrushPropertiesDialog:IsShowing()
             terrainBrushPropertiesDialog:SetTerrain(terrain)
-            // The Stamp section shows only with the Stamp tool (step 17).
+            // The Stamp section shows only with the Stamp tool.
             terrainStampPropertiesDialog:ToolChanged(terrain)
         end
     end
 
     /*
     This action shows the ring for the terrain whose tool is chosen, placed
-    again only when the brush moved or changed size, and hides it otherwise
-    (step 7). The ring is one of the editor's own items: it isn't saved,
+    again only when the brush moved or changed size, and hides it otherwise.
+The ring is one of the editor's own items: it isn't saved,
     listed or picked.
     */
     private action UpdateBrushPreview
         // The ring shows the brush of the terrain whose tool is chosen, or,
         // with no tool, the terrain cursor, in the color of its beam and
         // crosshair (TerrainCursorSettings). Either way it is the brush's
-        // size, so the size keys show (Round 2).
+        // size, so the size keys show.
         EditorTerrain shown = undefined
         boolean cursorOnly = false
         number size = 0
@@ -6791,7 +6783,7 @@ action Update(number seconds)
     end
 
     /*
-    This action shows a ramp being marked (step 8): a green ring at its
+    This action shows a ramp being marked: a green ring at its
     start, and a green outline from the start, at its height, to the brush,
     at the ground's height there, as wide as the brush. They are the
     editor's own items, so they aren't saved, listed or picked.
@@ -7762,7 +7754,7 @@ action Update(number seconds)
             end
             cursor:SetPosition(x, y)
         elseif item is EditorItem3D
-            // The grid patch sits under the newly selected item (option D).
+            // The grid patch sits under the newly selected item.
             PlaceGridUnder(cast(Item3D, cast(Object, item)))
             EditorCursor3D cursor = cast(EditorCursor3D, GetCursor())
             number x = item:GetGlobalX()
@@ -8068,8 +8060,8 @@ action Update(number seconds)
     end
 
     action GainedFocus(FocusEvent event)
-        // A click in the view with a terrain's tool chosen is a stroke
-        // (step 8), so the terrain stays selected, and its highlight gets
+        // A click in the view with a terrain's tool chosen is a stroke,
+        // so the terrain stays selected, and its highlight gets
         // the focus back on the next update, for the brush's keys.
         if IsTerrainBrushActive() and GetSelectedItem() is TerrainSelectionHighlight
             refocusBrushHighlight = true

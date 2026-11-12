@@ -779,7 +779,7 @@ class VulkanPipelineInfoCreator
 2. Albedo (allow blending)
 3. Normals (no blending)
 4. PBR Properties (no blending)
-5. Emissive light (no blending; Lighting plan L1)*/
+5. Emissive light (no blending)*/
         AddOpaqueColorBlendAttachmentState()
         
         VulkanPipelineColorBlendAttachmentState albedoBlend
@@ -803,7 +803,7 @@ class VulkanPipelineInfoCreator
 
         // Add a uniform for the camera: the projection-view matrix, and the
         // camera's position, time, screen size and near and far planes, for
-        // vertex and fragment shaders (Item 38). This must match the 3D
+        // vertex and fragment shaders. This must match the 3D
         // painter's camera layout.
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 
@@ -834,7 +834,7 @@ class VulkanPipelineInfoCreator
     
 
     /*
-    This action adds the resources for a forward 3D program (Item 39): one
+    This action adds the resources for a forward 3D program: one
     drawn by the VulkanPainter3D after the deferred lighting, over the lit
     image, such as water. It uses the default 3D vertex data, so the
     default 3D vertex shader works with it. Its layout is:
@@ -842,15 +842,15 @@ class VulkanPipelineInfoCreator
       AddDefaultInfo3D;
     - set 1: the global textures;
     - set 2: the G-buffer: position, albedo, normal, PBR and emissive
-      samplers (emissive is Lighting plan L1);
+      samplers (emissive is the light a surface gives off);
     - set 3: the lights (a storage buffer) and the scene data (a uniform);
-    - set 4: the sky's cube, a combined sampler (Water plan W4);
-    - set 5: the sky light's five cubes (Lighting plan L5), the layout from
+    - set 4: the sky's cube, a combined sampler;
+    - set 5: the sky light's five cubes, the layout from
       VulkanLightingProperties:GetSkyLightDescriptorSetLayout, as the
       lighting pass's set 3.
     Its push constants are 128 bytes: the instance buffer address, then 18
     numbers from the mapping's FillForwardData, then 12 numbers of scene
-    data from the painter: the sky's rotation (W4). It blends over the lit image, with no depth test
+    data from the painter: the sky's rotation. It blends over the lit image, with no depth test
     and no culling.
 
     The program's mapping must also say UseDefaultResources3D(true) and
@@ -881,7 +881,7 @@ class VulkanPipelineInfoCreator
         AddDynamicViewport()
         AddDynamicScissor()
 
-        // Set 0: the camera uniform (Item 38) and the immutable sampler,
+        // Set 0: the camera uniform and the immutable sampler,
         // exactly as AddDefaultInfo3D, so the painter's camera set binds.
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_VERTEX_BIT + constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         VulkanDescriptorSetLayoutBinding samplerBinding = AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_SAMPLER)
@@ -905,22 +905,22 @@ class VulkanPipelineInfoCreator
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_UNIFORM_BUFFER)
         FinishDescriptorSetLayout()
 
-        // Set 4: the sky's cube (Water plan W4), with the same binding as
+        // Set 4: the sky's cube, with the same binding as
         // the skybox's own set, so the painter binds that set.
         AddDescriptorSetLayoutBinding(constants:SHADER_STAGE_FRAGMENT_BIT, constants:DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
         FinishDescriptorSetLayout()
 
-        // Set 5: the sky light's cubes (Lighting plan L5), the same layout
+        // Set 5: the sky light's cubes, the same layout
         // as the lighting pass's set 3, so the painter binds the same sets.
         AddDescriptorSetLayout(graphics:GetLightingProperties():GetSkyLightDescriptorSetLayout())
 
         // Set 6: what is behind, for see-through models that let light
-        // through (Transmission plan T3). Programs that don't read it don't
+        // through. Programs that don't read it don't
         // need it bound.
         AddDescriptorSetLayout(graphics:GetLightingProperties():GetBehindDescriptorSetLayout())
 
         // 128 bytes: the address, the program's 18 numbers, and the
-        // painter's 12 (the sky's rotation, W4). The painter's buffer is
+        // painter's 12 (the sky's rotation). The painter's buffer is
         // exactly this size.
         VulkanPushConstantRange pushConstants
         pushConstants:SetSize(128)

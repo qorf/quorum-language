@@ -13,6 +13,37 @@ use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
 use Libraries.Interface.Layouts.TreeLayout
 
+/*
+The DefaultTreeItemContent class is the standard row drawn for a TreeItem:
+an arrow button that opens and closes the item, the item's icon, and its
+name. A TreeItem makes one automatically the first time it is drawn, so
+most programs never create it. The arrow is only shown when the item has
+children, and it is hidden from screen readers, which open and close the
+item directly. On a selected row, the name and the arrow are drawn in the
+selection text color; the band behind the row is drawn by the TreeItem.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.DefaultTreeItemContent
+
+Form form
+Page page = form:GetMainPage()
+Tree tree = page:AddTree("Files")
+
+TreeItem item
+item:SetName("Main.quorum")
+DefaultTreeItemContent content
+item:SetTreeItemContent(content)
+tree:Add(item)
+
+form:Display()
+*/
 class DefaultTreeItemContent is TreeItemContent
 
     ControlLabel label = undefined
@@ -36,29 +67,59 @@ class DefaultTreeItemContent is TreeItemContent
         itemStructureProperties:SetVerticalLayoutMode(itemStructureProperties:FIT_FONT)
     end
 
+    /*
+    This action sets the TreeItem whose row this content draws and shows that
+    item's name. TreeItem's SetTreeItemContent calls it, so most programs never
+    call it directly.
+
+    Attribute: Parameter item The TreeItem this content belongs to.
+    */
     action SetTreeItem(TreeItem item)
         parent:TreeItemContent:SetTreeItem(item)
         UpdateText(item:GetName())
     end
 
+    /*
+    This action shows the given text as the row's name, but only once the
+    label has been made and while it has no text yet. After that, the label is
+    set from the item's name each time the row's graphics are loaded. The
+    TreeItem calls this action when its name is set.
+
+    Attribute: Parameter name The text to show.
+    */
     action UpdateText(text name)
         if label not= undefined and label:GetText() = ""
             label:SetText(name)
         end
     end
 
+    /*
+    This action hides the arrow button, if it has been made. The TreeItem calls
+    it when its last child is removed.
+    */
     action HideExpandButton
         if expandButton not= undefined
             expandButton:Hide()
         end
     end
 
+    /*
+    This action shows the arrow button, if it has been made. The TreeItem calls
+    it when its first child is added.
+    */
     action ShowExpandButton
         if expandButton not= undefined
             expandButton:Show()
         end
     end
 
+    /*
+    This action sets the arrow button to show whether the item is open, if the
+    button has been made. Setting it doesn't open or close the item; the
+    TreeItem calls this action when it opens or closes.
+
+    Attribute: Parameter expand True if the item is open, false if it is closed.
+    */
     action SetExpandState(boolean expand)
         if expandButton not= undefined
             if expand
@@ -69,6 +130,10 @@ class DefaultTreeItemContent is TreeItemContent
         end
     end
 
+    /*
+    This action is called when the row's item is selected. It draws the name
+    and the arrow in the selection text color.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         if label not= undefined
@@ -78,6 +143,10 @@ class DefaultTreeItemContent is TreeItemContent
         UpdateArrowColor()
     end
 
+    /*
+    This action is called when the row's item stops being selected. It draws
+    the name in its normal color and the arrow in the accent color again.
+    */
     action LostSelection
         parent:Control:LostSelection()
         if label not= undefined
@@ -87,6 +156,11 @@ class DefaultTreeItemContent is TreeItemContent
         UpdateArrowColor()
     end
 
+    /*
+    This action is called when the row's item is selected but its Tree loses
+    the focus. It draws the name and the arrow in the unfocused selection text
+    color.
+    */
     action UnfocusedSelection
         if label not= undefined
             label:UnfocusedSelection()
@@ -95,8 +169,11 @@ class DefaultTreeItemContent is TreeItemContent
         UpdateArrowColor()
     end
 
-    // The open/close arrow matches the label: white on a selected row, and
-    // the accent color otherwise.
+    /*
+        This action colors the open and close arrow to match the row's name: the
+        selection's text color while the row is selected, focused or not, and the
+        accent color otherwise.
+    */
     private action UpdateArrowColor
         if expandButton = undefined or not (expandButton:GetView2D() is DefaultTreeMenuView)
             return now
@@ -109,6 +186,15 @@ class DefaultTreeItemContent is TreeItemContent
         end
     end
 
+    /*
+    This action is used to load the graphics of the row. The first time, it
+    loads the item's default font if the item has none, and makes the arrow
+    button, the icon and the name's label. Each time, it updates the font, the
+    colors, the icon and the name. This is handled automatically, and most
+    programs never call it directly.
+
+    Attribute: Parameter properties The layout properties used to draw the row.
+    */
     action LoadGraphics(LayoutProperties properties)
         TreeItem treeItem = GetTreeItem()
 
@@ -270,6 +356,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+    This action returns the label that shows the item's name, or undefined if
+    the row hasn't been drawn yet.
+
+    Attribute: Returns The label showing the name, or undefined.
+    */
     action GetLabel returns ControlLabel
         return label
     end

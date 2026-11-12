@@ -14,8 +14,8 @@ use Libraries.Containers.Array
 use Libraries.Compute.Math
 
 /*
-    A Slider chooses a number in a range by moving a thumb along a track
-    (Slider plan, look S1). The track is filled in the accent color up to the
+    A Slider chooses a number in a range by moving a thumb along a track.
+    The track is filled in the accent color up to the
     thumb. When the slider has the focus, its thumb grows, turns the accent
     color and gets a soft halo.
 
@@ -33,27 +33,22 @@ use Libraries.Compute.Math
     focused thumb and its halo, and the focus color the focused thumb's
     edge.
 
+    Attribute: Author William Allee
+
     Attribute: Example
 
-    use Libraries.Game.Game
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
     use Libraries.Interface.Controls.Slider
 
-    class Main is Game
-        action Main
-            StartGame()
-        end
+    Form form
+    Page page = form:GetMainPage()
 
-        action CreateGame
-            Slider slider
-            slider:SetName("Volume")
-            slider:SetRange(0, 100)
-            slider:SetStep(1)
-            slider:SetPageStep(10)
-            slider:SetValue(40)
-            slider:SetPosition(100, 100)
-            Add(slider)
-        end
-    end
+    page:AddLabel("Brightness")
+    Slider brightness = page:AddSlider("Brightness", 0, 100)
+    brightness:SetValue(60)
+
+    form:Display()
 */
 class Slider is Control
     // The parts, drawn in this order.
@@ -168,6 +163,12 @@ class Slider is Control
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action gives one of the slider's drawn parts a ControlShaderView,
+        so it can be drawn with rounded corners.
+
+        Attribute: Parameter part The part that gets the view.
+    */
     private action LoadPartView(Icon part)
         ControlShaderView view
         view:Initialize()
@@ -765,6 +766,15 @@ class Slider is Control
         return math:Round(Clamp(result), GetDecimalPlaces())
     end
 
+    /*
+        This action keeps a value inside the slider's range. A value below the
+        minimum becomes the minimum, and a value above the maximum becomes the
+        maximum.
+
+        Attribute: Parameter amount The value to keep inside the range.
+
+        Attribute: Returns The value, moved inside the range when needed.
+    */
     private action Clamp(number amount) returns number
         if amount < minimum
             return minimum
@@ -792,6 +802,17 @@ class Slider is Control
         sliderListeners:Remove(listener)
     end
 
+    /*
+        This action tells every slider listener that the value changed, with a
+        SliderChangedEvent. It works from a copy of the list, so a listener can
+        add or remove listeners while it is told.
+
+        Attribute: Parameter oldValue The value before the change.
+
+        Attribute: Parameter newValue The value after the change.
+
+        Attribute: Parameter isFinal False while a drag is still going on, and true when the change is done.
+    */
     private action NotifyListeners(number oldValue, number newValue, boolean isFinal)
         if sliderListeners:IsEmpty()
             return now
@@ -810,6 +831,13 @@ class Slider is Control
         end
     end
 
+    /*
+        This action tells screen readers that the value changed, when it did.
+        The change counts as final unless the mouse button is still down on the
+        slider.
+
+        Attribute: Parameter oldValue The value before the change.
+    */
     private action NotifyAccessibility(number oldValue)
         if oldValue = value
             return now

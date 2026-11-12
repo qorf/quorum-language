@@ -7,6 +7,37 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The ToolBar class is a strip of controls, usually buttons, along the top
+of a window. It places its controls in a row with a FlowLayout, fills the
+full width of its container, and is 30 pixels tall by default. Screen
+readers present it as a toolbar that groups the controls inside it.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Game.Game
+use Libraries.Interface.Controls.ToolBar
+use Libraries.Interface.Controls.Button
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        ToolBar toolbar
+        Button open
+        open:SetName("Open")
+        Button save
+        save:SetName("Save")
+        toolbar:Add(open)
+        toolbar:Add(save)
+        Add(toolbar)
+    end
+end
+*/
 class ToolBar is Control
     on create
         SetFocusable(true)
@@ -25,10 +56,25 @@ class ToolBar is Control
         SetInterfaceOptionsKey("ToolBar")
     end
 
+    /*
+        This action returns true, which tells accessibility tools that a ToolBar
+        is a parent of the controls inside it. Screen readers can then present
+        the buttons on the bar as one group.
+
+        Attribute: Returns True, since a ToolBar groups the controls it holds.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+        This action loads the graphics for the ToolBar. It gives the bar a
+        ControlShaderView, which draws its background and border, and then lets
+        Control finish loading. The game engine calls this as needed, so most
+        users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the ToolBar.
+    */
     action LoadGraphics(LayoutProperties properties)
         ControlShaderView view
         view:Initialize()

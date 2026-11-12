@@ -8,6 +8,8 @@ use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.Slider
+use Libraries.Interface.Controls.ProgressBar
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.RadioButton
@@ -1084,6 +1086,515 @@ class FormContainerControl is Control
                 end
             end
             i = i + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action adds a slider with a number box beside it, for choosing a
+        number from 0 to 100. Dragging the slider or pressing its keys changes
+        the number, and typing a number in the box moves the slider. A label
+        added just before it is shown beside it. Use AddSlider instead for a
+        slider without the number box.
+
+        Attribute: Parameter name The text name identifying the slider field, which screen readers also say.
+        Attribute: Returns The slider field that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.SliderField
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Volume")
+        SliderField volume = page:AddSliderField("Volume")
+
+        form:Display()
+    */
+    action AddSliderField(text name) returns SliderField
+        return AddSliderField(name, 0, 100, 1)
+    end
+    /*
+        This action adds a slider with a number box beside it, for choosing a
+        number between a minimum and a maximum. One key press moves it by 1
+        when the range is 10 or more, or by a hundredth of the range when it is
+        smaller, so a range of 0 to 1 moves by 0.01. Page Up and Page Down move
+        it by a tenth of the range. A label added just before it is shown
+        beside it.
+
+        Attribute: Parameter name The text name identifying the slider field, which screen readers also say.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Returns The slider field that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.SliderField
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Opacity")
+        SliderField opacity = page:AddSliderField("Opacity", 0, 1)
+
+        form:Display()
+    */
+    action AddSliderField(text name, number minimum, number maximum) returns SliderField
+        number step = GetDefaultSliderStep(minimum, maximum)
+        number pageStep = (maximum - minimum) / 10.0
+        if pageStep < step
+            pageStep = step
+        end
+        return MakeSliderField(name, minimum, maximum, step, pageStep)
+    end
+    /*
+        This action adds a slider with a number box beside it, for choosing a
+        number between a minimum and a maximum, moving by a given step for each
+        key press. Page Up and Page Down move it by ten steps, or the whole
+        range if that is less. A label added just before it is shown beside it.
+
+        Attribute: Parameter name The text name identifying the slider field, which screen readers also say.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Parameter step How much one key press changes the number.
+        Attribute: Returns The slider field that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.SliderField
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Price")
+        SliderField price = page:AddSliderField("Price", 0, 50, 0.5)
+
+        form:Display()
+    */
+    action AddSliderField(text name, number minimum, number maximum, number step) returns SliderField
+        number pageStep = step * 10
+        number range = maximum - minimum
+        if range > 0 and pageStep > range
+            pageStep = range
+        end
+        return MakeSliderField(name, minimum, maximum, step, pageStep)
+    end
+    /*
+        This action makes a slider field, sets its name, range and steps, gives
+        its number box the same font size and padding as a form's text field,
+        and adds it.
+
+        Attribute: Parameter name The name for the slider and its number box.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Parameter step How much one key press changes the number.
+        Attribute: Parameter pageStep How much Page Up and Page Down change the number.
+        Attribute: Returns The slider field that was added.
+    */
+    private action MakeSliderField(text name, number minimum, number maximum, number step, number pageStep) returns SliderField
+        SliderField sliderField
+        sliderField:Setup(name, "", minimum, maximum, step, pageStep)
+        TextField numberField = sliderField:GetField()
+        numberField:SetToDefaultFontSize()
+        numberField:SetTopPadding(3)
+        numberField:SetBottomPadding(3)
+        Add(sliderField)
+        return sliderField
+    end
+    /*
+        This action removes a slider field, added with AddSliderField, from the
+        control.
+
+        Attribute: Parameter name The text name identifying the slider field.
+        Attribute: Returns The slider field that was removed from the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.SliderField
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddSliderField("Volume")
+        SliderField removed = page:RemoveSliderField("Volume")
+
+        form:Display()
+    */
+    action RemoveSliderField(text name) returns SliderField
+        SliderField item = GetSliderField(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a slider field named " + name + ". Are you looking for the right item?")
+    end
+    /*
+        This action gets a slider field, added with AddSliderField, from the
+        control, so its value can be read or changed.
+
+        Attribute: Parameter name The text name identifying the slider field.
+        Attribute: Returns The slider field with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.SliderField
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddSliderField("Volume")
+        SliderField volume = page:GetSliderField("Volume")
+        volume:SetValue(75)
+        output volume:GetValue()
+
+        form:Display()
+    */
+    action GetSliderField(text name) returns SliderField
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control not= undefined and control:GetName() = name and control is SliderField
+                return cast(SliderField, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                SliderField candidate = interface:GetSliderField(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action adds a slider for choosing a number from 0 to 100, by
+        dragging its thumb or pressing its keys. It shows no number; use
+        AddSliderField for a slider with a number box beside it. A label added
+        just before it is shown beside it.
+
+        Attribute: Parameter name The text name identifying the slider, which screen readers also say.
+        Attribute: Returns The slider that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Slider
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Brightness")
+        Slider brightness = page:AddSlider("Brightness")
+
+        form:Display()
+    */
+    action AddSlider(text name) returns Slider
+        return AddSlider(name, 0, 100, 1)
+    end
+    /*
+        This action adds a slider for choosing a number between a minimum and a
+        maximum. One key press moves it by 1 when the range is 10 or more, or by
+        a hundredth of the range when it is smaller. Page Up and Page Down move
+        it by a tenth of the range. It shows no number; use AddSliderField for a
+        slider with a number box beside it.
+
+        Attribute: Parameter name The text name identifying the slider, which screen readers also say.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Returns The slider that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Slider
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Speed")
+        Slider speed = page:AddSlider("Speed", 1, 10)
+
+        form:Display()
+    */
+    action AddSlider(text name, number minimum, number maximum) returns Slider
+        number step = GetDefaultSliderStep(minimum, maximum)
+        number pageStep = (maximum - minimum) / 10.0
+        if pageStep < step
+            pageStep = step
+        end
+        return MakeSlider(name, minimum, maximum, step, pageStep)
+    end
+    /*
+        This action adds a slider for choosing a number between a minimum and a
+        maximum, moving by a given step for each key press. Page Up and Page
+        Down move it by ten steps, or the whole range if that is less. It shows
+        no number; use AddSliderField for a slider with a number box beside it.
+
+        Attribute: Parameter name The text name identifying the slider, which screen readers also say.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Parameter step How much one key press changes the number.
+        Attribute: Returns The slider that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Slider
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Zoom")
+        Slider zoom = page:AddSlider("Zoom", 0, 4, 0.25)
+
+        form:Display()
+    */
+    action AddSlider(text name, number minimum, number maximum, number step) returns Slider
+        number pageStep = step * 10
+        number range = maximum - minimum
+        if range > 0 and pageStep > range
+            pageStep = range
+        end
+        return MakeSlider(name, minimum, maximum, step, pageStep)
+    end
+    /*
+        This action makes a slider, sets its name, range and steps, and adds
+        it.
+
+        Attribute: Parameter name The slider's name.
+        Attribute: Parameter minimum The smallest number it can choose.
+        Attribute: Parameter maximum The largest number it can choose.
+        Attribute: Parameter step How much one key press changes the number.
+        Attribute: Parameter pageStep How much Page Up and Page Down change the number.
+        Attribute: Returns The slider that was added.
+    */
+    private action MakeSlider(text name, number minimum, number maximum, number step, number pageStep) returns Slider
+        Slider slider
+        slider:SetName(name)
+        slider:SetRange(minimum, maximum)
+        slider:SetStep(step)
+        slider:SetPageStep(pageStep)
+        Add(slider)
+        return slider
+    end
+    /*
+        This action returns how much one key press moves a slider over a range:
+        1 when the range is 10 or more, otherwise a hundredth of the range.
+
+        Attribute: Parameter minimum The smallest number of the range.
+        Attribute: Parameter maximum The largest number of the range.
+        Attribute: Returns The step for one key press.
+    */
+    private action GetDefaultSliderStep(number minimum, number maximum) returns number
+        number range = maximum - minimum
+        if range >= 10 or range <= 0
+            return 1
+        end
+        return range / 100.0
+    end
+    /*
+        This action removes a slider, added with AddSlider, from the control.
+
+        Attribute: Parameter name The text name identifying the slider.
+        Attribute: Returns The slider that was removed from the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Slider
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddSlider("Brightness")
+        Slider removed = page:RemoveSlider("Brightness")
+
+        form:Display()
+    */
+    action RemoveSlider(text name) returns Slider
+        Slider item = GetSlider(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a slider named " + name + ". Are you looking for the right item?")
+    end
+    /*
+        This action gets a slider, added with AddSlider, from the control, so
+        its value can be read or changed. It doesn't find the slider inside a
+        slider field; use GetSliderField for those.
+
+        Attribute: Parameter name The text name identifying the slider.
+        Attribute: Returns The slider with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Slider
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddSlider("Brightness")
+        Slider brightness = page:GetSlider("Brightness")
+        brightness:SetValue(80)
+        output brightness:GetValue()
+
+        form:Display()
+    */
+    action GetSlider(text name) returns Slider
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control not= undefined and control:GetName() = name and control is Slider
+                return cast(Slider, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Slider candidate = interface:GetSlider(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action adds a progress bar that shows how far along something is,
+        from 0 to 100. Set its value with SetValue as the work goes on. A label
+        added just before it is shown beside it, and screen readers say the
+        value when it changes.
+
+        Attribute: Parameter name The text name identifying the progress bar, which screen readers also say.
+        Attribute: Returns The progress bar that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ProgressBar
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Download")
+        ProgressBar download = page:AddProgressBar("Download")
+        download:SetValue(40)
+
+        form:Display()
+    */
+    action AddProgressBar(text name) returns ProgressBar
+        ProgressBar bar
+        bar:SetName(name)
+        Add(bar)
+        return bar
+    end
+    /*
+        This action adds a progress bar that shows how far along something is,
+        between a minimum and a maximum, such as 0 to 10 questions answered. It
+        starts at the minimum. Set its value with SetValue as the work goes on.
+
+        Attribute: Parameter name The text name identifying the progress bar, which screen readers also say.
+        Attribute: Parameter minimum The value when nothing is done.
+        Attribute: Parameter maximum The value when everything is done.
+        Attribute: Returns The progress bar that was added to the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ProgressBar
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddLabel("Questions answered")
+        ProgressBar quiz = page:AddProgressBar("Questions answered", 0, 10)
+        quiz:SetValue(3)
+
+        form:Display()
+    */
+    action AddProgressBar(text name, number minimum, number maximum) returns ProgressBar
+        ProgressBar bar
+        bar:SetName(name)
+        bar:SetMinimum(minimum)
+        bar:SetMaximum(maximum)
+        bar:SetValue(minimum)
+        Add(bar)
+        return bar
+    end
+    /*
+        This action removes a progress bar, added with AddProgressBar, from the
+        control.
+
+        Attribute: Parameter name The text name identifying the progress bar.
+        Attribute: Returns The progress bar that was removed from the control.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ProgressBar
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddProgressBar("Download")
+        ProgressBar removed = page:RemoveProgressBar("Download")
+
+        form:Display()
+    */
+    action RemoveProgressBar(text name) returns ProgressBar
+        ProgressBar item = GetProgressBar(name)
+        if item not= undefined
+            Remove(item)
+            return item
+        end
+        alert("I couldn't find a progress bar named " + name + ". Are you looking for the right item?")
+    end
+    /*
+        This action gets a progress bar, added with AddProgressBar, from the
+        control, so its value can be changed as the work goes on.
+
+        Attribute: Parameter name The text name identifying the progress bar.
+        Attribute: Returns The progress bar with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ProgressBar
+
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddProgressBar("Download")
+        ProgressBar download = page:GetProgressBar("Download")
+        download:SetValue(60)
+
+        form:Display()
+    */
+    action GetProgressBar(text name) returns ProgressBar
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control not= undefined and control:GetName() = name and control is ProgressBar
+                return cast(ProgressBar, control)
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                ProgressBar candidate = interface:GetProgressBar(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
         end
 
         return undefined

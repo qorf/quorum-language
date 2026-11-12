@@ -4,6 +4,40 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Layouts.TreeLayout
 
+/*
+The TreePanel class is the panel inside a TreeItem that holds the items
+added under it. It lays them out in a column with a TreeLayout, indented
+from the parent's row, and is only shown while the parent item is open. A
+TreeItem makes its own TreePanel, so programs don't create one directly;
+adding an item to another item puts it in that item's panel.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+Form form
+Page page = form:GetMainPage()
+Tree tree = page:AddTree("Files")
+
+TreeItem folder
+folder:SetName("Scripts")
+tree:Add(folder)
+
+// The file is placed in the folder's TreePanel.
+TreeItem file
+file:SetName("Main.quorum")
+folder:Add(file)
+
+// Opening the folder shows its panel, and the file in it.
+folder:Open()
+
+form:Display()
+*/
 class TreePanel is Control
 
     on create
@@ -17,6 +51,12 @@ class TreePanel is Control
         panelProperties:SetPercentageOriginY(1.0)
     end
 
+    /*
+    This action returns the TreeItem this panel belongs to, or undefined if the
+    panel hasn't been added to a TreeItem.
+
+    Attribute: Returns The TreeItem holding this panel, or undefined.
+    */
     action GetParentTreeItem returns TreeItem
         if GetParent() is TreeItem
             return cast(TreeItem, GetParent())
@@ -25,6 +65,12 @@ class TreePanel is Control
         end
     end
 
+    /*
+    This action returns an iterator over the items in this panel, which are the
+    items added to the panel's TreeItem. The panel must belong to a TreeItem.
+
+    Attribute: Returns An iterator over the TreeItems in this panel.
+    */
     action GetTreeItems returns Iterator<TreeItem>
         return GetParentTreeItem():GetTreeItems()
     end

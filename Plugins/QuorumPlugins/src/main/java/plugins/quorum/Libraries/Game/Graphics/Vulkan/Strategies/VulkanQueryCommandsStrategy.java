@@ -3,7 +3,7 @@ package plugins.quorum.Libraries.Game.Graphics.Vulkan.Strategies;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer_;
 
 /*
-Records the query and debug label commands (Graphics timing plan T1) into a
+Records the query and debug label commands into a
 command buffer. command is the Quorum command, with the values to record.
 They are apart from VulkanCommandsStrategy so platforms without them can
 leave them out.

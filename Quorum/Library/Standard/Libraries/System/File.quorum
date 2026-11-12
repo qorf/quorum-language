@@ -678,8 +678,7 @@ text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():Get
             // The native split (Java's, with the delimiter quoted), which
             // drops the empty piece after the last newline. Split(text) is
             // written in Quorum and joins text a character at a time, which
-            // took over a minute for large projects' trees in a profile
-            // (Studio plan TeamTabSpeed.md, 2026-11-06).
+            // took over a minute for large projects' trees in a profile.
             Array<text> paths = listingString:Split(GetSystemNewline(), false)
             Iterator<text> i = paths:GetIterator()
 

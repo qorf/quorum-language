@@ -3,6 +3,35 @@ package Libraries.Interface.Controls
 use Libraries.Containers.Array
 use Libraries.Interface.Layouts.LayoutProperties
 
+/*
+    The ScrollableLineControl class is the base for scrollable controls that
+    show their content as lines, such as TextBox, List and CodeEditor. On top
+    of what a ScrollableControl does, it can show gutters along its left side.
+    A gutter is a narrow strip that shows something for each line, such as
+    line numbers. Gutters are placed side by side from the left edge, and the
+    content is moved to the right by their combined width. Each class that
+    extends this one says how tall its lines are, where they are, how many
+    there are, and which one is first in view.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollableLineControl
+    use Libraries.Interface.Controls.Gutter
+    use Libraries.Interface.Controls.LineNumberGutter
+
+    Form form
+    Page page = form:GetMainPage()
+
+    ScrollableLineControl box = page:AddTextBox("Notes")
+
+    LineNumberGutter lineNumbers
+    box:Add(cast(Gutter, lineNumbers))
+
+    form:Display()
+*/
 class ScrollableLineControl is ScrollableControl
 
     Control gutterRegion
@@ -28,12 +57,79 @@ class ScrollableLineControl is ScrollableControl
         parent:Control:Add(gutterRegion)
     end
 
+    /*
+        This action adds a gutter to the left side of this control. Gutters are
+        placed side by side in the order they are added, starting from the left
+        edge, and the content moves to the right to make room for them. The
+        gutter is told which control it belongs to.
+
+        Attribute: Parameter gutter The gutter to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Controls.Gutter
+        use Libraries.Interface.Controls.LineNumberGutter
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(300)
+                box:SetPixelHeight(200)
+
+                LineNumberGutter lineNumbers
+                box:Add(cast(Gutter, lineNumbers))
+                Add(box)
+            end
+        end
+    */
     action Add(Gutter gutter)
         gutters:Add(gutter)
         gutter:SetControl(me)
         gutterRegion:Add(gutter)
     end
 
+    /*
+        This action removes a gutter from this control. If the gutter belonged to
+        this control, it no longer does.
+
+        Attribute: Parameter gutter The gutter to remove.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextBox
+        use Libraries.Interface.Controls.Gutter
+        use Libraries.Interface.Controls.LineNumberGutter
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextBox box
+                box:SetPixelWidth(300)
+                box:SetPixelHeight(200)
+
+                LineNumberGutter lineNumbers
+                box:Add(cast(Gutter, lineNumbers))
+                box:Remove(cast(Gutter, lineNumbers))
+                Add(box)
+            end
+        end
+    */
     action Remove(Gutter gutter)
         gutters:Remove(gutter)
         if gutter:GetControl() = me
@@ -43,10 +139,25 @@ class ScrollableLineControl is ScrollableControl
         gutterRegion:Remove(gutter)
     end
 
+    /*
+        This action returns the gutters on this control, in the order they were
+        added, from left to right.
+
+        Attribute: Returns An array of the gutters on this control.
+    */
     action GetGutters returns Array<Gutter>
         return gutters
     end
 
+    /*
+        This action places the gutters side by side from the left edge, sets each
+        gutter's width to its thickness, and makes the area that holds them just
+        wide enough to fit them. A gutter whose graphics are not loaded yet is
+        loaded first, so its thickness is known. The ScrollableControl calls this
+        while it resizes, to know how far to move the content to the right.
+
+        Attribute: Returns The combined width of all of the gutters, in pixels.
+    */
     private action GetCombinedGutterWidth returns number
         number result = 0
         integer i = 0
@@ -81,6 +192,11 @@ class ScrollableLineControl is ScrollableControl
         return result
     end
 
+    /*
+        This action brings the gutters up to date after the view has moved or been
+        resized. It makes each gutter as tall as this control and tells it which
+        line is first in view, so it can show the right values for each line.
+    */
     private action RefreshGutterRegion
         integer firstLine = GetFirstVisibleLine()
 

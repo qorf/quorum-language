@@ -19,6 +19,34 @@ skip them. Keyboard and screen reader users move between tabs with the usual
 keys, and the selected or focused Tab scrolls into view.
 
 Each TabBar makes its own two arrows, so most users won't need this class.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Interface.Controls.TabPane
+use Libraries.Interface.Controls.Tab
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        // With more tabs than fit across the window, the TabBar shows its
+        // scroll arrows at both ends.
+        TabPane pane
+        Add(pane)
+        integer counter = 1
+        repeat while counter <= 30
+            Tab tab
+            tab:SetName("Document " + counter)
+            pane:Add(tab)
+            counter = counter + 1
+        end
+        pane:Select(0)
+    end
+end
 */
 class TabBarScrollArrow is Control, MouseListener
 
@@ -199,6 +227,11 @@ class TabBarScrollArrow is Control, MouseListener
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+    This action colors the triangle in the bar's font color, faded when the
+    bar can't scroll further in this arrow's direction. It does nothing
+    until the triangle and its color are loaded.
+    */
     private action UpdateArrowColor
         if arrowColor = undefined or arrow:IsLoaded() = false
             return now

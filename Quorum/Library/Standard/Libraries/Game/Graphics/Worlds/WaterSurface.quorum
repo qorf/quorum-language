@@ -13,7 +13,7 @@ use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
 
 /*
 WaterSurface is a flat sheet of water: a Model drawn with a
-WaterShaderProgram, after the lighting, over the ground (library item 39).
+WaterShaderProgram, after the lighting, over the ground.
 Its look comes from the program. Place it at the water's level with
 SetPosition, or SetLevel. Water has no collision.
 
@@ -76,8 +76,8 @@ class WaterSurface is Model
     end
 
     /*
-    This action makes the water the shape of a lake's water cells (Water
-    plan W6): a flat sheet over each run of cells with water along a row,
+    This action makes the water the shape of a lake's water cells: a flat sheet over each run of
+    cells with water along a row,
     and nothing elsewhere, so water never shows past the lake's cells. The
     surface is placed at the lake's grid corner, at its level.
 
@@ -271,10 +271,10 @@ class WaterSurface is Model
     end
 
     /*
-    This action makes the water a river's (River plan R2): a strip along
+    This action makes the water a river's: a strip along
     the river's line, as wide as the river, at its water's height, sloping
     down where the river does. Its ripples flow downstream at the river's
-    speed (R3): each corner's texture coordinates are how far across and
+    speed: each corner's texture coordinates are how far across and
     along the river it is, in world units, and its tangent and bitangent
     point across and downstream, which the water shader follows.
 
@@ -369,7 +369,7 @@ class WaterSurface is Model
     water gives NOT_FLOWING. A flowing sheet's material has a texture
     transform: its scale across is the flow speed, and it is moved up by
     one whole texture, which changes nothing but marks it as flowing for
-    the water shader (River plan R3).
+    the water shader.
     */
     private action LoadSheetMesh(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
             Number32BitArray coordinates, Integer32BitArray indices, WaterShaderProgram program, number flowSpeed)

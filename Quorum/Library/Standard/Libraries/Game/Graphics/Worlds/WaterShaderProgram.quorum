@@ -14,7 +14,7 @@ use Libraries.System.Logging.SharedLogger
 
 /*
 WaterShaderProgram draws water: lakes and seas over the terrain. It is a
-forward program (library item 39): drawn after the lighting, over what is
+forward program: drawn after the lighting, over what is
 already there, so it can look through to the ground below. Deeper water is
 darker, the edge fades softly into the shore, ripples move with time, and
 the sun and lamps glint on it.
@@ -270,8 +270,7 @@ class WaterShaderProgram is ShaderProgram
     end
 
     /*
-    This action sets how much of the sky the water reflects (library item
-    41), from 0 for none to 1 for all the physics allows.
+    This action sets how much of the sky the water reflects, from 0 for none to 1 for all the physics allows.
 
     Attribute: Parameter strength The reflection's strength.
     */

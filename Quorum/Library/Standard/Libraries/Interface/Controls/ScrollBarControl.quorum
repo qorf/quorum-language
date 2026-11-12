@@ -6,6 +6,36 @@ use Libraries.Game.Graphics.Color
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Layouts.ManualLayout
 
+/*
+    The ScrollBarControl class is the handle of a scroll bar: the part that
+    slides along a ScrollBarTrack. Its length shows how much of the content
+    can be seen at once, and its place on the track shows how far the content
+    has been scrolled. Dragging it scrolls the view. A ScrollableControl, such
+    as a ScrollPane, makes its handles itself. Unless a background color is set
+    on the handle, it is drawn in the accent color of the scrollable control
+    that holds it, and in a mix of that color and the text color while the
+    mouse is over it. Most programs never make a handle directly.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ScrollBarTrack
+    use Libraries.Interface.Controls.ScrollBarControl
+
+    Form form
+    Page page = form:GetMainPage()
+
+    page:AddButton("Hello")
+
+    // The second item inside a page is its up and down scroll bar.
+    ScrollBarTrack track = cast(ScrollBarTrack, page:GetItem(1))
+    ScrollBarControl handle = track:GetHandle()
+    boolean vertical = handle:IsVertical()
+
+    form:Display()
+*/
 class ScrollBarControl is Control
 
     boolean vertical = true
@@ -15,6 +45,14 @@ class ScrollBarControl is Control
         SetInputGroup("ScrollBarControl")
     end
 
+    /*
+        This action loads the graphics for the handle. The first time, it makes the
+        view that draws the handle's shape, then it loads the rest of the
+        control's graphics. The game engine calls it as needed, so most programs
+        don't need to call it directly.
+
+        Attribute: Parameter properties The layout properties used to load the graphics.
+    */
     action LoadGraphics(LayoutProperties properties)
         if GetView2D() = undefined
             ControlShaderView view
@@ -26,6 +64,15 @@ class ScrollBarControl is Control
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action returns the color the handle is drawn in. If a background
+        color was set on this handle, that color is used. Otherwise the handle
+        uses the accent color of the ScrollableControl that holds it. If the
+        handle is not inside a ScrollableControl, the normal background color is
+        used.
+
+        Attribute: Returns The color of the handle.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -67,6 +114,12 @@ class ScrollBarControl is Control
         return parent:Control:GetMouseOverColor()
     end
 
+    /*
+        This action finds the ScrollableControl that holds this handle, by looking
+        at its parent, then that item's parent, and so on.
+
+        Attribute: Returns The ScrollableControl that holds this handle, or undefined if there is none.
+    */
     action GetScrollableControl returns ScrollableControl
         Item2D result = GetParent()
         repeat until result is ScrollableControl or result = undefined
@@ -75,10 +128,22 @@ class ScrollBarControl is Control
         return cast(ScrollableControl, result)
     end
 
+    /*
+        This action returns whether the handle moves up and down (for vertical
+        scrolling) or left and right (for horizontal scrolling).
+
+        Attribute: Returns True if the handle moves up and down, false if it moves left and right.
+    */
     action IsVertical returns boolean
         return vertical
     end
 
+    /*
+        This action sets whether the handle moves up and down or left and right. A
+        ScrollableControl sets this when it makes its scroll bars.
+
+        Attribute: Parameter vertical True for a handle that moves up and down, false for one that moves left and right.
+    */
     action SetVertical(boolean vertical)
         me:vertical = vertical
     end

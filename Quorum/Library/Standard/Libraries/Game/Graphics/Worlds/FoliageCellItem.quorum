@@ -9,21 +9,20 @@ use Libraries.Containers.Array
 use Libraries.System.File
 
 /*
-A FoliageCellItem draws the copies in one FoliageCell. Since Foliage plan
-F5 it draws them all with one model that has copies (Model:SetCopies), so
+A FoliageCellItem draws the copies in one FoliageCell. It draws them all
+with one model that has copies (Model:SetCopies), so
 the renderer draws every copy in one instanced draw: the asset's model, or
 for a card asset, one upright two-sided picture, copied once per plane of
 each copy. A TerrainItem makes one per cell and holds them as children,
 hides the cells farther from the camera than their asset's draw distance
-or outside its view (Dense grass plan DG1), and tells the shown ones how
+or outside its view, and tells the shown ones how
 far away they are (UpdateForDistance), which picks the level of detail and
-thins the copies near the draw distance (Foliage plan F6).
+thins the copies near the draw distance.
 
 Each model is a FoliageCellDrawing. Besides the level drawn, a cell may
 draw the next level for a growing share of its copies near that level's
-distance, so it changes a little at a time (Dense grass plan DG6), and a
-simpler level only into the shadows in place of a detailed level's shadow
-(Dense grass plan DG3).
+distance, so it changes a little at a time, and a
+simpler level only into the shadows in place of a detailed level's shadow.
 
 The item stands at the origin, so each copy's place is its world place. The
 model shares its file's blueprint, so the file is loaded once however many
@@ -51,23 +50,21 @@ class FoliageCellItem is Item3D
     FoliageAsset asset = undefined
 
     // Each level of detail's model file or card picture, and a card
-    // level's picture, by level (Foliage plan F6). Level 0 is the asset's
+    // level's picture, by level. Level 0 is the asset's
     // own mesh; levels 1 to 3 match FoliageAsset's MAXIMUM_LEVELS. Entries
     // are undefined when not given.
     Array<File> levelFiles
     Array<Texture> levelTextures
 
-    // The terrain's heights, for copies that lean with the slope (Dense
-    // grass plan DG4), or undefined.
+    // The terrain's heights, for copies that lean with the slope, or undefined.
     TerrainData ground = undefined
 
     // The level of detail wanted at the camera's distance, and the
-    // thinning band: 0 draws every copy, each higher band fewer (Foliage
-    // plan F5 and F6).
+    // thinning band: 0 draws every copy, each higher band fewer.
     integer level = 0
     integer band = 0
 
-    // Fading into the next level (Dense grass plan DG6): the level faded
+    // Fading into the next level: the level faded
     // into, or -1 for none, and how far along, in steps from 0 to
     // FADE_STEPS, so copies are only drawn again when a step changes.
     integer fadeLevel = -1
@@ -75,7 +72,7 @@ class FoliageCellItem is Item3D
     constant integer FADE_STEPS = 8
 
     // The drawings: the level drawn, the level faded into, and the shadow
-    // stand-in (Dense grass plan DG3 and DG6).
+    // stand-in.
     FoliageCellDrawing main
     FoliageCellDrawing fading
     FoliageCellDrawing standIn
@@ -85,12 +82,12 @@ class FoliageCellItem is Item3D
     number reach = 0
 
     // Whether the cell is within its asset's draw distance of the camera,
-    // and inside the camera's view (Dense grass plan DG1). It is shown only
+    // and inside the camera's view. It is shown only
     // when both are true; TerrainItem sets them.
     boolean nearCamera = false
     boolean inView = true
 
-    // Thinning (Foliage plan F5): past this share of the draw distance,
+    // Thinning: past this share of the draw distance,
     // copies thin out in this many bands, each keeping fewer.
     constant number THINNING_START = 0.8
     constant integer THINNING_BANDS = 4
@@ -120,7 +117,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action sets the terrain's heights, so copies of an asset that
-    leans with the slope can find it (Dense grass plan DG4).
+    leans with the slope can find it.
 
     Attribute: Parameter data The terrain's heights, or undefined.
     */
@@ -139,7 +136,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action sets a level of detail's file (Foliage plan F6): its model,
+    This action sets a level of detail's file: its model,
     or for a card level, its picture, with the picture's texture if it is
     already loaded.
 
@@ -174,7 +171,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns the level of detail drawn (Foliage plan F6): 0 for
+    This action returns the level of detail drawn: 0 for
     the asset's own mesh.
 
     Attribute: Returns The level.
@@ -187,8 +184,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns the model drawing the copies at the level drawn
-    (Foliage plan F5).
+    This action returns the model drawing the copies at the level drawn.
 
     Attribute: Returns The model, or undefined before Build.
     */
@@ -197,8 +193,8 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns how many copies are drawn after thinning (Foliage
-    plan F5), at the level drawn and the level faded into. A card's planes
+    This action returns how many copies are drawn after thinning, at the level drawn and the level
+    faded into. A card's planes
     count as one copy each.
 
     Attribute: Returns The count.
@@ -209,8 +205,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action makes the item's models again from its cell's copies, after
-    copies were added, removed or moved, or the asset changed (Foliage plan
-    F5). The old models are taken out and disposed.
+    copies were added, removed or moved, or the asset changed. The old models are taken out and disposed.
     */
     action Build
         Clear()
@@ -222,9 +217,9 @@ class FoliageCellItem is Item3D
 
     /*
     This action moves the copies up or down to their heights, after they
-    followed the ground (Terrain plan F4). It is quicker than Build, since
+    followed the ground. It is quicker than Build, since
     nothing is loaded again; it works out the copies again, so copies added
-    or removed are right too (Foliage plan F5).
+    or removed are right too.
     */
     action PlaceAgain
         if cell = undefined or asset = undefined
@@ -242,9 +237,9 @@ class FoliageCellItem is Item3D
 
     /*
     This action tells the item how far the camera is from the cell's
-    nearest side (Foliage plan F5 and F6). It picks the level of detail for
+    nearest side. It picks the level of detail for
     that distance, how much the copies thin out near the draw distance, and
-    how far they have faded into the next level (Dense grass plan DG6), and
+    how far they have faded into the next level, and
     draws them again only if any of these changed, so calling it a few
     times a second costs little.
 
@@ -295,7 +290,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action sets whether the cell is within its asset's draw distance
-    of the camera (Dense grass plan DG1). The cell shows when it is near
+    of the camera. The cell shows when it is near
     and in view.
 
     Attribute: Parameter near True if the cell is near enough to draw.
@@ -307,7 +302,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action returns whether the cell is within its asset's draw
-    distance of the camera (Dense grass plan DG1).
+    distance of the camera.
 
     Attribute: Returns True if it is near enough to draw.
     */
@@ -316,8 +311,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action sets whether the cell is inside the camera's view (Dense
-    grass plan DG1). The cell shows when it is near and in view.
+    This action sets whether the cell is inside the camera's view. The cell shows when it is near and in view.
 
     Attribute: Parameter visible True if any of the cell is in view.
     */
@@ -331,7 +325,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action shows the cell if it is near the camera and in view, and
-    hides it otherwise (Dense grass plan DG1).
+    hides it otherwise.
     */
     private action ShowIfWanted
         boolean wanted = nearCamera and inView
@@ -389,7 +383,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action returns true if a level of detail can be drawn: the asset
-    uses it and its file exists (Foliage plan F6).
+    uses it and its file exists.
     */
     private action IsLevelUsable(integer levelNumber) returns boolean
         if levelNumber < 0 or levelNumber >= levelFiles:GetSize()
@@ -408,7 +402,7 @@ class FoliageCellItem is Item3D
     /*
     This action loads each drawing whose level should change, or disposes
     it when it isn't needed, then sets how each draws and which copies it
-    keeps (Dense grass plan DG3 and DG6). The level drawn falls back to
+    keeps. The level drawn falls back to
     the asset's own mesh if its file is missing.
     */
     private action UpdateDrawings
@@ -434,7 +428,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns the shadow stand-in's level (Dense grass plan DG3):
+    This action returns the shadow stand-in's level:
     the asset's shadow level, if the asset casts shadows, the level is
     usable and casts shadows, and a level drawn now is nearer than it.
     Otherwise -1, for none.
@@ -495,7 +489,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action sets how each drawing draws (Dense grass plan DG3): a level
+    This action sets how each drawing draws: a level
     casts shadows if the asset does, the level isn't past the asset's last
     shadow level, and no stand-in throws its shadow; the stand-in draws
     only its shadow.
@@ -509,8 +503,7 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns true if a level throws its own shadow (Dense grass
-    plan DG3).
+    This action returns true if a level throws its own shadow.
     */
     private action CastsOwnShadow(integer drawnLevel, integer standInLevel) returns boolean
         if not asset:CastsShadows() or drawnLevel < 0 or drawnLevel > asset:GetLastShadowLevel()
@@ -524,7 +517,7 @@ class FoliageCellItem is Item3D
 
     /*
     This action gives each drawing the copies it keeps, by their numbers
-    from 0 to 1 (Foliage plan F5, Dense grass plan DG3 and DG6). Thinning
+    from 0 to 1. Thinning
     keeps those below a share; of those, the ones below the fade's share
     are drawn at the next level, the rest at the level drawn. The stand-in
     keeps the copies of every level nearer than its own.
@@ -562,8 +555,8 @@ class FoliageCellItem is Item3D
     end
 
     /*
-    This action returns the thinning band for a distance from the camera
-    (Foliage plan F5): 0 within THINNING_START of the draw distance, then
+    This action returns the thinning band for a distance from the camera:
+0 within THINNING_START of the draw distance, then
     1 to THINNING_BANDS out to the draw distance.
     */
     private action GetBandFor(number distance) returns integer

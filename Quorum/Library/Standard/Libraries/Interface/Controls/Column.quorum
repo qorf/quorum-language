@@ -4,6 +4,33 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
 
+/*
+The Column class is one column of Cells in a Spreadsheet. Cells added to a
+Column are stacked from top to bottom, so the first Cell is in row 0. A
+Column is 100 pixels wide unless its width is changed.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Column
+use Libraries.Interface.Controls.Cell
+
+class Main
+    action Main
+        Spreadsheet sheet
+        Column names
+        Cell ada
+        ada:SetText("Ada")
+        names:Add(ada)
+        Cell grace
+        grace:SetText("Grace")
+        names:Add(grace)
+        sheet:Add(names)
+        output "The column has " + names:GetSize() + " cells."
+    end
+end
+*/
 class Column is Control
     Array<Cell> cells
     boolean hasHeader = true
@@ -22,44 +49,157 @@ class Column is Control
         properties:SetPixelWidth(100)
     end
 
+    /*
+    This action adds a Cell to the bottom of the Column.
+
+    Attribute: Parameter cell The Cell to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    */
     action Add(Cell cell)
         cells:Add(cell)
 
         parent:Control:Add(cell)
     end
 
+    /*
+    This action adds a Cell at the given position in the Column. Position 0
+    is the top row, and Cells at or after the position move down by one.
+
+    Attribute: Parameter position The row the new Cell will have.
+
+    Attribute: Parameter cell The Cell to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell grace
+    grace:SetText("Grace")
+    names:Add(grace)
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(0, ada)
+    */
     action Add(integer position, Cell cell)
         cells:Add(position, cell)
 
         parent:Control:Add(position, cell)
     end
 
+    /*
+    This action returns the Cell at the given row of the Column.
+
+    Attribute: Parameter i The row of the Cell, from 0 at the top.
+
+    Attribute: Returns The Cell at that row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    Cell first = names:GetCell(0)
+    */
     action GetCell(integer i) returns Cell
         return cells:Get(i)
     end
 
+    /*
+    This action removes the given Cell from the Column.
+
+    Attribute: Parameter cell The Cell to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    names:RemoveCell(ada)
+    */
     action RemoveCell(Cell cell)
         cells:Remove(cell)
         parent:Item2D:Remove(cell)
     end
 
+    /*
+    This action removes the Cell at the given row of the Column. Cells below
+    it move up by one.
+
+    Attribute: Parameter column The row of the Cell to remove, from 0 at the top.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    names:RemoveCellAt(0)
+    */
     action RemoveCellAt(integer column)
         Cell c = cells:RemoveAt(column)
         parent:Item2D:Remove(column)
     end
 
+    /*
+    This action returns how many Cells are in the Column.
+
+    Attribute: Returns The number of Cells.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    integer size = names:GetSize()
+    */
     action GetSize returns integer
         return cells:GetSize()
     end
 
+    /*
+    This action returns true if the Column has no Cells.
+
+    Attribute: Returns True if there are no Cells.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    Column names
+    boolean empty = names:IsCellsEmpty()
+    */
     action IsCellsEmpty returns boolean
         return cells:IsEmpty()
     end
 
+    /*
+    This action sets the Spreadsheet this Column belongs to. The
+    Spreadsheet's Add action calls it, so most users won't need it. Its
+    Cells use the Spreadsheet to select themselves and to find their colors.
+
+    Attribute: Parameter sheet The Spreadsheet the Column belongs to, or undefined.
+    */
     action SetSpreadsheet(Spreadsheet sheet)
         spreadsheet = sheet
     end
 
+    /*
+    This action returns the Spreadsheet this Column belongs to.
+
+    Attribute: Returns The Spreadsheet, or undefined if the Column is not in one.
+    */
     action GetSpreadsheet returns Spreadsheet
         return spreadsheet
     end
@@ -72,6 +212,19 @@ class Column is Control
         return cells:GetFirstLocation(cell)
     end
 
+    /*
+    This action removes every Cell from the Column. If the Spreadsheet's
+    selection is in this Column, the selection is cleared too.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Column
+    use Libraries.Interface.Controls.Cell
+    Column names
+    Cell ada
+    ada:SetText("Ada")
+    names:Add(ada)
+    names:Empty()
+    */
     action Empty
         if spreadsheet not= undefined
             SpreadsheetSelection selection = spreadsheet:GetSelection()

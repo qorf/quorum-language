@@ -183,7 +183,7 @@ class WorldTerrain
     Texture splatStandIn = undefined
     VulkanImageView linkedSplatView = undefined
 
-    // Texture sets for the ground layers (library item 24). A layer with a
+    // Texture sets for the ground layers. A layer with a
     // Material in layerMaterials is drawn from the set's two packed
     // textures, color and height, and normal, roughness and ambient
     // occlusion, with height blending between layers. A layer without one
@@ -457,7 +457,7 @@ class WorldTerrain
     Their meshes are freed, so remove them from the game first.
     */
     action Build
-        // Models from an earlier build are freed (Item 33).
+        // Models from an earlier build are freed.
         integer old = 0
         repeat while old < regionModels:GetSize()
             regionModels:Get(old):Dispose()
@@ -680,7 +680,7 @@ class WorldTerrain
 
         streaming = true
         drawLayer = layer
-        // Models from an earlier build are freed (Item 33).
+        // Models from an earlier build are freed.
         integer old = 0
         repeat while old < regionModels:GetSize()
             regionModels:Get(old):Dispose()
@@ -1286,7 +1286,7 @@ class WorldTerrain
     /*
     This action frees cached region models that aren't being drawn and are
     more than twice the draw radius from the target. They are built again
-    if the target comes back (Item 33).
+    if the target comes back.
 
     Attribute: Parameter targetX The target's position along x, in world units.
     Attribute: Parameter targetZ The target's position along z, in world units.
@@ -1694,7 +1694,7 @@ class WorldTerrain
     since the renderer flips texture coordinates along v.
 
     While the splat area's size is unchanged, the same Texture is loaded
-    again. The renderer updates it in place (library item 20, Item20.md), so
+    again. The renderer updates it in place, so
     it keeps its first place among the textures, which the splat shader
     needs. A new Texture is made only when the size changes, such as when
     regions are added outside the area; that one takes a new place.

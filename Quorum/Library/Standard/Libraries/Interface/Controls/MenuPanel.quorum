@@ -4,6 +4,44 @@ use Libraries.Interface.Layouts.VerticalMenuLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.DropShadowView
 
+/*
+    The MenuPanel class is the box that holds the items of an open menu. When a
+    MenuItem has items of its own, it shows them in a MenuPanel that lists them
+    from top to bottom. Every MenuItem and PopupMenu makes its own MenuPanel, so
+    most programs never need to create one directly. A menu with a very long list
+    of items can use a ScrollableMenuPanel instead, which shows only some of the
+    items at a time.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.MenuBar
+    use Libraries.Interface.Controls.MenuItem
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            MenuBar bar
+            MenuItem file
+            file:SetName("File")
+
+            // The items added to the File menu are placed in its MenuPanel.
+            MenuItem open
+            open:SetName("Open")
+            MenuItem save
+            save:SetName("Save")
+            file:Add(open)
+            file:Add(save)
+
+            bar:Add(file)
+            Add(bar)
+        end
+    end
+*/
 class MenuPanel is MenuPanelBlueprint
     
     on create
@@ -13,6 +51,12 @@ class MenuPanel is MenuPanelBlueprint
         SetLayout(panelLayout)
     end
 
+    /*
+        This action tells whether this panel scrolls through its items. A MenuPanel
+        always shows all of its items at once, so this always returns false.
+
+        Attribute: Returns false, because a MenuPanel never scrolls.
+    */
     action IsScrollable returns boolean
         return false
     end

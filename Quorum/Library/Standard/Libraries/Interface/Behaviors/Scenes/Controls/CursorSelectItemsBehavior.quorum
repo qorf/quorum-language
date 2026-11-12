@@ -14,8 +14,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorItem
 class CursorSelectItemsBehavior is Behavior
 
     action Run(BehaviorEvent event)
-        // With the River tool, Enter finishes the river being drawn (River
-        // plan R5).
+        // With the River tool, Enter finishes the river being drawn.
         SceneEditor editor = undefined
         if event:GetItem() is SceneEditor
             editor = cast(SceneEditor, event:GetItem())

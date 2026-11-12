@@ -15,8 +15,48 @@ use Libraries.Containers.Iterator
 use Libraries.Interface.Controls.Blocks.Block
 use Libraries.Interface.Controls.Blocks.CodeEditor
 
+/*
+The CodeEditorLineNumberGutter class is the line number gutter used by a
+CodeEditor. A CodeEditor shows code as blocks, and its rows don't always
+match the lines of the text, so this gutter works out each row's number
+from the start line of the block on that row. Like LineNumberGutter, it
+highlights breakpoints and the line where the debugger stopped. A
+CodeEditor makes its own, so most users get it from the editor rather
+than making one.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Blocks.CodeEditor
+use Libraries.Interface.Controls.LineNumberGutter
+
+Form form
+Page page = form:GetMainPage()
+
+CodeEditor editor
+page:Add(editor)
+
+LineNumberGutter gutter = editor:GetLineNumberGutter()
+gutter:SetPositionOnBaseLine(false)
+
+form:Display()
+*/
 class CodeEditorLineNumberGutter is LineNumberGutter, BreakpointListener
     
+    /*
+        This action draws the line numbers for a CodeEditor, starting at the
+        given row and going on while rows are visible. The editor's rows follow
+        its blocks, so each number is worked out from the start line of the
+        block on that row, not from the row itself. When a file and a breakpoint
+        manager are set, the row where the debugger stopped is filled with the
+        selection color, and rows whose line has a breakpoint are filled with the
+        accent color.
+
+        Attribute: Parameter startLine The index of the first visible row, starting at 0.
+    */
     action UpdateVisuals(integer startLine)
         Empty()
         parent:LineNumberGutter:previousStartLine = startLine

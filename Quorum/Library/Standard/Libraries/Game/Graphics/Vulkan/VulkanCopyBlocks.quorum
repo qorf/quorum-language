@@ -11,8 +11,8 @@ use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
 use Libraries.Game.Graphics.Models.Vulkan.MaterialVulkan
 
 /*
-VulkanCopyBlocks keeps a model's copies packed for drawing (Dense grass plan
-DG2): one VulkanInstanceBlock per mesh of the model, with what they were
+VulkanCopyBlocks keeps a model's copies packed for drawing: one VulkanInstanceBlock per mesh of the
+model, with what they were
 packed from. The 3D painter's batch keeps one on each model with copies
 (Model:SetCopyDrawingCache) and asks it for a mesh's block each frame. A
 block is packed again only when something it was packed from has changed:

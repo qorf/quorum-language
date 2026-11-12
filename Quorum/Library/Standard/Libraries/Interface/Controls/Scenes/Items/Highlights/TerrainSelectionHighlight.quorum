@@ -545,7 +545,7 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     /*
         When the terrain stops being selected, its tool is put aside and
         remembered, so the arrow keys and clicks act on the scene again, and
-        the tool comes back when the user returns (Round 2).
+        the tool comes back when the user returns.
     */
     action LostSelection
         parent:SelectionHighlight3D:LostSelection()
@@ -648,7 +648,7 @@ class TerrainSelectionHighlight is SelectionHighlight3D
 
     action Scale(number x, number y, number z)
         // The size keys size the brush, which is the terrain cursor's ring,
-        // with or without a tool (Round 2). Only the keys that scale evenly
+        // with or without a tool. Only the keys that scale evenly
         // do; the one-axis keys say a terrain isn't scaled.
         if CursorInUse()
             if x > 1 and y > 1 and z > 1

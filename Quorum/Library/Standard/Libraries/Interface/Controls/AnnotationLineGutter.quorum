@@ -15,6 +15,45 @@ use Libraries.Interface.Controls.ScrollableLineControl
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Controls.Support.GutterAnnotation
 
+/*
+The AnnotationLineGutter class is a gutter that marks lines of a control
+with small colored rectangles. Each mark comes from a GutterAnnotation,
+stored in a table keyed by line index, which also holds a name and a
+description for the mark. A CodeEditor uses it next to its line numbers.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.Gutter
+use Libraries.Interface.Controls.AnnotationLineGutter
+use Libraries.Interface.Controls.Support.GutterAnnotation
+use Libraries.Containers.HashTable
+use Libraries.Game.Graphics.Color
+
+Form form
+Page page = form:GetMainPage()
+
+TextBox box = page:AddTextBox("Notes")
+box:SetText("The first line has a mark.")
+
+Color color
+GutterAnnotation note
+note:SetLine(0)
+note:SetName("Note")
+note:SetColor(color:Orange())
+HashTable<integer, GutterAnnotation> annotations
+annotations:Add(0, note)
+
+AnnotationLineGutter gutter
+gutter:SetAnnotations(annotations)
+box:Add(cast(Gutter, gutter))
+
+form:Display()
+*/
 class AnnotationLineGutter is Gutter
     integer previousLine = -1
     Color color
@@ -28,6 +67,13 @@ class AnnotationLineGutter is Gutter
     HashTable<integer, GutterAnnotation> annotations
     Array<Drawable> drawables
 
+    /*
+        This action returns how wide the gutter needs to be: one and a half
+        times the width of the "0" glyph in the control's font, plus the left and
+        right margins.
+
+        Attribute: Returns The width of the gutter, in pixels.
+    */
     action GetGutterThickness returns number
         ScrollableLineControl control = GetControl()
 
@@ -52,6 +98,14 @@ class AnnotationLineGutter is Gutter
         return glyph:horizontalAdvance * 1.5 + properties:GetLeftMargin() + rightMargin
     end
 
+    /*
+        This action returns the gutter's background color. A background color
+        set on the gutter itself is used first. If there isn't one, the gutter
+        uses the background color of the control it belongs to, so it blends in
+        with the text.
+
+        Attribute: Returns The background color of the gutter.
+    */
     action GetBackgroundColor returns ColorGroup
         // The StatusLineGutter attempts to use the parent control's background color, if it's available.
 
@@ -68,6 +122,14 @@ class AnnotationLineGutter is Gutter
         return parent:Control:GetBackgroundColor()
     end
 
+    /*
+        This action draws the annotations, starting at the given line and going
+        on while lines are visible. Each visible line that has an annotation gets
+        a small rectangle in the annotation's color. Nothing is drawn when no
+        annotations have been set.
+
+        Attribute: Parameter startLine The index of the first visible line, starting at 0.
+    */
     action UpdateVisuals(integer startLine)
         Empty()
         previousLine = startLine
@@ -132,6 +194,14 @@ class AnnotationLineGutter is Gutter
 
     end
  
+    /*
+        This action returns the rectangle used to mark the given row of the
+        gutter, making and keeping a new one the first time a row is used.
+
+        Attribute: Parameter index The row of the gutter, starting at 0 for the top visible line.
+
+        Attribute: Returns The rectangle for that row.
+    */
     private action GetDrawable(integer index) returns Drawable
         if drawables:GetSize() <= index or drawables:Get(index) = undefined
             Drawable drawable
@@ -145,10 +215,38 @@ class AnnotationLineGutter is Gutter
         end
     end
 
+    /*
+        This action returns the annotations the gutter shows, keyed by line
+        index, or undefined if none have been set.
+
+        Attribute: Returns The table of annotations, keyed by line index.
+    */
     action GetAnnotations returns HashTable<integer, GutterAnnotation>
         return annotations
     end
 
+    /*
+        This action sets the annotations the gutter shows. Each key is a line
+        index, starting at 0, and each value is the annotation for that line. If
+        the gutter has already been drawn, it redraws right away.
+
+        Attribute: Parameter annotations The table of annotations, keyed by line index.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.AnnotationLineGutter
+        use Libraries.Interface.Controls.Support.GutterAnnotation
+        use Libraries.Containers.HashTable
+        use Libraries.Game.Graphics.Color
+        AnnotationLineGutter gutter
+        HashTable<integer, GutterAnnotation> annotations
+        Color color
+        GutterAnnotation warning
+        warning:SetLine(2)
+        warning:SetName("Warning")
+        warning:SetColor(color:Orange())
+        annotations:Add(2, warning)
+        gutter:SetAnnotations(annotations)
+    */
     action SetAnnotations(HashTable<integer, GutterAnnotation> annotations)
         me:annotations = annotations
 

@@ -13,6 +13,35 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Drawable
 use Libraries.Containers.Iterator
 
+/*
+The LineNumberGutter class is a gutter that shows a number for each
+visible line of a control, such as a TextBox. Numbers are lined up on the
+right, and the gutter is wide enough for the largest line number. When a
+file and a breakpoint manager are set, lines with a breakpoint are
+highlighted in the accent color, and the line where the debugger stopped
+is highlighted in the selection color.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.Gutter
+use Libraries.Interface.Controls.LineNumberGutter
+
+Form form
+Page page = form:GetMainPage()
+
+TextBox box = page:AddTextBox("Notes")
+box:SetText("Each line of this text gets a number.")
+
+LineNumberGutter gutter
+box:Add(cast(Gutter, gutter))
+
+form:Display()
+*/
 class LineNumberGutter is Gutter, BreakpointListener
     Array<Label> labels
     Array<Drawable> drawables
@@ -23,23 +52,75 @@ class LineNumberGutter is Gutter, BreakpointListener
     integer previousStartLine = 0
     integer debuggerLine = -1 //-1 means not active
 
+    /*
+        This action returns the breakpoint manager whose breakpoints the gutter
+        shows, or undefined if none has been set.
+
+        Attribute: Returns The breakpoint manager.
+    */
     action GetBreakpointManager returns BreakpointManager
         return breakpoints
     end
 
+    /*
+        This action sets the breakpoint manager whose breakpoints the gutter
+        shows, and adds the gutter to it as a listener, so the gutter redraws
+        when a breakpoint changes. Breakpoints only show once a file has also
+        been set with SetFile.
+
+        Attribute: Parameter breakpoints The breakpoint manager to use.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        use Libraries.Language.Debug.BreakpointManager
+        use Libraries.System.File
+        LineNumberGutter gutter
+        BreakpointManager breakpoints
+        File file
+        file:SetPath("Main.quorum")
+        gutter:SetFile(file)
+        gutter:SetBreakpointManager(breakpoints)
+    */
     action SetBreakpointManager(BreakpointManager breakpoints)
         me:breakpoints = breakpoints
         breakpoints:Add(me)
     end
 
+    /*
+        This action returns the file whose breakpoints the gutter shows, or
+        undefined if none has been set.
+
+        Attribute: Returns The file shown in the gutter.
+    */
     action GetFile returns File
         return file
     end
 
+    /*
+        This action sets the file whose breakpoints the gutter shows. The
+        gutter looks up breakpoints by this file's absolute path.
+
+        Attribute: Parameter file The file shown in the gutter.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        use Libraries.System.File
+        LineNumberGutter gutter
+        File file
+        file:SetPath("Main.quorum")
+        gutter:SetFile(file)
+    */
     action SetFile(File file)
         me:file = file
     end
 
+    /*
+        This action is called by the breakpoint manager when a breakpoint is
+        added or removed. If the breakpoint is in the gutter's file, the gutter
+        redraws, so the change shows right away.
+
+        Attribute: Parameter event The event describing the breakpoint that changed.
+    */
     action ToggledBreakpoint(BreakpointEvent event)
         Breakpoint breakpoint = event:GetBreakpoint()
         if breakpoint = undefined
@@ -63,6 +144,13 @@ class LineNumberGutter is Gutter, BreakpointListener
         properties:SetRightMargin(6)
     end
 
+    /*
+        This action picks the font for the line numbers: the gutter's own font,
+        or else the font of the control it belongs to, or else the font of its
+        first label.
+
+        Attribute: Returns The font used for the line numbers.
+    */
     private action SelectFont returns Font
         Font font = GetFont()
         if font = undefined
@@ -75,6 +163,13 @@ class LineNumberGutter is Gutter, BreakpointListener
         return font
     end
 
+    /*
+        This action returns how wide the gutter needs to be. It is the width of
+        the "0" glyph times the number of digits in the control's line count,
+        plus the left and right margins times the interface scale.
+
+        Attribute: Returns The width of the gutter, in pixels.
+    */
     action GetGutterThickness returns number
         ScrollableLineControl control = GetControl()
 
@@ -86,6 +181,15 @@ class LineNumberGutter is Gutter, BreakpointListener
         return font:GetGlyph("0"):horizontalAdvance * glyphsRequired + (GetLeftMargin() + GetRightMargin()) * GetInterfaceScale()
     end
 
+    /*
+        This action draws the line numbers, starting at the given line and
+        going on while lines are visible. Each number is lined up on the right
+        and centered on its line. When a file and a breakpoint manager are set,
+        the line where the debugger stopped is filled with the selection color,
+        and lines with a breakpoint are filled with the accent color.
+
+        Attribute: Parameter startLine The index of the first visible line, starting at 0.
+    */
     action UpdateVisuals(integer startLine)
         Empty()
         previousStartLine = startLine
@@ -182,6 +286,15 @@ class LineNumberGutter is Gutter, BreakpointListener
         end
     end
  
+    /*
+        This action returns the label for the given row of the gutter, making
+        and keeping a new one the first time a row is used. Labels are reused
+        each time the gutter redraws.
+
+        Attribute: Parameter index The row of the gutter, starting at 0 for the top visible line.
+
+        Attribute: Returns The label for that row.
+    */
     private action GetLabel(integer index) returns Label
         if labels:GetSize() <= index or labels:Get(index) = undefined
             Label label
@@ -194,6 +307,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns the filled rectangle used to highlight the given row
+        of the gutter, making and keeping a new one the first time a row is
+        used.
+
+        Attribute: Parameter index The row of the gutter, starting at 0 for the top visible line.
+
+        Attribute: Returns The highlight rectangle for that row.
+    */
     private action GetBackground(integer index) returns Drawable
         if drawables:GetSize() <= index or drawables:Get(index) = undefined
             Drawable drawable
@@ -207,10 +329,31 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns whether the line number labels sit their characters
+        on the base line. When true, characters that hang down, like a "g", go
+        below the label's y position. The default is true.
+
+        Attribute: Returns True if the labels are placed on their base line.
+    */
     action IsPositioningOnBaseLine returns boolean
         return positionOnBaseLine
     end
 
+    /*
+        This action sets whether the line number labels sit their characters
+        on the base line. When true, characters that hang down go below the
+        label's y position; when false, they are moved up to stay above it. The
+        setting is passed on to every label the gutter already has, and to new
+        ones.
+
+        Attribute: Parameter positionOnBaseLine True to place the labels on their base line.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        LineNumberGutter gutter
+        gutter:SetPositionOnBaseLine(false)
+    */
     action SetPositionOnBaseLine(boolean positionOnBaseLine)
         if positionOnBaseLine not= me:positionOnBaseLine
             integer i = 0

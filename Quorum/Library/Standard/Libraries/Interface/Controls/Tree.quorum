@@ -16,6 +16,42 @@ use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Controls.Support.FirstLetterNavigator
 
+/*
+The Tree class is a control that shows items in a hierarchy, such as the
+files and folders of a project. Each entry is a TreeItem, and an item can
+hold other items under it. Opening an item shows its children, indented
+below it, and closing it hides them. The user selects an item by clicking
+it or with the keyboard: the up and down arrows move through the rows that
+are showing, the right arrow opens an item or moves into it, the left arrow
+closes an item or moves to its parent, and enter activates it. Typing
+letters jumps to the next item whose name starts with them. The selection
+can be read with GetSelection, and TreeChangeListeners can be told when
+items open and close.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+Form form
+Page page = form:GetMainPage()
+
+Tree tree = page:AddTree("Files")
+
+TreeItem scripts
+scripts:SetName("Scripts")
+tree:Add(scripts)
+
+TreeItem main
+main:SetName("Main.quorum")
+scripts:Add(main)
+
+form:Display()
+*/
 class Tree is Control, FirstLetterNavigator
     Control panel
     Layout panelLayout = undefined
@@ -54,10 +90,32 @@ class Tree is Control, FirstLetterNavigator
         panelProperties:SetVerticalLayoutMode(panelProperties:FIT_CONTENTS)
     end
 
+    /*
+    This action returns true, because a Tree holds other accessible items (its
+    TreeItems). Screen readers use this to treat the tree as the parent of its
+    items. Most programs never use this action directly.
+
+    Attribute: Returns True, since a Tree is always an accessible parent.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+    This action adds an item to the top level of this tree, after the items
+    already there. The item, and every item under it, is told it belongs to
+    this tree, and the item takes the tree's font size.
+
+    Attribute: Parameter item The TreeItem to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem item
+    item:SetName("Main.quorum")
+    tree:Add(item)
+    */
     action Add(TreeItem item)
         item:SetTree(me)
         item:SetFontSize(GetFontSize())
@@ -65,6 +123,26 @@ class Tree is Control, FirstLetterNavigator
         panel:Add(item)
     end
 
+    /*
+    This action adds an item to the top level of this tree at the given
+    position, counting from 0. The item, and every item under it, is told it
+    belongs to this tree, and the item takes the tree's font size.
+
+    Attribute: Parameter location Where to put the item among the top-level items.
+
+    Attribute: Parameter item The TreeItem to add.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem player
+    player:SetName("Player.quorum")
+    tree:Add(player)
+    TreeItem main
+    main:SetName("Main.quorum")
+    tree:Add(0, main)
+    */
     action Add(integer location, TreeItem item)
         item:SetTree(me)
         item:SetFontSize(GetFontSize())
@@ -87,6 +165,25 @@ class Tree is Control, FirstLetterNavigator
         end
     end
     
+    /*
+    This action removes a top-level item, and the items under it, from this
+    tree. If the selection is inside the item, the selection first moves down,
+    so it doesn't stay on an item that is no longer in the tree.
+
+    Attribute: Parameter item The top-level TreeItem to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    tree:Remove(scripts)
+    */
     action Remove(TreeItem item)
         // If the removed TreeItem was part of the selected path, move the
         // selection down (rather than maintaining it on a removed item).
@@ -99,6 +196,26 @@ class Tree is Control, FirstLetterNavigator
         item:SetTree(undefined)
     end
 
+    /*
+    This action returns an iterator over the top-level items of this tree.
+    Items under them are not included; use each item's GetTreeItems action to
+    go deeper.
+
+    Attribute: Returns An iterator over the top-level TreeItems.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    use Libraries.Containers.Iterator
+    Tree tree
+    TreeItem item
+    item:SetName("Main.quorum")
+    tree:Add(item)
+    Iterator<TreeItem> items = tree:GetTreeItems()
+    repeat while items:HasNext()
+        output items:Next():GetName()
+    end
+    */
     action GetTreeItems returns Iterator<TreeItem>
         return treeItems:GetIterator()
     end    
@@ -114,18 +231,72 @@ class Tree is Control, FirstLetterNavigator
         return treeItems:GetSize()
     end
 
+    /*
+    This action returns the tree's selection. The selection holds the path from
+    a top-level item down to the selected item, and its GetTreeItem action
+    returns the selected item itself.
+
+    Attribute: Returns The selection of this tree.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    main:Select()
+    TreeItem selected = tree:GetSelection():GetTreeItem()
+    */
     action GetSelection returns TreeSelection
         return selection
     end
 
+    /*
+    A Tree selects only one item at a time, so this action always returns
+    undefined.
+
+    Attribute: Returns Always undefined.
+    */
     action GetMultipleSelection returns Array<TreeSelection>
         return undefined
     end
 
+    /*
+    A Tree selects only one item at a time, so this action always returns
+    false.
+
+    Attribute: Returns Always false.
+    */
     action HasMultipleSelection returns boolean
         return false
     end
 
+    /*
+    This action selects the item at the end of the given path. The path lists
+    the items from a top-level item down to the item to select, as a TreeItem's
+    GetTreePath action returns it. The old selection is cleared, the new item
+    is drawn as selected, and a selection event is sent. If the tree is inside
+    a ScrollPane, the pane scrolls so the selected row can be seen. Calling
+    Select on the TreeItem itself does the same thing.
+
+    Attribute: Parameter path The items from a top-level item down to the item to select.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    tree:Select(main:GetTreePath())
+    */
     action Select(Array<TreeItem> path)
         Array<TreeItem> pathCopy = path:CopyToArray()
         TreeItem first = undefined
@@ -222,11 +393,34 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action clears the selection, so no item is selected.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    main:Select()
+    tree:Deselect()
+    */
     action Deselect
         TreeSelection selection = GetSelection()
         Deselect(selection:GetPath())
     end
 
+    /*
+    This action draws every item along the given path as not selected and then
+    sets the selection to an empty path. The path is the same when the action
+    returns as when it was called.
+
+    Attribute: Parameter path The path of the current selection.
+    */
     private action Deselect(Array<TreeItem> path)
         TreeItem item = undefined
         if not path:IsEmpty()
@@ -243,6 +437,24 @@ class Tree is Control, FirstLetterNavigator
         selection:Set(newPath)
     end
 
+    /*
+    This action is what the right arrow key does. If nothing is selected, it
+    selects the first item. If the selected item has children, it opens it, or
+    if it is already open, it selects its first child.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    scripts:Select()
+    tree:SelectionRight()
+    */
     action SelectionRight
         if selection:GetPath():IsEmpty()
             if not treeItems:IsEmpty()
@@ -265,6 +477,24 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action is what the left arrow key does. If nothing is selected, it
+    selects the first item. If the selected item is open, it closes it;
+    otherwise, it selects the item's parent, if it has one.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    main:Select()
+    tree:SelectionLeft()
+    */
     action SelectionLeft
         Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
@@ -284,6 +514,25 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action is what the down arrow key does. If nothing is selected, it
+    selects the first item; otherwise it selects the row below the selected
+    one, going into open items and out of the end of them.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    scripts:Open()
+    scripts:Select()
+    tree:SelectionDown()
+    */
     action SelectionDown
         Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
@@ -298,6 +547,26 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action is what the up arrow key does. If nothing is selected, it
+    selects the first item; otherwise it selects the row above the selected
+    one, which may be the last showing row inside an open item or the
+    selected item's parent.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    scripts:Open()
+    main:Select()
+    tree:SelectionUp()
+    */
     action SelectionUp
         Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
@@ -312,6 +581,13 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the top-level item after the one the selection is in,
+    skipping over the rows inside the current one. If nothing is selected, it
+    selects the first item, and at the last top-level item it does nothing.
+    TreeItem uses it when the selection moves down past the last row inside a
+    top-level item.
+    */
     action SelectionSkipForward
         Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
@@ -338,6 +614,13 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the last showing row of the top-level item before the
+    one the selection is in: that item itself, or the last row inside it if it
+    is open. If nothing is selected, it selects the first item, and at the
+    first top-level item it does nothing. TreeItem uses it when the selection
+    moves up from a top-level item.
+    */
     action SelectionSkipBackward
         Array<TreeItem> path = selection:GetPath()
         if path:IsEmpty()
@@ -361,6 +644,9 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action selects the first top-level item, if the tree has any items.
+    */
     private action SelectFirst
         if not treeItems:IsEmpty()
             Array<TreeItem> array
@@ -370,7 +656,12 @@ class Tree is Control, FirstLetterNavigator
     end
 
     /*
+    This action is called when the tree gains the focus. If nothing is
+    selected, it selects the first item. Otherwise it sends the selection
+    event again, so a screen reader reads the selected item, and draws the
+    item in the focused selection color.
 
+    Attribute: Parameter event The focus event.
     */
     action GainedFocus(FocusEvent event)
         if selection:IsEmpty() and not treeItems:IsEmpty()
@@ -388,7 +679,10 @@ class Tree is Control, FirstLetterNavigator
     end
 
     /*
+    This action is called when the tree loses the focus. It draws the
+    selected item in the unfocused selection color.
 
+    Attribute: Parameter event The focus event.
     */
     action LostFocus(FocusEvent event)
         if not selection:IsEmpty()
@@ -397,14 +691,64 @@ class Tree is Control, FirstLetterNavigator
         parent:Control:LostFocus(event)
     end
 
+    /*
+    This action adds a listener that is told whenever an item in this tree is
+    opened or closed.
+
+    Attribute: Parameter listener The TreeChangeListener to add.
+
+    Attribute: Example
+    // In the file FolderListener.quorum:
+    use Libraries.Interface.Events.TreeChangeListener
+    use Libraries.Interface.Events.TreeChangeEvent
+
+    class FolderListener is TreeChangeListener
+        action OpenedTree(TreeChangeEvent event)
+            output "Opened " + event:GetTreeItem():GetName()
+        end
+    end
+
+    // In the file Main.quorum:
+    use Libraries.Interface.Controls.Tree
+
+    class Main
+        action Main
+            Tree tree
+            FolderListener listener
+            tree:AddTreeChangeListener(listener)
+        end
+    end
+    */
     action AddTreeChangeListener(TreeChangeListener listener)
         listeners:Add(listener)
     end
 
+    /*
+    This action removes a listener added with AddTreeChangeListener, so it is
+    no longer told when items open or close.
+
+    Attribute: Parameter listener The TreeChangeListener to remove.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Events.TreeChangeListener
+    Tree tree
+    TreeChangeListener listener
+    tree:AddTreeChangeListener(listener)
+    tree:RemoveTreeChangeListener(listener)
+    */
     action RemoveTreeChangeListener(TreeChangeListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+    This action tells this tree's listeners that an item opened or closed,
+    calling OpenedTree or ClosedTree depending on the event's type, and then
+    tells the game's input handler. TreeItem calls it when it opens or closes,
+    so most programs never call it directly.
+
+    Attribute: Parameter event The event describing the item that changed.
+    */
     action NotifyTreeChangeListeners(TreeChangeEvent event)
         integer counter = 0
         if event:GetEventType() = event:OPENED
@@ -422,12 +766,32 @@ class Tree is Control, FirstLetterNavigator
         manager:GetInput():NotifyTreeChangeListeners(event)
     end
 
+    /*
+    This action removes every item from this tree and clears the selection.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Tree
+    use Libraries.Interface.Controls.TreeItem
+    Tree tree
+    TreeItem scripts
+    scripts:SetName("Scripts")
+    tree:Add(scripts)
+    TreeItem main
+    main:SetName("Main.quorum")
+    scripts:Add(main)
+    tree:Empty()
+    */
     action Empty 
         panel:Empty()
         treeItems:Empty()
         selection:Empty()
     end
 
+    /*
+    This action returns true if this tree has no items.
+
+    Attribute: Returns True if the tree has no items, false otherwise.
+    */
     action IsEmpty returns boolean
         return treeItems:IsEmpty()
     end
@@ -479,6 +843,23 @@ class Tree is Control, FirstLetterNavigator
         end
     end
 
+    /*
+    This action looks for an item whose name starts with the given letters,
+    ignoring case, in the given item and the items under it that are showing.
+    Once the search has passed the originally selected item, the first match is
+    returned right away. Before that, the first match is kept and returned if
+    nothing better is found.
+
+    Attribute: Parameter currentCandidate The item to search, along with the showing items under it.
+
+    Attribute: Parameter firstLetters The lower case letters to look for.
+
+    Attribute: Parameter foundOriginalSelection Set to true once the search passes the original selection.
+
+    Attribute: Parameter originalSelection The item that was selected when the search began.
+
+    Attribute: Returns The matching item, or undefined if there is none.
+    */
     private action RecursiveSelectByFirstLetters(TreeItem currentCandidate, text firstLetters, Boolean foundOriginalSelection, TreeItem originalSelection) returns TreeItem
         if currentCandidate = originalSelection
             foundOriginalSelection:SetValue(true)

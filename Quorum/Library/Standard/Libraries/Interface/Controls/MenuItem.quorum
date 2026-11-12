@@ -31,6 +31,60 @@ use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Views.ControlShaderView
 use Libraries.Interface.Views.ChevronTexture
 
+/*
+    The MenuItem class is one entry in a menu. A MenuItem can be a choice the user
+    picks, such as Save or Copy, or it can be a menu itself: once other MenuItems
+    are added to it, it opens a panel that lists them. MenuItems added to a
+    MenuBar become the menu titles along the bar, and MenuItems added to a
+    PopupMenu become its choices. The text shown is the item's name, set with
+    SetName. Each item can also show a keyboard shortcut, set with SetShortcut, and
+    can have a mnemonic letter, set with SetMnemonic, that chooses it when typed
+    while the menu is in use. When the user chooses an item, the Behavior given to
+    it with SetBehavior runs.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.InputSet
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Interface.Controls.MenuBar
+    use Libraries.Interface.Controls.MenuItem
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            MenuBar bar
+
+            MenuItem file
+            file:SetName("File")
+            file:SetMnemonic("F")
+
+            MenuItem save
+            save:SetName("Save")
+            KeyboardEvent keys
+            InputSet saveKeys
+            saveKeys:SetKeyboardInput(keys:S)
+            saveKeys:AddModifier(saveKeys:CONTROL)
+            save:SetShortcut(saveKeys)
+
+            // A MenuItem with items of its own is a submenu.
+            MenuItem recent
+            recent:SetName("Open Recent")
+            MenuItem first
+            first:SetName("Notes.txt")
+            recent:Add(first)
+
+            file:Add(save)
+            file:Add(recent)
+            bar:Add(file)
+            Add(bar)
+        end
+    end
+*/
 class MenuItem is Control
     
     /*
@@ -121,7 +175,7 @@ class MenuItem is Control
         iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
         iconProperties:SetPercentageWidth(1.0)
         iconProperties:SetPercentageHeight(1)
-        // Clear of the selected item's 3-point tag (M4).
+        // Clear of the selected item's 3-point tag.
         iconProperties:SetLeftMargin(12)
         iconProperties:SetTopMargin(4)
         iconProperties:SetBottomMargin(4)
@@ -167,10 +221,56 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetInterfaceOptionsKey("MenuItem")
     end
 
+    /*
+        This action returns the font size a MenuItem uses unless its layout
+        properties set another one.
+
+        Attribute: Returns The default font size, which is 14.
+    */
     action GetDefaultFontSize returns integer
         return 14
     end
 
+    /*
+        This action gives the item a keyboard shortcut. The keys are added to the
+        game's default input table, so pressing them anywhere in the game chooses this
+        item, even when its menu is closed. If the item is a menu, the shortcut opens
+        it and selects its first item instead. The name of the keys, such as
+        "Control + S", is shown at the right side of the item.
+
+        Attribute: Parameter set The InputSet that describes the keys of the shortcut.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.InputSet
+        use Libraries.Interface.Events.KeyboardEvent
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem open
+                open:SetName("Open")
+
+                KeyboardEvent keys
+                InputSet openKeys
+                openKeys:SetKeyboardInput(keys:O)
+                openKeys:AddModifier(openKeys:CONTROL)
+                open:SetShortcut(openKeys)
+
+                file:Add(open)
+                bar:Add(file)
+                Add(bar)
+            end
+        end
+    */
     action SetShortcut(InputSet set)
         text name = set:GetDisplayName()
         GameStateManager manager
@@ -181,6 +281,39 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetShortcut(name)
     end
 
+    /*
+        This action adds a MenuItem to the bottom of this item's menu, which makes
+        this item a menu. The added item is connected to this item and to the same
+        MenuRoot. When this item is inside another menu, or in a PopupMenu, an arrow
+        appears on it to show it opens a submenu.
+
+        Attribute: Parameter item The MenuItem to add to this item's menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem edit
+                edit:SetName("Edit")
+                MenuItem undo
+                undo:SetName("Undo")
+                MenuItem redo
+                redo:SetName("Redo")
+                edit:Add(undo)
+                edit:Add(redo)
+                bar:Add(edit)
+                Add(bar)
+            end
+        end
+    */
     action Add(MenuItem item)
 
         MenuItemView menuView = undefined
@@ -200,6 +333,42 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action adds each MenuItem in the array to the bottom of this item's menu,
+        in order.
+
+        Attribute: Parameter items The MenuItems to add to this item's menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem undo
+                undo:SetName("Undo")
+                MenuItem redo
+                redo:SetName("Redo")
+                Array<MenuItem> items
+                items:Add(undo)
+                items:Add(redo)
+
+                MenuItem edit
+                edit:SetName("Edit")
+                edit:Add(items)
+
+                MenuBar bar
+                bar:Add(edit)
+                Add(bar)
+            end
+        end
+    */
     action Add(Array<MenuItem> items)
         integer counter = 0
         repeat while counter < items:GetSize()
@@ -208,20 +377,99 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action takes a MenuItem out of this item's menu, so it is no longer
+        shown there.
+
+        Attribute: Parameter item The MenuItem to remove.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem edit
+                edit:SetName("Edit")
+                MenuItem undo
+                undo:SetName("Undo")
+                MenuItem redo
+                redo:SetName("Redo")
+                edit:Add(undo)
+                edit:Add(redo)
+
+                edit:RemoveMenuItem(redo)
+
+                bar:Add(edit)
+                Add(bar)
+            end
+        end
+    */
     action RemoveMenuItem(MenuItem item)
         menuItems:Remove(item)
         panel:Remove(item)
     end
 
+    /*
+        This action removes every MenuItem from this item's menu, so it is no longer
+        a menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem recent
+                recent:SetName("Recent")
+                MenuItem notes
+                notes:SetName("Notes.txt")
+                recent:Add(notes)
+
+                // Clear the list of recent files.
+                recent:Empty()
+
+                bar:Add(recent)
+                Add(bar)
+            end
+        end
+    */
     action Empty
         menuItems:Empty()
         panel:Empty()
     end
 
+    /*
+        This action tells whether this item's menu has no MenuItems in it. An empty
+        item is a plain choice, not a menu.
+
+        Attribute: Returns true if the item has no items in its menu, or false if it has at least one.
+    */
     action IsEmpty returns boolean
         return menuItems:IsEmpty()
     end
 
+    /*
+        This action sets which side of the item its menu opens on. The value is one
+        of the MenuItem constants LEFT, RIGHT, DOWN or UP. DEFAULT opens down for a
+        title on a menu bar and to the right for anything else. The menu is placed
+        against that side of the item. Note that when the item loads its graphics, it
+        sets its own direction this way, down on a menu bar and right elsewhere.
+
+        Attribute: Parameter direction The side to open the menu on: DEFAULT, LEFT, RIGHT, DOWN or UP.
+    */
     action SetMenuDirection(integer direction)
         if panelLayout = undefined
             VerticalMenuLayout layout
@@ -279,10 +527,45 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns which side of the item its menu opens on, as one of the
+        MenuItem constants DEFAULT, LEFT, RIGHT, DOWN or UP.
+
+        Attribute: Returns The direction the menu opens in.
+    */
     action GetMenuDirection returns integer
         return direction
     end
 
+    /*
+        This action opens the item's menu, showing the panel of items inside it. It
+        does nothing if the menu is already open or the item has no items in it. When
+        the menu opens, the MenuRoot tells its MenuChangeListeners.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+                bar:Add(file)
+                Add(bar)
+
+                file:Open()
+            end
+        end
+    */
     action Open
         if not open and (not menuItems:IsEmpty())
             if panel:GetInterfaceScale() not= GetInterfaceScale()
@@ -302,6 +585,36 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action closes the item's menu, along with any of its submenus that are
+        open. If the menu was open, the MenuRoot tells its MenuChangeListeners that it
+        closed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+                bar:Add(file)
+                Add(bar)
+
+                file:Open()
+                file:Close()
+            end
+        end
+    */
     action Close
         if open
             integer counter = 0
@@ -326,18 +639,43 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         selectionIndex = 0
     end
 
+    /*
+        This action tells whether the item's menu is open.
+
+        Attribute: Returns true if the menu is open, or false if it is closed.
+    */
     action IsOpen returns boolean
         return open
     end
 
+    /*
+        This action sets the shortcut text shown at the right side of the item, such
+        as "Ctrl + C". It only changes what is shown. To make the keys work, use the
+        version of SetShortcut that takes an InputSet.
+
+        Attribute: Parameter shortcut The text to show as the item's shortcut.
+    */
     action SetShortcut(text shortcut)
         shortcutLabel:SetText(shortcut)
     end
     
+    /*
+        This action returns the shortcut text shown at the right side of the item, or
+        an empty text if it has no shortcut.
+
+        Attribute: Returns The item's shortcut text.
+    */
     action GetShortcut returns text
         return shortcutLabel:GetText()
     end
 
+    /*
+        This action fills a MenuItemView with this item's name and shortcut, turns on
+        the view's submenu arrow if the item has items in its menu, and sizes the item
+        to fit the view.
+
+        Attribute: Parameter content The MenuItemView to show the item with.
+    */
     action SetAppearance(MenuItemView content)
         content:SetText(GetName())
         content:SetShortcut(GetShortcut())
@@ -351,6 +689,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         SetSize(content:GetViewWidth(), content:GetViewHeight())
     end
 
+    /*
+        This action gives every item in this item's menu, and in all of its submenus,
+        its own copy of the given MenuItemView, filled in with that item's name and
+        shortcut. It does nothing if the view is undefined.
+
+        Attribute: Parameter menuView The MenuItemView to copy for each item.
+    */
     action SetMenuAppearance(MenuItemView menuView)
 
         if menuView = undefined
@@ -371,10 +716,24 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns the MenuRoot this item belongs to, such as the MenuBar or
+        PopupMenu it was added to, directly or through other menus. It returns
+        undefined if the item is not in a MenuRoot yet.
+
+        Attribute: Returns The MenuRoot this item belongs to, or undefined.
+    */
     action GetMenuRoot returns MenuRoot
         return menuRoot
     end
 
+    /*
+        This action sets the MenuRoot this item belongs to, and passes it on to every
+        item in this item's menu. Adding an item to a MenuBar, a PopupMenu or another
+        MenuItem sets this automatically.
+
+        Attribute: Parameter root The MenuRoot this item belongs to.
+    */
     action SetMenuRoot(MenuRoot root)
         menuRoot = root
 
@@ -386,10 +745,23 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns the MenuItem whose menu this item is in, or undefined if
+        the item is on the top level of a MenuBar or PopupMenu.
+
+        Attribute: Returns The MenuItem that holds this item, or undefined.
+    */
     action GetParentMenu returns MenuItem
         return parentMenu
     end
 
+    /*
+        This action sets the MenuItem whose menu this item is in. If this item already
+        has items of its own, its submenu arrow is shown. Adding an item to another
+        MenuItem sets this automatically.
+
+        Attribute: Parameter menu The MenuItem that holds this item.
+    */
     action SetParentMenu(MenuItem menu)
         parentMenu = menu
         // A submenu given its items before it was put in its menu shows its
@@ -399,14 +771,63 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action sets the Behavior that runs when the user chooses this item, by
+        clicking it, pressing Enter on it, or using its shortcut or mnemonic. The
+        Behavior is normally a class of your own that extends Behavior and does its
+        work in its Run action.
+
+        Attribute: Parameter behavior The Behavior to run when the item is chosen.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Behaviors.Behavior
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem save
+                save:SetName("Save")
+
+                // In a real program, this would be a subclass of Behavior
+                // whose Run action saves the file.
+                Behavior saveBehavior
+                save:SetBehavior(saveBehavior)
+
+                file:Add(save)
+                bar:Add(file)
+                Add(bar)
+            end
+        end
+    */
     action SetBehavior(Behavior behavior)
         activationBehavior = behavior
     end
 
+    /*
+        This action returns the Behavior that runs when the user chooses this item,
+        or undefined if none was set.
+
+        Attribute: Returns The item's Behavior, or undefined.
+    */
     action GetActivationBehavior returns Behavior
         return activationBehavior
     end
 
+    /*
+        This action is called when the user clicks the item. If the menu is already
+        in use, the item is activated. Otherwise the click selects the item, which
+        starts using the menu. An item that is not in a MenuRoot is activated right
+        away. This is called automatically by the Game engine.
+    */
     action ClickedMouse
         parent:Control:ClickedMouse()
 
@@ -422,6 +843,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action is called when the mouse moves onto the item. It shows the
+        underline under the item's mnemonic and colors its text. If the menu is in
+        use, the item is selected and its menu, if it has one, opens. This is called
+        automatically by the Game engine.
+    */
     action BeginMouseOver
         parent:Control:BeginMouseOver()
         label:ShowUnderline()
@@ -437,6 +864,11 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action is called when the mouse moves off the item. It hides the
+        mnemonic underline unless the item is selected, and colors its text again for
+        its current state. This is called automatically by the Game engine.
+    */
     action EndMouseOver
         parent:Control:EndMouseOver()
         if not IsSelected()
@@ -474,6 +906,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action is called when the item becomes selected. It shows the mnemonic
+        underline, colors the name and shortcut with the selection colors, and marks
+        the MenuRoot as in use. This is called automatically as the selection changes,
+        so most users shouldn't need to call it.
+    */
     action GainedSelection
         parent:Control:GainedSelection()
         label:ShowUnderline()
@@ -487,6 +925,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action is called when the item stops being selected. It hides the
+        mnemonic underline, colors the name and shortcut back to normal, and closes
+        the item's menu if it is open. This is called automatically as the selection
+        changes, so most users shouldn't need to call it.
+    */
     action LostSelection
         parent:Control:LostSelection()
         label:HideUnderline()
@@ -499,6 +943,37 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action selects this item. It asks the MenuRoot to select the path from
+        the top level of the menu down to this item, so the old selection is cleared
+        first and the MenuRoot keeps track of what is selected. It does nothing if the
+        item is not in a MenuRoot.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+                bar:Add(file)
+                Add(bar)
+
+                file:Open()
+                quit:Select()
+            end
+        end
+    */
     action Select
         // Don't actually select here! Go to MenuRoot and ask it to select us.
         // We do this to allow the MenuRoot to fully update its information,
@@ -508,6 +983,10 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action clears the selection of the MenuRoot this item is in, so nothing
+        in the menu is selected. It does nothing if the item is not in a MenuRoot.
+    */
     action Deselect
         // Don't actually select here! Go to MenuRoot and ask it to deselect us.
         // We do this to allow the MenuRoot to fully update its information,
@@ -517,10 +996,61 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns an Iterator that goes through the MenuItems in this
+        item's menu, from top to bottom.
+
+        Attribute: Returns An Iterator over the items in this item's menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Iterator
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem edit
+                edit:SetName("Edit")
+                MenuItem undo
+                undo:SetName("Undo")
+                MenuItem redo
+                redo:SetName("Redo")
+                edit:Add(undo)
+                edit:Add(redo)
+                bar:Add(edit)
+                Add(bar)
+
+                Iterator<MenuItem> iterator = edit:GetMenuItems()
+                repeat while iterator:HasNext()
+                    MenuItem item = iterator:Next()
+                    output item:GetName()
+                end
+            end
+        end
+    */
     action GetMenuItems returns Iterator<MenuItem>
         return menuItems:GetIterator()
     end
 
+    /*
+        This action moves the selection inside this item's menu from one path to
+        another. It compares the first item of each path: if they are the same, it
+        passes the rest of the paths on to that item, and if they differ, the old item
+        and everything after it lose the selection and the new item and everything
+        after it gain it. The MenuRoot uses this when the selection changes, and it
+        removes items from the front of both arrays as it goes. Most users shouldn't
+        need to call it.
+
+        Attribute: Parameter oldPath The rest of the old selection path, below this item.
+
+        Attribute: Parameter newPath The rest of the new selection path, below this item.
+    */
     action UpdateSelection(Array<MenuItem> oldPath, Array<MenuItem> newPath)
 
         MenuItem oldItem = undefined
@@ -552,6 +1082,14 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action marks this item as selected, then does the same for each item in
+        the given path, in order. The MenuRoot uses this to select every item from the
+        top of the menu down to the selected item. It removes items from the front of
+        the array as it goes. Most users shouldn't need to call it.
+
+        Attribute: Parameter path The items below this one that should also be selected.
+    */
     action RecursiveSelect(Array<MenuItem> path)
         GainedSelection()
         if not path:IsEmpty()
@@ -562,6 +1100,14 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action removes the selection from each item in the given path, starting
+        from the deepest, then from this item. The MenuRoot uses this to clear an old
+        selection. It removes items from the front of the array as it goes. Most users
+        shouldn't need to call it.
+
+        Attribute: Parameter path The items below this one that should also lose the selection.
+    */
     action RecursiveDeselect(Array<MenuItem> path)
         if not path:IsEmpty()
             MenuItem item = path:RemoveFromFront()
@@ -572,6 +1118,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         LostSelection()
     end
 
+    /*
+        This action returns how much width the item's icon needs, including its
+        margins. The icon is drawn as tall as a line of the font. The menu's layout
+        uses this to line up the icons of every item in a menu.
+
+        Attribute: Returns The width the icon needs, or 0 if the item shows no icon.
+    */
     action GetIconWidth returns number
         if icon:IsShowing()
             Font font = GetDefaultLayoutProperties():GetFont()
@@ -588,6 +1141,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return 0
     end
 
+    /*
+        This action returns how much width the item's name needs, including its
+        margins. The menu's layout uses this to line up the names of every item in a
+        menu.
+
+        Attribute: Returns The width the name needs, or 0 if the name is hidden.
+    */
     action GetNameWidth returns number
         if label:IsShowing()
             LayoutProperties properties = label:GetDefaultLayoutProperties()
@@ -597,6 +1157,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns how much width the item's shortcut text needs, including
+        its margins. The menu's layout uses this to line up the shortcuts of every
+        item in a menu.
+
+        Attribute: Returns The width the shortcut needs, or 0 if the item has no shortcut.
+    */
     action GetShortcutWidth returns number
         if shortcutLabel:IsShowing() and shortcutLabel:GetText() not= ""
             // The shortcut's own margins, which MenuItemLayout places it by.
@@ -624,6 +1191,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         shortcutLabel:SetColor(muted)
     end
 
+    /*
+        This action returns how much width the item's submenu arrow needs, including
+        its margins. The menu's layout uses this to make room for the arrows at the
+        right side of a menu.
+
+        Attribute: Returns The width the arrow needs, or 0 if the item shows no arrow.
+    */
     action GetSubmenuIconWidth returns number
         if arrow:IsShowing()
             Font font = GetDefaultLayoutProperties():GetFont()
@@ -640,14 +1214,33 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return 0
     end
 
+    /*
+        This action tells whether this item is a menu, meaning it has at least one
+        MenuItem in it.
+
+        Attribute: Returns true if the item has items in its menu, or false if it is a plain choice.
+    */
     action IsMenu returns boolean
         return not menuItems:IsEmpty()
     end
 
+    /*
+        This action returns how many MenuItems are directly in this item's menu. It
+        does not count the items inside submenus.
+
+        Attribute: Returns The number of items in this item's menu.
+    */
     action GetSize returns integer
         return menuItems:GetSize()
     end
 
+    /*
+        This action moves the selection down from this item, as the down arrow key
+        does. If this item is inside a menu, the item below it is selected, wrapping
+        around from the bottom to the top. If this item is a title at the top of a
+        menu, its menu opens and its first item is selected. The MenuRoot calls this,
+        so most users shouldn't need to.
+    */
     action MenuSelectionDown
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionDown(me)
@@ -659,6 +1252,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action selects the item below the given one in this item's menu,
+        wrapping around from the bottom to the top.
+
+        Attribute: Parameter previous The item in this menu that the selection moves down from.
+    */
     private action MenuSelectionDown(MenuItem previous)
         integer counter = 0
         repeat while counter < menuItems:GetSize()
@@ -675,6 +1274,13 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action moves the selection up from this item, as the up arrow key does.
+        If this item is inside a menu, the item above it is selected, wrapping around
+        from the top to the bottom. If this item is a title at the top of a menu, its
+        menu opens and its first item is selected. The MenuRoot calls this, so most
+        users shouldn't need to.
+    */
     action MenuSelectionUp
         if GetParentMenu() not= undefined
             GetParentMenu():MenuSelectionUp(me)
@@ -686,6 +1292,12 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action selects the item above the given one in this item's menu,
+        wrapping around from the top to the bottom.
+
+        Attribute: Parameter previous The item in this menu that the selection moves up from.
+    */
     private action MenuSelectionUp(MenuItem previous)
         integer counter = 0
         repeat while counter < menuItems:GetSize()
@@ -705,6 +1317,39 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         end
     end
 
+    /*
+        This action returns the path from the top of the menu down to this item. The
+        first item in the array is the top level item, such as File, and the last is
+        this item, such as Exit. This is the path the MenuRoot uses for its selection.
+
+        Attribute: Returns The MenuItems from the top level of the menu down to this item.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem exit
+                exit:SetName("Exit")
+                file:Add(exit)
+                bar:Add(file)
+                Add(bar)
+
+                Array<MenuItem> path = exit:GetMenuPath()
+                output "The path has " + path:GetSize() + " items."
+            end
+        end
+    */
     action GetMenuPath returns Array<MenuItem>
         Array<MenuItem> path
         path:Add(me)
@@ -715,6 +1360,15 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return path
     end
 
+    /*
+        This action adds this item to the front of the given path, then asks the item
+        that holds this one to do the same, building the path up to the top level of
+        the menu.
+
+        Attribute: Parameter array The part of the path built so far, below this item.
+
+        Attribute: Returns The path from the top level of the menu down to the original item.
+    */
     private action GetMenuPath(Array<MenuItem> array) returns Array<MenuItem>
         array:AddToFront(me)
         if parentMenu not= undefined
@@ -737,6 +1391,45 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         return path:Has(me)
     end
 
+    /*
+        This action chooses the item. If the item is a menu, its menu opens, or if it
+        is already open, the whole menu closes. If the item is a plain choice, the
+        menu stops being used and the focus goes back to whatever had it before the
+        menu. Then the item's Behavior, if it has one, runs.
+
+        Attribute: Parameter event The BehaviorEvent that describes what activated the item.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Behaviors.Behavior
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+        use Libraries.Interface.Events.BehaviorEvent
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem save
+                save:SetName("Save")
+                Behavior saveBehavior
+                save:SetBehavior(saveBehavior)
+                file:Add(save)
+                bar:Add(file)
+                Add(bar)
+
+                // Choose Save as if the user had clicked it.
+                BehaviorEvent event
+                event:SetItem(save)
+                save:Activate(event)
+            end
+        end
+    */
     action Activate(BehaviorEvent event)
         if IsMenu()
             if open
@@ -775,7 +1468,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
             SetMenuDirection(DOWN)
 
             properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-            // Titles on the bar never show the tag (M4).
+            // Titles on the bar never show the tag.
             properties:SetBorderStyle(properties:NONE)
         else
             if GetLayout() = undefined or GetLayout():Equals(menuItemLayout) = false
@@ -803,7 +1496,7 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         if not panelProperties:HasBorderThickness()
             panel:SetBorderThickness(1)
         end
-        // A rounded panel has its edge all the way round (M4).
+        // A rounded panel has its edge all the way round.
         panel:SetBorderStyle(properties:ALL)
 
         if properties:GetIcon() not= undefined
@@ -892,10 +1585,49 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
         panelAnchor:Resize()
     end
 
+    /*
+        This action returns the item's mnemonic, the letter that chooses the item
+        when typed while its menu is in use, or undefined if it has none.
+
+        Attribute: Returns The item's mnemonic letter, or undefined.
+    */
     action GetMnemonic returns text
         return mnemonic
     end
 
+    /*
+        This action sets the item's mnemonic, a letter that chooses the item when it
+        is typed while the menu is in use. Typing the letter opens the item's menu if
+        it has one, or activates it if not. Matching ignores upper and lower case. The
+        letter is underlined in the item's name while the item is selected or under
+        the mouse.
+
+        Attribute: Parameter mnemonic The letter that chooses this item.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                file:SetMnemonic("F")
+                MenuItem exit
+                exit:SetName("Exit")
+                exit:SetMnemonic("x")
+                file:Add(exit)
+                bar:Add(file)
+                Add(bar)
+            end
+        end
+    */
     action SetMnemonic(text mnemonic)
         label:SetMnemonic(mnemonic)
         me:mnemonic = mnemonic

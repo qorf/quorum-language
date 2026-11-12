@@ -8,20 +8,141 @@ use Libraries.Game.Graphics.Texture
 
     Attribute: Author William Allee
 
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Icon
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Icon icon = page:AddIcon("Logo", "Images/Logo.png")
+    icon:SetDescription("The company logo")
+
+    form:Display()
 */
 class Icon is Control, Drawable
 
+    /*
+        This action loads a TextureRegion into the Icon, so the Icon shows that
+        part of a texture. It then asks for a new layout, so the Icon is sized
+        again on the next layout pass.
+
+        Attribute: Parameter region The TextureRegion to show in the Icon.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Texture
+        use Libraries.Game.Graphics.TextureRegion
+        use Libraries.Interface.Controls.Icon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Texture circleTexture
+                circleTexture:LoadFilledCircle(50)
+                TextureRegion region
+                region:LoadTextureRegion(circleTexture)
+
+                Icon icon
+                icon:Load(region)
+                icon:SetPosition(100, 100)
+                Add(icon)
+            end
+        end
+    */
     action Load(TextureRegion region)
         parent:Drawable:Load(region)
         RequestLayout()
     end
     
+    /*
+        This action loads part of a Texture into the Icon. Only the rectangle
+        that starts at the source x and y coordinates and has the source width
+        and height is shown. It then asks for a new layout, so the Icon is sized
+        again on the next layout pass.
+
+        Attribute: Parameter region The Texture to take the picture from.
+
+        Attribute: Parameter sourceX The x coordinate in the texture where the shown part starts.
+
+        Attribute: Parameter sourceY The y coordinate in the texture where the shown part starts.
+
+        Attribute: Parameter sourceWidth The width of the shown part, in pixels.
+
+        Attribute: Parameter sourceHeight The height of the shown part, in pixels.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Texture
+        use Libraries.Interface.Controls.Icon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Texture circleTexture
+                circleTexture:LoadFilledCircle(50)
+
+                Icon halfCircle
+                halfCircle:Load(circleTexture, 0, 0, circleTexture:GetWidth() / 2, circleTexture:GetHeight())
+                halfCircle:SetPosition(100, 100)
+                Add(halfCircle)
+            end
+        end
+    */
     action Load(Texture region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         // If the Drawable is loaded, ensure it gets laid out again on the next sizing call.
         parent:Drawable:Load(region, sourceX, sourceY, sourceWidth, sourceHeight)
         RequestLayout()
     end
 
+    /*
+        This action loads part of a TextureRegion into the Icon. Only the
+        rectangle that starts at the source x and y coordinates and has the
+        source width and height is shown. It then asks for a new layout, so the
+        Icon is sized again on the next layout pass.
+
+        Attribute: Parameter region The TextureRegion to take the picture from.
+
+        Attribute: Parameter sourceX The x coordinate where the shown part starts.
+
+        Attribute: Parameter sourceY The y coordinate where the shown part starts.
+
+        Attribute: Parameter sourceWidth The width of the shown part, in pixels.
+
+        Attribute: Parameter sourceHeight The height of the shown part, in pixels.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Game.Graphics.Texture
+        use Libraries.Game.Graphics.TextureRegion
+        use Libraries.Interface.Controls.Icon
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Texture circleTexture
+                circleTexture:LoadFilledCircle(50)
+                TextureRegion region
+                region:LoadTextureRegion(circleTexture)
+
+                Icon piece
+                piece:Load(region, circleTexture:GetWidth() / 4, 0, circleTexture:GetWidth() / 2, circleTexture:GetHeight())
+                piece:SetPosition(100, 100)
+                Add(piece)
+            end
+        end
+    */
     action Load(TextureRegion region, integer sourceX, integer sourceY, integer sourceWidth, integer sourceHeight)
         // If the Drawable is loaded, ensure it gets laid out again on the next sizing call.
         parent:Drawable:Load(region, sourceX, sourceY, sourceWidth, sourceHeight)

@@ -3,8 +3,8 @@ package Libraries.Game.Graphics.Shaders.Vulkan.Fragment
 use Libraries.Game.Graphics.Shaders.Shader
 
 /*
-BloomDownFragmentShaderVulkan makes one step down the bloom chain (Lighting
-plan L3): an image half the size of its source, each pixel the average of
+BloomDownFragmentShaderVulkan makes one step down the bloom chain: an image half the size of its
+source, each pixel the average of
 the source around it (the dual filter's down step: the center four times and
 four diagonal neighbors). The first step, from the lit image, keeps only the
 light above the threshold, with a soft knee so the glow doesn't start

@@ -9,7 +9,7 @@ use Libraries.Interface.Events.SliderFieldTextListener
 
 /*
     A SliderField is a label, a Slider and a small number field, kept in
-    step (Slider plan, decision 1). They share one line when there is room;
+    step. They share one line when there is room;
     in a narrow container the label and field share a line and the slider
     goes under them (SliderFieldLayout). The slider gives quick changes and the
     field gives exact ones: moving the slider writes its value in the
@@ -25,26 +25,22 @@ use Libraries.Interface.Events.SliderFieldTextListener
     the focus (someone is typing), and moving the slider writes the number
     in the field, so the field's own text change listeners hear it.
 
+    Attribute: Author William Allee
+
     Attribute: Example
 
-    use Libraries.Game.Game
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
     use Libraries.Interface.Controls.SliderField
 
-    class Main is Game
-        action Main
-            StartGame()
-        end
+    Form form
+    Page page = form:GetMainPage()
 
-        action CreateGame
-            SliderField lean
-            lean:Setup("Lean", "How far it leans, in degrees", 0, 90, 1, 10)
-            lean:SetLabelText("Lean:")
-            lean:SetUnits("degrees")
-            lean:SetValue(20)
-            lean:SetPixelWidth(300)
-            Add(lean)
-        end
-    end
+    page:AddLabel("Volume")
+    SliderField volume = page:AddSliderField("Volume", 0, 100)
+    volume:SetValue(75)
+
+    form:Display()
 */
 class SliderField is Control, SliderListener
     Label label

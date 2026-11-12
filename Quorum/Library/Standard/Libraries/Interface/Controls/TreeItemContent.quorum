@@ -2,6 +2,70 @@ package Libraries.Interface.Controls
 
 use Libraries.Interface.Controls.Control
 
+/*
+The TreeItemContent class is the control that draws one row of a TreeItem,
+such as its name, its icon and the button that opens and closes it. A
+TreeItem makes a DefaultTreeItemContent the first time it is drawn, so most
+programs never use this class directly. To draw rows a different way, make
+a class that is a TreeItemContent, write its blueprint actions, and give it
+to a TreeItem with SetTreeItemContent. The TreeItem calls these actions when
+its name changes, when it gains or loses children, and when it opens or
+closes.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+// In the file NameOnlyContent.quorum:
+use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Controls.ControlLabel
+
+class NameOnlyContent is TreeItemContent
+    ControlLabel label
+
+    on create
+        Add(label)
+    end
+
+    action UpdateText(text newText)
+        label:SetText(newText)
+    end
+
+    action ShowExpandButton
+    end
+
+    action HideExpandButton
+    end
+
+    action SetExpandState(boolean expand)
+    end
+
+    action UnfocusedSelection
+    end
+end
+
+// In the file Main.quorum:
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.TreeItem
+
+class Main
+    action Main
+        Form form
+        Page page = form:GetMainPage()
+        Tree tree = page:AddTree("Files")
+
+        TreeItem item
+        NameOnlyContent content
+        item:SetTreeItemContent(content)
+        item:SetName("Main.quorum")
+        tree:Add(item)
+
+        form:Display()
+    end
+end
+*/
 class TreeItemContent is Control
 
     TreeItem treeItem = undefined
@@ -10,10 +74,22 @@ class TreeItemContent is Control
         SetName("TreeItem Elements")
     end
 
+    /*
+    This action sets the TreeItem whose row this content draws. TreeItem's
+    SetTreeItemContent calls it, so most programs never call it directly.
+
+    Attribute: Parameter item The TreeItem this content belongs to.
+    */
     action SetTreeItem(TreeItem item)
         treeItem = item
     end
 
+    /*
+    This action returns the TreeItem whose row this content draws, or undefined
+    if it hasn't been given to a TreeItem yet.
+
+    Attribute: Returns The TreeItem this content belongs to.
+    */
     action GetTreeItem returns TreeItem
         return treeItem
     end
@@ -40,6 +116,12 @@ class TreeItemContent is Control
     */
     blueprint action SetExpandState(boolean expand)
 
+    /*
+    This action updates the contents to show that the TreeItem is still
+    selected while its Tree doesn't have the focus, usually by drawing the
+    selection in the unfocused selection colors. The TreeItem calls it when its
+    Tree loses the focus.
+    */
     blueprint action UnfocusedSelection
 
 end

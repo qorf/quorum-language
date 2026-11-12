@@ -43,16 +43,12 @@ use Libraries.Interface.Options.InterfaceOptions
     use Libraries.Interface.Controls.Button
     use Libraries.Interface.Forms.FormBehavior
     
-    class Main 
-        action Main 
-            Form form
-            Page page = form:GetMainPage()
-            
-            Button button = page:AddButton("myButton")
-            
-            form:Display()
-        end
-    end
+    Form form
+    Page page = form:GetMainPage()
+
+    Button button = page:AddButton("myButton")
+
+    form:Display()
 */
 class Button is Control, TextureLoadListener
 
@@ -352,7 +348,13 @@ class Button is Control, TextureLoadListener
         RequestLayout()
     end
 
-    // Whether this button draws the accent line along the top.
+    /*
+        This action returns whether this button draws the accent line along its
+        top. If SetTopAccent was called, that choice is used. Otherwise, the
+        interface options for this button's key decide.
+
+        Attribute: Returns True if the button draws the accent line.
+    */
     action HasTopAccent returns boolean
         if topAccentSetting >= 0
             return topAccentSetting = 1
@@ -380,7 +382,13 @@ class Button is Control, TextureLoadListener
         RequestLayout()
     end
 
-    // Whether this button is drawn raised.
+    /*
+        This action returns whether this button is drawn raised, with a soft
+        shadow below it. If SetRaised was called, that choice is used. Otherwise,
+        the interface options for this button's key decide.
+
+        Attribute: Returns True if the button is drawn raised.
+    */
     action IsRaised returns boolean
         if raisedSetting >= 0
             return raisedSetting = 1
@@ -443,22 +451,61 @@ class Button is Control, TextureLoadListener
         accentLine:RequestVerticesUpdate()
     end
 
-    // The face and the accent line keep the button's size.
+    /*
+        This action sets the width and height of the button. The face drawn
+        above the shadow of a raised button, and the accent line, are resized to
+        match.
+
+        Attribute: Parameter newWidth The new width of the button.
+
+        Attribute: Parameter newHeight The new height of the button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetSize(120, 40)
+    */
     action SetSize(number newWidth, number newHeight)
         parent:Control:SetSize(newWidth, newHeight)
         ResizeLayers()
     end
 
+    /*
+        This action sets the width of the button. The face drawn above the
+        shadow of a raised button, and the accent line, are resized to match.
+
+        Attribute: Parameter newWidth The new width of the button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetWidth(120)
+    */
     action SetWidth(number newWidth)
         parent:Control:SetWidth(newWidth)
         ResizeLayers()
     end
 
+    /*
+        This action sets the height of the button. The face drawn above the
+        shadow of a raised button, and the accent line, are resized to match.
+
+        Attribute: Parameter newHeight The new height of the button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        Button button
+        button:SetHeight(40)
+    */
     action SetHeight(number newHeight)
         parent:Control:SetHeight(newHeight)
         ResizeLayers()
     end
 
+    /*
+        This action makes the face and the accent line, when the button has
+        them, the same size as the button.
+    */
     private action ResizeLayers
         if face not= undefined
             face:SetSize(GetWidth(), GetHeight())
@@ -468,8 +515,12 @@ class Button is Control, TextureLoadListener
         end
     end
 
-    // Hover, press and focus redraw the face too, which draws the button
-    // when it is raised.
+    /*
+        This action asks for the button's shape to be rebuilt the next time it
+        is drawn. Hovering, pressing and focusing the button call it, since they
+        change its look. When the button is raised, the face is rebuilt too,
+        because the face draws the button above its shadow.
+    */
     action RequestVerticesUpdate
         parent:Control:RequestVerticesUpdate()
         if face not= undefined
@@ -635,6 +686,13 @@ class Button is Control, TextureLoadListener
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action sets the color of the button's label to match its state. A
+        focused button uses the selection font color while it shows a selection,
+        or else the focus font color. An unfocused button that shows a selection
+        uses the unfocused selection font color. When none of these is set, the
+        normal font color is used.
+    */
     private action UpdateLabelColor
         if label = undefined
             return now
@@ -679,6 +737,14 @@ class Button is Control, TextureLoadListener
         depressed = depress
     end
 
+    /*
+        This action is called when a texture the button is waiting for has
+        finished loading. This can happen on the web, where images load after
+        the program starts. The button loads its graphics again and asks for a
+        new layout, so the image shows at the right size.
+
+        Attribute: Parameter event The event describing the texture that loaded.
+    */
     action OnTextureLoad(TextureLoadEvent event)
         // If a texture we were listening to has loaded, refresh the visuals.
         LoadGraphics(GetDefaultLayoutProperties())

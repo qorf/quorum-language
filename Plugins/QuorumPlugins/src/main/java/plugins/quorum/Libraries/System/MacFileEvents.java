@@ -2,7 +2,7 @@ package plugins.quorum.Libraries.System;
 
 /**
  * FSEvents, macOS's own file-change notifications, for QuorumFileWatcher
- * (Studio plan FileWatching.md, 2026-11-06). The C side is
+ *. The C side is
  * quorum-natives/src/mac/FileWatcherMac.c, built into Mac.so.
  *
  * One queue per watcher session; one stream per watched folder (and all

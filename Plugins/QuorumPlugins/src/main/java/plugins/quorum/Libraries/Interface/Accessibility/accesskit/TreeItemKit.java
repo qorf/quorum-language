@@ -25,7 +25,7 @@ public class TreeItemKit extends ItemKit{
 
             // Selected: VoiceOver reads it (AXSelected, the tree's
             // selected rows). Position and size: AccessKit keeps them, but
-            // its macOS adapter doesn't pass them on yet (see step 7).
+            // its macOS adapter doesn't pass them on yet.
             builder.setSelected(control.IsSelected());
             builder.setPositionInSet(MacAccessibility.GetTreeItemSetPosition(control));
             builder.setSizeOfSet(MacAccessibility.GetTreeItemSetSize(control));

@@ -7,7 +7,7 @@ use Libraries.Game.Graphics.Shaders.Vulkan.Mapping.TransparentShaderMapping3DVul
 use Libraries.Game.Graphics.Shaders.Vulkan.Fragment.TransparentFragmentShader3DVulkan
 
 /*
-TransparentShaderProgram3D draws see-through models (Lighting plan L6): those
+TransparentShaderProgram3D draws see-through models: those
 with a color whose alpha is below 1, or a material whose alpha mode is
 "BLEND" or whose opacity is below 1. It is a forward program: drawn after
 the deferred lighting and water, over the lit image, back to front, lit by

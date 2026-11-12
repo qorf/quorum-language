@@ -5,7 +5,7 @@ use Libraries.Containers.HashTable
 use Libraries.Compute.Math
 
 /*
-A TerrainRiver is one river on a terrain (River plan R1): water that runs
+A TerrainRiver is one river on a terrain: water that runs
 downhill along a path. TerrainWater holds a terrain's rivers with its lakes,
 saves them in water.json, and draws each with a WaterSurface whose ripples
 flow downstream.
@@ -311,7 +311,7 @@ class TerrainRiver
 
     /*
     This action finds the river's line and its water's surface from its
-    points and the ground (River plan R1). The line is a smooth curve
+    points and the ground. The line is a smooth curve
     through the points (Catmull-Rom), sampled every half a terrain cell.
     The surface is the ground's height along it, smoothed, a little below
     the ground, and never rising going downstream. A river starting from
@@ -839,7 +839,7 @@ class TerrainRiver
     end
 
     /*
-    This action shapes the ground to hold the river (River plan R4): under
+    This action shapes the ground to hold the river: under
     the water, a bed, deepest in the middle, as deep as the river; beside
     it, low banks a little above the water, blending into the ground. The
     ground under the river from before is kept, for Uncarve. Call Compute

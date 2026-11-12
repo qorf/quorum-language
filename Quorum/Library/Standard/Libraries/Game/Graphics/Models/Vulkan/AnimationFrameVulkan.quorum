@@ -74,7 +74,7 @@ class AnimationFrameVulkan
         
         dataBuffer:CreateTransferDestinationBuffer(device, stagingBuffer:GetSize(), constants:BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT)
         
-        // TransferBuffers retires the staging buffer (Item 33).
+        // TransferBuffers retires the staging buffer.
     end
     
     action HasData returns boolean
@@ -103,7 +103,7 @@ class AnimationFrameVulkan
         
         dataTransferred = true
 
-        // The copy is the staging buffer's only use (Item 33).
+        // The copy is the staging buffer's only use.
         GameStateManager gameState
         VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         graphics:Retire(stagingBuffer)

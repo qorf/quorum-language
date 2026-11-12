@@ -9,6 +9,32 @@ use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    The ScrollPaneRenderer class is the visible area of a ScrollPane. It stays
+    in place inside the pane, draws the pane's background and border, and
+    holds a ScrollPaneRendererAnchor that contains the pane's content. To
+    scroll, it moves the anchor instead of moving each item. A ScrollPane makes
+    its renderer itself, and most programs work with the pane instead. The
+    pane's GetScrollableRegion action returns its renderer.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Button
+    use Libraries.Interface.Controls.ScrollPaneRenderer
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Button button = page:AddButton("Hello")
+
+    ScrollPaneRenderer renderer = cast(ScrollPaneRenderer, page:GetScrollableRegion())
+    number contentHeight = renderer:GetContentHeight()
+
+    form:Display()
+*/
 class ScrollPaneRenderer is Control
 
     public constant integer FIT_CONTENTS_VERTICALLY = 1
@@ -37,6 +63,11 @@ class ScrollPaneRenderer is Control
         parent:Control:Add(scrollAnchor)
     end
 
+    /*
+        This action makes the content area as wide as the renderer and lets it
+        grow taller to fit its contents. This is the default. ScrollPane calls
+        it from SetScrollRegionResizing.
+    */
     action FitContentsVertically
         scrollAnchor:SetHorizontalLayoutMode(parent:Control:STANDARD)
         scrollAnchor:SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
@@ -44,6 +75,11 @@ class ScrollPaneRenderer is Control
         contentMode = FIT_CONTENTS_VERTICALLY
     end
 
+    /*
+        This action makes the content area as tall as the renderer and lets it
+        grow wider to fit its contents. ScrollPane calls it from
+        SetScrollRegionResizing.
+    */
     action FitContentsHorizontally
         scrollAnchor:SetHorizontalLayoutMode(parent:Control:FIT_CONTENTS)
         scrollAnchor:SetVerticalLayoutMode(parent:Control:STANDARD)
@@ -51,16 +87,33 @@ class ScrollPaneRenderer is Control
         contentMode = FIT_CONTENTS_HORIZONTALLY
     end
 
+    /*
+        This action stops the content area from sizing itself to its contents, so
+        its size can be set with SetRegionSize. ScrollPane calls it from
+        SetScrollRegionResizing.
+    */
     action SetManualRegionSizing
         scrollAnchor:SetHorizontalLayoutMode(parent:Control:STANDARD)
         scrollAnchor:SetVerticalLayoutMode(parent:Control:STANDARD)
         contentMode = MANUAL_REGION_SIZING
     end
 
+    /*
+        This action returns the ScrollPane that this renderer belongs to, which is
+        its parent.
+
+        Attribute: Returns The ScrollPane that holds this renderer.
+    */
     action GetScrollPane returns ScrollPane
         return cast(ScrollPane, GetParent())
     end
 
+    /*
+        This action lays out the renderer, then moves the content to match how far
+        the ScrollPane is scrolled. The content moves left as the pane scrolls
+        right, and up as the pane scrolls down. With no scrolling, the top left
+        of the content lines up with the top left of the renderer.
+    */
     action Resize
         parent:Control:Resize()
         
@@ -92,20 +145,48 @@ class ScrollPaneRenderer is Control
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action sets the layout used to place the items in the content area.
+        The renderer itself always uses a ManualLayout. The default for the
+        content is a FlowLayout.
+
+        Attribute: Parameter layout The layout for the items in the content area.
+    */
     action SetLayout(Layout layout)
         scrollAnchor:SetLayout(layout)
     end
 
+    /*
+        This action adds an item to the content area and asks for a new layout.
+
+        Attribute: Parameter item The item to add.
+    */
     action Add(Item2D item)
         scrollAnchor:Add(item)
         RequestLayout()
     end
 
+    /*
+        This action adds an item to the content area at a given place in its list
+        of items, and asks for a new layout.
+
+        Attribute: Parameter index The place in the list of items to put the new item.
+
+        Attribute: Parameter item The item to add.
+    */
     action Add(integer index, Item2D item)
         scrollAnchor:Add(index, item)
         RequestLayout()
     end
 
+    /*
+        This action removes an item from the content area. If it was there, a new
+        layout is requested.
+
+        Attribute: Parameter item The item to remove.
+
+        Attribute: Returns True if the item was in the content area and was removed.
+    */
     action Remove(Item2D item) returns boolean
         boolean result = scrollAnchor:Remove(item)
         if result
@@ -114,6 +195,14 @@ class ScrollPaneRenderer is Control
         return result
     end
 
+    /*
+        This action removes the item at a given place in the content area. If an
+        item was removed, a new layout is requested.
+
+        Attribute: Parameter index The place in the list of items of the item to remove.
+
+        Attribute: Returns The item that was removed.
+    */
     action Remove(integer index) returns Item2D
         Item2D result = scrollAnchor:Remove(index)
         if result not= undefined
@@ -122,6 +211,13 @@ class ScrollPaneRenderer is Control
         return result
     end
 
+    /*
+        This action returns the width of the content area. If the renderer or the
+        content needs a new layout, it is laid out first, so the width is up to
+        date.
+
+        Attribute: Returns The width of the content, in pixels.
+    */
     action GetContentWidth returns number
         // Make sure we layout the anchor, if needed, before reporting its size
         if NeedsLayout() or scrollAnchor:NeedsLayout()
@@ -131,6 +227,13 @@ class ScrollPaneRenderer is Control
         return scrollAnchor:GetWidth()
     end
 
+    /*
+        This action returns the height of the content area. If the renderer or the
+        content needs a new layout, it is laid out first, so the height is up to
+        date.
+
+        Attribute: Returns The height of the content, in pixels.
+    */
     action GetContentHeight returns number
         // Make sure we layout the anchor, if needed, before reporting its size
         if NeedsLayout() or scrollAnchor:NeedsLayout()
@@ -140,10 +243,24 @@ class ScrollPaneRenderer is Control
         return scrollAnchor:GetHeight()
     end
 
+    /*
+        This action returns the layout properties of the content area.
+
+        Attribute: Returns The layout properties of the content area.
+    */
     action GetScrollRegionProperties returns LayoutProperties
         return scrollAnchor:GetDefaultLayoutProperties()
     end
 
+    /*
+        This action sets the size of the content area, in pixels. It sets the size
+        right away and also stores it in the area's layout properties, so later
+        layouts keep it. It is meant for the MANUAL_REGION_SIZING mode.
+
+        Attribute: Parameter width The width of the content area.
+
+        Attribute: Parameter height The height of the content area.
+    */
     action SetRegionSize(number width, number height)
         scrollAnchor:SetWidth(width)
         scrollAnchor:SetHeight(height)
@@ -152,10 +269,22 @@ class ScrollPaneRenderer is Control
         scrollAnchorLayout:SetPixelHeight(height)
     end
 
+    /*
+        This action returns the items directly inside the content area.
+
+        Attribute: Returns An array of the items in the content area.
+    */
     action GetScrollRegionItems returns Array<Item2D>
         return scrollAnchor:GetChildren()
     end
 
+    /*
+        This action returns the background color of the renderer. If one was set
+        on the renderer itself, that is used. Otherwise it uses the background
+        color of its ScrollPane, so the pane's colors show.
+
+        Attribute: Returns The background color.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -169,6 +298,13 @@ class ScrollPaneRenderer is Control
         end
     end
 
+    /*
+        This action returns the border color of the renderer. If one was set on
+        the renderer itself, that is used. Otherwise it uses the border color of
+        its ScrollPane.
+
+        Attribute: Returns The border color.
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -182,6 +318,13 @@ class ScrollPaneRenderer is Control
         end
     end
 
+    /*
+        This action returns the border thickness of the renderer. If one was set
+        on the renderer itself, that is used. Otherwise it uses the border
+        thickness of its ScrollPane.
+
+        Attribute: Returns The border thickness.
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()

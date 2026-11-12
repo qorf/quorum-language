@@ -11,8 +11,7 @@ use Libraries.Game.Graphics.PixelMap
 The Material class holds how a surface looks: a texture, or a texture set
 of separate maps, and the values that shade it.
 
-A material can be kept in a file, with Load and Save (Quorum Studio plan,
-step 9). The file is plain JSON, says what it is in its "Format", and gives
+A material can be kept in a file, with Load and Save. The file is plain JSON, says what it is in its "Format", and gives
 each map's path relative to the file's own folder, so a texture set's
 folder can be copied between projects with its material file:
 
@@ -47,7 +46,7 @@ file:SetPath("Textures/Rocks002_1K-PNG/Rocks002.json")
 rock:Save(file)
 */
 class Material
-    // The maps a material can have, for GetMapPath and SetMapPath (step 14).
+    // The maps a material can have, for GetMapPath and SetMapPath.
     // TEXTURE is a plain texture's one image; the others are a texture set's.
     public constant integer COLOR_MAP = 0
     public constant integer NORMAL_MAP = 1
@@ -77,7 +76,7 @@ class Material
     boolean normalMapIsDirectX = false
     number textureScale = 1.0
 
-    // Read from model files (Lighting plan L4), and drawn by the Vulkan
+    // Read from model files, and drawn by the Vulkan
     // renderer: the emissive texture and strength, whether both sides of
     // each face are drawn, how transparency is used ("OPAQUE", "MASK" or
     // "BLEND", as glTF names them, or "" when the file doesn't say) and where
@@ -97,18 +96,17 @@ class Material
 
     // How much light goes through the surface, from glTF's
     // KHR_materials_transmission: 0 for none, 1 for all, times the red of
-    // the transmission texture if there is one (Transmission plan T1).
+    // the transmission texture if there is one.
     number transmission = 0
     text transmissionMapPath = ""
 
-    // The wind's sway (Foliage plan F6): how far a point moves sideways per
+    // The wind's sway: how far a point moves sideways per
     // unit of height above its model's origin, and the wind's direction
     // about the up axis, in degrees from +x toward +z. 0 sways not at all.
     number sway = 0
     number swayDirection = 0
 
-    // The material's name, and the file it was loaded from or saved to
-    // (step 9).
+    // The material's name, and the file it was loaded from or saved to.
     text name = ""
     File file = undefined
     
@@ -194,7 +192,7 @@ class Material
 
     /*
     This action returns the emissive texture's path: the parts of the
-    surface that glow (Lighting plan L4).
+    surface that glow.
 
     Attribute: Returns The path, or "" for none.
     */
@@ -213,8 +211,7 @@ class Material
 
     /*
     This action returns how much light goes through the surface instead of
-    being scattered by it, as in glass or thin paper (Transmission plan T1,
-    glTF's KHR_materials_transmission): 0 for none, 1 for all. A
+    being scattered by it, as in glass or thin paper (glTF's KHR_materials_transmission): 0 for none, 1 for all. A
     transmission texture's red scales it.
 
     Attribute: Returns The transmission, from 0 to 1.
@@ -224,8 +221,7 @@ class Material
     end
 
     /*
-    This action sets how much light goes through the surface (Transmission
-    plan T1). A material with transmission is drawn see-through.
+    This action sets how much light goes through the surface. A material with transmission is drawn see-through.
 
     Attribute: Parameter value The transmission, from 0 to 1.
     */
@@ -240,8 +236,7 @@ class Material
     end
 
     /*
-    This action returns the transmission texture's path (Transmission plan
-    T1): its red scales the transmission.
+    This action returns the transmission texture's path: its red scales the transmission.
 
     Attribute: Returns The path, or "" for none.
     */
@@ -250,7 +245,7 @@ class Material
     end
 
     /*
-    This action sets the transmission texture's path (Transmission plan T1).
+    This action sets the transmission texture's path.
 
     Attribute: Parameter path The path, or "" for none.
     */
@@ -888,7 +883,7 @@ class Material
     end
 
     /*
-    This action returns a map's path, by its kind (step 14).
+    This action returns a map's path, by its kind.
 
     Attribute: Parameter kind COLOR_MAP, NORMAL_MAP, ROUGHNESS_MAP, AMBIENT_OCCLUSION_MAP, HEIGHT_MAP or TEXTURE.
     Attribute: Returns The path, or "" for none.
@@ -909,7 +904,7 @@ class Material
     end
 
     /*
-    This action sets a map's path, by its kind (step 14). "" clears it.
+    This action sets a map's path, by its kind. "" clears it.
 
     Attribute: Parameter kind COLOR_MAP, NORMAL_MAP, ROUGHNESS_MAP, AMBIENT_OCCLUSION_MAP, HEIGHT_MAP or TEXTURE.
     Attribute: Parameter path The path, or "" for none.
@@ -1007,8 +1002,8 @@ class Material
     end
 
     /*
-    This action returns how much the material sways in the wind (Foliage
-    plan F6): how far a point moves sideways per unit of height above its
+    This action returns how much the material sways in the wind: how far a point moves sideways per
+    unit of height above its
     model's origin.
 
     Attribute: Returns The strength, 0 for none.
@@ -1018,8 +1013,8 @@ class Material
     end
 
     /*
-    This action sets how much the material sways in the wind (Foliage plan
-    F6), as grass and leaves do. Set it before the model loads; for a model
+    This action sets how much the material sways in the wind, as grass and leaves do. Set it before
+    the model loads; for a model
     already drawn, use Model:SetSway.
 
     Attribute: Parameter strength How far a point moves sideways per unit of height above its model's origin, such as 0.05; 0 for none.
@@ -1029,7 +1024,7 @@ class Material
     end
 
     /*
-    This action returns the wind's direction for the sway (Foliage plan F6).
+    This action returns the wind's direction for the sway.
 
     Attribute: Returns Degrees about the up axis, from +x toward +z.
     */
@@ -1038,7 +1033,7 @@ class Material
     end
 
     /*
-    This action sets the wind's direction for the sway (Foliage plan F6).
+    This action sets the wind's direction for the sway.
 
     Attribute: Parameter degrees Degrees about the up axis, from +x toward +z.
     */
@@ -1048,7 +1043,7 @@ class Material
 
     /*
     This action makes a texture set a plain texture: its color map becomes
-    its one texture, and its other maps are cleared (step 14).
+    its one texture, and its other maps are cleared.
     */
     action MakePlain
         if colorMapPath = ""
@@ -1101,7 +1096,7 @@ class Material
 
     /*
     This action fills in a texture set's maps from its color map's folder,
-    by name (step 14). It knows these endings, ignoring case, after the
+    by name. It knows these endings, ignoring case, after the
     name's start and before any size such as _1k, then .png or .jpg:
     - color: _Color (AmbientCG), _diff (Poly Haven), _albedo, _basecolor,
       _base_color, _diffuse;
@@ -1294,7 +1289,7 @@ class Material
 
     /*
     This action checks that an image is the same size as the texture set's
-    color map, as every map in a set must be (step 14). It loads both
+    color map, as every map in a set must be. It loads both
     images, so it takes a moment for large ones.
 
     Attribute: Parameter path The image's path.

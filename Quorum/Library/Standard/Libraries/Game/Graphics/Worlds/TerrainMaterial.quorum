@@ -12,7 +12,7 @@ use Libraries.System.File
 
 /*
 A TerrainMaterial is the whole look of a terrain's ground: up to four
-layers, each a Material, and how they blend (Quorum Studio plan, step 9).
+layers, each a Material, and how they blend.
 Layers 1 to 4 are painted with the splat weights' red, green, blue and
 alpha. A new terrain's weights are all red, so the first layer covers the
 whole ground until other layers are painted.
@@ -251,7 +251,7 @@ class TerrainMaterial
     /*
     This action reads a terrain material file, sharing layer materials
     already loaded: a material file whose full path is in the table is
-    used from there, and others are loaded and added to it (step 14). A
+    used from there, and others are loaded and added to it. A
     scene loads its terrain materials with one table, so terrains naming
     the same material file share one Material, and changing it changes it
     everywhere.
@@ -476,7 +476,7 @@ class TerrainMaterial
 
     /*
     This action gives a WorldTerrain one layer again, after a map of the
-    layer's Material changed (step 14): ApplyTo only notices a layer whose
+    layer's Material changed: ApplyTo only notices a layer whose
     Material is a different object. The set is packed again, unless the
     renderer already has one with the same maps. The terrain's region models
     must be made again afterward, as TerrainItem's RefreshMaterial does.

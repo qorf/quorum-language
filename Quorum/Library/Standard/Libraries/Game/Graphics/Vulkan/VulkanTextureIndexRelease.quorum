@@ -4,7 +4,7 @@ package Libraries.Game.Graphics.Vulkan
 VulkanTextureIndexRelease gives a disposed texture's place in the global
 texture array back to the texture manager, once no frame on the GPU can
 still be drawing with it. The texture manager hands one to
-VulkanGraphics:Retire when a texture is disposed (Item 34).
+VulkanGraphics:Retire when a texture is disposed.
 */
 class VulkanTextureIndexRelease is VulkanRetirable
     VulkanTextureManager manager = undefined

@@ -115,28 +115,28 @@ class Model is Item3D
     
     boolean castsShadows = true
 
-    // Lights read from a model file (Lighting plan L8): whether Load adds
+    // Lights read from a model file: whether Load adds
     // them, and the lights added. Point and spot lights are children of the
     // model; directional lights go on the model's layer.
     boolean loadLights = true
     Array<Light> fileLights = undefined
-    // Whether the lights Load adds cast shadows (Shadow plan S4).
+    // Whether the lights Load adds cast shadows.
     boolean fileLightsCastShadows = true
     // Each file light's culling range in the model's own units, before the
     // model is scaled, by the light's place in fileLights; 0 for lights
-    // that have none. SetScale sizes them to the model (Lighting plan L8).
+    // that have none. SetScale sizes them to the model.
     Number32BitArray fileLightCullingRanges = undefined
     // Each file light's place and range in the model's own units, as the
     // file gives them, FILE_LIGHT_VALUES words a light (x, y, z, range), by
     // the light's place in fileLights. Point and spot lights are placed at
     // them times the model's scale, so a scaled lamp keeps its bulb in its
-    // shade (Lighting plan V1).
+    // shade.
     Number32BitArray fileLightPlaces = undefined
     constant integer FILE_LIGHT_VALUES = 4
     /*
     How many times the model's largest side a point light from its file
-    draws objects into its shadows, when the file gives the light no range
-    (Lighting plan L8). Without one, a bright light's shadows would take in
+    draws objects into its shadows, when the file gives the light no range.
+Without one, a bright light's shadows would take in
     objects hundreds of units away; a lamp's bulb only needs its room.
     */
     constant number FILE_LIGHT_CULLING_SIZES = 3
@@ -407,7 +407,7 @@ based on its index.*/
     
     /*
     This action sets whether loading a model file also adds the lights the
-    file holds, such as a lamp's bulb in a glTF file (Lighting plan L8). It
+    file holds, such as a lamp's bulb in a glTF file. It
     is true by default. Set it before calling Load. Each point or spot light
     becomes a PointLight or SpotLight child of the model, named as in the
     file; each directional light becomes a DirectionalLight on the model's
@@ -440,7 +440,7 @@ based on its index.*/
 
     /*
     This action returns whether loading a model file also adds the lights
-    the file holds (Lighting plan L8). It is true by default.
+    the file holds. It is true by default.
 
     Attribute: Returns True if the file's lights are added.
     */
@@ -450,7 +450,7 @@ based on its index.*/
 
     /*
     This action sets whether the lights loading a model file adds cast
-    shadows (Shadow plan S4). It is true by default. Set it before Load, or
+    shadows. It is true by default. Set it before Load, or
     change each light afterward with GetFileLights and SetCastsShadows.
     Lights without shadows are cheaper: they have no shadow maps and draw
     nothing into them.
@@ -482,7 +482,7 @@ based on its index.*/
 
     /*
     This action returns whether the lights loading a model file adds cast
-    shadows (Shadow plan S4). See SetFileLightsCastShadows.
+    shadows. See SetFileLightsCastShadows.
 
     Attribute: Returns True if the file's lights cast shadows.
     */
@@ -492,7 +492,7 @@ based on its index.*/
 
     /*
     This action returns the lights added from the model file when it was
-    loaded (Lighting plan L8): PointLight, SpotLight and DirectionalLight
+    loaded: PointLight, SpotLight and DirectionalLight
     objects. It is empty if the file had none, or SetLoadLights(false) was
     used. Changing a light here, such as its intensity, changes it in the
     scene.
@@ -509,7 +509,7 @@ based on its index.*/
 
     /*
     This action adds the lights the model file holds, as read into the
-    blueprint (Lighting plan L8). Point and spot lights are positioned in
+    blueprint. Point and spot lights are positioned in
     the model's space as children; directional lights shine as in the file.
     */
     private action AddFileLights(ModelBlueprint schematic)
@@ -612,9 +612,9 @@ based on its index.*/
     This action sets the model's scale, as Item3D's SetScale does, and keeps
     the point and spot lights from its file sized to match: each is placed
     at its place in the file times the scale, so a lamp made larger keeps
-    its bulb in its shade (Lighting plan V1), and their ranges grow with it,
+    its bulb in its shade, and their ranges grow with it,
     so it draws objects into its bulb's shadows from as far, for its size,
-    as before (L8). The file's lights follow the model whether or not
+    as before. The file's lights follow the model whether or not
     scaleChildren is true, as its meshes do.
 
     Attribute: Parameter scaleX The scale along the x axis.
@@ -631,7 +631,7 @@ based on its index.*/
     /*
     This action scales the model by the given amounts, as Item3D's Scale
     does, and keeps the point and spot lights from its file placed and
-    sized to match, as SetScale does (Lighting plan V1 and L8).
+    sized to match, as SetScale does.
 
     Attribute: Parameter vector How much to scale along each axis.
     Attribute: Parameter scaleChildren Whether the model's children are
@@ -667,9 +667,9 @@ based on its index.*/
 
     /*
     Keeps the point and spot lights from the model's file sized to the
-    model's scale: each is placed at its place in the file times the scale
-    (Lighting plan V1), a spot light's range and a point light's culling
-    range grow with the largest scale (L8). Item3D's SetScale doesn't move
+    model's scale: each is placed at its place in the file times the scale,
+a spot light's range and a point light's culling
+    range grow with the largest scale. Item3D's SetScale doesn't move
     children, and a child's offset is set again to its parent's place
     whenever the parent moves, so the scale is kept in the light's own
     position. Item3D's Scale also moves children by their offsets, so after
@@ -720,7 +720,7 @@ based on its index.*/
 
     /*
     This action takes away the lights added from a model file, so loading
-    again doesn't add them twice (Lighting plan L8).
+    again doesn't add them twice.
     */
     private action RemoveFileLights
         if fileLights = undefined or fileLights:IsEmpty()
@@ -750,7 +750,7 @@ based on its index.*/
     This action is called by the layer when the model is added to it or
     taken off it. Besides what every Item3D does, it moves the directional
     lights from the model file to the new layer, since they are not
-    children of the model (Lighting plan L8). Most users will never need to
+    children of the model. Most users will never need to
     use this action directly.
 
     Attribute: Parameter parentLayer The layer the model is now on, or undefined.
@@ -2597,7 +2597,7 @@ end
 
     */
     action Load(ModelBlueprint loader, Matrix4 matrix)
-        // Lights from an earlier model file go (Lighting plan L8).
+        // Lights from an earlier model file go.
         RemoveFileLights()
         ModelBlueprint previous = modelBlueprint
         SetModelBlueprint(loader)
@@ -2608,7 +2608,7 @@ end
         resources:SetFromBlueprint(loader)
 
         // Under Vulkan, blueprints count the models using them, so one no
-        // model uses can be freed (Item 33).
+        // model uses can be freed.
         if previous not= loader
             if loader is ModelBlueprintVulkan
                 ModelManagerVulkan modelManager = GetModelManager()
@@ -3077,7 +3077,7 @@ end
         return castsShadows
     end
 
-    // Copies (Foliage plan F5): more places to draw the model, each a
+    // Copies: more places to draw the model, each a
     // transform of 16 numbers relative to the model, and a shade for each.
     // The model's box for culling covers them all.
     Number32BitArray copyTransforms = undefined
@@ -3092,21 +3092,20 @@ end
     number copyLargestScale = 1
 
     // Each copy's color, three numbers (red, green, blue) per copy, or
-    // undefined to use the shades (Dense grass plan DG4); a number that
+    // undefined to use the shades; a number that
     // changes whenever the copies do, so the renderer knows to pack them
-    // again; and what the renderer keeps for drawing them (Dense grass plan
-    // DG2), which the model only holds.
+    // again; and what the renderer keeps for drawing them, which the model only holds.
     Number32BitArray copyColors = undefined
     integer copyVersion = 0
     Object copyDrawingCache = undefined
 
-    // True if the model draws only its shadow, not itself (Dense grass plan
-    // DG3), such as a simpler stand-in that throws a detailed model's shadow.
+    // True if the model draws only its shadow, not itself, such as a simpler stand-in that throws
+    // a detailed model's shadow.
     boolean shadowOnly = false
 
     /*
     This action gives the model copies: it is drawn once at each copy's
-    transform, times the model's own, instead of once (Foliage plan F5).
+    transform, times the model's own, instead of once.
     All copies are drawn together, so many copies cost far less than as
     many models. They share the model's colors, textures and shadow setting.
     The model keeps the arrays it is given; after changing them, call
@@ -3212,7 +3211,7 @@ end
     end
 
     /*
-    This action takes away the model's copies (Foliage plan F5), so it is
+    This action takes away the model's copies, so it is
     drawn once again, at its own place.
     */
     action ClearCopies
@@ -3225,7 +3224,7 @@ end
     end
 
     /*
-    This action gives each copy its own color (Dense grass plan DG4), in
+    This action gives each copy its own color, in
     place of its shade: three numbers per copy, red, green and blue, from 0
     to 1. The color replaces the model's color, which its textures are
     multiplied by. Call it after SetCopies, which clears the colors.
@@ -3241,7 +3240,7 @@ end
     end
 
     /*
-    This action returns the copies' colors (Dense grass plan DG4), three
+    This action returns the copies' colors, three
     numbers per copy.
 
     Attribute: Returns The colors, or undefined if the copies use their shades.
@@ -3252,7 +3251,7 @@ end
 
     /*
     This action returns a number that changes whenever the copies, their
-    shades or their colors change (Dense grass plan DG2), so the renderer
+    shades or their colors change, so the renderer
     can tell when to pack them again.
 
     Attribute: Returns The version.
@@ -3262,8 +3261,8 @@ end
     end
 
     /*
-    This action returns what the renderer keeps for drawing the copies
-    (Dense grass plan DG2). Only the renderer uses it.
+    This action returns what the renderer keeps for drawing the copies.
+Only the renderer uses it.
 
     Attribute: Returns The renderer's data, or undefined.
     */
@@ -3272,8 +3271,7 @@ end
     end
 
     /*
-    This action sets what the renderer keeps for drawing the copies (Dense
-    grass plan DG2). Only the renderer uses it.
+    This action sets what the renderer keeps for drawing the copies. Only the renderer uses it.
 
     Attribute: Parameter cache The renderer's data, or undefined.
     */
@@ -3282,8 +3280,7 @@ end
     end
 
     /*
-    This action sets whether the model draws only its shadow (Dense grass
-    plan DG3): it is not seen, but casts shadows like the model would. A
+    This action sets whether the model draws only its shadow: it is not seen, but casts shadows like the model would. A
     foliage asset uses it to throw a detailed level's shadow from a simpler
     level. It needs CastsShadows to be true to have any effect. Only the
     Vulkan renderer draws shadows only, and not for animated models.
@@ -3303,8 +3300,7 @@ end
     end
 
     /*
-    This action returns whether the model draws only its shadow (Dense
-    grass plan DG3).
+    This action returns whether the model draws only its shadow.
 
     Attribute: Returns True if only the shadow is drawn.
     */
@@ -3313,7 +3309,7 @@ end
     end
 
     /*
-    This action returns how many copies the model has (Foliage plan F5).
+    This action returns how many copies the model has.
 
     Attribute: Returns The count, 0 when the model is drawn once.
     */
@@ -3322,7 +3318,7 @@ end
     end
 
     /*
-    This action returns the copies' transforms (Foliage plan F5), 16
+    This action returns the copies' transforms, 16
     numbers each, column by column.
 
     Attribute: Returns The transforms, or undefined for none.
@@ -3332,7 +3328,7 @@ end
     end
 
     /*
-    This action returns the copies' shades (Foliage plan F5), one each.
+    This action returns the copies' shades, one each.
 
     Attribute: Returns The shades, or undefined for none.
     */
@@ -3342,7 +3338,7 @@ end
 
     /*
     This action tells the layer's render tree the model's box changed, if
-    it is in one (Foliage plan F5).
+    it is in one.
     */
     private action NotifyCopiesChanged
         Libraries.Game.Layer3D layer = GetLayer()
@@ -3359,7 +3355,7 @@ end
     /*
     This action fills in the box around the model, in its own coordinates,
     for a layer that culls what it draws, and for screen readers
-    (Item3D:GetScreenBounds). A model with copies (Foliage plan F5) gives a
+    (Item3D:GetScreenBounds). A model with copies gives a
     box around every copy: their places, widened by the model's size times
     the largest copy's scale, whichever way it is turned. Otherwise it is
     the box around the model's meshes, when the blueprint can give it: a
@@ -3391,7 +3387,7 @@ end
     end
 
     /*
-    This action makes the model sway in the wind (Foliage plan F6): the
+    This action makes the model sway in the wind: the
     renderer moves each point sideways by the strength times its height
     above the model's origin, back and forth over time. It changes the
     materials of the model's blueprint, so every model loaded from the

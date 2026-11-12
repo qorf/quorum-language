@@ -54,7 +54,7 @@ shared class ModelManagerVulkan
     Array<MeshVulkan> pendingUpdates
 
     // How many blueprints have been released. Painters compare it with the
-    // count they last saw, to drop batches for released blueprints (Item 33).
+    // count they last saw, to drop batches for released blueprints.
     integer releaseCount = 0
 
     VulkanDevice device = undefined
@@ -214,7 +214,7 @@ end
         ModelBlueprintVulkan result
         result:SetKey(data:GetID())
         result:SetData(data)
-        // The file's lights go with the blueprint (Lighting plan L8).
+        // The file's lights go with the blueprint.
         result:SetLights(data:GetLights())
         
         boolean hasAnimations = data:GetAnimations() not= undefined

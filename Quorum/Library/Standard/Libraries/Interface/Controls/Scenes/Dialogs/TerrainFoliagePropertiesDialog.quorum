@@ -30,7 +30,7 @@ use Libraries.System.File
 
 /*
     The TerrainFoliagePropertiesDialog is a selected terrain's Foliage
-    section (Terrain plan F3): the foliage assets it can be covered with,
+    section: the foliage assets it can be covered with,
     such as trees, rocks and grass. "Add asset..." adds a model file, drawn
     as itself, or a picture, drawn as a card; a terrain with no foliage list
     is given one in the project's Scenes/Foliage folder. Which asset the
@@ -127,7 +127,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
 
     // The settings fields, by place (the FIELD names below), and the
     // checkboxes. A setting with a bounded range is a slider with a number
-    // field (Slider plan, step 3): its SliderField is at its place in
+    // field: its SliderField is at its place in
     // settingsSliders, and its number field at its place in settingsFields;
     // other places in settingsSliders are undefined.
     Array<TextField> settingsFields
@@ -146,13 +146,12 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     constant integer STEEPEST_SLOPE_FIELD = 6
     constant integer OFFSET_FIELD = 7
     constant integer DISTANCE_FIELD = 8
-    // The wind and the levels of detail (Foliage plan F6): each level has a
+    // The wind and the levels of detail: each level has a
     // file field and a distance field, level 1's first.
     constant integer WIND_FIELD = 9
     constant integer FIRST_LEVEL_FIELD = 10
     constant integer LEVEL_FIELD_COUNT = 3
-    // Shadow levels, placement and fading (Dense grass plan DG3, DG4 and
-    // DG6), after the levels' fields.
+    // Shadow levels, placement and fading, after the levels' fields.
     constant integer LAST_SHADOW_FIELD = 16
     constant integer SHADOW_LEVEL_FIELD = 17
     constant integer TILT_FIELD = 18
@@ -344,8 +343,8 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     end
 
     /*
-        Adds a setting with a bounded range to a group's card (Slider plan,
-        step 3): its label, then a slider and a number field on one line,
+        Adds a setting with a bounded range to a group's card:
+        its label, then a slider and a number field on one line,
         kept in step. Both are focus stops named after the setting. While
         the slider is dragged the field shows the number; the setting is
         taken, and the foliage rebuilt, when the drag ends, on each key
@@ -1086,7 +1085,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     end
 
     /*
-        Takes a level of detail's file or distance field (Foliage plan F6).
+        Takes a level of detail's file or distance field.
         A file ending in .png, .jpg, .jpeg, .bmp or .tga is a card picture,
         any other a model; an empty file leaves the level unused. A level
         given a file before its distance is used from the draw distance's

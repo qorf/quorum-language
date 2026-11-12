@@ -7,6 +7,31 @@ use Libraries.Game.Graphics.Painter2D
 use Libraries.Interface.Controls.TextStyles.TextHighlight
 use Libraries.Game.Graphics.ColorGroup
 
+/*
+    The TextBoxRenderer class draws the inside of a TextBox: the characters, the
+    selection, any text highlights, and the caret. A TextBox makes one for
+    itself and fills it as the text changes or scrolls. The renderer only keeps
+    Drawables for the lines that fit on screen, and it reuses Drawables from a
+    pool instead of making new ones, which keeps large text fast. Most users
+    never need to work with it directly.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.TextBox
+    use Libraries.Interface.Controls.TextBoxRenderer
+
+    Form form
+    Page page = form:GetMainPage()
+
+    TextBox box = page:AddTextBox("Notes")
+    TextBoxRenderer renderer = cast(TextBoxRenderer, box:GetScrollableRegion())
+    integer visibleLines = renderer:GetLineCount()
+
+    form:Display()
+*/
 class TextBoxRenderer is Control
 
     Array<Array<Drawable>> lines
@@ -36,6 +61,22 @@ class TextBoxRenderer is Control
         Add(caret)
     end
 
+    /*
+        This action gives back a Drawable for showing one character or a selection
+        box. It reuses a Drawable from the recycling pool when one is free, and only
+        makes a new one when the pool is empty. New Drawables ignore the mouse, so
+        clicks pass through to the TextBox. Hand the Drawable back with
+        RecycleDrawable when you are done with it.
+
+        Attribute: Returns A Drawable that is ready to be loaded and placed.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextBoxRenderer
+        use Libraries.Game.Graphics.Drawable
+        TextBoxRenderer renderer
+        Drawable drawable = renderer:GetDrawable()
+        renderer:RecycleDrawable(drawable)
+    */
     action GetDrawable returns Drawable
         if drawablePool:IsEmpty() = false
             Drawable drawable = drawablePool:RemoveFromEnd()
@@ -47,6 +88,20 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action puts a Drawable into the recycling pool so GetDrawable can hand
+        it out again later. This saves making new Drawables every time the text
+        changes. If the Drawable is undefined, nothing happens.
+
+        Attribute: Parameter drawable The Drawable to put back in the pool.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextBoxRenderer
+        use Libraries.Game.Graphics.Drawable
+        TextBoxRenderer renderer
+        Drawable drawable = renderer:GetDrawable()
+        renderer:RecycleDrawable(drawable)
+    */
     action RecycleDrawable(Drawable drawable)
         if drawable = undefined
             return now
@@ -55,6 +110,14 @@ class TextBoxRenderer is Control
         drawablePool:Add(drawable)
     end
 
+    /*
+        This action gives back an empty container that pairs a TextHighlight with
+        the Drawable that shows it. It reuses a container from the pool when one is
+        free, and makes a new one otherwise. The renderer uses these containers to
+        keep highlights sorted by render priority.
+
+        Attribute: Returns A container for a TextHighlight and its Drawable.
+    */
     action GetHighlightContainer returns SortableContainer<TextHighlight, Drawable>
         if highlightContainerPool:IsEmpty() = false
             return highlightContainerPool:RemoveFromEnd()
@@ -64,6 +127,14 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action clears a highlight container and puts it into the pool so
+        GetHighlightContainer can reuse it. The Drawable inside is not recycled,
+        because the renderer did not make it and something else may still be using
+        it. If the container is undefined, nothing happens.
+
+        Attribute: Parameter container The highlight container to put back in the pool.
+    */
     action RecycleHighlightContainer(SortableContainer<TextHighlight, Drawable> container)
         if container = undefined
             return now
@@ -77,17 +148,39 @@ class TextBoxRenderer is Control
         highlightContainerPool:Add(container)
     end
 
+    /*
+        This action draws the text area. It first draws the background view, and
+        then draws the highlights, selection, text and caret on top of it. The game
+        calls this action each frame, so most users never need to call it.
+
+        Attribute: Parameter painter The Painter2D used to draw.
+    */
     action Draw(Painter2D painter)
         DrawView(painter)
         DrawContents(painter)
     end
 
+    /*
+        This action draws only the background view of the text area, if it has one.
+        It is the first half of Draw.
+
+        Attribute: Parameter painter The Painter2D used to draw.
+    */
     action DrawView(Painter2D painter)
         if GetView2D() not= undefined
             GetView2D():Draw(painter)
         end
     end
 
+    /*
+        This action draws everything inside the text area, from back to front:
+        highlights that sit behind the selection, the selection boxes, highlights
+        that stay visible over the selection, the characters of each line, and last
+        the caret. If a highlight is found out of order by render priority, the
+        highlights are sorted again before the next draw.
+
+        Attribute: Parameter painter The Painter2D used to draw.
+    */
     action DrawContents(Painter2D painter)
         if sortPreHighlights
             preSelectionHighlights:Sort()
@@ -157,6 +250,16 @@ class TextBoxRenderer is Control
         caret:Draw(painter)
     end
 
+    /*
+        This action adds a character Drawable to a line at the given position in
+        that line. If the line is not one of the lines being shown, nothing happens.
+
+        Attribute: Parameter line The index of the line in the whole text.
+
+        Attribute: Parameter index The position within the line to place the character at.
+
+        Attribute: Parameter character The Drawable that shows the character.
+    */
     action AddCharacter(integer line, integer index, Drawable character)
         Array<Drawable> array = GetLine(line)
         if array = undefined
@@ -166,6 +269,15 @@ class TextBoxRenderer is Control
         array:Add(index, character)
     end
 
+    /*
+        This action removes the character Drawable at the given position in a line
+        and puts it back in the recycling pool. If the line is not being shown, or
+        the position is past the end of the line, nothing happens.
+
+        Attribute: Parameter line The index of the line in the whole text.
+
+        Attribute: Parameter index The position within the line of the character to remove.
+    */
     action RemoveCharacter(integer line, integer index)
         Array<Drawable> array = GetLine(line)
         if array = undefined
@@ -181,17 +293,39 @@ class TextBoxRenderer is Control
         RecycleDrawable(character)
     end
 
+    /*
+        This action adds a Drawable that marks part of the selected text. Selection
+        Drawables are drawn above the highlights that sit behind the selection and
+        below the characters.
+
+        Attribute: Parameter selection The Drawable that marks part of the selection.
+    */
     action AddSelectionDrawable(Drawable selection)
         Add(selection)
         selectionDrawables:Add(selection)
     end
 
+    /*
+        This action removes a selection Drawable from the text area and puts it back
+        in the recycling pool.
+
+        Attribute: Parameter selection The selection Drawable to remove.
+    */
     action RemoveSelectionDrawable(Drawable selection)
         selectionDrawables:Remove(selection)
         Remove(selection)
         RecycleDrawable(selection)
     end
 
+    /*
+        This action adds a highlight that is drawn behind the selection, so the
+        selection covers it. The highlights are sorted by render priority before the
+        next draw.
+
+        Attribute: Parameter highlight The TextHighlight that made the Drawable.
+
+        Attribute: Parameter drawable The Drawable that shows the highlight.
+    */
     action AddPreSelectionHighlight(TextHighlight highlight, Drawable drawable)
         Add(drawable)
         SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
@@ -200,6 +334,13 @@ class TextBoxRenderer is Control
         sortPreHighlights = true
     end
 
+    /*
+        This action removes a highlight that is drawn behind the selection. It finds
+        the first entry for the given TextHighlight and takes its Drawable out of
+        the text area.
+
+        Attribute: Parameter highlight The TextHighlight to remove.
+    */
     action RemovePreSelectionHighlight(TextHighlight highlight)
         integer counter = 0
         repeat while counter < preSelectionHighlights:GetSize()
@@ -215,6 +356,15 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action adds a highlight that is drawn above the selection, so it stays
+        visible when the text is selected. The highlights are sorted by render
+        priority before the next draw.
+
+        Attribute: Parameter highlight The TextHighlight that made the Drawable.
+
+        Attribute: Parameter drawable The Drawable that shows the highlight.
+    */
     action AddPostSelectionHighlight(TextHighlight highlight, Drawable drawable)
         Add(drawable)
         SortableContainer<TextHighlight, Drawable> container = GetHighlightContainer()
@@ -223,6 +373,13 @@ class TextBoxRenderer is Control
         sortPostHighlights = true
     end
 
+    /*
+        This action removes a highlight that is drawn above the selection. It finds
+        the first entry for the given TextHighlight and takes its Drawable out of
+        the text area.
+
+        Attribute: Parameter highlight The TextHighlight to remove.
+    */
     action RemovePostSelectionHighlight(TextHighlight highlight)
         integer counter = 0
         repeat while counter < postSelectionHighlights:GetSize()
@@ -238,10 +395,22 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action sets the Drawable that is used as the caret, the blinking line
+        that shows where typing will go.
+
+        Attribute: Parameter newCaret The Drawable to use as the caret.
+    */
     action SetCaret(Drawable newCaret)
         caret = newCaret
     end
 
+    /*
+        This action returns the Drawable used as the caret, the blinking line that
+        shows where typing will go.
+
+        Attribute: Returns The caret Drawable.
+    */
     action GetCaret returns Drawable
         return caret
     end
@@ -259,6 +428,12 @@ class TextBoxRenderer is Control
         EmptyPostSelectionHighlights()
     end
 
+    /*
+        This action removes and recycles all of the character Drawables on one line.
+        If the line is not being shown, nothing happens.
+
+        Attribute: Parameter index The index of the line in the whole text.
+    */
     action EmptyLine(integer index)
         Array<Drawable> array = GetLine(index)
         
@@ -267,6 +442,11 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action removes and recycles the character Drawables on every line being
+        shown. The line slots themselves are kept, so the same number of lines can
+        be filled again.
+    */
     action EmptyLines
         integer counter = 0
 
@@ -290,12 +470,19 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action removes and recycles every selection Drawable, so no text looks
+        selected.
+    */
     action EmptySelectionDrawables
         repeat until selectionDrawables:IsEmpty()
             RemoveSelectionDrawable(selectionDrawables:Get(0))
         end
     end
 
+    /*
+        This action removes every highlight that is drawn behind the selection.
+    */
     action EmptyPreSelectionHighlights
         repeat until preSelectionHighlights:IsEmpty()
             SortableContainer<TextHighlight, Drawable> container = preSelectionHighlights:RemoveFromEnd()
@@ -304,6 +491,9 @@ class TextBoxRenderer is Control
         sortPreHighlights = false
     end
 
+    /*
+        This action removes every highlight that is drawn above the selection.
+    */
     action EmptyPostSelectionHighlights
         repeat until postSelectionHighlights:IsEmpty()
             SortableContainer<TextHighlight, Drawable> container = postSelectionHighlights:RemoveFromEnd()
@@ -312,6 +502,20 @@ class TextBoxRenderer is Control
         sortPostHighlights = false
     end
 
+    /*
+        This action sets how many lines of text the renderer keeps slots for, which
+        is usually the number of lines that fit in the visible area. Adding lines
+        makes new empty slots. Removing lines recycles the Drawables on the removed
+        slots. A count of 0 clears every line, and a negative count is ignored.
+
+        Attribute: Parameter lineCount The number of line slots to keep.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextBoxRenderer
+        TextBoxRenderer renderer
+        renderer:SetLineCount(10)
+        integer count = renderer:GetLineCount()
+    */
     action SetLineCount(integer lineCount)
         if lineCount < 0
             return now
@@ -344,10 +548,31 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action returns how many line slots the renderer keeps, which is the
+        number of lines it can show at once.
+
+        Attribute: Returns The number of line slots.
+    */
     action GetLineCount returns integer
         return lines:GetSize()
     end
 
+    /*
+        This action sets which line of the whole text is shown in the first slot,
+        for example after scrolling. Lines that are still on screen keep their
+        Drawables, and lines that scrolled away are recycled. If the jump is bigger
+        than the number of slots, everything is cleared.
+
+        Attribute: Parameter line The index of the line in the whole text to show first.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextBoxRenderer
+        TextBoxRenderer renderer
+        renderer:SetLineCount(10)
+        renderer:SetStartLine(5)
+        integer first = renderer:GetStartLine()
+    */
     action SetStartLine(integer line)
         if line = startLine
             return now
@@ -389,10 +614,33 @@ class TextBoxRenderer is Control
         startLine = line
     end
 
+    /*
+        This action returns the index of the line in the whole text that is shown in
+        the first slot.
+
+        Attribute: Returns The index of the first shown line.
+    */
     action GetStartLine returns integer
         return startLine
     end
 
+    /*
+        This action returns the character Drawables for one line of the whole text.
+        The line must be one of the lines being shown. If it is not, or there are no
+        line slots, the action returns undefined.
+
+        Attribute: Parameter index The index of the line in the whole text.
+
+        Attribute: Returns The array of character Drawables for the line, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.TextBoxRenderer
+        use Libraries.Containers.Array
+        use Libraries.Game.Graphics.Drawable
+        TextBoxRenderer renderer
+        renderer:SetLineCount(10)
+        Array<Drawable> line = renderer:GetLine(0)
+    */
     action GetLine(integer index) returns Array<Drawable>
         integer offset = index - startLine
         if offset < 0 or offset > lines:GetSize() or lines:IsEmpty()
@@ -402,12 +650,25 @@ class TextBoxRenderer is Control
         return lines:Get((startArray + offset) mod lines:GetSize())
     end
 
-    // The TextBoxRenderer will only resize if we explicitly request it, or an
-    // underlying component has to.
+    /*
+        This action always returns false, so the renderer is not laid out again on
+        its own. It is resized only when the TextBox asks for it.
+
+        Attribute: Returns Always false.
+    */
     action NeedsLayout returns boolean
         return false
     end
 
+    /*
+        This action returns the background color used to draw the text area. If this
+        renderer has its own value set for "backgroundColor", that value is used.
+        Otherwise it uses the value from the TextBox that holds this renderer, so
+        the text area matches its TextBox. If there is no TextBox, it falls back to
+        the normal Control value.
+
+        Attribute: Returns The background color to use for the text area.
+    */
     action GetBackgroundColor returns ColorGroup
         if HasColorPropertyOverride("backgroundColor")
             return parent:Control:GetBackgroundColor()
@@ -421,6 +682,15 @@ class TextBoxRenderer is Control
         end
     end
 
+    /*
+        This action returns the border color used to draw the text area. If this
+        renderer has its own value set for "borderColor", that value is used.
+        Otherwise it uses the value from the TextBox that holds this renderer, so
+        the text area matches its TextBox. If there is no TextBox, it falls back to
+        the normal Control value.
+
+        Attribute: Returns The border color to use for the text area.
+    */
     action GetBorderColor returns ColorGroup
         if HasColorPropertyOverride("borderColor")
             return parent:Control:GetBorderColor()
@@ -434,6 +704,15 @@ class TextBoxRenderer is Control
         end
     end
     
+    /*
+        This action returns the mouse-over color used to draw the text area. If this
+        renderer has its own value set for "mouseOverColor", that value is used.
+        Otherwise it uses the value from the TextBox that holds this renderer, so
+        the text area matches its TextBox. If there is no TextBox, it falls back to
+        the normal Control value.
+
+        Attribute: Returns The mouse-over color to use for the text area.
+    */
 action GetMouseOverColor returns ColorGroup
         if HasColorPropertyOverride("mouseOverColor")
             return parent:Control:GetMouseOverColor()
@@ -447,6 +726,15 @@ action GetMouseOverColor returns ColorGroup
         end
     end
     
+    /*
+        This action returns the mouse-over border color used to draw the text area.
+        If this renderer has its own value set for "mouseOverBorderColor", that
+        value is used. Otherwise it uses the value from the TextBox that holds this
+        renderer, so the text area matches its TextBox. If there is no TextBox, it
+        falls back to the normal Control value.
+
+        Attribute: Returns The mouse-over border color to use for the text area.
+    */
 action GetMouseOverBorderColor returns ColorGroup
         if HasColorPropertyOverride("mouseOverBorderColor")
             return parent:Control:GetMouseOverBorderColor()
@@ -460,6 +748,15 @@ action GetMouseOverBorderColor returns ColorGroup
         end
     end
 
+    /*
+        This action returns the border thickness used to draw the text area. If this
+        renderer has its own value set for "borderThickness", that value is used.
+        Otherwise it uses the value from the TextBox that holds this renderer, so
+        the text area matches its TextBox. If there is no TextBox, it falls back to
+        the normal Control value.
+
+        Attribute: Returns The border thickness to use for the text area.
+    */
     action GetBorderThickness returns number
         if HasNumberPropertyOverride("borderThickness")
             return parent:Control:GetBorderThickness()
@@ -473,6 +770,15 @@ action GetMouseOverBorderColor returns ColorGroup
         end
     end
     
+    /*
+        This action returns the mouse-over border thickness used to draw the text
+        area. If this renderer has its own value set for "mouseOverBorderThickness",
+        that value is used. Otherwise it uses the value from the TextBox that holds
+        this renderer, so the text area matches its TextBox. If there is no TextBox,
+        it falls back to the normal Control value.
+
+        Attribute: Returns The mouse-over border thickness to use for the text area.
+    */
 action GetMouseOverBorderThickness returns number
         if HasNumberPropertyOverride("mouseOverBorderThickness")
             return parent:Control:GetMouseOverBorderThickness()
@@ -486,6 +792,14 @@ action GetMouseOverBorderThickness returns number
         end
     end
     
+    /*
+        This action checks whether a mouse-over border thickness is set for the text
+        area. If this renderer has its own value for "mouseOverBorderThickness", it
+        checks that. Otherwise it asks the TextBox that holds this renderer. If
+        there is no TextBox, it falls back to the normal Control check.
+
+        Attribute: Returns True if a mouse-over border thickness is set, or false if not.
+    */
 action HasMouseOverBorderThickness returns boolean
         if HasNumberPropertyOverride("mouseOverBorderThickness")
             return parent:Control:HasMouseOverBorderThickness()
@@ -499,6 +813,12 @@ TextBox box = GetTextBox()
         end
     end
 
+    /*
+        This action finds the TextBox that holds this renderer by walking up through
+        its parents.
+
+        Attribute: Returns The TextBox that holds this renderer, or undefined if there is none.
+    */
     action GetTextBox returns TextBox
         Item2D candidate = GetParent()
         repeat until candidate is TextBox or candidate = undefined
@@ -509,6 +829,15 @@ TextBox box = GetTextBox()
         return cast(TextBox, candidate)
     end
 
+    /*
+        This action returns the top left corner rounding used to draw the text area.
+        If this renderer has its own value set for "topLeftRounding", that value is
+        used. Otherwise it uses the value from the TextBox that holds this renderer,
+        so the text area matches its TextBox. If there is no TextBox, it falls back
+        to the normal Control value.
+
+        Attribute: Returns The top left corner rounding to use for the text area.
+    */
     action GetTopLeftRounding returns number
         if HasNumberPropertyOverride("topLeftRounding")
             return parent:Control:GetTopLeftRounding()
@@ -522,11 +851,27 @@ TextBox box = GetTextBox()
         end
     end
 
+    /*
+        This action checks whether the top left corner rounding for the text area
+        has a real value. It asks GetTopLeftRounding and returns true unless the
+        result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the top left corner rounding has a value, or false if it does not.
+    */
     action HasTopLeftRounding returns boolean
         number value = GetTopLeftRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the top right corner rounding used to draw the text
+        area. If this renderer has its own value set for "topRightRounding", that
+        value is used. Otherwise it uses the value from the TextBox that holds this
+        renderer, so the text area matches its TextBox. If there is no TextBox, it
+        falls back to the normal Control value.
+
+        Attribute: Returns The top right corner rounding to use for the text area.
+    */
     action GetTopRightRounding returns number
         if HasNumberPropertyOverride("topRightRounding")
             return parent:Control:GetTopRightRounding()
@@ -540,11 +885,27 @@ TextBox box = GetTextBox()
         end
     end
 
+    /*
+        This action checks whether the top right corner rounding for the text area
+        has a real value. It asks GetTopRightRounding and returns true unless the
+        result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the top right corner rounding has a value, or false if it does not.
+    */
     action HasTopRightRounding returns boolean
         number value = GetTopRightRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the bottom left corner rounding used to draw the text
+        area. If this renderer has its own value set for "bottomLeftRounding", that
+        value is used. Otherwise it uses the value from the TextBox that holds this
+        renderer, so the text area matches its TextBox. If there is no TextBox, it
+        falls back to the normal Control value.
+
+        Attribute: Returns The bottom left corner rounding to use for the text area.
+    */
     action GetBottomLeftRounding returns number
         if HasNumberPropertyOverride("bottomLeftRounding")
             return parent:Control:GetBottomLeftRounding()
@@ -558,11 +919,27 @@ TextBox box = GetTextBox()
         end
     end
 
+    /*
+        This action checks whether the bottom left corner rounding for the text area
+        has a real value. It asks GetBottomLeftRounding and returns true unless the
+        result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the bottom left corner rounding has a value, or false if it does not.
+    */
     action HasBottomLeftRounding returns boolean
         number value = GetBottomLeftRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the bottom right corner rounding used to draw the text
+        area. If this renderer has its own value set for "bottomRightRounding", that
+        value is used. Otherwise it uses the value from the TextBox that holds this
+        renderer, so the text area matches its TextBox. If there is no TextBox, it
+        falls back to the normal Control value.
+
+        Attribute: Returns The bottom right corner rounding to use for the text area.
+    */
     action GetBottomRightRounding returns number
         if HasNumberPropertyOverride("bottomRightRounding")
             return parent:Control:GetBottomRightRounding()
@@ -576,11 +953,27 @@ TextBox box = GetTextBox()
         end
     end
 
+    /*
+        This action checks whether the bottom right corner rounding for the text
+        area has a real value. It asks GetBottomRightRounding and returns true
+        unless the result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the bottom right corner rounding has a value, or false if it does not.
+    */
     action HasBottomRightRounding returns boolean
         number value = GetBottomRightRounding()
         return value:IsNotANumber() = false
     end
     
+    /*
+        This action returns the top left corner rounding in pixels used to draw the
+        text area. If this renderer has its own value set for
+        "topLeftPixelRounding", that value is used. Otherwise it uses the value from
+        the TextBox that holds this renderer, so the text area matches its TextBox.
+        If there is no TextBox, it falls back to the normal Control value.
+
+        Attribute: Returns The top left corner rounding in pixels to use for the text area.
+    */
 action GetTopLeftPixelRounding returns number
         if HasNumberPropertyOverride("topLeftPixelRounding")
             return parent:Control:GetTopLeftPixelRounding()
@@ -594,11 +987,27 @@ action GetTopLeftPixelRounding returns number
         end
     end
 
+    /*
+        This action checks whether the top left corner rounding in pixels for the
+        text area has a real value. It asks GetTopLeftPixelRounding and returns true
+        unless the result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the top left corner rounding in pixels has a value, or false if it does not.
+    */
     action HasTopLeftPixelRounding returns boolean
         number value = GetTopLeftPixelRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the top right corner rounding in pixels used to draw the
+        text area. If this renderer has its own value set for
+        "topRightPixelRounding", that value is used. Otherwise it uses the value
+        from the TextBox that holds this renderer, so the text area matches its
+        TextBox. If there is no TextBox, it falls back to the normal Control value.
+
+        Attribute: Returns The top right corner rounding in pixels to use for the text area.
+    */
     action GetTopRightPixelRounding returns number
         if HasNumberPropertyOverride("topRightPixelRounding")
             return parent:Control:GetTopRightPixelRounding()
@@ -612,11 +1021,27 @@ action GetTopLeftPixelRounding returns number
         end
     end
 
+    /*
+        This action checks whether the top right corner rounding in pixels for the
+        text area has a real value. It asks GetTopRightPixelRounding and returns
+        true unless the result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the top right corner rounding in pixels has a value, or false if it does not.
+    */
     action HasTopRightPixelRounding returns boolean
         number value = GetTopRightPixelRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the bottom left corner rounding in pixels used to draw
+        the text area. If this renderer has its own value set for
+        "bottomLeftPixelRounding", that value is used. Otherwise it uses the value
+        from the TextBox that holds this renderer, so the text area matches its
+        TextBox. If there is no TextBox, it falls back to the normal Control value.
+
+        Attribute: Returns The bottom left corner rounding in pixels to use for the text area.
+    */
     action GetBottomLeftPixelRounding returns number
         if HasNumberPropertyOverride("bottomLeftPixelRounding")
             return parent:Control:GetBottomLeftPixelRounding()
@@ -630,11 +1055,27 @@ action GetTopLeftPixelRounding returns number
         end
     end
 
+    /*
+        This action checks whether the bottom left corner rounding in pixels for the
+        text area has a real value. It asks GetBottomLeftPixelRounding and returns
+        true unless the result is not a number, which means no rounding was set.
+
+        Attribute: Returns True if the bottom left corner rounding in pixels has a value, or false if it does not.
+    */
     action HasBottomLeftPixelRounding returns boolean
         number value = GetBottomLeftPixelRounding()
         return value:IsNotANumber() = false
     end
 
+    /*
+        This action returns the bottom right corner rounding in pixels used to draw
+        the text area. If this renderer has its own value set for
+        "bottomRightPixelRounding", that value is used. Otherwise it uses the value
+        from the TextBox that holds this renderer, so the text area matches its
+        TextBox. If there is no TextBox, it falls back to the normal Control value.
+
+        Attribute: Returns The bottom right corner rounding in pixels to use for the text area.
+    */
     action GetBottomRightPixelRounding returns number
         if HasNumberPropertyOverride("bottomRightPixelRounding")
             return parent:Control:GetBottomRightPixelRounding()
@@ -648,6 +1089,14 @@ action GetTopLeftPixelRounding returns number
         end
     end
 
+    /*
+        This action checks whether the bottom right corner rounding in pixels for
+        the text area has a real value. It asks GetBottomRightPixelRounding and
+        returns true unless the result is not a number, which means no rounding was
+        set.
+
+        Attribute: Returns True if the bottom right corner rounding in pixels has a value, or false if it does not.
+    */
     action HasBottomRightPixelRounding returns boolean
         number value = GetBottomRightPixelRounding()
         return value:IsNotANumber() = false

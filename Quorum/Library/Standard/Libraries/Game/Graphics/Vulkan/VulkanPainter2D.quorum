@@ -98,7 +98,7 @@ on create
     end
 
     action RegenerateRenderPass(boolean isFirstPass) returns boolean
-        // Begin has already retired any old pass (Item 32).
+        // Begin has already retired any old pass.
 
         VulkanRenderPass pass
         renderPass = pass
@@ -116,7 +116,7 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap8.html#renderpass-compatibility
         */
         // The attachments match the swapchain's framebuffers, with or
-        // without 2D MSAA (Item 29).
+        // without 2D MSAA.
         Array<VulkanAttachmentDescription> attachmentDescriptions
         Array<VulkanSubpassDescription> subpassDescriptions
         subpassDescriptions:Add(graphics:MakeSwapchainSubpass(isFirstPass, attachmentDescriptions))
@@ -128,7 +128,7 @@ VulkanSwapchain swapchain = graphics:GetSwapchain()
         dependency:SetSourceStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT)
         dependency:SetDestinationStageMask(constants:PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT + constants:PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
         // Color writes too: with 2D MSAA this pass loads the multisampled
-        // image an earlier layer's pass wrote (Item 29).
+        // image an earlier layer's pass wrote.
         dependency:SetSourceAccessMask(constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT + constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT)
         dependency:SetDestinationAccessMask(constants:ACCESS_COLOR_ATTACHMENT_WRITE_BIT + constants:ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
 
@@ -204,7 +204,7 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         
         // The copies below overwrite output buffers that the previous
         // frame's draws may still be reading. Make them wait for those
-        // reads (Item 32).
+        // reads.
         VulkanConstants barrierConstants
         VulkanMemoryBarrier readBarrier
         readBarrier:SetSourceStageMask(barrierConstants:PIPELINE_STAGE_VERTEX_INPUT_BIT)
@@ -253,9 +253,9 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
             return now
         end
         
-        // If the 2D sample count changed (Item 29), the swapchain's
+        // If the 2D sample count changed, the swapchain's
         // framebuffers were remade for it; make this painter's pass match.
-        // The old pass is retired (Item 32).
+        // The old pass is retired.
         if IsRenderPassValid() and renderPass:GetSampleCount() not= graphics:GetSwapchainSampleCount()
             graphics:Retire(renderPass)
             renderPass = undefined
@@ -371,7 +371,7 @@ VulkanGraphics graphics = cast(VulkanGraphics, gameState:GetGameGraphics())
         VulkanConstants constants
 
         // Times this layer's 2D drawing on the GPU, its uploads included,
-        // when timing is on (Graphics timing plan T4). Each 2D layer adds a
+        // when timing is on. Each 2D layer adds a
         // call to the same phase.
         GraphicsTimer timer = graphics:GetGraphicsTimer()
         timer:StartPhase(commandBuffer, "2D")
@@ -627,8 +627,7 @@ DrawableShape shape = drawable:GetDrawableShape()
         end
         VulkanShaderProgram vulkanProgram = cast(VulkanShaderProgram, requestedProgram:GetShaderProgramStrategy())
         
-        // Made, or made again if it was made for another sample count
-        // (Item 29).
+        // Made, or made again if it was made for another sample count.
         VulkanPipeline programPipeline = vulkanProgram:GetPipeline()
         if programPipeline = undefined
             vulkanProgram:CreatePipeline(renderPass)

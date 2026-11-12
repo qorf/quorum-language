@@ -9,6 +9,35 @@ use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+The Gutter class is the parent of the narrow strips drawn along the left
+side of a control with lines of text, such as a TextBox or a CodeEditor.
+A gutter shows something for each visible line, such as its line number
+or a colored mark, and tells its gutter listeners which line was clicked.
+Each kind of gutter decides how wide it is and how it draws itself.
+Gutters are added to a control with its Add(Gutter) action.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.TextBox
+use Libraries.Interface.Controls.Gutter
+use Libraries.Interface.Controls.LineNumberGutter
+
+Form form
+Page page = form:GetMainPage()
+
+TextBox box = page:AddTextBox("Notes")
+box:SetText("Each line of this text gets a number.")
+
+LineNumberGutter gutter
+box:Add(cast(Gutter, gutter))
+
+form:Display()
+*/
 class Gutter is Control
     
     ScrollableLineControl control = undefined
@@ -26,15 +55,43 @@ class Gutter is Control
         SetInputGroup("Gutter")
     end
 
+    /*
+        This action records the first visible line of the control and redraws
+        the gutter starting from that line. The control that owns the gutter
+        calls this when its lines move, such as after scrolling.
+
+        Attribute: Parameter firstLine The index of the first visible line, starting at 0.
+    */
     action UpdateLines(integer firstLine)
         me:firstLine = firstLine
         UpdateVisuals(firstLine)
     end
 
+    /*
+        This action draws the gutter's contents, such as line numbers, starting
+        at the given line. Each kind of gutter draws itself in its own way.
+
+        Attribute: Parameter firstLine The index of the first visible line, starting at 0.
+    */
     blueprint action UpdateVisuals(integer firstLine)
 
+    /*
+        This action returns how wide the gutter needs to be, in pixels. The
+        control that owns the gutter uses it to place its gutters side by side.
+
+        Attribute: Returns The width of the gutter, in pixels.
+    */
     blueprint action GetGutterThickness returns number
 
+    /*
+        This action is called when the gutter is clicked. It works out which
+        line of the control was clicked from the mouse's height, then tells each
+        gutter listener with a GutterEvent. Unlike most controls, the gutter
+        does not pass the click on to Control, so it doesn't look pressed like a
+        button.
+
+        Attribute: Parameter mouseEvent The mouse event for the click.
+    */
     action ClickedMouse(MouseEvent mouseEvent)
         integer clickedLine = firstLine
         number y = mouseEvent:GetY() - control:GetScrollableRegion():GetGlobalY()
@@ -61,6 +118,14 @@ threshold = control:GetLineY(clickedLine)
         // parent:Control:ClickedMouse()
     end
 
+    /*
+        This action loads the graphics for the gutter. It uses the view from the
+        properties when they have one, or gives the gutter a ControlShaderView
+        if it has no view yet. The game engine calls this as needed, so most
+        users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the gutter.
+    */
     action LoadGraphics(LayoutProperties properties)
         if properties:GetView2D() = undefined
             if GetView2D() = undefined
@@ -75,26 +140,85 @@ threshold = control:GetLineY(clickedLine)
         parent:Control:LoadGraphics(properties)
     end
 
+    /*
+        This action adds a listener that is told each time the gutter is
+        clicked, and on which line.
+
+        Attribute: Parameter listener The listener to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        use Libraries.Interface.Events.GutterListener
+        LineNumberGutter gutter
+        GutterListener listener
+        gutter:AddGutterListener(listener)
+    */
     action AddGutterListener(GutterListener listener)
         listeners:Add(listener)
     end
 
+    /*
+        This action removes a listener, so it is no longer told when the gutter
+        is clicked.
+
+        Attribute: Parameter listener The listener to remove.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        use Libraries.Interface.Events.GutterListener
+        LineNumberGutter gutter
+        GutterListener listener
+        gutter:AddGutterListener(listener)
+        gutter:RemoveGutterListener(listener)
+    */
     action RemoveGutterListener(GutterListener listener)
         listeners:Remove(listener)
     end
 
+    /*
+        This action returns the listeners that are told when the gutter is
+        clicked. This is the gutter's own array, so changing it changes the
+        gutter's listeners.
+
+        Attribute: Returns The array of gutter listeners.
+    */
     action GetGutterListeners returns Array<GutterListener>
         return listeners
     end
 
+    /*
+        This action removes every gutter listener from the gutter.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.LineNumberGutter
+        use Libraries.Interface.Events.GutterListener
+        LineNumberGutter gutter
+        GutterListener listener
+        gutter:AddGutterListener(listener)
+        gutter:EmptyGutterListeners()
+    */
     action EmptyGutterListeners
         listeners:Empty()
     end
 
+    /*
+        This action returns the control the gutter belongs to, such as a TextBox,
+        or undefined if it hasn't been added to one.
+
+        Attribute: Returns The control the gutter belongs to.
+    */
     action GetControl returns ScrollableLineControl
         return control
     end
 
+    /*
+        This action sets the control the gutter belongs to. The gutter reads the
+        lines it draws from this control. Adding a gutter to a control with its
+        Add(Gutter) action sets this automatically, so most users won't need to
+        call it.
+
+        Attribute: Parameter control The control the gutter belongs to.
+    */
     action SetControl(ScrollableLineControl control)
         me:control = control
     end

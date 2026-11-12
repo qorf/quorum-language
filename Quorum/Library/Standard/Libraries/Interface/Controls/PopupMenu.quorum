@@ -13,6 +13,48 @@ use Libraries.Interface.Layouts.ManualLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+    The PopupMenu class is a menu that appears on its own, wherever it is opened,
+    instead of hanging from a menu bar. It is most often used as a context menu: a
+    list of choices that appears when the user right-clicks on a control. Give a
+    PopupMenu to a Control with SetPopupMenu and it opens when the user asks for
+    that control's context menu, or open it yourself with OpenAt or OpenAtCursor.
+    The menu closes when the user chooses an item or clicks somewhere outside of
+    it. A popup menu with many items can be made scrollable with SetScrollable.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.PopupMenu
+    use Libraries.Interface.Controls.MenuItem
+    use Libraries.Interface.Controls.Button
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            PopupMenu menu
+            MenuItem cut
+            cut:SetName("Cut")
+            MenuItem copy
+            copy:SetName("Copy")
+            MenuItem paste
+            paste:SetName("Paste")
+            menu:Add(cut)
+            menu:Add(copy)
+            menu:Add(paste)
+
+            // Right-clicking the button opens the menu.
+            Button button
+            button:SetName("Right click me")
+            button:SetPopupMenu(menu)
+            Add(button)
+        end
+    end
+*/
 class PopupMenu is MenuRoot, MouseListener
     
     MenuPanelBlueprint panel = undefined
@@ -40,15 +82,61 @@ class PopupMenu is MenuRoot, MouseListener
         SetName("Pop-Up Menu")
     end
 
+    /*
+        This action sets the thickness of the border drawn around the popup menu. The
+        same thickness is given to the panel that holds the items, so the two match.
+
+        Attribute: Parameter thickness The thickness of the border, in pixels.
+    */
     action SetBorderThickness(integer thickness)
         parent:Control:SetBorderThickness(thickness)
         panel:SetBorderThickness(thickness)
     end
 
+    /*
+        This action tells accessibility tools, such as screen readers, that the popup
+        menu is the parent of the items inside it, so they are announced as part of
+        the menu.
+
+        Attribute: Returns true, because a PopupMenu contains its items for accessibility.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+        This action adds each MenuItem in the array to the popup menu, in order from
+        top to bottom.
+
+        Attribute: Parameter menuHeaders The MenuItems to add to the menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem cut
+                cut:SetName("Cut")
+                MenuItem copy
+                copy:SetName("Copy")
+
+                Array<MenuItem> items
+                items:Add(cut)
+                items:Add(copy)
+
+                PopupMenu menu
+                menu:Add(items)
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action Add(Array<MenuItem> menuHeaders)
         // Add directly to the base MenuPanel.
 
@@ -59,12 +147,69 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action adds a MenuItem to the bottom of the popup menu. An item that has
+        items of its own opens a submenu beside the popup menu.
+
+        Attribute: Parameter item The MenuItem to add to the menu.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem undo
+                undo:SetName("Undo")
+                menu:Add(undo)
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action Add(MenuItem item)
         // Add directly to the base MenuPanel.
         item:SetMenuRoot(me)
         panel:Add(item)
     end
 
+    /*
+        This action takes a MenuItem out of the popup menu. If the removed item was
+        selected, the selection moves to the first item left in the menu, or is
+        cleared if the menu is now empty.
+
+        Attribute: Parameter item The MenuItem to remove.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem undo
+                undo:SetName("Undo")
+                MenuItem redo
+                redo:SetName("Redo")
+                menu:Add(undo)
+                menu:Add(redo)
+
+                // Nothing to redo yet.
+                menu:Remove(redo)
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action Remove(MenuItem item)
         // Remove from the MenuPanel
         panel:Remove(item)
@@ -83,18 +228,98 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action removes every MenuItem from the popup menu, leaving it empty. This
+        is handy for a context menu whose choices change, since the menu can be
+        emptied and filled again before it opens.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem undo
+                undo:SetName("Undo")
+                menu:Add(undo)
+
+                menu:Empty()
+                MenuItem paste
+                paste:SetName("Paste")
+                menu:Add(paste)
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action Empty
         repeat while panel:IsEmpty() = false
             Remove(panel:GetFromEnd())
         end
     end
 
+    /*
+        This action opens the popup menu at the mouse cursor, with the top left corner
+        of the menu at the cursor's position.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem copy
+                copy:SetName("Copy")
+                menu:Add(copy)
+                menu:OpenAtCursor()
+            end
+        end
+    */
     action OpenAtCursor
         number x = monitor:GetMouseX()
         number y = monitor:GetMouseY()
         OpenAt(x, y)
     end
 
+    /*
+        This action opens the popup menu at the given point on the screen, with the
+        top left corner of the menu at that point. As elsewhere in the Game engine, x
+        is measured from the left of the window and y from the bottom.
+
+        Attribute: Parameter x The x coordinate for the menu's left edge, in pixels.
+
+        Attribute: Parameter y The y coordinate for the menu's top edge, in pixels.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem copy
+                copy:SetName("Copy")
+                menu:Add(copy)
+                menu:OpenAt(200, 300)
+            end
+        end
+    */
     action OpenAt(number x, number y)
         LayoutProperties properties = dialog:GetDefaultLayoutProperties()
         properties:SetPercentageX(0)
@@ -106,6 +331,12 @@ class PopupMenu is MenuRoot, MouseListener
         Open()
     end
 
+    /*
+        This action shows the popup menu where it was last placed, gives it the focus
+        so the keyboard can be used to move through it, and starts listening for
+        clicks outside of it so it can close itself. To choose where the menu appears,
+        use OpenAt or OpenAtCursor instead.
+    */
     action Open
         dialog:Show()
         dialog:GetLayer():AddMouseListener(me)
@@ -113,6 +344,30 @@ class PopupMenu is MenuRoot, MouseListener
         SetSelectingState(true)
     end
 
+    /*
+        This action closes the popup menu and any of its submenus that are open, and
+        hides it from the screen.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem copy
+                copy:SetName("Copy")
+                menu:Add(copy)
+                menu:OpenAt(200, 300)
+                menu:Close()
+            end
+        end
+    */
     action Close
         // Close each item on the base MenuPanel.
 
@@ -127,11 +382,23 @@ class PopupMenu is MenuRoot, MouseListener
         dialog:Hide()
     end
 
+    /*
+        This action returns whether the popup menu is open on the screen. It is
+        true after Open and false after Close.
+
+        Attribute: Returns True if the popup menu is showing, or false if it is not.
+    */
     action IsShowing returns boolean
         return dialog:IsShowing()
     end
 
-    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    /*
+        This action moves the selection left, as the left arrow key does. Inside a
+        submenu, the selection moves back out to the item that opened it. On the top
+        level of the popup menu, nothing changes. It works like MenuBar's action of
+        the same name, without the menu bar's top row. The menu's keyboard
+        behaviors call this, so most users shouldn't need to.
+    */
     action MoveSelectionLeft
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() > 1
@@ -140,7 +407,13 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
-    // Closely mirrors MenuBar's related action, but without concern for the top bar.
+    /*
+        This action moves the selection right, as the right arrow key does. If the
+        selected item has a submenu, the submenu opens and its first item is
+        selected. Otherwise nothing changes. It works like MenuBar's action of the
+        same name, without the menu bar's top row. The menu's keyboard behaviors
+        call this, so most users shouldn't need to.
+    */
     action MoveSelectionRight
         // Do a copy so modifying it here doesn't have side effects on the
         // original selection (we need to preserve it for Select to use).
@@ -156,6 +429,13 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action moves the selection down, as the down arrow key does. If nothing
+        is selected, the first item is selected. On the top level of the menu the item
+        below is selected, stopping at the last item. Inside a submenu the item below
+        is selected, wrapping around to the top. The menu's keyboard behaviors call
+        this, so most users shouldn't need to.
+    */
     action MoveSelectionDown
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
@@ -190,6 +470,13 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action moves the selection up, as the up arrow key does. If nothing is
+        selected, the last item is selected. On the top level of the menu the item
+        above is selected, stopping at the first item. Inside a submenu the item above
+        is selected, wrapping around to the bottom. The menu's keyboard behaviors call
+        this, so most users shouldn't need to.
+    */
     action MoveSelectionUp
         Array<MenuItem> path = GetSelection():GetPath()
         if path:GetSize() = 0
@@ -243,14 +530,90 @@ class PopupMenu is MenuRoot, MouseListener
         return false
     end
 
+    /*
+        This action returns how many MenuItems are on the top level of the popup menu.
+        It does not count the items inside submenus.
+
+        Attribute: Returns The number of MenuItems on the top level of the menu.
+    */
     action GetSize returns integer
         return panel:GetSize()
     end
 
+    /*
+        This action returns an Iterator that goes through the MenuItems on the top
+        level of the popup menu, from top to bottom.
+
+        Attribute: Returns An Iterator over the top level MenuItems.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Iterator
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                MenuItem cut
+                cut:SetName("Cut")
+                MenuItem copy
+                copy:SetName("Copy")
+                menu:Add(cut)
+                menu:Add(copy)
+
+                Iterator<MenuItem> iterator = menu:GetIterator()
+                repeat while iterator:HasNext()
+                    MenuItem item = iterator:Next()
+                    output item:GetName()
+                end
+            end
+        end
+    */
     action GetIterator returns Iterator<MenuItem>
         return panel:GetIterator()
     end
 
+    /*
+        This action sets whether the popup menu scrolls. A scrollable menu shows only
+        some of its items at a time, with a scroll bar to reach the rest, which keeps
+        a long menu from running off the screen. The items already in the menu are
+        moved into the new panel, so this can be called before or after adding them.
+        Use SetItemsInView to choose how many items are shown at once.
+
+        Attribute: Parameter scrollable true to make the menu scroll, or false to show every item at once.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                menu:SetScrollable(true)
+                menu:SetItemsInView(5)
+
+                integer counter = 1
+                repeat while counter <= 20
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    menu:Add(item)
+                    counter = counter + 1
+                end
+
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action SetScrollable(boolean scrollable)
         if IsScrollable() = scrollable
             return now
@@ -280,10 +643,52 @@ class PopupMenu is MenuRoot, MouseListener
         panel = newPanel
     end
 
+    /*
+        This action tells whether the popup menu scrolls, showing only some of its
+        items at a time.
+
+        Attribute: Returns true if the menu scrolls, or false if it shows every item.
+    */
     action IsScrollable returns boolean
         return panel is ScrollableMenuPanel
     end
 
+    /*
+        This action scrolls a scrollable popup menu so the item at the given index is
+        the first one in view. Index 0 is the top of the list. It does nothing if the
+        menu is not scrollable.
+
+        Attribute: Parameter index The index of the item to show first.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                menu:SetScrollable(true)
+                menu:SetItemsInView(5)
+
+                integer counter = 1
+                repeat while counter <= 20
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    menu:Add(item)
+                    counter = counter + 1
+                end
+
+                // Start with Item 11 at the top.
+                menu:SetScrollIndex(10)
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action SetScrollIndex(number index)
         if panel is ScrollableMenuPanel
             ScrollableMenuPanel scrollPanel = cast(ScrollableMenuPanel, panel)
@@ -291,6 +696,40 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action sets how many items a scrollable popup menu shows at once. The
+        rest can be reached by scrolling. It does nothing if the menu is not
+        scrollable, so call SetScrollable(true) first.
+
+        Attribute: Parameter itemsInView How many items to show at once.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.PopupMenu
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                PopupMenu menu
+                menu:SetScrollable(true)
+                menu:SetItemsInView(8)
+
+                integer counter = 1
+                repeat while counter <= 30
+                    MenuItem item
+                    item:SetName("Item " + counter)
+                    menu:Add(item)
+                    counter = counter + 1
+                end
+
+                menu:OpenAt(100, 400)
+            end
+        end
+    */
     action SetItemsInView(number itemsInView)
         if panel is ScrollableMenuPanel
             ScrollableMenuPanel scrollPanel = cast(ScrollableMenuPanel, panel)
@@ -298,6 +737,15 @@ class PopupMenu is MenuRoot, MouseListener
         end
     end
 
+    /*
+        This action tells the menu's selection listeners that the selection changed.
+        In a scrollable menu, it first scrolls so the newly selected item on the top
+        level is in view, which keeps the selection visible as the user moves through
+        the menu with the keyboard. It is called automatically when the selection
+        changes, so most users shouldn't need to call it.
+
+        Attribute: Parameter event The SelectionEvent that describes the change.
+    */
     action NotifySelectionListeners(SelectionEvent event)
         if IsScrollable() and GetSelection():GetPathLength() = 1
             ScrollableMenuPanel scrollPanel = cast(ScrollableMenuPanel, panel)

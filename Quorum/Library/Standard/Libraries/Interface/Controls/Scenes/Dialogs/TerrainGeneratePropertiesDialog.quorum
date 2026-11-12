@@ -23,14 +23,14 @@ use Libraries.Game.Graphics.Worlds.TerrainGenerator
 
 /*
     The TerrainGeneratePropertiesDialog is a selected terrain's Generate
-    section (step 10). For the whole terrain, it remakes the ground with a
+    section. For the whole terrain, it remakes the ground with a
     preset (rolling hills, mountains, plateaus, canyons or flat), a seed and
     a height, and can auto paint it; it also erodes or auto paints the
     whole terrain. Each can be undone. The Stamp, Erode and Auto paint
     tools, which act where the brush is clicked, are in the Brush section,
-    and the Stamp tool's settings in the Stamp section (step 17).
+    and the Stamp tool's settings in the Stamp section.
 
-    Auto paint needs two or more materials (step 9): layer 1 goes on flat
+    Auto paint needs two or more materials: layer 1 goes on flat
     ground, layer 2 on slopes, layer 3 in hollows and layer 4 low down.
 
     It shows in the scene editor's Properties panel, after the Brush
@@ -63,7 +63,7 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         SetName("Terrain Generate")
 
         // Its title, under a header that opens and closes it when the panel
-        // shows several sections (step 15).
+        // shows several sections.
         SetHeading(AddHeading(panel, "Generate", 18))
 
         // The settings in one card: the preset, two to a row, then the
@@ -79,7 +79,7 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         presetGroup:GetButtonAt(0):SetToggleState(true)
         AddGroup(settingsCard, presetGroup, focusArray)
 
-        // The seed and height are sliders with number fields (Slider plan),
+        // The seed and height are sliders with number fields,
         // read when Generate is pressed.
         seedField = AddSlider(settingsCard, "Seed:", "Seed", "The number the random shapes start from; the same seed makes the same ground", 0, 999, 1, 10, "7", focusArray)
         heightField = AddSlider(settingsCard, "Height:", "Height in world units", "How high the tallest ground is, in world units", 0, 256, 1, 8, "32", focusArray)

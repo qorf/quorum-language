@@ -25,8 +25,8 @@ use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 
 /*
-    The TerrainWaterPropertiesDialog is a selected terrain's Water section
-    (Water plan W6, River plan R6): its sea, its lakes, its rivers, and the
+    The TerrainWaterPropertiesDialog is a selected terrain's Water section:
+its sea, its lakes, its rivers, and the
     water's look.
 
     Its parts fold, each with a chevron, as the Properties panel's sections
@@ -297,7 +297,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Makes one river's part (River plan R6): its header, and a card with
+        Makes one river's part: its header, and a card with
         its fields, Edit path and Remove river.
     */
     private action MakeRiverPart(integer index)
@@ -331,7 +331,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
 
     /*
         Adds a setting with a bounded range: a label, a slider and a number
-        field (Slider plan). Returns the number field, used as a plain field
+        field. Returns the number field, used as a plain field
         is; final changes are taken by FieldLeft (SliderTaken).
     */
     private action AddSlider(Control card, text label, text name, number minimum, number maximum, number step, number pageStep) returns TextField

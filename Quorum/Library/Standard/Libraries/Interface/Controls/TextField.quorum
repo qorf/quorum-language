@@ -51,20 +51,16 @@ use Libraries.Game.Graphics.SharedTextureManager
     use Libraries.Interface.Controls.TextField
     use Libraries.Game.Graphics.Color
     
-    class Main 
-        action Main 
-            Form form
-            Page page = form:GetMainPage()
+    Form form
+    Page page = form:GetMainPage()
 
-            TextField field
-            Color color
-            field:SetName("myTxt")
-            field:SetBackgroundColor(color:Green())
-            page:Add(field)
+    TextField field
+    Color color
+    field:SetName("myTxt")
+    field:SetBackgroundColor(color:Green())
+    page:Add(field)
 
-            form:Display()
-        end
-    end
+    form:Display()
 */
 class TextField is Control, MouseListener, MouseMovementListener, FocusListener
 
@@ -130,7 +126,7 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     TextFieldBackground background
 
     // A thick line in the focus border color along the left edge, shown
-    // while the field has the focus (FD).
+    // while the field has the focus.
     Control focusLine
     constant number FOCUS_LINE_THICKNESS = 4
 
@@ -225,6 +221,13 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
         HideCaret()
     end
 
+    /*
+        This action sets the key used to look up this field's look in the
+        interface options, such as its colors and border. The field's background
+        uses the same key, so both match.
+
+        Attribute: Parameter key The interface options key to use.
+    */
     action SetInterfaceOptionsKey(text key)
         parent:Control:SetInterfaceOptionsKey(key)
         background:SetInterfaceOptionsKey(key)
@@ -335,7 +338,7 @@ GameStateManager manager
             background:SetView2D(backgroundView)
         end
 
-        // The focus line (FD): the field's shape, with only its left edge
+        // The focus line: the field's shape, with only its left edge
         // drawn, thick, in the focus border color.
         if focusLine:GetView2D() = undefined
             ControlShaderView lineView
@@ -451,6 +454,12 @@ GameStateManager manager
         PositionCaret()
     end
 
+    /*
+        This action gets the caret ready to draw. The first time, it loads a small
+        filled rectangle for it. Each time, it sizes the caret to its thickness,
+        scaled by the interface scale, and to the height of a line of the font,
+        and colors it with the icon color.
+    */
     private action InitializeCaret
         if caret:IsLoaded() = false
             caret:LoadFilledRectangle(1, 1)
@@ -466,10 +475,45 @@ GameStateManager manager
         caret:SetColor(GetIconColor())
     end
 
+    /*
+        This action sets whether the field slides its text left and right on its
+        own to keep the caret and the text being edited in view. This is on by
+        default. Turning it off keeps the text where it is, even if the caret
+        moves past the edge of the field.
+
+        Attribute: Parameter auto True to move the view on its own, false to leave it in place.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetAutomaticViewMovement(false)
+                Add(field)
+            end
+        end
+    */
     action SetAutomaticViewMovement(boolean auto)
         me:moveView = auto
     end
 
+    /*
+        This action returns whether the field slides its text left and right on
+        its own to keep the caret and the text being edited in view.
+
+        Attribute: Returns True if the view moves on its own.
+    */
     action GetAutomaticViewMovement returns boolean
         return me:moveView
     end
@@ -496,6 +540,12 @@ GameStateManager manager
         return x + leftCharacterPadding
     end
 
+    /*
+        This action clears the selection, so it is empty and sits at the caret,
+        and then redraws the field.
+
+        Attribute: Parameter textChanged True if the text changed along with the selection.
+    */
     private action EmptySelectionEvent(boolean textChanged)
         integer index = caretCharacter
 
@@ -505,6 +555,11 @@ GameStateManager manager
         UpdateVisualSelection()
     end
 
+    /*
+        This action updates the selection after the caret moved left while the
+        user is selecting. The selection grows or shrinks so that one of its ends
+        is at the caret. The field is then redrawn.
+    */
     private action SelectionMoveLeft
 
         integer index = caretCharacter
@@ -521,6 +576,11 @@ GameStateManager manager
         UpdateVisualSelection()
     end
 
+    /*
+        This action updates the selection after the caret moved right while the
+        user is selecting. The selection grows or shrinks so that one of its ends
+        is at the caret. The field is then redrawn.
+    */
     private action SelectionMoveRight
 
         integer index = caretCharacter
@@ -727,6 +787,11 @@ GameStateManager manager
         ResetCaretBlinkTimer()
     end
 
+    /*
+        This action shows the caret and restarts its timer, so it stays solid for
+        the idle time before it starts to blink again. It only does this while
+        the caret is active, which is while the field has the focus.
+    */
     private action ResetCaretBlinkTimer()
         if caretActive
             caret:Show()
@@ -741,6 +806,33 @@ GameStateManager manager
         caretActive = false
     end
     
+    /*
+        This action clears the selection without deleting any text. The selection
+        becomes empty and sits at the caret.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+                field:Select(0, 5)
+                field:RemoveSelection()
+                Add(field)
+            end
+        end
+    */
     action RemoveSelection
         EmptySelectionEvent(false)
     end
@@ -835,6 +927,13 @@ DecrementStyleIndices(index, toDelete)
         DeleteSelection(true)
     end
 
+    /*
+        This action deletes the selected text, moves the caret to where the
+        selection began, updates any text styles, and redraws the field. If the
+        selection is empty, nothing happens.
+
+        Attribute: Parameter triggerTextChangeEvent True to tell text change listeners about the deleted text.
+    */
     private action DeleteSelection(boolean triggerTextChangeEvent)
         if selection:IsEmpty()
             return now
@@ -973,12 +1072,28 @@ TextChangeEvent changeEvent
         NotifyTextChangeListeners(changeEvent)
     end
 
+    /*
+        This action is called by the input system when the mouse is dragged over
+        the field. If the drag began in the text, it moves the caret to the
+        character nearest the mouse and selects the text between there and where
+        the drag began.
+
+        Attribute: Parameter event The mouse event for the drag.
+    */
     action DraggedMouse(MouseEvent event)
         if draggingInText
             MousePositionCaret(event, true)
         end
     end
 
+    /*
+        This action is called by the input system when the mouse clicks the field.
+        On a single click, it shows the caret, moves it to the character nearest
+        the mouse, and starts a drag, so moving the mouse while the button is
+        down selects text.
+
+        Attribute: Parameter event The mouse event for the click.
+    */
     action ClickedMouse(MouseEvent event)
         if event:GetSource() not= undefined and event:GetSource() is Item2D and event:clickCount = 1
             ShowCaret()
@@ -990,6 +1105,13 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action is called by the input system when a mouse button is
+        released. It ends a drag. After a double click, it also ends selecting by
+        whole words.
+
+        Attribute: Parameter event The mouse event for the release.
+    */
     action ReleasedMouse(MouseEvent event)
         draggingInText = false
         if event:clickCount >= 2
@@ -1035,9 +1157,17 @@ TextChangeEvent changeEvent
         draggingInText = false
     end
 
-    // A touch is in screen coordinates, and the caret is placed in world
-    // coordinates, through the layer's camera (which the display's safe
-    // region may have moved).
+    /*
+        This action turns a touch's position on the screen into the point in the
+        world where the caret is placed. The layer's viewport position is taken off,
+        then the point goes through the layer's camera, which the display's safe
+        region may have moved. If there is no layer or camera, the touch's screen
+        position is used as it is.
+
+        Attribute: Parameter event The touch event.
+
+        Attribute: Returns The touch's position in world coordinates, on the camera's near plane.
+    */
     private action GetTouchPoint(TouchEvent event) returns Vector3
         Layer2D touchLayer = GetLayer()
         if touchLayer = undefined or touchLayer:GetCamera() = undefined
@@ -1048,6 +1178,14 @@ TextChangeEvent changeEvent
         return touchLayer:GetCamera():ScreenToWorldCoordinates(event:GetX() - touchLayer:GetViewportX(), event:GetY() - touchLayer:GetViewportY())
     end
 
+    /*
+        This action places the caret at the character nearest the mouse. When
+        dragging, it also selects from where the drag began.
+
+        Attribute: Parameter event The mouse event that says where the mouse is.
+
+        Attribute: Parameter dragging True if the mouse is being dragged.
+    */
     private action MousePositionCaret(MouseEvent event, boolean dragging)
         PositionCaretFromPoint(event:GetX(), event:GetY(), dragging)
     end
@@ -1138,12 +1276,31 @@ TextChangeEvent changeEvent
         ResetCaretBlinkTimer()
     end
 
+    /*
+        This action records that a double click selected a word, from the start
+        index to the end index. While the mouse is then dragged, the selection
+        grows or shrinks by whole words, keeping that first word selected. The
+        double click behavior calls this, so most programs don't need to.
+
+        Attribute: Parameter startIndex The index where the double clicked word begins.
+
+        Attribute: Parameter endIndex The index where the double clicked word ends.
+    */
     action SetDoubleClickIndices(integer startIndex, integer endIndex)
         doubleClicking = true
         doubleClickStartIndex = startIndex
         doubleClickEndIndex = endIndex
     end
 
+    /*
+        This action moves the caret to the character nearest a point. The point
+        is measured from the field's bottom left corner. Since a TextField has
+        only one line, only the x value is used.
+
+        Attribute: Parameter x The x position of the point.
+
+        Attribute: Parameter y The y position of the point.
+    */
     private action PositionCaretFromCoordinates(number x, number y)
         integer index = GetNearestCharacter(x)
         caretCharacter = index
@@ -1177,6 +1334,13 @@ TextChangeEvent changeEvent
         return counter
     end
 
+    /*
+        This action is called when the field gets the focus. It shows the caret,
+        switches the border to the focus border color, shows a thick line in that
+        color along the field's left edge, and lays the field out again.
+
+        Attribute: Parameter event The focus event.
+    */
     action GainedFocus(FocusEvent event)
         ShowCaret()
         background:SetBorderColor(GetFocusBorderColor())
@@ -1189,6 +1353,13 @@ TextChangeEvent changeEvent
         background:RequestVerticesUpdate()
     end
 
+    /*
+        This action is called when the field loses the focus. It hides the caret,
+        switches the border back to its normal color, hides the focus line along
+        the left edge, and lays the field out again.
+
+        Attribute: Parameter event The focus event.
+    */
     action LostFocus(FocusEvent event)
         HideCaret()
         background:SetBorderColor(GetBorderColor())
@@ -1199,6 +1370,15 @@ TextChangeEvent changeEvent
         background:RequestVerticesUpdate()
     end
 
+    /*
+        This action is called by the game each frame. While the caret is active,
+        it counts down the caret's timer and shows or hides the caret when the
+        timer runs out, which makes it blink. It also asks the display to keep
+        drawing, so the blink shows on displays that only draw when something
+        changes.
+
+        Attribute: Parameter seconds How many seconds have passed since the last frame.
+    */
     action Update(number seconds)
         if caretActive
             // The caret blinks only while frames come, so it asks for them
@@ -1220,46 +1400,157 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action sets how long, in seconds, the caret stays solid after it
+        moves or the text changes, before it starts to blink. The default is 1
+        second.
+
+        Attribute: Parameter time The idle time, in seconds.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetCaretIdleTime(2)
+                Add(field)
+            end
+        end
+    */
     action SetCaretIdleTime(number time)
         caretIdleTime = time
     end
 
+    /*
+        This action sets how long, in seconds, a key such as an arrow or delete
+        must be held down before it starts to repeat. The default is 0.35
+        seconds.
+
+        Attribute: Parameter time The delay before a held key repeats, in seconds.
+    */
     action SetCaretMoveDelay(number time)
         caretMoveDelay = time
     end
 
+    /*
+        This action sets how long, in seconds, to wait between repeats while a key
+        such as an arrow or delete is held down. The default is 0.0325 seconds.
+
+        Attribute: Parameter time The time between repeats, in seconds.
+    */
     action SetCaretMoveTime(number time)
         caretMoveTime = time
     end
 
+    /*
+        This action returns how long, in seconds, the caret stays solid after it
+        moves or the text changes, before it starts to blink.
+
+        Attribute: Returns The idle time, in seconds.
+    */
     action GetCaretIdleTime returns number
         return caretIdleTime
     end
 
+    /*
+        This action returns how long, in seconds, a key such as an arrow or delete
+        must be held down before it starts to repeat.
+
+        Attribute: Returns The delay before a held key repeats, in seconds.
+    */
     action GetCaretMoveDelay returns number
         return caretMoveDelay
     end
 
+    /*
+        This action returns how long, in seconds, to wait between repeats while a
+        key such as an arrow or delete is held down.
+
+        Attribute: Returns The time between repeats, in seconds.
+    */
     action GetCaretMoveTime returns number
         return caretMoveTime
     end
 
+    /*
+        This action returns where the caret is in the text, as the index of the
+        character just after it. An index of 0 means the caret is before the
+        first character.
+
+        Attribute: Returns The index of the caret.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello")
+                field:SetCaretPosition(3)
+                integer position = field:GetCaretPosition()
+                Add(field)
+            end
+        end
+    */
     action GetCaretPosition returns integer
         return caretCharacter
     end
 
+    /*
+        This action returns the x position of the caret, relative to the field.
+
+        Attribute: Returns The x position of the caret.
+    */
     action GetCaretX returns number
         return caret:GetX()
     end
 
+    /*
+        This action returns the y position of the caret, relative to the field.
+
+        Attribute: Returns The y position of the caret.
+    */
     action GetCaretY returns number
         return caret:GetY()
     end
 
+    /*
+        This action returns the x position of the caret on the screen, in global
+        coordinates.
+
+        Attribute: Returns The global x position of the caret.
+    */
     action GetCaretGlobalX returns number
         return caret:GetGlobalX()
     end
 
+    /*
+        This action returns the y position of the caret on the screen, in global
+        coordinates.
+
+        Attribute: Returns The global y position of the caret.
+    */
     action GetCaretGlobalY returns number
         return caret:GetGlobalY()
     end
@@ -1382,18 +1673,70 @@ TextChangeEvent changeEvent
         return selection
     end
 
+    /*
+        This action adds a listener that is told each time the text in the field
+        changes, such as when text is typed, deleted, set or appended.
+
+        Attribute: Parameter listener The listener to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Events.TextChangeListener
+        use Libraries.Interface.Events.TextChangeEvent
+
+        class Main is Game, TextChangeListener
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:AddTextChangeListener(me)
+                Add(field)
+            end
+
+            action TextChanged(TextChangeEvent event)
+                output "The text changed."
+            end
+        end
+    */
     action AddTextChangeListener(TextChangeListener listener)
         textChangeListeners:Add(listener)
     end
 
+    /*
+        This action removes a listener, so it is no longer told when the text in
+        the field changes.
+
+        Attribute: Parameter listener The listener to remove.
+    */
     action RemoveTextChangeListener(TextChangeListener listener)
         textChangeListeners:Remove(listener)
     end
 
+    /*
+        This action returns the listeners that are told when the text in the field
+        changes.
+
+        Attribute: Returns An array of the text change listeners.
+    */
     action GetTextChangeListeners returns Array<TextChangeListener>
         return textChangeListeners
     end
 
+    /*
+        This action tells each text change listener on this field about a change,
+        and then tells the game's input system, so listeners for all fields hear
+        about it too.
+
+        Attribute: Parameter event The event that describes the change.
+    */
     private action NotifyTextChangeListeners(TextChangeEvent event)
         integer counter = 0
         repeat while counter < textChangeListeners:GetSize()
@@ -1404,12 +1747,76 @@ TextChangeEvent changeEvent
         manager:GetInput():NotifyTextChangeListeners(event)
     end
 
+    /*
+        This action records the field's current text, caret position and
+        selection. The undo system uses these records so it can put the field
+        back the way it was.
+
+        Attribute: Returns A record of the field's current state.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Undo.TextFieldEditState
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello")
+                TextFieldEditState saved = field:GetCurrentEditState()
+                field:SetText("Goodbye")
+                field:SetFromEditState(saved)
+                Add(field)
+            end
+        end
+    */
     action GetCurrentEditState returns TextFieldEditState
         TextFieldEditState state
         state:Set(GetText(), GetCaretPosition(), GetSelection())
         return state
     end
 
+    /*
+        This action puts the field back to a recorded state: its text, caret
+        position and selection. It does not tell text change listeners about the
+        change. The undo system uses this to undo and redo edits.
+
+        Attribute: Parameter state The recorded state to restore.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Undo.TextFieldEditState
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello")
+                TextFieldEditState saved = field:GetCurrentEditState()
+                field:SetText("Goodbye")
+                field:SetFromEditState(saved)
+                Add(field)
+            end
+        end
+    */
     action SetFromEditState(TextFieldEditState state)
         textValue = state:GetText()
         SetCaretToIndex(state:GetCaretPosition())
@@ -1425,10 +1832,46 @@ TextChangeEvent changeEvent
         
     end
 
+    /*
+        This action returns the edit manager that records changes to this field so
+        they can be undone and redone.
+
+        Attribute: Returns The field's edit manager.
+    */
     action GetTextFieldEditManager returns TextFieldEditManager
         return editManager
     end
 
+    /*
+        This action finds the start of the token, such as a word, at or before
+        the caret. It works the same as GetTokenStartIndex with the caret's
+        position as the search index.
+
+        Attribute: Returns The index where the token begins.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello world")
+                field:SetCaretPosition(8)
+                integer tokenStart = field:GetTokenStartIndex()
+                Add(field)
+            end
+        end
+    */
     action GetTokenStartIndex returns integer
         return GetTokenStartIndex(GetCaretPosition())
     end
@@ -1504,6 +1947,36 @@ TextChangeEvent changeEvent
         return beginIndex - currentToken:GetSize()  
     end
 
+    /*
+        This action finds the start of the next token, such as a word, after the
+        caret. It works the same as GetNextTokenStartIndex with the caret's
+        position as the search index.
+
+        Attribute: Returns The index where the next token begins.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello world")
+                field:SetCaretPosition(2)
+                integer nextStart = field:GetNextTokenStartIndex()
+                Add(field)
+            end
+        end
+    */
     action GetNextTokenStartIndex returns integer
         return GetNextTokenStartIndex(GetCaretPosition())
     end
@@ -1755,6 +2228,17 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action returns whether two special characters in a row count as one
+        token. The pairs that do are an open and close parenthesis, two greater
+        than signs, two less than signs, and two slashes.
+
+        Attribute: Parameter first The first character.
+
+        Attribute: Parameter second The character after it.
+
+        Attribute: Returns True if the two characters form one token.
+    */
     private action IsDoubleSpecialCharacter(text first, text second) returns boolean
         boolean isDoubleSpecialCharacter = false
         if (first = "(" and second = ")")
@@ -1772,6 +2256,15 @@ TextChangeEvent changeEvent
         return isDoubleSpecialCharacter
     end
 
+    /*
+        This action returns whether a character is one of the special characters
+        that make up a token on their own, such as a period, a parenthesis, a
+        colon, an equals sign or a double quote.
+
+        Attribute: Parameter value The character to check.
+
+        Attribute: Returns True if the character is a special character.
+    */
     private action IsSpecialCharacter(text value) returns boolean
         boolean isSpecialCharacter = false
         if value = "." or value = "/" or value = "*" or value = "-" or value = "+"
@@ -1782,6 +2275,14 @@ TextChangeEvent changeEvent
         return isSpecialCharacter
     end
 
+    /*
+        This action returns whether a character is white space: a space, a tab, a
+        carriage return or a line feed.
+
+        Attribute: Parameter value The character to check.
+
+        Attribute: Returns True if the character is white space.
+    */
     private action IsWhiteSpace(text value) returns boolean
         boolean isWhiteSpace = false
         if value = " " or value = value:GetCarriageReturn() or value = value:GetLineFeed() or 
@@ -1791,6 +2292,16 @@ TextChangeEvent changeEvent
         return isWhiteSpace
     end
 
+    /*
+        This action returns whether a token, such as a word, begins at an index in
+        the text. A token begins at the start of the text, after white space, or
+        where special characters begin or end, though a pair such as two slashes
+        counts as one token. The accessibility system uses this.
+
+        Attribute: Parameter index The index to check.
+
+        Attribute: Returns True if a token begins at the index.
+    */
     private action IsBeginningOfToken(integer index) returns boolean
         // Used by the accessibility system, which can ignore the "private" flag.
         // It's not clear if this will be necessary in the future.
@@ -1862,6 +2373,48 @@ TextChangeEvent changeEvent
         return previousCaretPosition
     end
     
+    /*
+        This action adds a text style to the field, which can change the color of
+        part of the text or add a highlight behind it. Styles are kept in order
+        of where they begin in the text. If the name is not empty, the style can
+        be found or removed by that name later. If the field is not about to be
+        laid out again, the style is shown right away. Undefined styles are
+        ignored.
+
+        Attribute: Parameter name A name for the style, or an empty text for no name.
+
+        Attribute: Parameter style The text style to add.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                Add(field)
+            end
+        end
+    */
     action AddTextStyle(text name, TextStyle style)
         if style = undefined
             return now
@@ -1896,6 +2449,15 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action makes the drawable for a text style's highlight, if the style
+        has one, and adds it to the field's background. A line highlight covers
+        the whole width of the field. Any other highlight covers just the styled
+        characters. It is drawn over the selection or under it, depending on
+        whether it should stay visible while selected.
+
+        Attribute: Parameter style The text style whose highlight to show.
+    */
     private action AddTextStyleHighlight(TextStyle style)
         TextHighlight highlight = style:GetHighlight()
                 
@@ -1959,7 +2521,14 @@ TextChangeEvent changeEvent
         end
     end
 
-    // Update the characters starting at the given index. Sets them to correct colors / styling.
+    /*
+        This action sets the colors of the characters in a range, based on the text
+        styles that cover them and on whether they are selected.
+
+        Attribute: Parameter index The index of the first character to update.
+
+        Attribute: Parameter length How many characters to update.
+    */
     private action UpdateTextStylesAt(integer index, integer length)
         integer endIndex = index + length
         integer currentGlobalIndex = index
@@ -2017,6 +2586,45 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action removes the text style with a given name. If the field is not
+        about to be laid out again, the style's effects are removed right away.
+
+        Attribute: Parameter name The name of the style to remove.
+
+        Attribute: Returns True if a style with that name was found and removed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                boolean removed = field:RemoveTextStyle("greeting")
+                Add(field)
+            end
+        end
+    */
     action RemoveTextStyle(text name) returns boolean
         if styleTable:HasKey(name)
             TextStyle style = styleTable:RemoveKey(name)
@@ -2033,6 +2641,44 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action returns the text style with a given name.
+
+        Attribute: Parameter name The name of the style.
+
+        Attribute: Returns The text style with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                TextStyle found = field:GetTextStyle("greeting")
+                Add(field)
+            end
+        end
+    */
     action GetTextStyle(text name) returns TextStyle
         if styleTable:HasKey(name)
             TextStyle style = styleTable:GetValue(name)
@@ -2042,6 +2688,44 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action returns whether the field has a text style with a given name.
+
+        Attribute: Parameter name The name of the style.
+
+        Attribute: Returns True if the field has a style with that name.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                boolean hasStyle = field:HasTextStyle("greeting")
+                Add(field)
+            end
+        end
+    */
     action HasTextStyle(text name) returns boolean
         if styleTable:HasKey(name)
             return true
@@ -2050,6 +2734,46 @@ TextChangeEvent changeEvent
         end
     end
 
+    /*
+        This action removes a text style from the field, along with its name if
+        it has one. If the field is not about to be laid out again, the style's
+        effects are removed right away.
+
+        Attribute: Parameter style The text style to remove.
+
+        Attribute: Returns True if the style was on the field and was removed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                boolean removed = field:RemoveTextStyle(style)
+                Add(field)
+            end
+        end
+    */
     action RemoveTextStyle(TextStyle style) returns boolean
         boolean hadValue = textStyles:Remove(style)
         if hadValue = false
@@ -2066,8 +2790,13 @@ TextChangeEvent changeEvent
         return true
     end
 
-    // Removes any effects this text style is currently having on the text by deleting its highlight and updating the font at the style's indices.
-    // To be used internally after the style is removed from the table via RemoveTextStyle.
+    /*
+        This action undoes the effects a removed TextStyle has on the screen. It
+        removes the style's highlight and resets the colors of the characters it
+        covered. It is used after the style is removed with RemoveTextStyle.
+
+        Attribute: Parameter style The TextStyle that was removed.
+    */
     private action ClearTextStyle(TextStyle style)
         TextHighlight highlight = style:GetHighlight()
         if highlight not= undefined
@@ -2081,6 +2810,47 @@ TextChangeEvent changeEvent
         UpdateTextStylesAt(style:GetIndex(), style:GetSize())
     end
 
+    /*
+        This action returns the text styles that cover a given index in the text.
+        A style counts if it begins at or before the index and reaches it,
+        including a style that ends right at the index.
+
+        Attribute: Parameter index The index in the text to check.
+
+        Attribute: Returns An array of the text styles at that index.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+        use Libraries.Containers.Array
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                Array<TextStyle> styles = field:GetTextStylesAtIndex(2)
+                Add(field)
+            end
+        end
+    */
     action GetTextStylesAtIndex(integer index) returns Array<TextStyle>
         Array<TextStyle> styles
         integer i = 0
@@ -2103,6 +2873,42 @@ TextChangeEvent changeEvent
         return styles
     end
 
+    /*
+        This action removes all of the text styles from the field. If the field is
+        not about to be laid out again, their highlights are removed and the text
+        goes back to its normal colors right away.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Layouts.ManualLayout
+        use Libraries.Interface.Controls.TextField
+        use Libraries.Interface.Controls.TextStyles.TextStyle
+        use Libraries.Game.Graphics.Color
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                ManualLayout layout
+                SetLayout(layout)
+
+                TextField field
+                field:SetPixelWidth(200)
+                field:SetText("Hello, world")
+
+                Color color
+                TextStyle style
+                style:SetIndex(0)
+                style:SetSize(5)
+                style:SetColor(color:Red())
+                field:AddTextStyle("greeting", style)
+                field:EmptyTextStyles()
+                Add(field)
+            end
+        end
+    */
     action EmptyTextStyles
         textStyles:Empty()
         styleTable:Empty()

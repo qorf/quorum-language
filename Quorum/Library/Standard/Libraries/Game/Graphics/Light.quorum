@@ -18,7 +18,7 @@ class Light
     Color color
     Environment environment = undefined
     Array<CascadeShadowData> shadowData
-    // Whether the light casts shadows (Shadow plan S4).
+    // Whether the light casts shadows.
     boolean castsShadows = true
     
     /*
@@ -62,7 +62,7 @@ is added to an environment, so users should never need to use this action direct
     end
 
     /*
-    This action sets whether the light casts shadows (Shadow plan S4). A
+    This action sets whether the light casts shadows. A
     light that doesn't still lights the scene, but nothing blocks it: it
     has no shadow map and draws nothing into one, which saves GPU time and
     memory. Lights cast shadows by default.
@@ -99,7 +99,7 @@ is added to an environment, so users should never need to use this action direct
     end
 
     /*
-    This action returns whether the light casts shadows (Shadow plan S4).
+    This action returns whether the light casts shadows.
     See SetCastsShadows.
 
     Attribute: Returns True if the light casts shadows.

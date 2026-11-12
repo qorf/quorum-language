@@ -7,8 +7,8 @@ use Libraries.Compute.Matrix4
 
 /*
 A VulkanInstanceBlock holds the GPU instance data for many copies of one
-mesh, packed once in the same layout a VulkanDrawQueue3D writes (Dense
-grass plan DG2). The 3D painter keeps one per mesh of a model with copies,
+mesh, packed once in the same layout a VulkanDrawQueue3D writes. The 3D painter keeps one per mesh
+of a model with copies,
 such as a foliage cell, and copies the whole block into a draw queue each
 frame in one move (VulkanDrawQueue3D:AddInstanceBlock), instead of working
 out and writing every copy again. It is packed again only when the copies,

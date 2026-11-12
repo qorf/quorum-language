@@ -33,17 +33,13 @@ use Libraries.Interface.Layouts.ManualLayout
     use Libraries.Interface.Controls.Checkbox
     use Libraries.Interface.Forms.FormBehavior
     
-    class Main 
-        action Main 
-            Form form
-            Page page = form:GetMainPage()
-            
-            Checkbox button = page:AddCheckbox("checkbox")
-            button:SetToggleState(true)
-            
-            form:Display()
-        end
-    end
+    Form form
+    Page page = form:GetMainPage()
+
+    Checkbox button = page:AddCheckbox("checkbox")
+    button:SetToggleState(true)
+
+    form:Display()
 */
 class Checkbox is ToggleButton
 
@@ -107,19 +103,15 @@ class Checkbox is ToggleButton
         use Libraries.Interface.Forms.Page
         use Libraries.Interface.Controls.Checkbox
         
-        class Main 
-            action Main 
-                Form form
-                Page page = form:GetMainPage()
-    
-                page:AddCheckbox("on")
-                Checkbox value = page:AddCheckbox("off")
-    
-                value:SetToggleState(true)
-                
-                form:Display()
-            end
-        end
+        Form form
+        Page page = form:GetMainPage()
+
+        page:AddCheckbox("on")
+        Checkbox value = page:AddCheckbox("off")
+
+        value:SetToggleState(true)
+
+        form:Display()
     */
     action SetToggleState(boolean toggleState)
         /*
@@ -152,7 +144,7 @@ class Checkbox is ToggleButton
                 buttonIcon:SetBackgroundColor(boxColor)
                 buttonIcon:SetBorderColor(boxBorderColor)
             end
-            // A focused box keeps its accent edge (CD). There's no focus
+            // A focused box keeps its accent edge. There's no focus
             // before the game exists, such as while a program is built.
             GameStateManager focusState
             if focusState:GetGame() not= undefined and IsFocused()
@@ -328,7 +320,7 @@ content:SetCheckColor(GetSelectionColor())
         SetBorderColor(transparent)
             // No outline around the box and label at all, even while
             // focused: the box's edge and the line under the label show
-            // focus (CD). The focus border color stays, since they use it.
+            // focus. The focus border color stays, since they use it.
             SetBorderStyle(properties:NONE)
             
         end
@@ -350,14 +342,23 @@ content:SetCheckColor(buttonIcon:GetAccentColor())
 
     end
     
+    /*
+        This action recalculates the size and position of the checkbox and its
+        parts, using the Resize action of ToggleButton.
+    */
     action Resize
         // adjust box be slightly lower to be more in line with cap height
         //buttonIcon:SetTopMargin(GetFontSize()*0.18)
         parent:ToggleButton:Resize()
     end
 
-    // H3: the theme's hover band for this choice (its mouse-over color), or
-    // clear when the theme has none.
+    /*
+        This action returns the color of the band drawn behind the whole choice
+        while the mouse is over it. It is the mouse-over color from the interface
+        options for this checkbox's key, or a clear color when there is none.
+
+        Attribute: Returns The mouse-over color from the options, or a clear color.
+    */
     private action GetStyleMouseOverColor returns ColorGroup
         GameStateManager styleState
         InterfaceOptions options = styleState:GetInterfaceOptions()
@@ -372,8 +373,11 @@ content:SetCheckColor(buttonIcon:GetAccentColor())
         return clear
     end
 
-    // H3: a firmer box or circle edge under the mouse, unless it shows
-    // focus or a selection.
+    /*
+        This action is called when the mouse moves over the checkbox. Along with
+        the band behind the choice, the box's edge turns the mouse-over border
+        color, unless the checkbox has the focus or is checked.
+    */
     action BeginMouseOver
         parent:Control:BeginMouseOver()
         if not IsFocused() and not GetToggleState() and GetMouseOverBorderColor() not= undefined
@@ -382,6 +386,11 @@ content:SetCheckColor(buttonIcon:GetAccentColor())
         end
     end
 
+    /*
+        This action is called when the mouse leaves the checkbox. The box's edge
+        goes back to its normal border color, unless the checkbox has the focus
+        or is checked.
+    */
     action EndMouseOver
         parent:Control:EndMouseOver()
         // Back to its own edge.

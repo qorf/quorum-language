@@ -21,8 +21,8 @@ import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 /*
-Records the query and debug label commands with LWJGL on the desktop
-(Graphics timing plan T1). Labels need the instance extension
+Records the query and debug label commands with LWJGL on the desktop.
+Labels need the instance extension
 VK_EXT_debug_utils; without it they are left out, so a program can always
 ask for them.
 */

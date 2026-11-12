@@ -756,7 +756,7 @@ class TerrainData
     /*
     This action gives the weights of layers a terrain doesn't have to its
     first layer, over a rectangle of samples, such as after auto paint,
-    which paints four layers, on a terrain with fewer materials (step 10).
+    which paints four layers, on a terrain with fewer materials.
 
     Attribute: Parameter layerCount How many layers the terrain has, from 1 to 4.
     Attribute: Parameter minimumX The rectangle's smallest sample along x.
@@ -807,7 +807,7 @@ class TerrainData
     This action sets every sample's splat weights back to the default, all
     the first layer, and marks every region unpainted, so the next save
     deletes their splat images. It is for a terrain that no longer has any
-    materials (step 9).
+    materials.
     */
     action ClearSplat
         integer allFirst = PackSplat(1, 0, 0, 0)
@@ -1664,10 +1664,10 @@ class TerrainData
         PixelMap image = region:GetHeightImage()
         image:Save(GetFileInFolder(folder, GetRegionFileName(region:GetLocationX(), region:GetLocationZ())))
         // A region that was never painted saves no splat image: loading
-        // gives it the default weights anyway (Quorum Studio plan, step 2).
+        // gives it the default weights anyway.
         File splatFile = GetFileInFolder(folder, GetSplatFileName(region:GetLocationX(), region:GetLocationZ()))
         // A region whose painting was cleared, such as when a terrain's last
-        // material was removed (step 9), still has its old image. Saving
+        // material was removed, still has its old image. Saving
         // never deletes files, so the cleared weights are written over it,
         // and loading it gives the default weights.
         if region:IsSplatPainted() or splatFile:Exists()

@@ -95,7 +95,7 @@ public class PixelMap {
             int height = (int) nativeData[2];
             ByteBuffer convertedBuffer = ConvertToRGBA8888(pixelPointer, (int)nativeData[3], width, height, (byte) 255);
             // The converted pixels live in Java's memory. The native ones
-            // aren't used again, so free them now (Item 34).
+            // aren't used again, so free them now.
             Free(nativeData[0]);
             LoadFromByteBuffer(convertedBuffer, width, height, FORMAT_RGBA8888);
             return;
@@ -277,7 +277,7 @@ public class PixelMap {
         // pixel map (basePointer is -1), so its pixels are read here, as
         // the native code would give them: red, green, blue and alpha, a
         // byte each, red highest. Reading it natively crashed (found by the
-        // sky light, Lighting plan L5, 2026-11-06).
+        // sky light).
         if (basePointer == -1)
         {
             if (x < 0 || y < 0 || x >= width || y >= height)

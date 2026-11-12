@@ -9,6 +9,32 @@ use Libraries.Interface.Behaviors.Controls.OptionDialogCancelBehavior
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+    The OptionDialog class is a small modal Dialog that asks the user a yes or no
+    question. It shows one line of text, which is "Are you sure?" unless changed
+    with SetLabelTitle, and two buttons, Yes and No. Pressing No closes the
+    dialog. The Behavior given with SetBehavior runs when the user presses Yes,
+    or presses Enter, so it can do whatever the user agreed to. Because the
+    dialog is modal, the rest of the program ignores input until it closes.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.OptionDialog
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            OptionDialog dialog
+            dialog:SetLabelTitle("Quit without saving?")
+            dialog:Show()
+        end
+    end
+*/
 class OptionDialog is Dialog
     Label lineLabel
     boolean initialized = false
@@ -29,29 +55,129 @@ class OptionDialog is Dialog
         Setup()
     end
 
+    /*
+        This action returns the question shown in the dialog.
+
+        Attribute: Returns The text of the question.
+    */
     action GetLabelTitle returns text
         return lineLabel:GetText()
     end
 
+    /*
+        This action sets the question shown in the dialog. The dialog's name, which
+        is shown in its top bar and read by screen readers, becomes the question
+        followed by the word Dialog.
+
+        Attribute: Parameter title The question to show.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.OptionDialog
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                OptionDialog dialog
+                dialog:SetLabelTitle("Delete this file?")
+                dialog:Show()
+            end
+        end
+    */
     action SetLabelTitle(text title)
         SetName(title + " Dialog")
         lineLabel:SetText(title)
     end
 
+    /*
+        This action returns the Behavior that runs when the user presses No. Unless
+        it was changed with SetCancelBehavior, this is a Behavior that closes the
+        dialog.
+
+        Attribute: Returns The Behavior of the No button.
+    */
     action GetCancelBehavior returns Behavior
         return cancelBehavior
     end
 
+    /*
+        This action sets the Behavior that runs when the user presses No, in place of
+        the default one that closes the dialog. A new Behavior should close the
+        dialog itself if the dialog is meant to go away.
+
+        Attribute: Parameter behavior The Behavior to run when No is pressed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Behaviors.Behavior
+        use Libraries.Interface.Controls.OptionDialog
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                OptionDialog dialog
+                dialog:SetLabelTitle("Save your changes?")
+
+                // In a real program, this would be a subclass of Behavior whose
+                // Run action closes the dialog and throws the changes away.
+                Behavior discard
+                dialog:SetCancelBehavior(discard)
+                dialog:Show()
+            end
+        end
+    */
     action SetCancelBehavior(Behavior behavior)
         cancelBehavior = behavior
         cancel:SetBehavior(behavior)
     end
 
+    /*
+        This action sets the Behavior that runs when the user presses Yes or presses
+        Enter. It is the work the question asks about, such as deleting a file. The
+        Behavior should close the dialog when it is done, since pressing Yes does not
+        close it on its own.
+
+        Attribute: Parameter behavior The Behavior to run when Yes is pressed.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Behaviors.Behavior
+        use Libraries.Interface.Controls.OptionDialog
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                OptionDialog dialog
+                dialog:SetLabelTitle("Delete this file?")
+
+                // In a real program, this would be a subclass of Behavior whose
+                // Run action deletes the file and closes the dialog.
+                Behavior deleteFile
+                dialog:SetBehavior(deleteFile)
+                dialog:Show()
+            end
+        end
+    */
     action SetBehavior(Behavior behavior)
         parent:Dialog:SetBehavior(behavior)
         ok:SetBehavior(behavior)
     end
 
+    /*
+        This action builds the dialog when it is created. It sets its width, places
+        the question, the No button and the Yes button in a panel, gives the No button
+        the Behavior that closes the dialog, and sets the order the keyboard moves the
+        focus through them.
+    */
     private action Setup
         initialized = true
         SetPixelWidth(400)
@@ -117,6 +243,10 @@ class OptionDialog is Dialog
         Add(panel)
     end
 
+    /*
+        This action is called when the dialog is shown. It gives the focus to the Yes
+        button, so the user can answer right away with the keyboard.
+    */
     action OnShow
         ok:Focus()
     end

@@ -9,7 +9,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
 
 /*
 BloomDownShaderMappingVulkan describes the pipeline for one step down the
-bloom chain (Lighting plan L3): descriptor set 0 holds the source image (binding 0), each a
+bloom chain: descriptor set 0 holds the source image (binding 0), each a
 combined sampler; the push constants are 24 bytes: the source's texel size, the threshold, the knee, whether it is the first step, and a spare. It writes its image as it is
 (no blending), with a dynamic viewport and scissor. The Vulkan 3D painter
 makes its descriptor sets with the same layout.

@@ -33,7 +33,7 @@ class ReportLocationBehavior is Behavior
             if terrain = undefined
                 highlight:NotifyAccessibility("Terrain")
             else
-                // The same as the focus and a key's release (Round 2).
+                // The same as the focus and a key's release.
                 highlight:NotifyAccessibility(terrain:DescribeCursor())
             end
         elseif event:GetItem() is EditorItem3D

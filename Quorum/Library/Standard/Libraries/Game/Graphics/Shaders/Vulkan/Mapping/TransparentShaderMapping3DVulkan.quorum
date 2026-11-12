@@ -7,7 +7,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanPipelineInfoCreator
 
 /*
 TransparentShaderMapping3DVulkan describes the pipeline for see-through
-models (Lighting plan L6): a forward program (library item 39), drawn after
+models: a forward program, drawn after
 the deferred lighting, over the lit image, with the default 3D vertex data,
 the G-buffer, the lights, the sky and the sky light (sets 0 to 5, see
 VulkanPipelineInfoCreator:AddForwardInfo3D). It blends by alpha, with no

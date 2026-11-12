@@ -61,7 +61,7 @@ class DefaultShadowGeometryShaderVulkan is Shader
 			uint lightIndex = pushConstants.lightIndex;
 
 			// A point light has one view per face, its first cascade's, as
-			// far as its culling range (Shadow plan S1).
+			// far as its culling range.
 			if (isPoint == 1u && gl_InvocationID > 0)
 				return;
 			
@@ -79,7 +79,7 @@ class DefaultShadowGeometryShaderVulkan is Shader
 			for (int i = 0; i < mapSize; i++)
 			{
 				// Point lights have six layers per cascade, one per face.
-				// Directional lights have one per cascade (Item 35).
+				// Directional lights have one per cascade.
 				gl_Layer = int(gl_InvocationID * (1 + isPoint * 5) + i);
 			
 				// This geometry shader operates on triangles -- act once on each vertex of the incoming triangle.

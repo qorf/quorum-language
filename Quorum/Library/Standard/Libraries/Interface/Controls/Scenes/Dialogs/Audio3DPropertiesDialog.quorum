@@ -61,7 +61,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(basicPropertiesLabel)
 
         FlowLayout nameLayout
@@ -200,7 +200,7 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionContainer:Add(positionFieldContainer)
         panel:Add(positionContainer)
 
-        // Volume and pitch are sliders with number fields (Slider plan).
+        // Volume and pitch are sliders with number fields.
         // Moving one writes the number in its field, which this section
         // hears as typing.
         volumeField = AddSlider(panel, focusArray, "Volume:", "Volume", "How loud the sound is, from 0 for silent to 1 for full", 0, 1, 0.01, 0.1)

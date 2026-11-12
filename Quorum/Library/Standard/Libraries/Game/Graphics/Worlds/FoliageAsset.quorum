@@ -7,7 +7,7 @@ use Libraries.Data.Formats.JavaScriptObjectNotation
 
 /*
 A FoliageAsset is one kind of plant or object that can be scattered over a
-terrain, such as a pine, a rock or a tuft of grass (Terrain plan F1). It
+terrain, such as a pine, a rock or a tuft of grass. It
 names the model to draw, or a picture for a flat card, and says how copies of
 it are placed: how many per square unit, how much their size, turn and shade
 vary, and on what slopes they grow. A FoliageList holds the assets a terrain
@@ -61,7 +61,7 @@ class FoliageAsset
     // How far from the camera copies are drawn, in world units.
     number drawDistance = 200
 
-    // Levels of detail (Foliage plan F6): up to MAXIMUM_LEVELS more meshes,
+    // Levels of detail: up to MAXIMUM_LEVELS more meshes,
     // numbered from 1, each a model or a card picture (relative to the
     // foliage list's file, "" when unused) and the distance from the camera
     // it is used from. Level 0 is the asset's own mesh. Index 0 of each
@@ -71,19 +71,19 @@ class FoliageAsset
     Number32BitArray levelDistances
     public constant integer MAXIMUM_LEVELS = 3
 
-    // The wind (Foliage plan F6): how far a copy's points move sideways per
+    // The wind: how far a copy's points move sideways per
     // unit of height above where it stands, and the wind's direction about
     // the up axis, in degrees from +x toward +z.
     number wind = 0
     number windDirection = 0
 
-    // Shadows by level of detail (Dense grass plan DG3): the farthest level
+    // Shadows by level of detail: the farthest level
     // that casts shadows (levels past it cast none), and the level whose
     // mesh throws the shadow for nearer levels (0 for each level's own).
     integer lastShadowLevel = 3
     integer shadowLevel = 0
 
-    // Placement (Dense grass plan DG4), worked out for each copy when its
+    // Placement, worked out for each copy when its
     // cell is built, from where it stands, so painted copies follow a
     // change: whether copies lean with the ground's slope; a fixed lean and
     // a random lean of up to so many degrees, in a random direction; a
@@ -99,8 +99,8 @@ class FoliageAsset
     number tintBlue = 1
     number randomHue = 0
 
-    // How far, in world units, a level of detail fades into the next
-    // (Dense grass plan DG6): over this distance before the next level's
+    // How far, in world units, a level of detail fades into the next:
+    // over this distance before the next level's
     // start, a growing share of the copies switch, so a cell doesn't change
     // all at once. 0 switches at once.
     number fadeMargin = 0
@@ -414,7 +414,7 @@ class FoliageAsset
     end
 
     /*
-    This action makes a level of detail a model (Foliage plan F6), used from
+    This action makes a level of detail a model, used from
     its distance on instead of the asset's own mesh.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
@@ -438,7 +438,7 @@ class FoliageAsset
     end
 
     /*
-    This action makes a level of detail a card (Foliage plan F6): crossed
+    This action makes a level of detail a card: crossed
     upright pictures, as many planes as the asset's cards have.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
@@ -452,7 +452,7 @@ class FoliageAsset
 
     /*
     This action sets the distance from the camera a level of detail is used
-    from (Foliage plan F6).
+    from.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
     Attribute: Parameter distance The distance, in world units.
@@ -463,7 +463,7 @@ class FoliageAsset
     end
 
     /*
-    This action leaves a level of detail unused (Foliage plan F6).
+    This action leaves a level of detail unused.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
     */
@@ -476,7 +476,7 @@ class FoliageAsset
 
     /*
     This action returns true if a level of detail is used: it has a model
-    or a card picture (Foliage plan F6). Level 0, the asset's own mesh, is
+    or a card picture. Level 0, the asset's own mesh, is
     always used.
 
     Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
@@ -493,8 +493,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns true if a level of detail is a card (Foliage plan
-    F6). Level 0 is the asset's own mesh.
+    This action returns true if a level of detail is a card. Level 0 is the asset's own mesh.
 
     Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
     Attribute: Returns True for a card.
@@ -509,7 +508,7 @@ class FoliageAsset
 
     /*
     This action returns a level of detail's model or card picture, relative
-    to the foliage list's file (Foliage plan F6). Level 0 gives the asset's
+    to the foliage list's file. Level 0 gives the asset's
     own model or card picture.
 
     Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
@@ -530,7 +529,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns a level of detail's model path (Foliage plan F6).
+    This action returns a level of detail's model path.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
     Attribute: Returns The path, or "" if the level isn't a model.
@@ -541,7 +540,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns a level of detail's card picture (Foliage plan F6).
+    This action returns a level of detail's card picture.
 
     Attribute: Parameter level The level, from 1 to MAXIMUM_LEVELS.
     Attribute: Returns The path, or "" if the level isn't a card.
@@ -553,7 +552,7 @@ class FoliageAsset
 
     /*
     This action returns the distance from the camera a level of detail is
-    used from (Foliage plan F6). Level 0 is used from 0.
+    used from. Level 0 is used from 0.
 
     Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
     Attribute: Returns The distance, in world units.
@@ -568,7 +567,7 @@ class FoliageAsset
 
     /*
     This action returns the level of detail to draw at a distance from the
-    camera (Foliage plan F6): the used level with the greatest distance
+    camera: the used level with the greatest distance
     that is no farther than it, or 0 for the asset's own mesh.
 
     Attribute: Parameter distance The distance from the camera, in world units.
@@ -601,7 +600,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns how much copies sway in the wind (Foliage plan F6).
+    This action returns how much copies sway in the wind.
 
     Attribute: Returns How far a point moves sideways per unit of height above where the copy stands, 0 for none.
     */
@@ -610,7 +609,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets how much copies sway in the wind (Foliage plan F6).
+    This action sets how much copies sway in the wind.
     The terrain's cells give it to the asset's models' materials when they
     are built, so a terrain shows a change after its FoliageChanged. The
     materials belong to the model file or card picture, so other models
@@ -633,7 +632,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns the wind's direction (Foliage plan F6).
+    This action returns the wind's direction.
 
     Attribute: Returns Degrees about the up axis, from +x toward +z.
     */
@@ -642,7 +641,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets the wind's direction (Foliage plan F6).
+    This action sets the wind's direction.
 
     Attribute: Parameter degrees Degrees about the up axis, from +x toward +z.
     */
@@ -651,8 +650,8 @@ class FoliageAsset
     end
 
     /*
-    This action returns the farthest level of detail that casts shadows
-    (Dense grass plan DG3). Levels past it cast none, which saves drawing
+    This action returns the farthest level of detail that casts shadows.
+Levels past it cast none, which saves drawing
     far copies into the shadows.
 
     Attribute: Returns The level, from 0 to MAXIMUM_LEVELS; MAXIMUM_LEVELS (the default) lets every level cast.
@@ -662,8 +661,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets the farthest level of detail that casts shadows (Dense
-    grass plan DG3). It only matters if the asset casts shadows.
+    This action sets the farthest level of detail that casts shadows. It only matters if the asset casts shadows.
 
     Attribute: Parameter level The level, from 0 to MAXIMUM_LEVELS.
 
@@ -685,7 +683,7 @@ class FoliageAsset
 
     /*
     This action returns the level of detail whose mesh throws the shadow
-    for nearer levels (Dense grass plan DG3), or 0 for each level's own.
+    for nearer levels, or 0 for each level's own.
 
     Attribute: Returns The level, from 0 to MAXIMUM_LEVELS.
     */
@@ -695,7 +693,7 @@ class FoliageAsset
 
     /*
     This action sets the level of detail whose mesh throws the shadow for
-    nearer levels (Dense grass plan DG3), a "shadow stand-in": a detailed
+    nearer levels, a "shadow stand-in": a detailed
     tree near the camera is drawn without its own shadow, and a simpler
     level is drawn only into the shadows in its place. Levels from this one
     on throw their own shadows. 0 lets every level throw its own.
@@ -719,8 +717,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns whether copies lean with the ground's slope (Dense
-    grass plan DG4).
+    This action returns whether copies lean with the ground's slope.
 
     Attribute: Returns True if they lean with the slope.
     */
@@ -729,8 +726,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets whether copies lean with the ground's slope (Dense
-    grass plan DG4), standing at right angles to it, as grass and rocks
+    This action sets whether copies lean with the ground's slope, standing at right angles to it, as grass and rocks
     often do; trees usually stand upright.
 
     Attribute: Parameter value True to lean with the slope.
@@ -740,8 +736,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns how far every copy leans, in degrees (Dense grass
-    plan DG4).
+    This action returns how far every copy leans, in degrees.
 
     Attribute: Returns The lean, in degrees from upright.
     */
@@ -751,7 +746,7 @@ class FoliageAsset
 
     /*
     This action sets how far every copy leans, in degrees from upright, in
-    a direction chosen for each copy (Dense grass plan DG4).
+    a direction chosen for each copy.
 
     Attribute: Parameter degrees The lean, from 0 to 90.
     */
@@ -761,7 +756,7 @@ class FoliageAsset
 
     /*
     This action returns how much more each copy may lean, at random, in
-    degrees (Dense grass plan DG4).
+    degrees.
 
     Attribute: Returns The most extra lean, in degrees.
     */
@@ -771,7 +766,7 @@ class FoliageAsset
 
     /*
     This action sets how much more each copy may lean, at random, in
-    degrees, on top of the fixed lean (Dense grass plan DG4), so grass and
+    degrees, on top of the fixed lean, so grass and
     reeds don't all stand straight.
 
     Attribute: Parameter degrees The most extra lean, from 0 to 90.
@@ -790,7 +785,7 @@ class FoliageAsset
 
     /*
     This action returns the turn every copy gets about the up axis, in
-    degrees, added to its random turn (Dense grass plan DG4).
+    degrees, added to its random turn.
 
     Attribute: Returns The turn, in degrees.
     */
@@ -800,7 +795,7 @@ class FoliageAsset
 
     /*
     This action sets a turn every copy gets about the up axis, in degrees,
-    added to its random turn (Dense grass plan DG4), such as to face a
+    added to its random turn, such as to face a
     model's front one way when random turn is off.
 
     Attribute: Parameter degrees The turn, in degrees.
@@ -810,8 +805,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns the red part of the color copies are tinted (Dense
-    grass plan DG4).
+    This action returns the red part of the color copies are tinted.
 
     Attribute: Returns The red part, from 0 to 1.
     */
@@ -820,8 +814,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns the green part of the color copies are tinted
-    (Dense grass plan DG4).
+    This action returns the green part of the color copies are tinted.
 
     Attribute: Returns The green part, from 0 to 1.
     */
@@ -830,8 +823,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns the blue part of the color copies are tinted (Dense
-    grass plan DG4).
+    This action returns the blue part of the color copies are tinted.
 
     Attribute: Returns The blue part, from 0 to 1.
     */
@@ -840,7 +832,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets the color copies are tinted (Dense grass plan DG4): it
+    This action sets the color copies are tinted: it
     replaces the model's color, which its textures are multiplied by, and
     each copy's shade and hue vary it. White, the default, leaves the
     model's own color.
@@ -874,7 +866,7 @@ class FoliageAsset
 
     /*
     This action returns how far each copy's hue may turn either way, in
-    degrees (Dense grass plan DG4).
+    degrees.
 
     Attribute: Returns The most turn, in degrees.
     */
@@ -884,7 +876,7 @@ class FoliageAsset
 
     /*
     This action sets how far each copy's hue may turn either way, in
-    degrees (Dense grass plan DG4), so a field of grass has greener and
+    degrees, so a field of grass has greener and
     yellower tufts. It turns the tint's hue, so it shows only on a colored
     tint, or a model whose textures are colored and whose tint is set.
 
@@ -895,8 +887,7 @@ class FoliageAsset
     end
 
     /*
-    This action returns how far a level of detail fades into the next
-    (Dense grass plan DG6).
+    This action returns how far a level of detail fades into the next.
 
     Attribute: Returns The distance, in world units; 0 switches at once.
     */
@@ -905,8 +896,7 @@ class FoliageAsset
     end
 
     /*
-    This action sets how far a level of detail fades into the next (Dense
-    grass plan DG6): over this distance before the next level's start, a
+    This action sets how far a level of detail fades into the next: over this distance before the next level's start, a
     growing share of the copies switch, chosen by where they stand, so a
     cell changes a little at a time instead of all at once.
 
@@ -996,7 +986,7 @@ class FoliageAsset
         json:Add("Density", density)
         json:Add("Casts Shadows", castsShadows)
         json:Add("Draw Distance", drawDistance)
-        // Levels of detail and wind (Foliage plan F6), written only when
+        // Levels of detail and wind, written only when
         // used, so older files and readers are unaffected.
         integer level = 1
         repeat while level <= MAXIMUM_LEVELS
@@ -1017,8 +1007,7 @@ class FoliageAsset
         if windDirection not= 0
             json:Add("Wind Direction", windDirection)
         end
-        // Shadow levels, placement and fading (Dense grass plan DG3, DG4,
-        // DG6), written only when not the defaults, so older files and
+        // Shadow levels, placement and fading, written only when not the defaults, so older files and
         // readers are unaffected.
         if lastShadowLevel not= MAXIMUM_LEVELS
             json:Add("Last Shadow Level", lastShadowLevel)
@@ -1101,7 +1090,7 @@ class FoliageAsset
         if HasNumber(json, "Draw Distance")
             drawDistance = ReadNumber(json, "Draw Distance")
         end
-        // Levels of detail and wind (Foliage plan F6); files without them
+        // Levels of detail and wind; files without them
         // have none.
         integer level = 1
         repeat while level <= MAXIMUM_LEVELS
@@ -1125,7 +1114,7 @@ class FoliageAsset
         if HasNumber(json, "Wind Direction")
             windDirection = ReadNumber(json, "Wind Direction")
         end
-        // Dense grass plan DG3, DG4 and DG6; files without them keep the
+        // Shadow levels, placement and fading; files without them keep the
         // defaults.
         if HasNumber(json, "Last Shadow Level")
             lastShadowLevel = cast(integer, ReadNumber(json, "Last Shadow Level"))

@@ -4,8 +4,8 @@ use Libraries.Containers.Array
 use Libraries.Game.Graphics.Vulkan.VulkanQueryPool
 
 /*
-A GraphicsTimerSlot is a GraphicsTimer's record of one frame in flight
-(Graphics timing plan T2): its pool of timestamps and, for each stamp
+A GraphicsTimerSlot is a GraphicsTimer's record of one frame in flight:
+its pool of timestamps and, for each stamp
 written, the phase it belongs to and whether it starts or ends it. The
 timer has one slot per frame the GPU may be working on, so reading a frame's
 times never waits for another. Programs don't use it directly.

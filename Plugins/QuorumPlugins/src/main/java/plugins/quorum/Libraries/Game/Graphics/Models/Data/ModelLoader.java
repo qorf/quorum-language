@@ -47,13 +47,12 @@ public class ModelLoader {
         boolean hasAnimations = aiSceneCheck.mNumAnimations() > 0;
         boolean vulkanLoading = quorumLoader.IsUsingLeftHandedCoordinates();
         // Lights are read from this import, where the node tree is intact;
-        // aiProcess_PreTransformVertices drops them below (Lighting plan L8).
+        // aiProcess_PreTransformVertices drops them below.
         Array_ fileLights = new Array();
         // glTF stores its color numbers (factors, vertex colors, light
         // colors) as amounts of light; Quorum keeps every color as a
         // picture stores it (sRGB) and the shaders turn it into light, so
-        // glTF's are turned into picture colors here (Linear lighting plan
-        // LL4). Other formats' colors are already picture colors.
+        // glTF's are turned into picture colors here. Other formats' colors are already picture colors.
         boolean linearColors = IsGLTF(path);
         ProcessLights(aiSceneCheck, vulkanLoading, fileLights, linearColors);
         aiReleaseImport(aiSceneCheck);
@@ -83,7 +82,7 @@ public class ModelLoader {
         data.SetLights(fileLights);
         Array_ materials = data.GetMaterials();
         // Textures stored inside the file, as a .glb does, are written out
-        // once so they load like any texture (Lighting plan L4).
+        // once so they load like any texture.
         String[] embeddedPaths = ExtractEmbeddedTextures(aiScene, path);
         int numMaterials = aiScene.mNumMaterials();
         for (int i = 0; i < numMaterials; i++) {
@@ -472,8 +471,8 @@ public class ModelLoader {
     }
 
     /*
-    Reads the lights in a model file into ModelLightData objects (Lighting
-    plan L8). The scene must come from an import that keeps the node tree, as
+    Reads the lights in a model file into ModelLightData objects. The scene must come from an
+    import that keeps the node tree, as
     each light's position and direction are in its node's space: they are
     multiplied by the node's transforms up to the root, so they land in the
     same space as meshes flattened by aiProcess_PreTransformVertices. Under
@@ -483,8 +482,7 @@ public class ModelLoader {
     */
     /*
      * Returns true if the file is glTF (.gltf or .glb), whose color numbers
-     * are amounts of light rather than picture colors (Linear lighting plan
-     * LL4).
+     * are amounts of light rather than picture colors.
      */
     private static boolean IsGLTF(String path) {
         String lower = path.toLowerCase();
@@ -624,7 +622,7 @@ public class ModelLoader {
     /*
     Looks for the node with the given name below (and including) the given
     node, and returns its global transform as 16 numbers, row by row, or null
-    if there is no such node (Lighting plan L8). The node found is put in
+    if there is no such node. The node found is put in
     found[0].
     */
     private static double[] FindNodeTransform(AINode node, String name, double[] parentTransform, AINode[] found) {
@@ -650,7 +648,7 @@ public class ModelLoader {
 
     /*
     Reads a glTF light's range, which assimp puts in its node's metadata as
-    "PBR_LightRange", or returns 0 if there is none (Lighting plan L8).
+    "PBR_LightRange", or returns 0 if there is none.
     */
     private static double ReadLightRange(AINode node) {
         AIMetaData metadata = node.mMetadata();
@@ -686,7 +684,7 @@ public class ModelLoader {
         return 0;
     }
 
-    // An identity transform as 16 numbers, row by row (Lighting plan L8).
+    // An identity transform as 16 numbers, row by row.
     private static double[] IdentityArray() {
         return new double[] {
             1, 0, 0, 0,
@@ -696,7 +694,7 @@ public class ModelLoader {
         };
     }
 
-    // An assimp matrix as 16 numbers, row by row (Lighting plan L8).
+    // An assimp matrix as 16 numbers, row by row.
     private static double[] ToArray(AIMatrix4x4 m) {
         return new double[] {
             m.a1(), m.a2(), m.a3(), m.a4(),
@@ -706,7 +704,7 @@ public class ModelLoader {
         };
     }
 
-    // The product a times b of two 4 by 4 matrices, row by row (Lighting plan L8).
+    // The product a times b of two 4 by 4 matrices, row by row.
     private static double[] MultiplyArrays(double[] a, double[] b) {
         double[] result = new double[16];
         for (int row = 0; row < 4; row++) {
@@ -758,7 +756,7 @@ public class ModelLoader {
         mesh.SetNormals(normals);
         mesh.SetTangents(tangents);
         mesh.SetBitangents(bitangents);
-        // Vertex colors, when the file has them (Lighting plan L4).
+        // Vertex colors, when the file has them.
         AIColor4D.Buffer aiColors = aiMesh.mColors(0);
         if (aiColors != null && aiColors.remaining() > 0) {
             Number32BitArray_ colors = new Number32BitArray();
@@ -892,7 +890,7 @@ public class ModelLoader {
      * they are passed on as Assimp gives them: MeshVulkan flips v as it
      * builds the vertex buffer, giving v with 0 at the top, as the images
      * are stored. Flipping here too made every model file's textures upside
-     * down on Vulkan (found on the LightsPunctualLamp, 2026-11-10). For
+     * down on Vulkan (found on the LightsPunctualLamp). For
      * OpenGL, v is flipped here, as before.
      */
     private static Number32BitArray_ ProcessTextureCoordinates(AIMesh aiMesh, boolean vulkanLoading) {
@@ -991,11 +989,11 @@ public class ModelLoader {
         // The bitangent is turned around. With the left-handed flip,
         // Assimp's bitangent points along the file's own v, down the
         // picture (measured again after the v fix in
-        // ProcessTextureCoordinates, 2026-11-10), but normal maps
+        // ProcessTextureCoordinates), but normal maps
         // (glTF requires it, and most other exporters do the same) store +Y,
         // the green channel, as up the picture. Used as it was, every normal
         // map was lit upside down: glTF's NormalTangentTest looked like its
-        // "incorrect-flipped-y" picture (2026-11-10). This was measured on
+        // "incorrect-flipped-y" picture. This was measured on
         // the lamp, DamagedHelmet, BoomBox and NormalTangentTest, with file
         // tangents and with tangents Assimp works out.
         int i = 0;
@@ -1055,8 +1053,8 @@ public class ModelLoader {
                 texturePath = GetTexturePath(aiMaterial, aiTextureType_BASE_COLOR, texturesDir, embeddedPaths, stack);
             }
             if (texturePath.length() > 0) {
-                // The texture is the color. A glTF base color factor tints it
-                // (Lighting plan L4); other files' diffuse colors, often a
+                // The texture is the color. A glTF base color factor tints it;
+                // other files' diffuse colors, often a
                 // gray left by the exporter, don't, as before.
                 diffuse.Set(1.0, 1.0, 1.0, 1.0);
                 result = aiGetMaterialColor(aiMaterial, AI_MATKEY_BASE_COLOR, aiTextureType_NONE, 0, colour);
@@ -1072,7 +1070,7 @@ public class ModelLoader {
                     null, null, null, null, null);
             String metallicRoughnessPath = ResolveTexturePath(aiMetallicRoughnessPath.dataString(), texturesDir, embeddedPaths);
 
-            // Lighting plan L1 and L4.
+            // The glow and ambient occlusion maps, under either of their names.
             String emissiveMapPath = GetTexturePath(aiMaterial, aiTextureType_EMISSIVE, texturesDir, embeddedPaths, stack);
             if (emissiveMapPath.length() == 0) {
                 emissiveMapPath = GetTexturePath(aiMaterial, aiTextureType_EMISSION_COLOR, texturesDir, embeddedPaths, stack);
@@ -1126,8 +1124,7 @@ public class ModelLoader {
                 emissiveStrengthArr[0] = 1.0f;
             }
 
-            // How much light goes through the surface (Transmission plan T1,
-            // glTF's KHR_materials_transmission), and its texture.
+            // How much light goes through the surface (glTF's KHR_materials_transmission), and its texture.
             float[] transmissionArr = new float[]{0.0f};
             result = aiGetMaterialFloatArray(aiMaterial, AI_MATKEY_TRANSMISSION_FACTOR, aiTextureType_NONE, 0, transmissionArr, pMax);
             if (result != aiReturn_SUCCESS) {

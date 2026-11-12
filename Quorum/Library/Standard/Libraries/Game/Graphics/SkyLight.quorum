@@ -7,7 +7,7 @@ use Libraries.Compute.Math
 use Libraries.Compute.BitwiseOperations
 
 /*
-SkyLight is the light a Skybox gives a scene (Lighting plan L5): the soft
+SkyLight is the light a Skybox gives a scene: the soft
 light from every direction of the sky, and the sky seen in shiny surfaces.
 It is worked out once, on the computer's processor, from the sky's six
 pictures, when the sky is set or changes:
@@ -53,7 +53,7 @@ class SkyLight
     // surface facing that way receives, divided by pi.
     Number32BitArray irradiance
     // The same, worked out from the pictures' colors turned into amounts of
-    // light, for linear lighting (Linear lighting plan).
+    // light, for linear lighting.
     Number32BitArray linearIrradiance
 
     // The four reflection cubes, largest first.
@@ -185,8 +185,7 @@ class SkyLight
     end
 
     /*
-    This action returns the diffuse light for linear lighting (Linear
-    lighting plan): as GetIrradiance, but worked out from the sky pictures'
+    This action returns the diffuse light for linear lighting: as GetIrradiance, but worked out from the sky pictures'
     colors turned from how pictures store them (sRGB) into amounts of light.
 
     Attribute: Returns The 27 numbers.
@@ -547,7 +546,7 @@ class SkyLight
 
     /*
     This action turns one part of a color, as pictures store it (sRGB, 0 to
-    1), into an amount of light (Linear lighting plan).
+    1), into an amount of light.
 
     Attribute: Parameter value The color part, as stored.
     Attribute: Returns The amount of light, 0 to 1.

@@ -6,7 +6,7 @@ import quorum.Libraries.Containers.Number64BitArray_;
 import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 
 /*
-Query pools on iOS and Android (Graphics timing plan T7). Quorum's own Vulkan
+Query pools on iOS and Android. Quorum's own Vulkan
 layer in C (quorum-natives' src/vulkan) doesn't have queries yet, so pools
 aren't made here: Create returns false, and the graphics timer reports that
 timing isn't supported. To add them, quorum-natives needs functions that

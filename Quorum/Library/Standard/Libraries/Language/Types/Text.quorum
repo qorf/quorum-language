@@ -621,8 +621,7 @@ class Text is Object
         // Each delimiter is found with IndexOf and each piece is taken with
         // one GetSubtext, so the work grows with the text's length. The old
         // version joined text a character at a time, which grew with the
-        // square of each piece's length (Studio plan LexerAndSplit.md,
-        // Option A, 2026-11-06). The results are the same for one-character
+        // square of each piece's length. The results are the same for one-character
         // delimiters: empty pieces between delimiters are kept, and one
         // empty piece after a final delimiter is not added.
         Array<text> results

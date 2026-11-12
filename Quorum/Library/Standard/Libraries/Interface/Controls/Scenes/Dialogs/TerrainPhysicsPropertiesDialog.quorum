@@ -23,7 +23,7 @@ use Libraries.Interface.Selections.ButtonGroupSelection
     The TerrainPhysicsPropertiesDialog sets how a selected terrain behaves in
     a game: how things collide with it (every region, only near moving
     bodies, or not at all), its friction, and whether it streams its regions
-    around the camera, with a draw radius (step 13). They are saved in the
+    around the camera, with a draw radius. They are saved in the
     scene. The scene editor itself never collides with a terrain, and always
     loads every region.
 
@@ -60,7 +60,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         // How the ground collides in games, and its friction, in one card.
@@ -89,7 +89,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         // press together. Two things touching grip by the product of their
         // frictions (at most 10), so with a body of friction 1, about 0.05
         // is ice, 0.5 wet road, and 0.7 to 1 rubber on dry asphalt. It is a
-        // slider with a number field (Slider plan); moving it writes the
+        // slider with a number field; moving it writes the
         // number in the field, which this section hears as typing.
         SliderField frictionSlider = MakeSliderField("Friction:", "Friction", "How much the ground grips what slides on it: about 0.05 for ice, 0.5 for wet road, 1 for dry asphalt", 0, 2, 0.05, 0.25, FIELD_LABEL_WIDTH)
         frictionField = frictionSlider:GetField()
@@ -238,7 +238,7 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
     /*
         This action sets whether the terrain collides in games: every region,
         or not at all. The collision choices replaced the checkbox that used
-        it (step 13); TerrainCollisionBehavior still calls it.
+        it; TerrainCollisionBehavior still calls it.
 
         Attribute: Parameter enabled True for collision
     */

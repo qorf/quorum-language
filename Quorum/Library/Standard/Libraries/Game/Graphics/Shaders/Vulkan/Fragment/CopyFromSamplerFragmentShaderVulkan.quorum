@@ -4,7 +4,7 @@ use Libraries.Game.Graphics.Shaders.Shader
 
 /*
 CopyFromSamplerFragmentShaderVulkan copies the 3D painter's lit image to
-the screen. On the way, it tone maps it (Lighting plan L2): the lit image
+the screen. On the way, it tone maps it: the lit image
 can be brighter than white, and tone mapping fits it into the screen's
 range instead of clipping it. The exposure scales the light first. The
 painter sends both from the layer's EnvironmentVulkan as push constants.
@@ -13,13 +13,13 @@ The lit image is premultiplied: the lighting pass and the forward programs
 blend by alpha onto a cleared image, so its color is already times its
 alpha. The light is divided by the alpha before tone mapping.
 
-With bloom on (Lighting plan L3), the bloom image (binding 1) times its
+With bloom on, the bloom image (binding 1) times its
 strength is added to the light before the exposure and tone mapping. The
 color is written already multiplied by its alpha, and the pipeline blends
 it with one and one minus the alpha, which is the same as before; where
 there is sky, the glow is added over the sky as well.
 
-With linear lighting (Linear lighting plan), the lit image holds amounts
+With linear lighting, the lit image holds amounts
 of light. After tone mapping, each is turned back into a screen color
 (sRGB), the one place this happens. The sky, drawn before as a picture,
 is already a screen color and isn't changed.
@@ -45,7 +45,7 @@ layout (location = 0) out vec4 outputColor;
 
 // The sampled image to copy out to the color attachment
 layout (set = 0, binding = 0) uniform sampler2D u_sampler;
-// The bloom (Lighting plan L3), half the size; the lit image when bloom is
+// The bloom, half the size; the lit image when bloom is
 // off, unused then.
 layout (set = 0, binding = 1) uniform sampler2D u_bloom;
 
@@ -61,7 +61,7 @@ layout(push_constant) uniform ToneMapping {
 } toneMapping;
 
 // An amount of light, 0 to 1, as a screen color (sRGB): the inverse of
-// the lighting pass's linearFromPicture (Linear lighting plan).
+// the lighting pass's linearFromPicture.
 vec3 pictureFromLinear(vec3 light)
 {
 	vec3 c = clamp(light, 0.0, 1.0);

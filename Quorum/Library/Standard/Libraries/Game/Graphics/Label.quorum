@@ -81,7 +81,7 @@ class Label is Control
     // A box used to indicate focus, if this Label is made focusable.
     Control focusBox = undefined
 
-    // The focus bar beside a focused label (LC), in points.
+    // The focus bar beside a focused label, in points.
     constant number FOCUS_BAR_WIDTH = 3
     constant number FOCUS_BAR_GAP = 6
 
@@ -481,8 +481,8 @@ class Label is Control
         end
     */
     action SetColor(ColorGroup color)
-        // The glyphs are recolored here, so a new color needs no new glyphs
-        // (Studio plan TeamTabSpeed.md, 2026-11-06). Setting the font color
+        // The glyphs are recolored here, so a new color needs no new glyphs.
+        // Setting the font color
         // marks the properties as needing rendering, which would make every
         // glyph again on the next layout (each selection change in a list
         // did); the mark is put back as it was.
@@ -1106,7 +1106,7 @@ Control control
                 focusBox:SetBorderThickness(2)
             else
                 // Otherwise a bar in the focus color, in the margin left of
-                // the text (LC), so the text doesn't move.
+                // the text, so the text doesn't move.
                 focusBox:SetBackgroundColor(GetFocusColor())
                 focusBox:SetBorderThickness(0)
                 focusBox:SetCornerPixelRounding(0, 0, 0, 0)

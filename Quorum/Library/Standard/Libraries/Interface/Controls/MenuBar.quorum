@@ -22,6 +22,54 @@ use Libraries.Game.GameStateManager
 use Libraries.Containers.Iterator
 use Libraries.Interface.Views.ControlShaderView
 
+/*
+    The MenuBar class is the bar of menus that runs across the top of a window,
+    like the File, Edit and View menus in many programs. Each MenuItem added to the
+    bar is a menu title. Clicking a title, or moving to it with the keyboard, opens
+    its menu below the bar, and items added to that MenuItem appear in the menu.
+    Items can have submenus of their own, keyboard shortcuts, and behaviors that
+    run when they are chosen. By default the bar sits at the top of its container
+    and stretches across its full width.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.MenuBar
+    use Libraries.Interface.Controls.MenuItem
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            MenuBar bar
+
+            MenuItem file
+            file:SetName("File")
+            MenuItem open
+            open:SetName("Open")
+            MenuItem save
+            save:SetName("Save")
+            file:Add(open)
+            file:Add(save)
+
+            MenuItem edit
+            edit:SetName("Edit")
+            MenuItem copy
+            copy:SetName("Copy")
+            MenuItem paste
+            paste:SetName("Paste")
+            edit:Add(copy)
+            edit:Add(paste)
+
+            bar:Add(file)
+            bar:Add(edit)
+            Add(bar)
+        end
+    end
+*/
 class MenuBar is MenuRoot
     Layout defaultLayout = undefined
     LayoutProperties defaultLayoutProperties
@@ -44,10 +92,53 @@ class MenuBar is MenuRoot
         SetInterfaceOptionsKey("MenuBar")
     end
 
+    /*
+        This action tells accessibility tools, such as screen readers, that the bar
+        is the parent of the menus inside it, so they are announced as part of the
+        menu bar.
+
+        Attribute: Returns true, because a MenuBar contains its menus for accessibility.
+    */
     action IsAccessibleParent returns boolean
         return true
     end
 
+    /*
+        This action adds each MenuItem in the array to the bar as a menu title, in
+        order from left to right.
+
+        Attribute: Parameter menuHeaders The MenuItems to add to the bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Array
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem file
+                file:SetName("File")
+                MenuItem edit
+                edit:SetName("Edit")
+                MenuItem help
+                help:SetName("Help")
+
+                Array<MenuItem> menus
+                menus:Add(file)
+                menus:Add(edit)
+                menus:Add(help)
+
+                MenuBar bar
+                bar:Add(menus)
+                Add(bar)
+            end
+        end
+    */
     action Add(Array<MenuItem> menuHeaders)
         integer counter = 0
         repeat while counter < menuHeaders:GetSize()
@@ -57,12 +148,72 @@ class MenuBar is MenuRoot
         end
     end
 
+    /*
+        This action adds a MenuItem to the bar as a menu title, to the right of the
+        titles already there. The item and everything in its menu are connected to
+        this bar, so selecting and opening them works through it.
+
+        Attribute: Parameter item The MenuItem to add to the bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+
+                MenuBar bar
+                bar:Add(file)
+                Add(bar)
+            end
+        end
+    */
     action Add(MenuItem item)
         menus:Add(item)
         parent:Item2D:Add(item)
         item:SetMenuRoot(me)
     end
 
+    /*
+        This action closes every open menu on the bar, along with any submenus, and
+        stops the bar from being used, which clears its selection. The bar itself stays
+        on the screen.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem quit
+                quit:SetName("Quit")
+                file:Add(quit)
+                bar:Add(file)
+                Add(bar)
+
+                file:Open()
+                bar:Close()
+            end
+        end
+    */
     action Close
         integer counter = 0
         repeat while counter < menus:GetSize()
@@ -72,6 +223,15 @@ class MenuBar is MenuRoot
         SetSelectingState(false)
     end
 
+    /*
+        This action moves the selection left, as the left arrow key does. If nothing
+        is selected, the last menu on the bar is selected. If a menu title or an item
+        directly in its menu is selected, the menu to the left is selected, wrapping
+        around from the first menu to the last. If that menu was open, the new one
+        opens with its first item selected. Inside a submenu, the selection moves back
+        out to the item that opened it, and the submenu closes. The bar's keyboard
+        behaviors call this, so most users shouldn't need to.
+    */
     action MoveSelectionLeft
         // Do a copy so modifying it here doesn't have side effects on the
         // original selection (we need to preserve it for Select to use).
@@ -112,6 +272,16 @@ class MenuBar is MenuRoot
         end
     end
 
+    /*
+        This action moves the selection right, as the right arrow key does. If nothing
+        is selected, the first menu on the bar is selected. If a menu title is
+        selected, the menu to the right is selected, wrapping around from the last menu
+        to the first, and it opens if the old one was open. If an item with a submenu
+        is selected, the submenu opens and its first item is selected. If an item
+        without a submenu is selected, the selection moves on to the next menu along
+        the bar. The bar's keyboard behaviors call this, so most users shouldn't need
+        to.
+    */
     action MoveSelectionRight
         // Do a copy so modifying it here doesn't have side effects on the
         // original selection (we need to preserve it for Select to use).
@@ -174,6 +344,12 @@ class MenuBar is MenuRoot
         end
     end
 
+    /*
+        This action moves the selection down, as the down arrow key does. If a menu
+        title is selected, its menu opens and its first item is selected. Inside a
+        menu, the item below is selected, wrapping around from the bottom to the top.
+        The bar's keyboard behaviors call this, so most users shouldn't need to.
+    */
     action MoveSelectionDown
         MenuItem item = GetMenuItem(GetSelection():GetPath())
         if item not= undefined
@@ -181,6 +357,12 @@ class MenuBar is MenuRoot
         end
     end
 
+    /*
+        This action moves the selection up, as the up arrow key does. If a menu title
+        is selected, its menu opens and its first item is selected. Inside a menu, the
+        item above is selected, wrapping around from the top to the bottom. The bar's
+        keyboard behaviors call this, so most users shouldn't need to.
+    */
     action MoveSelectionUp
         MenuItem item = GetMenuItem(GetSelection():GetPath())
         if item not= undefined
@@ -214,10 +396,51 @@ class MenuBar is MenuRoot
         return true
     end
 
+    /*
+        This action returns how many menus are on the bar. It does not count the items
+        inside the menus.
+
+        Attribute: Returns The number of menus on the bar.
+    */
     action GetSize returns integer
         return menus:GetSize()
     end
 
+    /*
+        This action returns an Iterator that goes through the menus on the bar, from
+        left to right.
+
+        Attribute: Returns An Iterator over the menus on the bar.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Containers.Iterator
+        use Libraries.Interface.Controls.MenuBar
+        use Libraries.Interface.Controls.MenuItem
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                MenuBar bar
+                MenuItem file
+                file:SetName("File")
+                MenuItem edit
+                edit:SetName("Edit")
+                bar:Add(file)
+                bar:Add(edit)
+                Add(bar)
+
+                Iterator<MenuItem> iterator = bar:GetIterator()
+                repeat while iterator:HasNext()
+                    MenuItem menu = iterator:Next()
+                    output menu:GetName()
+                end
+            end
+        end
+    */
     action GetIterator returns Iterator<MenuItem>
         return menus:GetIterator()
     end

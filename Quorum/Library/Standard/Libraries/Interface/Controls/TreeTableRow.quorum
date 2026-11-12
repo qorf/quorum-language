@@ -2,6 +2,80 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 
+/*
+The TreeTableRow class is one row of a TreeTable. A row can hold other rows
+under it, which the TreeTable shows indented below it while the row is
+open. The row keeps track of its child rows, its parent row, the TreeTable
+it belongs to, whether it is open, and how deep it is in the hierarchy. A
+TreeTableRow holds no values of its own: a program usually makes its own
+row class that stores the row's information, and its column classes read
+that information in their SetCell action to fill in each cell.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+// In the file FileRow.quorum:
+use Libraries.Interface.Controls.TreeTableRow
+
+class FileRow is TreeTableRow
+    text fileName = ""
+
+    action SetFileName(text value)
+        fileName = value
+    end
+
+    action GetFileName returns text
+        return fileName
+    end
+end
+
+// In the file NameColumn.quorum:
+use Libraries.Interface.Controls.TreeTableColumn
+use Libraries.Interface.Controls.TreeTableCell
+use Libraries.Interface.Controls.TreeTableRow
+
+class NameColumn is TreeTableColumn
+    action CreateCell returns TreeTableCell
+        TreeTableCell cell
+        return cell
+    end
+
+    action SetCell(integer index, TreeTableRow row)
+        if row is FileRow
+            FileRow file = cast(FileRow, row)
+            GetCell(index):SetText(file:GetFileName())
+        end
+    end
+end
+
+// In the file Main.quorum:
+use Libraries.Interface.Controls.TreeTable
+use Libraries.Game.Game
+
+class Main is Game
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        TreeTable table
+        NameColumn names
+        table:Add(names)
+
+        FileRow folder
+        folder:SetFileName("Scripts")
+        FileRow script
+        script:SetFileName("Main.quorum")
+        folder:AddRow(script)
+        table:Add(folder)
+
+        table:SetPosition(50, 300)
+        Add(table)
+        table:ExpandRow(folder)
+    end
+end
+*/
 class TreeTableRow
     
     TreeTableRow parentRow = undefined
@@ -14,14 +88,31 @@ class TreeTableRow
     // Used for padding elements.
     integer treeDepth = 0
 
+    /*
+    This action returns true if this row has no child rows.
+
+    Attribute: Returns True if the row has no child rows, false otherwise.
+    */
     action IsEmpty returns boolean
         return children:IsEmpty()
     end
 
+    /*
+    This action returns how many child rows have been added directly to this
+    row. Rows under those children are not counted.
+
+    Attribute: Returns The number of child rows of this row.
+    */
     action GetSize returns integer
         return children:GetSize()
     end
 
+    /*
+    This action returns true if this row is open in its TreeTable, so its child
+    rows are shown below it.
+
+    Attribute: Returns True if the row is open, false if it is closed.
+    */
     action IsExpanded returns boolean
         return expanded
     end
@@ -36,10 +127,33 @@ class TreeTableRow
         expanded = expand
     end
 
+    /*
+    This action returns how deep this row is in the hierarchy. A top-level row
+    has a depth of 0, its children have a depth of 1, and so on. The first
+    column uses it to indent a row's cell.
+
+    Attribute: Returns The depth of this row, starting at 0 for a top-level row.
+    */
     action GetTreeDepth returns integer
         return treeDepth
     end
 
+    /*
+    This action adds a row as a child of this row, after its other children.
+    If this row is already in a TreeTable and is open, the TreeTable shows the
+    new row right away; otherwise it appears when this row is opened.
+
+    Attribute: Parameter row The row to add under this row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeTable
+    use Libraries.Interface.Controls.TreeTableRow
+    TreeTable table
+    TreeTableRow folder
+    TreeTableRow file
+    folder:AddRow(file)
+    table:Add(folder)
+    */
     action AddRow(TreeTableRow row)
         children:Add(row)
         row:SetParent(me)
@@ -74,10 +188,23 @@ class TreeTableRow
         end
     end
 
+    /*
+    This action returns the row this row was added to, or undefined if this is
+    a top-level row.
+
+    Attribute: Returns The parent row, or undefined.
+    */
     action GetParent returns TreeTableRow
         return parentRow
     end
 
+    /*
+    This action returns the array of rows added directly to this row. The
+    array is the row's own, not a copy. If it is changed, call the TreeTable's
+    Refresh action so the table shows the change.
+
+    Attribute: Returns The child rows of this row.
+    */
     action GetChildren returns Array<TreeTableRow>
         return children
     end
@@ -91,6 +218,12 @@ class TreeTableRow
         parentTable = parentTreeTable
     end
 
+    /*
+    This action returns the TreeTable this row belongs to, or undefined if it
+    hasn't been added to one.
+
+    Attribute: Returns The TreeTable holding this row, or undefined.
+    */
     action GetParentTreeTable returns TreeTable
         return parentTable
     end

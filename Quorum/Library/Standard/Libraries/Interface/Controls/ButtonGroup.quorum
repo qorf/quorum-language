@@ -13,6 +13,23 @@ use Libraries.Interface.Selections.ButtonGroupSelection
     generate a grouping.
 
     Attribute: Author William Allee, Andreas Stefik
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Forms.Grouping
+    use Libraries.Interface.Controls.RadioButton
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Grouping sizes = page:AddGrouping("Size")
+    RadioButton small = sizes:AddRadioButton("Small")
+    RadioButton large = sizes:AddRadioButton("Large")
+    large:SetToggleState(true)
+
+    form:Display()
 */
 class ButtonGroup is Control
     

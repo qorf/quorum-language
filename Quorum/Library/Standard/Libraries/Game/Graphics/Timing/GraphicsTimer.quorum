@@ -12,7 +12,7 @@ use Libraries.Game.Graphics.Vulkan.Commands.EndLabelCommand
 
 /*
 The GraphicsTimer measures how long the GPU spends on named phases of each
-frame (Graphics timing plan T2), using Vulkan timestamp queries: the GPU
+frame, using Vulkan timestamp queries: the GPU
 writes its own clock at the start and end of each phase, and the timer reads
 the times back a frame or two later, without waiting.
 
@@ -157,7 +157,7 @@ class GraphicsTimer
     /*
     This action sets whether the 3D painter draws its forward programs, such
     as water, in a render pass of their own, so "Lighting" and "Forward" are
-    timed apart, even on Apple GPUs (Graphics timing plan T6). It costs a
+    timed apart, even on Apple GPUs. It costs a
     little memory traffic, so it is off unless asked for.
 
     Attribute: Parameter value True to split them

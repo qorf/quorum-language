@@ -55,7 +55,7 @@ class SpotLightPropertiesDialog is PropertiesDialog
         headingLabel:SetLeftMargin(20)
         panel:Add(headingLabel)
         // Its text is the section's title, under a header that opens and
-        // closes it when the panel shows several sections (step 15).
+        // closes it when the panel shows several sections.
         SetHeading(headingLabel)
 
         nameField = AddField(panel, focusArray, "Name:", "Name")
@@ -70,7 +70,7 @@ class SpotLightPropertiesDialog is PropertiesDialog
 
     /*
         Adds a setting with a bounded range: a label, a slider and a number
-        field (Slider plan), both in the Tab order, with a field line's
+        field, both in the Tab order, with a field line's
         margins. Moving the slider writes the number in the field, which
         this section hears as typing, so the light changes as it moves.
     */
