@@ -1,0 +1,101 @@
+use Libraries.Containers.Array
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Slicing.TreeSupport
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestSlices
+
+/*
+Tests Libraries.Fabrication.Slicing.TreeSupport on the Ledge model: a
+20 x 20 x 10 mm block with a 10 mm ledge sticking out of its +X side at
+4 - 6 mm up. With 0.2 mm layers the ledge's underside is layer 20, and the
+space under it is open down to the bed.
+*/
+class Main
+    TestModels models
+    TestSlices slices
+
+    action Main
+        SupportsTheLedge()
+        NothingUnderACube()
+        RejectsBadSettings()
+    end
+
+    action Grown(Array<Contour> outlines, integer planes) returns TreeSupport
+        TreeSupport trees
+        trees:SetLayerHeight(0.2)
+        trees:SetLineWidth(0.4)
+        trees:Generate(outlines, planes)
+        return trees
+    end
+
+    action SupportsTheLedge
+        // supports under the ledge
+        Array<Contour> outlines = slices:Outlines(models:Ledge(), 0.2)
+        integer planes = slices:GetLastPlaneCount()
+        output "10 mm at 0.2 mm layers: " + planes
+        TreeSupport trees = Grown(outlines, planes)
+        output "tines are seeded under the ledge: " + (trees:GetTipCount() > 0)
+        output "trunks reach the bed (nothing is in the way): " + (trees:GetReachedBed() > 0)
+        Array<Contour> paths = trees:GetPaths()
+        output "support paths are made: " + (paths:GetSize() > 0)
+        Array<Contour> areas = trees:GetAreas()
+        output "support reaches layer 0: " + (models:CountOnPlane(areas, 0) > 0)
+
+        boolean belowLedge = true
+        boolean clearOfBlock = true
+        boolean underLedge = true
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            if path:planeIndex >= 20
+                belowLedge = false
+            end
+            integer k = 0
+            repeat while k < path:GetSize()
+                number x = path:xs:Get(k)
+                number y = path:ys:Get(k)
+                if x < 19.9
+                    clearOfBlock = false
+                end
+                if x > 36 or y < -6 or y > 26
+                    underLedge = false
+                end
+                k = k + 1
+            end
+            i = i + 1
+        end
+        output "every support path is below the ledge (layer 20): " + belowLedge
+        output "no support path cuts into the block: " + clearOfBlock
+        output "supports stay near the ledge (within a branch radius and the base flare): " + underLedge
+    end
+
+    action NothingUnderACube
+        // a cube needs no support
+        Array<Contour> outlines = slices:Outlines(models:Cube(), 0.2)
+        TreeSupport trees = Grown(outlines, slices:GetLastPlaneCount())
+        output "no tines: " + trees:GetTipCount()
+        Array<Contour> paths = trees:GetPaths()
+        output "no support paths: " + paths:GetSize()
+    end
+
+    action RejectsBadSettings
+        // bad settings are refused
+        boolean zeroHeight = false
+        check
+            TreeSupport trees
+            trees:SetLayerHeight(0)
+        detect e1 is InvalidArgumentError
+            zeroHeight = true
+        end
+        output "a layer height of 0: " + zeroHeight
+        boolean steep = false
+        check
+            TreeSupport trees2
+            trees2:SetBranchAngle(90)
+        detect e2 is InvalidArgumentError
+            steep = true
+        end
+        output "a branch angle of 90 degrees (horizontal): " + steep
+    end
+end

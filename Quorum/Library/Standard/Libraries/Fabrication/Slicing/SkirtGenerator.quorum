@@ -1,0 +1,280 @@
+package Libraries.Fabrication.Slicing
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ConvexHull
+use Libraries.Fabrication.Geometry.PolygonOffsetter
+
+/*
+The SkirtGenerator class makes the loops printed around the model on the
+first layers: a skirt (loops around the convex hull of the first layer, a
+little way off, to prime the nozzle) or a brim (loops touching the model's
+outer outlines, to hold it down).
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Slicing.SkirtGenerator
+
+    class Main
+        action Main
+            Array<Contour> firstLayer   // outlines from ContourGenerator (support areas may be added)
+            SkirtGenerator skirt
+            skirt:SetLineWidth(0.4)
+            skirt:SetSkirt(2, 3.0, 1)   // 2 loops, 3 mm away, 1 layer tall
+            Array<Contour> loops = skirt:Generate(firstLayer)
+        end
+    end
+*/
+class SkirtGenerator
+    number lineWidth = 0.4
+    number distance = 3.0
+    integer loops = 2
+    integer height = 1
+    boolean brim = false
+    Array<text> warnings
+
+    PolygonOffsetter offsetter
+    ArgumentChecker checker
+
+    /*
+    The extrusion width, which is also the spacing of the loops.
+
+    Attribute: Parameter width The width (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        skirt:SetLineWidth(0.4)
+        Array<Contour> loops = skirt:Generate(outlines)
+    */
+    action SetLineWidth(number width)
+        checker:RequirePositive("SkirtGenerator:SetLineWidth width", width)
+        lineWidth = width
+    end
+
+    /*
+    Makes a skirt: loops around the first layer's convex hull.
+
+    Attribute: Parameter count The number of loops (0 for none).
+    Attribute: Parameter gap The gap between the model and the first loop (mm).
+    Attribute: Parameter layers How many layers tall the skirt is.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        skirt:SetSkirt(2, 3.0, 1)      // 2 loops, 3 mm away, 1 layer tall
+        Array<Contour> loops = skirt:Generate(outlines)
+    */
+    action SetSkirt(integer count, number gap, integer layers)
+        checker:RequireAtLeast("SkirtGenerator:SetSkirt count", count, 0)
+        checker:RequireAtLeast("SkirtGenerator:SetSkirt gap", gap, 0)
+        checker:RequireAtLeast("SkirtGenerator:SetSkirt layers", layers, 1)
+        loops = count
+        distance = gap
+        height = layers
+        brim = false
+    end
+
+    /*
+    Makes a brim: loops around the first layer's outer outlines, one layer
+    tall.
+
+    Attribute: Parameter count The number of loops (0 for none).
+    Attribute: Parameter gap The gap between the model and the first loop (mm), usually 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        skirt:SetBrim(8, 0)      // 8 loops touching the model
+        Array<Contour> loops = skirt:Generate(outlines)
+    */
+    action SetBrim(integer count, number gap)
+        checker:RequireAtLeast("SkirtGenerator:SetBrim count", count, 0)
+        checker:RequireAtLeast("SkirtGenerator:SetBrim gap", gap, 0)
+        brim = true
+        loops = count
+        distance = gap
+        height = 1
+    end
+
+    /*
+    Makes the skirt or brim loops.
+
+    Attribute: Parameter contours The model's outlines (only plane 0 is used).
+    Attribute: Returns Closed loops on planes 0 up to the skirt height; empty if the first layer is empty.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        skirt:SetSkirt(1, 5.0, 1)
+        Array<Contour> loops = skirt:Generate(outlines)
+        output loops:GetSize() + " skirt loops"
+    */
+    action Generate(Array<Contour> contours) returns Array<Contour>
+        warnings:Empty()
+        Array<Contour> result
+        if loops <= 0 or height <= 0
+            return result
+        end
+
+        Array<Contour> base
+        if brim
+            base = OutsideOutlines(contours)
+        else
+            base = HullOutline(contours)
+        end
+        if base:GetSize() = 0
+            warnings:Add("The first layer has no outline to put a skirt or brim around, so none was made.")
+            return result
+        end
+
+        Array<Contour> rings
+        integer i = 0
+        repeat while i < loops
+            Array<Contour> ring = offsetter:Offset(base, -(distance + lineWidth * (cast(number, i) + 0.5)))
+            integer r = 0
+            repeat while r < ring:GetSize()
+                rings:Add(ring:Get(r))
+                r = r + 1
+            end
+            i = i + 1
+        end
+
+        integer layer = 0
+        repeat while layer < height
+            i = 0
+            repeat while i < rings:GetSize()
+                Contour src = rings:Get(i)
+                Contour copy = src:Copy()
+                copy:closed = true
+                copy:planeIndex = layer
+                result:Add(copy)
+                i = i + 1
+            end
+            layer = layer + 1
+        end
+        return result
+    end
+
+    /*
+    Problems from the last Generate, as sentences.
+
+    Attribute: Returns Problems from the last Generate, as sentences.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        Array<Contour> loops = skirt:Generate(outlines)
+        Array<text> warnings = skirt:GetWarnings()
+        if warnings:GetSize() > 0
+            output "warning: " + warnings:Get(0)
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings
+    end
+
+    // the outermost outlines of layer 0
+    private action OutsideOutlines(Array<Contour> contours) returns Array<Contour>
+        Array<Contour> base
+        integer c = 0
+        repeat while c < contours:GetSize()
+            Contour con = contours:Get(c)
+            if con:planeIndex = 0 and con:closed and con:GetSize() >= 3
+                if not con:isHole and con:depth = 0
+                    base:Add(con)
+                end
+            end
+            c = c + 1
+        end
+        return base
+    end
+
+    // the convex hull of every point of layer 0's loops, counter-clockwise
+    private action HullOutline(Array<Contour> contours) returns Array<Contour>
+        Array<Contour> base
+        Number64BitArray xs
+        Number64BitArray ys
+        integer total = 0
+        integer c = 0
+        repeat while c < contours:GetSize()
+            Contour con = contours:Get(c)
+            if con:planeIndex = 0 and con:closed
+                total = total + con:GetSize()
+            end
+            c = c + 1
+        end
+        if total < 3
+            return base
+        end
+        xs:SetSize(total)
+        ys:SetSize(total)
+
+        integer filled = 0
+        c = 0
+        repeat while c < contours:GetSize()
+            Contour layerLoop = contours:Get(c)
+            if layerLoop:planeIndex = 0 and layerLoop:closed
+                integer i = 0
+                repeat while i < layerLoop:GetSize()
+                    xs:Set(filled, layerLoop:xs:Get(i))
+                    ys:Set(filled, layerLoop:ys:Get(i))
+                    filled = filled + 1
+                    i = i + 1
+                end
+            end
+            c = c + 1
+        end
+
+        ConvexHull hull
+        hull:Compute(xs, ys)
+        Number64BitArray hx = hull:GetConvexX()
+        Number64BitArray hy = hull:GetConvexY()
+        Contour outline
+        integer h = 0
+        repeat while h < hx:GetSize()
+            outline:AddPoint(hx:Get(h), hy:Get(h))
+            h = h + 1
+        end
+        outline:DropClosingDuplicate()
+        outline:closed = true
+        outline:planeIndex = 0
+        if outline:GetSize() < 3
+            return base
+        end
+        if outline:SignedArea2() < 0
+            outline:Reverse()
+        end
+        base:Add(outline)
+        return base
+    end
+end

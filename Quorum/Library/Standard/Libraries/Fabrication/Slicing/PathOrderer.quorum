@@ -1,0 +1,653 @@
+package Libraries.Fabrication.Slicing
+
+use Libraries.Containers.Array
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ContourLayers
+use Libraries.Fabrication.Geometry.GeometryUtilities
+use Libraries.Fabrication.Geometry.PathRole
+
+/*
+The PathOrderer class puts each layer's paths into printing order and sets
+their PathRole.
+
+Per layer: skirt / brim first, then one nearest-neighbour tour over the
+model's islands and the support tines together, so the nozzle always goes to
+whatever is closest instead of printing every tine and then crossing back
+over the layer for the model. Each island is finished (walls inside out, then
+skin, then infill) and each tine is finished (its outline, then the lines
+inside it) before moving on. Fewer trips across open air means fewer
+strings. Wall loops start at the vertex nearest the seam point, so the seams
+line up.
+
+Paths too short to print cleanly are dropped (see SetCleanup), except the
+center lines and dots PathGenerator marks keepShort.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Slicing.PathGenerator
+    use Libraries.Fabrication.Slicing.PathOrderer
+
+    class Main
+        action Main
+            Array<Contour> outlines     // from ContourGenerator:Build
+            PathGenerator paths         // after paths:Generate(outlines, 100)
+            PathOrderer orderer
+            orderer:SetSeamPoint(0, 1000000)        // seams at the back
+            Array<Contour> ordered = orderer:Order(outlines, paths:GetWalls(),
+                paths:GetSkin(), paths:GetInfill(), 100)
+        end
+    end
+*/
+class PathOrderer
+    number seamX = 0.0
+    number seamY = 1000000.0
+
+    number minLoopLength = 1.0
+    number minLineLength = 0.4
+    number minSegmentLength = 0.05
+    integer droppedPaths = 0
+    Array<Contour> skirt
+    Array<Contour> support
+
+    number nozzleX = 0.0
+    number nozzleY = 0.0
+    Array<Contour> ordered
+
+    GeometryUtilities util
+    PathRole roles
+    ArgumentChecker checker
+
+    /*
+    Wall seams are placed at the vertex nearest this point.
+
+    Attribute: Parameter x The x coordinate (mm, model coordinates).
+    Attribute: Parameter y The y coordinate (mm).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Slicing.PathOrderer
+
+        PathOrderer orderer
+        orderer:SetSeamPoint(0, 1000000)      // seams at the back of the model
+    */
+    action SetSeamPoint(number x, number y)
+        seamX = x
+        seamY = y
+    end
+
+    /*
+    The shortest paths worth printing; shorter ones are dropped.
+
+    Attribute: Parameter loop The shortest loop (mm).
+    Attribute: Parameter line The shortest open line (mm).
+    Attribute: Parameter segment Points closer together than this (mm) are merged.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Slicing.PathOrderer
+
+        PathOrderer orderer
+        orderer:SetCleanup(1.0, 0.4, 0.05)      // drop loops under 1 mm and lines under 0.4 mm
+    */
+    action SetCleanup(number loop, number line, number segment)
+        checker:RequireAtLeast("PathOrderer:SetCleanup loop", loop, 0)
+        checker:RequireAtLeast("PathOrderer:SetCleanup line", line, 0)
+        checker:RequireAtLeast("PathOrderer:SetCleanup segment", segment, 0)
+        minLoopLength = loop
+        minLineLength = line
+        minSegmentLength = segment
+    end
+
+    /*
+    Skirt or brim loops (from SkirtGenerator), printed first on their layers.
+
+    Attribute: Parameter loops The loops.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathOrderer
+        use Libraries.Fabrication.Slicing.SkirtGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        SkirtGenerator skirt
+        skirt:SetSkirt(2, 3.0, 1)
+        PathOrderer orderer
+        orderer:SetSkirt(skirt:Generate(outlines))
+    */
+    action SetSkirt(Array<Contour> loops)
+        skirt = loops
+    end
+
+    /*
+    Support paths (from TreeSupport:GetPaths): closed loops are tine
+    outlines, open paths the lines inside them.
+
+    Attribute: Parameter paths The support paths.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathOrderer
+        use Libraries.Fabrication.Slicing.TreeSupport
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        TreeSupport trees
+        trees:Generate(outlines, 100)
+        PathOrderer orderer
+        orderer:SetSupport(trees:GetPaths())
+    */
+    action SetSupport(Array<Contour> paths)
+        support = paths
+    end
+
+    /*
+    How many paths the last Order dropped as too short.
+
+    Attribute: Returns How many paths the last Order dropped as too short.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathOrderer
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        Array<Contour> walls
+        Array<Contour> skin
+        Array<Contour> infill
+        PathOrderer orderer
+        Array<Contour> ordered = orderer:Order(outlines, walls, skin, infill, 100)
+        output orderer:GetDroppedCount() + " paths too short to print"
+    */
+    action GetDroppedCount returns integer
+        return droppedPaths
+    end
+
+    /*
+    Orders every layer's paths.
+
+    Attribute: Parameter contours The outlines from ContourGenerator (they define the islands).
+    Attribute: Parameter walls The wall loops from PathGenerator.
+    Attribute: Parameter skin The solid lines from PathGenerator.
+    Attribute: Parameter infill The sparse lines from PathGenerator.
+    Attribute: Parameter planeCount The number of planes.
+    Attribute: Returns New paths in printing order, layer by layer, each with its role set.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+        use Libraries.Fabrication.Slicing.PathOrderer
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        PathOrderer orderer
+        Array<Contour> ordered = orderer:Order(outlines, paths:GetWalls(), paths:GetSkin(), paths:GetInfill(), 100)
+    */
+    action Order(Array<Contour> contours, Array<Contour> walls, Array<Contour> skin,
+                 Array<Contour> infill, integer planeCount) returns Array<Contour>
+        ordered:Empty()
+        droppedPaths = 0
+        nozzleX = 0.0
+        nozzleY = 0.0
+
+        ContourLayers contourLayers
+        contourLayers:Index(contours, planeCount, false)
+        ContourLayers wallLayers
+        wallLayers:Index(walls, planeCount, false)
+        ContourLayers skinLayers
+        skinLayers:Index(skin, planeCount, false)
+        ContourLayers infillLayers
+        infillLayers:Index(infill, planeCount, false)
+        ContourLayers supportLayers
+        supportLayers:Index(support, planeCount, false)
+
+        integer p = 0
+        repeat while p < planeCount
+            PrintSkirt(p)
+
+            Array<Contour> islands
+            Array<Contour> outlines = contourLayers:GetLayer(p)
+            integer i = 0
+            repeat while i < outlines:GetSize()
+                Contour con = outlines:Get(i)
+                if con:closed and not con:isHole and con:GetSize() >= 3
+                    islands:Add(con)
+                end
+                i = i + 1
+            end
+
+            Array<Contour> layerWalls
+            Array<integer> wallIsland
+            CollectLayer(wallLayers:GetLayer(p), islands, layerWalls, wallIsland)
+            Array<Contour> layerSkin
+            Array<integer> skinIsland
+            CollectLayer(skinLayers:GetLayer(p), islands, layerSkin, skinIsland)
+            Array<Contour> layerInfill
+            Array<integer> infillIsland
+            CollectLayer(infillLayers:GetLayer(p), islands, layerInfill, infillIsland)
+
+            // this layer's support: tine outlines, and the lines inside them
+            Array<Contour> tines
+            Array<Contour> tineLines
+            Array<integer> lineTine
+            CollectSupport(supportLayers:GetLayer(p), tines, tineLines, lineTine)
+
+            // one tour over islands and tines together (stops 0 .. islandCount - 1
+            // are islands, the rest are tines): always go to the nearest one
+            integer islandCount = islands:GetSize()
+            integer stops = islandCount + tines:GetSize()
+            Array<boolean> done
+            i = 0
+            repeat while i < stops
+                done:Add(false)
+                i = i + 1
+            end
+            integer visited = 0
+            repeat while visited < stops
+                integer best = -1
+                number bestD2 = 0.0
+                i = 0
+                repeat while i < stops
+                    if not done:Get(i)
+                        Contour target = StopAt(i, islands, tines)
+                        number d2 = target:NearestVertexDistance2(nozzleX, nozzleY)
+                        if best = -1 or d2 < bestD2
+                            best = i
+                            bestD2 = d2
+                        end
+                    end
+                    i = i + 1
+                end
+                done:Set(best, true)
+                if best < islandCount
+                    PrintIsland(best, layerWalls, wallIsland, layerSkin, skinIsland, layerInfill, infillIsland)
+                else
+                    PrintTine(best - islandCount, tines, tineLines, lineTine)
+                end
+                visited = visited + 1
+            end
+
+            // Leftovers. IslandOf now attaches stray paths to the nearest
+            // island or tine, so these are only non-empty on a layer that
+            // has no islands (or no tine outlines) at all.
+            PrintIsland(-1, layerWalls, wallIsland, layerSkin, skinIsland, layerInfill, infillIsland)
+            OrderLines(OfIsland(tineLines, lineTine, -1), roles:SUPPORT_FILL)
+            p = p + 1
+        end
+        return ordered
+    end
+
+    private action PrintIsland(integer island, Array<Contour> layerWalls, Array<integer> wallIsland,
+                               Array<Contour> layerSkin, Array<integer> skinIsland,
+                               Array<Contour> layerInfill, Array<integer> infillIsland)
+        // a wall whose wallIndex was never set (-1) is printed as an outer wall
+        integer maxWall = -1
+        integer i = 0
+        repeat while i < layerWalls:GetSize()
+            Contour wall = layerWalls:Get(i)
+            if wallIsland:Get(i) = island and WallIndexOf(wall) > maxWall
+                maxWall = WallIndexOf(wall)
+            end
+            i = i + 1
+        end
+
+        integer w = maxWall
+        repeat while w >= 0
+            Array<Contour> loops
+            i = 0
+            repeat while i < layerWalls:GetSize()
+                Contour wall2 = layerWalls:Get(i)
+                if wallIsland:Get(i) = island and WallIndexOf(wall2) = w
+                    loops:Add(wall2)
+                end
+                i = i + 1
+            end
+            integer role = roles:INNER_WALL
+            if w = 0
+                role = roles:OUTER_WALL
+            end
+            OrderLoops(loops, role, true)
+            w = w - 1
+        end
+        OrderLines(OfIsland(layerSkin, skinIsland, island), roles:SKIN)
+        OrderLines(OfIsland(layerInfill, infillIsland, island), roles:INFILL)
+    end
+
+    private action WallIndexOf(Contour wall) returns integer
+        if wall:wallIndex < 0
+            return 0
+        end
+        return wall:wallIndex
+    end
+
+    private action OfIsland(Array<Contour> paths, Array<integer> islandOf, integer island) returns Array<Contour>
+        Array<Contour> picked
+        integer i = 0
+        repeat while i < paths:GetSize()
+            if islandOf:Get(i) = island
+                picked:Add(paths:Get(i))
+            end
+            i = i + 1
+        end
+        return picked
+    end
+
+    // useSeam = true: each loop starts at the vertex nearest the seam point
+    // (model walls, so the seam lines up). false: each loop starts at the
+    // vertex nearest the nozzle (support, where a seam doesn't show).
+    private action OrderLoops(Array<Contour> loops, integer role, boolean useSeam)
+        Array<integer> seams
+        Array<boolean> used
+        integer i = 0
+        repeat while i < loops:GetSize()
+            Contour loop = loops:Get(i)
+            seams:Add(loop:NearestVertexIndex(seamX, seamY))
+            used:Add(false)
+            i = i + 1
+        end
+
+        integer count = 0
+        repeat while count < loops:GetSize()
+            integer best = -1
+            number bestD2 = 0.0
+            i = 0
+            repeat while i < loops:GetSize()
+                if not used:Get(i)
+                    Contour cand = loops:Get(i)
+                    number d2 = 0.0
+                    if useSeam
+                        number dx = cand:xs:Get(seams:Get(i)) - nozzleX
+                        number dy = cand:ys:Get(seams:Get(i)) - nozzleY
+                        d2 = dx * dx + dy * dy
+                    else
+                        d2 = cand:NearestVertexDistance2(nozzleX, nozzleY)
+                    end
+                    if best = -1 or d2 < bestD2
+                        best = i
+                        bestD2 = d2
+                    end
+                end
+                i = i + 1
+            end
+            used:Set(best, true)
+
+            Contour src = loops:Get(best)
+            integer start = seams:Get(best)
+            if not useSeam
+                start = src:NearestVertexIndex(nozzleX, nozzleY)
+            end
+            Contour path = RotatedLoop(src, start)
+            if path:GetSize() > 3
+                number cx = path:TailX() - path:HeadX()
+                number cy = path:TailY() - path:HeadY()
+                if cx * cx + cy * cy < minSegmentLength * minSegmentLength
+                    path:xs:RemoveAt(path:xs:GetSize() - 1)
+                    path:ys:RemoveAt(path:ys:GetSize() - 1)
+                end
+            end
+
+            path:planeIndex = src:planeIndex
+            path:wallIndex = src:wallIndex
+            path:role = role
+            if path:GetSize() >= 3
+                ordered:Add(path)
+            else
+                droppedPaths = droppedPaths + 1
+            end
+            nozzleX = path:HeadX()
+            nozzleY = path:HeadY()
+            count = count + 1
+        end
+    end
+
+    private action RotatedLoop(Contour src, integer start) returns Contour
+        Contour path
+        integer n = src:GetSize()
+        integer i = 0
+        repeat while i < n
+            integer v = (start + i) mod n
+            AddSpaced(path, src:xs:Get(v), src:ys:Get(v), false)
+            i = i + 1
+        end
+        path:closed = true
+        return path
+    end
+
+    private action OrderLines(Array<Contour> lines, integer role)
+        Array<boolean> used
+        integer i = 0
+        repeat while i < lines:GetSize()
+            used:Add(false)
+            i = i + 1
+        end
+
+        integer count = 0
+        repeat while count < lines:GetSize()
+            integer best = -1
+            boolean flip = false
+            number bestD2 = 0.0
+            i = 0
+            repeat while i < lines:GetSize()
+                if not used:Get(i)
+                    Contour line = lines:Get(i)
+                    number hx = line:HeadX() - nozzleX
+                    number hy = line:HeadY() - nozzleY
+                    number tx = line:TailX() - nozzleX
+                    number ty = line:TailY() - nozzleY
+                    number dHead = hx * hx + hy * hy
+                    number dTail = tx * tx + ty * ty
+                    if best = -1 or dHead < bestD2
+                        best = i
+                        bestD2 = dHead
+                        flip = false
+                    end
+                    if dTail < bestD2
+                        best = i
+                        bestD2 = dTail
+                        flip = true
+                    end
+                end
+                i = i + 1
+            end
+            used:Set(best, true)
+
+            Contour src = lines:Get(best)
+            Contour path
+            integer n = src:GetSize()
+            i = 0
+            repeat while i < n
+                integer v = i
+                if flip
+                    v = n - 1 - i
+                end
+                boolean isLast = false
+                if i = n - 1
+                    isLast = true
+                end
+                AddSpaced(path, src:xs:Get(v), src:ys:Get(v), isLast)
+                i = i + 1
+            end
+            path:closed = false
+            path:planeIndex = src:planeIndex
+            path:role = role
+            ordered:Add(path)
+            nozzleX = path:TailX()
+            nozzleY = path:TailY()
+            count = count + 1
+        end
+    end
+
+    private action PrintSkirt(integer p)
+        Array<Contour> loops
+        Array<number> areas
+        integer i = 0
+        repeat while i < skirt:GetSize()
+            Contour loop = skirt:Get(i)
+            if loop:planeIndex = p and loop:GetSize() >= 3
+                number a = loop:Area()
+                integer at = 0
+                repeat while at < areas:GetSize() and areas:Get(at) >= a
+                    at = at + 1
+                end
+                loops:Add(at, loop)
+                areas:Add(at, a)
+            end
+            i = i + 1
+        end
+
+        i = 0
+        repeat while i < loops:GetSize()
+            Contour src = loops:Get(i)
+            Contour path = RotatedLoop(src, src:NearestVertexIndex(nozzleX, nozzleY))
+            path:planeIndex = p
+            path:role = roles:SKIRT
+            if path:GetSize() >= 3
+                ordered:Add(path)
+                nozzleX = path:HeadX()
+                nozzleY = path:HeadY()
+            end
+            i = i + 1
+        end
+    end
+
+    // Splits a layer's support into tine outlines (closed loops) and the
+    // lines inside them; lineTine says which tine each line belongs to.
+    private action CollectSupport(Array<Contour> layerPaths, Array<Contour> tines,
+                                  Array<Contour> tineLines, Array<integer> lineTine)
+        Array<Contour> noIslands
+        Array<Contour> layerSupport
+        Array<integer> supportIsland
+        CollectLayer(layerPaths, noIslands, layerSupport, supportIsland)
+        integer i = 0
+        repeat while i < layerSupport:GetSize()
+            Contour path = layerSupport:Get(i)
+            if path:closed
+                tines:Add(path)
+            else
+                tineLines:Add(path)
+            end
+            i = i + 1
+        end
+        i = 0
+        repeat while i < tineLines:GetSize()
+            lineTine:Add(IslandOf(tineLines:Get(i), tines))
+            i = i + 1
+        end
+    end
+
+    // One support tine, finished before moving on: its outline (started at
+    // the point nearest the nozzle), then the lines inside it.
+    private action PrintTine(integer tine, Array<Contour> tines, Array<Contour> tineLines,
+                             Array<integer> lineTine)
+        Array<Contour> outline
+        outline:Add(tines:Get(tine))
+        OrderLoops(outline, roles:SUPPORT_WALL, false)
+        OrderLines(OfIsland(tineLines, lineTine, tine), roles:SUPPORT_FILL)
+    end
+
+    // Tour stop `index`: an island, or (past the islands) a tine.
+    private action StopAt(integer index, Array<Contour> islands, Array<Contour> tines) returns Contour
+        if index < islands:GetSize()
+            return islands:Get(index)
+        end
+        return tines:Get(index - islands:GetSize())
+    end
+
+    private action AddSpaced(Contour path, number x, number y, boolean isLast)
+        integer n = path:GetSize()
+        if n = 0
+            path:AddPoint(x, y)
+            return now
+        end
+        number dx = x - path:TailX()
+        number dy = y - path:TailY()
+        if dx * dx + dy * dy >= minSegmentLength * minSegmentLength
+            path:AddPoint(x, y)
+        elseif isLast and n > 1
+            path:xs:Set(n - 1, x)
+            path:ys:Set(n - 1, y)
+        elseif isLast
+            path:AddPoint(x, y)
+        end
+    end
+
+    // Keeps the paths of one layer that are long enough to print (see
+    // SetCleanup), and notes which island each belongs to.
+    private action CollectLayer(Array<Contour> layerPaths, Array<Contour> islands,
+                                Array<Contour> kept, Array<integer> islandOf)
+        integer i = 0
+        repeat while i < layerPaths:GetSize()
+            Contour path = layerPaths:Get(i)
+            if path:GetSize() >= 2
+                number shortest = minLineLength
+                if path:closed
+                    shortest = minLoopLength
+                end
+                // thin-island lines and tip dots are the only thing printed
+                // for their island, so they are kept however short
+                if path:keepShort or util:PathLength(path) >= shortest
+                    kept:Add(path)
+                    islandOf:Add(IslandOf(path, islands))
+                else
+                    droppedPaths = droppedPaths + 1
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    private action IslandOf(Contour path, Array<Contour> islands) returns integer
+        number x = path:HeadX()
+        number y = path:HeadY()
+        if not path:closed
+            x = (path:HeadX() + path:TailX()) / 2.0
+            y = (path:HeadY() + path:TailY()) / 2.0
+        end
+
+        integer best = -1
+        number bestArea = 0.0
+        integer i = 0
+        repeat while i < islands:GetSize()
+            Contour island = islands:Get(i)
+            if island:ContainsPoint(x, y)
+                number area = island:SignedArea2()
+                if area < 0
+                    area = -area
+                end
+                if best = -1 or area < bestArea
+                    best = i
+                    bestArea = area
+                end
+            end
+            i = i + 1
+        end
+
+        // Not inside any island (a concave island can put a skin line's
+        // midpoint outside it, or a jagged wall can poke out): go with the
+        // nearest one, instead of leaving it for a trip back at the end.
+        if best = -1
+            number nearestD2 = 0.0
+            i = 0
+            repeat while i < islands:GetSize()
+                Contour candidate = islands:Get(i)
+                number d2 = candidate:NearestVertexDistance2(x, y)
+                if best = -1 or d2 < nearestD2
+                    best = i
+                    nearestD2 = d2
+                end
+                i = i + 1
+            end
+        end
+
+        return best
+    end
+end

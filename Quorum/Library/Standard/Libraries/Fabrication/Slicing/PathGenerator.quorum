@@ -1,0 +1,978 @@
+package Libraries.Fabrication.Slicing
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ContourLayers
+use Libraries.Fabrication.Geometry.GeometryUtilities
+use Libraries.Fabrication.Geometry.LineFill
+use Libraries.Fabrication.Geometry.PolygonOffsetter
+use Libraries.Fabrication.Geometry.PolygonOperations
+
+/*
+The PathGenerator class turns each layer's outlines into toolpaths: walls
+(loops following the outline, wallIndex 0 outermost), skin (solid fill
+under top surfaces and over bottom surfaces) and sparse infill. Parts too
+thin for a wall get a single center line, and bands too thin for an inner
+wall get solid lines, so nothing thin prints hollow.
+
+The paths are not in printing order yet; PathOrderer does that.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Slicing.PathGenerator
+
+    class Main
+        action Main
+            Array<Contour> outlines     // from ContourGenerator:Build
+            PathGenerator paths
+            paths:SetLineWidth(0.4)
+            paths:SetWallCount(3)
+            paths:SetInfillDensity(0.15)
+            paths:Generate(outlines, 100)
+            Array<Contour> walls = paths:GetWalls()
+        end
+    end
+*/
+class PathGenerator
+    number lineWidth = 0.4
+    integer wallCount = 2
+    number infillDensity = 0.2
+    number infillOverlap = 0.25
+    number minInfillLength = 0.4
+    // shortest tip dot worth printing (mm); anything smaller is a speck
+    number minDotLength = 0.1
+    // layer 0's solid fill is printed as continuous zigzags (no loose line
+    // ends that can peel off the bed)
+    boolean joinFirstLayer = true
+    integer topLayers = 4
+    integer bottomLayers = 4
+
+    Array<Contour> walls
+    Array<Contour> skin
+    Array<Contour> infill
+
+    // the outlines being processed, grouped by plane
+    ContourLayers modelLayers
+
+    // area left inside the walls on each plane (inner[innerStart[p] ... inner[innerStart[p + 1]]])
+    Array<Contour> inner
+    Array<integer> innerStart
+
+    integer planeTotal = 0
+
+    // inset loops thrown away because they didn't fit inside the part
+    integer droppedLoops = 0
+    // islands whose inset was rebuilt exactly (see ExactInset)
+    integer rebuiltIslands = 0
+    // plane being worked on (PolygonOperations calls take it)
+    integer plane = 0
+
+    Math math
+    PolygonOffsetter offsetter
+    PolygonOperations ops
+    GeometryUtilities util
+    LineFill lineFill
+    ArgumentChecker checker
+
+    /*
+    The extrusion width, which is also the spacing of solid fill and the
+    shortest fill line kept.
+
+    Attribute: Parameter width The width (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetLineWidth(0.42)
+        paths:Generate(outlines, 100)
+    */
+    action SetLineWidth(number width)
+        checker:RequirePositive("PathGenerator:SetLineWidth width", width)
+        lineWidth = width
+        minInfillLength = width
+    end
+
+    /*
+    The number of walls (0 for none).
+
+    Attribute: Parameter count The number of walls.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetWallCount(2)
+        paths:Generate(outlines, 100)
+    */
+    action SetWallCount(integer count)
+        checker:RequireAtLeast("PathGenerator:SetWallCount count", count, 0)
+        wallCount = count
+    end
+
+    /*
+    The sparse infill density: 0 for none, 1 for solid (lines touching side
+    by side).
+
+    Attribute: Parameter density The density, 0 to 1.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetInfillDensity(0.15)      // 15% infill
+        paths:Generate(outlines, 100)
+    */
+    action SetInfillDensity(number density)
+        checker:RequireRange("PathGenerator:SetInfillDensity density", density, 0, 1)
+        infillDensity = density
+    end
+
+    /*
+    How far fill lines reach into the innermost wall, as a fraction of the
+    line width.
+
+    Attribute: Parameter overlap The fraction, 0 to 1.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetInfillOverlap(0.25)      // a quarter of a line width into the wall
+        paths:Generate(outlines, 100)
+    */
+    action SetInfillOverlap(number overlap)
+        checker:RequireRange("PathGenerator:SetInfillOverlap overlap", overlap, 0, 1)
+        infillOverlap = overlap
+    end
+
+    /*
+    Solid layers under top surfaces. Typical is 0.6 - 1.0 mm worth: 3 - 5
+    layers at 0.2 mm. 0 turns them off.
+
+    Attribute: Parameter count The number of layers.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetTopLayers(4)      // 0.8 mm at 0.2 mm layers
+        paths:Generate(outlines, 100)
+    */
+    action SetTopLayers(integer count)
+        checker:RequireAtLeast("PathGenerator:SetTopLayers count", count, 0)
+        topLayers = count
+    end
+
+    /*
+    Solid layers over bottom surfaces; 0 turns them off.
+
+    Attribute: Parameter count The number of layers.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetBottomLayers(3)
+        paths:Generate(outlines, 100)
+    */
+    action SetBottomLayers(integer count)
+        checker:RequireAtLeast("PathGenerator:SetBottomLayers count", count, 0)
+        bottomLayers = count
+    end
+
+    /*
+    true (the default): layer 0's solid fill is chained into continuous
+    zigzags. false: separate straight lines, as on every other layer.
+
+    Attribute: Parameter toggle Whether to join the first layer's lines.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetJoinFirstLayer(false)      // straight lines on the first layer too
+        paths:Generate(outlines, 100)
+    */
+    action SetJoinFirstLayer(boolean toggle)
+        joinFirstLayer = toggle
+    end
+
+    /*
+    The wall loops of every plane from the last Generate.
+
+    Attribute: Returns The wall loops of every plane from the last Generate.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        Array<Contour> walls = paths:GetWalls()
+        output walls:GetSize() + " wall loops"
+    */
+    action GetWalls returns Array<Contour>
+        return walls
+    end
+
+    /*
+    The solid fill lines (and thin-part center lines) of every plane.
+
+    Attribute: Returns The solid fill lines (and thin-part center lines) of every plane.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        Array<Contour> skin = paths:GetSkin()
+        output skin:GetSize() + " solid fill lines"
+    */
+    action GetSkin returns Array<Contour>
+        return skin
+    end
+
+    /*
+    The sparse infill lines of every plane.
+
+    Attribute: Returns The sparse infill lines of every plane.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        Array<Contour> infill = paths:GetInfill()
+        output infill:GetSize() + " infill lines"
+    */
+    action GetInfill returns Array<Contour>
+        return infill
+    end
+
+    /*
+    How many inner-wall / fill loops the last Generate dropped for not fitting inside a thin part.
+
+    Attribute: Returns How many inner-wall / fill loops the last Generate dropped for not fitting inside a thin part.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        output paths:GetDroppedLoopCount() + " loops didn't fit inside thin parts"
+    */
+    action GetDroppedLoopCount returns integer
+        return droppedLoops
+    end
+
+    /*
+    How many thin islands the last Generate rebuilt with the exact (slower) inset.
+
+    Attribute: Returns How many thin islands the last Generate rebuilt with the exact (slower) inset.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:Generate(outlines, 100)
+        output paths:GetRebuiltIslandCount() + " thin islands needed the exact inset"
+    */
+    action GetRebuiltIslandCount returns integer
+        return rebuiltIslands
+    end
+
+    /*
+    Makes the walls, skin and infill of every plane, replacing the results
+    of an earlier call.
+
+    Attribute: Parameter contours The oriented outlines from ContourGenerator:Build.
+    Attribute: Parameter planeCount The number of planes sliced.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        Array<Contour> outlines     // from ContourGenerator:Build
+        PathGenerator paths
+        paths:SetWallCount(3)
+        paths:SetInfillDensity(0.2)
+        paths:Generate(outlines, 100)
+        Array<Contour> walls = paths:GetWalls()
+    */
+    action Generate(Array<Contour> contours, integer planeCount)
+        walls:Empty()
+        skin:Empty()
+        infill:Empty()
+        inner:Empty()
+        innerStart:Empty()
+        droppedLoops = 0
+        rebuiltIslands = 0
+        planeTotal = planeCount
+        modelLayers:Index(contours, planeCount, true)
+
+        // pass 1: walls and inner areas for every plane
+        integer p = 0
+        repeat while p < planeCount
+            plane = p
+            innerStart:Add(inner:GetSize())
+            Array<Contour> layer = modelLayers:GetLayer(p)
+            if layer:GetSize() > 0
+                // the center line of wall sits (w + 0.5)
+                // line widths inside the outline
+                integer w = 0
+                repeat while w < wallCount
+                    Array<Contour> ring
+                    Array<Contour> deeper
+                    if w = 0
+                        ring = Inset(layer, lineWidth * 0.5)
+                    else
+                        // only where wall w fits from both sides: shrink past
+                        // the far edge of this wall, then grow back to its centre
+                        deeper = FitInset(layer, lineWidth * cast(number, w + 1), false)
+                        ring = ExactOutset(deeper, lineWidth * 0.5)
+                    end
+                    integer r = 0
+                    repeat while r < ring:GetSize()
+                        Contour wall = ring:Get(r)
+                        wall:wallIndex = w
+                        walls:Add(wall)
+                        r = r + 1
+                    end
+                    if w = 0
+                        ThinIslands(layer, ring, p)
+                    else
+                        WallGaps(layer, w, deeper, p)
+                    end
+                    w = w + 1
+                end
+
+                Array<Contour> area = Inset(layer, lineWidth * cast(number, wallCount))
+                integer a = 0
+                repeat while a < area:GetSize()
+                    inner:Add(area:Get(a))
+                    a = a + 1
+                end
+            end
+            p = p + 1
+        end
+        innerStart:Add(inner:GetSize())
+
+        // pass 2: skin and infill (needs the inner areas of neighbours)
+        number sparseSpacing = lineWidth
+        if infillDensity > 0
+            sparseSpacing = lineWidth / util:Min2(infillDensity, 1.0)
+        end
+        p = 0
+        repeat while p < planeCount
+            plane = p
+            Array<Contour> layer2 = modelLayers:GetLayer(p)
+            Array<Contour> innerArea = InnerContours(p)
+            if layer2:GetSize() > 0 and innerArea:GetSize() > 0
+                // fill area = inner area grown back into the last wall by the overlap
+                number inset = lineWidth * (cast(number, wallCount) + 0.5 - infillOverlap)
+                Array<Contour> fillArea = Inset(layer2, inset)
+                if fillArea:GetSize() > 0
+                    Array<Contour> skinArea = FindSkin(p, innerArea)
+                    if skinArea:GetSize() > 0
+                        Array<Contour> solid = ops:Intersect(fillArea, skinArea, p)
+                        // first layer: one continuous zigzag, no loose ends to lift
+                        if joinFirstLayer and p = 0
+                            lineFill:FillJoined(solid, p, lineWidth, minInfillLength, skin)
+                        else
+                            lineFill:Fill(solid, p, lineWidth, minInfillLength, skin)
+                        end
+                        if infillDensity > 0
+                            Array<Contour> sparse = ops:Difference(fillArea, skinArea, p)
+                            lineFill:Fill(sparse, p, sparseSpacing, minInfillLength, infill)
+                        end
+                    elseif infillDensity > 0
+                        lineFill:Fill(fillArea, p, sparseSpacing, minInfillLength, infill)
+                    end
+                end
+            end
+            p = p + 1
+        end
+    end
+
+    // ------------------------------------------------------------ insets
+    //
+    // PolygonOffsetter moves each corner in by `depth` and lets PolygonOperations keep
+    // whatever winds positively. Where the outline has small notches, or
+    // the part is about as thin as the inset, the moved edges fold over
+    // each other and some of the folds still wind positively. Those leftovers
+    // sit closer than `depth` to the edge: spurs on walls, stray walls beside
+    // thin ankles, spikes and spear shafts, skin past the outer wall. A real
+    // inset loop lies inside the outline and `depth` from it everywhere, so a
+    // loop that doesn't is dropped, and its island rebuilt exactly.
+    private action Inset(Array<Contour> outline, number depth) returns Array<Contour>
+        return FitInset(outline, depth, true)
+    end
+
+    private action FitInset(Array<Contour> outline, number depth, boolean count) returns Array<Contour>
+        Array<Contour> raw = offsetter:Offset(outline, depth)
+        Array<Contour> kept
+        Array<Contour> dropped
+        integer i = 0
+        repeat while i < raw:GetSize()
+            Contour loop = raw:Get(i)
+            if LoopFits(loop, outline, depth)
+                kept:Add(loop)
+            else
+                dropped:Add(loop)
+                if count
+                    droppedLoops = droppedLoops + 1
+                end
+            end
+            i = i + 1
+        end
+
+        // Islands that got no usable loop, or lost one, are rebuilt with an
+        // exact inset (slower, so only for those). If the island really is
+        // too thin, that comes back empty too.
+        Array<Contour> result
+        integer o = 0
+        repeat while o < outline:GetSize()
+            if not IsHole(o, outline)
+                if OwnsAny(o, outline, kept) and not OwnsAny(o, outline, dropped)
+                    integer k = 0
+                    repeat while k < kept:GetSize()
+                        Contour good = kept:Get(k)
+                        if good:GetSize() > 0
+                            if OwnerIsland(outline, good:xs:Get(0), good:ys:Get(0)) = o
+                                result:Add(good)
+                            end
+                        end
+                        k = k + 1
+                    end
+                else
+                    Array<Contour> exact = ExactInset(IslandWithHoles(o, outline), depth)
+                    if exact:GetSize() > 0 and count
+                        rebuiltIslands = rebuiltIslands + 1
+                    end
+                    integer e = 0
+                    repeat while e < exact:GetSize()
+                        Contour piece = exact:Get(e)
+                        if piece:GetSize() >= 3 and LoopFits(piece, outline, depth)
+                            result:Add(piece)
+                        end
+                        e = e + 1
+                    end
+                end
+            end
+            o = o + 1
+        end
+        return result
+    end
+
+    private action OwnerIsland(Array<Contour> outline, number x, number y) returns integer
+        integer best = -1
+        number bestArea = 0.0
+        integer i = 0
+        repeat while i < outline:GetSize()
+            if not IsHole(i, outline)
+                Contour shape = outline:Get(i)
+                if shape:ContainsPoint(x, y)
+                    number area = shape:SignedArea2()
+                    if area < 0
+                        area = -area
+                    end
+                    if best = -1 or area < bestArea
+                        best = i
+                        bestArea = area
+                    end
+                end
+            end
+            i = i + 1
+        end
+        return best
+    end
+
+    private action OwnsAny(integer island, Array<Contour> outline, Array<Contour> loops) returns boolean
+        integer i = 0
+        repeat while i < loops:GetSize()
+            Contour loop = loops:Get(i)
+            if loop:GetSize() > 0
+                if OwnerIsland(outline, loop:xs:Get(0), loop:ys:Get(0)) = island
+                    return true
+                end
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    // outline[index] plus the holes that start inside it.
+    private action IslandWithHoles(integer index, Array<Contour> outline) returns Array<Contour>
+        Array<Contour> island
+        Contour shape = outline:Get(index)
+        island:Add(shape)
+        integer i = 0
+        repeat while i < outline:GetSize()
+            if i not= index and IsHole(i, outline)
+                Contour hole = outline:Get(i)
+                if hole:GetSize() > 0
+                    if OwnerIsland(outline, hole:xs:Get(0), hole:ys:Get(0)) = index
+                        island:Add(hole)
+                    end
+                end
+            end
+            i = i + 1
+        end
+        return island
+    end
+
+    // Exact inset: the island minus a capsule (a band `depth` wide with round
+    // ends) around every edge of its outline. Whatever is left is everything
+    // at least `depth` from the edge, with no spikes or inside-out loops.
+    private action ExactInset(Array<Contour> island, number depth) returns Array<Contour>
+        ops:Clear()
+        if AddEdgeCapsules(island, depth) = 0
+            Array<Contour> blank
+            return blank
+        end
+        Array<Contour> band = ops:Resolve(1, plane)
+        if band:GetSize() = 0
+            Array<Contour> none
+            return none
+        end
+        return ops:Difference(island, band, plane)
+    end
+
+    // Adds a capsule of radius r around every edge of the loops to ops.
+    // Returns how many were added (edges shorter than 0.000001 mm are skipped).
+    private action AddEdgeCapsules(Array<Contour> loops, number r) returns integer
+        Array<number> qx
+        Array<number> qy
+        integer added = 0
+        integer c = 0
+        repeat while c < loops:GetSize()
+            Contour con = loops:Get(c)
+            integer n = con:GetSize()
+            integer j = n - 1
+            integer i = 0
+            repeat while i < n
+                number startX = con:xs:Get(j)
+                number startY = con:ys:Get(j)
+                number endX = con:xs:Get(i)
+                number endY = con:ys:Get(i)
+                number len = math:SquareRoot((endX - startX) * (endX - startX) + (endY - startY) * (endY - startY))
+                if len > 0.000001
+                    qx:Empty()
+                    qy:Empty()
+                    Capsule(startX, startY, endX, endY, len, r, qx, qy)
+                    ops:AddPoints(qx, qy, false)
+                    added = added + 1
+                end
+                j = i
+                i = i + 1
+            end
+            c = c + 1
+        end
+        return added
+    end
+
+    // Counter-clockwise outline of a capsule around a-b: along the right
+    // side, round b, back along the left side, round a (arcs in 30 degree steps).
+    private action Capsule(number startX, number startY, number endX, number endY, number len, number d,
+                           Array<number> qx, Array<number> qy)
+        number ux = (endX - startX) / len
+        number uy = (endY - startY) / len
+        number nx = -uy
+        number ny = ux
+        // cos / sin of -90, -60, -30, 0, 30, 60, 90 degrees
+        Array<number> cs
+        Array<number> sn
+        cs:Add(0.0)
+        cs:Add(0.5)
+        cs:Add(0.8660254037844386)
+        cs:Add(1.0)
+        cs:Add(0.8660254037844386)
+        cs:Add(0.5)
+        cs:Add(0.0)
+        sn:Add(-1.0)
+        sn:Add(-0.8660254037844386)
+        sn:Add(-0.5)
+        sn:Add(0.0)
+        sn:Add(0.5)
+        sn:Add(0.8660254037844386)
+        sn:Add(1.0)
+        // round b, from the right side to the left side
+        integer k = 0
+        repeat while k < 7
+            qx:Add(endX + d * (cs:Get(k) * ux + sn:Get(k) * nx))
+            qy:Add(endY + d * (cs:Get(k) * uy + sn:Get(k) * ny))
+            k = k + 1
+        end
+        // round a, from the left side back to the right side (mirrored arc)
+        k = 0
+        repeat while k < 7
+            qx:Add(startX + d * (-cs:Get(k) * ux - sn:Get(k) * nx))
+            qy:Add(startY + d * (-cs:Get(k) * uy - sn:Get(k) * ny))
+            k = k + 1
+        end
+    end
+
+    // ------------------------------------------------------------ thin parts
+
+    // Outlines too thin for an outer wall (a spike tip, a fin edge, a
+    // spear prong) get one line down their middle instead of nothing.
+    private action ThinIslands(Array<Contour> layer, Array<Contour> outerRing, integer p)
+        integer i = 0
+        repeat while i < layer:GetSize()
+            Contour con = layer:Get(i)
+            if con:GetSize() >= 3 and not IsHole(i, layer)
+                // a usable outer wall inside it? (shorter loops get dropped
+                // when the paths are ordered)
+                boolean walled = false
+                integer r = 0
+                repeat while r < outerRing:GetSize() and not walled
+                    Contour loop = outerRing:Get(r)
+                    if loop:GetSize() >= 3
+                        if con:ContainsPoint(loop:xs:Get(0), loop:ys:Get(0)) and util:PathLength(loop) >= 1.0
+                            walled = true
+                        end
+                    end
+                    r = r + 1
+                end
+                if not walled
+                    CenterLine(con, p)
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    // One line along the outline's long axis, ending half a line width
+    // short of each end and pulled in if the part curves away.
+    private action CenterLine(Contour con, integer p)
+        integer n = con:GetSize()
+        number mx = 0.0
+        number my = 0.0
+        integer i = 0
+        repeat while i < n
+            mx = mx + con:xs:Get(i)
+            my = my + con:ys:Get(i)
+            i = i + 1
+        end
+        mx = mx / cast(number, n)
+        my = my / cast(number, n)
+        number sxx = 0.0
+        number sxy = 0.0
+        number syy = 0.0
+        i = 0
+        repeat while i < n
+            number ex = con:xs:Get(i) - mx
+            number ey = con:ys:Get(i) - my
+            sxx = sxx + ex * ex
+            sxy = sxy + ex * ey
+            syy = syy + ey * ey
+            i = i + 1
+        end
+        // long axis: power iteration on the spread of the points
+        number ax = 1.0
+        number ay = 0.37
+        integer it = 0
+        repeat while it < 16
+            number nx = sxx * ax + sxy * ay
+            number ny = sxy * ax + syy * ay
+            number nlen = math:SquareRoot(nx * nx + ny * ny)
+            if nlen < 0.000000001
+                it = 16
+            else
+                ax = nx / nlen
+                ay = ny / nlen
+                it = it + 1
+            end
+        end
+        number alen = math:SquareRoot(ax * ax + ay * ay)
+        ax = ax / alen
+        ay = ay / alen
+
+        number low = 0.0
+        number high = 0.0
+        i = 0
+        repeat while i < n
+            number t = (con:xs:Get(i) - mx) * ax + (con:ys:Get(i) - my) * ay
+            if i = 0 or t < low
+                low = t
+            end
+            if i = 0 or t > high
+                high = t
+            end
+            i = i + 1
+        end
+        number rawLength = high - low
+        low = low + lineWidth * 0.5
+        high = high - lineWidth * 0.5
+        if high - low < lineWidth * 0.5
+            // a dot, not a line
+            Dot(con, mx, my, ax, ay, rawLength, p)
+            return now
+        end
+
+        // pull each end toward the middle until it's inside the part
+        integer tries = 0
+        repeat while tries < 8 and not con:ContainsPoint(mx + ax * low, my + ay * low)
+            low = low * 0.75
+            tries = tries + 1
+        end
+        tries = 0
+        repeat while tries < 8 and not con:ContainsPoint(mx + ax * high, my + ay * high)
+            high = high * 0.75
+            tries = tries + 1
+        end
+        if high - low < lineWidth * 0.5
+            Dot(con, mx, my, ax, ay, rawLength, p)
+            return now
+        end
+
+        Contour line
+        line:AddPoint(mx + ax * low, my + ay * low)
+        line:AddPoint(mx + ax * high, my + ay * high)
+        line:closed = false
+        line:planeIndex = p
+        line:keepShort = true
+        skin:Add(line)
+    end
+
+    // An island too small for even a center line (the last layers of an
+    // ear tip or a horn): one short dab along its long axis instead of
+    // nothing. Its length is picked so the dab holds about as much plastic
+    // as the island (area / line width), never longer than the island.
+    private action Dot(Contour con, number mx, number my, number ax, number ay, number rawLength, integer p)
+        if not con:ContainsPoint(mx, my)
+            return now
+        end
+        number length = con:Area() / lineWidth
+        if length > rawLength
+            length = rawLength
+        end
+        if length < minDotLength
+            return now
+        end
+        number halfLength = length / 2.0
+        Contour dot
+        dot:AddPoint(mx - ax * halfLength, my - ay * halfLength)
+        dot:AddPoint(mx + ax * halfLength, my + ay * halfLength)
+        dot:closed = false
+        dot:planeIndex = p
+        dot:keepShort = true
+        skin:Add(dot)
+    end
+
+    // loops[index] is a hole if it lies inside an odd number of the others
+    // (Contour:IsInside, so islands that only touch are not holes).
+    private action IsHole(integer index, Array<Contour> loops) returns boolean
+        Contour loop = loops:Get(index)
+        if loop:GetSize() < 3
+            return false
+        end
+        boolean hole = false
+        integer i = 0
+        repeat while i < loops:GetSize()
+            if i not= index
+                Contour other = loops:Get(i)
+                if loop:IsInside(other)
+                    hole = not hole
+                end
+            end
+            i = i + 1
+        end
+        return hole
+    end
+
+    private action LoopFits(Contour loop, Array<Contour> outline, number depth) returns boolean
+        integer n = loop:GetSize()
+        if n < 3
+            return false
+        end
+        // A true inset point is never closer than `depth` to the outline; 10%
+        // slack covers rounding. Even one vertex closer than that is a fold-
+        // over the offsetter kept (a spur on the wall), and the island gets
+        // rebuilt exactly instead.
+        number need = 0.9 * depth
+        integer v = 0
+        repeat while v < n
+            number x = loop:xs:Get(v)
+            number y = loop:ys:Get(v)
+            if not InsideOutline(outline, x, y)
+                return false
+            end
+            if CloserThan(outline, x, y, need)
+                return false
+            end
+            v = v + 1
+        end
+        return true
+    end
+
+    // Inside the outline (even-odd over all its loops, so holes count).
+    private action InsideOutline(Array<Contour> outline, number x, number y) returns boolean
+        boolean inside = false
+        integer c = 0
+        repeat while c < outline:GetSize()
+            Contour con = outline:Get(c)
+            if con:ContainsPoint(x, y)
+                inside = not inside
+            end
+            c = c + 1
+        end
+        return inside
+    end
+
+    // Is (x, y) closer than `limit` to any edge of the outline? Stops at the
+    // first edge that is.
+    private action CloserThan(Array<Contour> outline, number x, number y, number limit) returns boolean
+        number limit2 = limit * limit
+        integer c = 0
+        repeat while c < outline:GetSize()
+            Contour con = outline:Get(c)
+            integer n = con:GetSize()
+            integer j = n - 1
+            integer i = 0
+            repeat while i < n
+                if util:SegmentDistance2(x, y, con:xs:Get(j), con:ys:Get(j), con:xs:Get(i), con:ys:Get(i)) < limit2
+                    return true
+                end
+                j = i
+                i = i + 1
+            end
+            c = c + 1
+        end
+        return false
+    end
+
+    private action FindSkin(integer p, Array<Contour> innerArea) returns Array<Contour>
+        Array<Contour> top = Uncovered(p, innerArea, 1, topLayers)
+        Array<Contour> bottom = Uncovered(p, innerArea, -1, bottomLayers)
+        if top:GetSize() = 0
+            return bottom
+        end
+        if bottom:GetSize() = 0
+            return top
+        end
+        return ops:Union(top, bottom, p)
+    end
+
+    // The part of innerArea not covered by every one of the next `count`
+    // layers in `direction` (+1 = up, -1 = down).
+    private action Uncovered(integer p, Array<Contour> innerArea, integer direction, integer count) returns Array<Contour>
+        Array<Contour> nothing
+        if count <= 0
+            return nothing
+        end
+
+        Array<Contour> covered
+        integer j = 1
+        repeat while j <= count
+            integer q = p + direction * j
+            if q < 0 or q >= planeTotal
+                return innerArea // runs off the model: all of it is surface
+            end
+            Array<Contour> neighbour = InnerContours(q)
+            if neighbour:GetSize() = 0
+                return innerArea
+            end
+            if j = 1
+                covered = neighbour
+            else
+                covered = ops:Intersect(covered, neighbour, p)
+                if covered:GetSize() = 0
+                    return innerArea
+                end
+            end
+            j = j + 1
+        end
+        return ops:Difference(innerArea, covered, p)
+    end
+
+    // Grows `region` outward by r: the region plus a capsule of radius r
+    // around every edge. Exact, like ExactInset.
+    private action ExactOutset(Array<Contour> region, number r) returns Array<Contour>
+        ops:Clear()
+        ops:AddContours(region, false)
+        AddEdgeCapsules(region, r)
+        return ops:Resolve(1, plane)
+    end
+
+    // Wall w should cover the band w..w+1 widths in. Wherever it couldn't
+    // (the part is too thin there), fill that band with solid lines.
+    private action WallGaps(Array<Contour> layer, integer w, Array<Contour> deeper, integer p)
+        Array<Contour> band = FitInset(layer, lineWidth * cast(number, w), false)
+        if band:GetSize() = 0
+            return now
+        end
+        Array<Contour> gaps = band
+        Array<Contour> reach = ExactOutset(deeper, lineWidth)
+        if reach:GetSize() > 0
+            gaps = ops:Difference(band, reach, p)
+        end
+        if gaps:GetSize() > 0
+            lineFill:Fill(gaps, p, lineWidth, minInfillLength, skin)
+        end
+    end
+
+    private action InnerContours(integer p) returns Array<Contour>
+        Array<Contour> area
+        integer k = innerStart:Get(p)
+        repeat while k < innerStart:Get(p + 1)
+            area:Add(inner:Get(k))
+            k = k + 1
+        end
+        return area
+    end
+end

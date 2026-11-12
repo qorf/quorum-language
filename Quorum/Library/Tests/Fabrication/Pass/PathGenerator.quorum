@@ -1,0 +1,229 @@
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.Language.Errors.InvalidArgumentError
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Slicing.PathGenerator
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestSlices
+
+/*
+Tests Libraries.Fabrication.Slicing.PathGenerator on a 20 mm cube (100
+layers of 0.2 mm, 3 walls, 4 top and 4 bottom layers) and on outlines too
+thin for a wall.
+*/
+class Main
+    TestModels models
+    TestSlices slices
+    Math math
+    Array<Contour> cube
+    integer planes = 0
+
+    action Main
+        cube = slices:Outlines(models:Cube(), 0.2)
+        planes = slices:GetLastPlaneCount()
+        Walls()
+        TouchingIslandsBothGetWalls()
+        SkinOnlyNearSurfaces()
+        NoInfillAtZeroDensity()
+        ThinParts()
+        RejectsBadSettings()
+    end
+
+    action Generated(number density) returns PathGenerator
+        PathGenerator paths
+        paths:SetLineWidth(0.4)
+        paths:SetWallCount(3)
+        paths:SetInfillDensity(density)
+        paths:SetTopLayers(4)
+        paths:SetBottomLayers(4)
+        paths:Generate(cube, planes)
+        return paths
+    end
+
+    action Walls
+        // walls
+        PathGenerator paths = Generated(0.2)
+        Array<Contour> walls = paths:GetWalls()
+        output "three walls on every layer: " + (walls:GetSize() = 3 * planes)
+        text wrongArea = ""
+        integer openWalls = 0
+        integer i = 0
+        repeat while i < walls:GetSize()
+            Contour wall = walls:Get(i)
+            if wall:planeIndex = 50
+                // wall w's centre line is (w + 0.5) line widths inside the outline
+                number side = 20 - 0.4 - 0.8 * wall:wallIndex
+                if Near(wall:Area(), side * side, 0.5) not= "true"
+                    wrongArea = wrongArea + " " + wall:wallIndex
+                end
+                if not wall:closed
+                    openWalls = openWalls + 1
+                end
+            end
+            i = i + 1
+        end
+        output "layer 50 walls whose area is wrong:" + wrongArea
+        output "layer 50 walls that aren't loops: " + openWalls
+        integer outer = 0
+        i = 0
+        repeat while i < walls:GetSize()
+            Contour candidate = walls:Get(i)
+            if candidate:planeIndex = 50 and candidate:wallIndex = 0
+                outer = outer + 1
+                output "the outer wall is exactly 0.2 mm in: " + Near(candidate:Area(), 19.6 * 19.6, 0.000001)
+            end
+            i = i + 1
+        end
+        output "one outer wall on layer 50: " + outer
+        output "no bad inset loops on a cube: " + paths:GetDroppedLoopCount()
+    end
+
+    /*
+    The ledge model's block and ledge touch along x = 20 on the ledge layers.
+    Each is its own island and gets its own walls; a block that starts at a
+    corner it shares with the ledge was once taken for a hole and lost its
+    walls (the regression baselines caught it).
+    */
+    action TouchingIslandsBothGetWalls
+        // islands that touch both get walls
+        Array<Contour> ledge = slices:Outlines(models:Ledge(), 0.2)
+        integer ledgePlanes = slices:GetLastPlaneCount()
+        PathGenerator paths
+        paths:SetLineWidth(0.4)
+        paths:SetWallCount(3)
+        paths:SetInfillDensity(0.2)
+        paths:Generate(ledge, ledgePlanes)
+        Array<Contour> walls = paths:GetWalls()
+        integer outlineCount = 0
+        integer i = 0
+        repeat while i < ledge:GetSize()
+            Contour outline = ledge:Get(i)
+            if outline:closed and not outline:isHole
+                outlineCount = outlineCount + 1
+            end
+            i = i + 1
+        end
+        integer outerWalls = 0
+        i = 0
+        repeat while i < walls:GetSize()
+            Contour wall = walls:Get(i)
+            if wall:wallIndex = 0
+                outerWalls = outerWalls + 1
+            end
+            i = i + 1
+        end
+        output "the ledge layers have two islands: " + (outlineCount > ledgePlanes)
+        output "one outer wall per island: " + (outerWalls = outlineCount)
+        output "three walls per island: " + (walls:GetSize() = 3 * outlineCount)
+    end
+
+    action SkinOnlyNearSurfaces
+        // skin near the top and bottom, infill between
+        PathGenerator paths = Generated(0.2)
+        Array<Contour> skin = paths:GetSkin()
+        Array<Contour> infill = paths:GetInfill()
+        output "skin on the first layer: " + (models:CountOnPlane(skin, 0) > 0)
+        output "skin on the 4th layer: " + (models:CountOnPlane(skin, 3) > 0)
+        output "no skin on the 5th layer: " + models:CountOnPlane(skin, 4)
+        output "no skin in the middle: " + models:CountOnPlane(skin, 50)
+        output "no skin 5 layers from the top: " + models:CountOnPlane(skin, 95)
+        output "skin 4 layers from the top: " + (models:CountOnPlane(skin, 96) > 0)
+        output "skin on the top layer: " + (models:CountOnPlane(skin, 99) > 0)
+        output "no sparse infill on the solid first layer: " + models:CountOnPlane(infill, 0)
+        output "sparse infill in the middle: " + (models:CountOnPlane(infill, 50) > 0)
+        // the first layer's skin is joined into zigzags: far fewer paths than lines
+        output "first layer skin is joined: " + AtMost(models:CountOnPlane(skin, 0), 4)
+        output "other skin layers are separate lines: " + (models:CountOnPlane(skin, 1) > 10)
+    end
+
+    action NoInfillAtZeroDensity
+        // infill density 0
+        PathGenerator paths = Generated(0)
+        Array<Contour> infill = paths:GetInfill()
+        output "no sparse infill at all: " + infill:GetSize()
+        Array<Contour> skin = paths:GetSkin()
+        output "top skin is still made: " + (models:CountOnPlane(skin, 99) > 0)
+    end
+
+    action ThinParts
+        // parts too thin for a wall
+        Array<Contour> outlines
+        outlines:Add(models:Rectangle(0, 0, 20, 0.3, 0))
+        outlines:Add(models:Square(30, 0, 0.3, 0))
+        PathGenerator paths
+        paths:SetLineWidth(0.4)
+        paths:SetWallCount(2)
+        paths:Generate(outlines, 1)
+        Array<Contour> walls = paths:GetWalls()
+        output "no wall fits in 0.3 mm: " + walls:GetSize()
+        Array<Contour> skin = paths:GetSkin()
+        integer lines = 0
+        integer dots = 0
+        number lineLength = -1
+        number dotLength = -1
+        integer i = 0
+        repeat while i < skin:GetSize()
+            Contour line = skin:Get(i)
+            if line:keepShort
+                number dx = line:TailX() - line:HeadX()
+                number dy = line:TailY() - line:HeadY()
+                number length = math:SquareRoot(dx * dx + dy * dy)
+                if line:HeadX() < 25
+                    lines = lines + 1
+                    lineLength = length
+                else
+                    dots = dots + 1
+                    dotLength = length
+                end
+            end
+            i = i + 1
+        end
+        // the strip's long axis, half a line width short of each end
+        output "center line length: " + Near(lineLength, 19.6, 0.01)
+        // a dab holding about the island's plastic: 0.09 mm^2 / 0.4 mm
+        output "dot length: " + Near(dotLength, 0.225, 0.001)
+        output "the thin strip gets one center line: " + lines
+        output "the tiny square gets one dot: " + dots
+    end
+
+    action RejectsBadSettings
+        // bad settings are refused
+        output "a line width of 0: " + Refuses(0, 0.2)
+        output "an infill density above 1: " + Refuses(0.4, 1.5)
+        output "a negative infill density: " + (Refuses(0.4, -0.1))
+        output "a solid infill density is fine: " + (not Refuses(0.4, 1))
+    end
+
+    action Refuses(number width, number density) returns boolean
+        boolean refused = false
+        check
+            PathGenerator paths
+            paths:SetLineWidth(width)
+            paths:SetInfillDensity(density)
+        detect e is InvalidArgumentError
+            refused = true
+        end
+        return refused
+    end
+
+    /* "true" if actual is at most maximum, otherwise the actual value. */
+    action AtMost(number actual, number maximum) returns text
+        if actual <= maximum
+            return "true"
+        end
+        return "" + actual
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

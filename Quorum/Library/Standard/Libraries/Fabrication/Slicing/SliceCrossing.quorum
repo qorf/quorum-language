@@ -1,0 +1,17 @@
+package Libraries.Fabrication.Slicing
+
+/*
+The SliceCrossing class is where one edge of a triangle crosses a slice
+plane: the point, the edge's two vertex ids (lower first), and whether the
+edge rises through the plane. MeshSlicer pairs two of them into a Segment.
+*/
+class SliceCrossing
+    public integer edgeLow = 0
+    public integer edgeHigh = 0
+
+    public number x = 0.0
+    public number y = 0.0
+
+    /* True if the edge goes from below the plane to above it. */
+    public boolean rising = false
+end
