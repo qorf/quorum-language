@@ -1,0 +1,827 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Events.SliderListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+    A Slider chooses a number in a range by moving a thumb along a track
+    (Slider plan, look S1). The track is filled in the accent color up to the
+    thumb. When the slider has the focus, its thumb grows, turns the accent
+    color and gets a soft halo.
+
+    The user can change the value with the keys (Right and Up step up, Left
+    and Down step down, Page Up and Page Down move a page step, Home and End
+    go to the ends, and Shift with an arrow moves a tenth of a step), by
+    dragging the thumb, by clicking the track to jump there, or with a
+    screen reader. Listeners (AddSliderListener) are told of each change;
+    while dragging the changes are not final, and one final change is sent
+    when the drag ends.
+
+    Its colors come from the interface options under the key "Slider": the
+    background color is the track, the foreground the filled part, the
+    accent the thumb, the border the thumb's edge, the focus border the
+    focused thumb and its halo, and the focus color the focused thumb's
+    edge.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.Slider
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Slider slider
+            slider:SetName("Volume")
+            slider:SetRange(0, 100)
+            slider:SetStep(1)
+            slider:SetPageStep(10)
+            slider:SetValue(40)
+            slider:SetPosition(100, 100)
+            Add(slider)
+        end
+    end
+*/
+class Slider is Control
+    // The parts, drawn in this order.
+    Icon track
+    Icon fill
+    Icon halo
+    Icon thumb
+
+    GameStateManager manager
+    Math math
+    Array<SliderListener> sliderListeners
+
+    number minimum = 0
+    number maximum = 100
+    number value = 0
+    number stepSize = 1
+    number pageStep = 10
+    // -1 means worked out from the step: 0.01 shows two decimal places.
+    integer decimalPlaces = -1
+    // Said after the number, such as "degrees", or empty.
+    text units = ""
+    // True when the track is spread by ratios, not differences: halfway
+    // between 1 and 100 is 10. The step and page step are then factors.
+    boolean logarithmic = false
+
+    boolean loaded = false
+    boolean focused = false
+
+    // While the mouse button is down on the slider: the value before it
+    // went down, and how far the pointer is from the thumb's center, so
+    // grabbing the thumb off center doesn't make it jump.
+    boolean pointerDown = false
+    number valueBefore = 0
+    number pointerOffset = 0
+
+    // Sizes in pixels before the interface scale.
+    constant number HEIGHT = 26
+    constant number TRACK_HEIGHT = 3
+    constant number THUMB_SIZE = 14
+    constant number FOCUSED_THUMB_SIZE = 18
+    constant number HALO = 4
+    // Room at each end of the track for half the focused thumb and its
+    // halo, so neither is cut off at the ends.
+    constant number END_ROOM = 13
+    // How strong the halo's color is.
+    constant number HALO_ALPHA = 0.45
+
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(150)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(HEIGHT)
+        SetSize(150, HEIGHT)
+        SetName("Slider")
+
+        SetupPart(track, "Slider Track")
+        SetupPart(fill, "Slider Fill")
+        SetupPart(halo, "Slider Halo")
+        SetupPart(thumb, "Slider Thumb")
+        Add(track)
+        Add(fill)
+        Add(halo)
+        Add(thumb)
+
+        SetInterfaceOptionsKey("Slider")
+        SetInputGroup("Slider")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:SLIDER)
+    end
+
+    /*
+        Readies one of the drawn parts: it sizes itself in pixels, is
+        centered up and down, and lets the mouse through to the slider.
+    */
+    private action SetupPart(Icon part, text name)
+        part:SetName(name)
+        part:SetAcceptsMouseInput(false)
+        part:SetBorderThickness(0)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetHorizontalLayoutMode(partProperties:STANDARD)
+        partProperties:SetVerticalLayoutMode(partProperties:STANDARD)
+        part:SetPercentageWidth(0)
+        part:SetPercentageHeight(0)
+        part:SetPercentageY(0.5)
+        part:SetPercentageOriginY(0.5)
+    end
+
+    /*
+        Loads the parts' views the first time, then sets their colors, sizes
+        and places.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        if not loaded
+            loaded = true
+            LoadPartView(track)
+            LoadPartView(fill)
+            LoadPartView(halo)
+            LoadPartView(thumb)
+        end
+
+        UpdateLook()
+        parent:Control:LoadGraphics(properties)
+    end
+
+    private action LoadPartView(Icon part)
+        ControlShaderView view
+        view:Initialize()
+        part:SetView2D(view)
+    end
+
+    /*
+        Sets the parts' colors and sizes from the theme, and whether the
+        slider has the focus, then places them.
+    */
+    private action UpdateLook
+        if not loaded
+            return now
+        end
+
+        number trackRounding = TRACK_HEIGHT / 2.0
+        track:SetBackgroundColor(GetBackgroundColor())
+        track:SetPixelHeight(TRACK_HEIGHT)
+        track:SetCornerPixelRounding(trackRounding, trackRounding, trackRounding, trackRounding)
+        fill:SetBackgroundColor(GetForegroundColor())
+        fill:SetPixelHeight(TRACK_HEIGHT)
+        fill:SetCornerPixelRounding(trackRounding, trackRounding, trackRounding, trackRounding)
+
+        number size = THUMB_SIZE
+        if focused
+            size = FOCUSED_THUMB_SIZE
+            thumb:SetBackgroundColor(GetFocusBorderColor())
+            thumb:SetBorderColor(GetFocusColor())
+            thumb:SetBorderThickness(2)
+            halo:SetBackgroundColor(GetHaloColor())
+        else
+            thumb:SetBackgroundColor(GetAccentColor())
+            thumb:SetBorderColor(GetBorderColor())
+            thumb:SetBorderThickness(1)
+            Color clear
+            clear:SetColor(0, 0, 0, 0)
+            halo:SetBackgroundColor(clear)
+        end
+        number thumbRounding = size / 2.0
+        thumb:SetPixelWidth(size)
+        thumb:SetPixelHeight(size)
+        thumb:SetCornerPixelRounding(thumbRounding, thumbRounding, thumbRounding, thumbRounding)
+
+        number haloSize = size + 2 * HALO
+        number haloRounding = haloSize / 2.0
+        halo:SetPixelWidth(haloSize)
+        halo:SetPixelHeight(haloSize)
+        halo:SetCornerPixelRounding(haloRounding, haloRounding, haloRounding, haloRounding)
+
+        UpdatePositions()
+        track:RequestVerticesUpdate()
+        fill:RequestVerticesUpdate()
+        halo:RequestVerticesUpdate()
+        thumb:RequestVerticesUpdate()
+    end
+
+    /*
+        The halo's color: the focused thumb's color, partly see-through.
+    */
+    private action GetHaloColor returns ColorGroup
+        ColorGroup accent = GetFocusBorderColor()
+        if accent is Color
+            Color solid = cast(Color, accent)
+            Color result
+            result:SetColor(solid:GetRed(), solid:GetGreen(), solid:GetBlue(), HALO_ALPHA)
+            return result
+        end
+        return accent
+    end
+
+    /*
+        Places the track, the filled part, the thumb and its halo for the
+        value. The layout scales sizes but not positions, so positions are
+        multiplied by the interface scale here.
+    */
+    private action UpdatePositions
+        if not loaded
+            return now
+        end
+        number share = GetShare()
+        number room = END_ROOM * GetInterfaceScale()
+
+        track:SetPercentageWidth(1.0)
+        track:SetPixelWidth(-2 * END_ROOM)
+        track:SetPixelX(room)
+
+        fill:SetPercentageWidth(share)
+        fill:SetPixelWidth(-2 * END_ROOM * share)
+        fill:SetPixelX(room)
+
+        // The thumb's center is at the share of the track's length.
+        thumb:SetPercentageX(share)
+        thumb:SetPercentageOriginX(0.5)
+        thumb:SetPixelX(room * (1 - 2 * share))
+        halo:SetPercentageX(share)
+        halo:SetPercentageOriginX(0.5)
+        halo:SetPixelX(room * (1 - 2 * share))
+
+        track:RequestLayout()
+        fill:RequestLayout()
+        halo:RequestLayout()
+        thumb:RequestLayout()
+    end
+
+    /*
+        How far the value is along the range, from 0 to 1.
+    */
+    private action GetShare returns number
+        if maximum <= minimum
+            return 0
+        end
+        number share = 0
+        if IsSpreadByRatio()
+            share = math:NaturalLogarithm(value / minimum) / math:NaturalLogarithm(maximum / minimum)
+        else
+            share = (value - minimum) / (maximum - minimum)
+        end
+        if share < 0
+            return 0
+        elseif share > 1
+            return 1
+        end
+        return share
+    end
+
+    /*
+        This action is called when the slider gains the focus: its thumb
+        grows and gets its halo.
+
+        Attribute: Parameter event The focus event.
+    */
+    action GainedFocus(FocusEvent event)
+        focused = true
+        UpdateLook()
+        parent:Control:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the slider loses the focus: its thumb
+        goes back to its usual look.
+
+        Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        focused = false
+        if pointerDown
+            EndPointer()
+        end
+        UpdateLook()
+        parent:Control:LostFocus(event)
+    end
+
+    /*
+        Returns the least value.
+
+        Attribute: Returns The minimum.
+    */
+    action GetMinimum returns number
+        return minimum
+    end
+
+    /*
+        Sets the least value. The value is kept within the range.
+
+        Attribute: Parameter newMinimum The minimum.
+    */
+    action SetMinimum(number newMinimum)
+        SetRange(newMinimum, maximum)
+    end
+
+    /*
+        Returns the greatest value.
+
+        Attribute: Returns The maximum.
+    */
+    action GetMaximum returns number
+        return maximum
+    end
+
+    /*
+        Sets the greatest value. The value is kept within the range.
+
+        Attribute: Parameter newMaximum The maximum.
+    */
+    action SetMaximum(number newMaximum)
+        SetRange(minimum, newMaximum)
+    end
+
+    /*
+        Sets the least and greatest values. The value is kept within the
+        range. Listeners aren't told.
+
+        Attribute: Parameter newMinimum The minimum.
+        Attribute: Parameter newMaximum The maximum.
+    */
+    action SetRange(number newMinimum, number newMaximum)
+        minimum = newMinimum
+        maximum = newMaximum
+        if maximum < minimum
+            maximum = minimum
+        end
+        SetValue(value)
+    end
+
+    /*
+        Returns the value.
+
+        Attribute: Returns The value.
+    */
+    action GetValue returns number
+        return value
+    end
+
+    /*
+        Sets the value, kept within the range, as a program does: the thumb
+        moves and the screen reader is told, but listeners aren't, since the
+        user didn't change it. To change it as the user does, use
+        ChangeValue.
+
+        Attribute: Parameter newValue The value.
+    */
+    action SetValue(number newValue)
+        number oldValue = value
+        value = Clamp(newValue)
+        UpdatePositions()
+        NotifyAccessibility(oldValue)
+    end
+
+    /*
+        Changes the value as the user does: kept within the range, the thumb
+        moves, the screen reader is told, and so are listeners if the value
+        changed.
+
+        Attribute: Parameter newValue The value.
+        Attribute: Parameter isFinal False while a drag goes on, true otherwise.
+    */
+    action ChangeValue(number newValue, boolean isFinal)
+        number oldValue = value
+        value = Clamp(newValue)
+        UpdatePositions()
+        if value not= oldValue
+            NotifyAccessibility(oldValue)
+            NotifyListeners(oldValue, value, isFinal)
+        end
+    end
+
+    /*
+        Returns how much one key press changes the value.
+
+        Attribute: Returns The step.
+    */
+    action GetStep returns number
+        return stepSize
+    end
+
+    /*
+        Sets how much one key press changes the value. Dragging and clicking
+        the track also move in steps.
+
+        Attribute: Parameter step The step, more than 0.
+    */
+    action SetStep(number step)
+        if step > 0
+            stepSize = step
+        end
+    end
+
+    /*
+        Sets whether the track is spread by ratios instead of differences,
+        for a range whose useful values are spread unevenly, such as a size
+        from 0.5 to 64: halfway along is the middle ratio (about 5.7), not
+        the middle number (32). The step and page step are then factors
+        greater than 1, such as 1.15 (each key press is 15% more) and 2
+        (Page Up doubles). It needs a minimum above 0; with a minimum of 0
+        or less the track is spread by differences as usual.
+
+        Attribute: Parameter value True to spread the track by ratios.
+    */
+    action SetLogarithmic(boolean value)
+        logarithmic = value
+        UpdatePositions()
+    end
+
+    /*
+        Returns true if the track is set to spread by ratios.
+
+        Attribute: Returns True if logarithmic.
+    */
+    action IsLogarithmic returns boolean
+        return logarithmic
+    end
+
+    /*
+        True if the track is spread by ratios: set so, with a minimum above
+        0 and factors above 1.
+    */
+    private action IsSpreadByRatio returns boolean
+        return logarithmic and minimum > 0 and stepSize > 1 and pageStep > 1
+    end
+
+    /*
+        Returns how much Page Up and Page Down change the value.
+
+        Attribute: Returns The page step.
+    */
+    action GetPageStep returns number
+        return pageStep
+    end
+
+    /*
+        Sets how much Page Up and Page Down change the value.
+
+        Attribute: Parameter step The page step, more than 0.
+    */
+    action SetPageStep(number step)
+        if step > 0
+            pageStep = step
+        end
+    end
+
+    /*
+        Returns how many decimal places the value is shown and said with.
+        Unless set, it is worked out from the step: 2 for a step of 0.01.
+
+        Attribute: Returns The decimal places.
+    */
+    action GetDecimalPlaces returns integer
+        if decimalPlaces >= 0
+            return decimalPlaces
+        end
+        integer places = 0
+        number scaled = stepSize
+        repeat while places < 6 and math:AbsoluteValue(scaled - math:Round(scaled)) > 0.000001
+            scaled = scaled * 10
+            places = places + 1
+        end
+        return places
+    end
+
+    /*
+        Sets how many decimal places the value is shown and said with, or -1
+        to work it out from the step.
+
+        Attribute: Parameter places The decimal places.
+    */
+    action SetDecimalPlaces(integer places)
+        decimalPlaces = places
+    end
+
+    /*
+        Returns the word said after the value, such as "degrees", or an
+        empty text.
+
+        Attribute: Returns The units.
+    */
+    action GetUnits returns text
+        return units
+    end
+
+    /*
+        Sets a word said after the value by screen readers, such as
+        "degrees", or an empty text for none.
+
+        Attribute: Parameter newUnits The units.
+    */
+    action SetUnits(text newUnits)
+        if newUnits = undefined
+            units = ""
+        else
+            units = newUnits
+        end
+    end
+
+    /*
+        Returns the value as a number with the slider's decimal places, such
+        as "0.25" or "40".
+
+        Attribute: Returns The value as text.
+    */
+    action GetNumberText returns text
+        return FormatNumber(value)
+    end
+
+    /*
+        Returns what a screen reader says for the value: the number, then
+        the units if there are any, such as "40 degrees".
+
+        Attribute: Returns The value text.
+    */
+    action GetValueText returns text
+        if units = ""
+            return FormatNumber(value)
+        end
+        return FormatNumber(value) + " " + units
+    end
+
+    /*
+        Writes a number with the slider's decimal places.
+
+        Attribute: Parameter amount The number.
+        Attribute: Returns The text.
+    */
+    action FormatNumber(number amount) returns text
+        integer places = GetDecimalPlaces()
+        if places <= 0
+            integer whole = cast(integer, math:Round(amount))
+            return "" + whole
+        end
+        return "" + math:Round(amount, places)
+    end
+
+    /*
+        Moves the value one step up, as Right or Up does.
+    */
+    action StepUp
+        if IsSpreadByRatio()
+            ChangeValue(SnapToStep(value * stepSize), true)
+            return now
+        end
+        ChangeValue(SnapToStep(value + stepSize), true)
+    end
+
+    /*
+        Moves the value one step down, as Left or Down does.
+    */
+    action StepDown
+        if IsSpreadByRatio()
+            ChangeValue(SnapToStep(value / stepSize), true)
+            return now
+        end
+        ChangeValue(SnapToStep(value - stepSize), true)
+    end
+
+    /*
+        Moves the value a tenth of a step up, as Shift with Right or Up does.
+    */
+    action FineStepUp
+        if IsSpreadByRatio()
+            ChangeValue(math:Round(value * math:RaiseToPower(stepSize, 0.1), GetDecimalPlaces() + 1), true)
+            return now
+        end
+        ChangeValue(math:Round(value + stepSize / 10.0, GetDecimalPlaces() + 1), true)
+    end
+
+    /*
+        Moves the value a tenth of a step down, as Shift with Left or Down
+        does.
+    */
+    action FineStepDown
+        if IsSpreadByRatio()
+            ChangeValue(math:Round(value / math:RaiseToPower(stepSize, 0.1), GetDecimalPlaces() + 1), true)
+            return now
+        end
+        ChangeValue(math:Round(value - stepSize / 10.0, GetDecimalPlaces() + 1), true)
+    end
+
+    /*
+        Moves the value a page step up, as Page Up does.
+    */
+    action PageUp
+        if IsSpreadByRatio()
+            ChangeValue(SnapToStep(value * pageStep), true)
+            return now
+        end
+        ChangeValue(SnapToStep(value + pageStep), true)
+    end
+
+    /*
+        Moves the value a page step down, as Page Down does.
+    */
+    action PageDown
+        if IsSpreadByRatio()
+            ChangeValue(SnapToStep(value / pageStep), true)
+            return now
+        end
+        ChangeValue(SnapToStep(value - pageStep), true)
+    end
+
+    /*
+        Moves the value to the minimum, as Home does.
+    */
+    action MoveToMinimum
+        ChangeValue(minimum, true)
+    end
+
+    /*
+        Moves the value to the maximum, as End does.
+    */
+    action MoveToMaximum
+        ChangeValue(maximum, true)
+    end
+
+    /*
+        This action is called when the mouse button goes down on the slider,
+        at a place across the screen. Pressing the thumb grabs it where it
+        is; pressing the track elsewhere jumps the thumb there. The slider
+        takes the focus.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+    */
+    action BeginPointer(number x)
+        if not IsFocused()
+            Focus()
+        end
+        pointerDown = true
+        valueBefore = value
+        number center = GetThumbCenter()
+        number half = FOCUSED_THUMB_SIZE * GetInterfaceScale() / 2.0
+        if x >= center - half and x <= center + half
+            pointerOffset = center - x
+        else
+            pointerOffset = 0
+            ChangeValue(GetValueAt(x), false)
+        end
+    end
+
+    /*
+        This action is called as the pointer is dragged: the thumb follows
+        it, in steps.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+    */
+    action MovePointer(number x)
+        if not pointerDown
+            BeginPointer(x)
+        end
+        ChangeValue(GetValueAt(x + pointerOffset), false)
+    end
+
+    /*
+        This action is called when the mouse button comes up: listeners are
+        told of the change, once, as final, with the value before the button
+        went down as the old value.
+    */
+    action EndPointer
+        if not pointerDown
+            return now
+        end
+        pointerDown = false
+        if value not= valueBefore
+            NotifyListeners(valueBefore, value, true)
+        end
+    end
+
+    /*
+        Returns true while the mouse button is down on the slider.
+
+        Attribute: Returns True while the pointer is down.
+    */
+    action IsPointerDown returns boolean
+        return pointerDown
+    end
+
+    /*
+        Where the thumb's center is, across the screen.
+    */
+    private action GetThumbCenter returns number
+        number room = END_ROOM * GetInterfaceScale()
+        return GetGlobalX() + room + GetShare() * (GetWidth() - 2 * room)
+    end
+
+    /*
+        The value at a place across the screen, in steps.
+    */
+    private action GetValueAt(number x) returns number
+        number room = END_ROOM * GetInterfaceScale()
+        number length = GetWidth() - 2 * room
+        if length <= 0
+            return value
+        end
+        number share = (x - GetGlobalX() - room) / length
+        if share < 0
+            share = 0
+        elseif share > 1
+            share = 1
+        end
+        if IsSpreadByRatio()
+            return SnapToStep(minimum * math:RaiseToPower(maximum / minimum, share))
+        end
+        return SnapToStep(minimum + share * (maximum - minimum))
+    end
+
+    /*
+        Rounds a value to the nearest step from the minimum, and to the
+        slider's decimal places, so adding steps doesn't gather rounding
+        errors.
+    */
+    private action SnapToStep(number amount) returns number
+        number result = amount
+        // By ratio, the step is a factor, so there's no grid: only the
+        // decimal places round it.
+        if stepSize > 0 and IsSpreadByRatio() = false
+            result = minimum + math:Round((amount - minimum) / stepSize) * stepSize
+        end
+        return math:Round(Clamp(result), GetDecimalPlaces())
+    end
+
+    private action Clamp(number amount) returns number
+        if amount < minimum
+            return minimum
+        elseif amount > maximum
+            return maximum
+        end
+        return amount
+    end
+
+    /*
+        Adds a listener, told when the user changes the value.
+
+        Attribute: Parameter listener The listener.
+    */
+    action AddSliderListener(SliderListener listener)
+        sliderListeners:Add(listener)
+    end
+
+    /*
+        Removes a listener.
+
+        Attribute: Parameter listener The listener.
+    */
+    action RemoveSliderListener(SliderListener listener)
+        sliderListeners:Remove(listener)
+    end
+
+    private action NotifyListeners(number oldValue, number newValue, boolean isFinal)
+        if sliderListeners:IsEmpty()
+            return now
+        end
+        SliderChangedEvent event
+        event:SetSlider(me)
+        event:SetOldValue(oldValue)
+        event:SetNewValue(newValue)
+        event:SetFinal(isFinal)
+        // A copy, in case a listener adds or removes one.
+        Array<SliderListener> listeners = sliderListeners:CopyToArray()
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            listeners:Get(i):SliderChanged(event)
+            i = i + 1
+        end
+    end
+
+    private action NotifyAccessibility(number oldValue)
+        if oldValue = value
+            return now
+        end
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            SliderChangedEvent event
+            event:SetSlider(me)
+            event:SetOldValue(oldValue)
+            event:SetNewValue(value)
+            event:SetFinal(not pointerDown)
+            access:SliderValueChanged(event)
+        end
+    end
+end

@@ -6,6 +6,7 @@ use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Controls.Dialog
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Containers.Array
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
@@ -142,70 +143,13 @@ class PointLightPropertiesDialog is PropertiesDialog
         positionContainer:Add(positionFieldContainer)
         panel:Add(positionContainer)
 
-        Label colorLabel
-        
-        TextField colorRedField
-        me:colorRedField = colorRedField
-
-        TextField colorGreenField
-        me:colorGreenField = colorGreenField
-
-        TextField colorBlueField
-        me:colorBlueField = colorBlueField
-
-        FlowLayout colorLayout
-        Control colorContainer
-        colorContainer:SetLayout(colorLayout)
-        colorContainer:SetPercentageWidth(1.0)
-        colorContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        colorContainer:SetLeftMargin(20)
-        colorContainer:SetTopMargin(10)
-        colorContainer:SetRightMargin(30)
-        colorContainer:SetBottomMargin(10)
-
-        colorLabel:SetText("Color (RGB):")
-        colorLabel:SetRightMargin(10)
-        colorContainer:Add(colorLabel)
-        
-        FlowLayout colorFieldLayout
-        Control colorFieldContainer
-        colorFieldContainer:SetLayout(colorFieldLayout)
-
-        colorFieldContainer:SetHorizontalLayoutMode(colorFieldContainer:FILL)
-        colorFieldContainer:SetName("Color Fields")
-        colorRedField:SetName("Red")
-        colorRedField:SetText("")
-        colorRedField:SetFocusable(true)
-        colorRedField:AddTextChangeListener(me)
-        colorRedField:SetRightMargin(8)
-        colorRedField:SetPercentageWidth(0.33)
-        colorRedField:SetPixelWidth(-8)
-        colorFieldContainer:Add(colorRedField)
-
-        colorGreenField:SetName("Green")
-        colorGreenField:SetText("")
-        colorGreenField:SetFocusable(true)
-        colorGreenField:AddTextChangeListener(me)
-        colorGreenField:SetRightMargin(8)
-        colorGreenField:SetPercentageWidth(0.33)
-        colorGreenField:SetPixelWidth(-8)
-        colorFieldContainer:Add(colorGreenField)
-
-        colorBlueField:SetName("Blue")
-        colorBlueField:SetText("")
-        colorBlueField:SetFocusable(true)
-        colorBlueField:AddTextChangeListener(me)
-        colorBlueField:SetRightMargin(8)
-        colorBlueField:SetPercentageWidth(0.33)
-        colorBlueField:SetPixelWidth(-8)
-        colorFieldContainer:Add(colorBlueField)
-
-        focusArray:Add(colorRedField)
-        focusArray:Add(colorGreenField)
-        focusArray:Add(colorBlueField)
-
-        colorContainer:Add(colorFieldContainer)
-        panel:Add(colorContainer)
+        // The color is three sliders with number fields (Slider plan), red,
+        // green and blue, each from 0 to 1. Moving one writes the number in
+        // its field, which this section hears as typing, so the light
+        // changes as it moves.
+        colorRedField = AddColorSlider(panel, focusArray, "Red:", "Color red", "The light's red, from 0 to 1")
+        colorGreenField = AddColorSlider(panel, focusArray, "Green:", "Color green", "The light's green, from 0 to 1")
+        colorBlueField = AddColorSlider(panel, focusArray, "Blue:", "Color blue", "The light's blue, from 0 to 1")
 
         FlowLayout intensityLayout
         Control intensityContainer
@@ -233,6 +177,24 @@ class PointLightPropertiesDialog is PropertiesDialog
         intensityContainer:Add(intensityField)
         focusArray:Add(intensityField)
         panel:Add(intensityContainer)
+    end
+
+    /*
+        Adds one of the color's sliders, with a field line's margins, and
+        returns its number field.
+    */
+    private action AddColorSlider(Control panel, Array<Control> focusArray, text label, text name, text description) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, 0, 1, 0.01, 0.1, 70)
+        sliderField:SetLeftMargin(20)
+        sliderField:SetRightMargin(30)
+        sliderField:SetTopMargin(6)
+        sliderField:SetBottomMargin(6)
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        panel:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
     end
 
     /*

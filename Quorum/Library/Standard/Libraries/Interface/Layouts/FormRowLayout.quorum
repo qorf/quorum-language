@@ -19,6 +19,7 @@ use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Glyph
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.TextBox
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
@@ -589,9 +590,10 @@ class FormRowLayout is Layout
                     number width = defaultRowWidth
                     if control:GetPixelWidth() not= 0 or control:GetPercentageWidth() not= 0
                         width = control:GetPixelWidth() + containerWidth * control:GetPercentageWidth()
-                    elseif control is TextField and width > MAX_FIELD_WIDTH * scale
+                    elseif (control is TextField or control is SliderField) and width > MAX_FIELD_WIDTH * scale
                         // A field with no width of its own isn't wider than
-                        // its text could need (A3).
+                        // its text could need (A3). A slider with its number
+                        // field is kept to a field's width too.
                         width = MAX_FIELD_WIDTH * scale
                     end
 
@@ -782,7 +784,7 @@ class FormRowLayout is Layout
             return false
         end
         Item2D next = items:Get(index + 1)
-        if next is TextField or next is TextBox
+        if next is TextField or next is TextBox or next is SliderField
             return true
         end
         // A field with buttons beside it, such as a path and Browse (L1).
@@ -829,7 +831,7 @@ class FormRowLayout is Layout
             return false
         end
         Item2D next = items:Get(index + 1)
-        if next is TextField or next is TextBox
+        if next is TextField or next is TextBox or next is SliderField
             return true
         end
         if next is Grouping
@@ -977,6 +979,13 @@ class FormRowLayout is Layout
         if control:GetDefaultLayoutProperties():NeedsRendering()
             control:LoadGraphics(control:GetDefaultLayoutProperties())
         end
+        // A slider and its number field size themselves to the width: one
+        // line, or two when narrow (SliderFieldLayout).
+        if control is SliderField
+            control:SetWidth(width)
+            control:Resize()
+            return control:GetHeight()
+        end
         Font font = control:GetFont()
         if font = undefined
             font = fallback:Copy()
@@ -1072,8 +1081,9 @@ class FormRowLayout is Layout
             labelWidth = MeasureText(label, label:GetText(), fallback)
             number available = width - labelWidth - IN_ROW_GAP * scale
             number controlWidth = ROW_FIELD_WIDTH * scale
-            if control is TextField or control is Grouping
-                // One column for fields and choices beside their labels.
+            if control is TextField or control is Grouping or control is SliderField
+                // One column for fields, sliders and choices beside their
+                // labels.
                 controlWidth = width * ROW_CONTROL_SHARE
                 if controlWidth > MAX_FIELD_WIDTH * scale
                     controlWidth = MAX_FIELD_WIDTH * scale

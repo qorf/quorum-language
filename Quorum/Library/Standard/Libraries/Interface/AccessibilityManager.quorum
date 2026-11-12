@@ -37,6 +37,8 @@ use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Interface.Controls.ProgressBar
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Controls.Slider
+use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
 
@@ -92,6 +94,8 @@ class AccessibilityManager is Accessibility
 
     private system action ProgressBarValueChanged(ProgressBar progress)
 
+    private system action SliderChanged(Slider slider)
+
     // =====
 
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
@@ -135,6 +139,16 @@ class AccessibilityManager is Accessibility
     action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
         ProgressBar bar = progress:GetProgressBar()
         ProgressBarValueChanged(bar)
+    end
+
+    /*
+        A slider's value changed: UI Automation is told its new number and
+        text, so Narrator and NVDA say it.
+    */
+    action SliderValueChanged(SliderChangedEvent event)
+        if event:GetSlider() not= undefined
+            SliderChanged(event:GetSlider())
+        end
     end
 
     action SelectionChanged(SelectionEvent event)

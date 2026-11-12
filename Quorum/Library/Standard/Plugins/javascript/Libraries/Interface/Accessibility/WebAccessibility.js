@@ -365,6 +365,21 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         //console.log("Progress bar updated");
     };
 
+//    system action SliderChanged(Slider slider)
+
+    this.SliderChanged$quorum_Libraries_Interface_Controls_Slider = function(slider) {
+        let sliderID = slider.GetHashCode();
+        if(elementList[sliderID] != null) {
+            let element = document.getElementById(sliderID);
+            if (element) {
+                element.setAttribute("aria-valuemin", slider.GetMinimum());
+                element.setAttribute("aria-valuemax", slider.GetMaximum());
+                element.setAttribute("aria-valuenow", slider.GetValue());
+                element.setAttribute("aria-valuetext", slider.GetValueText());
+            }
+        }
+    };
+
 //    system action Select(Item item)
 
     this.Select$quorum_Libraries_Interface_Item = function(item) {
@@ -790,6 +805,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription)==0) {
                         itemDescription = null;
                     }
+                }
+                break;
+            //SLIDER: a value in a range; its keys reach Quorum as other
+            //controls' do, and aria-valuetext says it with its units.
+            case 30:
+                role = "slider";
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Slider")) {
+                    let slider = global_CheckCast(item, "Libraries.Interface.Controls.Slider");
+                    para.setAttribute("aria-orientation", "horizontal");
+                    para.setAttribute("aria-valuemin", slider.GetMinimum());
+                    para.setAttribute("aria-valuemax", slider.GetMaximum());
+                    para.setAttribute("aria-valuenow", slider.GetValue());
+                    para.setAttribute("aria-valuetext", slider.GetValueText());
                 }
                 break;
             default:

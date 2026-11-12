@@ -1,0 +1,30 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.Scenes.Dialogs.TerrainFoliagePropertiesDialog
+
+/*
+    The TerrainFoliageSliderListener tells a terrain's Foliage section when
+    one of a foliage asset's slider settings changes (Slider plan, step 3),
+    with the setting's place among the section's settings.
+*/
+class TerrainFoliageSliderListener is SliderListener
+    TerrainFoliagePropertiesDialog dialog = undefined
+    integer place = 0
+
+    /*
+        Sets the section and the setting's place this listens for.
+
+        Attribute: Parameter newDialog The Foliage section
+        Attribute: Parameter newPlace The setting's place, such as the dialog's WIND_FIELD
+    */
+    action Setup(TerrainFoliagePropertiesDialog newDialog, integer newPlace)
+        dialog = newDialog
+        place = newPlace
+    end
+
+    action SliderChanged(SliderChangedEvent event)
+        if dialog not= undefined
+            dialog:SliderChanged(place, event)
+        end
+    end
+end

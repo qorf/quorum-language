@@ -141,6 +141,17 @@ class DarkModeOptions is InterfaceOptions
         SetFocusBorderColor("ProgressBar", color:CustomColor(125.0 / MAX, 176.0 / MAX, 255.0 / MAX, 1))
         SetFocusBorderThickness("ProgressBar", 2)
 
+        // Slider (S1): a thin track in the field color, filled in the
+        // accent up to a round, light thumb with the field's edge. When
+        // focused, the thumb turns the accent with a white edge and a
+        // soft halo of the accent.
+        SetBackgroundColor("Slider", color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetForegroundColor("Slider", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+        SetAccentColor("Slider", color:CustomColor(236.0 / MAX, 238.0 / MAX, 241.0 / MAX, 1))
+        SetBorderColor("Slider", color:CustomColor(163.0 / MAX, 166.0 / MAX, 171.0 / MAX, 1))
+        SetFocusBorderColor("Slider", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+        SetFocusColor("Slider", color:White())
+
         // ScrollPane specific colors.
         SetScrollPaneBackgroundColor(darkGray)
         SetScrollPaneForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))

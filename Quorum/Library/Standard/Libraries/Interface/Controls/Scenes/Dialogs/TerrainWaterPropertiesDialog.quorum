@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
@@ -209,7 +210,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         seaCheckbox:SetBehavior(seaBehavior)
         seaLine:Add(seaCheckbox)
         seaCard:Add(seaLine)
-        seaLevelField = AddField(seaCard, "Sea level:", "Sea level")
+        seaLevelField = AddSlider(seaCard, "Sea level:", "Sea level", -32, 128, 0.5, 4)
 
         // The lakes.
         lakesFold:SetName("Lakes")
@@ -234,29 +235,29 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         newRiversFold:ShowOpen(newRiversOpen)
         newRiversFoldRow = MakeFoldRow(newRiversFold, NEW_RIVERS_PART, INNER_INDENT)
         newRiversCard = MakeIndentedCard(INNER_INDENT + 6)
-        newRiverWidthField = AddField(newRiversCard, "Width:", "A new river's width")
-        newRiverDepthField = AddField(newRiversCard, "Depth:", "A new river's depth in its middle")
+        newRiverWidthField = AddSlider(newRiversCard, "Width:", "A new river's width", 0.5, 32, 0.5, 4)
+        newRiverDepthField = AddSlider(newRiversCard, "Depth:", "A new river's depth in its middle", 0.1, 10, 0.1, 1)
 
         // The look.
         lookFold:SetName("Look")
         lookFold:ShowOpen(lookOpen)
         lookFoldRow = MakeFoldRow(lookFold, LOOK_PART, TOP_INDENT)
         lookCard = MakeIndentedCard(TOP_INDENT + 6)
-        AddLookField(lookCard, "Shallow red:", "Shallow water's red, from 0 to 1")
-        AddLookField(lookCard, "Shallow green:", "Shallow water's green, from 0 to 1")
-        AddLookField(lookCard, "Shallow blue:", "Shallow water's blue, from 0 to 1")
-        AddLookField(lookCard, "Shallow alpha:", "How much ground shallow water hides, from 0 to 1")
-        AddLookField(lookCard, "Deep red:", "Deep water's red, from 0 to 1")
-        AddLookField(lookCard, "Deep green:", "Deep water's green, from 0 to 1")
-        AddLookField(lookCard, "Deep blue:", "Deep water's blue, from 0 to 1")
-        AddLookField(lookCard, "Deep alpha:", "How much ground deep water hides, from 0 to 1")
-        AddLookField(lookCard, "Clarity:", "How murky the water is: 0 is perfectly clear")
-        AddLookField(lookCard, "Shore fade:", "How deep the water is where it stops fading in at the shore")
-        AddLookField(lookCard, "Ripple size:", "How large the ripples are")
-        AddLookField(lookCard, "Ripple speed:", "How fast the ripples move")
-        AddLookField(lookCard, "Roughness:", "How rough the surface is, from 0 to 1")
-        AddLookField(lookCard, "Ripple strength:", "How strongly the ripples bend the light")
-        AddLookField(lookCard, "Reflection:", "How strongly the sky is reflected, from 0 to 1")
+        AddLookField(lookCard, "Shallow red:", "Shallow water's red, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Shallow green:", "Shallow water's green, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Shallow blue:", "Shallow water's blue, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Shallow alpha:", "How much ground shallow water hides, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Deep red:", "Deep water's red, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Deep green:", "Deep water's green, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Deep blue:", "Deep water's blue, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Deep alpha:", "How much ground deep water hides, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Clarity:", "How murky the water is: 0 is perfectly clear", 0, 2, 0.01, 0.1)
+        AddLookField(lookCard, "Shore fade:", "How deep the water is where it stops fading in at the shore", 0, 5, 0.05, 0.5)
+        AddLookField(lookCard, "Ripple size:", "How large the ripples are", 0.5, 32, 0.5, 4)
+        AddLookField(lookCard, "Ripple speed:", "How fast the ripples move", 0, 3, 0.05, 0.5)
+        AddLookField(lookCard, "Roughness:", "How rough the surface is, from 0 to 1", 0, 1, 0.01, 0.1)
+        AddLookField(lookCard, "Ripple strength:", "How strongly the ripples bend the light", 0, 3, 0.05, 0.5)
+        AddLookField(lookCard, "Reflection:", "How strongly the sky is reflected, from 0 to 1", 0, 1, 0.01, 0.1)
 
         focusArray:Add(seaFold:GetTree())
     end
@@ -308,8 +309,8 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         riverFoldRows:Add(MakeFoldRow(fold, RIVER_PART + index, INNER_INDENT))
         Control card = MakeIndentedCard(INNER_INDENT + 6)
         riverFields:Add(AddField(card, "Name:", "River " + (index + 1) + " name"))
-        riverFields:Add(AddField(card, "Width:", "River " + (index + 1) + " width"))
-        riverFields:Add(AddField(card, "Depth:", "River " + (index + 1) + " depth in its middle"))
+        riverFields:Add(AddSlider(card, "Width:", "River " + (index + 1) + " width", 0.5, 32, 0.5, 4))
+        riverFields:Add(AddSlider(card, "Depth:", "River " + (index + 1) + " depth in its middle", 0.1, 10, 0.1, 1))
         riverFields:Add(AddField(card, "Speed:", "How fast river " + (index + 1) + " flows, in units a second"))
         Control buttonLine = MakeButtonRow()
         Button editButton = MakeButton(buttonLine, "Edit path", "Choose the River tool and the first point of river " + (index + 1), EDIT_RIVER, index)
@@ -323,9 +324,30 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     /*
         Adds one of the look's fields.
     */
-    private action AddLookField(Control card, text label, text name)
-        lookFields:Add(AddField(card, label, name))
+    private action AddLookField(Control card, text label, text name, number minimum, number maximum, number step, number pageStep)
+        lookFields:Add(AddSlider(card, label, name, minimum, maximum, step, pageStep))
         lookLabels:Add(label:GetSubtext(0, label:GetSize() - 1))
+    end
+
+    /*
+        Adds a setting with a bounded range: a label, a slider and a number
+        field (Slider plan). Returns the number field, used as a plain field
+        is; final changes are taken by FieldLeft (SliderTaken).
+    */
+    private action AddSlider(Control card, text label, text name, number minimum, number maximum, number step, number pageStep) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, "", minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        card:Add(sliderField)
+        return sliderField:GetField()
+    end
+
+    /*
+        A slider's value was finally changed, or a number typed in its field:
+        taken as when the focus leaves a field.
+
+        Attribute: Parameter field The slider field's number field.
+    */
+    action SliderTaken(TextField field)
+        FieldLeft(field)
     end
 
     /*
@@ -660,7 +682,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         chain:Add(seaFold:GetTree())
         if seaOpen
             chain:Add(seaCheckbox)
-            chain:Add(seaLevelField)
+            ChainControl(chain, seaLevelField)
         end
         if count > 0
             chain:Add(lakesFold:GetTree())
@@ -692,7 +714,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
                 if riverOpen:Get(riverIndex)
                     integer riverField = 0
                     repeat while riverField < RIVER_FIELDS
-                        chain:Add(riverFields:Get(riverIndex * RIVER_FIELDS + riverField))
+                        ChainControl(chain, riverFields:Get(riverIndex * RIVER_FIELDS + riverField))
                         riverField = riverField + 1
                     end
                     chain:Add(riverEditButtons:Get(riverIndex))
@@ -702,15 +724,15 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             end
             chain:Add(newRiversFold:GetTree())
             if newRiversOpen
-                chain:Add(newRiverWidthField)
-                chain:Add(newRiverDepthField)
+                ChainControl(chain, newRiverWidthField)
+                ChainControl(chain, newRiverDepthField)
             end
         end
         chain:Add(lookFold:GetTree())
         if lookOpen
             integer lookIndex = 0
             repeat while lookIndex < lookFields:GetSize()
-                chain:Add(lookFields:Get(lookIndex))
+                ChainControl(chain, lookFields:Get(lookIndex))
                 lookIndex = lookIndex + 1
             end
         end

@@ -452,6 +452,10 @@ public class IOSAccessibility {
             ProgressBarIOS progressBar = new ProgressBarIOS(container);
             progressBar.Initialize(item);
             return progressBar;
+        } else if (code == item.Get_Libraries_Interface_Item__SLIDER_()) {
+            SliderIOS slider = new SliderIOS(container);
+            slider.Initialize(item);
+            return slider;
         }
 
         // Menus, tabs, tables, cells, trees, dialogs, charts, groups, panes,

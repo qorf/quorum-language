@@ -1,0 +1,75 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Controls.Slider
+
+/*
+    The SliderPointerBehavior moves a Slider's thumb with the mouse or a
+    finger. The button or finger going down on the thumb grabs it, and on
+    the track jumps the thumb there; dragging moves it; the button coming
+    up, the finger lifting or leaving the slider, or the drag ending
+    finishes the change, so listeners get one final change.
+
+    A behavior set up as ending (SetEnding) only finishes the change, for
+    input whose event doesn't say it ended, such as a finger moving off the
+    slider.
+*/
+class SliderPointerBehavior is Behavior
+    boolean ending = false
+
+    /*
+        Sets whether this behavior only finishes the change.
+
+        Attribute: Parameter value True to only finish the change.
+    */
+    action SetEnding(boolean value)
+        ending = value
+    end
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Slider)
+            return now
+        end
+        Slider slider = cast(Slider, event:GetItem())
+
+        if ending
+            slider:EndPointer()
+            return now
+        end
+
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent not= undefined
+            if dragEvent:eventType = dragEvent:DRAGGING_BEGAN or dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+                slider:MovePointer(dragEvent:GetX())
+            elseif dragEvent:eventType = dragEvent:DROPPED
+                slider:EndPointer()
+            end
+            return now
+        end
+
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if touchEvent not= undefined
+            if touchEvent:eventType = touchEvent:BEGAN
+                slider:BeginPointer(touchEvent:x)
+            elseif touchEvent:eventType = touchEvent:MOVED
+                slider:MovePointer(touchEvent:x)
+            elseif touchEvent:eventType = touchEvent:ENDED or touchEvent:eventType = touchEvent:CANCELLED
+                slider:EndPointer()
+            end
+            return now
+        end
+
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        if mouseEvent not= undefined
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                slider:BeginPointer(mouseEvent:GetX())
+            elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                slider:EndPointer()
+            end
+        end
+    end
+end

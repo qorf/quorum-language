@@ -1,0 +1,108 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.Slider
+
+/*
+    The SliderChangedEvent says a Slider's value was changed by the user:
+    by a key, by the mouse, or by a screen reader. While the thumb is being
+    dragged, events are sent as it moves, and are not final. When the drag
+    ends, one final event is sent, whose old value is the value before the
+    drag began. A key press sends one final event.
+
+    A listener can show cheap changes while dragging and do costly work,
+    such as rebuilding or saving an undo step, only on the final event.
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.SliderChangedEvent
+    use Libraries.Interface.Events.SliderListener
+
+    class VolumeListener is SliderListener
+        action SliderChanged(SliderChangedEvent event)
+            if event:IsFinal()
+                output "Volume is now " + event:GetNewValue()
+            end
+        end
+    end
+*/
+class SliderChangedEvent
+    Slider slider = undefined
+    number oldValue = 0
+    number newValue = 0
+    boolean finished = true
+
+    /*
+        Returns the slider whose value changed.
+
+        Attribute: Returns The slider.
+    */
+    action GetSlider returns Slider
+        return slider
+    end
+
+    /*
+        Sets the slider whose value changed.
+
+        Attribute: Parameter slider The slider.
+    */
+    action SetSlider(Slider slider)
+        me:slider = slider
+    end
+
+    /*
+        Returns the value before the change. For a final event at the end of
+        a drag, this is the value before the drag began.
+
+        Attribute: Returns The old value.
+    */
+    action GetOldValue returns number
+        return oldValue
+    end
+
+    /*
+        Sets the value before the change.
+
+        Attribute: Parameter value The old value.
+    */
+    action SetOldValue(number value)
+        oldValue = value
+    end
+
+    /*
+        Returns the value after the change.
+
+        Attribute: Returns The new value.
+    */
+    action GetNewValue returns number
+        return newValue
+    end
+
+    /*
+        Sets the value after the change.
+
+        Attribute: Parameter value The new value.
+    */
+    action SetNewValue(number value)
+        newValue = value
+    end
+
+    /*
+        Returns true if the change is finished: a key press, a value typed or
+        set by a screen reader, or the end of a drag. Returns false while the
+        thumb is still being dragged.
+
+        Attribute: Returns True if the change is finished.
+    */
+    action IsFinal returns boolean
+        return finished
+    end
+
+    /*
+        Sets whether the change is finished.
+
+        Attribute: Parameter isFinal True if the change is finished.
+    */
+    action SetFinal(boolean isFinal)
+        finished = isFinal
+    end
+end

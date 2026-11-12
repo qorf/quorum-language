@@ -5,6 +5,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Game.Graphics.Label
@@ -78,13 +79,10 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
         presetGroup:GetButtonAt(0):SetToggleState(true)
         AddGroup(settingsCard, presetGroup, focusArray)
 
-        Control seedLine = MakeCardLine()
-        seedField = AddField(seedLine, "Seed:", "Seed", "7", focusArray)
-        settingsCard:Add(seedLine)
-
-        Control heightLine = MakeCardLine()
-        heightField = AddField(heightLine, "Height:", "Height in world units", "32", focusArray)
-        settingsCard:Add(heightLine)
+        // The seed and height are sliders with number fields (Slider plan),
+        // read when Generate is pressed.
+        seedField = AddSlider(settingsCard, "Seed:", "Seed", "The number the random shapes start from; the same seed makes the same ground", 0, 999, 1, 10, "7", focusArray)
+        heightField = AddSlider(settingsCard, "Height:", "Height in world units", "How high the tallest ground is, in world units", 0, 256, 1, 8, "32", focusArray)
 
         Control paintLine = MakeCardLine()
         Checkbox checkbox
@@ -160,6 +158,20 @@ class TerrainGeneratePropertiesDialog is PropertiesDialog
     /*
         Adds a labelled field to a line.
     */
+    /*
+        Adds a setting with a bounded range to a card: a label, a slider and
+        a number field, both in the Tab order. Returns the number field,
+        read as a plain field is.
+    */
+    private action AddSlider(Control card, text label, text name, text description, number minimum, number maximum, number step, number pageStep, text value, Array<Control> focusArray) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        sliderField:GetField():SetText(value)
+        card:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(sliderField:GetField())
+        return sliderField:GetField()
+    end
+
     private action AddField(Control line, text label, text name, text value, Array<Control> focusArray) returns TextField
         // The label sits in a box of one width, so the fields line up.
         FlowLayout labelLayout

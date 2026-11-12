@@ -154,6 +154,17 @@ class LightModeOptions is InterfaceOptions
         SetFocusBorderColor("ProgressBar", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
         SetFocusBorderThickness("ProgressBar", 2)
 
+        // Slider (S1): a thin gray track, filled in the accent up to a
+        // round, white thumb with the field's edge. When focused, the
+        // thumb turns the accent with a white edge and a soft halo of the
+        // accent.
+        SetBackgroundColor("Slider", color:CustomColor(200.0 / MAX, 203.0 / MAX, 208.0 / MAX, 1))
+        SetForegroundColor("Slider", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetAccentColor("Slider", color:White())
+        SetBorderColor("Slider", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
+        SetFocusBorderColor("Slider", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetFocusColor("Slider", color:White())
+
         // RadioButton specific colors.
         SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
         SetRadioButtonBorderColor(color:CustomColor(118.0/255.0, 118.0/255.0, 118.0/255.0, 1))

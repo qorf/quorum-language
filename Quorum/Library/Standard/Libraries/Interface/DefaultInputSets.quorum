@@ -2934,6 +2934,91 @@ connectorTable:Add(startDrag, dragBehavior)
         gameInput:AddInputTable(trackTable)
     end
 
+    /*
+        Adds the keys and mouse input of sliders (the "Slider" input group):
+        Right and Up step up, Left and Down step down, Shift with an arrow
+        moves a tenth of a step, Page Up and Page Down move a page step, and
+        Home and End go to the ends. The mouse button going down grabs the
+        thumb or jumps it to the place on the track, dragging moves it, and
+        the button coming up finishes the change.
+    */
+    action SetupSliderInput(GameInput gameInput)
+        InputTable sliderTable
+        sliderTable:SetIdentifier("Slider")
+
+        SliderKeyBehavior temp
+        AddSliderKey(sliderTable, keys:RIGHT, false, temp:STEP_UP)
+        AddSliderKey(sliderTable, keys:UP, false, temp:STEP_UP)
+        AddSliderKey(sliderTable, keys:LEFT, false, temp:STEP_DOWN)
+        AddSliderKey(sliderTable, keys:DOWN, false, temp:STEP_DOWN)
+        AddSliderKey(sliderTable, keys:RIGHT, true, temp:FINE_STEP_UP)
+        AddSliderKey(sliderTable, keys:UP, true, temp:FINE_STEP_UP)
+        AddSliderKey(sliderTable, keys:LEFT, true, temp:FINE_STEP_DOWN)
+        AddSliderKey(sliderTable, keys:DOWN, true, temp:FINE_STEP_DOWN)
+        AddSliderKey(sliderTable, keys:PAGE_UP, false, temp:PAGE_UP)
+        AddSliderKey(sliderTable, keys:PAGE_DOWN, false, temp:PAGE_DOWN)
+        AddSliderKey(sliderTable, keys:HOME, false, temp:TO_MINIMUM)
+        AddSliderKey(sliderTable, keys:END, false, temp:TO_MAXIMUM)
+
+        SliderPointerBehavior pointerBehavior
+        InputSet pressSet
+        pressSet:SetMouseInput(mouse:LEFT)
+        sliderTable:Add(pressSet, pointerBehavior)
+        InputSet releaseSet
+        releaseSet:SetMouseInput(mouse:LEFT)
+        releaseSet:SetInputTrigger(releaseSet:FINISH)
+        sliderTable:Add(releaseSet, pointerBehavior)
+
+        InputSet dragStartSet
+        dragStartSet:SetDragItemInput()
+        dragStartSet:SetInputTrigger(dragStartSet:BEGIN)
+        sliderTable:Add(dragStartSet, pointerBehavior)
+        InputSet dragSet
+        dragSet:SetDragItemInput()
+        dragSet:SetInputTrigger(dragSet:CONTINUE)
+        sliderTable:Add(dragSet, pointerBehavior)
+        InputSet dropSet
+        dropSet:SetDragItemInput()
+        dropSet:SetInputTrigger(dropSet:FINISH)
+        sliderTable:Add(dropSet, pointerBehavior)
+
+        // A finger: down grabs or jumps, moving drags, and lifting it or
+        // moving off the slider finishes the change.
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+        sliderTable:Add(touchDown, pointerBehavior)
+        InputSet touchMove
+        touchMove:SetInputType(touchMove:TOUCH_MOVEMENT_INPUT)
+        touchMove:SetInputTrigger(touchMove:CONTINUE)
+        sliderTable:Add(touchMove, pointerBehavior)
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+        sliderTable:Add(touchUp, pointerBehavior)
+        SliderPointerBehavior endBehavior
+        endBehavior:SetEnding(true)
+        InputSet touchLeave
+        touchLeave:SetInputType(touchLeave:TOUCH_MOVEMENT_INPUT)
+        touchLeave:SetInputTrigger(touchLeave:FINISH)
+        sliderTable:Add(touchLeave, endBehavior)
+
+        gameInput:AddInputTable(sliderTable)
+    end
+
+    /*
+        Adds one of a slider's keys, with or without Shift.
+    */
+    private action AddSliderKey(InputTable table, integer key, boolean shift, integer move)
+        InputSet set
+        set:SetKeyboardInput(key)
+        if shift
+            set:AddModifier(set:SHIFT)
+        end
+        SliderKeyBehavior behavior
+        behavior:Setup(move)
+        table:Add(set, behavior)
+    end
+
     action SetupScrollPaneInput(GameInput gameInput)
         InputTable scrollPaneTable
         scrollPaneTable:SetIdentifier("ScrollPane")

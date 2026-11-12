@@ -4,6 +4,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Controls.Button
@@ -199,61 +200,11 @@ class Audio3DPropertiesDialog is PropertiesDialog
         positionContainer:Add(positionFieldContainer)
         panel:Add(positionContainer)
 
-        FlowLayout volumeLayout
-        Control volumeContainer
-        volumeContainer:SetLayout(volumeLayout)
-        volumeContainer:SetPercentageWidth(1.0)
-        volumeContainer:SetVerticalLayoutMode(volumeContainer:FIT_CONTENTS)
-        volumeContainer:SetLeftMargin(20)
-        volumeContainer:SetTopMargin(10)
-        volumeContainer:SetRightMargin(30)
-        volumeContainer:SetBottomMargin(10)
-
-        Label volumeLabel
-        volumeLabel:SetText("Volume:")
-        volumeLabel:SetRightMargin(10)
-        volumeContainer:Add(volumeLabel)
-
-        TextField volumeField
-        me:volumeField = volumeField
-        volumeField:SetName("Volume")
-        volumeField:SetText("")
-        volumeField:SetFocusable(true)
-        volumeField:AddTextChangeListener(me)
-        volumeField:SetRightMargin(8)
-        volumeField:SetHorizontalLayoutMode(volumeContainer:FILL)
-        volumeContainer:Add(volumeField)
-
-        focusArray:Add(volumeField)
-        panel:Add(volumeContainer)
-
-        FlowLayout pitchLayout
-        Control pitchContainer
-        pitchContainer:SetLayout(pitchLayout)
-        pitchContainer:SetPercentageWidth(1.0)
-        pitchContainer:SetVerticalLayoutMode(pitchContainer:FIT_CONTENTS)
-        pitchContainer:SetLeftMargin(20)
-        pitchContainer:SetTopMargin(10)
-        pitchContainer:SetRightMargin(30)
-        pitchContainer:SetBottomMargin(10)
-
-        Label pitchLabel
-        pitchLabel:SetText("Pitch:")
-        pitchLabel:SetRightMargin(10)
-        pitchContainer:Add(pitchLabel)
-
-        TextField pitchField
-        me:pitchField = pitchField
-        pitchField:SetName("Pitch")
-        pitchField:SetText("")
-        pitchField:SetFocusable(true)
-        pitchField:AddTextChangeListener(me)
-        pitchField:SetRightMargin(8)
-        pitchField:SetHorizontalLayoutMode(pitchContainer:FILL)
-        pitchContainer:Add(pitchField)
-
-        focusArray:Add(pitchField)
-        panel:Add(pitchContainer)
+        // Volume and pitch are sliders with number fields (Slider plan).
+        // Moving one writes the number in its field, which this section
+        // hears as typing.
+        volumeField = AddSlider(panel, focusArray, "Volume:", "Volume", "How loud the sound is, from 0 for silent to 1 for full", 0, 1, 0.01, 0.1)
+        pitchField = AddSlider(panel, focusArray, "Pitch:", "Pitch", "How high the sound plays: 1 as recorded, 2 an octave up, 0.5 an octave down", 0.5, 2, 0.05, 0.25)
 
         Label advancedPropertiesLabel
         advancedPropertiesLabel:SetSize(18)
@@ -430,6 +381,25 @@ class Audio3DPropertiesDialog is PropertiesDialog
                 audio:SetDoppler(doppler)
             end
         end
+    end
+
+    /*
+        Adds a setting with a bounded range: a label, a slider and a number
+        field, with a field line's margins, both in the Tab order. Returns
+        the number field.
+    */
+    private action AddSlider(Control panel, Array<Control> focusArray, text label, text name, text description, number minimum, number maximum, number step, number pageStep) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, 80)
+        sliderField:SetLeftMargin(20)
+        sliderField:SetRightMargin(30)
+        sliderField:SetTopMargin(10)
+        sliderField:SetBottomMargin(10)
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        panel:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
     end
 
     /*

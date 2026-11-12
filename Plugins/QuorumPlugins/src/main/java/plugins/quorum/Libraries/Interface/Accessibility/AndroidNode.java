@@ -40,6 +40,12 @@ public class AndroidNode {
     // moves by value (swipe up and down).
     public String escapeLabel = null;
     public boolean adjustable = false;
+    // A slider (a SeekBar to TalkBack): its range and value. Its value
+    // text ("40 degrees") is the state description.
+    public boolean slider = false;
+    public float rangeMinimum = 0;
+    public float rangeMaximum = 0;
+    public float rangeValue = 0;
 
     public static final int HOST = android.view.View.NO_ID;
 }

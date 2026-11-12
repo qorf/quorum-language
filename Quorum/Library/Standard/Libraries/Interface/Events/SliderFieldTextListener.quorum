@@ -1,0 +1,27 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.SliderField
+
+/*
+    The SliderFieldTextListener tells a SliderField when its number field's
+    text changes, so the slider follows a number a program puts in the
+    field (SliderField:FieldTextChanged).
+*/
+class SliderFieldTextListener is TextChangeListener
+    SliderField sliderField = undefined
+
+    /*
+        Sets the slider field this listens for.
+
+        Attribute: Parameter newField The slider field.
+    */
+    action Setup(SliderField newField)
+        sliderField = newField
+    end
+
+    action TextChanged(TextChangeEvent event)
+        if sliderField not= undefined
+            sliderField:FieldTextChanged()
+        end
+    end
+end

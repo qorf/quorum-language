@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Selections.TextBoxSelection
@@ -46,6 +47,17 @@ class MacAccessibility is Accessibility
     system action NativeRemove(Item item) returns boolean
 
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    /*
+        A slider's value changed. Its node is built again on the next
+        update, as a name change does, so VoiceOver gets the new value
+        (SliderKit).
+    */
+    action SliderValueChanged(SliderChangedEvent event)
+        if event:GetSlider() not= undefined
+            NameChanged(event:GetSlider())
+        end
+    end
 
     system action ButtonActivated(Button button)
 

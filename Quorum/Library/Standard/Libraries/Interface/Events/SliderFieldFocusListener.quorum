@@ -1,0 +1,29 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.SliderField
+
+/*
+    The SliderFieldFocusListener tells a SliderField when the focus leaves
+    its number field, so a typed number is taken once, not on each key.
+*/
+class SliderFieldFocusListener is FocusListener
+    SliderField sliderField = undefined
+
+    /*
+        Sets the slider field this listens for.
+
+        Attribute: Parameter newField The slider field.
+    */
+    action Setup(SliderField newField)
+        sliderField = newField
+    end
+
+    action GainedFocus(FocusEvent event)
+    end
+
+    action LostFocus(FocusEvent event)
+        if sliderField not= undefined
+            sliderField:TakeFieldText()
+        end
+    end
+end

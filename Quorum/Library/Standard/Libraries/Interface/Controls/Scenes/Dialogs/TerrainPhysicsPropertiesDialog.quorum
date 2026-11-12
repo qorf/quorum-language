@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Dialogs
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.FlowLayout
@@ -83,19 +84,19 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         focusArray:Add(collisionGroup)
         collisionCard:Add(collisionContainer)
 
-        Control frictionContainer = MakeCardLine()
-        frictionContainer:Add(MakeFieldLabel("Friction:"))
-        TextField field
-        frictionField = field
-        frictionField:SetName("Friction")
-        frictionField:SetText("")
-        frictionField:SetFocusable(true)
+        // Friction is a coefficient of friction, as in physics: how hard it
+        // is to slide one thing over another, as a share of how hard they
+        // press together. Two things touching grip by the product of their
+        // frictions (at most 10), so with a body of friction 1, about 0.05
+        // is ice, 0.5 wet road, and 0.7 to 1 rubber on dry asphalt. It is a
+        // slider with a number field (Slider plan); moving it writes the
+        // number in the field, which this section hears as typing.
+        SliderField frictionSlider = MakeSliderField("Friction:", "Friction", "How much the ground grips what slides on it: about 0.05 for ice, 0.5 for wet road, 1 for dry asphalt", 0, 2, 0.05, 0.25, FIELD_LABEL_WIDTH)
+        frictionField = frictionSlider:GetField()
         frictionField:AddTextChangeListener(me)
-        frictionField:SetRightMargin(8)
-        frictionField:SetHorizontalLayoutMode(frictionContainer:FILL)
-        frictionContainer:Add(frictionField)
+        focusArray:Add(frictionSlider:GetSlider())
         focusArray:Add(frictionField)
-        collisionCard:Add(frictionContainer)
+        collisionCard:Add(frictionSlider)
 
         // Streaming, and how far around the camera it draws, in one card.
         Control streamingCard = AddCard(panel, "Streaming")
@@ -111,19 +112,21 @@ class TerrainPhysicsPropertiesDialog is PropertiesDialog
         focusArray:Add(streamingCheckbox)
         streamingCard:Add(streamingContainer)
 
-        Control radiusContainer = MakeCardLine()
-        radiusContainer:Add(MakeFieldLabel("Draw radius:"))
-        TextField radius
-        radiusField = radius
-        radiusField:SetName("Draw radius when streaming, in world units")
-        radiusField:SetText("")
-        radiusField:SetFocusable(true)
+        // How far around the camera a game draws the ground while
+        // streaming, in world units. The editor always shows every region,
+        // so it changes nothing here. Its useful values run from a region
+        // or two (64 units each, for a new terrain) to whole worlds, so the
+        // track is spread by ratios: each key press is a quarter more, Page
+        // Up doubles.
+        SliderField radiusSlider = MakeSliderField("Draw radius:", "Draw radius when streaming, in world units", "In a game that streams regions, how far around the camera the ground is drawn and loaded. The editor always shows all of it.", 16, 2048, 1.25, 2, FIELD_LABEL_WIDTH)
+        radiusSlider:SetLogarithmic(true)
+        radiusSlider:SetDecimalPlaces(0)
+        radiusSlider:SetUnits("units")
+        radiusField = radiusSlider:GetField()
         radiusField:AddTextChangeListener(me)
-        radiusField:SetRightMargin(8)
-        radiusField:SetHorizontalLayoutMode(radiusContainer:FILL)
-        radiusContainer:Add(radiusField)
+        focusArray:Add(radiusSlider:GetSlider())
         focusArray:Add(radiusField)
-        streamingCard:Add(radiusContainer)
+        streamingCard:Add(radiusSlider)
     end
 
     /*

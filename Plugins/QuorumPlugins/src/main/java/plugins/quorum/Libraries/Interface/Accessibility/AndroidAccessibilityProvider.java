@@ -65,6 +65,7 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
     public void Publish(final Map<Integer, AndroidNode> newNodes, final int[] newRootIds) {
         view.post(new Runnable() {
             public void run() {
+                Map<Integer, AndroidNode> oldNodes = nodes;
                 nodes = newNodes;
                 rootIds = newRootIds;
                 if (accessibilityFocusId != AndroidNode.HOST && !nodes.containsKey(accessibilityFocusId)) {
@@ -73,8 +74,28 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 AccessibilityEvent event = new AccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
                 event.setContentChangeTypes(AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE);
                 Send(event, AndroidNode.HOST);
+                AnnounceSliderValue(oldNodes);
             }
         });
+    }
+
+    /*
+        If TalkBack is on a slider whose value changed, tells it so it
+        says the new value, as it does for a SeekBar.
+     */
+    private void AnnounceSliderValue(Map<Integer, AndroidNode> oldNodes) {
+        int id = accessibilityFocusId;
+        if (id == AndroidNode.HOST) {
+            return;
+        }
+        AndroidNode now = nodes.get(id);
+        AndroidNode before = oldNodes == null ? null : oldNodes.get(id);
+        if (now == null || !now.slider || before == null || before.rangeValue == now.rangeValue) {
+            return;
+        }
+        AccessibilityEvent changed = new AccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+        changed.setContentChangeTypes(AccessibilityEvent.CONTENT_CHANGE_TYPE_STATE_DESCRIPTION);
+        Send(changed, id);
     }
 
     /*
@@ -163,6 +184,20 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         if (node.editable && !node.focused) {
             info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_FOCUS);
         }
+        // A slider: its range and value, adjusted by TalkBack's scroll
+        // actions (swipe up or down, or the volume keys) or set outright.
+        if (node.slider) {
+            info.setRangeInfo(AccessibilityNodeInfo.RangeInfo.obtain(AccessibilityNodeInfo.RangeInfo.RANGE_TYPE_FLOAT,
+                node.rangeMinimum, node.rangeMaximum, node.rangeValue));
+            info.setFocusable(true);
+            if (node.rangeValue < node.rangeMaximum) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+            }
+            if (node.rangeValue > node.rangeMinimum) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
+            }
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS);
+        }
         return info;
     }
 
@@ -211,6 +246,25 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 }
                 CharSequence value = arguments.getCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE);
                 AndroidAccessibility.SetTextFromTalkBack(id, value == null ? "" : value.toString());
+                return true;
+            case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:
+                if (!node.slider) {
+                    return false;
+                }
+                AndroidAccessibility.SliderFromTalkBack(id, AndroidAccessibility.SLIDER_STEP_UP);
+                return true;
+            case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD:
+                if (!node.slider) {
+                    return false;
+                }
+                AndroidAccessibility.SliderFromTalkBack(id, AndroidAccessibility.SLIDER_STEP_DOWN);
+                return true;
+            case android.R.id.accessibilityActionSetProgress:
+                if (!node.slider || arguments == null) {
+                    return false;
+                }
+                AndroidAccessibility.SliderSetFromTalkBack(id,
+                    arguments.getFloat(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE, node.rangeValue));
                 return true;
             case AccessibilityNodeInfo.ACTION_CLICK:
                 if (!node.clickable) {
@@ -337,6 +391,9 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             case ACTION_CHART_ESCAPE: return "back to the group";
             case ACTION_CHART_UP: return "next by value";
             case ACTION_CHART_DOWN: return "previous by value";
+            case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD: return "scroll forward (slider up)";
+            case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD: return "scroll backward (slider down)";
+            case android.R.id.accessibilityActionSetProgress: return "set progress";
         }
         return "" + action;
     }

@@ -134,6 +134,17 @@ class PropertiesFoldItem is TreeItem
     end
 
     /*
+        When its tree loses the focus, the header looks as it does unselected.
+        It is the only item in its tree, so it stays selected; a tree shows
+        its selection while unfocused with a dark band, which on a header
+        would stay after the focus moved on. The band comes back with the
+        focus (Tree:GainedFocus).
+    */
+    action UnfocusedSelection
+        LostSelection()
+    end
+
+    /*
         Up goes to the previous stop in the section's Tab order.
     */
     action SelectionUp

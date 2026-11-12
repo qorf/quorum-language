@@ -1,0 +1,285 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Layouts.SliderFieldLayout
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Events.SliderListener
+use Libraries.Interface.Events.SliderFieldFocusListener
+use Libraries.Interface.Events.SliderFieldTextListener
+
+/*
+    A SliderField is a label, a Slider and a small number field, kept in
+    step (Slider plan, decision 1). They share one line when there is room;
+    in a narrow container the label and field share a line and the slider
+    goes under them (SliderFieldLayout). The slider gives quick changes and the
+    field gives exact ones: moving the slider writes its value in the
+    field, and a number typed in the field moves the slider when the focus
+    leaves the field. Each is its own focus stop with the same name, so a
+    screen reader user can use either.
+
+    Listeners added with AddSliderListener are told of changes from both:
+    a typed number is sent as a final change.
+
+    It can stand in for a number field: a number a program puts in its
+    field (GetField():SetText) moves the slider too, unless the field has
+    the focus (someone is typing), and moving the slider writes the number
+    in the field, so the field's own text change listeners hear it.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.SliderField
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SliderField lean
+            lean:Setup("Lean", "How far it leans, in degrees", 0, 90, 1, 10)
+            lean:SetLabelText("Lean:")
+            lean:SetUnits("degrees")
+            lean:SetValue(20)
+            lean:SetPixelWidth(300)
+            Add(lean)
+        end
+    end
+*/
+class SliderField is Control, SliderListener
+    Label label
+    Slider slider
+    TextField field
+    SliderFieldLayout layout
+
+    on create
+        SetLayout(layout)
+        SetPercentageWidth(1.0)
+        SetVerticalLayoutMode(parent:Control:FIT_CONTENTS)
+        SetName("Slider Field")
+
+        // No words at first, so no label column until SetLabelText.
+        label:SetText("")
+        Add(label)
+
+        slider:AddSliderListener(me)
+        Add(slider)
+
+        field:SetFocusable(true)
+        SliderFieldFocusListener listener
+        listener:Setup(me)
+        field:AddFocusListener(listener)
+        SliderFieldTextListener textListener
+        textListener:Setup(me)
+        field:AddTextChangeListener(textListener)
+        Add(field)
+
+        slider:SetNextFocus(field)
+        field:SetPreviousFocus(slider)
+        ShowNumber()
+    end
+
+    /*
+        Sets the name both parts are known by, their description, the
+        range, the step for a key press and the page step.
+
+        Attribute: Parameter name The name, such as "Lean".
+        Attribute: Parameter description What the value does.
+        Attribute: Parameter minimum The least value.
+        Attribute: Parameter maximum The greatest value.
+        Attribute: Parameter step How much one key press changes the value.
+        Attribute: Parameter pageStep How much Page Up and Page Down change it.
+    */
+    action Setup(text name, text description, number minimum, number maximum, number step, number pageStep)
+        SetName(name)
+        slider:SetName(name)
+        slider:SetDescription(description)
+        field:SetName(name)
+        field:SetDescription(description)
+        slider:SetRange(minimum, maximum)
+        slider:SetStep(step)
+        slider:SetPageStep(pageStep)
+        ShowNumber()
+    end
+
+    /*
+        Sets the words shown at the left, such as "Lean:", in a column so
+        the labels of several slider fields line up. Empty for none.
+
+        Attribute: Parameter value The label's words.
+    */
+    action SetLabelText(text value)
+        label:SetText(value)
+        RequestLayout()
+    end
+
+    /*
+        Sets how wide the label's column is, in pixels before the interface
+        scale. The default is 120.
+
+        Attribute: Parameter width The column's width.
+    */
+    action SetLabelWidth(number width)
+        layout:SetLabelWidth(width)
+        RequestLayout()
+    end
+
+    /*
+        Sets whether the slider's track is spread by ratios, for a range
+        whose useful values are spread unevenly (Slider:SetLogarithmic). The
+        step and page step are then factors, such as 1.15 and 2.
+
+        Attribute: Parameter value True to spread the track by ratios.
+    */
+    action SetLogarithmic(boolean value)
+        slider:SetLogarithmic(value)
+    end
+
+    /*
+        Sets how many decimal places the value is shown with, or -1 to
+        work it out from the step (Slider:SetDecimalPlaces).
+
+        Attribute: Parameter places The decimal places.
+    */
+    action SetDecimalPlaces(integer places)
+        slider:SetDecimalPlaces(places)
+        ShowNumber()
+    end
+
+    /*
+        Called when the field's text changes: a number a program put there
+        moves the slider (without telling listeners). While the field has
+        the focus, someone is typing, and the number is taken when the
+        focus leaves instead.
+    */
+    action FieldTextChanged
+        if field:IsFocused()
+            return now
+        end
+        number typed = 0
+        boolean parsed = true
+        check
+            typed = field:GetText():Trim():ParseNumber()
+        detect e is Error
+            parsed = false
+        end
+        if parsed and typed not= slider:GetValue()
+            slider:SetValue(typed)
+        end
+    end
+
+    /*
+        Returns the label at the left.
+
+        Attribute: Returns The label.
+    */
+    action GetLabel returns Label
+        return label
+    end
+
+    /*
+        Returns the slider.
+
+        Attribute: Returns The slider.
+    */
+    action GetSlider returns Slider
+        return slider
+    end
+
+    /*
+        Returns the number field.
+
+        Attribute: Returns The field.
+    */
+    action GetField returns TextField
+        return field
+    end
+
+    /*
+        Returns the value.
+
+        Attribute: Returns The value.
+    */
+    action GetValue returns number
+        return slider:GetValue()
+    end
+
+    /*
+        Sets the value, as a program does: the slider moves and the field
+        shows it, but listeners aren't told.
+
+        Attribute: Parameter value The value.
+    */
+    action SetValue(number value)
+        slider:SetValue(value)
+        ShowNumber()
+    end
+
+    /*
+        Sets a word said after the value by screen readers, such as
+        "degrees".
+
+        Attribute: Parameter units The units.
+    */
+    action SetUnits(text units)
+        slider:SetUnits(units)
+    end
+
+    /*
+        Adds a listener, told when the user changes the value with either
+        part.
+
+        Attribute: Parameter listener The listener.
+    */
+    action AddSliderListener(SliderListener listener)
+        slider:AddSliderListener(listener)
+    end
+
+    /*
+        Removes a listener.
+
+        Attribute: Parameter listener The listener.
+    */
+    action RemoveSliderListener(SliderListener listener)
+        slider:RemoveSliderListener(listener)
+    end
+
+    /*
+        Called by the slider when the user changes it: the field shows the
+        new value.
+
+        Attribute: Parameter event The change.
+    */
+    action SliderChanged(SliderChangedEvent event)
+        ShowNumber()
+    end
+
+    /*
+        Called when the focus leaves the field: a number typed in it moves
+        the slider, kept within the range, and listeners are told as for a
+        final change. Anything that isn't a number is put back.
+    */
+    action TakeFieldText
+        number typed = 0
+        boolean parsed = true
+        check
+            typed = field:GetText():Trim():ParseNumber()
+        detect e is Error
+            parsed = false
+        end
+        if parsed
+            slider:ChangeValue(typed, true)
+        end
+        ShowNumber()
+    end
+
+    /*
+        Writes the slider's value in the field, unless it already says it.
+    */
+    private action ShowNumber
+        text shown = slider:GetNumberText()
+        if field:GetText() not= shown
+            field:SetText(shown)
+        end
+    end
+end

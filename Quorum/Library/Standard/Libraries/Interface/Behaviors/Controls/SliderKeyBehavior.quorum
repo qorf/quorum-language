@@ -1,0 +1,56 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Slider
+
+/*
+    The SliderKeyBehavior changes a focused Slider's value for one of its
+    keys: a step, a tenth of a step, a page step, or to either end. Which
+    one is set with Setup, using the constants here.
+*/
+class SliderKeyBehavior is Behavior
+    public constant integer STEP_UP = 0
+    public constant integer STEP_DOWN = 1
+    public constant integer FINE_STEP_UP = 2
+    public constant integer FINE_STEP_DOWN = 3
+    public constant integer PAGE_UP = 4
+    public constant integer PAGE_DOWN = 5
+    public constant integer TO_MINIMUM = 6
+    public constant integer TO_MAXIMUM = 7
+
+    integer move = STEP_UP
+
+    /*
+        Sets which change the key makes.
+
+        Attribute: Parameter newMove One of the constants, such as STEP_UP.
+    */
+    action Setup(integer newMove)
+        move = newMove
+    end
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Slider)
+            return now
+        end
+        Slider slider = cast(Slider, event:GetItem())
+        if move = STEP_UP
+            slider:StepUp()
+        elseif move = STEP_DOWN
+            slider:StepDown()
+        elseif move = FINE_STEP_UP
+            slider:FineStepUp()
+        elseif move = FINE_STEP_DOWN
+            slider:FineStepDown()
+        elseif move = PAGE_UP
+            slider:PageUp()
+        elseif move = PAGE_DOWN
+            slider:PageDown()
+        elseif move = TO_MINIMUM
+            slider:MoveToMinimum()
+        elseif move = TO_MAXIMUM
+            slider:MoveToMaximum()
+        end
+    end
+end

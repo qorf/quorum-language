@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Item2D
@@ -39,6 +40,16 @@ class AndroidAccessibility is Accessibility
     system action TextFieldUpdatePassword(TextField field)
 
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    /*
+        A slider's value changed. TalkBack gets the new value (a SeekBar node): the snapshot is made
+        again, as for a name change.
+    */
+    action SliderValueChanged(SliderChangedEvent event)
+        if event:GetSlider() not= undefined
+            NameChanged(event:GetSlider())
+        end
+    end
 
     system action ButtonActivated(Button button)
 

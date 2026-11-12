@@ -1,0 +1,32 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+
+/*
+    The PropertiesSliderListener sends a Properties section's slider field's
+    final changes to the section (PropertiesDialog:SliderTaken), with the
+    slider field's number field, so the section takes the value as it takes
+    a field the focus left. Changes while a drag goes on aren't sent.
+*/
+class PropertiesSliderListener is SliderListener
+    PropertiesDialog dialog = undefined
+    TextField field = undefined
+
+    /*
+        Sets the section and the number field this listens for.
+
+        Attribute: Parameter newDialog The section.
+        Attribute: Parameter newField The slider field's number field.
+    */
+    action Setup(PropertiesDialog newDialog, TextField newField)
+        dialog = newDialog
+        field = newField
+    end
+
+    action SliderChanged(SliderChangedEvent event)
+        if dialog not= undefined and event:IsFinal()
+            dialog:SliderTaken(field)
+        end
+    end
+end

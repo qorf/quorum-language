@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 use Libraries.Interface.Selections.ButtonGroupSelection
@@ -94,6 +95,17 @@ class Accessibility
         Attribute: Parameter progress the progress bar that had its value updated.
     */
     blueprint action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    /*
+        This action indicates that a slider's value changed. It does nothing
+        here, so platforms that don't support sliders yet need no change; a
+        platform that does, such as the Mac, overrides it to send the new
+        value to the screen reader.
+
+        Attribute: Parameter event The slider and its old and new values.
+    */
+    action SliderValueChanged(SliderChangedEvent event)
+    end
 
     blueprint action TextSelectionChanged(TextBoxSelection selection)
 

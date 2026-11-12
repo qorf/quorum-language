@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.FileChooser
 use Libraries.Interface.Controls.FileFilter
 use Libraries.Game.Graphics.Label
@@ -73,6 +74,11 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
     // How much of a layer's title line its arrows take, in pixels before
     // the interface scale: two 24 pixel buttons and the space around them.
     constant number ARROWS_WIDTH = 64
+
+    // How wide the tile size's label is, before the interface scale.
+    constant number TILE_LABEL_WIDTH = 70
+    // How wide the blend softness's, roughness's and metallic's labels are.
+    constant number BLEND_LABEL_WIDTH = 110
 
     Control sectionPanel = undefined
     Label statusLabel = undefined
@@ -191,20 +197,14 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         blendContainer:SetPercentageWidth(1.0)
         blendContainer:SetVerticalLayoutMode(blendContainer:FIT_CONTENTS)
         Control blendCard = AddCard(blendContainer, "Blending")
-        Control blendLine = MakeCardLine()
-        Label blendLabel
-        blendLabel:SetText("Blend softness:")
-        blendLabel:SetRightMargin(10)
-        blendLine:Add(blendLabel)
-        TextField field
-        blendField = field
-        blendField:SetName("Blend softness")
-        blendField:SetText("")
-        blendField:SetFocusable(true)
+        // A slider with its number field (Slider plan). Moving it writes the
+        // number in the field, which this section hears as typing, so the
+        // ground's blending changes as it moves.
+        SliderField blendSlider = MakeSliderField("Blend softness:", "Blend softness", "How softly the ground layers blend where they meet, from 0.01 to 1", 0.01, 1, 0.01, 0.1, BLEND_LABEL_WIDTH)
+        blendField = blendSlider:GetField()
         blendField:AddTextChangeListener(me)
-        blendField:SetHorizontalLayoutMode(blendLine:FILL)
-        blendLine:Add(blendField)
-        blendCard:Add(blendLine)
+        blendCard:Add(blendSlider)
+        focusArray:Add(blendSlider:GetSlider())
         focusArray:Add(blendField)
 
         MakeDetails()
@@ -286,19 +286,17 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         Control card = MakeCard()
         row:Add(card)
 
-        Control tileLine = MakeCardLine()
-        Label tileLabel
-        tileLabel:SetText("Tile size:")
-        tileLabel:SetRightMargin(10)
-        tileLine:Add(tileLabel)
-        TextField tileField
-        tileField:SetName("Layer " + (index + 1) + " tile size")
-        tileField:SetText("")
-        tileField:SetFocusable(true)
+        // The tile size is a slider and a number field (Slider plan). Its
+        // useful sizes are spread unevenly, so the track is spread by
+        // ratios: each key press is a quarter more, Page Up doubles. Moving
+        // it writes the number in the field, which this section hears as
+        // typing, so the ground changes as the slider moves.
+        SliderField tileSlider = MakeSliderField("Tile size:", "Layer " + (index + 1) + " tile size", "", 0.25, 63.75, 1.25, 2, TILE_LABEL_WIDTH)
+        tileSlider:SetLogarithmic(true)
+        tileSlider:SetDecimalPlaces(2)
+        TextField tileField = tileSlider:GetField()
         tileField:AddTextChangeListener(me)
-        tileField:SetHorizontalLayoutMode(tileLine:FILL)
-        tileLine:Add(tileField)
-        card:Add(tileLine)
+        card:Add(tileSlider)
 
         // Choose, Remove and Details on one line, or one above another
         // when they don't fit.
@@ -407,19 +405,15 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         findButton = MakeButton(findLine, "Find maps by name", "Fill in the maps that are none, from the color map's folder, by their names", FIND_MAPS, 0)
         makePlainButton = MakeButton(findLine, "Make plain", "Make this a plain texture, with its color map as its one image", MAKE_PLAIN, 0)
 
-        roughnessLine = MakeLine()
-        Label roughnessLabel
-        roughnessLabel:SetText("Roughness:")
-        roughnessLabel:SetRightMargin(10)
-        roughnessLine:Add(roughnessLabel)
-        roughnessField = MakeCommittedField(roughnessLine, "Roughness, from 0 to 1")
+        // Sliders with number fields (Slider plan), each a line of its own;
+        // a final change is taken as when the focus leaves a field.
+        SliderField roughnessSlider = MakeDetailsSlider("Roughness:", "Roughness, from 0 to 1", "How rough the material's surface is: 0 is mirror smooth, 1 is fully rough")
+        roughnessLine = roughnessSlider
+        roughnessField = roughnessSlider:GetField()
 
-        metallicLine = MakeLine()
-        Label metallicLabel
-        metallicLabel:SetText("Metallic:")
-        metallicLabel:SetRightMargin(10)
-        metallicLine:Add(metallicLabel)
-        metallicField = MakeCommittedField(metallicLine, "Metallic, from 0 to 1")
+        SliderField metallicSlider = MakeDetailsSlider("Metallic:", "Metallic, from 0 to 1", "How much the material is a metal: 0 for stone, soil and plants, 1 for bare metal")
+        metallicLine = metallicSlider
+        metallicField = metallicSlider:GetField()
 
         closeLine = MakeLine()
         closeButton = MakeButton(closeLine, "Close details", "Close the material details", CLOSE_DETAILS, 0)
@@ -475,6 +469,28 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         Adds a field whose value is taken when the focus leaves it, so typing
         "0.35" changes the material once, not on each key.
     */
+    /*
+        Makes one of the Material details' sliders, from 0 to 1, with a
+        line's margins.
+    */
+    private action MakeDetailsSlider(text label, text name, text description) returns SliderField
+        SliderField sliderField = MakeSliderField(label, name, description, 0, 1, 0.01, 0.1, BLEND_LABEL_WIDTH)
+        sliderField:SetLeftMargin(20)
+        sliderField:SetRightMargin(30)
+        return sliderField
+    end
+
+    /*
+        A slider's value was finally changed, or a number typed in its
+        field: the roughness or metallic is taken as when the focus leaves
+        its field.
+
+        Attribute: Parameter field The slider field's number field.
+    */
+    action SliderTaken(TextField field)
+        FieldLeft(field)
+    end
+
     private action MakeCommittedField(Control line, text name) returns TextField
         TextField field
         field:SetName(name)
@@ -780,8 +796,8 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
         lines:Add(roughnessLine)
         lines:Add(metallicLine)
         lines:Add(closeLine)
-        chain:Add(roughnessField)
-        chain:Add(metallicField)
+        ChainControl(chain, roughnessField)
+        ChainControl(chain, metallicField)
         chain:Add(closeButton)
         ReplaceChildren(detailsPanel, detailsShown, lines)
     end
@@ -852,7 +868,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             if i < count - 1
                 chain:Add(downButtons:Get(i))
             end
-            chain:Add(tileFields:Get(i))
+            ChainControl(chain, tileFields:Get(i))
             chain:Add(chooseButtons:Get(i))
             chain:Add(removeButtons:Get(i))
             chain:Add(detailsButtons:Get(i))
@@ -862,7 +878,7 @@ class TerrainMaterialsPropertiesDialog is PropertiesDialog
             FillDetails(chain)
         end
         if withBlend
-            chain:Add(blendField)
+            ChainControl(chain, blendField)
         end
         chain:Add(addButton)
         i = 0

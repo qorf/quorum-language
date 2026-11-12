@@ -14,6 +14,7 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
+use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Selections.TextBoxSelection
@@ -39,6 +40,16 @@ class IOSAccessibility is Accessibility
     system action TextFieldUpdatePassword(TextField field)
 
     system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
+
+    /*
+        A slider's value changed. VoiceOver reads the new value (SliderIOS): its text is refreshed and a
+        frame drawn, as for a name change.
+    */
+    action SliderValueChanged(SliderChangedEvent event)
+        if event:GetSlider() not= undefined
+            NameChanged(event:GetSlider())
+        end
+    end
 
     system action ButtonActivated(Button button)
 

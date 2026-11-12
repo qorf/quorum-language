@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Dialogs
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Game.Graphics.Label
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Layouts.FlowLayout
@@ -23,6 +24,9 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.SpotLightSelectionHighl
     spotlight is aimed by turning it, with the editor's rotate keys.
 */
 class SpotLightPropertiesDialog is PropertiesDialog
+    // How wide the sliders' labels are, before the interface scale.
+    constant number LABEL_WIDTH = 100
+
     TextField nameField = undefined
     TextField redField = undefined
     TextField greenField = undefined
@@ -55,13 +59,34 @@ class SpotLightPropertiesDialog is PropertiesDialog
         SetHeading(headingLabel)
 
         nameField = AddField(panel, focusArray, "Name:", "Name")
-        redField = AddField(panel, focusArray, "Red:", "Red, from 0 to 1")
-        greenField = AddField(panel, focusArray, "Green:", "Green, from 0 to 1")
-        blueField = AddField(panel, focusArray, "Blue:", "Blue, from 0 to 1")
+        redField = AddSlider(panel, focusArray, "Red:", "Red, from 0 to 1", 0, 1, 0.01, 0.1, "")
+        greenField = AddSlider(panel, focusArray, "Green:", "Green, from 0 to 1", 0, 1, 0.01, 0.1, "")
+        blueField = AddSlider(panel, focusArray, "Blue:", "Blue, from 0 to 1", 0, 1, 0.01, 0.1, "")
         intensityField = AddField(panel, focusArray, "Intensity:", "Intensity")
-        innerField = AddField(panel, focusArray, "Inner angle:", "Inner angle, in degrees, of full strength")
-        outerField = AddField(panel, focusArray, "Outer angle:", "Outer angle, in degrees, where the light ends")
+        innerField = AddSlider(panel, focusArray, "Inner angle:", "Inner angle, in degrees, of full strength", 0, 90, 1, 5, "degrees")
+        outerField = AddSlider(panel, focusArray, "Outer angle:", "Outer angle, in degrees, where the light ends", 0, 90, 1, 5, "degrees")
         rangeField = AddField(panel, focusArray, "Range:", "Range, in world units, or 0 to work it out from the intensity")
+    end
+
+    /*
+        Adds a setting with a bounded range: a label, a slider and a number
+        field (Slider plan), both in the Tab order, with a field line's
+        margins. Moving the slider writes the number in the field, which
+        this section hears as typing, so the light changes as it moves.
+    */
+    private action AddSlider(Control panel, Array<Control> focusArray, text label, text name, number minimum, number maximum, number step, number pageStep, text units) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, "", minimum, maximum, step, pageStep, LABEL_WIDTH)
+        sliderField:SetUnits(units)
+        sliderField:SetLeftMargin(20)
+        sliderField:SetRightMargin(30)
+        sliderField:SetTopMargin(6)
+        sliderField:SetBottomMargin(6)
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        panel:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
     end
 
     /*

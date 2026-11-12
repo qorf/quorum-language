@@ -7,6 +7,7 @@ use Libraries.Interface.Controls.Control
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Game.Graphics.Drawable
 use Libraries.Interface.Controls.List
 use Libraries.Interface.Controls.RadioButton
@@ -506,6 +507,11 @@ class FormContainerControl is Control
                     if item not= undefined and item:IsFocusable()
                         previous = item
                     end
+                elseif control is SliderField
+                    // A slider and its number: two stops, the slider first.
+                    SliderField firstSlider = cast(SliderField, control)
+                    first = firstSlider:GetSlider()
+                    previous = firstSlider:GetField()
                 elseif control not= undefined and control:IsFocusable()
                     first = control
                     previous = control
@@ -534,6 +540,13 @@ class FormContainerControl is Control
                             end
                         end
                         
+                    elseif control is SliderField
+                        // A slider and its number: two stops, the slider
+                        // first (the slider field links the two itself).
+                        SliderField sliderField = cast(SliderField, control)
+                        previous:SetNextFocus(sliderField:GetSlider())
+                        sliderField:GetSlider():SetPreviousFocus(previous)
+                        previous = sliderField:GetField()
                     else //else just set next and previous
                         previous:SetNextFocus(control)
                         control:SetPreviousFocus(previous)

@@ -166,6 +166,18 @@ struct JClass_MenuItem
 	jclass me;
 	jmethodID GetMnemonic;
 };
+// A Quorum Slider (SliderControl).
+struct JClass_Slider
+{
+	jclass me;
+	jmethodID GetValue;
+	jmethodID GetMinimum;
+	jmethodID GetMaximum;
+	jmethodID GetStep;
+	jmethodID GetPageStep;
+	jmethodID GetValueText;
+	jmethodID ChangeValue;
+};
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
@@ -184,3 +196,4 @@ extern JClass_Cell JavaClass_Cell;
 extern JClass_ListItem JavaClass_ListItem;
 extern JClass_ProgressBar JavaClass_ProgressBar;
 extern JClass_MenuItem JavaClass_MenuItem;
+extern JClass_Slider JavaClass_Slider;

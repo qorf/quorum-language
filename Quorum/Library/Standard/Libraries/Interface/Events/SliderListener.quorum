@@ -1,0 +1,29 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Events.SliderChangedEvent
+
+/*
+    A SliderListener is told when the user changes a Slider's value. Add
+    one with the slider's AddSliderListener action, and override
+    SliderChanged.
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.SliderChangedEvent
+    use Libraries.Interface.Events.SliderListener
+
+    class VolumeListener is SliderListener
+        action SliderChanged(SliderChangedEvent event)
+            output "Volume: " + event:GetNewValue()
+        end
+    end
+*/
+class SliderListener
+    /*
+        This action is called when the user changes a slider's value.
+
+        Attribute: Parameter event What changed, and whether the change is finished.
+    */
+    action SliderChanged(SliderChangedEvent event)
+    end
+end

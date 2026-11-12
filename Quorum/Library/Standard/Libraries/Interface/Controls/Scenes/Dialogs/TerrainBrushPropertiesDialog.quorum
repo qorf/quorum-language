@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Dialogs
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Button
@@ -259,8 +260,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         Control waterCard = MakeCard()
         panel:Add(waterCard)
         waterPart = waterCard
-        waterDepthField = AddNumberField(waterCard, focusArray, "Water depth:", "Water depth")
-        waterDepthField:SetDescription("How far above the ground under the brush the water's level goes")
+        waterDepthField = AddSliderNumber(waterCard, focusArray, "Water depth:", "Water depth", "How far above the ground under the brush the water's level goes", 0.1, 20, 0.1, 1, false)
 
         // The ramp has no controls here: its ends are set with the Ramp
         // tool, by clicking or with the ramp point key (step 8).
@@ -272,11 +272,15 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         Control settingsCard = MakeCard()
         panel:Add(settingsCard)
         settingsPart = settingsCard
-        sizeField = AddNumberField(settingsCard, focusArray, "Size:", "Size")
+        // Sliders with number fields (Slider plan). The size, strength and
+        // falloff's useful values are spread unevenly, so their tracks are
+        // spread by ratios, and each key press changes them by the factor
+        // the scene editor's own keys use.
+        sizeField = AddSliderNumber(settingsCard, focusArray, "Size:", "Size", "The brush's radius, in world units", 0.5, 64, 1.15, 2, true)
         sizePart = cast(Control, sizeField:GetParent())
-        strengthField = AddNumberField(settingsCard, focusArray, "Strength:", "Strength")
+        strengthField = AddSliderNumber(settingsCard, focusArray, "Strength:", "Strength", "How much the brush changes the ground each moment", 0.1, 50, 1.25, 2, true)
         strengthPart = cast(Control, strengthField:GetParent())
-        falloffField = AddNumberField(settingsCard, focusArray, "Falloff:", "Falloff")
+        falloffField = AddSliderNumber(settingsCard, focusArray, "Falloff:", "Falloff", "How the brush fades from its middle: 1 is a smooth fade, more keeps the effect near the middle, less spreads it toward the edge", 0.1, 10, 1.25, 2, true)
         falloffPart = cast(Control, falloffField:GetParent())
 
         // Every part is in the panel now; the ones the tool doesn't use are
@@ -358,7 +362,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         if waterTool
             wanted:Add(waterLabelPart)
             wanted:Add(waterPart)
-            chain:Add(waterDepthField)
+            ChainControl(chain, waterDepthField)
         end
         if foliageTool
             wanted:Add(foliageLabelPart)
@@ -374,13 +378,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         if usesSize
             wanted:Add(settingsLabelPart)
             wanted:Add(settingsPart)
-            chain:Add(sizeField)
+            ChainControl(chain, sizeField)
         end
         if usesStrength
-            chain:Add(strengthField)
+            ChainControl(chain, strengthField)
         end
         if usesFalloff
-            chain:Add(falloffField)
+            ChainControl(chain, falloffField)
         end
         ShowLine(strengthPart, usesStrength)
         ShowLine(falloffPart, usesFalloff)
@@ -499,6 +503,28 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     /*
         Adds a labelled number field.
     */
+    /*
+        Adds a setting with a bounded range to a card: a label, a slider and
+        a number field (Slider plan), both in the Tab order. Moving the
+        slider writes the number in the field, which this section hears as
+        typing, so the brush changes as the slider moves. Returns the
+        number field; its parent is the slider field, the part to hide.
+        Spread by ratios, the step and page step are factors.
+    */
+    private action AddSliderNumber(Control card, Array<Control> focusArray, text label, text name, text description, number minimum, number maximum, number step, number pageStep, boolean byRatio) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        if byRatio
+            sliderField:SetLogarithmic(true)
+            sliderField:SetDecimalPlaces(2)
+        end
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        card:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
+    end
+
     private action AddNumberField(Control panel, Array<Control> focusArray, text label, text name) returns TextField
         FlowLayout layout
         Control container

@@ -23,6 +23,9 @@ use Libraries.Interface.Item2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Options.InterfaceOptions
+use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Events.PropertiesSliderListener
 
 /*
     The PropertiesDialog class is a parent class for most dialogs in the Scene Editor library. 
@@ -333,6 +336,73 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
         line:SetTopMargin(4)
         line:SetBottomMargin(4)
         return line
+    end
+
+    /*
+        Makes a setting with a bounded range for a card (Slider plan): its
+        label, a slider and a number field, with a card line's margins, the
+        label in a column of the given width so it lines up with the card's
+        other labels. A narrow panel puts the slider under the label and
+        number.
+
+        The number field stands in for a plain field: put text in it and the
+        slider follows, and read it as before. Final changes from the slider
+        (the end of a drag, a key press, a screen reader) and numbers typed
+        in the field are sent to SliderTaken with the field, so a section
+        takes them as it takes its fields. A section whose field listens for
+        text changes hears the slider anyway, since moving it writes the
+        number in the field.
+
+        Attribute: Parameter label The label, such as "Sea level:".
+        Attribute: Parameter name The name both parts are known by.
+        Attribute: Parameter description What the setting does.
+        Attribute: Parameter minimum The least value.
+        Attribute: Parameter maximum The greatest value.
+        Attribute: Parameter step One key press's change.
+        Attribute: Parameter pageStep Page Up's and Page Down's change.
+        Attribute: Parameter labelWidth The label column's width, before the interface scale.
+        Attribute: Returns The slider field.
+    */
+    action MakeSliderField(text label, text name, text description, number minimum, number maximum, number step, number pageStep, number labelWidth) returns SliderField
+        SliderField sliderField
+        sliderField:Setup(name, description, minimum, maximum, step, pageStep)
+        sliderField:SetLabelText(label)
+        sliderField:SetLabelWidth(labelWidth)
+        sliderField:SetLeftMargin(12)
+        sliderField:SetRightMargin(12)
+        sliderField:SetTopMargin(4)
+        sliderField:SetBottomMargin(4)
+        PropertiesSliderListener listener
+        listener:Setup(me, sliderField:GetField())
+        sliderField:AddSliderListener(listener)
+        return sliderField
+    end
+
+    /*
+        This action is called with a slider field's number field when its
+        value was finally changed, by the slider or by typing (MakeSliderField).
+        It does nothing here; a section overrides it to take the field, as it
+        takes a field the focus left.
+
+        Attribute: Parameter field The slider field's number field.
+    */
+    action SliderTaken(TextField field)
+    end
+
+    /*
+        Adds a control to a Tab order being built. A slider field's number
+        field brings its slider before it, so both are stops; any other
+        control is added alone.
+
+        Attribute: Parameter chain The Tab order being built.
+        Attribute: Parameter control The control, such as a field.
+    */
+    action ChainControl(Array<Control> chain, Control control)
+        if control is TextField and control:GetParent() is SliderField
+            SliderField sliderField = cast(SliderField, control:GetParent())
+            chain:Add(sliderField:GetSlider())
+        end
+        chain:Add(control)
     end
 
     /*

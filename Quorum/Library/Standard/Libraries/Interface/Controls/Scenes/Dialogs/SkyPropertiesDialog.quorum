@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Game.Graphics.Environment
 use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
@@ -84,31 +85,14 @@ class SkyPropertiesDialog is PropertiesDialog
         focusArray:Add(chooseButton)
         focusArray:Add(removeButton)
 
-        Control line = MakeCardLine()
-        FlowLayout labelLayout
-        Control labelBox
-        labelBox:SetLayout(labelLayout)
-        labelBox:SetPercentageWidth(0)
-        labelBox:SetPixelWidth(FIELD_LABEL_WIDTH)
-        labelBox:SetVerticalLayoutMode(labelBox:FIT_CONTENTS)
-        labelBox:SetRightMargin(10)
-        Label fieldLabel
-        fieldLabel:SetText("Turn:")
-        labelBox:Add(fieldLabel)
-        line:Add(labelBox)
-        TextField field
-        turnField = field
-        turnField:SetName("Sky turn")
-        turnField:SetDescription("How far the sky is turned about the up axis, in degrees")
+        // The turn is a slider with a number field (Slider plan); a final
+        // change is taken as when the focus leaves a field (SliderTaken).
+        SliderField turnSlider = MakeSliderField("Turn:", "Sky turn", "How far the sky is turned about the up axis, in degrees", 0, 360, 1, 15, FIELD_LABEL_WIDTH)
+        turnSlider:SetUnits("degrees")
+        turnField = turnSlider:GetField()
         turnField:SetText("0")
-        turnField:SetFocusable(true)
-        turnField:SetRightMargin(8)
-        turnField:SetHorizontalLayoutMode(line:FILL)
-        SkyFieldListener listener
-        listener:Setup(me, turnField)
-        turnField:AddFocusListener(listener)
-        line:Add(turnField)
-        card:Add(line)
+        card:Add(turnSlider)
+        focusArray:Add(turnSlider:GetSlider())
         focusArray:Add(turnField)
 
         Control linearLine = MakeCardLine()
@@ -268,6 +252,16 @@ class SkyPropertiesDialog is PropertiesDialog
         elseif kind = LINEAR_LIGHTING
             editor:SetLayerLinearLighting(layer, linearCheckbox:GetToggleState())
         end
+    end
+
+    /*
+        This action is called when the Turn slider's value was finally
+        changed, or a number typed in its field: taken as FieldLeft takes it.
+
+        Attribute: Parameter field The Turn slider's number field
+    */
+    action SliderTaken(TextField field)
+        FieldLeft(field)
     end
 
     /*

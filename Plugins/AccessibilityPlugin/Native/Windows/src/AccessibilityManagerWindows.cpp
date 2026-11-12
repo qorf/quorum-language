@@ -18,6 +18,7 @@
 #include "MenuItemControl.h"
 #include "PopupMenuItemControl.h"
 #include "ProgressBarControl.h"
+#include "SliderControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -258,6 +259,21 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	const auto parentItem = GetItemFromLong(parent);
 	const auto pControl = Create<ProgressBarControl>(env, parentItem, wName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pControl);
+}
+
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSliderNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pControl = Create<SliderControl>(env, parentItem, wName, wDescription, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -612,6 +628,19 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 {
 	ProgressBarControl* progress = static_cast<ProgressBarControl*>(GetItemFromLong(pointer));
 	progress->SetValue(value);
+
+	return true;
+}
+
+// A slider's value changed in Quorum: raise UI Automation's value events.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SliderValueChangedNative(JNIEnv*, jobject, jlong pointer, jdouble value)
+{
+	SliderControl* slider = static_cast<SliderControl*>(GetItemFromLong(pointer));
+	if (slider == nullptr)
+	{
+		return false;
+	}
+	slider->NotifyValueChanged(value);
 
 	return true;
 }

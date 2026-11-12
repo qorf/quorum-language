@@ -1,0 +1,209 @@
+package Libraries.Interface.Layouts
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Slider
+use Libraries.Interface.Controls.TextField
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
+
+/*
+The SliderFieldLayout lays out a SliderField: its label, its slider and its
+number field. When there is room, they are on one line, centered up and
+down: the label at the left in a column of its own width, the number field
+at the right, and the slider between them, taking the width left. When the
+slider would be narrower than its least width, the label and the number
+field share the first line and the slider goes on its own line under them,
+as wide as the container. The container is as tall as what it holds.
+*/
+class SliderFieldLayout is Layout
+    // Widths and spaces in pixels before the interface scale.
+    number labelWidth = 120
+    number labelGap = 10
+    number fieldWidth = 56
+    number fieldGap = 8
+    number leastSliderWidth = 110
+    number lineGap = 2
+
+    /*
+    This action sets how wide the label's column is, in pixels before the
+    interface scale, so labels in a panel line up. The default is 120.
+
+    Attribute: Parameter value The label column's width.
+    */
+    action SetLabelWidth(number value)
+        labelWidth = value
+    end
+
+    /*
+    This action returns how wide the label's column is, in pixels before the
+    interface scale.
+
+    Attribute: Returns The label column's width.
+    */
+    action GetLabelWidth returns number
+        return labelWidth
+    end
+
+    /*
+    This action sets how wide the number field is, in pixels before the
+    interface scale. The default is 56.
+
+    Attribute: Parameter value The field's width.
+    */
+    action SetFieldWidth(number value)
+        fieldWidth = value
+    end
+
+    /*
+    This action returns how wide the number field is, in pixels before the
+    interface scale.
+
+    Attribute: Returns The field's width.
+    */
+    action GetFieldWidth returns number
+        return fieldWidth
+    end
+
+    /*
+    This action sets the least width the slider has on the line with the
+    label and field, in pixels before the interface scale. When it would be
+    narrower, the slider goes on its own line. The default is 110.
+
+    Attribute: Parameter value The slider's least width.
+    */
+    action SetLeastSliderWidth(number value)
+        leastSliderWidth = value
+    end
+
+    /*
+    This action returns the slider's least width on the line with the label
+    and field, in pixels before the interface scale.
+
+    Attribute: Returns The slider's least width.
+    */
+    action GetLeastSliderWidth returns number
+        return leastSliderWidth
+    end
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+        if containerProperties not= undefined and containerProperties:NeedsRendering()
+            container:LoadGraphics(containerProperties)
+        end
+        number scale = container:GetInterfaceScale()
+
+        Label label = undefined
+        Slider slider = undefined
+        TextField field = undefined
+        integer index = 0
+        repeat while index < items:GetSize()
+            Item2D item = items:Get(index)
+            if item is Control
+                Control control = cast(Control, item)
+                LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                if properties not= undefined and properties:NeedsRendering()
+                    control:LoadGraphics(properties)
+                end
+                control:ResetLayoutFlag()
+                if item is Label
+                    label = cast(Label, item)
+                elseif item is Slider
+                    slider = cast(Slider, item)
+                elseif item is TextField
+                    field = cast(TextField, item)
+                end
+            end
+            index = index + 1
+        end
+        if slider = undefined
+            return now
+        end
+
+        // The label, if it has words: its own size, in a column.
+        number labelColumn = 0
+        number labelHeight = 0
+        boolean hasLabel = label not= undefined and label:GetText() not= ""
+        if hasLabel
+            label:Resize()
+            labelHeight = label:GetHeight()
+            labelColumn = (labelWidth + labelGap) * scale
+        end
+
+        // The field: its width, and its font's height with its padding.
+        number fieldSpace = 0
+        number fieldPixels = 0
+        number fieldHeight = 0
+        if field not= undefined
+            fieldPixels = fieldWidth * scale
+            fieldSpace = fieldPixels + fieldGap * scale
+            fieldHeight = GetFieldHeight(field, containerWidth, containerHeight, scale)
+        end
+
+        number sliderHeight = slider:GetDefaultLayoutProperties():GetPixelHeight() * scale
+        number sliderWidth = containerWidth - labelColumn - fieldSpace
+        boolean oneLine = sliderWidth >= leastSliderWidth * scale
+
+        number height = 0
+        number firstLine = labelHeight
+        if fieldHeight > firstLine
+            firstLine = fieldHeight
+        end
+        if oneLine
+            height = firstLine
+            if sliderHeight > height
+                height = sliderHeight
+            end
+        else
+            height = firstLine + lineGap * scale + sliderHeight
+        end
+        if containerProperties not= undefined and containerProperties:GetVerticalLayoutMode() = containerProperties:FIT_CONTENTS
+            container:SetHeight(height)
+        else
+            height = containerHeight
+        end
+
+        if oneLine
+            // One line, each part centered up and down.
+            if hasLabel
+                label:SetPosition(0, cast(integer, (height - labelHeight) / 2.0))
+            end
+            slider:SetSize(cast(integer, sliderWidth), sliderHeight)
+            slider:SetPosition(cast(integer, labelColumn), cast(integer, (height - sliderHeight) / 2.0))
+            if field not= undefined
+                field:SetSize(fieldPixels, fieldHeight)
+                field:SetPosition(cast(integer, containerWidth - fieldPixels), cast(integer, (height - fieldHeight) / 2.0))
+            end
+        else
+            // The label and field on the first line, at the top; the slider
+            // under them, as wide as the container.
+            number firstBottom = height - firstLine
+            if hasLabel
+                label:SetPosition(0, cast(integer, firstBottom + (firstLine - labelHeight) / 2.0))
+            end
+            if field not= undefined
+                field:SetSize(fieldPixels, fieldHeight)
+                field:SetPosition(cast(integer, containerWidth - fieldPixels), cast(integer, firstBottom + (firstLine - fieldHeight) / 2.0))
+            end
+            slider:SetSize(cast(integer, containerWidth), sliderHeight)
+            slider:SetPosition(0, 0)
+        end
+    end
+
+    // A text field's height: its font's line height and its padding, as a
+    // flow layout gives it.
+    private action GetFieldHeight(TextField field, number containerWidth, number containerHeight, number scale) returns number
+        LayoutProperties properties = field:GetLayoutProperties(containerWidth, containerHeight)
+        if properties = undefined
+            return field:GetHeight()
+        end
+        Font font = properties:GetFont()
+        if font = undefined
+            return field:GetHeight()
+        end
+        font = font:Copy()
+        font:SetSize(cast(integer, properties:GetFontSize() * scale))
+        return font:GetLineHeight() + cast(integer, (field:GetTopPadding() + field:GetBottomPadding()) * scale + 0.5)
+    end
+end

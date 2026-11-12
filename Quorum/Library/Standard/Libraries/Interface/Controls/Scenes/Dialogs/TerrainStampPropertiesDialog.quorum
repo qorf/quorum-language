@@ -3,6 +3,7 @@ package Libraries.Interface.Controls.Scenes.Dialogs
 use Libraries.Containers.Array
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
 use Libraries.Interface.Controls.ButtonGroup
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Game.Graphics.Label
@@ -89,12 +90,9 @@ class TerrainStampPropertiesDialog is PropertiesDialog
         modeGroup:AddSelectionListener(me)
         AddGroup(panel, modeGroup, focusArray)
 
-        Control heightLine = MakeLine()
-        stampHeightField = AddField(heightLine, "Height:", "Stamp height in world units", "15", focusArray)
-        panel:Add(heightLine)
-        Control turnLine = MakeLine()
-        turnField = AddField(turnLine, "Turn:", "Stamp turn in degrees", "0", focusArray)
-        panel:Add(turnLine)
+        // Sliders with number fields (Slider plan), in a line's margins.
+        stampHeightField = AddSlider(panel, "Height:", "Stamp height in world units", "How high the stamp's shape is, in world units", 0, 128, 0.5, 4, "15", focusArray)
+        turnField = AddSlider(panel, "Turn:", "Stamp turn in degrees", "How far the stamp's shape is turned about the up axis", 0, 360, 1, 15, "0", focusArray)
         stampHeightField:AddTextChangeListener(me)
         turnField:AddTextChangeListener(me)
     end
@@ -170,6 +168,22 @@ class TerrainStampPropertiesDialog is PropertiesDialog
     /*
         Adds a labelled field to a line.
     */
+    /*
+        Adds a setting with a bounded range to the panel: a label, a slider
+        and a number field, both in the Tab order, with a line's margins.
+        Returns the number field, read as a plain field is.
+    */
+    private action AddSlider(Control panel, text label, text name, text description, number minimum, number maximum, number step, number pageStep, text value, Array<Control> focusArray) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        sliderField:SetLeftMargin(20)
+        sliderField:SetRightMargin(30)
+        sliderField:GetField():SetText(value)
+        panel:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(sliderField:GetField())
+        return sliderField:GetField()
+    end
+
     private action AddField(Control line, text label, text name, text value, Array<Control> focusArray) returns TextField
         // The label sits in a box of one width, so the fields line up.
         FlowLayout labelLayout

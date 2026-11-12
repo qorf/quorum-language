@@ -729,6 +729,9 @@ public class MacAccessibility {
         } else if (code == item.Get_Libraries_Interface_Item__LABEL_()) {
             LabelKit kit = new LabelKit();
             itemKit = kit;
+        } else if (code == item.Get_Libraries_Interface_Item__SLIDER_()) {
+            SliderKit kit = new SliderKit();
+            itemKit = kit;
         }
         return itemKit;
     }

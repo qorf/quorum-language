@@ -23,6 +23,7 @@ import quorum.Libraries.Interface.Controls.TextBox_;
 import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.MenuRoot_;
 import quorum.Libraries.Interface.Controls.ProgressBar_;
+import quorum.Libraries.Interface.Controls.Slider_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
@@ -90,7 +91,8 @@ public class AccessibilityManager
         CHART_ITEM,
         CHART_SECTION,
 
-        LABEL
+        LABEL,
+        SLIDER
     }
             
     enum MenuChanges {
@@ -151,6 +153,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_ITEM_(), AccessibilityCodes.CHART_ITEM);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_SECTION_(), AccessibilityCodes.CHART_SECTION);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LABEL_(), AccessibilityCodes.LABEL);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__SLIDER_(), AccessibilityCodes.SLIDER);
 
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -201,6 +204,7 @@ public class AccessibilityManager
     private native long CreateMenuBarNative(long parent, String name, Item_ item);
     private native long CreateMenuNative(long parent, String name, Item_ item); //popup menus are called Menus in UIA
     private native long CreateProgressBarNative(long parent, String name, String description, Item_ item);
+    private native long CreateSliderNative(long parent, String name, String description, Item_ item);
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -225,6 +229,7 @@ public class AccessibilityManager
     */
     private native boolean ButtonInvoked(long nativePointer);
     private native boolean ProgressBarValueChanged(long nativePointer, double value);
+    private native boolean SliderValueChangedNative(long nativePointer, double value);
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
@@ -365,6 +370,9 @@ public class AccessibilityManager
                 break;
             case PROGRESS_BAR:
                 nativePointer = CreateProgressBarNative(parentLong, item.GetName(), item.GetDescription(), item);
+                break;
+            case SLIDER:
+                nativePointer = CreateSliderNative(parentLong, item.GetName(), item.GetDescription(), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -767,6 +775,19 @@ public class AccessibilityManager
         long nativePointer = ITEM_MAP.get(item);
         
         ProgressBarValueChanged(nativePointer, (int)item.GetValue());
+    }
+
+    /*
+        A slider's value changed: UI Automation's value events are raised
+        with its new number and text (SliderControl).
+    */
+    public void SliderChanged(Slider_ item) {
+        if (ITEM_MAP.containsKey(item) == false)
+            return;
+
+        long nativePointer = ITEM_MAP.get(item);
+
+        SliderValueChangedNative(nativePointer, item.GetValue());
     }
     
     public void NameChanged(Item_ item)

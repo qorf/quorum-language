@@ -7,6 +7,7 @@ import quorum.Libraries.Interface.Controls.Button_;
 import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
+import quorum.Libraries.Interface.Controls.Slider_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Forms.Banner_;
@@ -51,6 +52,10 @@ public class AndroidAccessibility {
     static final int CHART_ESCAPE = 0;
     static final int CHART_UP = 1;
     static final int CHART_DOWN = 2;
+
+    // What TalkBack asks of a slider (SliderFromTalkBack).
+    static final int SLIDER_STEP_UP = 0;
+    static final int SLIDER_STEP_DOWN = 1;
 
     private final Map<Integer, Item_> items = new LinkedHashMap<>();
     private boolean changed = true;
@@ -365,6 +370,16 @@ public class AndroidAccessibility {
             node.clickable = true;
         } else if (code == item.Get_Libraries_Interface_Item__PROGRESS_BAR_()) {
             node.className = "android.widget.ProgressBar";
+        } else if (code == item.Get_Libraries_Interface_Item__SLIDER_() && item instanceof Slider_) {
+            // TalkBack adjusts a SeekBar with a swipe up or down (or the
+            // volume keys) and says its state description as the value.
+            Slider_ slider = (Slider_) item;
+            node.className = "android.widget.SeekBar";
+            node.slider = true;
+            node.rangeMinimum = (float) slider.GetMinimum();
+            node.rangeMaximum = (float) slider.GetMaximum();
+            node.rangeValue = (float) slider.GetValue();
+            node.stateDescription = Clean(slider.GetValueText());
         } else if (code == item.Get_Libraries_Interface_Item__CHART_()) {
             // The chart's summary, as iOS's ChartSummaryIOS: its title, then
             // what it shows. A double tap goes to the top level.
@@ -645,6 +660,40 @@ public class AndroidAccessibility {
                     chart.SelectionDown();
                 }
                 self.FollowChartSelection(chart);
+            }
+        });
+    }
+
+    // TalkBack's adjust gesture on a slider: a step up or down, as the
+    // arrow keys do.
+    static void SliderFromTalkBack(final int id, final int what) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (!(item instanceof Slider_)) return;
+                Slider_ slider = (Slider_) item;
+                if (what == SLIDER_STEP_UP) {
+                    slider.StepUp();
+                } else {
+                    slider.StepDown();
+                }
+                self.changed = true;
+            }
+        });
+    }
+
+    // A value set through TalkBack (ACTION_SET_PROGRESS), as if typed.
+    static void SliderSetFromTalkBack(final int id, final double value) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (!(item instanceof Slider_)) return;
+                ((Slider_) item).ChangeValue(value, true);
+                self.changed = true;
             }
         });
     }

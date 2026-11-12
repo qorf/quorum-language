@@ -212,12 +212,13 @@ class TerrainCursorSettings
     end
 
     /*
-    This action sets how opaque the crosshair's lines are, from 10 to 100.
+    This action sets how opaque the crosshair's lines are, from 0 (not seen)
+    to 100.
 
     Attribute: Parameter opacity The opacity
     */
     action SetCrosshairOpacity(integer opacity)
-        integer value = Clamp(opacity, 10, 100)
+        integer value = Clamp(opacity, 0, 100)
         if value not= crosshairOpacity
             crosshairOpacity = value
             version = version + 1
