@@ -1,0 +1,440 @@
+package Libraries.Fabrication
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.ModelData
+
+use Libraries.Data.Formats.NumberFormatter
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.TriangleMesh
+use Libraries.Fabrication.Slicing.MeshSlicer
+use Libraries.Fabrication.Slicing.Segment
+use Libraries.Fabrication.Slicing.ContourGenerator
+use Libraries.Fabrication.Slicing.PathGenerator
+use Libraries.Fabrication.Slicing.PathOrderer
+use Libraries.Fabrication.Slicing.SkirtGenerator
+use Libraries.Fabrication.Slicing.TreeSupport
+use Libraries.Fabrication.Printing.GcodeWriter
+use Libraries.Fabrication.Printing.Bambu.BambuPackager
+use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+use Libraries.Fabrication.Profiles.Profile
+
+/*
+The SliceJob class runs the whole slicer from one Profile: every stage gets
+its settings from the profile, so nothing is hard-coded per printer.
+
+    model -> TriangleMesh -> MeshSlicer -> ContourGenerator -> PathGenerator
+          -> (TreeSupport, SkirtGenerator) -> PathOrderer -> GcodeWriter
+          -> (BambuPackager)
+
+Run prints its progress (see SetVerbose) and the warnings the stages
+collected, prefixed with "warning:". SetQuiet(true) prints nothing at all;
+the warnings are still kept, and GetWarnings returns them. The Configure
+actions can also be used one at a time, to set up a single stage from a
+profile in a test.
+
+Attribute: Example
+
+    use Libraries.System.File
+    use Libraries.Game.Graphics.Models.Data.ModelLoader
+    use Libraries.Game.Graphics.Models.Data.ModelData
+    use Libraries.Fabrication.SliceJob
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main
+        action Main
+            File file
+            file:SetPath("assets/benchy.stl")
+            ModelLoader loader
+            ModelData model = loader:Load(file)
+
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            SliceJob job
+            job:Run(model, profiles:Require("bambu-p2s"), "Outputs/benchy.gcode")
+        end
+    end
+*/
+class SliceJob
+    text generatorName = "Quorum Libraries.Fabrication"
+    boolean verbose = true
+    boolean quiet = false
+    Array<text> warnings
+    NumberFormatter format
+
+    /*
+    The program named in the G-code it writes (see GcodeWriter:SetGeneratorName).
+
+    Attribute: Parameter name The name, for example "My Slicer".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        job:SetGeneratorName("My Slicer")
+    */
+    action SetGeneratorName(text name)
+        generatorName = name
+    end
+
+    /*
+    Whether Run prints its progress and statistics (on by default). Warnings
+    are printed either way, unless SetQuiet turns them off too.
+
+    Attribute: Parameter toggle True to print progress.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        job:SetVerbose(false)       // only warnings are printed
+    */
+    action SetVerbose(boolean toggle)
+        verbose = toggle
+    end
+
+    /*
+    Whether Run prints nothing at all: no progress and no warnings (off by
+    default). The warnings are still collected; read them with GetWarnings.
+    Errors still stop Run with an alert.
+
+    Attribute: Parameter toggle True to print nothing.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        job:SetQuiet(true)
+        // ... job:Run(model, profile, "Outputs/part.gcode") ...
+        Array<text> warnings = job:GetWarnings()
+        output warnings:GetSize() + " warnings"
+    */
+    action SetQuiet(boolean toggle)
+        quiet = toggle
+    end
+
+    /*
+    The warnings from the last Run, without the "warning: " prefix, whether
+    or not they were printed. Empty before the first Run.
+
+    Attribute: Returns The warnings, in the order the stages reported them.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        job:SetQuiet(true)
+        // ... job:Run(model, profile, "Outputs/part.gcode") ...
+        Array<text> warnings = job:GetWarnings()
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            output warnings:Get(i)
+            i = i + 1
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings:CopyToArray()
+    end
+
+    /*
+    Slices the model with the profile and writes the G-code to gcodePath. If
+    the profile has write3mf on, also packages it as a Bambu .gcode.3mf next
+    to it.
+
+    Attribute: Parameter data The loaded model.
+    Attribute: Parameter profile The settings to slice with.
+    Attribute: Parameter gcodePath Where to write the G-code.
+    Attribute: Returns The path of the last file written (the .gcode.3mf, or the .gcode).
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Game.Graphics.Models.Data.ModelLoader
+        use Libraries.Game.Graphics.Models.Data.ModelData
+        use Libraries.Fabrication.SliceJob
+        use Libraries.Fabrication.Profiles.ProfileManager
+
+        File file
+        file:SetPath("assets/3dbenchy.stl")
+        ModelLoader loader
+        ModelData model = loader:Load(file)
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        SliceJob job
+        text written = job:Run(model, profiles:Require("ender3-v2"), "Outputs/benchy.gcode")
+        output "Wrote " + written
+    */
+    action Run(ModelData data, Profile profile, text gcodePath) returns text
+        if data = undefined
+            alert("SliceJob:Run was given no model (undefined).")
+        end
+        if profile = undefined
+            alert("SliceJob:Run was given no profile (undefined).")
+        end
+        if gcodePath = ""
+            alert("SliceJob:Run needs a path for the G-code file.")
+        end
+        warnings:Empty()
+        Warn(profile:Validate(), "profile '" + profile:GetName() + "': ")
+        Log("Slicing with " + profile:Describe())
+
+        TriangleMesh mesh
+        mesh:Load(data)
+        Log("model: " + mesh:GetTriangleCount() + " triangles, " + mesh:GetVertexCount() + " vertices")
+
+        MeshSlicer slicer
+        ConfigureSlicer(profile, slicer)
+        slicer:SetTriangles(mesh)
+        Log("base faced " + slicer:GetBaseDirection() + " in the file, unit scale " + format:Short(slicer:GetUnitScale())
+            + ", " + slicer:GetUniqueVertexCount() + " distinct vertices")
+        Array<number> planeRange = slicer:GetSliceRange()
+        number layerHeight = profile:GetNumber("layerHeight")
+        number cutAmount = profile:GetNumber("cutAmount")
+        Array<number> planes = slicer:BuildPlanes(planeRange:Get(0) + cutAmount, planeRange:Get(1), layerHeight)
+        integer planeCount = planes:GetSize()
+        Log("height " + format:Fixed(planeRange:Get(1) - planeRange:Get(0), 2) + " mm: " + planeCount + " layers")
+
+        Array<Segment> segments = slicer:Slice(planes)
+        Warn(slicer:GetWarnings(), "")
+        Log("segments: " + segments:GetSize() + " (at most " + slicer:GetMaxCrossingsPerFace() + " crossings per triangle)")
+
+        ContourGenerator conGen
+        ConfigureContours(profile, conGen)
+        Array<Contour> contours = conGen:Build(segments, planeCount, profile:GetNumber("contourMaxGap"))
+        if contours:GetSize() = 0
+            alert("Slicing produced no outlines. The model may be broken (not a closed surface), or cutAmount may cut all of it away.")
+        end
+        if conGen:GetOpenCount() > 0
+            Report(conGen:GetOpenCount() + " outlines stayed open even after bridging gaps up to " + profile:GetText("contourMaxGap")
+                + " mm: the mesh has holes. Open outlines get no walls or fill; repairing the model usually fixes this.")
+        end
+        Log("outlines: " + contours:GetSize() + " (" + conGen:GetFlippedCount() + " reoriented, " + conGen:GetDroppedCount()
+            + " specks dropped, points " + conGen:GetPointsBefore() + " -> " + conGen:GetPointsAfter() + ")")
+
+        PathGenerator paths
+        ConfigurePaths(profile, paths)
+        paths:Generate(contours, planeCount)
+        Array<Contour> walls = paths:GetWalls()
+        Array<Contour> skin = paths:GetSkin()
+        Array<Contour> infill = paths:GetInfill()
+        Log("paths: " + walls:GetSize() + " walls, " + skin:GetSize() + " solid lines, " + infill:GetSize()
+            + " infill lines (" + paths:GetDroppedLoopCount() + " bad inset loops dropped, "
+            + paths:GetRebuiltIslandCount() + " thin islands rebuilt)")
+
+        // everything on the first layer, for the skirt / brim to go around
+        Array<Contour> base = contours:CopyToArray()
+
+        PathOrderer orderer
+        ConfigureOrderer(profile, orderer)
+
+        if profile:GetBoolean("supportsEnabled")
+            TreeSupport trees
+            ConfigureSupports(profile, trees)
+            trees:Generate(contours, planeCount)
+            Log("support: " + trees:GetTipCount() + " tines (" + trees:GetDroppedTips() + " dropped for lack of room), "
+                + trees:GetReachedBed() + " trunks reach the bed, " + trees:GetRestedOnModel() + " branches rest on the model; skipped "
+                + trees:GetSkippedBridgeCount() + " bridgeable and " + trees:GetSkippedSmallCount() + " tiny-overhang tine spots")
+            Array<Contour> supportAreas = trees:GetAreas()
+            integer i = 0
+            repeat while i < supportAreas:GetSize()
+                base:Add(supportAreas:Get(i))
+                i = i + 1
+            end
+            orderer:SetSupport(trees:GetPaths())
+        end
+
+        if profile:GetText("adhesionType") not= "none"
+            SkirtGenerator skirtGen
+            ConfigureAdhesion(profile, skirtGen)
+            orderer:SetSkirt(skirtGen:Generate(base))
+            Warn(skirtGen:GetWarnings(), "")
+        end
+
+        Array<Contour> ordered = orderer:Order(contours, walls, skin, infill, planeCount)
+        Log("ordered: " + ordered:GetSize() + " paths (" + orderer:GetDroppedCount() + " too short to print)")
+        if ordered:GetSize() = 0
+            alert("Nothing is left to print: every path was too short. Check lineWidth, wallCount and the minLoopLength / minLineLength settings against the model's size.")
+        end
+
+        GcodeWriter gcode
+        ConfigureGcode(profile, gcode)
+        gcode:Write(ordered, gcodePath)
+        Warn(gcode:GetWarnings(), "")
+        Log("Wrote " + gcodePath + ": " + format:Fixed(gcode:GetFilamentLength() / 1000.0, 2) + " m of filament, about "
+            + format:Fixed(gcode:GetMoveSeconds() / 60.0, 0) + " min of moves (real prints run slower: acceleration isn't counted)")
+        if gcode:GetSlowedLayerCount() > 0
+            Log("  " + gcode:GetSlowedLayerCount() + " small layers slowed down to get at least " + profile:GetText("minLayerTime") + " s to cool")
+        end
+        if gcode:GetPausedLayerCount() > 0
+            Log("  " + gcode:GetPausedLayerCount() + " layers still too quick at " + profile:GetText("minPrintSpeed")
+                + " mm/s: the nozzle parks beside the model and waits after them")
+        end
+        if gcode:GetSkippedRetractCount() > 0
+            Log("  " + gcode:GetSkippedRetractCount() + " retracts skipped to avoid grinding the filament")
+        end
+
+        if profile:GetBoolean("write3mf")
+            BambuPackager packer
+            packer:SetGeneratorName(generatorName)
+            ConfigurePacker(profile, packer)
+            text archive = packer:Pack(gcodePath)
+            Warn(packer:GetWarnings(), "")
+            Log("Wrote " + archive + ": " + packer:GetPrintTime() + ", " + format:Fixed(packer:GetFilamentGrams(), 1) + " g "
+                + profile:GetText("filamentType") + ", " + packer:GetLayerCount() + " layers, settings from Bambu Studio " + packer:GetSettingsVersion())
+            return archive
+        end
+        return gcodePath
+    end
+
+    private action ConfigureSlicer(Profile profile, MeshSlicer slicer)
+        slicer:SetUnitScale(profile:GetNumber("unitScale"))
+        number width = profile:GetNumber("bedWidth")
+        number depth = profile:GetNumber("bedDepth")
+        if depth > width
+            width = depth
+        end
+        slicer:SetBedSize(width)
+    end
+
+    private action ConfigureContours(Profile profile, ContourGenerator conGen)
+        conGen:SetSimplifyTolerance(profile:GetNumber("simplifyTolerance"))
+        conGen:SetMinArea(profile:GetNumber("minContourArea"))
+    end
+
+    private action ConfigurePaths(Profile profile, PathGenerator paths)
+        paths:SetLineWidth(profile:GetNumber("lineWidth"))
+        paths:SetWallCount(profile:GetInteger("wallCount"))
+        paths:SetInfillDensity(profile:GetNumber("infillDensity"))
+        paths:SetInfillOverlap(profile:GetNumber("infillOverlap"))
+        paths:SetTopLayers(profile:GetInteger("topLayers"))
+        paths:SetBottomLayers(profile:GetInteger("bottomLayers"))
+        paths:SetJoinFirstLayer(profile:GetBoolean("joinFirstLayer"))
+    end
+
+    private action ConfigureSupports(Profile profile, TreeSupport trees)
+        trees:SetLayerHeight(profile:GetNumber("layerHeight"))
+        trees:SetLineWidth(profile:GetNumber("lineWidth"))
+        trees:SetOverhangAngle(profile:GetNumber("supportOverhangAngle"))
+        trees:SetBranchAngle(profile:GetNumber("supportBranchAngle"))
+        trees:SetTipSpacing(profile:GetNumber("supportTipSpacing"))
+        trees:SetBranchGrowth(profile:GetNumber("supportGrowthAngle"), profile:GetNumber("supportMaxRadius"))
+        trees:SetGaps(profile:GetNumber("supportXYGap"), profile:GetNumber("supportTineXYGap"), profile:GetInteger("supportTopGapLayers"))
+        trees:SetBottomGap(profile:GetInteger("supportBottomGapLayers"))
+        trees:SetDensity(profile:GetNumber("supportDensity"))
+        trees:SetRoof(profile:GetInteger("supportRoofLayers"), profile:GetNumber("supportRoofDensity"))
+        trees:SetBase(profile:GetNumber("supportBaseFlare"), profile:GetInteger("supportBaseLayers"))
+        trees:SetTip(profile:GetNumber("supportTipDiameter"), profile:GetNumber("supportTipLength"))
+        trees:SetRestRules(profile:GetNumber("supportRestWidth"), profile:GetNumber("supportRestLookAhead"))
+        trees:SetBedRouting(profile:GetBoolean("supportBedRouting"))
+        trees:SetBridging(profile:GetNumber("supportMaxBridge"))
+        trees:SetMinOverhangArea(profile:GetNumber("supportMinOverhangArea"))
+    end
+
+    private action ConfigureAdhesion(Profile profile, SkirtGenerator skirtGen)
+        skirtGen:SetLineWidth(profile:GetNumber("lineWidth"))
+        if profile:GetText("adhesionType") = "brim"
+            skirtGen:SetBrim(profile:GetInteger("brimLoops"), profile:GetNumber("brimGap"))
+        else
+            skirtGen:SetSkirt(profile:GetInteger("skirtLoops"), profile:GetNumber("skirtDistance"), profile:GetInteger("skirtLayers"))
+        end
+    end
+
+    private action ConfigureOrderer(Profile profile, PathOrderer orderer)
+        orderer:SetSeamPoint(profile:GetNumber("seamX"), profile:GetNumber("seamY"))
+        orderer:SetCleanup(profile:GetNumber("minLoopLength"), profile:GetNumber("minLineLength"), profile:GetNumber("minSegmentLength"))
+    end
+
+    private action ConfigureGcode(Profile profile, GcodeWriter gcode)
+        gcode:SetGeneratorName(generatorName)
+        gcode:SetLayerHeight(profile:GetNumber("layerHeight"))
+        gcode:SetLineWidth(profile:GetNumber("lineWidth"))
+        gcode:SetNozzleDiameter(profile:GetNumber("nozzleDiameter"))
+        gcode:SetFilamentDiameter(profile:GetNumber("filamentDiameter"))
+        gcode:SetFlow(profile:GetNumber("flow"))
+        gcode:SetFirstLayerFlow(profile:GetNumber("firstLayerFlow"))
+        gcode:SetMaxFlow(profile:GetNumber("maxFlow"))
+        gcode:SetFilamentType(profile:GetText("filamentType"))
+        gcode:SetTemperatures(profile:GetInteger("nozzleTemperature"), profile:GetInteger("bedTemperature"))
+        gcode:SetBed(profile:GetNumber("bedWidth"), profile:GetNumber("bedDepth"))
+        gcode:SetBedHeight(profile:GetNumber("bedHeight"))
+
+        gcode:SetSpeeds(profile:GetNumber("outerWallSpeed"), profile:GetNumber("innerWallSpeed"),
+            profile:GetNumber("skinSpeed"), profile:GetNumber("infillSpeed"),
+            profile:GetNumber("supportSpeed"), profile:GetNumber("firstLayerSpeed"))
+        gcode:SetTravelSpeed(profile:GetNumber("travelSpeed"))
+        gcode:SetInfillTravel(profile:GetNumber("infillTravelLimit"))
+        gcode:SetAccelerations(profile:GetNumber("accelOuterWall"), profile:GetNumber("accelInnerWall"),
+            profile:GetNumber("accelSkin"), profile:GetNumber("accelInfill"),
+            profile:GetNumber("accelSupport"), profile:GetNumber("accelFirstLayer"),
+            profile:GetNumber("accelTravel"))
+
+        // SetRetraction also resets the retraction window, so the limit comes after it
+        number retractLength = profile:GetNumber("retractLength")
+        gcode:SetRetraction(retractLength, profile:GetNumber("retractSpeed"))
+        gcode:SetMinTravelForRetract(profile:GetNumber("retractMinTravel"))
+        number window = profile:GetNumber("retractLimitWindow")
+        if window <= 0
+            window = retractLength
+        end
+        gcode:SetRetractionLimit(profile:GetInteger("retractLimitCount"), window)
+        gcode:SetZHop(profile:GetNumber("zHop"))
+        gcode:SetZHopMinTravel(profile:GetNumber("zHopMinTravel"))
+        gcode:SetZHopNeedsRetract(profile:GetBoolean("zHopNeedsRetract"))
+
+        gcode:SetMinLayerTime(profile:GetNumber("minLayerTime"), profile:GetNumber("minPrintSpeed"))
+        gcode:SetFan(profile:GetInteger("fanMax"), profile:GetInteger("fanOffLayers"), profile:GetInteger("fanFullLayer"))
+        gcode:SetCoolingPause(profile:GetNumber("coolingLift"), profile:GetNumber("coolingClearance"))
+
+        gcode:SetBambuExtras(profile:GetBoolean("bambuExtras"))
+        gcode:SetStartGCodeFile(profile:GetText("startGcodeFile"))
+        gcode:SetEndGCodeFile(profile:GetText("endGcodeFile"))
+        gcode:SetDryRun(profile:GetBoolean("dryRun"), profile:GetNumber("dryRunLift"))
+    end
+
+    /*
+    Sets up the 3MF packer: its own options from the profile, plus a
+    project_settings template already filled in by BambuSettingsMap, so the
+    3MF shows the settings the print was actually sliced with.
+    */
+    private action ConfigurePacker(Profile profile, BambuPackager packer)
+        text templatePath = profile:GetText("bambuSettingsTemplate")
+        packer:SetSettingsTemplate(templatePath)
+        packer:SetPrinterModelId(profile:GetText("printerModelId"))
+        packer:SetNozzleDiameter(profile:GetNumber("nozzleDiameter"))
+        packer:SetFilamentType(profile:GetText("filamentType"))
+        packer:SetFilamentColor(profile:GetText("filamentColor"))
+        packer:SetFilamentId(profile:GetText("filamentId"))
+        packer:SetBedType(profile:GetText("bedType"))
+        packer:SetLayerHeight(profile:GetNumber("layerHeight"))
+
+        BambuSettingsMap map
+        packer:SetSettingsText(map:FilledTemplate(profile, templatePath))
+        Warn(map:GetWarnings(), "")
+    end
+
+    private action Log(text message)
+        if verbose and not quiet
+            output message
+        end
+    end
+
+    private action Report(text message)
+        warnings:Add(message)
+        if not quiet
+            output "warning: " + message
+        end
+    end
+
+    private action Warn(Array<text> messages, text prefix)
+        integer i = 0
+        repeat while i < messages:GetSize()
+            Report(prefix + messages:Get(i))
+            i = i + 1
+        end
+    end
+end

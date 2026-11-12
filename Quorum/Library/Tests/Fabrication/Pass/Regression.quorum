@@ -1,0 +1,124 @@
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Data.Formats.NumberFormatter
+use Libraries.System.File
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.ProfileManager
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestFiles
+use Tests.Fabrication.GcodeReader
+
+/*
+Regression tests: slices fixed models with frozen profiles
+(Resources/regression-profiles.json) and compares a fingerprint of each
+G-code file (statistics, feature counts and an MD5 of the whole file) with
+the one recorded in Resources/Baselines. Any change to the slicer's output,
+however small, makes the MD5 differ; the line printed for a difference
+names the first fact that changed.
+
+A missing baseline fails and is recorded, to be checked and committed.
+After a change that is meant to alter the output, delete the baselines it
+changed, run the tests again, and commit the new files with the change.
+A failing slice leaves its G-code and fingerprint in
+Output/Run/FabricationScratch/regression to compare with a G-code viewer.
+*/
+class Main
+    TestModels models
+    TestFiles files
+    ProfileManager profiles
+    NumberFormatter format
+    text baselines = "../../Library/Tests/Fabrication/Resources/Baselines/"
+    text lf = ""
+
+    on create
+        lf = lf:GetLineFeed()
+    end
+
+    action Main
+        // fixtures
+        text fixture = "../../Library/Tests/Fabrication/Resources/regression-profiles.json"
+        File checkFile
+        checkFile:SetPath(fixture)
+        if not checkFile:IsFile()
+            output "the fixture " + fixture + " is missing"
+            return now
+        end
+        profiles:Load(fixture)
+        Compare("marlin-cube", models:Cube(), "marlin")
+        Compare("marlin-ledge", models:Ledge(), "marlin")
+        Compare("bambu-cube", models:Cube(), "bambu")
+        Compare("bambu-ledge", models:Ledge(), "bambu")
+    end
+
+    /*
+    Slices the model, and prints one line: that its fingerprint matches the
+    baseline, or the first line that differs, or that there was no baseline
+    (then this one is recorded: check it and commit it).
+    */
+    action Compare(text name, ModelData model, text profileName)
+        text gcodePath = files:Path("regression/" + name + ".gcode")
+        SliceJob job
+        job:SetQuiet(true)
+        text written = job:Run(model, profiles:Require(profileName), gcodePath)
+        GcodeReader reader
+        reader:Read(gcodePath)
+        text actual = Fingerprint(reader)
+
+        text baselinePath = baselines + name + ".txt"
+        File file
+        file:SetPath(baselinePath)
+        if not file:IsFile()
+            files:WriteAt(baselinePath, actual)
+            output name + ": there was no baseline, so one was recorded in Library/Tests/Fabrication/Resources/Baselines: check it and commit it"
+            return now
+        end
+
+        text expected = file:Read()
+        text cr = ""
+        cr = cr:GetCarriageReturn()
+        expected = expected:Replace(cr, "")
+        if expected = actual
+            output name + " matches its baseline"
+            return now
+        end
+
+        files:Write("regression/" + name + ".actual.txt", actual)
+        Array<text> wanted = expected:Split(lf)
+        Array<text> got = actual:Split(lf)
+        integer i = 0
+        repeat while i < wanted:GetSize() or i < got:GetSize()
+            text before = ""
+            text after = ""
+            if i < wanted:GetSize()
+                before = wanted:Get(i)
+            end
+            if i < got:GetSize()
+                after = got:Get(i)
+            end
+            if before not= after
+                output name + " differs from its baseline: was '" + before + "', now '" + after + "'"
+                return now
+            end
+            i = i + 1
+        end
+    end
+
+    /* One line per fact; the MD5 covers every byte (line endings made the same on every system). */
+    action Fingerprint(GcodeReader reader) returns text
+        text result = "layers: " + reader:GetLayerCount() + lf
+        result = result + "lines: " + reader:CountLinesStartingWith("") + lf
+        result = result + "printing moves: " + reader:GetPrintMoveCount() + lf
+        result = result + "retracts: " + reader:GetRetractCount() + lf
+        result = result + "filament (mm): " + format:Fixed(reader:GetExtruded(), 1) + lf
+        result = result + "X: " + format:Fixed(reader:GetMinX(), 2) + " to " + format:Fixed(reader:GetMaxX(), 2) + lf
+        result = result + "Y: " + format:Fixed(reader:GetMinY(), 2) + " to " + format:Fixed(reader:GetMaxY(), 2) + lf
+        result = result + "outer wall paths: " + reader:CountLinesStartingWith(";TYPE:WALL-OUTER") + lf
+        result = result + "inner wall paths: " + reader:CountLinesStartingWith(";TYPE:WALL-INNER") + lf
+        result = result + "skin paths: " + reader:CountLinesStartingWith(";TYPE:SKIN") + lf
+        result = result + "infill paths: " + reader:CountLinesStartingWith(";TYPE:FILL") + lf
+        result = result + "support paths: " + reader:CountLinesStartingWith(";TYPE:SUPPORT") + lf
+        result = result + "skirt / brim paths: " + reader:CountLinesStartingWith(";TYPE:SKIRT") + lf
+        result = result + "md5: " + files:Md5(reader:GetText()) + lf
+        return result
+    end
+end

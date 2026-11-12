@@ -1,0 +1,213 @@
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.Profile
+use Libraries.Fabrication.Profiles.ProfileManager
+use Libraries.System.File
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestFiles
+use Tests.Fabrication.GcodeReader
+
+/*
+Integration tests: whole slices, model to G-code, with every sample profile
+in Resources/Profiles/profiles.json, the way a program would run them. These catch stages that
+work alone but not together, and profiles or templates that no longer work.
+*/
+class Main
+    TestModels models
+    TestFiles files
+    ProfileManager profiles
+
+    action Main
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        EveryProfileSlicesACube()
+        SupportsAndAdhesion()
+        BambuArchive()
+        BambuA1Archive()
+        UnusableInput()
+        QuietRun()
+    end
+
+    /* Slices quietly and reads the G-code back. */
+    action Slice(ModelData model, Profile profile, text name) returns GcodeReader
+        SliceJob job
+        job:SetQuiet(true)
+        text path = files:Path("slice/" + name + ".gcode")
+        text written = job:Run(model, profile, path)
+        GcodeReader reader
+        reader:Read(path)
+        return reader
+    end
+
+    action EveryProfileSlicesACube
+        // every profile slices a cube
+        output "profiles: " + profiles:GetSize()
+        text sliced = "bambu-p2s bambu-p2s-petg bambu-a1 ender3-v2 ender3-v2-fine"
+        Array<text> names = sliced:Split(" ")
+        integer i = 0
+        repeat while i < names:GetSize()
+            Profile profile = profiles:Require(names:Get(i))
+            text name = profile:GetName()
+            GcodeReader reader = Slice(models:Cube(), profile, name + "-cube")
+            number layerHeight = profile:GetNumber("layerHeight")
+            integer layers = reader:GetLayerCount()
+            output name + ": layers x height covers the 20 mm cube: " + Near(layers * layerHeight, 20, layerHeight)
+            output name + ": the last layer is at the top: " + Near(reader:GetLayerZ(layers - 1), 20, layerHeight)
+            output name + ": numbers that aren't plain decimal text: " + reader:GetBadNumberCount()
+            output name + ": the cube is printed: " + (reader:GetPrintMoveCount() > 1000)
+            number centreX = profile:GetNumber("bedWidth") / 2
+            output name + ": centred on the bed: " + Near((reader:GetMinX() + reader:GetMaxX()) / 2, centreX, 0.5)
+            text gcodeText = reader:GetText()
+            output name + ": the start G-code placeholders are filled in: " + (not gcodeText:Contains("{NOZZLE_TEMP}"))
+            output name + ": walls: " + gcodeText:Contains(";TYPE:WALL-OUTER")
+            output name + ": skin: " + gcodeText:Contains(";TYPE:SKIN")
+            i = i + 1
+        end
+    end
+
+    action SupportsAndAdhesion
+        // supports, skirt and brim on the ledge model
+        Profile supported = profiles:Derive("ender3-v2", "test-supported")
+        supported:SetBoolean("supportsEnabled", true)
+        supported:Set("adhesionType", "skirt")
+        GcodeReader withSupport = Slice(models:Ledge(), supported, "ledge-supported")
+        text supportedText = withSupport:GetText()
+        output "the ledge gets support: " + supportedText:Contains(";TYPE:SUPPORT")
+        output "the skirt is printed: " + supportedText:Contains(";TYPE:SKIRT")
+
+        Profile bare = profiles:Derive("ender3-v2", "test-bare")
+        bare:SetBoolean("supportsEnabled", false)
+        bare:Set("adhesionType", "skirt")
+        GcodeReader withoutSupport = Slice(models:Ledge(), bare, "ledge-bare")
+        text bareText = withoutSupport:GetText()
+        output "no support when it's off: " + (not bareText:Contains(";TYPE:SUPPORT"))
+        output "support uses extra filament: " + (withSupport:GetExtruded() > withoutSupport:GetExtruded())
+
+        Profile brimmed = profiles:Derive("ender3-v2", "test-brim")
+        brimmed:SetBoolean("supportsEnabled", false)
+        brimmed:Set("adhesionType", "brim")
+        GcodeReader withBrim = Slice(models:Cube(), brimmed, "cube-brim")
+        text brimText = withBrim:GetText()
+        output "the brim is printed (G-code previewers call it SKIRT): " + brimText:Contains(";TYPE:SKIRT")
+        // 8 brim loops 0.4 mm apart touching the cube: the outermost centre line is 3 mm out
+        output "the brim's width: " + Near(withBrim:GetMaxX() - withBrim:GetMinX(), 20 + 2 * 3.0, 0.1)
+    end
+
+    action BambuArchive
+        // the P2S profile makes a .gcode.3mf
+        SliceJob job
+        job:SetQuiet(true)
+        text gcodePath = files:Path("slice/p2s-archive.gcode")
+        text archive = job:Run(models:Cube(), profiles:Require("bambu-p2s"), gcodePath)
+        output "Run returns the archive: " + (archive = files:Path("slice/p2s-archive.gcode.3mf"))
+        output "the archive holds the G-code: " + (files:HasZipEntry(archive, "Metadata/plate_1.gcode"))
+        File file
+        file:SetPath(gcodePath)
+        text written = file:Read()
+        output "the G-code has Bambu's header: " + written:StartsWith("; HEADER_BLOCK_START")
+    end
+
+    action BambuA1Archive
+        // the A1 profile makes a .gcode.3mf for the A1
+        SliceJob job
+        job:SetQuiet(true)
+        text gcodePath = files:Path("slice/a1-archive.gcode")
+        text archive = job:Run(models:Cube(), profiles:Require("bambu-a1"), gcodePath)
+        output "Run returns the archive: " + (archive = files:Path("slice/a1-archive.gcode.3mf"))
+        output "the archive holds the G-code: " + (files:HasZipEntry(archive, "Metadata/plate_1.gcode"))
+        text sliceInfo = files:ReadZipEntry(archive, "Metadata/slice_info.config")
+        output "slice_info has the A1's model id: " + sliceInfo:Contains("N2S")
+        text settings = files:ReadZipEntry(archive, "Metadata/project_settings.config")
+        output "the A1 settings template went into the 3MF: " + settings:Contains("Bambu Lab A1 0.4 nozzle")
+
+        File file
+        file:SetPath(gcodePath)
+        text written = file:Read()
+        output "the G-code has Bambu's header: " + written:StartsWith("; HEADER_BLOCK_START")
+        output "the start code names the filament: " + written:Contains("M1002 set_filament_type:PLA")
+        output "filament 1 comes from the AMS lite or the external spool: " + written:Contains("M620 S0A")
+        output "the bed mesh covers the print: " + written:Contains("G29 A1 X")
+        text placeholders = "{FILAMENT_TYPE} {FIRST_CENTER_Y} {PARK_Z_UP} {PARK_Z_UP_BACK} {PRIME_FEED} {PRIME_FEED_SLOW} {LINE_FEED} {CALI_FEED} {CALI_FLOW} {FLOW_FEED} {NOZZLE_TEMP_LESS_50}"
+        Array<text> names = placeholders:Split(" ")
+        text left = ""
+        integer i = 0
+        repeat while i < names:GetSize()
+            if written:Contains(names:Get(i))
+                left = left + " " + names:Get(i)
+            end
+            i = i + 1
+        end
+        output "placeholders left in the G-code:" + left
+
+        // the end code raises the gantry 100 mm above the cube's 20 mm top
+        integer parkAt = written:IndexOf(" F600 ; raise the gantry")
+        output "the end code has the A1 park move: " + (parkAt > 16)
+        if parkAt > 16
+            text before = written:GetSubtext(parkAt - 16, parkAt)
+            integer zAt = before:IndexOf("G1 Z")
+            output "the park move is a G1 Z: " + (zAt >= 0)
+            if zAt >= 0
+                text z = before:GetSubtext(zAt + 4)
+                output "the gantry parks 100 mm above the print: " + Near(z:ParseNumber(), 120, 0.5)
+            end
+        end
+    end
+
+    action UnusableInput
+        // unusable input stops with a message
+        boolean flat = false
+        check
+            SliceJob job
+            job:SetQuiet(true)
+            text result = job:Run(models:Box(0, 0, 0, 20, 20, 0.05), profiles:Require("ender3-v2"), files:Path("slice/flat.gcode"))
+        detect e1
+            flat = true
+        end
+        output "a model thinner than half a layer: " + flat
+
+        boolean noPath = false
+        check
+            SliceJob job2
+            text result2 = job2:Run(models:Cube(), profiles:Require("ender3-v2"), "")
+        detect e2
+            noPath = true
+        end
+        output "no G-code path: " + noPath
+    end
+
+    action QuietRun
+        // a quiet run prints nothing (any line it printed would land before
+        // these and fail the test) but still keeps its warnings: PETG with
+        // the P2S's PLA settings template always gets one
+        Profile petg = profiles:Derive("bambu-p2s", "test-quiet-petg")
+        petg:Set("filamentType", "PETG")
+        SliceJob job
+        job:SetQuiet(true)
+        text written = job:Run(models:Cube(), petg, files:Path("slice/quiet-petg.gcode"))
+        Array<text> warnings = job:GetWarnings()
+        output "a quiet run still collects its warnings: " + (warnings:GetSize() > 0)
+        boolean named = false
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            text warning = warnings:Get(i)
+            if warning:Contains("is PETG")
+                named = true
+            end
+            i = i + 1
+        end
+        output "the filament warning is among them: " + named
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end
