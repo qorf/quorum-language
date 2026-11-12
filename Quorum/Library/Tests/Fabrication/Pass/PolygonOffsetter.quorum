@@ -1,0 +1,76 @@
+use Libraries.Containers.Array
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.PolygonOffsetter
+use Tests.Fabrication.TestModels
+
+/*
+Tests Libraries.Fabrication.Geometry.PolygonOffsetter. Convex corners are
+mitred (stay sharp); corners turning away from the material are rounded in
+16 degree steps, which is why the hole below grows by a little less than a
+quarter circle at each corner (0.776 mm^2 instead of 0.785 for d = 1).
+*/
+class Main
+    PolygonOffsetter offsetter
+    TestModels models
+
+    action Main
+        InsetSquare()
+        OutsetSquare()
+        InsetRing()
+        TooFarAndZero()
+    end
+
+    action InsetSquare
+        // inset of a square
+        Array<Contour> inset = offsetter:Offset(models:ListOf(models:Square(0, 0, 20, 3)), 2)
+        output "one loop: " + inset:GetSize()
+        output "16 x 16 mm: " + Near(models:NetArea(inset), 256, 0.0001)
+        Contour loop = inset:Get(0)
+        output "on the input's plane: " + loop:planeIndex
+        output "inside the original, 2 mm in: " + (loop:ContainsPoint(10, 10) and not loop:ContainsPoint(1, 1))
+    end
+
+    action OutsetSquare
+        // outset of a square
+        Array<Contour> outset = offsetter:Offset(models:ListOf(models:Square(0, 0, 20, 0)), -2)
+        output "one loop: " + outset:GetSize()
+        output "24 x 24 mm with mitred corners: " + Near(models:NetArea(outset), 576, 0.0001)
+    end
+
+    action InsetRing
+        // inset of a square ring
+        Array<Contour> ring
+        ring:Add(models:Square(0, 0, 20, 0))
+        ring:Add(models:HoleSquare(5, 5, 10, 0))
+        Array<Contour> inset = offsetter:Offset(ring, 1)
+        output "an outline and a hole: " + inset:GetSize()
+        // 18 x 18 outside, minus a 10 mm hole grown by 1 mm with rounded corners
+        output "net area: " + Near(models:NetArea(inset), 324 - 143.10368, 0.01)
+    end
+
+    action TooFarAndZero
+        // insets that close up, and distance 0
+        // past the middle the mitred corners fold over into a small inverted
+        // square; PathGenerator throws such loops away (see PathGeneratorTest)
+        Array<Contour> gone = offsetter:Offset(models:ListOf(models:Square(0, 0, 20, 0)), 10)
+        output "an inset to the middle leaves nothing: " + Near(models:NetArea(gone), 0, 0.0001)
+        Array<Contour> same = offsetter:Offset(models:ListOf(models:Square(0, 0, 20, 0)), 0)
+        output "distance 0 copies the loop: " + Near(models:NetArea(same), 400, 0.0001)
+        Array<Contour> nothing
+        Array<Contour> empty = offsetter:Offset(nothing, 1)
+        output "no loops in, no loops out: " + empty:GetSize()
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

@@ -1,0 +1,324 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Containers.Array
+use Libraries.System.File
+
+/*
+Tests Libraries.Fabrication. Like DataFormatsTester, each test is a small
+program in Library/Tests/Fabrication/Pass that the suite compiles against the
+repository's standard library, runs, and checks line by line against the
+expected output. Programs that build models, read G-code or write scratch
+files also compile the helper classes they use from
+Library/Tests/Fabrication/Support.
+
+Each check prints one line: "what: true" when a condition holds, the value
+itself for a count or a text, and for a measurement "true" when it is close
+enough or the number it got when it isn't. Checks over many items print what
+was wrong, so a passing line ends at the colon.
+
+Bytecode only: the tests read and write files.
+*/
+class FabricationTester
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Fabrication/"
+    text passPath = path + "Pass/"
+    text supportPath = path + "Support/"
+
+    action Test
+        TestArgumentChecker()
+        TestContour()
+        TestPathRole()
+        TestGeometryUtilities()
+        TestContourLayers()
+        TestContourSimplifier()
+        TestConvexHull()
+        TestLineFill()
+        TestPolygonOperations()
+        TestPolygonOffsetter()
+        TestTriangleMesh()
+    end
+
+    action GetName returns text
+        return "Fabrication Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action TestArgumentChecker
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "ArgumentChecker.quorum")
+        results:Add(0, "a small positive number passes: true")
+        results:Add(1, "0 is rejected: true")
+        results:Add(2, "a negative number is rejected: true")
+        results:Add(3, "the minimum itself passes: true")
+        results:Add(4, "below the minimum is rejected: true")
+        results:Add(5, "the lower end passes: true")
+        results:Add(6, "the upper end passes: true")
+        results:Add(7, "above the range is rejected: true")
+        results:Add(8, "below the range is rejected: true")
+        results:Add(9, "the message names the setting: true")
+        results:Add(10, "the message gives the value: true")
+        results:Add(11, "a missing file stops with FileNotFoundError: true")
+        results:Add(12, "the message gives the path: true")
+        results:Add(13, "an empty path is rejected: true")
+        results:Add(14, "an existing file passes: true")
+        suite:Test(files, results)
+    end
+
+    action TestContour
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "Contour.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "a repeated point is skipped: 2")
+        results:Add(1, "HeadX: true")
+        results:Add(2, "TailX: true")
+        results:Add(3, "AppendAll skips the shared join point: 3")
+        results:Add(4, "twice the area of a CCW 10 mm square: true")
+        results:Add(5, "Area: true")
+        results:Add(6, "a 3-4-5 triangle: true")
+        results:Add(7, "reversed, the area is negative: true")
+        results:Add(8, "Area doesn't depend on direction: true")
+        results:Add(9, "the last point comes first: true")
+        results:Add(10, "the centre: true")
+        results:Add(11, "a point outside: true")
+        results:Add(12, "just outside the left edge: true")
+        results:Add(13, "two points enclose nothing: true")
+        results:Add(14, "a clockwise hole inside: true")
+        results:Add(15, "a counter-clockwise loop inside: true")
+        results:Add(16, "the bigger loop isn't inside the smaller one: true")
+        results:Add(17, "(why IsInside exists) a shared corner counts as inside the ledge: true")
+        results:Add(18, "the block isn't inside the ledge: true")
+        results:Add(19, "the ledge isn't inside the block: true")
+        results:Add(20, "fewer than 3 points: true")
+        results:Add(21, "same points: 4")
+        results:Add(22, "planeIndex copied: 3")
+        results:Add(23, "wallIndex copied: 2")
+        results:Add(24, "role copied: 1")
+        results:Add(25, "closed and keepShort copied: true")
+        results:Add(26, "changing the copy leaves the original alone: 4")
+        results:Add(27, "the original's first point: true")
+        results:Add(28, "the repeated first point is removed: 3")
+        results:Add(29, "nothing else is removed: 3")
+        results:Add(30, "nearest to the far corner: 2")
+        results:Add(31, "squared distance to it: true")
+        results:Add(32, "0 for an empty contour: 0")
+        results:Add(33, "0 distance for an empty contour: true")
+        suite:Test(files, results)
+    end
+
+    action TestPathRole
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "PathRole.quorum")
+        results:Add(0, "OUTER_WALL: 0")
+        results:Add(1, "INNER_WALL: 1")
+        results:Add(2, "SKIN: 2")
+        results:Add(3, "INFILL: 3")
+        results:Add(4, "SKIRT: 4")
+        results:Add(5, "SUPPORT_WALL: 5")
+        results:Add(6, "SUPPORT_FILL: 6")
+        results:Add(7, "outer wall name: WALL-OUTER")
+        results:Add(8, "inner wall name: WALL-INNER")
+        results:Add(9, "skin name: SKIN")
+        results:Add(10, "infill name: FILL")
+        results:Add(11, "skirt name: SKIRT")
+        results:Add(12, "support name: SUPPORT")
+        results:Add(13, "an unset role: FILL")
+        results:Add(14, "IsSupport for support: true")
+        results:Add(15, "IsSupport for anything else: true")
+        suite:Test(files, results)
+    end
+
+    action TestGeometryUtilities
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "GeometryUtilities.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "FloorToInt(2.7): 2")
+        results:Add(1, "FloorToInt(-2.3): -3")
+        results:Add(2, "FloorToInt(-2): -2")
+        results:Add(3, "CeilingToInt(2.1): 3")
+        results:Add(4, "CeilingToInt(-2.7): -2")
+        results:Add(5, "CeilingToInt(4): 4")
+        results:Add(6, "Min2: true")
+        results:Add(7, "Max2: true")
+        results:Add(8, "AbsNum: true")
+        results:Add(9, "ascending order: true")
+        results:Add(10, "smallest first: true")
+        results:Add(11, "largest last: true")
+        results:Add(12, "an empty list: 0")
+        results:Add(13, "above the middle: true")
+        results:Add(14, "past the end: distance to the end point: true")
+        results:Add(15, "a zero-length segment: true")
+        results:Add(16, "a closed square includes its closing edge: true")
+        results:Add(17, "the same points open: true")
+        results:Add(18, "a closed loop on a valid plane: true")
+        results:Add(19, "a loop past the last plane: true")
+        results:Add(20, "planeCount + 1 starts: 4")
+        results:Add(21, "out-of-range planes are left out: 4")
+        results:Add(22, "plane 0 holds item 1: 1")
+        results:Add(23, "plane 1 holds item 5: 5")
+        results:Add(24, "plane 2 holds item 0 first: 0")
+        results:Add(25, "then item 2, keeping the original order: 2")
+        suite:Test(files, results)
+    end
+
+    action TestContourLayers
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "ContourLayers.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "GetPlaneCount: 3")
+        results:Add(1, "plane 0: 1")
+        results:Add(2, "plane 1, open paths included: 3")
+        results:Add(3, "an empty plane: 0")
+        results:Add(4, "plane 1 keeps the original order (first): true")
+        results:Add(5, "plane 1 keeps the original order (second): true")
+        results:Add(6, "planes outside the range are empty: 0")
+        results:Add(7, "the open line is left out: 2")
+        suite:Test(files, results)
+    end
+
+    action TestContourSimplifier
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "ContourSimplifier.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "only the corners are left: 4")
+        results:Add(1, "the area hardly changes: true")
+        results:Add(2, "the direction is kept: true")
+        results:Add(3, "the starting point on the side is dropped: 4")
+        results:Add(4, "the area is unchanged: true")
+        results:Add(5, "a real corner at the start stays: 5")
+        results:Add(6, "and is still the first point: true")
+        results:Add(7, "every bump stays: 8")
+        results:Add(8, "an open path keeps both ends: 3")
+        results:Add(9, "the last point of an open path: true")
+        results:Add(10, "fewer than 4 points: 3")
+        results:Add(11, "a tolerance of 0: 4")
+        results:Add(12, "a real loop survives: true")
+        results:Add(13, "the plane is kept: 4")
+        results:Add(14, "the copy is closed: true")
+        results:Add(15, "the input isn't changed: 4")
+        results:Add(16, "a sliver thinner than the tolerance is dropped: true")
+        suite:Test(files, results)
+    end
+
+    action TestConvexHull
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "ConvexHull.quorum")
+        results:Add(0, "only the corners: 4")
+        results:Add(1, "counter-clockwise, area 100: true")
+        results:Add(2, "duplicates and the edge midpoint are dropped: 4")
+        results:Add(3, "one distinct point has no hull: 0")
+        results:Add(4, "no points: 0")
+        results:Add(5, "GetSize before Compute: 0")
+        suite:Test(files, results)
+    end
+
+    action TestLineFill
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "LineFill.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "line count: true")
+        results:Add(1, "line count: true")
+        results:Add(2, "every line is an open two-point path on plane 0: true")
+        results:Add(3, "every line ends on or inside the square: true")
+        results:Add(4, "no line is shorter than minLength: true")
+        results:Add(5, "the directions are perpendicular: true")
+        results:Add(6, "plane 0 lines run at 45 degrees: true")
+        results:Add(7, "no line crosses the hole: true")
+        results:Add(8, "the ring is filled: true")
+        results:Add(9, "a convex square makes one or two zigzags: true")
+        results:Add(10, "zigzags that are closed loops: 0")
+        results:Add(11, "every line's two ends are in a zigzag: true")
+        results:Add(12, "Fill with spacing 0 stops instead of looping forever: true")
+        suite:Test(files, results)
+    end
+
+    action TestPolygonOperations
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "PolygonOperations.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "the union is one loop: 1")
+        results:Add(1, "union area 100 + 100 - 25: true")
+        results:Add(2, "intersection area: true")
+        results:Add(3, "difference area: true")
+        results:Add(4, "results are on the requested plane: 2")
+        results:Add(5, "an outer loop: true")
+        results:Add(6, "outer loops run counter-clockwise: true")
+        results:Add(7, "no broken chains: 0")
+        results:Add(8, "two loops: 2")
+        results:Add(9, "both areas: true")
+        results:Add(10, "nothing in common: 0")
+        results:Add(11, "subtracting something far away changes nothing: true")
+        results:Add(12, "an outline and a hole: 2")
+        results:Add(13, "400 - 100: true")
+        results:Add(14, "holes run clockwise: true")
+        results:Add(15, "one loop is marked as a hole: 1")
+        results:Add(16, "ring + plug: true")
+        results:Add(17, "the union is the big square: true")
+        results:Add(18, "the intersection is the small one: true")
+        results:Add(19, "small minus big is empty: 0")
+        results:Add(20, "the union of nothing: 0")
+        suite:Test(files, results)
+    end
+
+    action TestPolygonOffsetter
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "PolygonOffsetter.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "one loop: 1")
+        results:Add(1, "16 x 16 mm: true")
+        results:Add(2, "on the input's plane: 3")
+        results:Add(3, "inside the original, 2 mm in: true")
+        results:Add(4, "one loop: 1")
+        results:Add(5, "24 x 24 mm with mitred corners: true")
+        results:Add(6, "an outline and a hole: 2")
+        results:Add(7, "net area: true")
+        results:Add(8, "an inset to the middle leaves nothing: true")
+        results:Add(9, "distance 0 copies the loop: true")
+        results:Add(10, "no loops in, no loops out: 0")
+        suite:Test(files, results)
+    end
+
+    action TestTriangleMesh
+        Array<File> files
+        Array<text> results
+        Add(files, passPath + "TriangleMesh.quorum")
+        Add(files, supportPath + "TestModels.quorum")
+        results:Add(0, "triangles: 12")
+        results:Add(1, "vertices: 8")
+        results:Add(2, "vertex 1 is the +X corner: true")
+        results:Add(3, "vertex 7 is the top corner: true")
+        results:Add(4, "triangles of both boxes: 24")
+        results:Add(5, "vertices of both boxes: 16")
+        results:Add(6, "the second mesh's indices are shifted past the first mesh's vertices: 8")
+        results:Add(7, "loading again replaces what was loaded before: 12")
+        results:Add(8, "vertices after loading again: 8")
+        results:Add(9, "a valid triangle loads: true")
+        results:Add(10, "an index past the last vertex: true")
+        results:Add(11, "an index count that isn't a multiple of 3: true")
+        results:Add(12, "a vertex count that isn't a multiple of 3: true")
+        results:Add(13, "a model with no meshes: true")
+        suite:Test(files, results)
+    end
+
+    private action Add(Array<File> files, text filePath)
+        File file
+        file:SetPath(filePath)
+        files:Add(file)
+    end
+end

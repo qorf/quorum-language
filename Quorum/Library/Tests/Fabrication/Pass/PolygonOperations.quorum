@@ -1,0 +1,101 @@
+use Libraries.Containers.Array
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.PolygonOperations
+use Tests.Fabrication.TestModels
+
+/*
+Tests Libraries.Fabrication.Geometry.PolygonOperations with shapes whose
+answers are known exactly: two 10 mm squares overlapping by 5 x 5 mm.
+*/
+class Main
+    PolygonOperations ops
+    TestModels models
+
+    action Main
+        Overlapping()
+        Disjoint()
+        Holes()
+        Contained()
+    end
+
+    action Overlapping
+        // overlapping squares
+        Array<Contour> a = models:ListOf(models:Square(0, 0, 10, 2))
+        Array<Contour> b = models:ListOf(models:Square(5, 5, 10, 2))
+        Array<Contour> union = ops:Union(a, b, 2)
+        output "the union is one loop: " + union:GetSize()
+        output "union area 100 + 100 - 25: " + Near(models:NetArea(union), 175, 0.0001)
+        Array<Contour> both = ops:Intersect(a, b, 2)
+        output "intersection area: " + Near(models:NetArea(both), 25, 0.0001)
+        Array<Contour> onlyA = ops:Difference(a, b, 2)
+        output "difference area: " + Near(models:NetArea(onlyA), 75, 0.0001)
+        Contour loop = union:Get(0)
+        output "results are on the requested plane: " + loop:planeIndex
+        output "an outer loop: " + (loop:closed and not loop:isHole)
+        output "outer loops run counter-clockwise: " + (loop:SignedArea2() > 0)
+        output "no broken chains: " + ops:GetBrokenChains()
+    end
+
+    action Disjoint
+        // squares that don't touch
+        Array<Contour> a = models:ListOf(models:Square(0, 0, 10, 0))
+        Array<Contour> b = models:ListOf(models:Square(20, 0, 10, 0))
+        Array<Contour> union = ops:Union(a, b, 0)
+        output "two loops: " + union:GetSize()
+        output "both areas: " + Near(models:NetArea(union), 200, 0.0001)
+        Array<Contour> both = ops:Intersect(a, b, 0)
+        output "nothing in common: " + both:GetSize()
+        Array<Contour> onlyA = ops:Difference(a, b, 0)
+        output "subtracting something far away changes nothing: " + Near(models:NetArea(onlyA), 100, 0.0001)
+    end
+
+    action Holes
+        // cutting a hole
+        Array<Contour> outer = models:ListOf(models:Square(0, 0, 20, 0))
+        Array<Contour> inner = models:ListOf(models:Square(5, 5, 10, 0))
+        Array<Contour> ring = ops:Difference(outer, inner, 0)
+        output "an outline and a hole: " + ring:GetSize()
+        output "400 - 100: " + Near(models:NetArea(ring), 300, 0.0001)
+        integer holes = 0
+        integer i = 0
+        repeat while i < ring:GetSize()
+            Contour loop = ring:Get(i)
+            if loop:isHole
+                holes = holes + 1
+                output "holes run clockwise: " + (loop:SignedArea2() < 0)
+            end
+            i = i + 1
+        end
+        output "one loop is marked as a hole: " + holes
+
+        // filling the hole back in gives the whole square
+        Array<Contour> whole = ops:Union(ring, inner, 0)
+        output "ring + plug: " + Near(models:NetArea(whole), 400, 0.0001)
+    end
+
+    action Contained
+        // one square inside another
+        Array<Contour> outer = models:ListOf(models:Square(0, 0, 20, 0))
+        Array<Contour> inner = models:ListOf(models:Square(5, 5, 10, 0))
+        output "the union is the big square: " + Near(models:NetArea(ops:Union(outer, inner, 0)), 400, 0.0001)
+        output "the intersection is the small one: " + Near(models:NetArea(ops:Intersect(outer, inner, 0)), 100, 0.0001)
+        Array<Contour> smallMinusBig = ops:Difference(inner, outer, 0)
+        output "small minus big is empty: " + smallMinusBig:GetSize()
+        Array<Contour> nothing
+        Array<Contour> unionOfNothing = ops:Union(nothing, nothing, 0)
+        output "the union of nothing: " + unionOfNothing:GetSize()
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

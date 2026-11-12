@@ -1,0 +1,106 @@
+use Libraries.Containers.Array
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.GeometryUtilities
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.GeometryUtilities. */
+class Main
+    GeometryUtilities util
+    TestModels models
+
+    action Main
+        Rounding()
+        Sorting()
+        Distances()
+        Lengths()
+        Buckets()
+    end
+
+    action Rounding
+        // FloorToInt and CeilingToInt
+        output "FloorToInt(2.7): " + util:FloorToInt(2.7)
+        output "FloorToInt(-2.3): " + (util:FloorToInt(-2.3))
+        output "FloorToInt(-2): " + (util:FloorToInt(-2.0))
+        output "CeilingToInt(2.1): " + util:CeilingToInt(2.1)
+        output "CeilingToInt(-2.7): " + (util:CeilingToInt(-2.7))
+        output "CeilingToInt(4): " + util:CeilingToInt(4.0)
+        output "Min2: " + Near(util:Min2(3, -1), -1, 0)
+        output "Max2: " + Near(util:Max2(3, -1), 3, 0)
+        output "AbsNum: " + Near(util:AbsNum(-4.5), 4.5, 0)
+    end
+
+    action Sorting
+        // SortNumbers
+        Array<number> values
+        values:Add(3)
+        values:Add(-1)
+        values:Add(2.5)
+        values:Add(-1)
+        values:Add(0)
+        util:SortNumbers(values)
+        boolean sorted = true
+        integer i = 1
+        repeat while i < values:GetSize()
+            if values:Get(i - 1) > values:Get(i)
+                sorted = false
+            end
+            i = i + 1
+        end
+        output "ascending order: " + sorted
+        output "smallest first: " + Near(values:Get(0), -1, 0)
+        output "largest last: " + Near(values:Get(4), 3, 0)
+        Array<number> empty
+        util:SortNumbers(empty)
+        output "an empty list: " + empty:GetSize()
+    end
+
+    action Distances
+        // SegmentDistance2
+        output "above the middle: " + Near(util:SegmentDistance2(5, 3, 0, 0, 10, 0), 9, 0.000001)
+        output "past the end: distance to the end point: " + Near(util:SegmentDistance2(13, 4, 0, 0, 10, 0), 25, 0.000001)
+        output "a zero-length segment: " + Near(util:SegmentDistance2(3, 4, 0, 0, 0, 0), 25, 0.000001)
+    end
+
+    action Lengths
+        // PathLength
+        Contour square = models:Square(0, 0, 10, 0)
+        output "a closed square includes its closing edge: " + Near(util:PathLength(square), 40, 0.000001)
+        square:closed = false
+        output "the same points open: " + Near(util:PathLength(square), 30, 0.000001)
+        output "a closed loop on a valid plane: " + util:IsUsableLoop(models:Square(0, 0, 1, 2), 5)
+        output "a loop past the last plane: " + (not util:IsUsableLoop(models:Square(0, 0, 1, 5), 5))
+    end
+
+    action Buckets
+        // BucketByPlane
+        Array<integer> planeOf
+        planeOf:Add(2)
+        planeOf:Add(0)
+        planeOf:Add(2)
+        planeOf:Add(-1)
+        planeOf:Add(9)
+        planeOf:Add(1)
+        Array<integer> starts
+        Array<integer> order
+        util:BucketByPlane(planeOf, 3, starts, order)
+        output "planeCount + 1 starts: " + starts:GetSize()
+        output "out-of-range planes are left out: " + order:GetSize()
+        output "plane 0 holds item 1: " + order:Get(0)
+        output "plane 1 holds item 5: " + order:Get(1)
+        output "plane 2 holds item 0 first: " + order:Get(2)
+        output "then item 2, keeping the original order: " + order:Get(3)
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

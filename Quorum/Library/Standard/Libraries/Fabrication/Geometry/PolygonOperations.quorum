@@ -1,0 +1,1085 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Compute.Math
+
+/*
+The PolygonOperations class does boolean operations on closed loops (union,
+intersection, difference) by winding number, the way a Clipper-style library
+does: every edge is cut where it crosses another, each piece is kept when the
+winding numbers on its two sides straddle the requested level, and the kept
+pieces are chained back into loops. Results are oriented like
+ContourGenerator's: outer loops counter-clockwise, holes clockwise with
+isHole set.
+
+Lower level use (PolygonOffsetter and TreeSupport do this): Clear, then
+AddPoints / AddContours for any number of loops, then Resolve(1, plane) for
+everything with positive winding.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Geometry.PolygonOperations
+
+    class Main
+        action Main
+            Array<Contour> a        // closed loops on plane 0
+            Array<Contour> b
+            PolygonOperations ops
+            Array<Contour> both = ops:Intersect(a, b, 0)
+            Array<Contour> either = ops:Union(a, b, 0)
+            Array<Contour> onlyA = ops:Difference(a, b, 0)
+        end
+    end
+*/
+class PolygonOperations
+    Math math
+    GeometryUtilities util
+    number snap = 0.000001
+    number edgeTol = 0.000000001
+
+    Array<number> ex0
+    Array<number> ey0
+    Array<number> ex1
+    Array<number> ey1
+
+    integer bandCount = 1
+    number bandMin = 0.0
+    number bandHeight = 1.0
+    Array<integer> edgeFirstBand
+    Array<integer> edgeLastBand
+    Array<integer> bandStart
+    Array<integer> bandEdges
+
+    Array<integer> splitEdge
+    Array<number> splitT
+    Array<number> splitX
+    Array<number> splitY
+    Array<integer> splitStart
+    Array<integer> splitOrder
+
+    Array<number> px0
+    Array<number> py0
+    Array<number> px1
+    Array<number> py1
+    Array<integer> pieceFrom
+    Array<integer> pieceTo
+    Array<integer> pieceEdge
+
+    HashTable<text, integer> nodeIds
+    integer nodeCount = 0
+
+    number span = 1.0
+    number delta = 0.0
+    integer windLeft = 0
+    integer windRight = 0
+
+    integer brokenChain = 0
+
+    /*
+    How many loops the last Resolve dropped because their pieces didn't chain into a loop (degenerate input).
+
+    Attribute: Returns How many loops the last Resolve dropped because their pieces didn't chain into a loop (degenerate input).
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        PolygonOperations ops
+        output ops:GetBrokenChains()        // 0 until a Resolve meets degenerate input
+    */
+    action GetBrokenChains returns integer
+        return brokenChain
+    end
+
+    /*
+    The area covered by a or b (or both), on the given plane.
+
+    Attribute: Parameter a The first set of closed loops.
+    Attribute: Parameter b The second set of closed loops.
+    Attribute: Parameter planeIndex The plane the result is on.
+    Attribute: Returns Counter-clockwise outer loops and clockwise holes.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        Array<Contour> either = ops:Union(a, b, 0)
+        Contour outline = either:Get(0)
+        output outline:Area()      // 700
+    */
+    action Union(Array<Contour> a, Array<Contour> b, integer planeIndex) returns Array<Contour>
+        Clear()
+        AddContours(a, false)
+        AddContours(b, false)
+        return Resolve(1, planeIndex)
+    end
+
+    /*
+    The area covered by both a and b.
+
+    Attribute: Parameter a The first set of closed loops.
+    Attribute: Parameter b The second set of closed loops.
+    Attribute: Parameter planeIndex The plane the result is on.
+    Attribute: Returns Counter-clockwise outer loops and clockwise holes.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        Array<Contour> both = ops:Intersect(a, b, 0)
+        Contour overlap = both:Get(0)
+        output overlap:Area()      // 100
+    */
+    action Intersect(Array<Contour> a, Array<Contour> b, integer planeIndex) returns Array<Contour>
+        Clear()
+        AddContours(a, false)
+        AddContours(b, false)
+        return Resolve(2, planeIndex)
+    end
+
+    /*
+    The area covered by a but not by b.
+
+    Attribute: Parameter a The loops to subtract from.
+    Attribute: Parameter b The loops to subtract.
+    Attribute: Parameter planeIndex The plane the result is on.
+    Attribute: Returns Counter-clockwise outer loops and clockwise holes.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        Array<Contour> rest = ops:Difference(a, b, 0)
+        Contour notched = rest:Get(0)
+        output notched:Area()      // 300
+    */
+    action Difference(Array<Contour> a, Array<Contour> b, integer planeIndex) returns Array<Contour>
+        Clear()
+        AddContours(a, false)
+        AddContours(b, true)
+        return Resolve(1, planeIndex)
+    end
+
+    /*
+    Forgets the loops added so far.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        ops:AddContours(a, false)
+        ops:Clear()
+        ops:AddContours(b, false)
+        Array<Contour> justB = ops:Resolve(1, 0)
+    */
+    action Clear
+        ex0:Empty()
+        ey0:Empty()
+        ex1:Empty()
+        ey1:Empty()
+    end
+
+    // Adds one closed loop given as point lists (last point connects to first).
+    /*
+    Adds one closed loop given as point lists (reversed = true subtracts it instead).
+
+    Attribute: Parameter xs The x coordinates (mm).
+    Attribute: Parameter ys The y coordinates (mm), as many as xs.
+    Attribute: Parameter reversed True to add the loop backwards, which subtracts its area.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Array<number> xs
+        Array<number> ys
+        xs:Add(0)
+        ys:Add(0)
+        xs:Add(10)
+        ys:Add(0)
+        xs:Add(10)
+        ys:Add(10)
+        PolygonOperations ops
+        ops:AddPoints(xs, ys, false)
+        Array<Contour> triangle = ops:Resolve(1, 0)
+    */
+    action AddPoints(Array<number> xs, Array<number> ys, boolean reversed)
+        Array<number> lx
+        Array<number> ly
+        integer n = xs:GetSize()
+        integer i = 0
+        repeat while i < n
+            integer j = i
+            if reversed
+                j = n - 1 - i
+            end
+            number x = xs:Get(j)
+            number y = ys:Get(j)
+            integer m = lx:GetSize()
+            boolean duplicate = false
+            if m > 0
+                if SamePoint(lx:Get(m - 1), ly:Get(m - 1), x, y)
+                    duplicate = true
+                end
+            end
+            if not duplicate
+                lx:Add(x)
+                ly:Add(y)
+            end
+            i = i + 1
+        end
+        integer count = lx:GetSize()
+        boolean closing = true
+        repeat while closing
+            closing = false
+            if count > 1
+                if SamePoint(lx:Get(0), ly:Get(0), lx:Get(count - 1), ly:Get(count - 1))
+                    lx:RemoveAt(count - 1)
+                    ly:RemoveAt(count - 1)
+                    count = count - 1
+                    closing = true
+                end
+            end
+        end
+        if count < 3
+            return now
+        end
+
+        i = 0
+        repeat while i < count
+            integer k = i + 1
+            if k = count
+                k = 0
+            end
+            ex0:Add(lx:Get(i))
+            ey0:Add(ly:Get(i))
+            ex1:Add(lx:Get(k))
+            ey1:Add(ly:Get(k))
+            i = i + 1
+        end
+    end
+
+    /*
+    Adds every closed loop of the list (reversed = true subtracts them instead).
+
+    Attribute: Parameter loops The loops; open paths are skipped.
+    Attribute: Parameter reversed True to add the loops backwards, which subtracts their area.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        ops:AddContours(a, false)
+        ops:AddContours(b, true)       // subtract b
+        Array<Contour> difference = ops:Resolve(1, 0)
+    */
+    action AddContours(Array<Contour> loops, boolean reversed)
+        integer c = 0
+        repeat while c < loops:GetSize()
+            Contour con = loops:Get(c)
+            if con:closed
+                AddPoints(con:xs, con:ys, reversed)
+            end
+            c = c + 1
+        end
+    end
+
+    /*
+    Builds the loops around everything whose winding number is at least
+    minWinding (1 = union, 2 = intersection of two non-overlapping sets).
+
+    Attribute: Parameter minWinding The smallest winding number kept (1 or more).
+    Attribute: Parameter planeIndex The plane the result is on.
+    Attribute: Returns Counter-clockwise outer loops and clockwise holes. The loops added stay added; Clear starts again.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.PolygonOperations
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        Contour moved
+        moved:AddPoint(10, 10)
+        moved:AddPoint(30, 10)
+        moved:AddPoint(30, 30)
+        moved:AddPoint(10, 30)
+        moved:closed = true
+        Array<Contour> a
+        a:Add(square)
+        Array<Contour> b
+        b:Add(moved)
+        PolygonOperations ops
+        ops:AddContours(a, false)
+        ops:AddContours(b, false)
+        Array<Contour> overlap = ops:Resolve(2, 0)     // where both squares are
+    */
+    action Resolve(integer minWinding, integer planeIndex) returns Array<Contour>
+        brokenChain = 0
+
+        Array<Contour> result
+        integer edgeCount = ex0:GetSize()
+        if edgeCount = 0
+            return result
+        end
+
+        // tolerances scale with the size of the input
+        number lowX = ex0:Get(0)
+        number highX = lowX
+        number lowY = ey0:Get(0)
+        number highY = lowY
+        integer e = 0
+        repeat while e < edgeCount
+            lowX = util:Min2(lowX, ex0:Get(e))
+            highX = util:Max2(highX, ex0:Get(e))
+            lowY = util:Min2(lowY, ey0:Get(e))
+            highY = util:Max2(highY, ey0:Get(e))
+            e = e + 1
+        end
+        span = util:Max2(highX - lowX, highY - lowY)
+        if span <= 0
+            span = 1.0
+        end
+        delta = 0.000000001 * span
+
+        BuildBands()
+        FindSplits()
+        SortSplits()
+        BuildPieces()
+
+        // group pieces that share both end nodes (exact overlaps)
+        integer pieceTotal = px0:GetSize()
+        HashTable<text, integer> groupHead
+        Array<integer> groupNext
+        integer p = 0
+        repeat while p < pieceTotal
+            groupNext:Add(-1)
+            p = p + 1
+        end
+        p = 0
+        repeat while p < pieceTotal
+            text key = GroupKey(p)
+            if groupHead:HasKey(key)
+                integer head = groupHead:GetValue(key)
+                groupNext:Set(p, groupNext:Get(head))
+                groupNext:Set(head, p)
+            else
+                groupHead:Add(key, p)
+            end
+            p = p + 1
+        end
+
+        // judge each group once; keep one copy facing the right way
+        Array<integer> live
+        p = 0
+        repeat while p < pieceTotal
+            if groupHead:GetValue(GroupKey(p)) = p
+                Sides(p)
+                if windRight < minWinding and minWinding <= windLeft
+                    live:Add(p) // region is on p's left
+                elseif windLeft < minWinding and minWinding <= windRight
+                    // region is on p's right: keep a copy running the other way
+                    integer q = groupNext:Get(p)
+                    boolean found = false
+                    repeat while q not= -1 and not found
+                        if pieceFrom:Get(q) = pieceTo:Get(p)
+                            live:Add(q)
+                            found = true
+                        end
+                        q = groupNext:Get(q)
+                    end
+                end
+            end
+            p = p + 1
+        end
+
+        Chain(live, planeIndex, result)
+        return result
+    end
+
+    private action BuildBands
+        integer edgeCount = ex0:GetSize()
+        number lo = ey0:Get(0)
+        number hi = lo
+        integer e = 0
+        repeat while e < edgeCount
+            lo = util:Min2(lo, util:Min2(ey0:Get(e), ey1:Get(e)))
+            hi = util:Max2(hi, util:Max2(ey0:Get(e), ey1:Get(e)))
+            e = e + 1
+        end
+
+        bandCount = edgeCount / 4
+        if bandCount < 1
+            bandCount = 1
+        end
+        if bandCount > 512
+            bandCount = 512
+        end
+        bandMin = lo
+        bandHeight = (hi - lo) / cast(number, bandCount)
+        if bandHeight <= 0
+            bandHeight = 1.0
+        end
+
+        edgeFirstBand:Empty()
+        edgeLastBand:Empty()
+        bandStart:Empty()
+        integer b = 0
+        repeat while b <= bandCount
+            bandStart:Add(0)
+            b = b + 1
+        end
+
+        e = 0
+        repeat while e < edgeCount
+            integer first = BandOf(util:Min2(ey0:Get(e), ey1:Get(e)))
+            integer last = BandOf(util:Max2(ey0:Get(e), ey1:Get(e)))
+            edgeFirstBand:Add(first)
+            edgeLastBand:Add(last)
+            integer k = first
+            repeat while k <= last
+                bandStart:Set(k + 1, bandStart:Get(k + 1) + 1)
+                k = k + 1
+            end
+            e = e + 1
+        end
+        b = 1
+        repeat while b <= bandCount
+            bandStart:Set(b, bandStart:Get(b) + bandStart:Get(b - 1))
+            b = b + 1
+        end
+
+        bandEdges:Empty()
+        integer slot = 0
+        repeat while slot < bandStart:Get(bandCount)
+            bandEdges:Add(0)
+            slot = slot + 1
+        end
+        Array<integer> cursor
+        b = 0
+        repeat while b < bandCount
+            cursor:Add(bandStart:Get(b))
+            b = b + 1
+        end
+        e = 0
+        repeat while e < edgeCount
+            integer k2 = edgeFirstBand:Get(e)
+            repeat while k2 <= edgeLastBand:Get(e)
+                bandEdges:Set(cursor:Get(k2), e)
+                cursor:Set(k2, cursor:Get(k2) + 1)
+                k2 = k2 + 1
+            end
+            e = e + 1
+        end
+    end
+
+    private action BandOf(number y) returns integer
+        integer b = util:FloorToInt((y - bandMin) / bandHeight)
+        if b < 0
+            return 0
+        end
+        if b > bandCount - 1
+            return bandCount - 1
+        end
+        return b
+    end
+
+    private action FindSplits
+        splitEdge:Empty()
+        splitT:Empty()
+        splitX:Empty()
+        splitY:Empty()
+
+        integer b = 0
+        repeat while b < bandCount
+            integer s0 = bandStart:Get(b)
+            integer s1 = bandStart:Get(b + 1)
+            integer i = s0
+            repeat while i < s1
+                integer ea = bandEdges:Get(i)
+                integer j = i + 1
+                repeat while j < s1
+                    integer eb = bandEdges:Get(j)
+                    integer firstShared = edgeFirstBand:Get(ea)
+                    if edgeFirstBand:Get(eb) > firstShared
+                        firstShared = edgeFirstBand:Get(eb)
+                    end
+                    if firstShared = b
+                        TestPair(ea, eb)
+                    end
+                    j = j + 1
+                end
+                i = i + 1
+            end
+            b = b + 1
+        end
+    end
+
+    private action TestPair(integer a, integer b)
+        if util:Max2(ex0:Get(a), ex1:Get(a)) < util:Min2(ex0:Get(b), ex1:Get(b))
+            return now
+        end
+        if util:Max2(ex0:Get(b), ex1:Get(b)) < util:Min2(ex0:Get(a), ex1:Get(a))
+            return now
+        end
+
+        number rx = ex1:Get(a) - ex0:Get(a)
+        number ry = ey1:Get(a) - ey0:Get(a)
+        number sx = ex1:Get(b) - ex0:Get(b)
+        number sy = ey1:Get(b) - ey0:Get(b)
+        number wx = ex0:Get(b) - ex0:Get(a)
+        number wy = ey0:Get(b) - ey0:Get(a)
+        number lenA = math:SquareRoot(rx * rx + ry * ry)
+        number lenB = math:SquareRoot(sx * sx + sy * sy)
+        if lenA = 0 or lenB = 0
+            return now
+        end
+        number tol = edgeTol
+        number den = rx * sy - ry * sx
+
+        if util:AbsNum(den) <= 0.000000000001 * lenA * lenB
+            // parallel: only matters if they lie on the same line
+            if util:AbsNum(wx * ry - wy * rx) > tol * lenA * util:Max2(lenA, lenB)
+                return now
+            end
+            // overlapping: cut each edge where the other one starts or ends
+            CollinearSplit(a, ex0:Get(b), ey0:Get(b))
+            CollinearSplit(a, ex1:Get(b), ey1:Get(b))
+            CollinearSplit(b, ex0:Get(a), ey0:Get(a))
+            CollinearSplit(b, ex1:Get(a), ey1:Get(a))
+            return now
+        end
+
+        number t = (wx * sy - wy * sx) / den
+        number u = (wx * ry - wy * rx) / den
+        if t < -tol or t > 1 + tol or u < -tol or u > 1 + tol
+            return now
+        end
+        boolean insideA = t > tol and t < 1 - tol
+        boolean insideB = u > tol and u < 1 - tol
+
+        if insideA and insideB
+            number x = ex0:Get(a) + t * rx
+            number y = ey0:Get(a) + t * ry
+            AddSplit(a, t, x, y)
+            AddSplit(b, u, x, y)
+        elseif insideA
+            // b only touches a at one of b's own vertices: cut a exactly there
+            if u < 0.5
+                AddSplit(a, t, ex0:Get(b), ey0:Get(b))
+            else
+                AddSplit(a, t, ex1:Get(b), ey1:Get(b))
+            end
+        elseif insideB
+            if t < 0.5
+                AddSplit(b, u, ex0:Get(a), ey0:Get(a))
+            else
+                AddSplit(b, u, ex1:Get(a), ey1:Get(a))
+            end
+        end
+    end
+
+    private action CollinearSplit(integer edge, number x, number y)
+        number rx = ex1:Get(edge) - ex0:Get(edge)
+        number ry = ey1:Get(edge) - ey0:Get(edge)
+        number len2 = rx * rx + ry * ry
+        number t = ((x - ex0:Get(edge)) * rx + (y - ey0:Get(edge)) * ry) / len2
+        number tol = edgeTol
+        if t > tol and t < 1 - tol
+            AddSplit(edge, t, x, y)
+        end
+    end
+
+    private action AddSplit(integer edge, number t, number x, number y)
+        splitEdge:Add(edge)
+        splitT:Add(t)
+        splitX:Add(x)
+        splitY:Add(y)
+    end
+
+    // group splits by edge (counting sort), then order each edge's by t
+    private action SortSplits
+        integer edgeCount = ex0:GetSize()
+        integer splitCount = splitEdge:GetSize()
+        splitStart:Empty()
+        integer e = 0
+        repeat while e <= edgeCount
+            splitStart:Add(0)
+            e = e + 1
+        end
+        integer s = 0
+        repeat while s < splitCount
+            integer edge = splitEdge:Get(s)
+            splitStart:Set(edge + 1, splitStart:Get(edge + 1) + 1)
+            s = s + 1
+        end
+        e = 1
+        repeat while e <= edgeCount
+            splitStart:Set(e, splitStart:Get(e) + splitStart:Get(e - 1))
+            e = e + 1
+        end
+
+        splitOrder:Empty()
+        s = 0
+        repeat while s < splitCount
+            splitOrder:Add(0)
+            s = s + 1
+        end
+        Array<integer> cursor
+        e = 0
+        repeat while e < edgeCount
+            cursor:Add(splitStart:Get(e))
+            e = e + 1
+        end
+        s = 0
+        repeat while s < splitCount
+            integer edge2 = splitEdge:Get(s)
+            splitOrder:Set(cursor:Get(edge2), s)
+            cursor:Set(edge2, cursor:Get(edge2) + 1)
+            s = s + 1
+        end
+
+        e = 0
+        repeat while e < edgeCount
+            integer lo = splitStart:Get(e)
+            integer hi = splitStart:Get(e + 1)
+            integer i = lo + 1
+            repeat while i < hi
+                integer v = splitOrder:Get(i)
+                number tv = splitT:Get(v)
+                integer j = i - 1
+                boolean moving = true
+                repeat while moving
+                    if j < lo
+                        moving = false
+                    elseif splitT:Get(splitOrder:Get(j)) > tv
+                        splitOrder:Set(j + 1, splitOrder:Get(j))
+                        j = j - 1
+                    else
+                        moving = false
+                    end
+                end
+                splitOrder:Set(j + 1, v)
+                i = i + 1
+            end
+            e = e + 1
+        end
+    end
+
+    // Cuts every edge at its splits. Each piece is one straight segment
+    // between two nodes.
+    private action BuildPieces
+        px0:Empty()
+        py0:Empty()
+        px1:Empty()
+        py1:Empty()
+        pieceFrom:Empty()
+        pieceTo:Empty()
+        pieceEdge:Empty()
+        nodeIds:Empty()
+        nodeCount = 0
+
+        integer e = 0
+        repeat while e < ex0:GetSize()
+            number x = ex0:Get(e)
+            number y = ey0:Get(e)
+            integer q = splitStart:Get(e)
+            repeat while q < splitStart:Get(e + 1)
+                integer s = splitOrder:Get(q)
+                number sx = splitX:Get(s)
+                number sy = splitY:Get(s)
+                if sx not= x or sy not= y
+                    AddPiece(x, y, sx, sy, e)
+                    x = sx
+                    y = sy
+                end
+                q = q + 1
+            end
+            if ex1:Get(e) not= x or ey1:Get(e) not= y
+                AddPiece(x, y, ex1:Get(e), ey1:Get(e), e)
+            end
+            e = e + 1
+        end
+    end
+
+    private action AddPiece(number x0, number y0, number x1, number y1, integer edge)
+        px0:Add(x0)
+        py0:Add(y0)
+        px1:Add(x1)
+        py1:Add(y1)
+        pieceFrom:Add(NodeId(x0, y0))
+        pieceTo:Add(NodeId(x1, y1))
+        pieceEdge:Add(edge)
+    end
+
+    private action NodeId(number x, number y) returns integer
+        text key = "" + x + "_" + y
+        if nodeIds:HasKey(key)
+            return nodeIds:GetValue(key)
+        end
+        nodeIds:Add(key, nodeCount)
+        nodeCount = nodeCount + 1
+        return nodeCount - 1
+    end
+
+    private action GroupKey(integer piece) returns text
+        integer a = pieceFrom:Get(piece)
+        integer b = pieceTo:Get(piece)
+        if a < b
+            return "" + a + "_" + b
+        end
+        return "" + b + "_" + a
+    end
+
+    // Winding number just left and just right of a piece's midpoint. The
+    // test points sit closer to the piece than any other edge does, so they
+    // can't land on the far side of a nearby edge. Results go in
+    // windLeft / windRight.
+    private action Sides(integer piece)
+        number x0 = px0:Get(piece)
+        number y0 = py0:Get(piece)
+        number x1 = px1:Get(piece)
+        number y1 = py1:Get(piece)
+        number len = math:SquareRoot((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
+        number nx = -(y1 - y0) / len
+        number ny = (x1 - x0) / len
+        number mx = (x0 + x1) / 2.0
+        number my = (y0 + y1) / 2.0
+
+        // pass 1: shrink the test distance below the gap to nearby edges
+        number d = util:Min2(delta, 0.0001 * len)
+        number onLine = 0.000000000001 * span
+        integer b0 = BandOf(my - delta)
+        integer b1 = BandOf(my + delta)
+        integer b = b0
+        repeat while b <= b1
+            integer k = bandStart:Get(b)
+            repeat while k < bandStart:Get(b + 1)
+                integer e = bandEdges:Get(k)
+                if FirstBandIn(e, b0) = b and e not= pieceEdge:Get(piece)
+                    if NearBox(e, mx, my, d)
+                        number gap = math:SquareRoot(EdgeDistance2(mx, my, e))
+                        if gap > onLine and 0.25 * gap < d
+                            d = 0.25 * gap
+                        end
+                    end
+                end
+                k = k + 1
+            end
+            b = b + 1
+        end
+
+        // pass 2: winding at the two test points
+        windLeft = 0
+        windRight = 0
+        b0 = BandOf(my - 2.0 * d)
+        b1 = BandOf(my + 2.0 * d)
+        b = b0
+        repeat while b <= b1
+            integer k2 = bandStart:Get(b)
+            repeat while k2 < bandStart:Get(b + 1)
+                integer e2 = bandEdges:Get(k2)
+                if FirstBandIn(e2, b0) = b
+                    windLeft = windLeft + Contribution(e2, mx + d * nx, my + d * ny)
+                    windRight = windRight + Contribution(e2, mx - d * nx, my - d * ny)
+                end
+                k2 = k2 + 1
+            end
+            b = b + 1
+        end
+    end
+
+    // The first band of the range starting at b0 that edge e is listed in,
+    // so an edge spanning several bands is only counted once.
+    private action FirstBandIn(integer e, integer b0) returns integer
+        integer first = edgeFirstBand:Get(e)
+        if first < b0
+            return b0
+        end
+        return first
+    end
+
+    private action NearBox(integer e, number x, number y, number r) returns boolean
+        if util:Min2(ex0:Get(e), ex1:Get(e)) > x + r or util:Max2(ex0:Get(e), ex1:Get(e)) < x - r
+            return false
+        end
+        if util:Min2(ey0:Get(e), ey1:Get(e)) > y + r or util:Max2(ey0:Get(e), ey1:Get(e)) < y - r
+            return false
+        end
+        return true
+    end
+
+    // Points closer than snap (mm) on both axes count as the same point.
+    // Without this an offset corner that lands 0.000000000000003 mm from
+    // its neighbour makes an edge too short to test, and the whole loop
+    // is lost (cube layer 93: walls but no skin or infill).
+    private action SamePoint(number ax, number ay, number bx, number by) returns boolean
+        return util:AbsNum(ax - bx) <= snap and util:AbsNum(ay - by) <= snap
+    end
+
+    // Squared distance from (px, py) to edge e.
+    private action EdgeDistance2(number px, number py, integer e) returns number
+        return util:SegmentDistance2(px, py, ex0:Get(e), ey0:Get(e), ex1:Get(e), ey1:Get(e))
+    end
+
+    private action Contribution(integer e, number px, number py) returns integer
+        number x0 = ex0:Get(e)
+        number y0 = ey0:Get(e)
+        number x1 = ex1:Get(e)
+        number y1 = ey1:Get(e)
+        number side = (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0)
+        if y0 <= py
+            if y1 > py and side > 0
+                return 1
+            end
+        else
+            if y1 <= py and side < 0
+                return -1
+            end
+        end
+        return 0
+    end
+
+    private action Chain(Array<integer> live, integer planeIndex, Array<Contour> result)
+        integer liveCount = live:GetSize()
+        if liveCount = 0
+            return now
+        end
+
+        // outgoing live pieces per node (counting sort by start node)
+        Array<integer> outStart
+        integer n = 0
+        repeat while n <= nodeCount
+            outStart:Add(0)
+            n = n + 1
+        end
+        integer k = 0
+        repeat while k < liveCount
+            integer from = pieceFrom:Get(live:Get(k))
+            outStart:Set(from + 1, outStart:Get(from + 1) + 1)
+            k = k + 1
+        end
+        n = 1
+        repeat while n <= nodeCount
+            outStart:Set(n, outStart:Get(n) + outStart:Get(n - 1))
+            n = n + 1
+        end
+        Array<integer> outList
+        k = 0
+        repeat while k < liveCount
+            outList:Add(0)
+            k = k + 1
+        end
+        Array<integer> cursor
+        n = 0
+        repeat while n < nodeCount
+            cursor:Add(outStart:Get(n))
+            n = n + 1
+        end
+        k = 0
+        repeat while k < liveCount
+            integer from2 = pieceFrom:Get(live:Get(k))
+            outList:Set(cursor:Get(from2), k)
+            cursor:Set(from2, cursor:Get(from2) + 1)
+            k = k + 1
+        end
+
+        Array<boolean> used
+        k = 0
+        repeat while k < liveCount
+            used:Add(false)
+            k = k + 1
+        end
+
+        k = 0
+        repeat while k < liveCount
+            if not used:Get(k)
+                used:Set(k, true)
+                integer piece = live:Get(k)
+                Contour loop
+                loop:AddPoint(px0:Get(piece), py0:Get(piece))
+                loop:AddPoint(px1:Get(piece), py1:Get(piece))
+                integer startNode = pieceFrom:Get(piece)
+                number startX = px0:Get(piece)
+                number startY = py0:Get(piece)
+                number lastX = px1:Get(piece)
+                number lastY = py1:Get(piece)
+                integer current = pieceTo:Get(piece)
+                boolean ok = true
+                repeat while ok and current not= startNode
+                    integer found = -1
+                    integer o = outStart:Get(current)
+                    repeat while o < outStart:Get(current + 1) and found = -1
+                        if not used:Get(outList:Get(o))
+                            found = outList:Get(o)
+                        end
+                        o = o + 1
+                    end
+                    if found = -1
+                        if SamePoint(lastX, lastY, startX, startY)
+                            current = startNode // back at the start, within snap
+                        else
+                            found = NearStart(live, used, lastX, lastY)
+                            if found = -1
+                                ok = false // broken chain (degenerate input); drop it
+                                brokenChain = brokenChain + 1
+                            end
+                        end
+                    end
+                    if found not= -1
+                        used:Set(found, true)
+                        integer foundPiece = live:Get(found)
+                        loop:AddPoint(px1:Get(foundPiece), py1:Get(foundPiece))
+                        lastX = px1:Get(foundPiece)
+                        lastY = py1:Get(foundPiece)
+                        current = pieceTo:Get(foundPiece)
+                    end
+                end
+                if ok
+                    loop:DropClosingDuplicate()
+                    Finish(loop, planeIndex, result)
+                end
+            end
+            k = k + 1
+        end
+    end
+
+    private action NearStart(Array<integer> live, Array<boolean> used,
+                             number x, number y) returns integer
+        integer k = 0
+        repeat while k < live:GetSize()
+            if not used:Get(k)
+                integer piece = live:Get(k)
+                if SamePoint(px0:Get(piece), py0:Get(piece), x, y)
+                    return k
+                end
+            end
+            k = k + 1
+        end
+        return -1
+    end
+
+    private action Finish(Contour loop, integer planeIndex, Array<Contour> result)
+        if loop:GetSize() < 3
+            return now
+        end
+        number area2 = loop:SignedArea2()
+        if util:AbsNum(area2) < 0.000000001 * span * span
+            return now
+        end
+        loop:closed = true
+        loop:planeIndex = planeIndex
+        loop:isHole = false
+        loop:depth = 0
+        if area2 < 0
+            loop:isHole = true
+            loop:depth = 1
+        end
+        result:Add(loop)
+    end
+end

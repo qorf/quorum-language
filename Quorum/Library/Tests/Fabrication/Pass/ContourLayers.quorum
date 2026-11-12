@@ -1,0 +1,69 @@
+use Libraries.Containers.Array
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.ContourLayers
+use Tests.Fabrication.TestModels
+
+/* Tests Libraries.Fabrication.Geometry.ContourLayers. */
+class Main
+    TestModels models
+
+    action Main
+        Grouping()
+        UsableLoopsOnly()
+    end
+
+    action Mixed returns Array<Contour>
+        Array<Contour> all
+        all:Add(models:Square(0, 0, 1, 1))
+        all:Add(models:Square(5, 0, 1, 0))
+        all:Add(models:Square(9, 0, 1, 1))
+        Contour line
+        line:AddPoint(0, 0)
+        line:AddPoint(1, 1)
+        line:planeIndex = 1
+        all:Add(line)
+        all:Add(models:Square(0, 0, 1, 7))
+        return all
+    end
+
+    action Grouping
+        // Index and GetLayer
+        ContourLayers layers
+        layers:Index(Mixed(), 3, false)
+        output "GetPlaneCount: " + layers:GetPlaneCount()
+        Array<Contour> zero = layers:GetLayer(0)
+        Array<Contour> one = layers:GetLayer(1)
+        Array<Contour> two = layers:GetLayer(2)
+        output "plane 0: " + zero:GetSize()
+        output "plane 1, open paths included: " + one:GetSize()
+        output "an empty plane: " + two:GetSize()
+        Contour first = one:Get(0)
+        Contour second = one:Get(1)
+        output "plane 1 keeps the original order (first): " + Near(first:HeadX(), 0, 0)
+        output "plane 1 keeps the original order (second): " + Near(second:HeadX(), 9, 0)
+        Array<Contour> outside = layers:GetLayer(7)
+        Array<Contour> negative = layers:GetLayer(-1)
+        output "planes outside the range are empty: " + (outside:GetSize() + negative:GetSize())
+    end
+
+    action UsableLoopsOnly
+        // Index with usableLoopsOnly
+        ContourLayers layers
+        layers:Index(Mixed(), 3, true)
+        Array<Contour> one = layers:GetLayer(1)
+        output "the open line is left out: " + one:GetSize()
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end

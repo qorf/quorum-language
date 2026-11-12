@@ -83,6 +83,7 @@ class CompilerTestSuite is ProcessListener
     ByteArrayTester byteArrayChecks
     ZipWriterTester zipWriterChecks
     DataFormatsTester dataFormatsChecks
+    FabricationTester fabricationChecks
     ScienceTester scienceChecks
 
 
@@ -116,6 +117,7 @@ class CompilerTestSuite is ProcessListener
         byteArrayChecks:SetCompilerTestSuite(me)
         zipWriterChecks:SetCompilerTestSuite(me)
         dataFormatsChecks:SetCompilerTestSuite(me)
+        fabricationChecks:SetCompilerTestSuite(me)
         scienceChecks:SetTester(tester)
 
         //delete the output folder to start the testing fresh
@@ -273,6 +275,9 @@ class CompilerTestSuite is ProcessListener
 
         dataFormatsChecks:Test()
         output dataFormatsChecks:GetName() + GetCurrentTestPassText()
+
+        fabricationChecks:Test()
+        output fabricationChecks:GetName() + GetCurrentTestPassText()
 
         scienceChecks:Test()
         output scienceChecks:GetName() + GetCurrentTestPassText()

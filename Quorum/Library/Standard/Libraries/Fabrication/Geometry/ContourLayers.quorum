@@ -1,0 +1,127 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+
+/*
+The ContourLayers class groups a list of contours by slice plane once, so
+the contours of any one layer can then be fetched without scanning the whole
+list.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Geometry.ContourLayers
+
+    class Main
+        action Main
+            Array<Contour> all      // contours from ContourGenerator, say
+            ContourLayers layers
+            layers:Index(all, 100, true)
+            Array<Contour> third = layers:GetLayer(2)
+        end
+    end
+*/
+class ContourLayers
+    Array<Contour> source
+    Array<integer> starts
+    Array<integer> order
+    integer planeTotal = 0
+    GeometryUtilities util
+
+    /*
+    Groups the contours by their planeIndex. Contours on planes outside 0 to
+    planeCount - 1 are left out.
+
+    Attribute: Parameter contours The contours to group (kept, not copied).
+    Attribute: Parameter planeCount The number of planes.
+    Attribute: Parameter usableLoopsOnly True to keep only closed loops of at least 3 points.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.ContourLayers
+
+        Contour square
+        square:AddPoint(0, 0)
+        square:AddPoint(20, 0)
+        square:AddPoint(20, 20)
+        square:AddPoint(0, 20)
+        square:closed = true
+        square:planeIndex = 3
+        Array<Contour> outlines
+        outlines:Add(square)
+        ContourLayers layers
+        layers:Index(outlines, 10, true)
+        Array<Contour> third = layers:GetLayer(3)
+        output third:GetSize()      // 1
+    */
+    action Index(Array<Contour> contours, integer planeCount, boolean usableLoopsOnly)
+        source = contours
+        planeTotal = planeCount
+        Array<integer> planeOf
+        integer c = 0
+        repeat while c < contours:GetSize()
+            Contour con = contours:Get(c)
+            if usableLoopsOnly and not util:IsUsableLoop(con, planeCount)
+                planeOf:Add(-1)
+            else
+                planeOf:Add(con:planeIndex)
+            end
+            c = c + 1
+        end
+        util:BucketByPlane(planeOf, planeCount, starts, order)
+    end
+
+    /*
+    The number of planes given to Index.
+
+    Attribute: Returns The number of planes given to Index.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.ContourLayers
+
+        Array<Contour> outlines
+        ContourLayers layers
+        layers:Index(outlines, 100, false)
+        output layers:GetPlaneCount()       // 100
+    */
+    action GetPlaneCount returns integer
+        return planeTotal
+    end
+
+    /*
+    The contours of one plane, in their original order.
+
+    Attribute: Parameter plane The plane.
+    Attribute: Returns A new array; empty for a plane outside the indexed range.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Geometry.ContourLayers
+
+        Array<Contour> outlines      // from ContourGenerator:Build
+        ContourLayers layers
+        layers:Index(outlines, 100, false)
+        Array<Contour> first = layers:GetLayer(0)
+        output first:GetSize() + " loops on the first layer"
+    */
+    action GetLayer(integer plane) returns Array<Contour>
+        Array<Contour> layer
+        if plane < 0 or plane >= planeTotal
+            return layer
+        end
+        integer k = starts:Get(plane)
+        repeat while k < starts:Get(plane + 1)
+            layer:Add(source:Get(order:Get(k)))
+            k = k + 1
+        end
+        return layer
+    end
+end

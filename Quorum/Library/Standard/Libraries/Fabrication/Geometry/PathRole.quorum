@@ -1,0 +1,81 @@
+package Libraries.Fabrication.Geometry
+
+/*
+The PathRole class names what a toolpath prints as. PathOrderer stores one of
+these constants in each Contour's role, and the G-code writer picks speeds,
+accelerations and the ;TYPE: comment from it.
+
+Attribute: Example
+
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Geometry.PathRole
+
+    class Main
+        action Main
+            PathRole roles
+            Contour wall
+            wall:role = roles:OUTER_WALL
+            output roles:GetFeatureName(wall:role)     // WALL-OUTER
+        end
+    end
+*/
+class PathRole
+    public constant integer OUTER_WALL = 0
+    public constant integer INNER_WALL = 1
+    /* Solid top / bottom fill, and solid fill in parts too thin for walls. */
+    public constant integer SKIN = 2
+    /* Sparse infill. */
+    public constant integer INFILL = 3
+    /* Skirt or brim loops. */
+    public constant integer SKIRT = 4
+    /* The outline of a support tine or branch. */
+    public constant integer SUPPORT_WALL = 5
+    /* The lines inside a support tine or branch. */
+    public constant integer SUPPORT_FILL = 6
+
+    /*
+    Checks whether a role is part of the support.
+
+    Attribute: Parameter role One of the constants.
+    Attribute: Returns True for SUPPORT_WALL and SUPPORT_FILL.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.PathRole
+
+        PathRole roles
+        output roles:IsSupport(roles:SUPPORT_FILL)     // true
+        output roles:IsSupport(roles:INFILL)           // false
+    */
+    action IsSupport(integer role) returns boolean
+        return role = SUPPORT_WALL or role = SUPPORT_FILL
+    end
+
+    /*
+    The feature name G-code previewers colour by (Cura's ;TYPE: names).
+
+    Attribute: Parameter role One of the constants.
+    Attribute: Returns The name; "FILL" for sparse infill and for anything unknown.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.PathRole
+
+        PathRole roles
+        output roles:GetFeatureName(roles:OUTER_WALL)     // WALL-OUTER
+    */
+    action GetFeatureName(integer role) returns text
+        if role = OUTER_WALL
+            return "WALL-OUTER"
+        elseif role = INNER_WALL
+            return "WALL-INNER"
+        elseif role = SKIN
+            return "SKIN"
+        elseif role = SKIRT
+            return "SKIRT"
+        elseif IsSupport(role)
+            return "SUPPORT"
+        end
+        return "FILL"
+    end
+end
