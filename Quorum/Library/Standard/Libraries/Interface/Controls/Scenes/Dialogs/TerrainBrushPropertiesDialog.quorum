@@ -72,6 +72,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     ButtonGroup foliageGroup = undefined
     Label foliageNote = undefined
     Array<text> foliageNames
+    // Each foliage button's asset number, since the buttons are in
+    // alphabetical order of the assets' names, as the Foliage section lists
+    // them.
+    Array<integer> foliageOrder
 
     // The water tools' part (Water plan W6): how far above the ground under
     // the brush the water's level goes.
@@ -553,7 +557,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 return now
             end
             if choice:GetButtonGroup() = foliageGroup
-                integer asset = choice:GetIndex()
+                integer asset = -1
+                if choice:GetIndex() >= 0 and choice:GetIndex() < foliageOrder:GetSize()
+                    asset = foliageOrder:Get(choice:GetIndex())
+                end
                 if asset >= 0 and asset not= terrain:GetFoliageAsset()
                     GetSceneEditor():ChooseFoliageAsset(terrain, asset)
                 end
@@ -645,17 +652,25 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     end
 
     /*
-        Shows a button for each of the terrain's foliage assets, the one the
-        Foliage tool paints chosen (Terrain plan F3). The buttons are made
-        again only when the assets' names changed.
+        Shows a button for each of the terrain's foliage assets, in
+        alphabetical order of their names as the Foliage section lists them,
+        the one the Foliage tool paints chosen (Terrain plan F3). The buttons
+        are made again only when the names or their order changed.
     */
     private action ShowFoliageAssets
         Array<text> names
+        foliageOrder:Empty()
         FoliageList list = terrain:GetFoliageList()
         if list not= undefined
             integer i = 0
             repeat while i < list:GetAssetCount()
-                names:Add(list:GetAsset(i):GetName())
+                text name = list:GetAsset(i):GetName()
+                integer place = names:GetSize()
+                repeat while place > 0 and name:CompareIgnoringCase(names:Get(place - 1)) < 0
+                    place = place - 1
+                end
+                names:Add(place, name)
+                foliageOrder:Add(place, i)
                 i = i + 1
             end
         end
@@ -700,8 +715,12 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
             foliageNote:SetDescription("Hold Ctrl while painting to remove this asset's copies, or Ctrl and Shift to remove every asset's. Strength scales the asset's density.")
             integer chosen = terrain:GetFoliageAsset()
-            if chosen >= 0 and chosen < foliageGroup:GetSize()
-                foliageGroup:GetButtonAt(chosen):SetToggleState(true)
+            integer button = 0
+            repeat while button < foliageOrder:GetSize() and button < foliageGroup:GetSize()
+                if foliageOrder:Get(button) = chosen
+                    foliageGroup:GetButtonAt(button):SetToggleState(true)
+                end
+                button = button + 1
             end
         end
     end
