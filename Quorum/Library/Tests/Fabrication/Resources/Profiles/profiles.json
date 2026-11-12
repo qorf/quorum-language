@@ -1,0 +1,168 @@
+{
+    "_about": "Lamprey slicer profiles. Each profile lists only what it changes; 'inherits' names the profile it starts from, and anything not set anywhere uses the default in SourceCode/Profiles/ProfileSchema.quorum. Keys starting with _ are comments.",
+
+    "bambu-p2s": {
+        "_note": "Values from Main.BambuRun, except the bed: the P2S is 256 x 256 x 256 (Main used 220, which centred prints at 110, 110 and would tell Bambu Studio the plate is 220 mm).",
+        "bedWidth": 256,
+        "bedDepth": 256,
+        "bedHeight": 256,
+        "nozzleDiameter": 0.4,
+        "startGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/bambu-p2s/start.gcode",
+        "endGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/bambu-p2s/end.gcode",
+        "bambuExtras": true,
+        "write3mf": true,
+        "printerModelId": "N7",
+        "bambuSettingsTemplate": "../../Library/Tests/Fabrication/Resources/Templates/bambu-p2s/p2s_project_settings.json",
+
+        "filamentType": "PLA",
+        "filamentColor": "#FFFFFF",
+        "filamentDiameter": 1.75,
+        "flow": 1.0,
+        "maxFlow": 21,
+        "nozzleTemperature": 210,
+        "bedTemperature": 60,
+        "bedType": "textured_plate",
+
+        "unitScale": 1.0,
+        "layerHeight": 0.2,
+        "contourMaxGap": 0.2,
+        "simplifyTolerance": 0.02,
+        "minContourArea": 0.05,
+
+        "lineWidth": 0.4,
+        "wallCount": 3,
+        "infillDensity": 0.15,
+        "topLayers": 3,
+        "bottomLayers": 3,
+
+        "supportsEnabled": false,
+        "adhesionType": "none",
+
+        "outerWallSpeed": 200,
+        "innerWallSpeed": 300,
+        "skinSpeed": 200,
+        "infillSpeed": 270,
+        "supportSpeed": 150,
+        "firstLayerSpeed": 50,
+        "travelSpeed": 600,
+
+        "accelOuterWall": 6000,
+        "accelInnerWall": 10000,
+        "accelSkin": 2000,
+        "accelInfill": 10000,
+        "accelSupport": 10000,
+        "accelFirstLayer": 500,
+        "accelTravel": 10000,
+
+        "retractLength": 0.8,
+        "retractSpeed": 30,
+        "retractLimitCount": 90,
+        "retractLimitWindow": 0.9,
+        "zHop": 0.4,
+        "zHopMinTravel": 1.5,
+
+        "minLayerTime": 4,
+        "minPrintSpeed": 20
+    },
+
+    "bambu-p2s-petg": {
+        "_note": "Example of a filament variant. Export a sliced PETG plate from Bambu Studio and point bambuSettingsTemplate at it, or the 3MF keeps the PLA template's other filament settings (Lamprey warns about this).",
+        "inherits": "bambu-p2s",
+        "filamentType": "PETG",
+        "nozzleTemperature": 250,
+        "bedTemperature": 70,
+        "fanMax": 128
+    },
+
+    "bambu-a1": {
+        "_note": "Bambu Lab A1 (bed slinger, 256 x 256 x 256, like the P2S), 0.4 mm stainless steel nozzle, PLA on the Textured PEI plate. Speeds, accelerations, walls and temperatures from Bambu Studio's '0.20mm Standard @BBL A1' and 'Generic PLA @BBL A1'. Travel is 500 because the A1 firmware caps moves there (Bambu's profile asks for 700). The start G-code is resolved for PLA; see the CHANGE notes in it before printing other filaments. a1_project_settings.json was built from Bambu Studio's own A1 machine, process and filament profiles (Bambu Studio 02.08.02.61 keys); a plate you export from Bambu Studio for the A1 can replace it.",
+        "inherits": "bambu-p2s",
+        "startGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/bambu-a1/start.gcode",
+        "endGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/bambu-a1/end.gcode",
+        "printerModelId": "N2S",
+        "bambuSettingsTemplate": "../../Library/Tests/Fabrication/Resources/Templates/bambu-a1/a1_project_settings.json",
+
+        "nozzleTemperature": 220,
+        "bedTemperature": 65,
+
+        "wallCount": 2,
+        "topLayers": 5,
+
+        "travelSpeed": 500,
+
+        "accelOuterWall": 5000,
+        "accelInnerWall": 6000,
+        "accelInfill": 6000,
+        "accelSupport": 6000
+    },
+
+    "ender3-v2": {
+        "_note": "Values from Main.EnderRun.",
+        "bedWidth": 200,
+        "bedDepth": 200,
+        "bedHeight": 200,
+        "nozzleDiameter": 0.4,
+        "startGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/ender3-v2/start.gcode",
+        "endGcodeFile": "../../Library/Tests/Fabrication/Resources/Templates/ender3-v2/end.gcode",
+        "bambuExtras": false,
+        "write3mf": false,
+
+        "filamentType": "PLA",
+        "filamentDiameter": 1.75,
+        "flow": 1.0,
+        "maxFlow": 10,
+        "nozzleTemperature": 210,
+        "bedTemperature": 60,
+
+        "unitScale": 1.0,
+        "layerHeight": 0.2,
+        "contourMaxGap": 0.2,
+        "simplifyTolerance": 0.02,
+        "minContourArea": 0.05,
+
+        "lineWidth": 0.4,
+        "wallCount": 3,
+        "infillDensity": 0.15,
+        "topLayers": 4,
+        "bottomLayers": 3,
+
+        "supportsEnabled": true,
+        "supportTipDiameter": 0.8,
+        "supportTipLength": 1.0,
+        "supportXYGap": 0.8,
+        "supportTineXYGap": 0.35,
+        "supportTopGapLayers": 1,
+        "supportRestWidth": 3.0,
+        "supportRestLookAhead": 3.0,
+        "adhesionType": "none",
+
+        "outerWallSpeed": 25,
+        "innerWallSpeed": 45,
+        "skinSpeed": 40,
+        "infillSpeed": 60,
+        "supportSpeed": 40,
+        "firstLayerSpeed": 15,
+        "travelSpeed": 150,
+
+        "retractLength": 6.0,
+        "retractSpeed": 40,
+        "retractLimitCount": 90,
+        "retractLimitWindow": 6.0,
+        "zHop": 0.4,
+        "zHopMinTravel": 0.8,
+
+        "minLayerTime": 8,
+        "minPrintSpeed": 10,
+        "fanMax": 255,
+        "fanOffLayers": 1,
+        "fanFullLayer": 3
+    },
+
+    "ender3-v2-fine": {
+        "inherits": "ender3-v2",
+        "layerHeight": 0.12,
+        "topLayers": 6,
+        "bottomLayers": 5,
+        "fanFullLayer": 5
+    }
+}

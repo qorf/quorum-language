@@ -1,0 +1,177 @@
+use Libraries.Containers.Array
+use Libraries.Language.Errors.FileNotFoundError
+use Libraries.Fabrication.Profiles.Profile
+use Libraries.Fabrication.Profiles.ProfileManager
+use Tests.Fabrication.TestFiles
+
+/*
+Tests ProfileManager, and the shipped Profiles/profiles.json: every profile
+in it must load without warnings and pass Profile:Validate, so a typo in a
+profile is caught here rather than at the printer.
+*/
+class Main
+    TestFiles files
+    text dq = ""
+    text lf = ""
+
+    on create
+        dq = dq:GetDoubleQuote()
+        lf = lf:GetLineFeed()
+    end
+
+    action Main
+        ShippedProfiles()
+        InheritanceFromFile()
+        SaveAndLoadAgain()
+        FileProblems()
+        WarningsForTypos()
+    end
+
+    /* Turns ' into " so the JSON in these tests stays readable. */
+    action Json(text value) returns text
+        return value:Replace("'", dq)
+    end
+
+    action ShippedProfiles
+        // the shipped profiles
+        ProfileManager profiles
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        Array<text> warnings = profiles:GetWarnings()
+        output "profiles.json loads without warnings: " + warnings:GetSize()
+        Array<text> problems = profiles:ValidateAll()
+        text found = ""
+        integer i = 0
+        repeat while i < problems:GetSize()
+            found = found + " " + problems:Get(i)
+            i = i + 1
+        end
+        output "problems in the shipped profiles:" + found
+        text names = "bambu-p2s bambu-p2s-petg bambu-a1 ender3-v2 ender3-v2-fine"
+        Array<text> expected = names:Split(" ")
+        text missing = ""
+        i = 0
+        repeat while i < expected:GetSize()
+            if profiles:Find(expected:Get(i)) = undefined
+                missing = missing + " " + expected:Get(i)
+            end
+            i = i + 1
+        end
+        output "missing profiles:" + missing
+        Profile p2s = profiles:Require("bambu-p2s")
+        output "the P2S profile makes a 3MF: " + (p2s:GetBoolean("write3mf") and p2s:GetBoolean("bambuExtras"))
+        output "the P2S bed: " + Near(p2s:GetNumber("bedWidth"), 256, 0)
+
+        Profile a1 = profiles:Require("bambu-a1")
+        output "the A1's Bambu model id: " + a1:GetText("printerModelId")
+        output "the A1 profile makes a 3MF: " + (a1:GetBoolean("write3mf") and a1:GetBoolean("bambuExtras"))
+        output "the A1 bed, inherited from the P2S: " + Near(a1:GetNumber("bedWidth"), 256, 0)
+        output "the A1 build height, inherited from the P2S: " + Near(a1:GetNumber("bedHeight"), 256, 0)
+        output "travel at the A1 firmware's speed cap: " + Near(a1:GetNumber("travelSpeed"), 500, 0)
+        output "the A1's own start G-code: " + a1:GetText("startGcodeFile")
+        output "the A1's own settings template: " + a1:GetText("bambuSettingsTemplate")
+    end
+
+    action InheritanceFromFile
+        // inherits in the file
+        ProfileManager profiles
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        Profile fine = profiles:Require("ender3-v2-fine")
+        output "its own layer height: " + Near(fine:GetNumber("layerHeight"), 0.12, 0.0000001)
+        output "the parent's wall count: " + fine:GetInteger("wallCount")
+        output "GetSource: " + fine:GetSource("wallCount")
+        Profile derived = profiles:Derive("ender3-v2", "ender3-test")
+        derived:SetNumber("layerHeight", 0.3)
+        output "Derive inherits: " + Near(derived:GetNumber("retractLength"), 6, 0)
+        profiles:Remove("ender3-v2")
+        output "removing a parent unlinks its children: " + (fine:GetInherits() = "")
+    end
+
+    action SaveAndLoadAgain
+        // Save, then Load again
+        ProfileManager profiles
+        profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/profiles.json")
+        text saved = files:Path("profiles/saved.json")
+        files:Write("profiles/placeholder.txt", "")
+        profiles:Save(saved)
+        ProfileManager again
+        again:Load(saved)
+        output "the same number of profiles: " + (again:GetSize() = profiles:GetSize())
+        Profile before = profiles:Require("bambu-p2s-petg")
+        Profile after = again:Require("bambu-p2s-petg")
+        output "own values survive: " + (after:GetText("filamentType") = before:GetText("filamentType"))
+        output "inherited values survive: " + (after:GetText("lineWidth") = before:GetText("lineWidth"))
+        output "inherits survives: " + after:GetInherits()
+
+        text flat = files:Path("profiles/flat.json")
+        profiles:Save(flat, true)
+        ProfileManager flattened
+        flattened:Load(flat)
+        Profile flatPetg = flattened:Require("bambu-p2s-petg")
+        output "a flattened profile inherits nothing: " + (flatPetg:GetInherits() = "")
+        output "and holds every value itself: " + flatPetg:GetText("bedWidth")
+    end
+
+    action FileProblems
+        // broken profile files stop with a message
+        boolean missing = false
+        check
+            ProfileManager profiles
+            profiles:Load("../../Library/Tests/Fabrication/Resources/Profiles/no-such-file.json")
+        detect e1 is FileNotFoundError
+            missing = true
+        end
+        output "a missing file: " + missing
+        output "a value outside its range: " + LoadFails("{ 'a': { 'layerHeight': 9 } }")
+        output "an inheritance loop: " + LoadFails("{ 'a': { 'inherits': 'b' }, 'b': { 'inherits': 'a' } }")
+        output "a parent that isn't in the file: " + LoadFails("{ 'a': { 'inherits': 'nobody' } }")
+        output "a profile that isn't an object: " + LoadFails("{ 'a': 5 }")
+        output "JSON that is never closed: " + LoadFails("{ 'a': { 'layerHeight': 0.2 }")
+        output "a valid file (control): " + (not LoadFails("{ '_comment': 'x', 'a': { 'layerHeight': 0.3 } }"))
+
+        boolean noProfile = false
+        check
+            ProfileManager empty
+            Profile nothing = empty:Require("anything")
+        detect e2
+            noProfile = true
+        end
+        output "Require of a profile that isn't loaded: " + noProfile
+    end
+
+    action WarningsForTypos
+        // typos are warned about, not fatal
+        ProfileManager profiles
+        profiles:Load(files:Write("profiles/typo.json", Json("{ 'a': { 'layerHieght': 0.3, 'wallCount': 3 }, 'b': { } }")))
+        Array<text> warnings = profiles:GetWarnings()
+        // the misspelt key, and profile b which sets nothing
+        output "two warnings: " + warnings:GetSize()
+        if warnings:GetSize() > 0
+            output "the warning names the key: " + warnings:Get(0):Contains("layerHieght")
+        end
+    end
+
+    action LoadFails(text json) returns boolean
+        text path = files:Write("profiles/broken.json", Json(json))
+        boolean failed = false
+        check
+            ProfileManager profiles
+            profiles:Load(path)
+        detect e
+            failed = true
+        end
+        return failed
+    end
+
+    /* "true" if actual is within tolerance of expected, otherwise the actual value. */
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+
+end
