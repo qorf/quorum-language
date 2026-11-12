@@ -1,0 +1,98 @@
+package Libraries.Fabrication.Printing.Bambu
+
+use Libraries.Data.Compression.Decompresser
+use Libraries.Data.Formats.JavaScriptObjectNotationTemplate
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.System.File
+
+/*
+The BambuProjectSettings class is a Bambu Studio project_settings.config
+open for editing. Bambu Studio needs the complete set of about 580 settings
+in exactly the shape its own version writes, so the file is never rebuilt:
+it is read from one that Bambu Studio exported for the same printer, nozzle
+and filament, and only the values that are changed are rewritten (see
+JavaScriptObjectNotationTemplate).
+
+Attribute: Example
+
+    use Libraries.Fabrication.Printing.Bambu.BambuProjectSettings
+
+    class Main
+        action Main
+            BambuProjectSettings settings
+            settings:LoadFile("Templates/bambu-p2s/p2s_project_settings.json")
+            settings:Fill("layer_height", "0.16")
+            settings:Check()
+            output settings:ToText()
+        end
+    end
+*/
+class BambuProjectSettings is JavaScriptObjectNotationTemplate
+    /*
+    Reads the settings from a project_settings JSON file, or from the
+    Metadata/project_settings.config inside a .3mf / .gcode.3mf that Bambu
+    Studio exported. Stops with an error naming the file if it is missing or
+    isn't one of those.
+
+    Attribute: Parameter path The JSON file or 3MF archive.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuProjectSettings
+
+        BambuProjectSettings settings
+        settings:LoadFile("Templates/bambu-p2s/p2s_project_settings.json")
+        output settings:GetText("layer_height", "")
+    */
+    action LoadFile(text path)
+        ArgumentChecker checker
+        checker:RequireFile("Bambu settings template", path)
+        text entry = "Metadata/project_settings.config"
+        text lowerPath = path:ToLowerCase()
+        if lowerPath:EndsWith(".3mf")
+            File archive
+            archive:SetPath(path)
+            Decompresser zip
+            if not zip:HasZipEntry(archive, entry)
+                alert(path + " has no " + entry + ". Use a .gcode.3mf from Bambu Studio's 'Export plate sliced file', or a project_settings JSON.")
+            end
+            Load(zip:ReadZipEntry(archive, entry))
+        else
+            File file
+            file:SetPath(path)
+            Load(file:Read())
+        end
+    end
+
+    /*
+    The checks Bambu Studio's PresetBundle::load_config_file_config makes
+    when it opens the file: it must be a project_settings file for a single
+    filament, with matching filament extruder lists.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printing.Bambu.BambuProjectSettings
+
+        BambuProjectSettings settings
+        settings:LoadFile("Templates/bambu-p2s/p2s_project_settings.json")
+        settings:Fill("layer_height", "0.16")
+        settings:Check()       // stops with an alert if Bambu Studio would reject it
+    */
+    action Check
+        text name = GetText("name", "")
+        if name not= "project_settings"
+            alert("Bambu settings error: the template isn't a Bambu project_settings.config (its name is '" + name + "').")
+        end
+        integer filaments = Count("filament_colour")
+        if filaments not= 1
+            alert("Bambu settings error: the template has " + filaments + " filaments; export one with a single filament.")
+        end
+        if Has("extruder_variant_list")
+            integer variants = Count("filament_extruder_variant")
+            integer indexes = Count("filament_self_index")
+            if variants not= indexes or variants < filaments
+                alert("Bambu settings error: filament_extruder_variant (" + variants + " items) and filament_self_index (" + indexes + " items) don't match.")
+            end
+        end
+    end
+end

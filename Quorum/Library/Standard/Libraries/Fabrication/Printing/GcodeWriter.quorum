@@ -1,0 +1,1960 @@
+package Libraries.Fabrication.Printing
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.System.File
+use Libraries.System.FileWriter
+use Libraries.Data.Formats.NumberFormatter
+use Libraries.Fabrication.ArgumentChecker
+use Libraries.Fabrication.Geometry.Contour
+use Libraries.Fabrication.Geometry.GeometryUtilities
+use Libraries.Fabrication.Geometry.PathRole
+
+/*
+The GcodeWriter class writes ordered toolpaths (from PathOrderer) as
+Marlin-flavoured G-code.
+
+- Absolute XYZ (G90), relative extrusion (M83): every G1 carries the
+  filament length for that move alone, which keeps retraction simple.
+- Extrusion per move = length * lineWidth * layerHeight / filament area.
+- Layer p is printed at Z = (p + 1) * layerHeight (the slice plane sits in
+  the middle of the layer, the nozzle at its top).
+- The model is centred on the bed.
+- Retracts before any travel longer than the retraction minimum and before
+  each layer change; small layers are slowed down, and paused if needed, to
+  get their minimum cooling time.
+- ;LAYER: and ;TYPE: comments use Cura's names, so G-code previewers can
+  colour moves by feature. SetBambuExtras adds the header block and progress
+  reports Bambu Lab printers use.
+
+The printer's own start and end G-code come from two text files (see
+SetStartGCodeFile). Placeholders like {BED_TEMP} in them are filled in when
+the G-code is written. If a file doesn't exist it is created from a generic
+Marlin template, with instructions at the top saying what to paste where, and
+a warning says so.
+
+Statistics (filament used, estimated time) and warnings are available after
+Write through the Get actions; nothing is printed.
+
+Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.Geometry.Contour
+    use Libraries.Fabrication.Printing.GcodeWriter
+
+    class Main
+        action Main
+            Array<Contour> ordered      // from PathOrderer:Order
+            GcodeWriter gcode
+            gcode:SetLayerHeight(0.2)
+            gcode:SetLineWidth(0.4)
+            gcode:SetTemperatures(210, 60)
+            gcode:SetBed(220, 220)
+            gcode:SetStartGCodeFile("Templates/ender3-v2/start.gcode")
+            gcode:SetEndGCodeFile("Templates/ender3-v2/end.gcode")
+            gcode:Write(ordered, "Outputs/part.gcode")
+            output gcode:GetFilamentLength() + " mm of filament"
+        end
+    end
+*/
+class GcodeWriter
+    Math math
+    GeometryUtilities utils
+    NumberFormatter format
+    PathRole roles
+    ArgumentChecker checker
+    Array<text> warnings
+
+    text generatorName = "Quorum Libraries.Fabrication"
+    number layerHeight = 0.2
+    number lineWidth = 0.4
+    number filamentDiameter = 1.75
+    number nozzleDiameter = 0.4
+    number flow = 1.0
+    text filamentType = "PLA"
+
+    integer nozzleTemp = 210
+    integer bedTemp = 60
+
+    number bedCenterX = 110.0
+    number bedCenterY = 110.0
+    number bedSizeX = 220.0
+    number bedSizeY = 220.0
+    number bedSizeZ = 250.0       // tallest print the printer can make
+    number topZ = 0.0             // nozzle height on the last layer (set by Write)
+    // first layer's footprint on the bed, for printers that level only
+    // where the print goes (set by Write)
+    number firstMinX = 0.0
+    number firstMinY = 0.0
+    number firstSizeX = 0.0
+    number firstSizeY = 0.0
+
+    // speeds in mm/s
+    number travelSpeed = 150.0
+    number outerWallSpeed = 30.0
+    number innerWallSpeed = 50.0
+    number skinSpeed = 40.0
+    number infillSpeed = 60.0
+    number supportSpeed = 50.0
+    number firstLayerSpeed = 20.0
+
+    // Most plastic the hotend can melt, in mm^3/s (0 = no limit). Every
+    // speed is capped at maxFlow / (lineWidth * layerHeight * flow).
+    number maxFlow = 0.0
+    number firstLayerFlow = 1.15
+
+    number retractLength = 1.0       // ~1 mm direct drive, 4-6 mm Bowden
+    number retractSpeed = 35.0
+    number minTravelForRetract = 1.5
+    number infillTravelLimit = 5.0
+
+    // Z hop: on travels that retract, lift the nozzle this many mm, move,
+    // then lower it, so it can't drag across the bed or the print (0 = off).
+    number zHop = 0.0
+    number zHopMinTravel = 1.5    // travels longer than this hop (mm)
+    // true: only hop while the filament is retracted (a lift without a
+    // retract just lets the nozzle ooze in the air). false: hop on every
+    // travel longer than zHopMinTravel, retracted or not (the old behaviour).
+    boolean zHopNeedsRetract = true
+
+    // Retraction limit: at most maxRetracts retracts while less than
+    // retractWindow mm of filament has been pushed through. Stops the
+    // extruder gear from grinding one spot of filament (a common clog).
+    integer maxRetracts = 10
+    number retractWindow = 1.0
+
+    // Minimum layer time: small layers (ear tips) are slowed so each layer
+    // gets at least this long to cool, but never below minPrintSpeed.
+    // Travel, retracts and Z hops count toward the layer's time.
+    number minLayerTime = 10.0
+    number minPrintSpeed = 10.0
+
+    // Cooling pause: a layer that is still shorter than minLayerTime at
+    // minPrintSpeed ends with the nozzle lifted coolLift mm, parked
+    // coolClear mm beside the model, waiting out the rest (G4).
+    // coolLift 0 = off (the layer just prints short, as before).
+    number coolLift = 3.0
+    number coolClear = 10.0
+    number minDwell = 0.5         // shorter waits aren't worth the trip
+    Array<number> layerDwell      // seconds to wait after each layer
+    integer dwellLayers = 0
+    number modelMinX = 0.0        // model footprint on the bed (set by CenterOnBed)
+    number modelMaxX = 0.0
+
+    // part cooling fan: off for the first fanOffLayers layers, then ramps
+    // up to fanMax (0-255), reaching it on layer fanFullLayer
+    integer fanMax = 255
+    integer fanOffLayers = 1
+    integer fanFullLayer = 3
+    integer lastFan = 0
+
+    text startFile = "start.gcode"
+    text endFile = "end.gcode"
+
+    // Dry run: no heating, no filament, every move lifted dryRunLift mm.
+    boolean dryRun = false
+    number dryRunLift = 20.0
+
+    // state while writing
+    FileWriter writer
+    number posX = 0.0
+    number posY = 0.0
+    number posZ = 0.0             // nozzle height right now
+    number layerZ = 0.0           // height of the layer being printed
+    boolean zKnown = false        // false until the first move after the start code
+    boolean zPending = false      // layer changed, nozzle not yet at layerZ
+    boolean retracted = false
+    number offsetX = 0.0
+    number offsetY = 0.0
+    number filamentArea = 1.0
+    number totalFilament = 0.0
+    number totalSeconds = 0.0
+    integer lastRole = -1
+    integer lastSpeed = -1
+    Array<number> retractHistory
+    integer skippedRetracts = 0
+    Array<number> layerFactor
+    Array<number> layerTime       // estimated seconds per layer, after slow-down
+    number estimatedSeconds = 0.0
+
+    // Bambu Lab extras: header block, layer / progress reports (M73, M991)
+    boolean bambu = false
+
+    // accelerations in mm/s^2 (0 = leave the printer's setting alone)
+    number accelOuterWall = 0.0
+    number accelInnerWall = 0.0
+    number accelSkin = 0.0
+    number accelInfill = 0.0
+    number accelSupport = 0.0
+    number accelFirstLayer = 0.0
+    number accelTravel = 0.0
+    integer lastAccel = -1
+    integer slowedLayers = 0
+
+    /*
+    The layer height (mm).
+
+    Attribute: Parameter height The height (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetLayerHeight(0.2)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetLayerHeight(number height)
+        checker:RequirePositive("GcodeWriter:SetLayerHeight height", height)
+        layerHeight = height
+    end
+
+    /*
+    The extrusion width (mm).
+
+    Attribute: Parameter width The width (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetLineWidth(0.4)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetLineWidth(number width)
+        checker:RequirePositive("GcodeWriter:SetLineWidth width", width)
+        lineWidth = width
+    end
+
+    /*
+    Nozzle size in mm, for {NOZZLE_DIAMETER} in start / end G-code.
+
+    Attribute: Parameter diameter The diameter (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetNozzleDiameter(0.4)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetNozzleDiameter(number diameter)
+        checker:RequirePositive("GcodeWriter:SetNozzleDiameter diameter", diameter)
+        nozzleDiameter = diameter
+    end
+
+    /*
+    Filament diameter (mm), usually 1.75 or 2.85.
+
+    Attribute: Parameter diameter The diameter (mm), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetFilamentDiameter(1.75)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetFilamentDiameter(number diameter)
+        checker:RequirePositive("GcodeWriter:SetFilamentDiameter diameter", diameter)
+        filamentDiameter = diameter
+    end
+
+    /*
+    The filament's material (PLA, PETG, ...), for {FILAMENT_TYPE} in start
+    and end G-code. Bambu printers read it from "M1002 set_filament_type:".
+
+    Attribute: Parameter type The material, such as "PLA" (written in capitals).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetFilamentType("PETG")
+        gcode:Write(ordered, "part.gcode")
+    */
+    action SetFilamentType(text type)
+        if type = ""
+            alert("GcodeWriter:SetFilamentType needs a material name, such as PLA.")
+        end
+        filamentType = type:ToUpperCase()
+    end
+
+    /*
+    Nozzle and bed temperatures (C), for the start / end G-code placeholders.
+
+    Attribute: Parameter nozzle The nozzle temperature (C).
+    Attribute: Parameter bed The bed temperature (C).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetTemperatures(210, 60)      // PLA
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetTemperatures(integer nozzle, integer bed)
+        checker:RequireAtLeast("GcodeWriter:SetTemperatures nozzle", nozzle, 0)
+        checker:RequireAtLeast("GcodeWriter:SetTemperatures bed", bed, 0)
+        nozzleTemp = nozzle
+        bedTemp = bed
+    end
+
+    /*
+    The bed size (mm); the model is centred on it.
+
+    Attribute: Parameter sizeX The bed width along X (mm).
+    Attribute: Parameter sizeY The bed depth along Y (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetBed(220, 220)      // an Ender-3
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetBed(number sizeX, number sizeY)
+        checker:RequirePositive("GcodeWriter:SetBed sizeX", sizeX)
+        checker:RequirePositive("GcodeWriter:SetBed sizeY", sizeY)
+        bedSizeX = sizeX
+        bedSizeY = sizeY
+        bedCenterX = sizeX / 2.0
+        bedCenterY = sizeY / 2.0
+    end
+
+    /*
+    Build height in mm (Ender-3: 250, Bambu P2S: 256). Caps {PARK_Z}.
+
+    Attribute: Parameter sizeZ The build height (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetBedHeight(250)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetBedHeight(number sizeZ)
+        checker:RequirePositive("GcodeWriter:SetBedHeight sizeZ", sizeZ)
+        bedSizeZ = sizeZ
+    end
+
+    /*
+    Travels between infill lines shorter than this (mm) don't retract.
+
+    Attribute: Parameter distance The distance (mm), 0 or more.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetInfillTravel(2.0)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetInfillTravel(number distance)
+        checker:RequireAtLeast("GcodeWriter:SetInfillTravel distance", distance, 0)
+        infillTravelLimit = distance
+    end
+
+    /*
+    The part cooling fan: off for the first offLayers layers, then ramping up
+    to maxSpeed (0 - 255), which it reaches on layer fullLayers.
+
+    Attribute: Parameter maxSpeed The full fan speed, 0 to 255.
+    Attribute: Parameter offLayers How many layers start with the fan off.
+    Attribute: Parameter fullLayers The layer the fan reaches maxSpeed on.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetFan(255, 1, 3)      // off on layer 0, full speed from layer 3
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetFan(integer maxSpeed, integer offLayers, integer fullLayers)
+        checker:RequireRange("GcodeWriter:SetFan maxSpeed", maxSpeed, 0, 255)
+        checker:RequireAtLeast("GcodeWriter:SetFan offLayers", offLayers, 0)
+        checker:RequireAtLeast("GcodeWriter:SetFan fullLayers", fullLayers, 0)
+        fanMax = maxSpeed
+        fanOffLayers = offLayers
+        fanFullLayer = fullLayers
+    end
+
+    /*
+    Retraction length (mm: about 1 for direct drive, 4 - 6 for Bowden) and
+    speed (mm/s). Also resets the retraction limit's window to the length,
+    so call SetRetractionLimit after this.
+
+    Attribute: Parameter length How far to pull the filament back (mm).
+    Attribute: Parameter speed How fast (mm/s).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetRetraction(5, 45)      // a Bowden extruder
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetRetraction(number length, number speed)
+        checker:RequireAtLeast("GcodeWriter:SetRetraction length", length, 0)
+        checker:RequirePositive("GcodeWriter:SetRetraction speed", speed)
+        retractLength = length
+        retractSpeed = speed
+        retractWindow = length
+    end
+
+    /*
+    Lift the nozzle `height` mm on travels that retract (0 = off). 0.2 - 0.4
+    mm stops it scraping the bed or the top of the print.
+
+    Attribute: Parameter height The lift (mm), 0 for none.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetZHop(0.4)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetZHop(number height)
+        checker:RequireAtLeast("GcodeWriter:SetZHop height", height, 0)
+        zHop = height
+    end
+
+    /*
+    Travels longer than `distance` mm hop (default 1.5, the same as
+    retraction). Lower it (e.g. 0.8) to also lift on the short hops across
+    already-printed lines; neighbouring skin lines (0.57 mm apart on the
+    diagonal) stay unlifted so solid layers don't slow down. While
+    SetZHopNeedsRetract is on (the default) a travel also has to retract to
+    hop.
+
+    Attribute: Parameter distance The shortest travel that hops (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetZHopMinTravel(0.8)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetZHopMinTravel(number distance)
+        checker:RequireAtLeast("GcodeWriter:SetZHopMinTravel distance", distance, 0)
+        zHopMinTravel = distance
+    end
+
+    /*
+    true (default): hop only on travels that retract. false: hop on every
+    travel longer than zHopMinTravel, even without a retract.
+
+    Attribute: Parameter toggle True to hop only on travels that retract.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetZHopNeedsRetract(false)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetZHopNeedsRetract(boolean toggle)
+        zHopNeedsRetract = toggle
+    end
+
+    /*
+    After a layer that is still under the minimum layer time at the slowest
+    speed, lift `lift` mm, park `clearance` mm beside the model and wait out
+    the rest. lift 0 turns the pause off.
+
+    Attribute: Parameter lift How far to lift the nozzle (mm); 0 turns the pause off.
+    Attribute: Parameter clearance How far beside the model to park (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetCoolingPause(5, 10)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetCoolingPause(number lift, number clearance)
+        checker:RequireAtLeast("GcodeWriter:SetCoolingPause lift", lift, 0)
+        checker:RequireAtLeast("GcodeWriter:SetCoolingPause clearance", clearance, 0)
+        coolLift = lift
+        coolClear = clearance
+    end
+
+    /*
+    At most `count` retracts within `window` mm of extruded filament (stops the extruder grinding the filament).
+
+    Attribute: Parameter count The most retracts allowed in the window.
+    Attribute: Parameter window The window (mm of filament).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetRetraction(5, 45)
+        gcode:SetRetractionLimit(10, 5)      // after SetRetraction
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetRetractionLimit(integer count, number window)
+        checker:RequireAtLeast("GcodeWriter:SetRetractionLimit count", count, 0)
+        checker:RequireAtLeast("GcodeWriter:SetRetractionLimit window", window, 0)
+        maxRetracts = count
+        retractWindow = window
+    end
+
+    /*
+    Slow down layers that would print in less than `seconds`, but never below slowestSpeed (mm/s).
+
+    Attribute: Parameter seconds The shortest time a layer may take (s).
+    Attribute: Parameter slowestSpeed The slowest speed allowed (mm/s).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetMinLayerTime(8, 10)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetMinLayerTime(number seconds, number slowestSpeed)
+        checker:RequireAtLeast("GcodeWriter:SetMinLayerTime seconds", seconds, 0)
+        checker:RequirePositive("GcodeWriter:SetMinLayerTime slowestSpeed", slowestSpeed)
+        minLayerTime = seconds
+        minPrintSpeed = slowestSpeed
+    end
+
+    /*
+    Printing speeds in mm/s. The first layer uses firstLayer for everything
+    (skirt and brim always do).
+
+    Attribute: Parameter outerWall Outer walls (mm/s).
+    Attribute: Parameter innerWall Inner walls (mm/s).
+    Attribute: Parameter skin Top and bottom skin (mm/s).
+    Attribute: Parameter infill Sparse infill (mm/s).
+    Attribute: Parameter support Support (mm/s).
+    Attribute: Parameter firstLayer Everything on the first layer (mm/s).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetSpeeds(40, 60, 50, 80, 50, 20)      // outer wall, inner wall, skin, infill, support, first layer
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetSpeeds(number outerWall, number innerWall, number skin, number infill,
+                     number support, number firstLayer)
+        checker:RequirePositive("GcodeWriter:SetSpeeds outerWall", outerWall)
+        checker:RequirePositive("GcodeWriter:SetSpeeds innerWall", innerWall)
+        checker:RequirePositive("GcodeWriter:SetSpeeds skin", skin)
+        checker:RequirePositive("GcodeWriter:SetSpeeds infill", infill)
+        checker:RequirePositive("GcodeWriter:SetSpeeds support", support)
+        checker:RequirePositive("GcodeWriter:SetSpeeds firstLayer", firstLayer)
+        outerWallSpeed = outerWall
+        innerWallSpeed = innerWall
+        skinSpeed = skin
+        infillSpeed = infill
+        supportSpeed = support
+        firstLayerSpeed = firstLayer
+    end
+
+    /*
+    The program named in the G-code's header comments, for example
+    "My Slicer" (default "Quorum Libraries.Fabrication").
+
+    Attribute: Parameter name The name.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetGeneratorName("My Slicer")
+        gcode:Write(ordered, "part.gcode")      // starts ";Generated by My Slicer"
+    */
+    action SetGeneratorName(text name)
+        generatorName = name
+    end
+
+    /*
+    Bambu Lab printers: write the header block and the layer / progress
+    reports their screen, time estimate and timelapse use:
+    M73 P<percent> R<minutes left>, M73 L<layer>, M991 S0 P<layer>.
+
+    Attribute: Parameter toggle True for a Bambu Lab printer.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetBambuExtras(true)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetBambuExtras(boolean toggle)
+        bambu = toggle
+    end
+
+    /*
+    Accelerations in mm/s^2, sent with M204 when they change (0 = never
+    sent, the printer keeps whatever the start G-code set).
+
+    Attribute: Parameter outerWall Outer walls (mm/s^2).
+    Attribute: Parameter innerWall Inner walls (mm/s^2).
+    Attribute: Parameter skin Top and bottom skin (mm/s^2).
+    Attribute: Parameter infill Sparse infill (mm/s^2).
+    Attribute: Parameter support Support (mm/s^2).
+    Attribute: Parameter firstLayer The first layer (mm/s^2).
+    Attribute: Parameter travel Moves that don't print (mm/s^2).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetAccelerations(5000, 8000, 8000, 10000, 8000, 500, 10000)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetAccelerations(number outerWall, number innerWall, number skin, number infill,
+                            number support, number firstLayer, number travel)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations outerWall", outerWall, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations innerWall", innerWall, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations skin", skin, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations infill", infill, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations support", support, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations firstLayer", firstLayer, 0)
+        checker:RequireAtLeast("GcodeWriter:SetAccelerations travel", travel, 0)
+        accelOuterWall = outerWall
+        accelInnerWall = innerWall
+        accelSkin = skin
+        accelInfill = infill
+        accelSupport = support
+        accelFirstLayer = firstLayer
+        accelTravel = travel
+    end
+
+    /*
+    Speed of moves that don't print (mm/s).
+
+    Attribute: Parameter mmPerSecond The speed (mm/s), greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetTravelSpeed(150)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetTravelSpeed(number mmPerSecond)
+        checker:RequirePositive("GcodeWriter:SetTravelSpeed mmPerSecond", mmPerSecond)
+        travelSpeed = mmPerSecond
+    end
+
+    /*
+    Hotend melt limit in mm^3/s (0 = none). Faster moves than the hotend can
+    feed come out thin and weak, so every speed is capped to fit.
+
+    Attribute: Parameter mm3PerSecond The most plastic the hotend can melt (mm^3/s); 0 for no limit.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetMaxFlow(12)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetMaxFlow(number mm3PerSecond)
+        checker:RequireAtLeast("GcodeWriter:SetMaxFlow mm3PerSecond", mm3PerSecond, 0)
+        maxFlow = mm3PerSecond
+    end
+
+    /*
+    Extrusion multiplier (1 = as calculated).
+
+    Attribute: Parameter ratio The multiplier, greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetFlow(0.98)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetFlow(number ratio)
+        checker:RequirePositive("GcodeWriter:SetFlow ratio", ratio)
+        flow = ratio
+    end
+
+    /*
+    Extra extrusion multiplier on the first layer (default 1.15), on top of
+    SetFlow, so the first layer squishes into the bed.
+
+    Attribute: Parameter ratio The first layer's extra multiplier, greater than 0.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetFirstLayerFlow(1.1)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetFirstLayerFlow(number ratio)
+        checker:RequirePositive("GcodeWriter:SetFirstLayerFlow ratio", ratio)
+        firstLayerFlow = ratio
+    end
+
+    /*
+    Only travels longer than `distance` mm retract (default 1.5).
+
+    Attribute: Parameter distance The shortest travel that retracts (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetMinTravelForRetract(1.5)
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetMinTravelForRetract(number distance)
+        checker:RequireAtLeast("GcodeWriter:SetMinTravelForRetract distance", distance, 0)
+        minTravelForRetract = distance
+    end
+
+    /*
+    The file holding the printer's own start G-code, copied in before the
+    first layer. A missing file is created from a generic template.
+
+    Attribute: Parameter path The start G-code file.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetStartGCodeFile("Templates/ender3-v2/start.gcode")
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetStartGCodeFile(text path)
+        if path = ""
+            checker:Fail("GcodeWriter:SetStartGCodeFile needs a file path")
+        end
+        startFile = path
+    end
+
+    /*
+    The file holding the printer's own end G-code, copied in after the last layer.
+
+    Attribute: Parameter path The end G-code file.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetEndGCodeFile("Templates/ender3-v2/end.gcode")
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetEndGCodeFile(text path)
+        if path = ""
+            checker:Fail("GcodeWriter:SetEndGCodeFile needs a file path")
+        end
+        endFile = path
+    end
+
+    /*
+    A safe test file: the printer homes, then traces every move of the print
+    `lift` mm above the bed with the heaters off and no extrusion. Watch it
+    to check the print stays on the bed and nothing collides. The custom
+    start / end G-code is NOT used in a dry run.
+
+    Attribute: Parameter toggle True for a dry run.
+    Attribute: Parameter lift How high above the bed to trace (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetDryRun(true, 20)      // trace the print 20 mm up, heaters off
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetDryRun(boolean toggle, number lift)
+        checker:RequireAtLeast("GcodeWriter:SetDryRun lift", lift, 0)
+        dryRun = toggle
+        dryRunLift = lift
+    end
+
+    /*
+    Writes the G-code file, creating its folder if needed.
+
+    Attribute: Parameter paths The paths in printing order, with roles set (PathOrderer:Order).
+    Attribute: Parameter filePath Where to write the G-code.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetTemperatures(210, 60)
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output gcode:GetFilamentLength() + " mm of filament"
+    */
+    action Write(Array<Contour> paths, text filePath)
+        warnings:Empty()
+        if paths:GetSize() = 0
+            warnings:Add("There are no paths to print, so " + filePath + " only holds the start and end G-code.")
+        end
+        filamentArea = 3.141592653589793 * (filamentDiameter / 2.0) * (filamentDiameter / 2.0)
+        totalFilament = 0.0
+        totalSeconds = 0.0
+        retracted = false
+        lastSpeed = -1
+        retractHistory:Empty()
+        skippedRetracts = 0
+        lastAccel = -1
+        CenterOnBed(paths)
+        PlanLayerSpeeds(paths)
+        FindTopZ(paths)
+        FindFirstLayerBox(paths)
+        if not dryRun
+            EnsureTemplate(startFile, true)
+            EnsureTemplate(endFile, false)
+        end
+
+        File file
+        file:SetPath(filePath)
+        File folder = file:GetParentDirectory()
+        if folder not= undefined
+            if not folder:Exists()
+                folder:CreateDirectories()
+            end
+        end
+        writer:OpenForWrite(file)
+
+        WriteStart()
+
+        integer layer = -1
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            if path:planeIndex not= layer
+                if layer >= 0
+                    CoolDown(layer)
+                end
+                layer = path:planeIndex
+                ChangeLayer(layer)
+            end
+            WritePath(path, layer)
+            i = i + 1
+        end
+
+        WriteEnd()
+        if bambu and not dryRun
+            Line("; EXECUTABLE_BLOCK_END")
+        end
+        writer:Close()
+    end
+
+    /*
+    The filament the last Write extruded (mm).
+
+    Attribute: Returns The filament the last Write extruded (mm).
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output "Uses " + gcode:GetFilamentLength() / 1000 + " m of filament"
+    */
+    action GetFilamentLength returns number
+        return totalFilament
+    end
+
+    /*
+    The time the last Write's moves take at their programmed speeds (s); real prints run slower, as acceleration isn't counted.
+
+    Attribute: Returns The time the last Write's moves take at their programmed speeds (s); real prints run slower, as acceleration isn't counted.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output "About " + gcode:GetMoveSeconds() / 60 + " minutes of moves"
+    */
+    action GetMoveSeconds returns number
+        return totalSeconds
+    end
+
+    /*
+    How many layers the last Write slowed down to get their minimum layer time.
+
+    Attribute: Returns How many layers the last Write slowed down to get their minimum layer time.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output gcode:GetSlowedLayerCount() + " layers slowed down to cool"
+    */
+    action GetSlowedLayerCount returns integer
+        return slowedLayers
+    end
+
+    /*
+    How many layers were still too quick at the slowest speed, so the nozzle parks and waits after them.
+
+    Attribute: Returns How many layers were still too quick at the slowest speed, so the nozzle parks and waits after them.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output gcode:GetPausedLayerCount() + " layers pause to cool"
+    */
+    action GetPausedLayerCount returns integer
+        return dwellLayers
+    end
+
+    /*
+    How many retracts the last Write skipped to avoid grinding the filament.
+
+    Attribute: Returns How many retracts the last Write skipped to avoid grinding the filament.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        output gcode:GetSkippedRetractCount() + " retracts skipped"
+    */
+    action GetSkippedRetractCount returns integer
+        return skippedRetracts
+    end
+
+    /*
+    Warnings from the last Write (a model too big for the bed, unknown placeholders, a created template), as sentences.
+
+    Attribute: Returns Warnings from the last Write (a model too big for the bed, unknown placeholders, a created template), as sentences.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:Write(ordered, "Outputs/part.gcode")
+        Array<text> warnings = gcode:GetWarnings()
+        integer i = 0
+        repeat while i < warnings:GetSize()
+            output "warning: " + warnings:Get(i)
+            i = i + 1
+        end
+    */
+    action GetWarnings returns Array<text>
+        return warnings
+    end
+
+    // ------------------------------------------------------------ sections
+
+    private action WriteStart
+        if dryRun
+            Line(";DRY RUN generated by " + generatorName)
+            Line(";No heating, no extrusion. Every move is lifted " + Fixed(dryRunLift, 1) + " mm above the bed.")
+            Line("M104 S0")
+            Line("M140 S0")
+            Line("M107")
+            Line("G28 ;home all axes")
+            Line("G90 ;absolute XYZ")
+            Line("M83 ;relative extrusion")
+            Line("G1 Z" + Fixed(dryRunLift + 5.0, 3) + " F600")
+            retracted = false
+            posX = -1000.0
+            posY = -1000.0
+            zKnown = false
+            zPending = false
+            lastRole = -1
+            lastSpeed = -1
+            return now
+        end
+        if bambu
+            integer layerCount = layerTime:GetSize()
+            Line("; HEADER_BLOCK_START")
+            Line("; generated by " + generatorName)
+            Line("; total estimated time: " + MinutesLeft(estimatedSeconds) + "m")
+            Line("; total layer number: " + layerCount)
+            Line("; filament_diameter: " + Fixed(filamentDiameter, 2))
+            Line("; max_z_height: " + Fixed(topZ, 2))
+            Line("; filament: 1")
+            Line("; HEADER_BLOCK_END")
+            Line("")
+            Line("; EXECUTABLE_BLOCK_START")
+            Line("M73 P0 R" + MinutesLeft(estimatedSeconds))
+        end
+        Line(";Generated by " + generatorName)
+        Line(";Layer height: " + Fixed(layerHeight, 3) + " mm, line width: " + Fixed(lineWidth, 3) + " mm")
+        Line(";========== START G-CODE (from " + startFile + ") ==========")
+        CopyCustom(startFile)
+        Line(";========== END OF START G-CODE ==========")
+        // whatever the custom code did, the moves below need these modes
+        Line("G90 ;absolute XYZ")
+        Line("M83 ;relative extrusion")
+        Line("G92 E0")
+        Line("M107 ;fan off for the first layer")
+        lastFan = 0
+        retracted = false
+        // unknown position: forces a real travel (and retract) before the first path
+        posX = -1000.0
+        posY = -1000.0
+        zKnown = false
+        zPending = false
+        lastRole = -1
+        lastSpeed = -1
+    end
+
+    private action WriteEnd
+        if dryRun
+            Line(";END OF DRY RUN")
+            Line("G91")
+            Line("G1 Z10 F600 ;lift away")
+            Line("G90")
+            Line("M84 ;motors off")
+            return now
+        end
+        Retract()
+        Line(";========== END G-CODE (from " + endFile + ") ==========")
+        CopyCustom(endFile)
+    end
+
+    // Copies a custom G-code file into the output, filling in placeholders.
+    private action CopyCustom(text path)
+        File file
+        file:SetPath(path)
+        text contents = file:Read()
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        text carriageReturn = ""
+        carriageReturn = carriageReturn:GetCarriageReturn()
+        Array<text> lines = contents:Split(lineFeed)
+        integer i = 0
+        repeat while i < lines:GetSize()
+            text raw = lines:Get(i)
+            text value = Substitute(raw:Replace(carriageReturn, ""))
+            if not value:StartsWith(";")
+                if value:Contains("{") or value:Contains("[")
+                    warnings:Add(path + " line " + (i + 1) + " still has a placeholder the slicer doesn't know: '"
+                        + value + "'. The printer can't read it; replace it with a number or one of the {...} names listed at the top of the file.")
+                end
+            end
+            Line(value)
+            i = i + 1
+        end
+    end
+
+    // Bounding box of everything printed on layer 0 (skirt, brim, supports
+    // included), in bed coordinates.
+    private action FindFirstLayerBox(Array<Contour> paths)
+        boolean any = false
+        number lowX = 0.0
+        number lowY = 0.0
+        number highX = 0.0
+        number highY = 0.0
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            if path:planeIndex = 0
+                integer j = 0
+                repeat while j < path:GetSize()
+                    number x = path:xs:Get(j) + offsetX
+                    number y = path:ys:Get(j) + offsetY
+                    if not any
+                        lowX = x
+                        highX = x
+                        lowY = y
+                        highY = y
+                        any = true
+                    end
+                    lowX = utils:Min2(lowX, x)
+                    highX = utils:Max2(highX, x)
+                    lowY = utils:Min2(lowY, y)
+                    highY = utils:Max2(highY, y)
+                    j = j + 1
+                end
+            end
+            i = i + 1
+        end
+        firstMinX = lowX
+        firstMinY = lowY
+        firstSizeX = highX - lowX
+        firstSizeY = highY - lowY
+    end
+
+    // Hotend melt limit used by the flow macros; 12 mm^3/s (generic PLA)
+    // when SetMaxFlow wasn't called.
+    private action MacroFlow returns number
+        if maxFlow > 0
+            return maxFlow
+        end
+        return 12.0
+    end
+
+    // Height of the nozzle on the last layer.
+    private action FindTopZ(Array<Contour> paths)
+        integer top = -1
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            if path:planeIndex > top
+                top = path:planeIndex
+            end
+            i = i + 1
+        end
+        topZ = cast(number, top + 1) * layerHeight
+    end
+
+    // Where the end G-code drops the bed to, the way Bambu's end code does
+    // it: 80 - Z/2 mm below the print while that's positive, otherwise
+    // 4 mm, never past the bottom of the build volume.
+    private action ParkZ returns number
+        number lift = 4.0
+        if 80.0 - topZ / 2.0 > 0
+            lift = 80.0 - topZ / 2.0
+        end
+        return utils:Min2(topZ + lift, bedSizeZ)
+    end
+
+    // The second, settling move goes back up 2 mm, unless the first one
+    // hit the bottom of the build volume.
+    private action ParkBack returns number
+        if ParkZ() >= bedSizeZ
+            return 0.0
+        end
+        return 2.0
+    end
+
+    // Where a bed-slinger's end code (Bambu A1) raises the nozzle to: 100 mm
+    // above the print, never past the top of the build volume.
+    private action ParkUpZ returns number
+        return utils:Min2(topZ + 100.0, bedSizeZ)
+    end
+
+    // The A1's settling move comes back down 2 mm, unless the first one hit
+    // the top of the build volume (then it stays there, as Bambu's does).
+    private action ParkUpBack returns number
+        if ParkUpZ() >= bedSizeZ
+            return 0.0
+        end
+        return 2.0
+    end
+
+    // Fills in our placeholders, plus the most common Cura {...} and
+    // PrusaSlicer [...] ones, so pasted profiles mostly work as-is.
+    private action Substitute(text value) returns text
+        text nozzle = "" + nozzleTemp
+        text bed = "" + bedTemp
+        text result = value
+        result = result:Replace("{NOZZLE_TEMP}", nozzle)
+        result = result:Replace("{BED_TEMP}", bed)
+        result = result:Replace("{BED_X}", Fixed(bedSizeX, 1))
+        result = result:Replace("{BED_Y}", Fixed(bedSizeY, 1))
+        result = result:Replace("{PARK_Y}", Fixed(bedSizeY - 10.0, 1))
+        result = result:Replace("{LAYER_HEIGHT}", Fixed(layerHeight, 3))
+        result = result:Replace("{RETRACT}", Fixed(retractLength, 3))
+        result = result:Replace("{MAX_Z}", Fixed(topZ, 2))
+        result = result:Replace("{LIFT_Z}", Fixed(utils:Min2(topZ + 0.4, bedSizeZ), 2))
+        result = result:Replace("{CLEAR_Z}", Fixed(utils:Min2(topZ + 10.0, bedSizeZ), 2))
+        result = result:Replace("{NOZZLE_DIAMETER}", Fixed(nozzleDiameter, 2))
+        result = result:Replace("{FIRST_MIN_X}", Fixed(firstMinX, 3))
+        result = result:Replace("{FIRST_MIN_Y}", Fixed(firstMinY, 3))
+        result = result:Replace("{FIRST_SIZE_X}", Fixed(firstSizeX, 3))
+        result = result:Replace("{FIRST_SIZE_Y}", Fixed(firstSizeY, 3))
+        // max flow as filament feed (mm/min), Bambu's calibration value
+        // (flow / 2.4) and its purge-line feed (flow / 2 / filament area)
+        result = result:Replace("{FLOW_FEED}", Fixed(MacroFlow() / filamentArea * 60.0, 2))
+        result = result:Replace("{CALI_FLOW}", Fixed(MacroFlow() / 2.4, 2))
+        result = result:Replace("{PURGE_FEED}", Fixed(MacroFlow() / 2.0 / filamentArea, 2))
+        result = result:Replace("{PARK_Z_BACK}", Fixed(ParkZ() - ParkBack(), 2))
+        result = result:Replace("{PARK_Z}", Fixed(ParkZ(), 2))
+        // Bambu A1 (bed slinger): its end code raises the gantry instead
+        result = result:Replace("{PARK_Z_UP_BACK}", Fixed(ParkUpZ() - ParkUpBack(), 2))
+        result = result:Replace("{PARK_Z_UP}", Fixed(ParkUpZ(), 2))
+        result = result:Replace("{FIRST_CENTER_X}", Fixed(firstMinX + firstSizeX / 2.0, 3))
+        result = result:Replace("{FIRST_CENTER_Y}", Fixed(firstMinY + firstSizeY / 2.0, 3))
+        // Bambu A1 start code feeds, all from the max flow like ones above:
+        // its prime line (0.5 x 0.3 mm), the same quarter speed, its long
+        // purge (flow / 1.2) and the calibration feed (flow / 2.4, in mm/min)
+        result = result:Replace("{PRIME_FEED_SLOW}", Fixed(MacroFlow() / 0.15 / 4.0 * 60.0, 2))
+        result = result:Replace("{PRIME_FEED}", Fixed(MacroFlow() / 0.15 * 60.0, 2))
+        result = result:Replace("{LINE_FEED}", Fixed(MacroFlow() / 1.2 * 60.0, 2))
+        result = result:Replace("{CALI_FEED}", Fixed(MacroFlow() / 2.4 * 60.0, 2))
+        result = result:Replace("{FILAMENT_TYPE}", filamentType)
+        result = result:Replace("{NOZZLE_TEMP_LESS_50}", "" + (nozzleTemp - 50))
+        // Cura
+        result = result:Replace("{material_print_temperature_layer_0}", nozzle)
+        result = result:Replace("{material_print_temperature}", nozzle)
+        result = result:Replace("{material_bed_temperature_layer_0}", bed)
+        result = result:Replace("{material_bed_temperature}", bed)
+        result = result:Replace("{machine_width}", Fixed(bedSizeX, 1))
+        result = result:Replace("{machine_depth}", Fixed(bedSizeY, 1))
+        // PrusaSlicer
+        result = result:Replace("[first_layer_temperature]", nozzle)
+        result = result:Replace("[temperature]", nozzle)
+        result = result:Replace("[first_layer_bed_temperature]", bed)
+        result = result:Replace("[bed_temperature]", bed)
+        return result
+    end
+
+    // Creates the start or end template if the file doesn't exist yet.
+    private action EnsureTemplate(text path, boolean isStart)
+        File file
+        file:SetPath(path)
+        if file:Exists()
+            return now
+        end
+
+        FileWriter template
+        template:OpenForWrite(file)
+        text which = "END"
+        text when = "AFTER the last layer"
+        text cura = "Machine Settings > End G-code"
+        text prusa = "Custom G-code > End G-code"
+        if isStart
+            which = "START"
+            when = "BEFORE the first layer"
+            cura = "Machine Settings > Start G-code"
+            prusa = "Custom G-code > Start G-code"
+        end
+        template:WriteLine("; ================================================================")
+        template:WriteLine("; " + which + " G-CODE for " + generatorName)
+        template:WriteLine("; Runs once, " + when + ".")
+        template:WriteLine(";")
+        template:WriteLine("; The code below is a GENERIC Marlin template (Ender-3 style, 220 x 220")
+        template:WriteLine("; bed). Replace it with your printer's own " + which + " G-code:")
+        template:WriteLine(";   1. Open your printer's profile in another slicer:")
+        template:WriteLine(";        Cura:        Preferences > Printers > " + cura)
+        template:WriteLine(";        PrusaSlicer: Printer Settings > " + prusa)
+        template:WriteLine(";   2. Copy everything in that box.")
+        template:WriteLine(";   3. Delete everything BELOW the 'PASTE BELOW' line in this file,")
+        template:WriteLine(";      paste your printer's code there, and save.")
+        template:WriteLine(";")
+        template:WriteLine("; Placeholders filled in when the G-code is written:")
+        template:WriteLine(";   {NOZZLE_TEMP} {BED_TEMP} {BED_X} {BED_Y} {PARK_Y} {LAYER_HEIGHT} {RETRACT}")
+        template:WriteLine("; The common Cura and PrusaSlicer temperature and bed-size placeholders")
+        template:WriteLine("; ({material_print_temperature}, [first_layer_bed_temperature], ...) work")
+        template:WriteLine("; too. The slicer warns about any placeholder it doesn't recognise.")
+        if isStart
+            template:WriteLine(";")
+            template:WriteLine("; After this block the slicer itself sets G90 (absolute XYZ) and M83")
+            template:WriteLine("; (relative extrusion), so pasted code may use either extrusion mode.")
+        end
+        template:WriteLine("; Lines starting with ; are comments; the printer ignores them.")
+        template:WriteLine("; ================================================================")
+        template:WriteLine("; ---------- PASTE BELOW THIS LINE ----------")
+        if isStart
+            template:WriteLine("M140 S{BED_TEMP} ;start heating the bed")
+            template:WriteLine("M104 S{NOZZLE_TEMP} ;start heating the nozzle")
+            template:WriteLine("G28 ;home all axes")
+            template:WriteLine("M190 S{BED_TEMP} ;wait for the bed")
+            template:WriteLine("M109 S{NOZZLE_TEMP} ;wait for the nozzle")
+            template:WriteLine("G90")
+            template:WriteLine("M83")
+            template:WriteLine("G1 Z2.0 F3000")
+            template:WriteLine("G1 X5 Y20 Z0.3 F5000")
+            template:WriteLine("G1 X5 Y120 E12 F1500 ;prime line")
+            template:WriteLine("G1 X5.4 Y120 F5000")
+            template:WriteLine("G1 X5.4 Y20 E12 F1500 ;prime line")
+            template:WriteLine("G1 Z2.0 F3000")
+        else
+            template:WriteLine("G91 ;relative positioning")
+            template:WriteLine("G1 Z10 F600 ;lift away from the print")
+            template:WriteLine("G90")
+            template:WriteLine("G1 X0 Y{PARK_Y} F6000 ;present the print")
+            template:WriteLine("M104 S0 ;nozzle heater off")
+            template:WriteLine("M140 S0 ;bed heater off")
+            template:WriteLine("M107 ;fan off")
+            template:WriteLine("M84 ;motors off")
+        end
+        template:Close()
+        warnings:Add("Created " + path + " with a generic Marlin template. Open it and paste your printer's own "
+            + which + " G-code below the 'PASTE BELOW' line before printing.")
+    end
+
+    private action ChangeLayer(integer layer)
+        Retract()
+        number z = cast(number, layer + 1) * layerHeight
+        if dryRun
+            z = z + dryRunLift
+        end
+        Line(";LAYER:" + layer)
+        if bambu and not dryRun
+            // what Bambu's own layer-change code reports
+            Line("; CHANGE_LAYER")
+            Line("; Z_HEIGHT: " + Fixed(z, 2))
+            Line("; LAYER_HEIGHT: " + Fixed(layerHeight, 2))
+            Line("M73 L" + (layer + 1))
+            Line("M991 S0 P" + layer + " ;notify layer change")
+            number done = TimeBefore(layer)
+            integer percent = cast(integer, 100.0 * done / utils:Max2(estimatedSeconds, 1.0))
+            Line("M73 P" + percent + " R" + MinutesLeft(estimatedSeconds - done))
+        end
+        if not dryRun
+            integer fan = FanFor(layer)
+            if fan not= lastFan
+                if fan = 0
+                    Line("M107 ;fan off")
+                else
+                    Line("M106 S" + fan + " ;fan " + (fan * 100 / 255) + "%")
+                end
+            end
+            lastFan = fan
+        end
+        // the next travel takes the nozzle to this height (up before
+        // moving sideways, down only after it has arrived)
+        layerZ = z
+        zPending = true
+    end
+
+    // Fan speed for a layer: 0 for the first fanOffLayers layers, then an
+    // even ramp that reaches fanMax on layer fanFullLayer.
+    private action FanFor(integer layer) returns integer
+        if layer < fanOffLayers
+            return 0
+        end
+        if layer >= fanFullLayer
+            return fanMax
+        end
+        number fraction = cast(number, layer - fanOffLayers + 1) / cast(number, fanFullLayer - fanOffLayers + 1)
+        return cast(integer, fraction * cast(number, fanMax) + 0.5)
+    end
+
+    private action WritePath(Contour path, integer layer)
+        integer n = path:GetSize()
+        if n < 2
+            return now
+        end
+
+        number speed = utils:Max2(SpeedFor(path, layer) * LayerFactor(layer), minPrintSpeed)
+        Line(";TYPE:" + roles:GetFeatureName(path:role))
+
+        // a new tine, or a switch between model and support, means crossing
+        // an air gap: always retract for it, however short the move
+        boolean infillToInfill = path:role = roles:INFILL and lastRole = roles:INFILL
+        boolean supportNow = roles:IsSupport(path:role)
+        boolean supportBefore = roles:IsSupport(lastRole)
+        boolean newPart = path:role = roles:SUPPORT_WALL or (lastRole >= 0 and supportNow not= supportBefore)
+        lastRole = path:role
+        TravelTo(path:HeadX() + offsetX, path:HeadY() + offsetY, newPart, infillToInfill)
+        Unretract()
+        SetAccel(AccelFor(path, layer))
+
+        number e = lineWidth * layerHeight / filamentArea * flow
+        if layer = 0
+            e = e * firstLayerFlow
+        end
+        integer segments = n - 1
+        if path:closed
+            segments = n
+        end
+        integer i = 0
+        repeat while i < segments
+            integer k = i + 1
+            if k = n
+                k = 0
+            end
+            number x = path:xs:Get(k) + offsetX
+            number y = path:ys:Get(k) + offsetY
+            number dx = x - posX
+            number dy = y - posY
+            number len = math:SquareRoot(dx * dx + dy * dy)
+            if len > 0.0001
+                number amount = len * e
+                text move = "G1 X" + Fixed(x, 3) + " Y" + Fixed(y, 3)
+                if not dryRun
+                    move = move + " E" + Fixed(amount, 5)
+                end
+                integer feed = Feed(speed)
+                if feed not= lastSpeed
+                    move = move + " F" + feed
+                    lastSpeed = feed
+                end
+                Line(move)
+                totalFilament = totalFilament + amount
+                totalSeconds = totalSeconds + len / speed
+                posX = x
+                posY = y
+            end
+            i = i + 1
+        end
+    end
+
+    // The speed for a path, capped by the hotend's melt limit.
+    private action SpeedFor(Contour path, integer layer) returns number
+        number speed = BaseSpeed(path, layer)
+        if maxFlow > 0
+            speed = utils:Min2(speed, maxFlow / (lineWidth * layerHeight * flow))
+        end
+        return speed
+    end
+
+    private action BaseSpeed(Contour path, integer layer) returns number
+        if layer = 0
+            return firstLayerSpeed
+        end
+        if path:role = roles:OUTER_WALL
+            return outerWallSpeed
+        elseif path:role = roles:INNER_WALL
+            return innerWallSpeed
+        elseif path:role = roles:SKIN
+            return skinSpeed
+        elseif path:role = roles:SKIRT
+            return firstLayerSpeed
+        elseif roles:IsSupport(path:role)
+            return supportSpeed
+        end
+        return infillSpeed
+    end
+
+    private action LayerFactor(integer layer) returns number
+        if layer < 0 or layer >= layerFactor:GetSize()
+            return 1.0
+        end
+        return layerFactor:Get(layer)
+    end
+
+    // Works out each layer's time: printing at normal speed plus everything
+    // else (travel, retracts, Z hops, the layer change). Layers under
+    // minLayerTime have their printing slowed (factor < 1) so the whole
+    // layer reaches it. Whatever the minPrintSpeed floor still leaves short
+    // becomes a cooling pause after the layer (see CoolDown).
+    private action PlanLayerSpeeds(Array<Contour> paths)
+        layerFactor:Empty()
+        layerDwell:Empty()
+        slowedLayers = 0
+        dwellLayers = 0
+        integer top = -1
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            if path:planeIndex > top
+                top = path:planeIndex
+            end
+            i = i + 1
+        end
+        // seconds spent extruding, and seconds spent on everything else
+        Array<number> seconds
+        Array<number> overhead
+        i = 0
+        repeat while i <= top
+            seconds:Add(0.0)
+            overhead:Add(0.0)
+            i = i + 1
+        end
+
+        // a retract and its unretract
+        number retractTime = 0.0
+        if retractLength > 0 and retractSpeed > 0
+            retractTime = 2.0 * retractLength / retractSpeed
+        end
+        number lastX = 0.0
+        number lastY = 0.0
+        boolean haveLast = false
+        integer lastPlane = -1
+        i = 0
+        repeat while i < paths:GetSize()
+            Contour path2 = paths:Get(i)
+            integer pl = path2:planeIndex
+            if pl >= 0 and path2:GetSize() >= 2
+                number t = seconds:Get(pl) + utils:PathLength(path2) / SpeedFor(path2, pl)
+                seconds:Set(pl, t)
+
+                number extra = 0.0
+                if pl not= lastPlane
+                    // layer change: always retracts, Z moves at 10 mm/s (F600)
+                    extra = extra + retractTime + layerHeight / 10.0
+                    lastPlane = pl
+                end
+                if haveLast
+                    number tdx = path2:HeadX() - lastX
+                    number tdy = path2:HeadY() - lastY
+                    number hop = math:SquareRoot(tdx * tdx + tdy * tdy)
+                    extra = extra + hop / travelSpeed
+                    if hop > minTravelForRetract
+                        extra = extra + retractTime
+                        if zHop > 0 and hop > zHopMinTravel
+                            extra = extra + 2.0 * zHop / 10.0
+                        end
+                    end
+                end
+                overhead:Set(pl, overhead:Get(pl) + extra)
+
+                // closed loops end where they started
+                if path2:closed
+                    lastX = path2:HeadX()
+                    lastY = path2:HeadY()
+                else
+                    lastX = path2:TailX()
+                    lastY = path2:TailY()
+                end
+                haveLast = true
+            end
+            i = i + 1
+        end
+
+        // slow-down factor: printing time stretched to fill what the
+        // overhead leaves of minLayerTime
+        i = 0
+        repeat while i <= top
+            number printing = seconds:Get(i)
+            number other = overhead:Get(i)
+            number factor = 1.0
+            if minLayerTime > 0 and printing > 0 and printing + other < minLayerTime
+                factor = printing / (minLayerTime - other)
+                slowedLayers = slowedLayers + 1
+            end
+            layerFactor:Add(factor)
+            i = i + 1
+        end
+
+        // what the layer really takes once the minPrintSpeed floor is applied
+        // (the same formula WritePath uses)
+        Array<number> actual
+        i = 0
+        repeat while i <= top
+            actual:Add(overhead:Get(i))
+            i = i + 1
+        end
+        i = 0
+        repeat while i < paths:GetSize()
+            Contour path3 = paths:Get(i)
+            integer pl3 = path3:planeIndex
+            if pl3 >= 0 and path3:GetSize() >= 2
+                number slowed = utils:Max2(SpeedFor(path3, pl3) * layerFactor:Get(pl3), minPrintSpeed)
+                actual:Set(pl3, actual:Get(pl3) + utils:PathLength(path3) / slowed)
+            end
+            i = i + 1
+        end
+
+        layerTime:Empty()
+        estimatedSeconds = 0.0
+        i = 0
+        repeat while i <= top
+            number layerSeconds = actual:Get(i)
+            number dwell = 0.0
+            // the last layer has nothing above it, so it never waits
+            if coolLift > 0 and minLayerTime > 0 and seconds:Get(i) > 0 and i < top
+                if minLayerTime - layerSeconds >= minDwell
+                    dwell = minLayerTime - layerSeconds
+                    dwellLayers = dwellLayers + 1
+                end
+            end
+            layerDwell:Add(dwell)
+            layerTime:Add(layerSeconds + dwell)
+            estimatedSeconds = estimatedSeconds + layerSeconds + dwell
+            i = i + 1
+        end
+    end
+
+    private action LayerDwell(integer layer) returns number
+        if layer < 0 or layer >= layerDwell:GetSize()
+            return 0.0
+        end
+        return layerDwell:Get(layer)
+    end
+
+    // Cooling pause after `layer` (planned in PlanLayerSpeeds): retract,
+    // lift, park beside the model so the hot nozzle isn't sitting over the
+    // tiny layer, and wait. The next layer's first travel brings the nozzle
+    // back and down (TravelTo already handles starting high).
+    private action CoolDown(integer layer)
+        if dryRun
+            return now
+        end
+        number dwell = LayerDwell(layer)
+        if dwell <= 0
+            return now
+        end
+        Retract()
+        number upZ = utils:Min2(posZ + coolLift, bedSizeZ)
+        if upZ > posZ
+            MoveZ(upZ)
+        end
+
+        // beside the model, never over it, and always on the bed
+        number parkX = modelMaxX + coolClear
+        if parkX > bedSizeX - 1.0
+            parkX = modelMinX - coolClear
+        end
+        parkX = utils:Max2(1.0, utils:Min2(parkX, bedSizeX - 1.0))
+        number away = utils:AbsNum(parkX - posX)
+        SetAccel(accelTravel)
+        integer feed = Feed(travelSpeed)
+        Line("G0 X" + Fixed(parkX, 3) + " Y" + Fixed(posY, 3) + " F" + feed)
+        lastSpeed = feed
+        totalSeconds = totalSeconds + away / travelSpeed
+        posX = parkX
+
+        // the trip out, the trip back and the lift all count as cooling time
+        number left = dwell - 2.0 * away / travelSpeed - 2.0 * coolLift / 10.0
+        if left > 0
+            Line("G4 P" + cast(integer, left * 1000.0 + 0.5) + " ;let layer " + layer + " cool")
+            totalSeconds = totalSeconds + left
+        end
+    end
+
+    // Estimated printing time of all layers below `layer`.
+    private action TimeBefore(integer layer) returns number
+        number total = 0.0
+        integer i = 0
+        repeat while i < layer
+            if i < layerTime:GetSize()
+                total = total + layerTime:Get(i)
+            end
+            i = i + 1
+        end
+        return total
+    end
+
+    // Whole minutes, rounded up, never negative.
+    private action MinutesLeft(number seconds) returns integer
+        if seconds <= 0
+            return 0
+        end
+        integer minutes = cast(integer, seconds / 60.0)
+        if cast(number, minutes) * 60.0 < seconds
+            minutes = minutes + 1
+        end
+        return minutes
+    end
+
+    // ------------------------------------------------------------ moves
+
+    // Moves to (x, y) without printing, ending at the layer height.
+    //   - long travels retract; travels longer than zHopMinTravel lift
+    //     by zHop if it's set;
+    //   - on a new layer the nozzle goes up BEFORE moving sideways, and
+    //     comes down only AFTER it has arrived, so it never travels low;
+    //   - the first move after the start code goes sideways at whatever
+    //     height the start code left the nozzle, then down.
+    private action TravelTo(number x, number y, boolean forceRetract, boolean insideInfill)
+        number dx = x - posX
+        number dy = y - posY
+        number len = math:SquareRoot(dx * dx + dy * dy)
+        boolean staysInside = insideInfill and len < infillTravelLimit
+        if len < 0.0001
+            if zPending
+                MoveZ(layerZ)
+            end
+            zPending = false
+            return now
+        end
+        boolean longTravel = len > minTravelForRetract or (forceRetract and len > lineWidth)
+        if staysInside
+            longTravel = false
+        end
+        if longTravel
+            Retract()
+        end
+
+        // height to travel at
+        number travelZ = layerZ
+        if zKnown
+            travelZ = utils:Max2(posZ, layerZ)
+            // hop only while retracted (unless SetZHopNeedsRetract(false)).
+            // A dry run never retracts, so there a long travel is enough.
+            boolean hopAllowed = retracted or not zHopNeedsRetract or (dryRun and longTravel)
+            if zHop > 0 and len > zHopMinTravel and not staysInside and hopAllowed
+                // the hop is measured from the layer, so a nozzle already
+                // parked higher (cooling pause) doesn't go up again
+                travelZ = utils:Max2(travelZ, layerZ + zHop)
+            end
+            if travelZ > posZ
+                MoveZ(travelZ)
+            end
+        end
+
+        SetAccel(accelTravel)
+        integer feed = Feed(travelSpeed)
+        Line("G0 X" + Fixed(x, 3) + " Y" + Fixed(y, 3) + " F" + feed)
+        lastSpeed = feed
+        totalSeconds = totalSeconds + len / travelSpeed
+        posX = x
+        posY = y
+
+        // arrived: down to the layer
+        if not zKnown or posZ not= layerZ
+            MoveZ(layerZ)
+        end
+        zPending = false
+    end
+
+    // Acceleration for a path (0 = don't change it).
+    private action AccelFor(Contour path, integer layer) returns number
+        if layer = 0
+            return accelFirstLayer
+        end
+        if path:role = roles:OUTER_WALL
+            return accelOuterWall
+        elseif path:role = roles:INNER_WALL
+            return accelInnerWall
+        elseif path:role = roles:SKIN
+            return accelSkin
+        elseif path:role = roles:SKIRT
+            return accelFirstLayer
+        elseif roles:IsSupport(path:role)
+            return accelSupport
+        end
+        return accelInfill
+    end
+
+    // Sends M204 only when the acceleration actually changes.
+    private action SetAccel(number accel)
+        if accel <= 0 or dryRun
+            return now
+        end
+        integer a = cast(integer, accel + 0.5)
+        if a not= lastAccel
+            Line("M204 S" + a)
+            lastAccel = a
+        end
+    end
+
+    private action MoveZ(number z)
+        Line("G1 Z" + Fixed(z, 3) + " F600")
+        lastSpeed = -1
+        posZ = z
+        zKnown = true
+    end
+
+    private action Retract
+        if dryRun
+            return now
+        end
+        if not retracted
+            // how many retracts happened within the last retractWindow mm of filament?
+            // (the history only grows, so count backwards until out of the window)
+            integer recent = 0
+            integer h = retractHistory:GetSize() - 1
+            boolean inWindow = true
+            repeat while h >= 0 and inWindow
+                if totalFilament - retractHistory:Get(h) < retractWindow
+                    recent = recent + 1
+                    h = h - 1
+                else
+                    inWindow = false
+                end
+            end
+            if recent >= maxRetracts
+                skippedRetracts = skippedRetracts + 1
+                return now
+            end
+            retractHistory:Add(totalFilament)
+            Line("G1 E-" + Fixed(retractLength, 3) + " F" + Feed(retractSpeed))
+            retracted = true
+            lastSpeed = -1
+        end
+    end
+
+    private action Unretract
+        if dryRun
+            return now
+        end
+        if retracted
+            Line("G1 E" + Fixed(retractLength, 3) + " F" + Feed(retractSpeed))
+            retracted = false
+            lastSpeed = -1
+        end
+    end
+
+    // ------------------------------------------------------------ setup
+
+    // Shifts everything so the model's footprint is centred on the bed.
+    private action CenterOnBed(Array<Contour> paths)
+        boolean any = false
+        number lowX = 0.0
+        number highX = 0.0
+        number lowY = 0.0
+        number highY = 0.0
+        integer i = 0
+        repeat while i < paths:GetSize()
+            Contour path = paths:Get(i)
+            integer j = 0
+            repeat while j < path:GetSize()
+                number x = path:xs:Get(j)
+                number y = path:ys:Get(j)
+                if not any
+                    lowX = x
+                    highX = x
+                    lowY = y
+                    highY = y
+                    any = true
+                end
+                lowX = utils:Min2(lowX, x)
+                highX = utils:Max2(highX, x)
+                lowY = utils:Min2(lowY, y)
+                highY = utils:Max2(highY, y)
+                j = j + 1
+            end
+            i = i + 1
+        end
+        offsetX = bedCenterX - (lowX + highX) / 2.0
+        offsetY = bedCenterY - (lowY + highY) / 2.0
+        modelMinX = lowX + offsetX
+        modelMaxX = highX + offsetX
+        if highX - lowX > bedSizeX - 10.0 or highY - lowY > bedSizeY - 10.0
+            warnings:Add("The print (" + Fixed(highX - lowX, 1) + " x " + Fixed(highY - lowY, 1)
+                + " mm) doesn't fit on the " + Fixed(bedSizeX, 0) + " x " + Fixed(bedSizeY, 0) + " mm bed with a 5 mm margin.")
+        end
+    end
+
+    // ------------------------------------------------------------ text
+
+    private action Line(text value)
+        writer:WriteLine(value)
+    end
+
+    // mm/s -> mm/min, the unit G-code F values use
+    private action Feed(number mmPerSecond) returns integer
+        return cast(integer, mmPerSecond * 60.0 + 0.5)
+    end
+
+    // Fixed-point text: no scientific notation, which firmware can't parse.
+    private action Fixed(number value, integer decimals) returns text
+        return format:Fixed(value, decimals)
+    end
+end

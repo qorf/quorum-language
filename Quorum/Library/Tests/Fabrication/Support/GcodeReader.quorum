@@ -1,0 +1,251 @@
+package Tests.Fabrication
+
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+use Libraries.System.File
+
+/*
+The GcodeReader class reads back a G-code file the way a printer would
+(absolute XYZ, relative E; moves after G91 are skipped until G90) and
+collects the facts the tests check: layers, the height of each layer, the
+extent of the printed lines, the filament pushed, the extrusion per
+millimetre of every printing move, and any number written in a form
+firmware can't parse.
+*/
+class GcodeReader
+    text source = ""
+    Array<text> lines
+    Array<number> layerZ          // the lowest Z between each ;LAYER: comment and the next (Z hops go up)
+    integer layerCount = 0
+    number minX = 0.0
+    number maxX = 0.0
+    number minY = 0.0
+    number maxY = 0.0
+    boolean anyMove = false
+    number extruded = 0.0
+    integer retracts = 0
+    integer printMoves = 0
+    integer badNumbers = 0
+    text firstBadLine = ""
+    // extrusion per mm of printing moves longer than 0.5 mm, from layer 1 up
+    number minRatio = 1000000.0
+    number maxRatio = 0.0
+    text digits = "0123456789"
+    Math math
+
+    action Read(text path)
+        File file
+        file:SetPath(path)
+        Parse(file:Read())
+    end
+
+    action Parse(text gcode)
+        // files written on Windows end their lines with CR LF
+        text lf = ""
+        lf = lf:GetLineFeed()
+        text cr = ""
+        cr = cr:GetCarriageReturn()
+        source = gcode:Replace(cr, "")
+        lines = source:Split(lf)
+        number x = 0.0
+        number y = 0.0
+        integer layer = -1
+        boolean relative = false
+        integer i = 0
+        repeat while i < lines:GetSize()
+            text line = lines:Get(i)
+            text trimmed = line:Trim()
+            if line:StartsWith(";LAYER:")
+                layer = layer + 1
+                layerCount = layerCount + 1
+                layerZ:Add(-1)
+            elseif trimmed:StartsWith("G91")
+                // relative moves (end G-code lifting the nozzle): not positions
+                relative = true
+            elseif trimmed:StartsWith("G90")
+                relative = false
+            elseif not relative and (line:StartsWith("G0 ") or line:StartsWith("G1 "))
+                text code = line
+                integer comment = line:IndexOf(";")
+                if comment >= 0
+                    code = line:GetSubtext(0, comment)
+                end
+                Array<text> words = code:Split(" ")
+                number nextX = x
+                number nextY = y
+                boolean hasXY = false
+                number e = 0.0
+                boolean hasE = false
+                integer w = 1
+                repeat while w < words:GetSize()
+                    text word = words:Get(w)
+                    if word:GetSize() > 1
+                        text letter = word:GetSubtext(0, 1)
+                        text value = word:GetSubtext(1)
+                        if not IsPlainNumber(value)
+                            badNumbers = badNumbers + 1
+                            if firstBadLine = ""
+                                firstBadLine = line
+                            end
+                        else
+                            number amount = value:ParseNumber()
+                            if letter = "X"
+                                nextX = amount
+                                hasXY = true
+                            elseif letter = "Y"
+                                nextY = amount
+                                hasXY = true
+                            elseif letter = "Z"
+                                if layer >= 0
+                                    number lowest = layerZ:Get(layer)
+                                    if lowest < 0 or amount < lowest
+                                        layerZ:Set(layer, amount)
+                                    end
+                                end
+                            elseif letter = "E"
+                                e = amount
+                                hasE = true
+                            end
+                        end
+                    end
+                    w = w + 1
+                end
+                if hasE and e < 0
+                    retracts = retracts + 1
+                end
+                if hasXY
+                    // bounds of what is printed on the layers: travels and
+                    // the start G-code's purge line don't count
+                    if hasE and e > 0 and layer >= 0
+                        if not anyMove
+                            minX = math:MinimumOf(x, nextX)
+                            maxX = math:MaximumOf(x, nextX)
+                            minY = math:MinimumOf(y, nextY)
+                            maxY = math:MaximumOf(y, nextY)
+                            anyMove = true
+                        end
+                        minX = math:MinimumOf(minX, math:MinimumOf(x, nextX))
+                        maxX = math:MaximumOf(maxX, math:MaximumOf(x, nextX))
+                        minY = math:MinimumOf(minY, math:MinimumOf(y, nextY))
+                        maxY = math:MaximumOf(maxY, math:MaximumOf(y, nextY))
+                    end
+                    if hasE and e > 0
+                        printMoves = printMoves + 1
+                        extruded = extruded + e
+                        number length = math:SquareRoot((nextX - x) * (nextX - x) + (nextY - y) * (nextY - y))
+                        if layer >= 1 and length > 0.5
+                            minRatio = math:MinimumOf(minRatio, e / length)
+                            maxRatio = math:MaximumOf(maxRatio, e / length)
+                        end
+                    end
+                    x = nextX
+                    y = nextY
+                end
+            end
+            i = i + 1
+        end
+    end
+
+    /* True for -12.345 and 7; false for 1.0E-4 or anything else firmware can't read. */
+    action IsPlainNumber(text value) returns boolean
+        if value = ""
+            return false
+        end
+        integer i = 0
+        if value:StartsWith("-")
+            i = 1
+        end
+        boolean digit = false
+        integer dots = 0
+        repeat while i < value:GetSize()
+            text c = value:GetSubtext(i, i + 1)
+            if c = "."
+                dots = dots + 1
+            elseif digits:Contains(c)
+                digit = true
+            else
+                return false
+            end
+            i = i + 1
+        end
+        return digit and dots <= 1
+    end
+
+    action GetText returns text
+        return source
+    end
+
+    action GetLines returns Array<text>
+        return lines
+    end
+
+    /* How many lines start with the prefix. */
+    action CountLinesStartingWith(text prefix) returns integer
+        integer count = 0
+        integer i = 0
+        repeat while i < lines:GetSize()
+            text line = lines:Get(i)
+            if line:StartsWith(prefix)
+                count = count + 1
+            end
+            i = i + 1
+        end
+        return count
+    end
+
+    action GetLayerCount returns integer
+        return layerCount
+    end
+
+    /* The nozzle height the layer was printed at (its lowest Z, so Z hops don't count); -1 if no Z was given on it. */
+    action GetLayerZ(integer layer) returns number
+        if layer < 0 or layer >= layerZ:GetSize()
+            return -1
+        end
+        return layerZ:Get(layer)
+    end
+
+    action GetMinX returns number
+        return minX
+    end
+
+    action GetMaxX returns number
+        return maxX
+    end
+
+    action GetMinY returns number
+        return minY
+    end
+
+    action GetMaxY returns number
+        return maxY
+    end
+
+    action GetExtruded returns number
+        return extruded
+    end
+
+    action GetRetractCount returns integer
+        return retracts
+    end
+
+    action GetPrintMoveCount returns integer
+        return printMoves
+    end
+
+    action GetBadNumberCount returns integer
+        return badNumbers
+    end
+
+    action GetFirstBadLine returns text
+        return firstBadLine
+    end
+
+    action GetMinRatio returns number
+        return minRatio
+    end
+
+    action GetMaxRatio returns number
+        return maxRatio
+    end
+end
