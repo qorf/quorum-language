@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,6 +56,10 @@ public class MacAccessibility {
 
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
+    // True once AccessKit asked for the update NativeUpdate offered.
+    private boolean updateSupplied = false;
+    // How many times one update builds the nodes marked while it was built.
+    private static final int MAX_BUILD_ROUNDS = 8;
 
     // The kit of the control whose tooltip shows, which names the
     // tooltip's node as describing it, or null.
@@ -387,43 +393,94 @@ public class MacAccessibility {
                 // Try again on the next frame.
                 return;
             }
+            updateSupplied = false;
             adapter.updateIfActive(new TreeUpdateSupplier() {
                 @Override
                 public TreeUpdate get() {
+                    updateSupplied = true;
                     if (needsFullTree) {
+                        // The whole tree covers every mark made so far. Marks
+                        // made while it is built (a control adding a child as
+                        // it is measured) stay for the next update, so a kit
+                        // its parent's node missed still reaches AccessKit.
+                        dirtyNodes.clear();
                         TreeUpdate update = BuildFullTree();
                         needsFullTree = false;
                         return update;
                     }
-                    try {
-                        TreeUpdate update = TreeUpdate.withFocus(target);
-                        sentFocus = target;
-                        for (NodeId id : dirtyNodes) {
-                            ItemKit kit = items.get(id);
-                            if (!IsAttached(kit)) {
-                                WarnDetached(kit);
-                                continue;
-                            }
-                            update.add(id, BuildNode(kit));
-                            for (NodeId child : kit.GetDirtyInternalChildren()) {
-                                update.add(child, Identify(child, kit.BuildInternalChild(child)));
-                            }
-                        }
-                        return update;
-                    } catch (RuntimeException error) {
-                        // Nothing of this update reaches AccessKit, but the
-                        // dirty marks are cleared below: send everything next time.
-                        needsFullTree = true;
-                        throw error;
-                    }
+                    return BuildDirtyNodes(target);
                 }
             });
-            for (NodeId id : dirtyNodes) {
-                ItemKit kit = items.get(id);
-                kit.ClearDirtyInternalChildren();
+            if (!updateSupplied) {
+                // VoiceOver isn't listening: its first look builds the whole tree.
+                for (NodeId id : dirtyNodes) {
+                    ItemKit kit = items.get(id);
+                    if (kit != null) {
+                        kit.ClearDirtyInternalChildren();
+                    }
+                }
+                dirtyNodes.clear();
             }
-            dirtyNodes.clear();
             isFocusDirty = false;
+        }
+    }
+
+    /*
+        An update with the nodes marked dirty. Building a node can mark more:
+        a control may add a child while it is measured, which marks the child
+        and its parent. The marks are taken before each round of building, so
+        the loop never sees the set change under it, and the new marks are
+        built in the same update: the new child, and its parent again, so the
+        parent's node lists it. A child sent without a parent that lists it
+        stops the app (accesskit_consumer: "neither in the current tree nor a
+        child of another node"). After MAX_BUILD_ROUNDS, what is left waits
+        for the next update.
+    */
+    private TreeUpdate BuildDirtyNodes(NodeId target) {
+        LinkedHashMap<NodeId, Node> built = new LinkedHashMap<NodeId, Node>();
+        try {
+            int rounds = 0;
+            while (!dirtyNodes.isEmpty() && rounds < MAX_BUILD_ROUNDS) {
+                ArrayList<NodeId> batch = new ArrayList<NodeId>(dirtyNodes);
+                dirtyNodes.clear();
+                for (NodeId id : batch) {
+                    ItemKit kit = items.get(id);
+                    if (kit == null) {
+                        continue;
+                    }
+                    if (!IsAttached(kit)) {
+                        WarnDetached(kit);
+                        continue;
+                    }
+                    PutBuilt(built, id, BuildNode(kit));
+                    for (NodeId child : kit.GetDirtyInternalChildren()) {
+                        PutBuilt(built, child, Identify(child, kit.BuildInternalChild(child)));
+                    }
+                    kit.ClearDirtyInternalChildren();
+                }
+                rounds = rounds + 1;
+            }
+            TreeUpdate update = TreeUpdate.withFocus(target);
+            sentFocus = target;
+            for (Map.Entry<NodeId, Node> entry : built.entrySet()) {
+                update.add(entry.getKey(), entry.getValue());
+            }
+            return update;
+        } catch (RuntimeException error) {
+            // Nothing of this update reaches AccessKit: send everything next time.
+            for (Node node : built.values()) {
+                node.drop();
+            }
+            needsFullTree = true;
+            throw error;
+        }
+    }
+
+    // Keeps the newest node built for an id, freeing one built before it.
+    private static void PutBuilt(LinkedHashMap<NodeId, Node> built, NodeId id, Node node) {
+        Node old = built.put(id, node);
+        if (old != null) {
+            old.drop();
         }
     }
 
