@@ -16,6 +16,9 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Selections.TextBoxSelection
@@ -82,6 +85,49 @@ class MacAccessibility is Accessibility
     private system action NativeTooltipShown(Tooltip tooltip)
 
     private system action NativeTooltipHidden(Tooltip tooltip)
+
+    /*
+        A combo box's list opened. Its node is built again on the next
+        update, so VoiceOver hears that it is expanded (ComboBoxKit).
+    */
+    action ComboBoxOpened(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A combo box's list closed. Its node is built again on the next
+        update, so VoiceOver hears that it is collapsed.
+    */
+    action ComboBoxClosed(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A color well's color changed. Its node is built again on the next
+        update, so VoiceOver gets the new color's words (ColorWellKit).
+    */
+    action ColorWellChanged(ColorWell well)
+        if well not= undefined
+            NameChanged(well)
+        end
+    end
+
+    /*
+        A calendar changed: its current day moved, its month changed or a day
+        was chosen. Its grid, rows and days are built again on the next
+        update, and the focus moves to the current day (CalendarKit).
+    */
+    action CalendarChanged(Calendar calendar)
+        if calendar not= undefined
+            NativeCalendarChanged(calendar)
+        end
+    end
+
+    private system action NativeCalendarChanged(Calendar calendar)
 
     system action ButtonActivated(Button button)
 

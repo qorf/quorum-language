@@ -1,0 +1,159 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.DateField
+
+/*
+    The DateFieldBehavior opens or closes a DateField's calendar: Alt and
+    Down open it, Alt and Up close it, Escape closes it (or, with it
+    closed, closes a tooltip as Escape usually does), and the field's
+    "Choose date" button opens or closes it. Which one is set with Setup,
+    using the constants here. Opened from the keyboard, the calendar gets
+    the focus; opened with the mouse, the focus stays where it is.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.DateFieldBehavior
+
+    DateFieldBehavior behavior
+    behavior:Setup(behavior:OPEN)
+*/
+class DateFieldBehavior is Behavior
+    public constant integer OPEN = 0
+    public constant integer CLOSE = 1
+    public constant integer TOGGLE = 2
+    public constant integer ESCAPE = 3
+
+    integer move = OPEN
+
+    /*
+        This action sets what the behavior does.
+
+        Attribute: Parameter newMove One of the constants, such as OPEN.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.DateFieldBehavior
+
+        DateFieldBehavior behavior
+        behavior:Setup(behavior:TOGGLE)
+    */
+    action Setup(integer newMove)
+        move = newMove
+    end
+
+    /*
+        This action returns what the behavior does, one of the constants.
+
+        Attribute: Returns What the behavior does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.DateFieldBehavior
+
+        DateFieldBehavior behavior
+        integer value = behavior:GetMove()
+    */
+    action GetMove returns integer
+        return move
+    end
+
+    /*
+        This action opens or closes the calendar of the date field the event's
+        item is in. The input tables and the field's button call it, so most
+        users won't need to.
+
+        Attribute: Parameter event The event, whose item is the field, its button or its calendar.
+    */
+    action Run(BehaviorEvent event)
+        DateField field = FindField(event)
+        if field = undefined
+            if move = ESCAPE
+                CloseTooltip(event)
+            end
+            return now
+        end
+
+        if move = OPEN
+            field:OpenCalendar(true)
+        elseif move = CLOSE
+            field:CloseCalendar()
+        elseif move = TOGGLE
+            // The button's press just closed the calendar: this activation,
+            // when the mouse is released, mustn't open it again.
+            if field:TakeIgnoreNextToggle()
+                return now
+            end
+            if field:IsCalendarOpen()
+                field:CloseCalendar()
+            else
+                field:OpenCalendar(IsFromKeyboard(event))
+            end
+        elseif move = ESCAPE
+            if field:IsCalendarOpen()
+                field:CloseCalendar()
+            else
+                CloseTooltip(event)
+            end
+        end
+    end
+
+    /*
+        Escape's usual work when the calendar is closed: closing a tooltip.
+    */
+    private action CloseTooltip(BehaviorEvent event)
+        TooltipKeyBehavior tooltipKey
+        tooltipKey:Setup(tooltipKey:CLOSE)
+        tooltipKey:Run(event)
+    end
+
+    /*
+        Whether the event came from the keyboard, not the mouse or a finger.
+    */
+    private action IsFromKeyboard(BehaviorEvent event) returns boolean
+        if event:GetMouseEvent() not= undefined
+            return false
+        end
+        if event:GetTouchEvent() not= undefined
+            return false
+        end
+        return true
+    end
+
+    /*
+        The date field the event's item is, is in, or whose calendar it is.
+    */
+    private action FindField(BehaviorEvent event) returns DateField
+        if not (event:GetItem() is Item2D)
+            return undefined
+        end
+        Item2D item = cast(Item2D, event:GetItem())
+        repeat while item not= undefined
+            if item is DateField
+                DateField field = cast(DateField, item)
+                return field
+            end
+            if item is Calendar
+                Calendar calendar = cast(Calendar, item)
+                if calendar:GetDateField() not= undefined
+                    return calendar:GetDateField()
+                end
+            end
+            item = item:GetParent()
+        end
+        return undefined
+    end
+
+    /*
+        This action returns true: the work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

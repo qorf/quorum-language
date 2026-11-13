@@ -1,0 +1,39 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Events.ColorWellChangedEvent
+
+/*
+    A ColorWellListener is told when the user changes a ColorWell's color.
+    Add one with the well's AddColorWellListener action, and override
+    ColorWellChanged. While the picker is open, the changes are not final;
+    OK sends one final change.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.ColorWellChangedEvent
+    use Libraries.Interface.Events.ColorWellListener
+
+    class FogColorListener is ColorWellListener
+        action ColorWellChanged(ColorWellChangedEvent event)
+            output "Fog color: " + event:GetColorWell():GetColorText()
+        end
+    end
+*/
+class ColorWellListener
+    /*
+        This action is called when the user changes a color well's color.
+
+        Attribute: Parameter event What changed, and whether the change is finished.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Interface.Events.ColorWellListener
+        ColorWellListener listener
+        ColorWellChangedEvent event
+        listener:ColorWellChanged(event)
+    */
+    action ColorWellChanged(ColorWellChangedEvent event)
+    end
+end

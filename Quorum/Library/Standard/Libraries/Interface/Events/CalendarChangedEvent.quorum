@@ -1,0 +1,131 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.Calendar
+use Libraries.System.CalendarDate
+
+/*
+    The CalendarChangedEvent says the user chose a day on a Calendar, with
+    the mouse, a key or a screen reader, or chose a date in a DateField. It
+    has the calendar, the date chosen before (undefined if there was none)
+    and the date chosen now. The two can be the same day, when the user
+    chooses the day that was already chosen. When the user empties a date
+    field, the new date is undefined.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.CalendarChangedEvent
+    use Libraries.Interface.Events.CalendarListener
+
+    class DueDateListener is CalendarListener
+        action CalendarChanged(CalendarChangedEvent event)
+            output "Due " + event:GetNewDate():ToSpokenText()
+        end
+    end
+*/
+class CalendarChangedEvent
+    Calendar calendar = undefined
+    CalendarDate oldDate = undefined
+    CalendarDate newDate = undefined
+
+    /*
+        This action returns the calendar a day was chosen on.
+
+        Attribute: Returns The calendar.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.Interface.Controls.Calendar
+
+        CalendarChangedEvent event
+        Calendar calendar = event:GetCalendar()
+    */
+    action GetCalendar returns Calendar
+        return calendar
+    end
+
+    /*
+        This action sets the calendar a day was chosen on.
+
+        Attribute: Parameter value The calendar.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        CalendarChangedEvent event
+        event:SetCalendar(calendar)
+    */
+    action SetCalendar(Calendar value)
+        calendar = value
+    end
+
+    /*
+        This action returns the date chosen before, or undefined if no date
+        was chosen.
+
+        Attribute: Returns The old date.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.System.CalendarDate
+
+        CalendarChangedEvent event
+        CalendarDate date = event:GetOldDate()
+    */
+    action GetOldDate returns CalendarDate
+        return oldDate
+    end
+
+    /*
+        This action sets the date chosen before, or undefined for none.
+
+        Attribute: Parameter date The old date.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        CalendarChangedEvent event
+        event:SetOldDate(date)
+    */
+    action SetOldDate(CalendarDate date)
+        oldDate = date
+    end
+
+    /*
+        This action returns the date chosen now.
+
+        Attribute: Returns The new date.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.System.CalendarDate
+
+        CalendarChangedEvent event
+        CalendarDate date = event:GetNewDate()
+    */
+    action GetNewDate returns CalendarDate
+        return newDate
+    end
+
+    /*
+        This action sets the date chosen now.
+
+        Attribute: Parameter date The new date.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        CalendarChangedEvent event
+        event:SetNewDate(date)
+    */
+    action SetNewDate(CalendarDate date)
+        newDate = date
+    end
+end

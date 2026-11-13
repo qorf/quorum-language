@@ -1,5 +1,10 @@
 package Libraries.Interface.Forms
 
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.DateField
+use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Button
@@ -1015,6 +1020,177 @@ class FormContainerControl is Control
         Add(field)
         return field
     end
+    /*
+        This action adds a combo box: a text field with a list of choices that
+        opens below it. Typing in the field narrows the list to the choices that
+        start with what was typed. The name is the combo box's name, which
+        screen readers read; a label before it on the page sits beside it, as
+        for a text field.
+
+        Attribute: Parameter name The combo box's name.
+        Attribute: Parameter items The choices, in order.
+        Attribute: Returns The combo box that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Containers.Array
+
+        Form form
+        Page page = form:GetMainPage()
+        Array<text> sizes
+        sizes:Add("Small")
+        sizes:Add("Medium")
+        sizes:Add("Large")
+        ComboBox size = page:AddComboBox("Size", sizes)
+        form:Display()
+    */
+    action AddComboBox(text name, Array<text> items) returns ComboBox
+        ComboBox box
+        box:SetName(name)
+        box:SetToDefaultFontSize()
+        box:SetTopPadding(3)
+        box:SetBottomPadding(3)
+        integer counter = 0
+        repeat while counter < items:GetSize()
+            box:Add(items:Get(counter))
+            counter = counter + 1
+        end
+        Add(box)
+        return box
+    end
+
+    /*
+        This action adds a combo box with no choices yet; add them with the combo
+        box's Add action.
+
+        Attribute: Parameter name The combo box's name.
+        Attribute: Returns The combo box that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ComboBox
+
+        Form form
+        Page page = form:GetMainPage()
+        ComboBox size = page:AddComboBox("Size")
+        size:Add("Small")
+        size:Add("Large")
+        form:Display()
+    */
+    action AddComboBox(text name) returns ComboBox
+        Array<text> none
+        return AddComboBox(name, none)
+    end
+
+    /*
+        This action adds a color well: a button showing a color, which opens a
+        color picker when pressed. Screen readers read its name, then the color
+        as its hex code and its nearest name, such as "#4A5A6E, dim gray".
+
+        Attribute: Parameter name The color well's name, such as "Fill color".
+        Attribute: Parameter color The color it starts with.
+        Attribute: Returns The color well that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Game.Graphics.Color
+
+        Form form
+        Page page = form:GetMainPage()
+        Color blue
+        blue:SetColor(0.29, 0.35, 0.43, 1)
+        ColorWell fill = page:AddColorWell("Fill color", blue)
+        form:Display()
+    */
+    action AddColorWell(text name, Color color) returns ColorWell
+        ColorWell well
+        well:SetName(name)
+        well:SetColor(color)
+        Add(well)
+        return well
+    end
+
+    /*
+        This action adds a color well that starts black.
+
+        Attribute: Parameter name The color well's name, such as "Fill color".
+        Attribute: Returns The color well that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ColorWell
+
+        Form form
+        Page page = form:GetMainPage()
+        ColorWell fill = page:AddColorWell("Fill color")
+        form:Display()
+    */
+    action AddColorWell(text name) returns ColorWell
+        Color black
+        black:SetColor(0, 0, 0, 1)
+        return AddColorWell(name, black)
+    end
+
+    /*
+        This action adds a calendar showing a month, to choose a date from. The
+        arrow keys move between days, Page Up and Page Down between months, and
+        Enter or Space chooses a day.
+
+        Attribute: Parameter name The calendar's name.
+        Attribute: Returns The calendar that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Calendar
+
+        Form form
+        Page page = form:GetMainPage()
+        Calendar calendar = page:AddCalendar("Appointment")
+        form:Display()
+    */
+    action AddCalendar(text name) returns Calendar
+        Calendar calendar
+        calendar:SetDescription(name)
+        Add(calendar)
+        return calendar
+    end
+
+    /*
+        This action adds a date field: a text field for a date, with a button that
+        opens a calendar to choose one. It shows dates as "November 12, 2026"
+        until the field is given another DateFormat. A label before it on the
+        page sits beside it, as for a text field.
+
+        Attribute: Parameter name The date field's name.
+        Attribute: Returns The date field that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.DateField
+
+        Form form
+        Page page = form:GetMainPage()
+        DateField birthday = page:AddDateField("Birthday")
+        form:Display()
+    */
+    action AddDateField(text name) returns DateField
+        DateField field
+        field:SetName(name)
+        field:SetToDefaultFontSize()
+        field:SetTopPadding(3)
+        field:SetBottomPadding(3)
+        Add(field)
+        return field
+    end
+
     /*
         This action removes a specified text field from the control.
 

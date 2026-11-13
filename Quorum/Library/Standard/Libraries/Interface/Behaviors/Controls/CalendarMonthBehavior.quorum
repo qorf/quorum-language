@@ -1,0 +1,86 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Calendar
+
+/*
+    The CalendarMonthBehavior is the activation of a Calendar's previous and
+    next month buttons: it moves the calendar's current day a number of
+    months, so the calendar shows the month before or after.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.CalendarMonthBehavior
+
+    CalendarMonthBehavior behavior
+    behavior:Setup(-1)
+*/
+class CalendarMonthBehavior is Behavior
+    integer months = 1
+
+    /*
+        This action sets how many months the button moves: -1 for the
+        previous month and 1 for the next.
+
+        Attribute: Parameter value The number of months.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.CalendarMonthBehavior
+
+        CalendarMonthBehavior behavior
+        behavior:Setup(1)
+    */
+    action Setup(integer value)
+        months = value
+    end
+
+    /*
+        This action returns how many months the button moves.
+
+        Attribute: Returns The number of months.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.CalendarMonthBehavior
+
+        CalendarMonthBehavior behavior
+        integer value = behavior:GetMonths()
+    */
+    action GetMonths returns integer
+        return months
+    end
+
+    /*
+        This action moves the calendar holding the button. The button calls
+        it when it is activated, so most users won't need to.
+
+        Attribute: Parameter event The activation event, whose item is the button.
+    */
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Item2D)
+            return now
+        end
+        Item2D item = cast(Item2D, event:GetItem())
+        Item2D container = item:GetParent()
+        repeat while container not= undefined
+            if container is Calendar
+                Calendar calendar = cast(Calendar, container)
+                calendar:MoveCurrentMonth(months)
+                return now
+            end
+            container = container:GetParent()
+        end
+    end
+
+    /*
+        This action returns true: the move is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

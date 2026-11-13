@@ -1,0 +1,667 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Events.SliderListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Game.Graphics.Gradient
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+    A SaturationBrightnessSquare chooses the saturation and brightness of a
+    color whose hue is set by a program, usually a HueRing around it. Across
+    the square, from left to right, the color goes from gray to the purest
+    color of the hue; from bottom to top it goes from black to full
+    brightness. A marker shows the chosen spot.
+
+    It takes the focus as one control. Left and Right change the saturation,
+    Up and Down the brightness, one percent at a time, or a tenth of a
+    percent with Shift. A click or a drag sets both from the place of the
+    pointer.
+
+    Inside, it holds two Sliders, "Saturation" and "Brightness", from 0 to
+    100 percent. They are see-through and not in the Tab order, but screen
+    readers can find and adjust each one, since no platform has a role for a
+    control with two values. Each says its value with the resulting color,
+    such as "20 percent, dim gray". The square itself is a group, and its
+    description says both values and the color, such as "Saturation 20
+    percent, brightness 43 percent, #4A5A6E, dim gray". Listeners added to
+    either slider (GetSaturationSlider, GetBrightnessSlider) are told of the
+    user's changes, whether they come from the keys, the pointer or a screen
+    reader.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.SaturationBrightnessSquare
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            SaturationBrightnessSquare square
+            square:SetHue(213)
+            square:SetSaturationAndBrightness(33, 43)
+            Add(square)
+        end
+    end
+*/
+class SaturationBrightnessSquare is Control, SliderListener
+    Slider saturationSlider
+    Slider brightnessSlider
+    // The slider last changed, which screen readers are pointed at.
+    Slider activeSlider = undefined
+    // The face goes from white at the left to the pure hue at the right.
+    // The shade over it goes from black at the bottom to see-through at the
+    // top. Together they show every saturation and brightness of the hue.
+    Control face
+    Control shade
+    // The edge, which shows the focus.
+    Control frame
+    Control marker
+
+    Math math
+    ColorNamer namer
+
+    number hue = 0
+    boolean loaded = false
+    boolean focused = false
+
+    // Sizes in pixels before the interface scale.
+    constant number SIZE = 120
+    constant number MARKER_SIZE = 14
+    constant number FOCUSED_MARKER_SIZE = 18
+    constant number ROUNDING = 4
+
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(SIZE)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(SIZE)
+        SetSize(SIZE, SIZE)
+        SetName("Saturation and brightness")
+
+        SetupLayer(face, "Face")
+        SetupLayer(shade, "Shade")
+        SetupLayer(frame, "Frame")
+
+        SetupSlider(saturationSlider, "Saturation")
+        SetupSlider(brightnessSlider, "Brightness")
+        saturationSlider:SetValue(100)
+        brightnessSlider:SetValue(100)
+        Add(saturationSlider)
+        Add(brightnessSlider)
+        activeSlider = saturationSlider
+
+        SetupPart(marker, "Saturation and Brightness Marker")
+        marker:SetPixelWidth(MARKER_SIZE)
+        marker:SetPixelHeight(MARKER_SIZE)
+        marker:SetPercentageOriginX(0.5)
+        marker:SetPercentageOriginY(0.5)
+        marker:SetCornerRounding(1, 1, 1, 1)
+        Add(marker)
+
+        SetInterfaceOptionsKey("Slider")
+        SetInputGroup("SaturationBrightnessSquare")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:GROUP)
+        UpdateWords()
+    end
+
+    /*
+        Readies a drawn part: placed by the layout, letting the mouse through
+        to the square, and not read by screen readers.
+    */
+    private action SetupPart(Control part, text name)
+        part:SetName(name)
+        part:SetAcceptsMouseInput(false)
+        part:SetFocusable(false)
+        part:SetAccessibilityCode(part:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetHorizontalLayoutMode(partProperties:STANDARD)
+        partProperties:SetVerticalLayoutMode(partProperties:STANDARD)
+        part:SetPercentageWidth(0)
+        part:SetPercentageHeight(0)
+    end
+
+    /*
+        Readies one of the layers that cover the whole square, and adds it.
+    */
+    private action SetupLayer(Control layer, text name)
+        SetupPart(layer, name)
+        layer:SetPercentageX(0)
+        layer:SetPercentageY(0)
+        layer:SetPercentageWidth(1)
+        layer:SetPercentageHeight(1)
+        layer:SetCornerPixelRounding(ROUNDING, ROUNDING, ROUNDING, ROUNDING)
+        Add(layer)
+    end
+
+    /*
+        Readies one of the two sliders: 0 to 100 percent, covering the whole
+        square, never drawn, and out of the Tab order and the mouse's way,
+        so only screen readers use it.
+    */
+    private action SetupSlider(Slider slider, text name)
+        slider:SetName(name)
+        slider:SetRange(0, 100)
+        // Ten percent an arrow key; Shift moves a tenth of a step, one
+        // percent, for fine control.
+        slider:SetStep(10)
+        slider:SetPageStep(25)
+        slider:SetUnits("percent")
+        slider:SetFocusable(false)
+        slider:SetAcceptsMouseInput(false)
+
+        LayoutProperties sliderProperties = slider:GetDefaultLayoutProperties()
+        sliderProperties:SetPercentageX(0)
+        sliderProperties:SetPercentageY(0)
+        sliderProperties:SetPercentageWidth(1)
+        sliderProperties:SetPixelWidth(0)
+        sliderProperties:SetPercentageHeight(1)
+        sliderProperties:SetPixelHeight(0)
+
+        // The slider's track and thumb are never drawn.
+        Array<Item2D> parts = slider:GetChildren()
+        integer i = 0
+        repeat while i < parts:GetSize()
+            parts:Get(i):Hide()
+            i = i + 1
+        end
+
+        slider:AddSliderListener(me)
+    end
+
+    /*
+        This action tells accessibility tools, such as screen readers, that the
+        square holds its two sliders, so each can be found and adjusted inside
+        it.
+
+        Attribute: Returns true, because the square contains its sliders for accessibility.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        boolean holds = square:IsAccessibleParent()
+    */
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    /*
+        This action returns the slider screen readers are pointed at while
+        the square has the focus: the one the keys, the pointer or a screen
+        reader last changed. Left and Right change the saturation, and Up and
+        Down the brightness; before any change, it is the saturation. Its
+        value says the percent and the color, such as "20 percent, dim gray".
+
+        Attribute: Returns The saturation or brightness slider.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Item
+        SaturationBrightnessSquare square
+        Item active = square:GetActiveDescendant()
+    */
+    action GetActiveDescendant returns Item
+        return activeSlider
+    end
+
+    /*
+        This action loads the views of the square's layers and its marker the
+        first time, then sets their colors. The square itself draws nothing,
+        so its own theme colors never cover the layers. The game engine calls this as
+        needed, so most users won't need to call it directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:LoadGraphics(square:GetDefaultLayoutProperties())
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        if not loaded
+            loaded = true
+            LoadPartView(face)
+            LoadPartView(shade)
+            LoadPartView(frame)
+            LoadPartView(marker)
+        end
+
+        UpdateLook()
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+        Gives a part a ControlShaderView, so it is drawn with rounded corners.
+    */
+    private action LoadPartView(Control part)
+        ControlShaderView view
+        view:Initialize()
+        part:SetView2D(view)
+    end
+
+    /*
+        Sets the colors of the square's layers and its marker, and places the
+        marker.
+    */
+    private action UpdateLook
+        Color white
+        white:SetColor(1, 1, 1, 1)
+        Color pure
+        pure:SetColor(1, 0, 0, 1)
+        pure:SetHSB(hue, 1, 1)
+        // From white at the left to the pure hue at the right.
+        Gradient across
+        across:Set(white, pure, white, pure)
+        face:SetBackgroundColor(across)
+
+        Color black
+        black:SetColor(0, 0, 0, 1)
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        // From black at the bottom to see-through at the top.
+        Gradient down
+        down:Set(black, black, clear, clear)
+        shade:SetBackgroundColor(down)
+
+        if focused
+            ColorGroup focusColor = GetFocusBorderColor()
+            if focusColor = undefined
+                focusColor = black
+            end
+            frame:SetBorderColor(focusColor)
+            frame:SetBorderThickness(2)
+        else
+            Color edge
+            edge:SetColor(0, 0, 0, 0.25)
+            frame:SetBorderColor(edge)
+            frame:SetBorderThickness(1)
+        end
+        frame:SetBackgroundColor(clear)
+
+        Color chosen = GetColor()
+        Color markerEdge
+        if chosen:IsBestContrastWhite()
+            markerEdge:SetColor(1, 1, 1, 1)
+        else
+            markerEdge:SetColor(0, 0, 0, 1)
+        end
+        marker:SetBackgroundColor(clear)
+        marker:SetBorderColor(markerEdge)
+        number size = MARKER_SIZE
+        if focused
+            size = FOCUSED_MARKER_SIZE
+            marker:SetBorderThickness(3)
+        else
+            marker:SetBorderThickness(2)
+        end
+        marker:SetPixelWidth(size)
+        marker:SetPixelHeight(size)
+        marker:SetPercentageX(saturationSlider:GetValue() / 100.0)
+        marker:SetPercentageY(brightnessSlider:GetValue() / 100.0)
+
+        if loaded
+            face:RequestVerticesUpdate()
+            shade:RequestVerticesUpdate()
+            frame:RequestVerticesUpdate()
+            marker:RequestVerticesUpdate()
+            marker:RequestLayout()
+            RequestLayout()
+        end
+    end
+
+    /*
+        Updates what screen readers hear: each slider's value is followed by
+        the resulting color's name, and the square's description gives both
+        values and the color.
+    */
+    private action UpdateWords
+        Color chosen = GetColor()
+        text name = namer:GetSpokenName(chosen)
+        saturationSlider:SetUnits("percent, " + name)
+        brightnessSlider:SetUnits("percent, " + name)
+        SetDescription("Saturation " + saturationSlider:GetNumberText() + " percent, brightness "
+            + brightnessSlider:GetNumberText() + " percent, " + namer:GetColorText(chosen))
+    end
+
+    /*
+        This action is called when either slider's value is changed by the
+        user, with a key, the pointer or a screen reader: the marker moves and
+        the words are updated.
+
+        Attribute: Parameter event The slider's change.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Events.SliderChangedEvent
+        SaturationBrightnessSquare square
+        SliderChangedEvent event
+        event:SetSlider(square:GetSaturationSlider())
+        square:SliderChanged(event)
+    */
+    action SliderChanged(SliderChangedEvent event)
+        Slider changed = event:GetSlider()
+        if changed not= undefined
+            if brightnessSlider:Equals(changed)
+                activeSlider = brightnessSlider
+            elseif saturationSlider:Equals(changed)
+                activeSlider = saturationSlider
+            end
+        end
+        UpdateLook()
+        UpdateWords()
+    end
+
+    /*
+        This action is called when the square gains the focus: its edge and
+        marker show the focus.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Events.FocusEvent
+        SaturationBrightnessSquare square
+        FocusEvent event
+        square:GainedFocus(event)
+    */
+    action GainedFocus(FocusEvent event)
+        focused = true
+        UpdateLook()
+        parent:Control:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the square loses the focus: its edge and
+        marker go back to their usual look.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Events.FocusEvent
+        SaturationBrightnessSquare square
+        FocusEvent event
+        square:LostFocus(event)
+    */
+    action LostFocus(FocusEvent event)
+        focused = false
+        UpdateLook()
+        parent:Control:LostFocus(event)
+    end
+
+    /*
+        This action returns the hue the square shows, in degrees.
+
+        Attribute: Returns The hue, from 0 to 360.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        number hue = square:GetHue()
+    */
+    action GetHue returns number
+        return hue
+    end
+
+    /*
+        This action sets the hue the square shows, in degrees, as a program
+        does: the colors and the words change, but listeners aren't told.
+
+        Attribute: Parameter newHue The hue, from 0 to 360.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:SetHue(120)
+    */
+    action SetHue(number newHue)
+        hue = newHue
+        UpdateLook()
+        UpdateWords()
+    end
+
+    /*
+        This action returns the saturation, in percent.
+
+        Attribute: Returns The saturation, from 0 to 100.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        number saturation = square:GetSaturation()
+    */
+    action GetSaturation returns number
+        return saturationSlider:GetValue()
+    end
+
+    /*
+        This action returns the brightness, in percent.
+
+        Attribute: Returns The brightness, from 0 to 100.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        number brightness = square:GetBrightness()
+    */
+    action GetBrightness returns number
+        return brightnessSlider:GetValue()
+    end
+
+    /*
+        This action sets the saturation and brightness, in percent, as a
+        program does: the marker and the words change, and screen readers are
+        told, but listeners aren't.
+
+        Attribute: Parameter saturation The saturation, from 0 to 100.
+        Attribute: Parameter brightness The brightness, from 0 to 100.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:SetSaturationAndBrightness(33, 43)
+    */
+    action SetSaturationAndBrightness(number saturation, number brightness)
+        saturationSlider:SetValue(saturation)
+        brightnessSlider:SetValue(brightness)
+        UpdateLook()
+        UpdateWords()
+    end
+
+    /*
+        This action returns the color at the chosen spot, from the hue, the
+        saturation and the brightness, fully opaque.
+
+        Attribute: Returns The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Game.Graphics.Color
+        SaturationBrightnessSquare square
+        Color color = square:GetColor()
+    */
+    action GetColor returns Color
+        Color result
+        result:SetColor(0, 0, 0, 1)
+        result:SetHSB(hue, saturationSlider:GetValue() / 100.0, brightnessSlider:GetValue() / 100.0)
+        return result
+    end
+
+    /*
+        This action returns the hidden slider for the saturation, which
+        screen readers adjust. Listeners added to it are told of every change
+        the user makes to the saturation.
+
+        Attribute: Returns The saturation slider.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Controls.Slider
+        SaturationBrightnessSquare square
+        Slider saturation = square:GetSaturationSlider()
+    */
+    action GetSaturationSlider returns Slider
+        return saturationSlider
+    end
+
+    /*
+        This action returns the hidden slider for the brightness, which
+        screen readers adjust. Listeners added to it are told of every change
+        the user makes to the brightness.
+
+        Attribute: Returns The brightness slider.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        use Libraries.Interface.Controls.Slider
+        SaturationBrightnessSquare square
+        Slider brightness = square:GetBrightnessSlider()
+    */
+    action GetBrightnessSlider returns Slider
+        return brightnessSlider
+    end
+
+    /*
+        This action raises the saturation, as Right does: one percent, or a
+        tenth of a percent when fine.
+
+        Attribute: Parameter fine True for a tenth of a step, as with Shift.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:IncreaseSaturation(false)
+    */
+    action IncreaseSaturation(boolean fine)
+        activeSlider = saturationSlider
+        if fine
+            saturationSlider:FineStepUp()
+        else
+            saturationSlider:StepUp()
+        end
+    end
+
+    /*
+        This action lowers the saturation, as Left does: one percent, or a
+        tenth of a percent when fine.
+
+        Attribute: Parameter fine True for a tenth of a step, as with Shift.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:DecreaseSaturation(false)
+    */
+    action DecreaseSaturation(boolean fine)
+        activeSlider = saturationSlider
+        if fine
+            saturationSlider:FineStepDown()
+        else
+            saturationSlider:StepDown()
+        end
+    end
+
+    /*
+        This action raises the brightness, as Up does: one percent, or a
+        tenth of a percent when fine.
+
+        Attribute: Parameter fine True for a tenth of a step, as with Shift.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:IncreaseBrightness(false)
+    */
+    action IncreaseBrightness(boolean fine)
+        activeSlider = brightnessSlider
+        if fine
+            brightnessSlider:FineStepUp()
+        else
+            brightnessSlider:StepUp()
+        end
+    end
+
+    /*
+        This action lowers the brightness, as Down does: one percent, or a
+        tenth of a percent when fine.
+
+        Attribute: Parameter fine True for a tenth of a step, as with Shift.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:DecreaseBrightness(false)
+    */
+    action DecreaseBrightness(boolean fine)
+        activeSlider = brightnessSlider
+        if fine
+            brightnessSlider:FineStepDown()
+        else
+            brightnessSlider:StepDown()
+        end
+    end
+
+    /*
+        This action sets the saturation and brightness from a place on the
+        screen, as a click or a drag does: the saturation from how far across
+        the square it is, and the brightness from how far up. The square
+        takes the focus, and listeners are told.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+        Attribute: Parameter y Where the pointer is, up the screen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        SaturationBrightnessSquare square
+        square:MovePointerTo(40, 60)
+    */
+    action MovePointerTo(number x, number y)
+        if not IsFocused()
+            Focus()
+        end
+        if GetWidth() <= 0 or GetHeight() <= 0
+            return now
+        end
+        number across = Share((x - GetGlobalX()) / GetWidth())
+        number up = Share((y - GetGlobalY()) / GetHeight())
+        saturationSlider:ChangeValue(math:Round(across * 100, 1), true)
+        brightnessSlider:ChangeValue(math:Round(up * 100, 1), true)
+    end
+
+    /*
+        Keeps a share between 0 and 1.
+    */
+    private action Share(number amount) returns number
+        if amount < 0
+            return 0
+        elseif amount > 1
+            return 1
+        end
+        return amount
+    end
+end

@@ -153,6 +153,17 @@ public:
 
 			case NavigateDirection_NextSibling:
 				destination = m_control->GetNextSibling();
+				if (destination == nullptr && m_control->GetParent() != nullptr)
+				{
+					// The parent may have parts that aren't Quorum items after
+					// its last child, such as a calendar's days.
+					auto after = m_control->GetParent()->GetFragmentAfterChildren();
+					if (after)
+					{
+						*retVal = after.detach();
+						return S_OK;
+					}
+				}
 				break;
 		}
 

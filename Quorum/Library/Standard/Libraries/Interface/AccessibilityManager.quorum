@@ -40,6 +40,9 @@ use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Controls.Slider
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
 
@@ -101,6 +104,14 @@ class AccessibilityManager is Accessibility
 
     private system action TooltipClosed(Tooltip tooltip)
 
+    private system action ComboBoxExpandChanged(ComboBox box, boolean open)
+
+    private system action ColorWellValueChanged(ColorWell well)
+
+    private system action CalendarUpdated(Calendar calendar)
+
+    private system action SetActivePart(Item focus, Item active)
+
     // =====
 
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
@@ -139,6 +150,35 @@ class AccessibilityManager is Accessibility
             
             lastFocused = focus
         end
+        UpdateActiveDescendant()
+    end
+
+    /*
+        This action indicates that the active part of the focused item changed,
+        such as the row a combo box highlights as the arrow keys move. UI
+        Automation's focus moves to the part, as a browser does for ARIA's
+        active descendant, so Narrator and NVDA read it, while the keyboard
+        focus stays on the item. When the active part is undefined, UI
+        Automation's focus goes back to the item itself.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's new active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.AccessibilityManager
+        use Libraries.Interface.Controls.ComboBox
+
+        AccessibilityManager accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantChanged(sizes, sizes:GetActiveDescendant())
+    */
+    action ActiveDescendantChanged(Item focus, Item active)
+        if focus not= undefined
+            SetActivePart(focus, active)
+        end
     end
 
     action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
@@ -174,6 +214,46 @@ class AccessibilityManager is Accessibility
     action TooltipHidden(Tooltip tooltip)
         if tooltip not= undefined
             TooltipClosed(tooltip)
+        end
+    end
+
+    /*
+        A combo box's list opened: UI Automation is told the combo box is
+        expanded, as for a native combo box.
+    */
+    action ComboBoxOpened(ComboBox box)
+        if box not= undefined
+            ComboBoxExpandChanged(box, true)
+        end
+    end
+
+    /*
+        A combo box's list closed: UI Automation is told the combo box is
+        collapsed.
+    */
+    action ComboBoxClosed(ComboBox box)
+        if box not= undefined
+            ComboBoxExpandChanged(box, false)
+        end
+    end
+
+    /*
+        A color well's color changed: UI Automation is told its new value,
+        the color in words.
+    */
+    action ColorWellChanged(ColorWell well)
+        if well not= undefined
+            ColorWellValueChanged(well)
+        end
+    end
+
+    /*
+        A calendar changed: UI Automation is told to read its days again, and
+        the focus follows the current day while the calendar has it.
+    */
+    action CalendarChanged(Calendar calendar)
+        if calendar not= undefined
+            CalendarUpdated(calendar)
         end
     end
 

@@ -25,6 +25,10 @@ import quorum.Libraries.Interface.Controls.MenuRoot_;
 import quorum.Libraries.Interface.Controls.ProgressBar_;
 import quorum.Libraries.Interface.Controls.Slider_;
 import quorum.Libraries.Interface.Controls.Tooltip_;
+import quorum.Libraries.Interface.Controls.ComboBox_;
+import quorum.Libraries.Interface.Controls.ColorWell_;
+import quorum.Libraries.Interface.Controls.Calendar_;
+import quorum.Libraries.System.CalendarDate_;
 import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
@@ -95,7 +99,10 @@ public class AccessibilityManager
 
         LABEL,
         SLIDER,
-        TOOLTIP
+        TOOLTIP,
+        COMBO_BOX,
+        COLOR_WELL,
+        CALENDAR
     }
             
     enum MenuChanges {
@@ -158,6 +165,9 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LABEL_(), AccessibilityCodes.LABEL);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__SLIDER_(), AccessibilityCodes.SLIDER);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLTIP_(), AccessibilityCodes.TOOLTIP);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__COMBO_BOX_(), AccessibilityCodes.COMBO_BOX);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__COLOR_WELL_(), AccessibilityCodes.COLOR_WELL);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CALENDAR_(), AccessibilityCodes.CALENDAR);
 
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -210,6 +220,9 @@ public class AccessibilityManager
     private native long CreateProgressBarNative(long parent, String name, String description, Item_ item);
     private native long CreateSliderNative(long parent, String name, String description, Item_ item);
     private native long CreateTooltipNative(long parent, String name, String description, boolean hasContent, Item_ item);
+    private native long CreateComboBoxNative(long parent, String name, String description, Item_ item);
+    private native long CreateColorWellNative(long parent, String name, String description, Item_ item);
+    private native long CreateCalendarNative(long parent, String name, String description, Item_ item);
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -237,6 +250,9 @@ public class AccessibilityManager
     private native boolean SliderValueChangedNative(long nativePointer, double value);
     private native boolean TooltipOpenedNative(long nativePointer);
     private native boolean TooltipClosedNative(long nativePointer);
+    private native boolean ComboBoxExpandCollapseNative(long nativePointer, boolean open);
+    private native boolean ColorWellChangedNative(long nativePointer);
+    private native boolean CalendarChangedNative(long nativePointer);
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
@@ -246,6 +262,7 @@ public class AccessibilityManager
     private native boolean TextFieldTextChangedNative(long nativePointer);
     private native boolean TextFieldPasswordPropertyChangedNative(long nativePointer, boolean isPassword);
     private native long SetFocusNative(long nativePointer);
+    private native boolean SetActivePartNative(long focusPointer, long partPointer);
     private native boolean SelectMenuItemNative(long selectedMenuItem);
     private native boolean SelectListItemNative(long selectedListItem);
     private native boolean DeselectMenuItemNative(long menubar);
@@ -390,6 +407,26 @@ public class AccessibilityManager
                     hasContent = true;
                 nativePointer = CreateTooltipNative(parentLong, item.GetName(), item.GetDescription(), hasContent, item);
             }
+                break;
+            case COMBO_BOX:
+            {
+                // A combo box is a text field whose list opens below it.
+                TextField_ comboField = (TextField_)item;
+                nativePointer = CreateComboBoxNative(parentLong, item.GetName(), GetHelpText(item), item);
+                if (nativePointer != 0 && comboField.IsEmpty() == false)
+                {
+                    // Push down the combo box's starting text.
+                    TextFieldTextChangedNative(nativePointer);
+                }
+                if (nativePointer != 0 && item instanceof ComboBox_ && ((ComboBox_) item).IsOpen())
+                    ComboBoxExpandCollapseNative(nativePointer, true);
+            }
+                break;
+            case COLOR_WELL:
+                nativePointer = CreateColorWellNative(parentLong, item.GetName(), GetHelpText(item), item);
+                break;
+            case CALENDAR:
+                nativePointer = CreateCalendarNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -639,6 +676,30 @@ public class AccessibilityManager
         }
     }
     
+    /*
+        The focused item's active part changed, such as a combo box's
+        highlighted row: UI Automation's focus moves to the part, while the
+        Quorum focus stays on the item. A part with no native item yet is
+        added first. With no part, the focus goes back to the item.
+    */
+    public void SetActivePart(Item_ focus, Item_ active)
+    {
+        Long focusPointer = ITEM_MAP.get(focus);
+        if (focusPointer == null)
+            return;
+
+        long partPointer = 0;
+        if (active != null && active != focus)
+        {
+            Long pointer = ITEM_MAP.get(active);
+            if (pointer == null && NativeAdd(active))
+                pointer = ITEM_MAP.get(active);
+            if (pointer != null)
+                partPointer = pointer;
+        }
+        SetActivePartNative(focusPointer, partPointer);
+    }
+    
     public boolean NativeMenuChanged(MenuChangeEvent_ event)
     {
         Item_ item = event.GetMenuItem();
@@ -832,6 +893,42 @@ public class AccessibilityManager
     }
 
     /*
+        A combo box's list opened or closed: UI Automation's expand collapse
+        state changes on it, as for a native combo box.
+    */
+    public void ComboBoxExpandChanged(ComboBox_ box, boolean open) {
+        Long nativePointer = ITEM_MAP.get((Item_) box);
+        if (nativePointer == null)
+            return;
+
+        ComboBoxExpandCollapseNative(nativePointer, open);
+    }
+
+    /*
+        A color well's color changed: UI Automation's value changes on it,
+        giving the new color in words.
+    */
+    public void ColorWellValueChanged(ColorWell_ well) {
+        Long nativePointer = ITEM_MAP.get((Item_) well);
+        if (nativePointer == null)
+            return;
+
+        ColorWellChangedNative(nativePointer);
+    }
+
+    /*
+        A calendar changed: its days are refreshed for UI Automation, and the
+        focus follows the current day while the calendar has it.
+    */
+    public void CalendarUpdated(Calendar_ calendar) {
+        Long nativePointer = ITEM_MAP.get((Item_) calendar);
+        if (nativePointer == null)
+            return;
+
+        CalendarChangedNative(nativePointer);
+    }
+
+    /*
         The words UI Automation gives as an item's help text. A control's
         tooltip words, when its tooltip is on, replace its description, as a
         native Windows control's tooltip is its help text.
@@ -899,6 +996,12 @@ public class AccessibilityManager
         {
             // Inform the native layer that the ToggleButton is being toggled,
             // unless it's otherwise handled by the system.
+            return false;
+        }
+        else if (button instanceof ColorWell_)
+        {
+            // A color well's element isn't a plain button's (ColorWellControl),
+            // and its value tells of its color instead.
             return false;
         }
         else
@@ -1413,6 +1516,112 @@ public class AccessibilityManager
         return bounds;
     }
     
+    /*
+        Facts about a Calendar's days for UI Automation (CalendarControl).
+        The native side names each day by its day number: days from January
+        1, 1970, as CalendarDate's GetDayNumber gives.
+    */
+    private static quorum.Libraries.System.CalendarDate CalendarDateFromDayNumber(int dayNumber) {
+        quorum.Libraries.System.CalendarDate date = new quorum.Libraries.System.CalendarDate();
+        date.SetDayNumber(dayNumber);
+        return date;
+    }
+
+    // The day number of the top left day of the grid.
+    public static int GetCalendarFirstShownDay(Object_ object) {
+        if (!(object instanceof Calendar_))
+            return 0;
+        CalendarDate_ date = ((Calendar_) object).GetShownDay(0, 0);
+        if (date == null)
+            return 0;
+        return date.GetDayNumber();
+    }
+
+    // The day number of the day the keys are on.
+    public static int GetCalendarCurrentDay(Object_ object) {
+        if (!(object instanceof Calendar_))
+            return 0;
+        CalendarDate_ date = ((Calendar_) object).GetCurrentDay();
+        if (date == null)
+            return 0;
+        return date.GetDayNumber();
+    }
+
+    // The day number of the chosen day, or the smallest integer when none is.
+    public static int GetCalendarChosenDay(Object_ object) {
+        if (!(object instanceof Calendar_))
+            return Integer.MIN_VALUE;
+        CalendarDate_ date = ((Calendar_) object).GetDate();
+        if (date == null)
+            return Integer.MIN_VALUE;
+        return date.GetDayNumber();
+    }
+
+    // What a screen reader says for a day.
+    public static String GetCalendarDayText(Object_ object, int dayNumber) {
+        if (!(object instanceof Calendar_))
+            return "";
+        // The date in words, and "today": not the calendar's own words for
+        // selected and unavailable, which UI Automation already gives through
+        // the day's selected and enabled states.
+        quorum.Libraries.System.CalendarDate_ date = CalendarDateFromDayNumber(dayNumber);
+        if (date == null)
+            return "";
+        String words = date.ToSpokenText();
+        if (words == null)
+            return "";
+        quorum.Libraries.System.CalendarDate today = new quorum.Libraries.System.CalendarDate();
+        today.SetToToday();
+        if (today.GetDayNumber() == dayNumber)
+            words = words + ", today";
+        return words;
+    }
+
+    // Whether a day can be chosen.
+    public static boolean IsCalendarDayAvailable(Object_ object, int dayNumber) {
+        if (!(object instanceof Calendar_))
+            return false;
+        return ((Calendar_) object).IsAvailable(CalendarDateFromDayNumber(dayNumber));
+    }
+
+    /*
+        The screen bounds (left, top, width, height) of a day's cell, or of a
+        weekday name for row -1. The calendar's parts are drawn, not items,
+        so their places come from the calendar's bounds and the sizes it is
+        laid out with (Calendar.quorum: 268 by 292 points, a padding of 8,
+        cells of 36 and the weekday row of 24, above the six rows of days).
+    */
+    public static double[] GetCalendarCellBounds(Object_ object, int row, int column) {
+        double[] calendarBounds = GetBoundingRectangle(object);
+        double[] bounds = new double[4];
+        double width = 268;
+        double height = 292;
+        double padding = 8;
+        double cell = 36;
+        double weekdayHeight = 24;
+        int rows = 6;
+
+        double scaleX = calendarBounds[2] / width;
+        double scaleY = calendarBounds[3] / height;
+
+        // Distances from the calendar's bottom, as Quorum places them.
+        double bottom;
+        double partHeight;
+        if (row < 0) {
+            bottom = padding + rows * cell;
+            partHeight = weekdayHeight;
+        } else {
+            bottom = padding + (rows - 1 - row) * cell;
+            partHeight = cell;
+        }
+
+        bounds[0] = calendarBounds[0] + (padding + column * cell) * scaleX;
+        bounds[1] = calendarBounds[1] + calendarBounds[3] - (bottom + partHeight) * scaleY;
+        bounds[2] = cell * scaleX;
+        bounds[3] = partHeight * scaleY;
+        return bounds;
+    }
+
     public static double[] GetTextBoundingRectangle(Object_ object, int startIndex, int endIndex)
     {
         // The order of values in the bounding box is left, top, width, height.

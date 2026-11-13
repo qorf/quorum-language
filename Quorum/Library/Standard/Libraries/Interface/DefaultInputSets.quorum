@@ -3074,6 +3074,33 @@ connectorTable:Add(startDrag, dragBehavior)
     end
 
     /*
+        Adds the keys and mouse input of combo boxes (the "ComboBox" input group),
+        built by ComboBoxInputSetup.
+    */
+    action SetupComboBoxInput(GameInput gameInput)
+        ComboBoxInputSetup setup
+        setup:Setup(gameInput)
+    end
+
+    /*
+        Adds the input of the color picker's hue ring and saturation and
+        brightness square, built by ColorPickerInputSetup.
+    */
+    action SetupColorPickerInput(GameInput gameInput)
+        ColorPickerInputSetup setup
+        setup:Setup(gameInput)
+    end
+
+    /*
+        Adds the keys and mouse input of calendars (the "Calendar" input group),
+        built by CalendarInputSetup.
+    */
+    action SetupCalendarInput(GameInput gameInput)
+        CalendarInputSetup setup
+        setup:Setup(gameInput)
+    end
+
+    /*
         Adds one of the tooltip keys, with or without Shift.
     */
     private action AddTooltipKey(InputTable table, integer key, boolean shift, integer move)

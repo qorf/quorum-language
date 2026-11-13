@@ -1,0 +1,157 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Game.GameInput
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.MouseEvent
+
+/*
+    The CalendarInputSetup builds the input tables of calendars and date
+    fields, following the date picker of the WAI-ARIA Authoring Practices:
+
+    "Calendar": Left and Right move the current day a day, Up and Down a
+    week, Home and End to the first and last day of the week, Page Up and
+    Page Down a month, and Shift with Page Up and Page Down a year. Enter,
+    the number pad's Enter and Space choose the current day. A click or
+    touch on a day chooses it, or moves to another month's day. The mouse
+    moving onto and off the calendar marks and clears the day under it.
+
+    "DateFieldCalendar": the same, for the calendar a DateField opens, plus
+    Escape to close it.
+
+    "DateField": the keys of a text field, plus Alt and Down to open the
+    calendar, Alt and Up to close it, and Escape to close it.
+
+    The game builds these tables when it starts, through
+    DefaultInputSets:SetupCalendarInput, after the text field's table, which
+    the date field's table copies.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.CalendarInputSetup
+
+    // The game calls Setup with its input when it starts.
+    CalendarInputSetup setup
+*/
+class CalendarInputSetup
+    KeyboardEvent keys
+    MouseEvent mouse
+
+    /*
+        This action adds the "Calendar", "DateFieldCalendar" and "DateField"
+        input tables to the game's input.
+
+        Attribute: Parameter gameInput The game's input, which gets the tables.
+
+        Attribute: Example
+        use Libraries.Game.GameInput
+        use Libraries.Interface.Behaviors.Controls.CalendarInputSetup
+
+        action AddCalendarTables(GameInput gameInput)
+            CalendarInputSetup setup
+            setup:Setup(gameInput)
+        end
+    */
+    action Setup(GameInput gameInput)
+        InputTable calendarTable
+        calendarTable:SetIdentifier("Calendar")
+        AddCalendarInput(calendarTable)
+        gameInput:AddInputTable(calendarTable)
+
+        InputTable popupTable
+        popupTable:SetIdentifier("DateFieldCalendar")
+        AddCalendarInput(popupTable)
+        CalendarKeyBehavior temp
+        AddCalendarKey(popupTable, keys:ESCAPE, false, temp:CLOSE)
+        gameInput:AddInputTable(popupTable)
+
+        InputTable fieldTable = undefined
+        InputTable textFieldTable = gameInput:GetInputTable("TextField")
+        if textFieldTable not= undefined
+            fieldTable = textFieldTable:Copy()
+        else
+            InputTable emptyTable
+            fieldTable = emptyTable
+        end
+        fieldTable:SetIdentifier("DateField")
+        DateFieldBehavior fieldTemp
+        AddFieldKey(fieldTable, keys:DOWN, true, fieldTemp:OPEN)
+        AddFieldKey(fieldTable, keys:UP, true, fieldTemp:CLOSE)
+        AddFieldKey(fieldTable, keys:ESCAPE, false, fieldTemp:ESCAPE)
+        gameInput:AddInputTable(fieldTable)
+    end
+
+    /*
+        Adds a calendar's keys, clicks and touches to a table.
+    */
+    private action AddCalendarInput(InputTable table)
+        CalendarKeyBehavior temp
+        AddCalendarKey(table, keys:RIGHT, false, temp:NEXT_DAY)
+        AddCalendarKey(table, keys:LEFT, false, temp:PREVIOUS_DAY)
+        AddCalendarKey(table, keys:DOWN, false, temp:NEXT_WEEK)
+        AddCalendarKey(table, keys:UP, false, temp:PREVIOUS_WEEK)
+        AddCalendarKey(table, keys:HOME, false, temp:WEEK_START)
+        AddCalendarKey(table, keys:END, false, temp:WEEK_END)
+        AddCalendarKey(table, keys:PAGE_DOWN, false, temp:NEXT_MONTH)
+        AddCalendarKey(table, keys:PAGE_UP, false, temp:PREVIOUS_MONTH)
+        AddCalendarKey(table, keys:PAGE_DOWN, true, temp:NEXT_YEAR)
+        AddCalendarKey(table, keys:PAGE_UP, true, temp:PREVIOUS_YEAR)
+        AddCalendarKey(table, keys:ENTER, false, temp:CHOOSE)
+        AddCalendarKey(table, keys:NUMPAD_ENTER, false, temp:CHOOSE)
+        AddCalendarKey(table, keys:SPACE, false, temp:CHOOSE)
+
+        CalendarPointerBehavior pointerBehavior
+        InputSet clickSet
+        clickSet:SetMouseInput(mouse:LEFT)
+        table:Add(clickSet, pointerBehavior)
+
+        InputSet touchSet
+        touchSet:SetInputType(touchSet:TOUCH_INPUT)
+        table:Add(touchSet, pointerBehavior)
+
+        // The mouse moving on and off the calendar: off clears the mark on
+        // the day that was under it.
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        table:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        table:Add(mouseOff, mouseOffBehavior)
+    end
+
+    /*
+        Adds one of a calendar's keys, with or without Shift.
+    */
+    private action AddCalendarKey(InputTable table, integer key, boolean shift, integer move)
+        InputSet set
+        set:SetKeyboardInput(key)
+        if shift
+            set:AddModifier(set:SHIFT)
+        end
+        CalendarKeyBehavior behavior
+        behavior:Setup(move)
+        table:Add(set, behavior)
+    end
+
+    /*
+        Adds one of a date field's keys, with or without Alt.
+    */
+    private action AddFieldKey(InputTable table, integer key, boolean alt, integer move)
+        InputSet set
+        set:SetKeyboardInput(key)
+        if alt
+            set:AddModifier(set:ALT)
+        end
+        DateFieldBehavior behavior
+        behavior:Setup(move)
+        table:Add(set, behavior)
+    end
+end

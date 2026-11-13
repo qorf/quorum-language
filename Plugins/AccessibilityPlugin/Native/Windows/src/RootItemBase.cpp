@@ -14,7 +14,23 @@ Item* RootItemBase::GetQuorumFocus() const noexcept
 
 void RootItemBase::SetQuorumFocus(_In_ Item* item) noexcept
 {
+	// An active part belongs to the item that had the focus, so a new focus
+	// starts without one.
+	if (item != m_quorumFocus)
+	{
+		m_activePart = nullptr;
+	}
 	m_quorumFocus = item;
+}
+
+Item* RootItemBase::GetActivePart() const noexcept
+{
+	return m_activePart;
+}
+
+void RootItemBase::SetActivePart(_In_opt_ Item* part) noexcept
+{
+	m_activePart = part;
 }
 
 Item* RootItemBase::GetUiaFocus() const noexcept
@@ -27,6 +43,11 @@ Item* RootItemBase::GetUiaFocus() const noexcept
 	if (!m_quorumFocus)
 	{
 		return const_cast<RootItemBase*>(this);
+	}
+
+	if (m_activePart)
+	{
+		return m_activePart;
 	}
 
 	const auto descendant = m_quorumFocus->GetUiaFocusDescendant();

@@ -60,6 +60,15 @@ struct JClass_AccessibilityManager
 
 	// Used when navigating by word to return new lines as needed.
 	jmethodID IsIndexAtEndOfLine;
+
+	// Used for a Calendar's days (CalendarControl), each named by its day
+	// number: days from January 1, 1970.
+	jmethodID GetCalendarFirstShownDay;
+	jmethodID GetCalendarCurrentDay;
+	jmethodID GetCalendarChosenDay;
+	jmethodID GetCalendarDayText;
+	jmethodID IsCalendarDayAvailable;
+	jmethodID GetCalendarCellBounds;
 };
 struct JClass_TextBox
 {
@@ -178,6 +187,29 @@ struct JClass_Slider
 	jmethodID GetValueText;
 	jmethodID ChangeValue;
 };
+// A Quorum ComboBox (ComboBoxControl). Its text is read through JClass_TextField.
+struct JClass_ComboBox
+{
+	jclass me;
+	jmethodID IsOpen;
+	jmethodID Open;
+	jmethodID Close;
+	jmethodID SetText;
+};
+// A Quorum ColorWell (ColorWellControl). It is activated through JClass_Button.
+struct JClass_ColorWell
+{
+	jclass me;
+	jmethodID GetColorText;
+};
+// A Quorum Calendar (CalendarControl).
+struct JClass_Calendar
+{
+	jclass me;
+	jmethodID GetWeekdayName;
+	jmethodID MoveCurrentDay;
+	jmethodID ChooseCurrentDay;
+};
 
 extern JClass_AccessibilityManager JavaClass_AccessibilityManager;
 extern JClass_TextBox JavaClass_TextBox;
@@ -197,3 +229,6 @@ extern JClass_ListItem JavaClass_ListItem;
 extern JClass_ProgressBar JavaClass_ProgressBar;
 extern JClass_MenuItem JavaClass_MenuItem;
 extern JClass_Slider JavaClass_Slider;
+extern JClass_ComboBox JavaClass_ComboBox;
+extern JClass_ColorWell JavaClass_ColorWell;
+extern JClass_Calendar JavaClass_Calendar;

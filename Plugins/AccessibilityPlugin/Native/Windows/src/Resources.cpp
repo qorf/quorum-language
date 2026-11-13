@@ -38,6 +38,19 @@ JClass_ProgressBar JavaClass_ProgressBar;
 JClass_Item JavaClass_Item;
 JClass_MenuItem JavaClass_MenuItem;
 JClass_Slider JavaClass_Slider;
+JClass_ComboBox JavaClass_ComboBox;
+JClass_ColorWell JavaClass_ColorWell;
+JClass_Calendar JavaClass_Calendar;
+
+// Clears the exception a failed lookup leaves, so a class or method missing
+// from an older Quorum library doesn't break the lookups after it.
+static void ClearLookupException(JNIEnv* env)
+{
+	if (env->ExceptionCheck())
+	{
+		env->ExceptionClear();
+	}
+}
 
 int outputCounter = 0;
 
@@ -96,6 +109,18 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.GetTableColumnsSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableColumnsSize", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetTableRowsSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableRowsSize", "(Lquorum/Libraries/Language/Object_;)I");
 	JavaClass_AccessibilityManager.GetTableItem = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTableItem", "(Lquorum/Libraries/Language/Object_;II)J");
+	JavaClass_AccessibilityManager.GetCalendarFirstShownDay = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarFirstShownDay", "(Lquorum/Libraries/Language/Object_;)I");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetCalendarCurrentDay = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarCurrentDay", "(Lquorum/Libraries/Language/Object_;)I");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetCalendarChosenDay = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarChosenDay", "(Lquorum/Libraries/Language/Object_;)I");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetCalendarDayText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarDayText", "(Lquorum/Libraries/Language/Object_;I)Ljava/lang/String;");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.IsCalendarDayAvailable = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsCalendarDayAvailable", "(Lquorum/Libraries/Language/Object_;I)Z");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetCalendarCellBounds = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarCellBounds", "(Lquorum/Libraries/Language/Object_;II)[D");
+	ClearLookupException(env);
 
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
@@ -332,6 +357,65 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_Slider.GetValueText = env->GetMethodID(JavaClass_Slider.me, "GetValueText", "()Ljava/lang/String;");
 	JavaClass_Slider.ChangeValue = env->GetMethodID(JavaClass_Slider.me, "ChangeValue", "(DZ)V");
 	env->DeleteLocalRef(tempLocalClassRef);
+#pragma endregion
+
+	/********
+	* ComboBox
+	********/
+#pragma region ComboBox
+	JavaClass_ComboBox = {};
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/ComboBox_");
+	ClearLookupException(env);
+	if (tempLocalClassRef != NULL)
+	{
+		JavaClass_ComboBox.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+		JavaClass_ComboBox.IsOpen = env->GetMethodID(JavaClass_ComboBox.me, "IsOpen", "()Z");
+		ClearLookupException(env);
+		JavaClass_ComboBox.Open = env->GetMethodID(JavaClass_ComboBox.me, "Open", "()V");
+		ClearLookupException(env);
+		JavaClass_ComboBox.Close = env->GetMethodID(JavaClass_ComboBox.me, "Close", "()V");
+		ClearLookupException(env);
+		// SetText is the text field's, so it is looked up there.
+		JavaClass_ComboBox.SetText = env->GetMethodID(JavaClass_TextField.me, "SetText", "(Ljava/lang/String;)V");
+		ClearLookupException(env);
+		env->DeleteLocalRef(tempLocalClassRef);
+	}
+#pragma endregion
+
+	/********
+	* ColorWell
+	********/
+#pragma region ColorWell
+	JavaClass_ColorWell = {};
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/ColorWell_");
+	ClearLookupException(env);
+	if (tempLocalClassRef != NULL)
+	{
+		JavaClass_ColorWell.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+		JavaClass_ColorWell.GetColorText = env->GetMethodID(JavaClass_ColorWell.me, "GetColorText", "()Ljava/lang/String;");
+		ClearLookupException(env);
+		env->DeleteLocalRef(tempLocalClassRef);
+	}
+#pragma endregion
+
+	/********
+	* Calendar
+	********/
+#pragma region Calendar
+	JavaClass_Calendar = {};
+	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Calendar_");
+	ClearLookupException(env);
+	if (tempLocalClassRef != NULL)
+	{
+		JavaClass_Calendar.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
+		JavaClass_Calendar.GetWeekdayName = env->GetMethodID(JavaClass_Calendar.me, "GetWeekdayName", "(I)Ljava/lang/String;");
+		ClearLookupException(env);
+		JavaClass_Calendar.MoveCurrentDay = env->GetMethodID(JavaClass_Calendar.me, "MoveCurrentDay", "(I)V");
+		ClearLookupException(env);
+		JavaClass_Calendar.ChooseCurrentDay = env->GetMethodID(JavaClass_Calendar.me, "ChooseCurrentDay", "()V");
+		ClearLookupException(env);
+		env->DeleteLocalRef(tempLocalClassRef);
+	}
 #pragma endregion
 
 	/*********

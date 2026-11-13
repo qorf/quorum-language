@@ -2018,4 +2018,177 @@ action CalculatePerceptualLuminance(Color color) returns number
         return result
     end
 
+
+    /*
+        This action returns the hue of this color, in degrees from 0 up to (but
+        not including) 360: 0 is red, 120 green and 240 blue. A gray, which
+        has no hue, returns 0. Hue, saturation and brightness (HSB, also
+        called HSV) describe a color the way a color wheel does.
+
+        Attribute: Returns The hue, from 0 to less than 360.
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+
+        Color color
+        color:SetColor(0, 0, 1, 1)
+        output color:GetHue() // 240
+    */
+    action GetHue returns number
+        number largest = GetLargestComponent()
+        number smallest = GetSmallestComponent()
+        number difference = largest - smallest
+        if difference <= 0
+            return 0
+        end
+
+        number hue = 0
+        if largest = red
+            hue = 60.0 * ((green - blue) / difference)
+        elseif largest = green
+            hue = 60.0 * ((blue - red) / difference + 2)
+        else
+            hue = 60.0 * ((red - green) / difference + 4)
+        end
+
+        if hue < 0
+            hue = hue + 360
+        end
+        if hue >= 360
+            hue = hue - 360
+        end
+        return hue
+    end
+
+    /*
+        This action returns the saturation of this color, from 0 (a gray) to
+        1 (the purest color at its brightness), as in hue, saturation and
+        brightness (HSB).
+
+        Attribute: Returns The saturation, from 0 to 1.
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+
+        Color color
+        color:SetColor(1, 0.5, 0.5, 1)
+        output color:GetSaturation() // 0.5
+    */
+    action GetSaturation returns number
+        number largest = GetLargestComponent()
+        if largest <= 0
+            return 0
+        end
+        return (largest - GetSmallestComponent()) / largest
+    end
+
+    /*
+        This action returns the brightness of this color, from 0 (black) to 1,
+        as in hue, saturation and brightness (HSB): the largest of the red,
+        green and blue components.
+
+        Attribute: Returns The brightness, from 0 to 1.
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+
+        Color color
+        color:SetColor(0.2, 0.4, 0.6, 1)
+        output color:GetBrightness() // 0.6
+    */
+    action GetBrightness returns number
+        return GetLargestComponent()
+    end
+
+    /*
+        This action sets this color from a hue, saturation and brightness
+        (HSB, also called HSV). The alpha component is kept. A hue outside 0
+        to 360 is wrapped around the circle, and the saturation and brightness
+        are kept between 0 and 1.
+
+        Attribute: Parameter hue The hue in degrees: 0 is red, 120 green and 240 blue.
+
+        Attribute: Parameter saturation The saturation, from 0 (a gray) to 1.
+
+        Attribute: Parameter brightness The brightness, from 0 (black) to 1.
+
+        Attribute: Example
+        use Libraries.Game.Graphics.Color
+
+        Color color
+        color:SetHSB(213, 0.33, 0.43)
+        output color:GetHexColorWithoutAlpha()
+    */
+    action SetHSB(number hue, number saturation, number brightness)
+        number h = hue
+        repeat while h < 0
+            h = h + 360
+        end
+        repeat while h >= 360
+            h = h - 360
+        end
+
+        number s = saturation
+        if s < 0
+            s = 0
+        elseif s > 1
+            s = 1
+        end
+
+        number v = brightness
+        if v < 0
+            v = 0
+        elseif v > 1
+            v = 1
+        end
+
+        number position = h / 60.0
+        integer sector = cast(integer, position)
+        number fraction = position - sector
+        number low = v * (1 - s)
+        number falling = v * (1 - s * fraction)
+        number rising = v * (1 - s * (1 - fraction))
+
+        if sector = 0
+            SetColor(v, rising, low, alpha)
+        elseif sector = 1
+            SetColor(falling, v, low, alpha)
+        elseif sector = 2
+            SetColor(low, v, rising, alpha)
+        elseif sector = 3
+            SetColor(low, falling, v, alpha)
+        elseif sector = 4
+            SetColor(rising, low, v, alpha)
+        else
+            SetColor(v, low, falling, alpha)
+        end
+    end
+
+    /*
+        The largest of the red, green and blue components.
+    */
+    private action GetLargestComponent returns number
+        number largest = red
+        if green > largest
+            largest = green
+        end
+        if blue > largest
+            largest = blue
+        end
+        return largest
+    end
+
+    /*
+        The smallest of the red, green and blue components.
+    */
+    private action GetSmallestComponent returns number
+        number smallest = red
+        if green < smallest
+            smallest = green
+        end
+        if blue < smallest
+            smallest = blue
+        end
+        return smallest
+    end
 end

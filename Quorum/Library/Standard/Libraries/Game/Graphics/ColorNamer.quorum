@@ -263,6 +263,86 @@ shared class ColorNamer
         return undefined
     end
 
+    /*
+        From a color, returns the closest name in the set of common W3C colors,
+        written as words to be spoken: the name is split before each capital
+        letter and put in lower case, so "DimGray" becomes "dim gray".
+
+        Attribute: Parameter color The color to name.
+
+        Attribute: Returns The name as words, such as "dim gray".
+
+        Attribute: Example
+
+        use Libraries.Game.Graphics.ColorNamer
+        use Libraries.Game.Graphics.Color
+
+        ColorNamer namer
+        Color color
+        color:SetHexColor("#4A5A6E")
+        output namer:GetSpokenName(color) //outputs "dim gray"
+    */
+    action GetSpokenName(Color color) returns text
+        text name = GetName(color)
+        if name = undefined
+            return ""
+        end
+
+        text result = ""
+        integer index = 0
+        repeat while index < name:GetSize()
+            integer code = name:GetUnicodeInteger(index)
+            // A capital letter after the first starts a new word.
+            if index > 0
+                if code >= 65
+                    if code <= 90
+                        result = result + " "
+                    end
+                end
+            end
+            result = result + name:GetCharacter(index)
+            index = index + 1
+        end
+        return result:ToLowerCase()
+    end
+
+    /*
+        From a color, returns the words screen readers say for it: its hex
+        code, then its closest name as spoken words, such as "#4A5A6E, dim
+        gray". The hex code comes first, because the name is only the
+        closest of a short list. Each part of the hex code is rounded to the
+        nearest of 256 steps. The alpha is not included.
+
+        Attribute: Parameter color The color to describe.
+
+        Attribute: Returns The hex code and the name, such as "#4A5A6E, dim gray".
+
+        Attribute: Example
+
+        use Libraries.Game.Graphics.ColorNamer
+        use Libraries.Game.Graphics.Color
+
+        ColorNamer namer
+        Color color
+        color:SetHexColor("#4A5A6E")
+        output namer:GetColorText(color) //outputs "#4A5A6E, dim gray"
+    */
+    action GetColorText(Color color) returns text
+        Color rounded
+        rounded:SetColor(RoundComponent(color:GetRed()), RoundComponent(color:GetGreen()), RoundComponent(color:GetBlue()), 1)
+        return "#" + rounded:GetHexColorWithoutAlpha() + ", " + GetSpokenName(color)
+    end
+
+    /*
+        Rounds a color component, from 0 to 1, to the nearest of 256 steps.
+        The result is a quarter of a step above it, because the hex code
+        cuts off the fraction: it then lands on the step and not below it.
+    */
+    private action RoundComponent(number value) returns number
+        integer step = cast(integer, value * 255 + 0.5)
+        return (step + 0.25) / 255.0
+    end
+
     private action Set(number red, number green, number blue, Vector vector) 
         vector:Set(0, red)
         vector:Set(1, green)

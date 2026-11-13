@@ -383,4 +383,14 @@ public class ItemKit {
     public Node BuildInternalChild(NodeId id) {
         throw new IllegalStateException("not implemented in this class");
     }
+
+    /*
+        Carries out a VoiceOver request for one of this kit's internal
+        children (request.target), such as a calendar's day. Internal
+        children have no kit of their own, so MacAccessibility hands the
+        request to the kit that holds them. Most kits offer no actions on
+        them, so this does nothing.
+    */
+    public void DoInternalChildAction(ActionRequest request) {
+    }
 }

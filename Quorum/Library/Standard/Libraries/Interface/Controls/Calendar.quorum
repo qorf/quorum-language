@@ -1,0 +1,1506 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseMovementListener
+use Libraries.Interface.Events.CalendarChangedEvent
+use Libraries.Interface.Events.CalendarListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Views.ChevronTexture
+use Libraries.Interface.Behaviors.Controls.CalendarMonthBehavior
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Label
+use Libraries.Containers.Array
+use Libraries.System.CalendarDate
+
+/*
+    A Calendar shows one month, to choose a date from. At the top are the
+    month and year, such as "November 2026", between buttons for the
+    previous and next months. Below are the weekdays and six weeks of days,
+    starting on Sunday unless set otherwise (SetFirstDayOfWeek). Days of the
+    months before and after are dimmed, today has a ring, the chosen day is
+    filled with the accent color, and while the calendar has the focus, a
+    ring marks the current day, the one the keys are on. Days outside the
+    allowed range (SetMinimumDate and SetMaximumDate) are dimmed, struck
+    through, and can't be chosen.
+
+    The keys: Left and Right move a day, Up and Down a week, Home and End to
+    the first and last day of the week, Page Up and Page Down a month, and
+    Shift with Page Up and Page Down a year. Moving past the month shows the
+    next one. Enter or Space chooses the current day. A click on a day
+    chooses it, and a click on another month's day moves there. Listeners
+    (AddCalendarListener) are told when the user chooses a day.
+
+    The days are drawn by the calendar, not made of controls of their own.
+    Screen readers learn about them through GetShownDay, GetDaySpokenText
+    and the other actions here, and each day says itself in full, such as
+    "Thursday, November 12, 2026, today, selected". The calendar's name is
+    the month shown, such as "November 2026".
+
+    Its colors come from the interface options under the key "Calendar":
+    the background color is behind the days, the font color is the days'
+    numbers, the foreground color is dimmed days, the border color is
+    today's ring, the accent color fills the chosen day (its number is
+    white), and the focus border color is the ring around the current day.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.Calendar
+    use Libraries.System.CalendarDate
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Calendar calendar
+    CalendarDate due
+    due:SetDate(2026, 11, 20)
+    calendar:SetDate(due)
+    page:Add(calendar)
+
+    form:Display()
+*/
+class Calendar is Control, MouseMovementListener
+    GameStateManager manager
+    Array<CalendarListener> calendarListeners
+
+    // The chosen day, or undefined.
+    CalendarDate chosen = undefined
+    // The day the keys are on.
+    CalendarDate current
+    CalendarDate today
+    // The range days can be chosen in; undefined for no limit.
+    CalendarDate minimum = undefined
+    CalendarDate maximum = undefined
+    integer displayedYear = 1970
+    integer displayedMonth = 1
+    // ISO numbers: 1 is Monday and 7 is Sunday.
+    integer firstDayOfWeek = 7
+    // The date field whose pop-up this calendar is in, or undefined.
+    DateField dateField = undefined
+
+    boolean loaded = false
+    boolean focused = false
+    // Where the focus ring was last placed, or -1.
+    integer ringIndex = -1
+    // The day under the mouse, from 0 (top left) to 41, or -1.
+    integer hoverIndex = -1
+
+    // The header.
+    Button previousButton
+    Button nextButton
+    Icon previousArrow
+    Icon nextArrow
+    Label titleLabel
+
+    // The weekday initials, and the days: a circle (filled when chosen,
+    // ringed for today), the number, and a line through unavailable days.
+    Array<Label> weekdayLabels
+    Control dayGrid
+    Array<Icon> dayMarks
+    Array<Label> dayLabels
+    Array<Icon> dayStrikes
+    Icon focusRing
+
+    // Sizes in points before the interface scale. The width is the padding
+    // on each side and seven cells; the height is the padding above and
+    // below, the header, the weekday row and six rows of cells.
+    constant number WIDTH = 268
+    constant number HEIGHT = 292
+    constant number PADDING = 8
+    constant number HEADER_HEIGHT = 36
+    constant number WEEKDAY_HEIGHT = 24
+    constant number CELL_SIZE = 36
+    constant number DAY_CIRCLE = 30
+    constant number FOCUS_RING_SIZE = 34
+    constant number FOCUS_RING_THICKNESS = 2
+    constant number TODAY_RING_THICKNESS = 1.5
+    constant number MONTH_BUTTON_SIZE = 28
+    constant number ARROW_SIZE = 14
+    constant number STRIKE_WIDTH = 18
+    constant number STRIKE_HEIGHT = 2
+    // The size, in pixels, the chevron texture is drawn at.
+    constant integer ARROW_TEXTURE_SIZE = 32
+    constant integer ROWS = 6
+    constant integer COLUMNS = 7
+
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(WIDTH)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(HEIGHT)
+        SetSize(WIDTH, HEIGHT)
+
+        SetInterfaceOptionsKey("Calendar")
+        SetInputGroup("Calendar")
+        SetFocusable(true)
+        SetAccessibilityCode(parent:Item:CALENDAR)
+
+        today:SetToToday()
+        current = today:Copy()
+        displayedYear = current:GetYear()
+        displayedMonth = current:GetMonth()
+
+        SetupHeader()
+        SetupWeekdays()
+        SetupDays()
+        Refresh()
+        AddMouseMovementListener(me)
+    end
+
+    /*
+        Makes the month title and the previous and next month buttons.
+    */
+    private action SetupHeader
+        number centerY = (HEIGHT - PADDING - HEADER_HEIGHT / 2.0) / HEIGHT
+
+        titleLabel:SetName("Month")
+        HideFromScreenReaders(titleLabel)
+        titleLabel:SetInterfaceOptionsKey("Calendar")
+        titleLabel:SetPositionOnBaseLine(false)
+        titleLabel:SetDescendingLines(false)
+        LayoutProperties titleProperties = titleLabel:GetDefaultLayoutProperties()
+        titleProperties:SetPercentageX(0.5)
+        titleProperties:SetPercentageOriginX(0.5)
+        titleProperties:SetPercentageY(centerY)
+        titleProperties:SetPercentageOriginY(0.5)
+        Add(titleLabel)
+
+        SetupMonthButton(previousButton, previousArrow, -1, PADDING / WIDTH, 0, centerY)
+        SetupMonthButton(nextButton, nextArrow, 1, 1 - PADDING / WIDTH, 1, centerY)
+    end
+
+    /*
+        Makes a button that moves the calendar a month. It draws a chevron,
+        not its name; its name, such as "Previous month, October 2026", is
+        for screen readers.
+    */
+    private action SetupMonthButton(Button button, Icon arrow, integer months, number x, number originX, number y)
+        // Its view is made in LoadGraphics: drawing needs the graphics, which
+        // a program may not have yet when it makes a calendar.
+        LayoutProperties buttonProperties = button:GetDefaultLayoutProperties()
+        buttonProperties:SetLabelText("")
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetPercentageWidth(0)
+        buttonProperties:SetPercentageHeight(0)
+        buttonProperties:SetPixelWidth(MONTH_BUTTON_SIZE)
+        buttonProperties:SetPixelHeight(MONTH_BUTTON_SIZE)
+        buttonProperties:SetPercentageX(x)
+        buttonProperties:SetPercentageOriginX(originX)
+        buttonProperties:SetPercentageY(y)
+        buttonProperties:SetPercentageOriginY(0.5)
+        ManualLayout buttonLayout
+        button:SetLayout(buttonLayout)
+
+        CalendarMonthBehavior behavior
+        behavior:Setup(months)
+        button:SetBehavior(behavior)
+
+        arrow:SetName("Arrow")
+        HideFromScreenReaders(arrow)
+        LayoutProperties arrowProperties = arrow:GetDefaultLayoutProperties()
+        arrowProperties:SetHorizontalLayoutMode(arrowProperties:STANDARD)
+        arrowProperties:SetVerticalLayoutMode(arrowProperties:STANDARD)
+        arrowProperties:SetPercentageWidth(0)
+        arrowProperties:SetPercentageHeight(0)
+        arrowProperties:SetPixelWidth(ARROW_SIZE)
+        arrowProperties:SetPixelHeight(ARROW_SIZE)
+        arrowProperties:SetPercentageX(0.5)
+        arrowProperties:SetPercentageOriginX(0.5)
+        arrowProperties:SetPercentageY(0.5)
+        arrowProperties:SetPercentageOriginY(0.5)
+        button:Add(arrow)
+        Add(button)
+    end
+
+    /*
+        Makes the row of weekday initials.
+    */
+    private action SetupWeekdays
+        number centerY = (PADDING + ROWS * CELL_SIZE + WEEKDAY_HEIGHT / 2.0) / HEIGHT
+        integer column = 0
+        repeat while column < COLUMNS
+            Label weekday
+            weekday:SetName("Weekday")
+            HideFromScreenReaders(weekday)
+            weekday:SetInterfaceOptionsKey("Calendar")
+            weekday:SetPositionOnBaseLine(false)
+            LayoutProperties weekdayProperties = weekday:GetDefaultLayoutProperties()
+            weekdayProperties:SetPercentageX((PADDING + (column + 0.5) * CELL_SIZE) / WIDTH)
+            weekdayProperties:SetPercentageOriginX(0.5)
+            weekdayProperties:SetPercentageY(centerY)
+            weekdayProperties:SetPercentageOriginY(0.5)
+            weekdayLabels:Add(weekday)
+            Add(weekday)
+            column = column + 1
+        end
+    end
+
+    /*
+        Makes the six rows of seven days, placed by shares of the grid, and
+        the focus ring drawn over them.
+    */
+    private action SetupDays
+        dayGrid:SetName("Days")
+        HideFromScreenReaders(dayGrid)
+        ManualLayout gridLayout
+        dayGrid:SetLayout(gridLayout)
+        LayoutProperties gridProperties = dayGrid:GetDefaultLayoutProperties()
+        gridProperties:SetHorizontalLayoutMode(gridProperties:STANDARD)
+        gridProperties:SetVerticalLayoutMode(gridProperties:STANDARD)
+        gridProperties:SetPercentageWidth(COLUMNS * CELL_SIZE / WIDTH)
+        gridProperties:SetPercentageHeight(ROWS * CELL_SIZE / HEIGHT)
+        gridProperties:SetPercentageX(PADDING / WIDTH)
+        gridProperties:SetPercentageY(PADDING / HEIGHT)
+        Add(dayGrid)
+
+        integer row = 0
+        repeat while row < ROWS
+            integer column = 0
+            repeat while column < COLUMNS
+                Control cell
+                cell:SetName("Day")
+                HideFromScreenReaders(cell)
+                ManualLayout cellLayout
+                cell:SetLayout(cellLayout)
+                LayoutProperties cellProperties = cell:GetDefaultLayoutProperties()
+                cellProperties:SetHorizontalLayoutMode(cellProperties:STANDARD)
+                cellProperties:SetVerticalLayoutMode(cellProperties:STANDARD)
+                cellProperties:SetPercentageWidth(1.0 / COLUMNS)
+                cellProperties:SetPercentageHeight(1.0 / ROWS)
+                cellProperties:SetPercentageX(cast(number, column) / COLUMNS)
+                // Positions count up from the bottom, so row 0 is at the top.
+                cellProperties:SetPercentageY(cast(number, ROWS - 1 - row) / ROWS)
+
+                Icon mark
+                mark:SetName("Day Circle")
+                SetupCenteredPart(mark, DAY_CIRCLE, DAY_CIRCLE)
+                cell:Add(mark)
+
+                Label dayNumberLabel
+                dayNumberLabel:SetName("Day Number")
+                HideFromScreenReaders(dayNumberLabel)
+                dayNumberLabel:SetInterfaceOptionsKey("Calendar")
+                dayNumberLabel:SetPositionOnBaseLine(false)
+                LayoutProperties numberProperties = dayNumberLabel:GetDefaultLayoutProperties()
+                numberProperties:SetPercentageX(0.5)
+                numberProperties:SetPercentageOriginX(0.5)
+                numberProperties:SetPercentageY(0.5)
+                numberProperties:SetPercentageOriginY(0.5)
+                cell:Add(dayNumberLabel)
+
+                Icon strike
+                strike:SetName("Unavailable Line")
+                SetupCenteredPart(strike, STRIKE_WIDTH, STRIKE_HEIGHT)
+                strike:Hide()
+                cell:Add(strike)
+
+                dayMarks:Add(mark)
+                dayLabels:Add(dayNumberLabel)
+                dayStrikes:Add(strike)
+                dayGrid:Add(cell)
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        focusRing:SetName("Current Day Ring")
+        SetupCenteredPart(focusRing, FOCUS_RING_SIZE, FOCUS_RING_SIZE)
+        focusRing:Hide()
+        dayGrid:Add(focusRing)
+    end
+
+    /*
+        Readies a drawn part of a day: hidden from screen readers, letting
+        the mouse through to the calendar, sized in points and centered.
+    */
+    private action SetupCenteredPart(Icon part, number width, number height)
+        HideFromScreenReaders(part)
+        part:SetBorderThickness(0)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetHorizontalLayoutMode(partProperties:STANDARD)
+        partProperties:SetVerticalLayoutMode(partProperties:STANDARD)
+        partProperties:SetPercentageWidth(0)
+        partProperties:SetPercentageHeight(0)
+        partProperties:SetPixelWidth(width)
+        partProperties:SetPixelHeight(height)
+        partProperties:SetPercentageX(0.5)
+        partProperties:SetPercentageOriginX(0.5)
+        partProperties:SetPercentageY(0.5)
+        partProperties:SetPercentageOriginY(0.5)
+    end
+
+    /*
+        Keeps a drawn part out of the accessibility tree, since screen
+        readers learn about the days from the calendar, and lets clicks
+        through to the calendar.
+    */
+    private action HideFromScreenReaders(Control part)
+        part:SetAccessibilityCode(part:parent:Item:NOT_ACCESSIBLE)
+        part:SetAcceptsMouseInput(false)
+        part:SetFocusable(false)
+    end
+
+    /*
+        This action loads the calendar's graphics: its background, the days'
+        circles and the month buttons' chevrons, then colors the days. The
+        game engine calls it as needed, so most users won't need to call it
+        directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the calendar.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+
+        if not loaded
+            loaded = true
+            integer index = 0
+            repeat while index < dayMarks:GetSize()
+                LoadPartView(dayMarks:Get(index))
+                LoadPartView(dayStrikes:Get(index))
+                index = index + 1
+            end
+            LoadPartView(focusRing)
+            LoadButtonView(previousButton)
+            LoadButtonView(nextButton)
+
+            ChevronTexture chevrons
+            previousArrow:Load(chevrons:GetTexture(ARROW_TEXTURE_SIZE))
+            // The chevron points right; flipped, it points left.
+            previousArrow:FlipX()
+            nextArrow:Load(chevrons:GetTexture(ARROW_TEXTURE_SIZE))
+        end
+
+        parent:Control:LoadGraphics(properties)
+        Refresh()
+    end
+
+    /*
+        Gives a drawn part a ControlShaderView, so it is drawn as a rounded
+        shape in its colors.
+    */
+    private action LoadPartView(Icon part)
+        ControlShaderView view
+        view:Initialize()
+        part:SetView2D(view)
+    end
+
+    // Gives a month button the ControlShaderView it draws its chevron's box with.
+    private action LoadButtonView(Button button)
+        ControlShaderView view
+        view:Initialize()
+        LayoutProperties buttonProperties = button:GetDefaultLayoutProperties()
+        buttonProperties:SetView2D(view)
+    end
+
+    /*
+        Brings everything drawn up to date: the title and the buttons'
+        names, the weekdays, each day's number, and, once the graphics are
+        loaded, the colors and the focus ring.
+    */
+    private action Refresh
+        today:SetToToday()
+
+        text title = GetMonthTitle(displayedYear, displayedMonth)
+        if GetName() not= title
+            SetName(title)
+        end
+        if titleLabel:GetText() not= title
+            titleLabel:SetText(title)
+        end
+
+        CalendarDate monthStart
+        boolean valid = monthStart:SetDate(displayedYear, displayedMonth, 1)
+        CalendarDate previousMonth = monthStart:Copy()
+        previousMonth:AddMonths(-1)
+        CalendarDate nextMonth = monthStart:Copy()
+        nextMonth:AddMonths(1)
+        NameButton(previousButton, "Previous month, " + GetMonthTitle(previousMonth:GetYear(), previousMonth:GetMonth()))
+        NameButton(nextButton, "Next month, " + GetMonthTitle(nextMonth:GetYear(), nextMonth:GetMonth()))
+
+        integer column = 0
+        repeat while column < COLUMNS
+            text initial = GetWeekdayName(column):GetSubtext(0, 1)
+            Label weekday = weekdayLabels:Get(column)
+            if weekday:GetText() not= initial
+                weekday:SetText(initial)
+            end
+            column = column + 1
+        end
+
+        CalendarDate date = GetFirstShownDay()
+        integer index = 0
+        repeat while index < ROWS * COLUMNS
+            text dayText = "" + date:GetDay()
+            Label dayNumberLabel = dayLabels:Get(index)
+            if dayNumberLabel:GetText() not= dayText
+                dayNumberLabel:SetText(dayText)
+            end
+            Icon strike = dayStrikes:Get(index)
+            if IsAvailable(date)
+                strike:Hide()
+            else
+                strike:Show()
+            end
+            date:AddDays(1)
+            index = index + 1
+        end
+
+        UpdateLook()
+    end
+
+    /*
+        Colors each day for what it is, and places the focus ring.
+    */
+    private action UpdateLook
+        if not loaded
+            return now
+        end
+
+        ColorGroup normal = GetFontColor()
+        ColorGroup dimmed = GetForegroundColor()
+        ColorGroup ring = GetBorderColor()
+        ColorGroup fill = GetAccentColor()
+        ColorGroup hover = GetMouseOverColor()
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        Color white
+        white:SetColor(1, 1, 1, 1)
+        number circleRounding = DAY_CIRCLE / 2.0
+
+        CalendarDate date = GetFirstShownDay()
+        integer index = 0
+        repeat while index < ROWS * COLUMNS
+            Icon mark = dayMarks:Get(index)
+            Label dayNumberLabel = dayLabels:Get(index)
+            Icon strike = dayStrikes:Get(index)
+
+            ColorGroup textColor = normal
+            if not IsInDisplayedMonth(date)
+                textColor = dimmed
+            elseif not IsAvailable(date)
+                textColor = dimmed
+            end
+
+            mark:SetBackgroundColor(clear)
+            // The day under the mouse gets a light circle, unless it can't be
+            // chosen; the chosen day's fill wins over it.
+            if index = hoverIndex and hover not= undefined
+                if IsAvailable(date)
+                    mark:SetBackgroundColor(hover)
+                end
+            end
+            if chosen not= undefined
+                if chosen:Equals(date)
+                    mark:SetBackgroundColor(fill)
+                    textColor = white
+                end
+            end
+            if today:Equals(date)
+                mark:SetBorderColor(ring)
+                mark:SetBorderThickness(TODAY_RING_THICKNESS)
+            else
+                mark:SetBorderThickness(0)
+            end
+            mark:SetCornerPixelRounding(circleRounding, circleRounding, circleRounding, circleRounding)
+            mark:RequestVerticesUpdate()
+
+            if textColor not= undefined
+                dayNumberLabel:SetFontColor(textColor)
+            end
+            strike:SetBackgroundColor(dimmed)
+            strike:RequestVerticesUpdate()
+
+            date:AddDays(1)
+            index = index + 1
+        end
+
+        ColorGroup titleColor = normal
+        if titleColor not= undefined
+            titleLabel:SetFontColor(titleColor)
+            integer column = 0
+            repeat while column < weekdayLabels:GetSize()
+                weekdayLabels:Get(column):SetFontColor(titleColor)
+                column = column + 1
+            end
+        end
+        ColorArrow(previousButton, previousArrow)
+        ColorArrow(nextButton, nextArrow)
+
+        PlaceFocusRing()
+    end
+
+    /*
+        Colors a month button's chevron as the button's text would be.
+    */
+    private action ColorArrow(Button button, Icon arrow)
+        ColorGroup color = undefined
+        if button:IsFocused()
+            color = button:GetFocusFontColor()
+        end
+        if color = undefined
+            color = button:GetFontColor()
+        end
+        if color not= undefined
+            arrow:SetColor(color)
+        end
+    end
+
+    /*
+        Shows the focus ring around the current day while the calendar has
+        the focus, and hides it otherwise.
+    */
+    private action PlaceFocusRing
+        if not loaded
+            return now
+        end
+        integer index = GetShownIndex(current)
+        if index < 0 or not focused
+            focusRing:Hide()
+            return now
+        end
+        integer row = index / COLUMNS
+        integer column = index mod COLUMNS
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        number rounding = FOCUS_RING_SIZE / 2.0
+        focusRing:SetBackgroundColor(clear)
+        focusRing:SetBorderColor(GetFocusBorderColor())
+        focusRing:SetBorderThickness(FOCUS_RING_THICKNESS)
+        focusRing:SetCornerPixelRounding(rounding, rounding, rounding, rounding)
+        LayoutProperties ringProperties = focusRing:GetDefaultLayoutProperties()
+        ringProperties:SetPercentageX((column + 0.5) / COLUMNS)
+        ringProperties:SetPercentageY((ROWS - 1 - row + 0.5) / ROWS)
+        focusRing:Show()
+        focusRing:RequestVerticesUpdate()
+        if index not= ringIndex
+            ringIndex = index
+            dayGrid:RequestLayout()
+        end
+    end
+
+    /*
+        Names a month button for screen readers, keeping its drawn text
+        empty so it shows only its chevron.
+    */
+    private action NameButton(Button button, text name)
+        if button:GetName() not= name
+            button:SetName(name)
+            button:GetDefaultLayoutProperties():SetLabelText("")
+        end
+    end
+
+    /*
+        The month and year, such as "November 2026".
+    */
+    private action GetMonthTitle(integer year, integer month) returns text
+        CalendarDate date
+        boolean valid = date:SetDate(year, month, 1)
+        return date:GetMonthName() + " " + year
+    end
+
+    /*
+        The first day in the grid: the start of the week holding the first
+        of the month shown.
+    */
+    private action GetFirstShownDay returns CalendarDate
+        CalendarDate first
+        boolean valid = first:SetDate(displayedYear, displayedMonth, 1)
+        first:AddDays(-WeekOffset(first))
+        return first
+    end
+
+    /*
+        How many days a date is after the first day of its week, from 0 to 6.
+    */
+    private action WeekOffset(CalendarDate date) returns integer
+        // The remainder is taken twice so it is never negative, whichever
+        // way the platform rounds.
+        return ((date:GetDayOfWeek() - firstDayOfWeek) mod 7 + 7) mod 7
+    end
+
+    /*
+        Where a date is in the grid, from 0 (top left) to 41, or -1 if it
+        isn't shown.
+    */
+    private action GetShownIndex(CalendarDate date) returns integer
+        if date = undefined
+            return -1
+        end
+        integer index = date:GetDayNumber() - GetFirstShownDay():GetDayNumber()
+        if index < 0 or index >= ROWS * COLUMNS
+            return -1
+        end
+        return index
+    end
+
+    /*
+        Moves a date into the allowed range, if it is outside it.
+    */
+    private action Clamp(CalendarDate date)
+        if minimum not= undefined
+            if date:Compare(minimum) < 0
+                date:SetDayNumber(minimum:GetDayNumber())
+            end
+        end
+        if maximum not= undefined
+            if date:Compare(maximum) > 0
+                date:SetDayNumber(maximum:GetDayNumber())
+            end
+        end
+    end
+
+    /*
+        Moves the current day to a date, kept in the allowed range, and
+        shows its month.
+    */
+    private action MoveCurrentTo(CalendarDate target)
+        Clamp(target)
+        boolean changed = not target:Equals(current)
+        current = target
+        if not IsInDisplayedMonth(current)
+            displayedYear = current:GetYear()
+            displayedMonth = current:GetMonth()
+            changed = true
+        end
+        Refresh()
+        if changed
+            NotifyAccessibility()
+        end
+    end
+
+    /*
+        This action sets the chosen day as a program does: the calendar shows
+        its month and the keys move from it, but listeners aren't told, since
+        the user didn't choose it. With undefined, no day is chosen.
+
+        Attribute: Parameter date The day to choose, or undefined for none.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        calendar:SetDate(date)
+    */
+    action SetDate(CalendarDate date)
+        if date = undefined
+            chosen = undefined
+        else
+            chosen = date:Copy()
+            current = date:Copy()
+            displayedYear = current:GetYear()
+            displayedMonth = current:GetMonth()
+        end
+        Refresh()
+        NotifyAccessibility()
+    end
+
+    /*
+        This action returns the chosen day, or undefined if none is chosen.
+
+        Attribute: Returns A copy of the chosen day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate date = calendar:GetDate()
+    */
+    action GetDate returns CalendarDate
+        if chosen = undefined
+            return undefined
+        end
+        return chosen:Copy()
+    end
+
+    /*
+        This action sets the earliest day that can be chosen, or undefined for
+        no limit. Earlier days are dimmed and struck through, and the keys
+        stop there.
+
+        Attribute: Parameter date The earliest day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate today
+        today:SetToToday()
+        calendar:SetMinimumDate(today)
+    */
+    action SetMinimumDate(CalendarDate date)
+        if date = undefined
+            minimum = undefined
+        else
+            minimum = date:Copy()
+        end
+        RangeChanged()
+    end
+
+    /*
+        This action returns the earliest day that can be chosen, or undefined
+        if there is no limit.
+
+        Attribute: Returns A copy of the earliest day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate earliest = calendar:GetMinimumDate()
+    */
+    action GetMinimumDate returns CalendarDate
+        if minimum = undefined
+            return undefined
+        end
+        return minimum:Copy()
+    end
+
+    /*
+        This action sets the latest day that can be chosen, or undefined for
+        no limit. Later days are dimmed and struck through, and the keys stop
+        there.
+
+        Attribute: Parameter date The latest day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate last
+        last:SetDate(2026, 12, 31)
+        calendar:SetMaximumDate(last)
+    */
+    action SetMaximumDate(CalendarDate date)
+        if date = undefined
+            maximum = undefined
+        else
+            maximum = date:Copy()
+        end
+        RangeChanged()
+    end
+
+    /*
+        This action returns the latest day that can be chosen, or undefined if
+        there is no limit.
+
+        Attribute: Returns A copy of the latest day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate latest = calendar:GetMaximumDate()
+    */
+    action GetMaximumDate returns CalendarDate
+        if maximum = undefined
+            return undefined
+        end
+        return maximum:Copy()
+    end
+
+    /*
+        After the range changes, keeps the current day inside it and redraws.
+    */
+    private action RangeChanged
+        CalendarDate target = current:Copy()
+        Clamp(target)
+        current = target
+        if not IsInDisplayedMonth(current)
+            displayedYear = current:GetYear()
+            displayedMonth = current:GetMonth()
+        end
+        Refresh()
+        NotifyAccessibility()
+    end
+
+    /*
+        This action sets the day weeks start on, numbered as ISO 8601 does: 1
+        is Monday and 7 is Sunday. Weeks start on Sunday unless set.
+
+        Attribute: Parameter day The first day of the week, from 1 (Monday) to 7 (Sunday).
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        // Weeks start on Monday.
+        calendar:SetFirstDayOfWeek(1)
+    */
+    action SetFirstDayOfWeek(integer day)
+        if day < 1 or day > 7
+            return now
+        end
+        firstDayOfWeek = day
+        Refresh()
+        NotifyAccessibility()
+    end
+
+    /*
+        This action returns the day weeks start on: 1 is Monday and 7 is
+        Sunday.
+
+        Attribute: Returns The first day of the week.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        integer first = calendar:GetFirstDayOfWeek()
+    */
+    action GetFirstDayOfWeek returns integer
+        return firstDayOfWeek
+    end
+
+    /*
+        This action shows a month. The current day moves to the same day of
+        that month, or its last day if the month is shorter, kept in the
+        allowed range.
+
+        Attribute: Parameter year The year, such as 2026.
+        Attribute: Parameter month The month, from 1 (January) to 12 (December).
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:SetDisplayedMonth(2027, 1)
+    */
+    action SetDisplayedMonth(integer year, integer month)
+        if month < 1 or month > 12
+            return now
+        end
+        CalendarDate target
+        boolean valid = target:SetDate(year, month, 1)
+        integer day = current:GetDay()
+        if day > target:GetDaysInMonth()
+            day = target:GetDaysInMonth()
+        end
+        valid = target:SetDate(year, month, day)
+        displayedYear = year
+        displayedMonth = month
+        MoveCurrentTo(target)
+    end
+
+    /*
+        This action returns the year of the month shown.
+
+        Attribute: Returns The year.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        integer year = calendar:GetDisplayedYear()
+    */
+    action GetDisplayedYear returns integer
+        return displayedYear
+    end
+
+    /*
+        This action returns the month shown, from 1 (January) to 12
+        (December).
+
+        Attribute: Returns The month.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        integer month = calendar:GetDisplayedMonth()
+    */
+    action GetDisplayedMonth returns integer
+        return displayedMonth
+    end
+
+    /*
+        This action returns the current day: the one the keys are on, which
+        has the focus ring while the calendar has the focus. Screen readers
+        put their focus on it.
+
+        Attribute: Returns A copy of the current day.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate day = calendar:GetCurrentDay()
+    */
+    action GetCurrentDay returns CalendarDate
+        return current:Copy()
+    end
+
+    /*
+        This action moves the current day by a number of days, as the arrow
+        keys do, showing another month when it must. It stops at the ends of
+        the allowed range.
+
+        Attribute: Parameter days How many days to move: negative for earlier days.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        // A week later, as the Down key does.
+        calendar:MoveCurrentDay(7)
+    */
+    action MoveCurrentDay(integer days)
+        CalendarDate target = current:Copy()
+        target:AddDays(days)
+        MoveCurrentTo(target)
+    end
+
+    /*
+        This action moves the current day by a number of months, as Page Up
+        and Page Down do, keeping the day of the month, or the month's last
+        day if it is shorter.
+
+        Attribute: Parameter months How many months to move: negative for earlier months.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:MoveCurrentMonth(1)
+    */
+    action MoveCurrentMonth(integer months)
+        CalendarDate target = current:Copy()
+        target:AddMonths(months)
+        MoveCurrentTo(target)
+    end
+
+    /*
+        This action moves the current day by a number of years, as Shift with
+        Page Up and Page Down does.
+
+        Attribute: Parameter years How many years to move: negative for earlier years.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:MoveCurrentYear(-1)
+    */
+    action MoveCurrentYear(integer years)
+        CalendarDate target = current:Copy()
+        target:AddYears(years)
+        MoveCurrentTo(target)
+    end
+
+    /*
+        This action moves the current day to the first day of its week, as
+        Home does.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:MoveToWeekStart()
+    */
+    action MoveToWeekStart
+        MoveCurrentDay(-WeekOffset(current))
+    end
+
+    /*
+        This action moves the current day to the last day of its week, as End
+        does.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:MoveToWeekEnd()
+    */
+    action MoveToWeekEnd
+        MoveCurrentDay(6 - WeekOffset(current))
+    end
+
+    /*
+        This action chooses the current day as the user does, as Enter and
+        Space do: it is filled with the accent color, and listeners are told.
+        A day outside the allowed range can't be chosen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:ChooseCurrentDay()
+    */
+    action ChooseCurrentDay
+        if not IsAvailable(current)
+            return now
+        end
+        CalendarDate oldDate = chosen
+        chosen = current:Copy()
+        Refresh()
+        NotifyAccessibility()
+        NotifyListeners(oldDate, chosen:Copy())
+    end
+
+    /*
+        This action responds to a click or touch at a place on the screen: a
+        day of the month shown is chosen, a day of another month is moved to,
+        and an unavailable day is left alone. The calendar takes the focus.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+        Attribute: Parameter y Where the pointer is, up the screen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        calendar:ChooseDayAt(120, 80)
+    */
+    action ChooseDayAt(number x, number y)
+        integer index = GetDayIndexAt(x, y)
+        if index < 0
+            return now
+        end
+        if not IsFocused()
+            Focus()
+        end
+        CalendarDate date = GetShownDay(index / COLUMNS, index mod COLUMNS)
+        if not IsAvailable(date)
+            return now
+        end
+        if IsInDisplayedMonth(date)
+            MoveCurrentTo(date)
+            ChooseCurrentDay()
+        else
+            MoveCurrentTo(date)
+        end
+    end
+
+    /*
+        Which day of the grid is at a place on the screen, from 0 (top left)
+        to 41, or -1 when the place isn't on a day.
+    */
+    private action GetDayIndexAt(number x, number y) returns integer
+        number left = dayGrid:GetGlobalX()
+        number bottom = dayGrid:GetGlobalY()
+        number width = dayGrid:GetWidth()
+        number height = dayGrid:GetHeight()
+        if width <= 0 or height <= 0
+            return -1
+        end
+        if x < left or x >= left + width or y < bottom or y >= bottom + height
+            return -1
+        end
+        integer column = cast(integer, (x - left) / width * COLUMNS)
+        integer rowFromBottom = cast(integer, (y - bottom) / height * ROWS)
+        if column > COLUMNS - 1
+            column = COLUMNS - 1
+        end
+        if rowFromBottom > ROWS - 1
+            rowFromBottom = ROWS - 1
+        end
+        return (ROWS - 1 - rowFromBottom) * COLUMNS + column
+    end
+
+    /*
+        This action is called when the mouse moves over the calendar: the day
+        under it gets a light circle in the mouse-over color, unless it can't
+        be chosen.
+
+        Attribute: Parameter event The mouse event.
+    */
+    action MovedMouse(MouseEvent event)
+        SetHoverIndex(GetDayIndexAt(event:GetX(), event:GetY()))
+    end
+
+    /*
+        This action is called when the mouse moves onto the calendar. The
+        calendar's own background doesn't change; only the day under the
+        mouse is marked, as it moves.
+    */
+    action BeginMouseOver
+        parent:Control:BeginMouseOver()
+    end
+
+    /*
+        This action is called when the mouse leaves the calendar: no day is
+        marked as under it.
+    */
+    action EndMouseOver
+        parent:Control:EndMouseOver()
+        SetHoverIndex(-1)
+    end
+
+    /*
+        This action returns false: the calendar marks the day under the
+        mouse, not its whole background.
+
+        Attribute: Returns false.
+    */
+    action IsRenderingMouseOver returns boolean
+        return false
+    end
+
+    /*
+        Marks the day under the mouse, redrawing only when it changes.
+    */
+    private action SetHoverIndex(integer index)
+        if index = hoverIndex
+            return now
+        end
+        hoverIndex = index
+        UpdateLook()
+    end
+
+    /*
+        This action returns whether a day can be chosen: whether it is inside
+        the range set with SetMinimumDate and SetMaximumDate.
+
+        Attribute: Parameter date The day.
+        Attribute: Returns True if the day can be chosen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        boolean available = calendar:IsAvailable(date)
+    */
+    action IsAvailable(CalendarDate date) returns boolean
+        if date = undefined
+            return false
+        end
+        if minimum not= undefined
+            if date:Compare(minimum) < 0
+                return false
+            end
+        end
+        if maximum not= undefined
+            if date:Compare(maximum) > 0
+                return false
+            end
+        end
+        return true
+    end
+
+    /*
+        This action returns the day shown at a place in the grid of six rows
+        and seven columns. Row 0 is the top week and column 0 is the first
+        day of the week. The first row starts with the week holding the
+        first of the month, so some days are from the months before and
+        after. A place outside the grid returns undefined.
+
+        Attribute: Parameter row The week, from 0 to 5.
+        Attribute: Parameter column The day of the week, from 0 to 6.
+        Attribute: Returns The day, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        CalendarDate topLeft = calendar:GetShownDay(0, 0)
+    */
+    action GetShownDay(integer row, integer column) returns CalendarDate
+        if row < 0 or row >= ROWS or column < 0 or column >= COLUMNS
+            return undefined
+        end
+        CalendarDate date = GetFirstShownDay()
+        date:AddDays(row * COLUMNS + column)
+        return date
+    end
+
+    /*
+        This action returns whether a day is in the month shown, not one of
+        the dimmed days of the months before and after.
+
+        Attribute: Parameter date The day.
+        Attribute: Returns True if the day is in the month shown.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        Calendar calendar
+        boolean inMonth = calendar:IsInDisplayedMonth(calendar:GetShownDay(0, 0))
+    */
+    action IsInDisplayedMonth(CalendarDate date) returns boolean
+        if date = undefined
+            return false
+        end
+        if date:GetYear() not= displayedYear
+            return false
+        end
+        return date:GetMonth() = displayedMonth
+    end
+
+    /*
+        This action returns what a screen reader says for a day: the date in
+        words, then ", today", ", selected" and ", unavailable" where they
+        apply, such as "Thursday, November 12, 2026, today, selected".
+
+        Attribute: Parameter date The day.
+        Attribute: Returns The day in words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        text words = calendar:GetDaySpokenText(calendar:GetCurrentDay())
+    */
+    action GetDaySpokenText(CalendarDate date) returns text
+        if date = undefined
+            return ""
+        end
+        text result = date:ToSpokenText()
+        if today:Equals(date)
+            result = result + ", today"
+        end
+        if chosen not= undefined
+            if chosen:Equals(date)
+                result = result + ", selected"
+            end
+        end
+        if not IsAvailable(date)
+            result = result + ", unavailable"
+        end
+        return result
+    end
+
+    /*
+        This action returns the full name of the weekday in a column, such as
+        "Sunday" for column 0 when weeks start on Sunday. Screen readers use
+        it as the column's header. A column outside 0 to 6 returns an empty
+        text.
+
+        Attribute: Parameter column The column, from 0 to 6.
+        Attribute: Returns The weekday's name.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+
+        Calendar calendar
+        text first = calendar:GetWeekdayName(0)
+    */
+    action GetWeekdayName(integer column) returns text
+        if column < 0 or column >= COLUMNS
+            return ""
+        end
+        integer weekday = (firstDayOfWeek - 1 + column) mod 7 + 1
+        // Day 0, January 1, 1970, was a Thursday (4), so day -3 was a Monday.
+        CalendarDate date
+        date:SetDayNumber(weekday - 4)
+        return date:GetDayName()
+    end
+
+    /*
+        This action returns the button that shows the previous month.
+
+        Attribute: Returns The previous month button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Controls.Button
+
+        Calendar calendar
+        Button previous = calendar:GetPreviousMonthButton()
+    */
+    action GetPreviousMonthButton returns Button
+        return previousButton
+    end
+
+    /*
+        This action returns the button that shows the next month.
+
+        Attribute: Returns The next month button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Controls.Button
+
+        Calendar calendar
+        Button next = calendar:GetNextMonthButton()
+    */
+    action GetNextMonthButton returns Button
+        return nextButton
+    end
+
+    /*
+        This action sets the date field whose pop-up the calendar is in, so
+        Escape closes it. DateField calls it, so most users won't need to.
+
+        Attribute: Parameter field The date field, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        Calendar calendar
+        calendar:SetDateField(field)
+    */
+    action SetDateField(DateField field)
+        dateField = field
+    end
+
+    /*
+        This action returns the date field whose pop-up the calendar is in, or
+        undefined for a calendar on its own.
+
+        Attribute: Returns The date field, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Controls.DateField
+
+        Calendar calendar
+        DateField field = calendar:GetDateField()
+    */
+    action GetDateField returns DateField
+        return dateField
+    end
+
+    /*
+        This action sets where the focus goes after the calendar. Tab goes
+        from the days to the previous and next month buttons, then to the
+        item given.
+
+        Attribute: Parameter item The item after the calendar's buttons.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Controls.Button
+
+        Calendar calendar
+        Button done
+        calendar:SetNextFocus(done)
+    */
+    action SetNextFocus(Item item)
+        parent:Item:SetNextFocus(previousButton)
+        previousButton:SetPreviousFocus(me)
+        previousButton:SetNextFocus(nextButton)
+        nextButton:SetPreviousFocus(previousButton)
+        nextButton:SetNextFocus(item)
+    end
+
+    /*
+        This action is called when the calendar gains the focus: the current
+        day gets its ring.
+
+        Attribute: Parameter event The focus event.
+    */
+    action GainedFocus(FocusEvent event)
+        focused = true
+        PlaceFocusRing()
+        parent:Control:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the calendar loses the focus: the current
+        day's ring is hidden.
+
+        Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        focused = false
+        PlaceFocusRing()
+        parent:Control:LostFocus(event)
+    end
+
+    /*
+        This action adds a listener, told when the user chooses a day.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Events.CalendarListener
+
+        Calendar calendar
+        CalendarListener listener
+        calendar:AddCalendarListener(listener)
+    */
+    action AddCalendarListener(CalendarListener listener)
+        calendarListeners:Add(listener)
+    end
+
+    /*
+        This action removes a listener.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.Interface.Events.CalendarListener
+
+        Calendar calendar
+        CalendarListener listener
+        calendar:AddCalendarListener(listener)
+        calendar:RemoveCalendarListener(listener)
+    */
+    action RemoveCalendarListener(CalendarListener listener)
+        calendarListeners:Remove(listener)
+    end
+
+    /*
+        Tells every listener that the user chose a day. It works from a copy
+        of the list, so a listener can add or remove listeners while it is
+        told.
+    */
+    private action NotifyListeners(CalendarDate oldDate, CalendarDate newDate)
+        if calendarListeners:IsEmpty()
+            return now
+        end
+        CalendarChangedEvent event
+        event:SetCalendar(me)
+        event:SetOldDate(oldDate)
+        event:SetNewDate(newDate)
+        Array<CalendarListener> listeners = calendarListeners:CopyToArray()
+        integer counter = 0
+        repeat while counter < listeners:GetSize()
+            listeners:Get(counter):CalendarChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    /*
+        Tells screen readers that the calendar changed, so they refresh the
+        days and follow the current day.
+    */
+    private action NotifyAccessibility
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:CalendarChanged(me)
+        end
+    end
+end

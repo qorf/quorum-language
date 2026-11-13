@@ -12,6 +12,13 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     // while it shows, the control's label leaves out its description, which the
     // tooltip's element gives through aria-describedby
     var plainTooltipOwners = new Set();
+    // the lists combo boxes show their choices in: the list's element id
+    // maps to its combo box, so the list and its rows are a listbox of options
+    var comboBoxLists = new Map();
+    // the elements given an aria-activedescendant for an item's active part,
+    // by element id; each maps to the part's element id when it was added to
+    // the element's aria-owns so the part counts as its own, or null
+    var activeDescendantOwners = new Map();
     var currentFocus = null;
     let root = null;
     let controlElementRoot = null;
@@ -192,7 +199,7 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         let element;
         if (currentFocus) {
             let id = currentFocus.GetHashCode();
-            element = document.getElementById(id);
+            element = getFocusTarget(document.getElementById(id));
         } else {
             element = root;
         }
@@ -268,6 +275,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
+            if (updateOwnLabel(item)) {
+                return;
+            }
             if (item.GetAccessibilityCode() == 29) { //labels
                 var itemName = item.GetText()
                 var itemDescription =item.GetDescription();
@@ -293,6 +303,9 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
         var id = item.GetHashCode();
         if( elementList[id] != null ) {
             var element = document.getElementById(id);
+            if (updateOwnLabel(item)) {
+                return;
+            }
             if (item.GetAccessibilityCode() == 29) { //labels
                 var itemName = item.GetText()
                 var itemDescription =item.GetDescription();
@@ -458,6 +471,480 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         }
     };
 
+    // The element that takes the DOM focus for an item's element: a
+    // calendar's current day cell, or the element itself.
+    function getFocusTarget(element) {
+        if (element == null) {
+            return null;
+        }
+        if (element.quorumFocusTarget != null && element.contains(element.quorumFocusTarget)) {
+            return element.quorumFocusTarget;
+        }
+        return element;
+    }
+
+    // Whether an item is the one Quorum has the focus on.
+    function hasQuorumFocus(item) {
+        return currentFocus != null && currentFocus.GetHashCode() == item.GetHashCode();
+    }
+
+    // Sets the label of a control whose label carries its value, and returns
+    // true; returns false for other controls, which are labelled as usual.
+    function updateOwnLabel(item) {
+        let code = item.GetAccessibilityCode();
+        if (code == 33 && global_InstanceOf(item, "Libraries.Interface.Controls.ColorWell")) {
+            updateColorWell(global_CheckCast(item, "Libraries.Interface.Controls.ColorWell"));
+            return true;
+        }
+        if (code == 34 && global_InstanceOf(item, "Libraries.Interface.Controls.Calendar")) {
+            updateCalendar(global_CheckCast(item, "Libraries.Interface.Controls.Calendar"));
+            return true;
+        }
+        return false;
+    }
+
+    // The List a combo box shows its choices in, or null if it can't be found.
+    function getComboBoxList(comboBox) {
+        if (typeof comboBox.GetChoiceList === "function") {
+            return comboBox.GetChoiceList();
+        }
+        if (typeof comboBox.Get_Libraries_Interface_Controls_ComboBox__choiceList_ === "function") {
+            return comboBox.Get_Libraries_Interface_Controls_ComboBox__choiceList_();
+        }
+        return null;
+    }
+
+    // Brings a combo box's element up to date: whether its list is open, the
+    // list's element it controls, and the option the arrows are on, which
+    // the focus stays off of.
+    function updateComboBox(comboBox) {
+        let id = comboBox.GetHashCode();
+        if (elementList[id] == null) {
+            return;
+        }
+        let element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
+        let open = comboBox.IsOpen();
+        element.setAttribute("aria-expanded", open ? "true" : "false");
+
+        let list = getComboBoxList(comboBox);
+        let listElement = null;
+        if (list != null) {
+            let listID = list.GetHashCode();
+            comboBoxLists.set(listID, comboBox);
+            if (elementList[listID] != null) {
+                listElement = document.getElementById(listID);
+            }
+        }
+
+        let activeID = null;
+        if (listElement != null) {
+            element.setAttribute("aria-controls", listElement.id);
+            listElement.setAttribute("role", "listbox");
+            let name = comboBox.GetName();
+            if (name != null) {
+                listElement.setAttribute("aria-label", name);
+            }
+            let highlighted = comboBox.GetHighlightedIndex();
+            let count = list.GetSize();
+            for (let i = 0; i < count; i++) {
+                let listItem = list.GetListItem$quorum_integer(i);
+                if (listItem == null) {
+                    continue;
+                }
+                let optionID = listItem.GetHashCode();
+                if (elementList[optionID] == null) {
+                    continue;
+                }
+                let option = document.getElementById(optionID);
+                if (option == null) {
+                    continue;
+                }
+                option.setAttribute("role", "option");
+                option.setAttribute("aria-selected", (open && i == highlighted) ? "true" : "false");
+                if (open && i == highlighted) {
+                    activeID = optionID;
+                }
+            }
+        } else {
+            element.removeAttribute("aria-controls");
+        }
+
+        if (activeID != null) {
+            element.setAttribute("aria-activedescendant", activeID);
+        } else {
+            element.removeAttribute("aria-activedescendant");
+        }
+    }
+
+    // Brings a color well's element up to date: whether its picker is open,
+    // and its label, the name and the color's words, since a button has no
+    // separate value.
+    function updateColorWell(well) {
+        let id = well.GetHashCode();
+        if (elementList[id] == null) {
+            return;
+        }
+        let element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
+        element.setAttribute("aria-expanded", well.IsOpen() ? "true" : "false");
+        let label = well.GetName();
+        let colorText = well.GetColorText();
+        if (label == null) {
+            label = colorText;
+        } else if (colorText != null) {
+            label = label + ", " + colorText;
+        }
+        if (label != null) {
+            element.setAttribute("aria-label", label);
+        }
+    }
+
+    // Builds a calendar's grid inside its element: a header row of weekday
+    // column headers and six rows of seven day cells. The cells are not
+    // Quorum items; updateCalendar fills them in.
+    function buildCalendarGrid(element, calendar) {
+        let id = element.id;
+        element.quorumCalendarGrid = true;
+
+        let header = document.createElement("div");
+        header.id = id + "-weekdays";
+        header.setAttribute("role", "row");
+        for (let column = 0; column < 7; column++) {
+            let weekday = document.createElement("div");
+            weekday.id = id + "-weekday-" + column;
+            weekday.setAttribute("role", "columnheader");
+            header.appendChild(weekday);
+        }
+        element.appendChild(header);
+
+        for (let row = 0; row < 6; row++) {
+            let rowElement = document.createElement("div");
+            rowElement.id = id + "-row-" + row;
+            rowElement.setAttribute("role", "row");
+            for (let column = 0; column < 7; column++) {
+                let cell = document.createElement("div");
+                cell.id = id + "-day-" + row + "-" + column;
+                cell.setAttribute("role", "gridcell");
+                cell.setAttribute("tabindex", "-1");
+                cell.quorumDate = null;
+
+                // Clicking a day does what clicking it on the screen does: a
+                // day of the month shown is chosen, a day of another month
+                // is moved to, and an unavailable day is left alone.
+                cell.addEventListener("click", (event) => {
+                    let date = cell.quorumDate;
+                    if (date == null) {
+                        return;
+                    }
+                    if (!calendar.IsAvailable$quorum_Libraries_System_CalendarDate(date)) {
+                        return;
+                    }
+                    if (!hasQuorumFocus(calendar)) {
+                        calendar.Focus();
+                    }
+                    let inMonth = calendar.IsInDisplayedMonth$quorum_Libraries_System_CalendarDate(date);
+                    let days = calendar.GetCurrentDay().DaysUntil$quorum_Libraries_System_CalendarDate(date);
+                    calendar.MoveCurrentDay$quorum_integer(days);
+                    if (inMonth) {
+                        calendar.ChooseCurrentDay();
+                    }
+                });
+
+                // A day cell taking the focus gives Quorum's focus to the calendar.
+                cell.addEventListener("focus", (event) => {
+                    if (blurDelayedCall !== null) {
+                        clearTimeout(blurDelayedCall);
+                        blurDelayedCall = null;
+                    }
+                    if (!hasQuorumFocus(calendar)) {
+                        calendar.Focus();
+                    }
+                });
+                addBlurListener(cell);
+                rowElement.appendChild(cell);
+            }
+            element.appendChild(rowElement);
+        }
+    }
+
+    // Brings a calendar's grid up to date: its label, the weekday headers,
+    // and each day's words and states. The current day's cell is the one the
+    // focus goes to, and gets the DOM focus when the calendar has Quorum's.
+    function updateCalendar(calendar) {
+        let id = calendar.GetHashCode();
+        if (elementList[id] == null) {
+            return;
+        }
+        let element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
+        let name = calendar.GetName();
+        if (name != null) {
+            element.setAttribute("aria-label", name);
+        }
+
+        for (let column = 0; column < 7; column++) {
+            let weekday = document.getElementById(id + "-weekday-" + column);
+            if (weekday == null) {
+                continue;
+            }
+            let weekdayName = calendar.GetWeekdayName$quorum_integer(column);
+            if (weekdayName == null) {
+                weekdayName = "";
+            }
+            weekday.setAttribute("aria-label", weekdayName);
+            weekday.textContent = weekdayName.substring(0, 2);
+        }
+
+        let today = new quorum_Libraries_System_CalendarDate_();
+        today.SetToToday();
+        let chosen = calendar.GetDate();
+        let current = calendar.GetCurrentDay();
+        let focusCell = null;
+
+        for (let row = 0; row < 6; row++) {
+            for (let column = 0; column < 7; column++) {
+                let cell = document.getElementById(id + "-day-" + row + "-" + column);
+                if (cell == null) {
+                    continue;
+                }
+                let date = calendar.GetShownDay$quorum_integer$quorum_integer(row, column);
+                cell.quorumDate = date;
+                if (date == null) {
+                    cell.removeAttribute("aria-label");
+                    cell.textContent = "";
+                    continue;
+                }
+                // The label is the date in words; being today, chosen or
+                // unavailable comes from the cell's states, so it isn't said twice.
+                cell.setAttribute("aria-label", date.ToSpokenText());
+                cell.textContent = "" + date.GetDay();
+
+                let selected = false;
+                if (chosen != null) {
+                    selected = chosen.Equals$quorum_Libraries_Language_Object(date);
+                }
+                cell.setAttribute("aria-selected", selected ? "true" : "false");
+
+                if (today.Equals$quorum_Libraries_Language_Object(date)) {
+                    cell.setAttribute("aria-current", "date");
+                } else {
+                    cell.removeAttribute("aria-current");
+                }
+
+                if (calendar.IsAvailable$quorum_Libraries_System_CalendarDate(date)) {
+                    cell.removeAttribute("aria-disabled");
+                } else {
+                    cell.setAttribute("aria-disabled", "true");
+                }
+
+                if (current != null && current.Equals$quorum_Libraries_Language_Object(date)) {
+                    cell.setAttribute("tabindex", "0");
+                    focusCell = cell;
+                } else {
+                    cell.setAttribute("tabindex", "-1");
+                }
+            }
+        }
+
+        element.quorumFocusTarget = focusCell;
+        if (focusCell != null && hasQuorumFocus(calendar) && document.activeElement !== focusCell) {
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
+                focusCell.focus();
+            }
+        }
+    }
+
+//    system action ComboBoxExpanded(ComboBox box)
+    // A combo box's list opened: the field is expanded and controls the list.
+    this.ComboBoxExpanded$quorum_Libraries_Interface_Controls_ComboBox = function(box) {
+        updateComboBox(box);
+    };
+
+//    system action ComboBoxCollapsed(ComboBox box)
+    // A combo box's list closed: the field is collapsed with no active option.
+    this.ComboBoxCollapsed$quorum_Libraries_Interface_Controls_ComboBox = function(box) {
+        updateComboBox(box);
+    };
+
+//    system action ColorWellUpdated(ColorWell well)
+    // A color well's color changed: its label gets the new color's words.
+    this.ColorWellUpdated$quorum_Libraries_Interface_Controls_ColorWell = function(well) {
+        updateColorWell(well);
+    };
+
+//    system action CalendarUpdated(Calendar calendar)
+    // A calendar changed: its days are filled in again and the focus follows
+    // the current day.
+    this.CalendarUpdated$quorum_Libraries_Interface_Controls_Calendar = function(calendar) {
+        updateCalendar(calendar);
+    };
+
+    // The item an item's element stands for: the item itself, or its nearest
+    // accessible parent when it has no element of its own; null if neither
+    // has an element.
+    function getAccessibleItem(item) {
+        if (item == null) {
+            return null;
+        }
+        if (item.GetAccessibilityCode() == -1) {
+            item = item.GetAccessibleParent();
+            if (item == null) {
+                return null;
+            }
+        }
+        if (elementList[item.GetHashCode()] == null) {
+            return null;
+        }
+        return item;
+    }
+
+    // Whether NativeAdd can put an item's element in the document: the list
+    // or radio group it joins must have its element already. Items placed in
+    // other controls' own parts, such as menus, trees, tabs and tables, are
+    // left to those controls.
+    function canAddElement(item) {
+        let code = item.GetAccessibilityCode();
+        if (code == -1 || code == 8 || code == 11 || code == 13 || code == 16 || code == 24) {
+            return false;
+        }
+        let parentItem = null;
+        if (global_InstanceOf(item, "Libraries.Interface.Controls.ListItem")) {
+            parentItem = global_CheckCast(item, "Libraries.Interface.Controls.ListItem").GetList();
+        } else if (global_InstanceOf(item, "Libraries.Interface.Controls.RadioButton")) {
+            parentItem = global_CheckCast(item, "Libraries.Interface.Controls.RadioButton").GetButtonGroup();
+        }
+        if (parentItem == null) {
+            return true;
+        }
+        return document.getElementById(parentItem.GetHashCode()) != null;
+    }
+
+    // Whether a part's element belongs to an element, as aria-activedescendant
+    // needs: inside it, or inside an element it controls or owns.
+    function isPartOf(element, partElement) {
+        if (element.contains(partElement)) {
+            return true;
+        }
+        let related = (element.getAttribute("aria-controls") || "") + " " + (element.getAttribute("aria-owns") || "");
+        for (let relatedID of related.split(/\s+/)) {
+            if (relatedID === "") {
+                continue;
+            }
+            let relatedElement = document.getElementById(relatedID);
+            if (relatedElement != null && relatedElement.contains(partElement)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Takes an id out of an element's aria-owns, removing the attribute when
+    // nothing is left in it.
+    function removeOwned(element, ownedID) {
+        let owns = (element.getAttribute("aria-owns") || "").split(/\s+/).filter((ownsID) => ownsID !== "" && ownsID !== ownedID);
+        if (owns.length > 0) {
+            element.setAttribute("aria-owns", owns.join(" "));
+        } else {
+            element.removeAttribute("aria-owns");
+        }
+    }
+
+    // Removes the aria-activedescendant given to the element with this id, and
+    // the aria-owns entry added with it.
+    function clearActiveDescendant(ownerID) {
+        let ownedID = activeDescendantOwners.get(ownerID);
+        activeDescendantOwners.delete(ownerID);
+        let element = document.getElementById(ownerID);
+        if (element == null) {
+            return;
+        }
+        element.removeAttribute("aria-activedescendant");
+        if (ownedID != null) {
+            removeOwned(element, ownedID);
+        }
+    }
+
+    // Removes the aria-activedescendant given to every element but the one
+    // with this id, so only the focused item points at a part.
+    function clearOtherActiveDescendants(keepID) {
+        for (let ownerID of Array.from(activeDescendantOwners.keys())) {
+            if (ownerID !== keepID) {
+                clearActiveDescendant(ownerID);
+            }
+        }
+    }
+
+//    system action ActiveDescendantUpdated(Item focus, Item active)
+    // The focused item's active part changed: its element's
+    // aria-activedescendant points at the part's element, which is added if
+    // it is missing and owned by the element if it isn't already its part.
+    // With no part, the attribute is removed. A combo box keeps its own
+    // handling, which also marks the option the arrows are on.
+    this.ActiveDescendantUpdated$quorum_Libraries_Interface_Item$quorum_Libraries_Interface_Item = function(focus, active) {
+        let item = getAccessibleItem(focus);
+        if (item == null) {
+            return;
+        }
+        let ownerID = String(item.GetHashCode());
+        let element = document.getElementById(ownerID);
+        if (element == null) {
+            return;
+        }
+        clearOtherActiveDescendants(ownerID);
+
+        let partElement = null;
+        if (active != null) {
+            let part = active;
+            if (part.GetAccessibilityCode() == -1) {
+                part = part.GetAccessibleParent();
+            }
+            if (part != null) {
+                let partID = part.GetHashCode();
+                if (elementList[partID] == null && canAddElement(part)) {
+                    this.NativeAdd$quorum_Libraries_Interface_Item(part);
+                }
+                if (elementList[partID] != null) {
+                    partElement = document.getElementById(partID);
+                }
+            }
+        }
+
+        let ownedID = activeDescendantOwners.get(ownerID);
+        if (ownedID != null) {
+            removeOwned(element, ownedID);
+        }
+        activeDescendantOwners.delete(ownerID);
+
+        if (item.GetAccessibilityCode() == 32 && global_InstanceOf(item, "Libraries.Interface.Controls.ComboBox")) {
+            updateComboBox(global_CheckCast(item, "Libraries.Interface.Controls.ComboBox"));
+            if (element.hasAttribute("aria-activedescendant")) {
+                activeDescendantOwners.set(ownerID, null);
+            }
+            return;
+        }
+
+        if (partElement == null || partElement === element) {
+            element.removeAttribute("aria-activedescendant");
+            return;
+        }
+
+        ownedID = null;
+        if (!isPartOf(element, partElement)) {
+            let owns = element.getAttribute("aria-owns");
+            element.setAttribute("aria-owns", owns ? owns + " " + partElement.id : partElement.id);
+            ownedID = partElement.id;
+        }
+        element.setAttribute("aria-activedescendant", partElement.id);
+        activeDescendantOwners.set(ownerID, ownedID);
+    };
+
 //    system action Select(Item item)
 
     this.Select$quorum_Libraries_Interface_Item = function(item) {
@@ -526,10 +1013,18 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             return;
         }
         currentFocus = item;
+        // The item that had the focus no longer points at its active part;
+        // the new one's part, if it has one, is set right after this.
+        clearOtherActiveDescendants(String(id));
+        // A color well's picker closing returns the focus to it, so its
+        // expanded state is brought up to date here.
+        updateOwnLabel(item);
         if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement) {
             removedFocusedElement = false;
-            let element = document.getElementById(id);
-            element.focus();
+            let element = getFocusTarget(document.getElementById(id));
+            if (element != null) {
+                element.focus();
+            }
         }
         
     };
@@ -562,6 +1057,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var sendInputEvents = false;
         let tablist = null;
         let tabpanel = null;
+        // run once the element is in the document, for controls whose
+        // attributes point at other elements
+        let afterAdd = null;
 
         switch(item.GetAccessibilityCode()){
             //ITEM or CUSTOM
@@ -783,6 +1281,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //LIST
             case 18:
                 role = "list";
+                if (comboBoxLists.has(id)) {
+                    role = "listbox";
+                }
                 break;
             //LIST_ITEM
             case 19:
@@ -795,6 +1296,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     let parentList = listItem.GetList();
                     if (parentList != undefined) {
                         parent = parentList.GetHashCode();
+                        if (comboBoxLists.has(parent)) {
+                            role = "option";
+                            para.setAttribute("aria-selected", "false");
+                        }
                     } else {
                         // the list item is not in a list
                     }
@@ -917,6 +1422,64 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     role = "tooltip";
                 }
                 break;
+            //COMBO_BOX: a text field whose list of choices is a listbox it
+            //controls; the focus stays in the field, and the option the
+            //arrows are on is its active descendant.
+            case 32:
+                elementType = "INPUT"
+                para = document.createElement(elementType);
+                para.id = id;
+                para.type = "text"
+                sendInputEvents = true;
+                role = "combobox";
+                para.setAttribute("aria-autocomplete", "list");
+                para.setAttribute("aria-haspopup", "listbox");
+                para.setAttribute("aria-expanded", "false");
+
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.ComboBox"))
+                {
+                    let comboBox = global_CheckCast(item, "Libraries.Interface.Controls.ComboBox");
+                    para.value = comboBox.GetText();
+                    para.selectionStart = 0;
+                    para.selectionEnd = 0;
+                    afterAdd = () => {
+                        updateComboBox(comboBox);
+                    };
+                }
+
+                para.quorumItem = item;
+                textInputElements.set(id, para);
+                break;
+            //COLOR_WELL: a button that opens the color picker; its label is
+            //the name and the color's words, since a button has no value.
+            case 33:
+                role = "button";
+                para.setAttribute("aria-haspopup", "dialog");
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.ColorWell")) {
+                    let well = global_CheckCast(item, "Libraries.Interface.Controls.ColorWell");
+                    para.setAttribute("aria-expanded", well.IsOpen() ? "true" : "false");
+                    itemDescription = well.GetColorText();
+                    if (itemName == null) {
+                        itemName = itemDescription;
+                        itemDescription = null;
+                    }
+                }
+                break;
+            //CALENDAR: a grid labelled by the month, with weekday column
+            //headers and six weeks of day cells built here; the current day's
+            //cell takes the focus.
+            case 34:
+                role = "grid";
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.Calendar")) {
+                    let calendar = global_CheckCast(item, "Libraries.Interface.Controls.Calendar");
+                    itemName = calendar.GetName();
+                    itemDescription = null;
+                    buildCalendarGrid(para, calendar);
+                    afterAdd = () => {
+                        updateCalendar(calendar);
+                    };
+                }
+                break;
             default:
                 // do nothing?
         }
@@ -1000,7 +1563,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
             }
-            parentElement.appendChild(para);
+            if (parentElement.quorumCalendarGrid === true && parentElement.parentNode != null) {
+                // A grid holds only its rows, so a calendar's own controls,
+                // such as its month buttons, go just before it.
+                parentElement.parentNode.insertBefore(para, parentElement);
+            } else {
+                parentElement.appendChild(para);
+            }
             if(tabpanel !== null) {
                 parentElement.parentNode.appendChild(tabpanel);
             }
@@ -1020,12 +1589,16 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // the element's parent is already set.
         setBounds(para, item);
 
+        if (afterAdd !== null) {
+            afterAdd();
+        }
+
         // Under rare circumstances, the item that is being added is supposed to already be focused by Quorum,
         // or it was previously focused, but then was removed and re-added.
         // If so, make sure it gets the focus.
         if (item.IsFocused() && (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement)) {
             removedFocusedElement = false;
-            para.focus();
+            getFocusTarget(para).focus();
         }
 
         return true;
@@ -1054,6 +1627,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             element.remove();
         }
         plainTooltipOwners.delete(id);
+        activeDescendantOwners.delete(String(id));
+        comboBoxLists.delete(id);
+        for (let [listID, comboBox] of comboBoxLists) {
+            if (comboBox.GetHashCode() == id) {
+                comboBoxLists.delete(listID);
+            }
+        }
         //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
         return true;
@@ -1141,6 +1721,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 element.selectionEnd = position;
               element.value = text;
             }
+            // Moving the highlight writes its choice into the field, so the
+            // active option is brought up to date with the text.
+            if (global_InstanceOf(control, "Libraries.Interface.Controls.ComboBox")) {
+                updateComboBox(global_CheckCast(control, "Libraries.Interface.Controls.ComboBox"));
+            }
             //console.log("TextField Text Changed");
         }
         else {
@@ -1188,6 +1773,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             focusButton = null;
         }
         document.removeEventListener("selectionchange", selectionListener);
+        comboBoxLists.clear();
         elementList.length = 0;
         currentFocus = null;
         thisGame = null;

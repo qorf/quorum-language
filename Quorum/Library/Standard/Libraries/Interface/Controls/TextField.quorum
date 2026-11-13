@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls
 
+use Libraries.Game.GameInput
 use Libraries.Interface.Item2D
 use Libraries.Game.GameStateManager
 use Libraries.Game.GameDisplay
@@ -1743,8 +1744,13 @@ TextChangeEvent changeEvent
             textChangeListeners:Get(counter):TextChanged(event)
             counter = counter + 1
         end
+        // Before the game starts, a program may set the text with no input
+        // system to tell.
         GameStateManager manager
-        manager:GetInput():NotifyTextChangeListeners(event)
+        GameInput gameInput = manager:GetInput()
+        if gameInput not= undefined
+            gameInput:NotifyTextChangeListeners(event)
+        end
     end
 
     /*

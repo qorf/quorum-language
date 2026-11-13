@@ -691,6 +691,11 @@ class Game
 
         // Add Shift+F1 and Escape for tooltips, and the "Tooltip" input group.
         sets:SetupTooltipInput(gameInput)
+
+        // Add the input tables for combo boxes, the color picker and calendars.
+        sets:SetupComboBoxInput(gameInput)
+        sets:SetupColorPickerInput(gameInput)
+        sets:SetupCalendarInput(gameInput)
     end
 
     /*

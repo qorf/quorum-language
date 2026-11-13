@@ -1,0 +1,1143 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.FocusListener
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Events.SliderListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Behaviors.Controls.ColorPickerCloseBehavior
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Game.Graphics.Label
+use Libraries.Containers.Array
+
+/*
+    A ColorPicker is the content of the pop-over a ColorWell opens to choose
+    a color. From the top, it holds a HueRing around a
+    SaturationBrightnessSquare, then red, green and blue SliderFields from 0
+    to 255, a field for the hex code, such as "#4A5A6E", with the color's
+    name beside it, 16 ColorSwatch buttons in one group, and the Cancel and
+    OK buttons. Changing any part updates the others, and the well shows the
+    color as it changes. Tab moves through the ring, the square, the red,
+    green and blue sliders and their number fields, the hex field, the
+    swatches, Cancel and OK.
+
+    Enter or OK keeps the color; Escape, Cancel or a click outside the
+    pop-over puts the old color back. Either way the pop-over closes and the
+    focus goes back to the well.
+
+    For screen readers, the picker is a group named after its well, such as
+    "Fog color". The ring says its degrees and the hue's name, the square
+    its saturation, brightness and color, and each swatch its hex code and
+    name, such as "#FF0000, red".
+
+    Programs don't usually make a ColorPicker themselves: a ColorWell makes
+    one the first time it opens.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ColorWell
+    use Libraries.Game.Graphics.Color
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Color gray
+    gray:SetHexColor("#4A5A6E")
+    // Pressing the well opens its ColorPicker below it.
+    ColorWell fog = page:AddColorWell("Fog color", gray)
+
+    form:Display()
+*/
+class ColorPicker is Control, SliderListener, TextChangeListener, FocusListener, MouseListener
+    HueRing ring
+    SaturationBrightnessSquare square
+    SliderField redField
+    SliderField greenField
+    SliderField blueField
+    ColorSwatchGroup swatchGroup
+    Array<ColorSwatch> swatches
+    TextField hexField
+    Label nameLabel
+    Button cancelButton
+    Button okButton
+
+    Color color
+    // The well this picker belongs to, or undefined.
+    ColorWell well = undefined
+    ColorNamer namer
+
+    // True while the picker shows a color in its parts, so the changes it
+    // makes there aren't taken as the user's.
+    boolean updating = false
+    boolean allowsAlpha = false
+    // True once the swatch group has finished gaining the focus. Until
+    // then, the group's own choice of a swatch is held back.
+    boolean groupFocusSettled = false
+    boolean loaded = false
+
+    // Where a change came from.
+    constant integer FROM_PROGRAM = 0
+    constant integer FROM_RING = 1
+    constant integer FROM_SQUARE = 2
+    constant integer FROM_SWATCH = 3
+    constant integer FROM_HEX = 4
+    constant integer FROM_RED_GREEN_BLUE = 5
+
+    // Sizes and places in pixels before the interface scale, measured from
+    // the top left.
+    constant number WIDTH = 260
+    constant number HEIGHT = 512
+    constant number GROUP_WIDTH = 242
+    constant number GROUP_HEIGHT = 62
+    constant number GROUP_PADDING = 4
+    constant number SWATCH_SPACING = 30
+    constant integer SWATCH_COLUMNS = 8
+    constant number BUTTON_WIDTH = 84
+    // The height of a line holding a text field: one line of the font and
+    // the field's padding. ManualLayout only sizes a child whose height is
+    // set in pixels or as a share, so the field's own fit to its font isn't
+    // used here.
+    constant number LINE_HEIGHT = 30
+    // The hex field, as small as the number fields beside the sliders.
+    constant number HEX_WIDTH = 80
+    constant number HEX_HEIGHT = 22
+    constant number FIELD_WIDTH = 236
+
+    on create
+        ManualLayout layout
+        SetLayout(layout)
+        // A solid, rounded panel in the menus' colors, so what is under the
+        // pop-over doesn't show through.
+        SetInterfaceOptionsKey("MenuPanel")
+        SetBorderThickness(1)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(WIDTH)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(HEIGHT)
+        SetSize(WIDTH, HEIGHT)
+
+        SetName("Color picker")
+        SetInputGroup("ColorPicker")
+        SetAccessibilityCode(parent:Item:GROUP)
+        color:SetColor(0, 0, 0, 1)
+
+        PlaceAt(ring, 20, 12, WIDTH, HEIGHT)
+        Add(ring)
+        PlaceAt(square, 70, 62, WIDTH, HEIGHT)
+        Add(square)
+
+        SetupColorField(redField, "Red")
+        PlaceAt(redField, 12, 244, WIDTH, HEIGHT)
+        Add(redField)
+        SetupColorField(greenField, "Green")
+        PlaceAt(greenField, 12, 278, WIDTH, HEIGHT)
+        Add(greenField)
+        SetupColorField(blueField, "Blue")
+        PlaceAt(blueField, 12, 312, WIDTH, HEIGHT)
+        Add(blueField)
+
+        hexField:SetName("Hex")
+        LayoutProperties hexProperties = hexField:GetDefaultLayoutProperties()
+        hexProperties:SetHorizontalLayoutMode(hexProperties:STANDARD)
+        hexProperties:SetVerticalLayoutMode(hexProperties:STANDARD)
+        hexProperties:SetPercentageWidth(0)
+        // The size of the red, green and blue number fields.
+        hexProperties:SetPixelWidth(HEX_WIDTH)
+        hexProperties:SetPercentageHeight(0)
+        hexProperties:SetPixelHeight(HEX_HEIGHT)
+        PlaceAt(hexField, 12, 354 + (LINE_HEIGHT - HEX_HEIGHT) / 2.0, WIDTH, HEIGHT)
+        Add(hexField)
+
+        nameLabel:SetName("Color name")
+        // Centered up and down on the hex field.
+        PlaceAt(nameLabel, 12 + HEX_WIDTH + 10, 354 + LINE_HEIGHT / 2.0, WIDTH, HEIGHT)
+        nameLabel:GetDefaultLayoutProperties():SetPercentageOriginY(0.5)
+        Add(nameLabel)
+
+        swatchGroup:SetName("Swatches")
+        ManualLayout groupLayout
+        swatchGroup:SetLayout(groupLayout)
+        LayoutProperties groupProperties = swatchGroup:GetDefaultLayoutProperties()
+        groupProperties:SetHorizontalLayoutMode(groupProperties:STANDARD)
+        groupProperties:SetVerticalLayoutMode(groupProperties:STANDARD)
+        groupProperties:SetPercentageWidth(0)
+        groupProperties:SetPixelWidth(GROUP_WIDTH)
+        groupProperties:SetPercentageHeight(0)
+        groupProperties:SetPixelHeight(GROUP_HEIGHT)
+        swatchGroup:SetCornerPixelRounding(6, 6, 6, 6)
+        // The 16 basic colors of HTML and CSS.
+        AddSwatch("#000000")
+        AddSwatch("#808080")
+        AddSwatch("#C0C0C0")
+        AddSwatch("#FFFFFF")
+        AddSwatch("#800000")
+        AddSwatch("#FF0000")
+        AddSwatch("#800080")
+        AddSwatch("#FF00FF")
+        AddSwatch("#008000")
+        AddSwatch("#00FF00")
+        AddSwatch("#808000")
+        AddSwatch("#FFFF00")
+        AddSwatch("#000080")
+        AddSwatch("#0000FF")
+        AddSwatch("#008080")
+        AddSwatch("#00FFFF")
+        PlaceAt(swatchGroup, 9, 396, WIDTH, HEIGHT)
+        Add(swatchGroup)
+
+        SetupButton(cancelButton, "Cancel", false)
+        PlaceAt(cancelButton, 72, 470, WIDTH, HEIGHT)
+        Add(cancelButton)
+        SetupButton(okButton, "OK", true)
+        PlaceAt(okButton, 164, 470, WIDTH, HEIGHT)
+        Add(okButton)
+
+        ring:AddSliderListener(me)
+        square:GetSaturationSlider():AddSliderListener(me)
+        square:GetBrightnessSlider():AddSliderListener(me)
+        redField:AddSliderListener(me)
+        greenField:AddSliderListener(me)
+        blueField:AddSliderListener(me)
+        hexField:AddTextChangeListener(me)
+        hexField:AddFocusListener(me)
+        swatchGroup:AddFocusListener(me)
+
+        // Tab goes around the parts in this order.
+        // Each slider field is two stops, its slider and then its number
+        // field, which it links itself.
+        LinkFocus(ring, square)
+        LinkFocus(square, redField:GetSlider())
+        LinkFocus(redField:GetField(), greenField:GetSlider())
+        LinkFocus(greenField:GetField(), blueField:GetSlider())
+        LinkFocus(blueField:GetField(), hexField)
+        LinkFocus(hexField, swatchGroup)
+        LinkFocus(swatchGroup, cancelButton)
+        LinkFocus(cancelButton, okButton)
+        LinkFocus(okButton, ring)
+
+        ShowColor(FROM_PROGRAM)
+    end
+
+    /*
+        Places a part by its top left corner, given in pixels from the top
+        left of its container. The place is kept as a share of the
+        container's size, so it doesn't change with the interface scale.
+    */
+    private action PlaceAt(Control part, number left, number top, number containerWidth, number containerHeight)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetPercentageX(left / containerWidth)
+        partProperties:SetPercentageY((containerHeight - top) / containerHeight)
+        partProperties:SetPercentageOriginX(0)
+        partProperties:SetPercentageOriginY(1)
+        partProperties:SetPixelX(0)
+        partProperties:SetPixelY(0)
+    end
+
+    /*
+        Makes a swatch of a color and adds it to the group, in rows of 8.
+    */
+    private action AddSwatch(text hex)
+        integer index = swatches:GetSize()
+        integer column = index mod SWATCH_COLUMNS
+        integer row = index / SWATCH_COLUMNS
+
+        Color swatchColor
+        swatchColor:SetHexColor(hex)
+        ColorSwatch swatch
+        swatch:SetColor(swatchColor)
+        swatch:SetColorPicker(me)
+        PlaceAt(swatch, GROUP_PADDING + column * SWATCH_SPACING, GROUP_PADDING + row * SWATCH_SPACING, GROUP_WIDTH, GROUP_HEIGHT)
+        swatchGroup:AddToGrouping(swatch)
+        swatchGroup:Add(swatch)
+        swatches:Add(swatch)
+    end
+
+    /*
+        Readies the red, green or blue slider field: 0 to 255, a line high
+        and as wide as the picker's inside, its name shown at its left.
+    */
+    private action SetupColorField(SliderField field, text name)
+        field:Setup(name, "", 0, 255, 1, 16)
+        field:SetLabelText(name)
+        field:SetLabelWidth(50)
+        LayoutProperties fieldProperties = field:GetDefaultLayoutProperties()
+        fieldProperties:SetHorizontalLayoutMode(fieldProperties:STANDARD)
+        fieldProperties:SetVerticalLayoutMode(fieldProperties:STANDARD)
+        fieldProperties:SetPercentageWidth(0)
+        fieldProperties:SetPixelWidth(FIELD_WIDTH)
+        fieldProperties:SetPercentageHeight(0)
+        fieldProperties:SetPixelHeight(LINE_HEIGHT)
+    end
+
+    /*
+        Readies the Cancel or OK button: a fixed width, and a behavior that
+        closes the picker.
+    */
+    private action SetupButton(Button button, text name, boolean keep)
+        button:SetName(name)
+        LayoutProperties buttonProperties = button:GetDefaultLayoutProperties()
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetPercentageWidth(0)
+        buttonProperties:SetPixelWidth(BUTTON_WIDTH)
+        ColorPickerCloseBehavior behavior
+        if keep
+            behavior:Setup(behavior:OK)
+        else
+            behavior:Setup(behavior:CANCEL)
+        end
+        button:SetBehavior(behavior)
+    end
+
+    /*
+        Makes Tab go from one part to the next, and Shift+Tab back.
+    */
+    private action LinkFocus(Control first, Control second)
+        first:SetNextFocus(second)
+        second:SetPreviousFocus(first)
+    end
+
+    /*
+        This action tells accessibility tools, such as screen readers, that the
+        picker is a group holding its parts.
+
+        Attribute: Returns true, because the picker contains its parts for accessibility.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        boolean holds = picker:IsAccessibleParent()
+    */
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    /*
+        This action loads the view of the swatch group the first time, which
+        draws an outline around the swatches while the group has the focus
+        and none is chosen. The game engine calls this as needed, so most
+        users won't need to call it directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        picker:LoadGraphics(picker:GetDefaultLayoutProperties())
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        if not loaded
+            loaded = true
+            ControlShaderView view
+            view:Initialize()
+            swatchGroup:SetView2D(view)
+            ControlShaderView panelView
+            panelView:Initialize()
+            SetView2D(panelView)
+        end
+        UpdateGroupLook()
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+        Draws the outline around the swatches while the group has the focus
+        and no swatch is chosen, since no swatch shows the focus then.
+    */
+    private action UpdateGroupLook
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        swatchGroup:SetBackgroundColor(clear)
+
+        boolean outline = false
+        if loaded
+            if swatchGroup:IsFocused()
+                if swatchGroup:GetSelectedButton() = undefined
+                    outline = true
+                end
+            end
+        end
+
+        if outline
+            ColorGroup focusColor = ring:GetFocusBorderColor()
+            if focusColor = undefined
+                Color black
+                black:SetColor(0, 0, 0, 1)
+                focusColor = black
+            end
+            swatchGroup:SetBorderColor(focusColor)
+            swatchGroup:SetBorderThickness(2)
+        else
+            swatchGroup:SetBorderColor(clear)
+            swatchGroup:SetBorderThickness(0)
+        end
+
+        if loaded
+            swatchGroup:RequestVerticesUpdate()
+        end
+    end
+
+    /*
+        This action sets the well this picker belongs to. The picker takes
+        the well's name, which screen readers say as the focus enters it, and
+        tells the well of each change, of OK and of Cancel. ColorWell calls
+        this, so most users won't need to.
+
+        Attribute: Parameter newWell The color well.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:SetName("Fog color")
+        ColorPicker picker
+        picker:SetColorWell(well)
+    */
+    action SetColorWell(ColorWell newWell)
+        well = newWell
+        if well not= undefined
+            SetName(well:GetName())
+        end
+    end
+
+    /*
+        This action returns the well this picker belongs to, or undefined.
+
+        Attribute: Returns The color well.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.ColorWell
+        ColorPicker picker
+        ColorWell well = picker:GetColorWell()
+    */
+    action GetColorWell returns ColorWell
+        return well
+    end
+
+    /*
+        This action sets the color the picker shows, as a program does: every
+        part changes to match, but the well isn't told.
+
+        Attribute: Parameter newColor The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorPicker picker
+        picker:SetColor(color:Teal())
+    */
+    action SetColor(Color newColor)
+        color:SetColor(newColor)
+        ShowColor(FROM_PROGRAM)
+    end
+
+    /*
+        This action returns a copy of the color the picker shows.
+
+        Attribute: Returns The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Game.Graphics.Color
+        ColorPicker picker
+        Color color = picker:GetColor()
+    */
+    action GetColor returns Color
+        Color result
+        result:SetColor(color)
+        return result
+    end
+
+    /*
+        This action sets whether the hex field shows and takes the alpha as
+        well, as 8 hex digits such as "#4A5A6E80". Otherwise it shows 6, and
+        6 typed digits keep the color's alpha.
+
+        Attribute: Parameter allow True to show and take the alpha.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        picker:SetAllowsAlpha(true)
+    */
+    action SetAllowsAlpha(boolean allow)
+        allowsAlpha = allow
+        updating = true
+        hexField:SetText(GetHexText())
+        updating = false
+    end
+
+    /*
+        This action returns whether the hex field shows and takes the alpha.
+
+        Attribute: Returns True if the alpha is shown.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        boolean alpha = picker:AllowsAlpha()
+    */
+    action AllowsAlpha returns boolean
+        return allowsAlpha
+    end
+
+    /*
+        This action returns the color's hex code as the hex field shows it,
+        such as "#4A5A6E", with the alpha when it is allowed.
+
+        Attribute: Returns The hex code.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        text hex = picker:GetHexText()
+    */
+    action GetHexText returns text
+        Color rounded
+        rounded:SetColor(RoundComponent(color:GetRed()), RoundComponent(color:GetGreen()), RoundComponent(color:GetBlue()), RoundComponent(color:GetAlpha()))
+        if allowsAlpha
+            return "#" + rounded:GetHexColorWithAlpha()
+        end
+        return "#" + rounded:GetHexColorWithoutAlpha()
+    end
+
+    /*
+        Rounds a color component, from 0 to 1, to the nearest of 256 steps,
+        plus a quarter of a step, since the hex code cuts off the fraction.
+    */
+    private action RoundComponent(number value) returns number
+        integer step = cast(integer, value * 255 + 0.5)
+        return (step + 0.25) / 255.0
+    end
+
+    /*
+        One color component as a whole number from 0 to 255.
+    */
+    private action ToStep(number value) returns integer
+        return cast(integer, value * 255 + 0.5)
+    end
+
+    /*
+        True if two colors have the same red, green and blue, to the nearest
+        of 256 steps.
+    */
+    private action SameColor(Color one, Color two) returns boolean
+        if ToStep(one:GetRed()) not= ToStep(two:GetRed())
+            return false
+        end
+        if ToStep(one:GetGreen()) not= ToStep(two:GetGreen())
+            return false
+        end
+        return ToStep(one:GetBlue()) = ToStep(two:GetBlue())
+    end
+
+    /*
+        Shows the color in every part but the one the change came from, which
+        already shows it.
+    */
+    private action ShowColor(integer source)
+        updating = true
+
+        if source not= FROM_RING and source not= FROM_SQUARE
+            number saturation = color:GetSaturation() * 100
+            number brightness = color:GetBrightness() * 100
+            // A gray has no hue, and black no saturation either: the ring
+            // and square keep what they show for those.
+            if saturation > 0
+                if brightness > 0
+                    ring:SetValue(color:GetHue())
+                end
+            end
+            if brightness <= 0
+                saturation = square:GetSaturation()
+            end
+            square:SetHue(ring:GetValue())
+            square:SetSaturationAndBrightness(saturation, brightness)
+        elseif source = FROM_RING
+            square:SetHue(ring:GetValue())
+        end
+
+        if source not= FROM_RED_GREEN_BLUE
+            redField:SetValue(ToStep(color:GetRed()))
+            greenField:SetValue(ToStep(color:GetGreen()))
+            blueField:SetValue(ToStep(color:GetBlue()))
+        end
+        if source not= FROM_HEX
+            hexField:SetText(GetHexText())
+        end
+        nameLabel:SetText(namer:GetSpokenName(color))
+        UpdateSwatchSelection()
+
+        updating = false
+    end
+
+    /*
+        Chooses the swatch of exactly the color, or none.
+    */
+    private action UpdateSwatchSelection
+        ColorSwatch match = undefined
+        integer i = 0
+        repeat while i < swatches:GetSize()
+            ColorSwatch swatch = swatches:Get(i)
+            if match = undefined
+                if SameColor(swatch:GetColor(), color)
+                    match = swatch
+                end
+            end
+            i = i + 1
+        end
+
+        if match not= undefined
+            match:SetToggleState(true)
+        else
+            swatchGroup:DeselectAll()
+            swatchGroup:GetSelection():Set(-1)
+        end
+        UpdateGroupLook()
+    end
+
+    /*
+        Shows a change the user made in one part in the others, and tells
+        the well.
+    */
+    private action ChangeFromUser(integer source)
+        ShowColor(source)
+        // A number typed in a field is taken when the focus leaves it, which
+        // can be after the pop-over has closed; the well is then left alone.
+        if well not= undefined
+            if well:IsOpen()
+                well:PreviewColor(GetColor())
+            end
+        end
+    end
+
+    /*
+        Takes the color from the ring and the square, keeping the alpha.
+    */
+    private action TakeHueSaturationBrightness(integer source)
+        color:SetHSB(ring:GetValue(), square:GetSaturation() / 100.0, square:GetBrightness() / 100.0)
+        ChangeFromUser(source)
+    end
+
+    /*
+        Takes the color exactly from the red, green and blue fields, keeping
+        the alpha.
+    */
+    private action TakeRedGreenBlue
+        color:SetColor(redField:GetValue() / 255.0, greenField:GetValue() / 255.0, blueField:GetValue() / 255.0, color:GetAlpha())
+        ChangeFromUser(FROM_RED_GREEN_BLUE)
+    end
+
+    /*
+        This action is called when the user changes the hue ring, either of
+        the square's sliders, or the red, green or blue field, with a key,
+        the pointer, a typed number or a screen reader: the color changes,
+        and the other parts and the well show it.
+
+        Attribute: Parameter event The slider's change.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.SliderChangedEvent
+        ColorPicker picker
+        SliderChangedEvent event
+        event:SetSlider(picker:GetHueRing())
+        picker:SliderChanged(event)
+    */
+    action SliderChanged(SliderChangedEvent event)
+        if updating
+            return now
+        end
+        Slider slider = event:GetSlider()
+        if slider = undefined
+            return now
+        end
+        if ring:Equals(slider)
+            TakeHueSaturationBrightness(FROM_RING)
+        elseif square:GetSaturationSlider():Equals(slider)
+            TakeHueSaturationBrightness(FROM_SQUARE)
+        elseif square:GetBrightnessSlider():Equals(slider)
+            TakeHueSaturationBrightness(FROM_SQUARE)
+        else
+            TakeRedGreenBlue()
+        end
+    end
+
+    /*
+        This action is called when the hex field's text changes. A complete
+        hex code, 6 digits (or 8 when the alpha is allowed), with or without
+        "#", changes the color; anything else waits for more typing.
+
+        Attribute: Parameter event The text change.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.TextChangeEvent
+        ColorPicker picker
+        TextChangeEvent event
+        picker:TextChanged(event)
+    */
+    action TextChanged(TextChangeEvent event)
+        if updating
+            return now
+        end
+        Color typed = ParseHex(hexField:GetText())
+        if typed not= undefined
+            color:SetColor(typed)
+            ChangeFromUser(FROM_HEX)
+        end
+    end
+
+    /*
+        The color a hex code gives, or undefined if it isn't a complete code.
+    */
+    private action ParseHex(text value) returns Color
+        if value = undefined
+            return undefined
+        end
+        text digits = value:Trim()
+        if digits:StartsWith("#")
+            digits = digits:GetSubtext(1)
+        end
+
+        integer size = digits:GetSize()
+        boolean withAlpha = false
+        if size = 8
+            if not allowsAlpha
+                return undefined
+            end
+            withAlpha = true
+        elseif size not= 6
+            return undefined
+        end
+
+        integer i = 0
+        repeat while i < size
+            if not IsHexDigit(digits:GetUnicodeInteger(i))
+                return undefined
+            end
+            i = i + 1
+        end
+
+        Color result
+        result:SetHexColor("#" + digits)
+        if not withAlpha
+            result:SetAlpha(color:GetAlpha())
+        end
+        return result
+    end
+
+    /*
+        True for the codes of 0 to 9, A to F and a to f.
+    */
+    private action IsHexDigit(integer code) returns boolean
+        if code >= 48
+            if code <= 57
+                return true
+            end
+        end
+        if code >= 65
+            if code <= 70
+                return true
+            end
+        end
+        if code >= 97
+            if code <= 102
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
+        This action is called when the user chooses a swatch: the color
+        becomes the swatch's, keeping the alpha, and the other parts and the
+        well show it. ColorSwatch calls this, so most users won't need to.
+
+        Attribute: Parameter swatch The chosen swatch.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.ColorSwatch
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorSwatch swatch
+        swatch:SetColor(color:Red())
+        ColorPicker picker
+        picker:SwatchChosen(swatch)
+    */
+    action SwatchChosen(ColorSwatch swatch)
+        if updating
+            return now
+        end
+        number alpha = color:GetAlpha()
+        color:SetColor(swatch:GetColor())
+        color:SetAlpha(alpha)
+        ChangeFromUser(FROM_SWATCH)
+    end
+
+    /*
+        This action returns true while the swatch group is gaining the focus.
+        A group of radio buttons chooses one as it gains the focus; the
+        swatches don't take that choice, so moving to them doesn't change the
+        color. ColorSwatch asks this, so most users won't need to.
+
+        Attribute: Returns True while a swatch shouldn't be chosen by the group gaining the focus.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        boolean holding = picker:IsHoldingSwatchSelection()
+    */
+    action IsHoldingSwatchSelection returns boolean
+        if updating
+            return false
+        end
+        if groupFocusSettled
+            return false
+        end
+        return swatchGroup:IsFocused()
+    end
+
+    /*
+        This action is told when the swatch group or the hex field gains the
+        focus. Once the group has the focus, the arrow keys choose swatches.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.FocusEvent
+        ColorPicker picker
+        FocusEvent event
+        picker:GainedFocus(event)
+    */
+    action GainedFocus(FocusEvent event)
+        Item gained = event:GetNewFocus()
+        if gained = undefined
+            return now
+        end
+        if swatchGroup:Equals(gained)
+            groupFocusSettled = true
+            RefreshSwatches()
+        elseif Equals(gained)
+            parent:Control:GainedFocus(event)
+        end
+    end
+
+    /*
+        This action is told when the swatch group or the hex field loses the
+        focus. Leaving the hex field shows the color's code there again, in
+        place of anything left half typed.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.FocusEvent
+        ColorPicker picker
+        FocusEvent event
+        picker:LostFocus(event)
+    */
+    action LostFocus(FocusEvent event)
+        Item lost = event:GetLastFocus()
+        if lost = undefined
+            return now
+        end
+        if swatchGroup:Equals(lost)
+            groupFocusSettled = false
+            RefreshSwatches()
+        elseif hexField:Equals(lost)
+            updating = true
+            hexField:SetText(GetHexText())
+            updating = false
+        elseif Equals(lost)
+            parent:Control:LostFocus(event)
+        end
+    end
+
+    /*
+        Redraws each swatch's edge and the group's outline, after the group
+        gains or loses the focus.
+    */
+    private action RefreshSwatches
+        integer i = 0
+        repeat while i < swatches:GetSize()
+            swatches:Get(i):RefreshChoiceFocus()
+            i = i + 1
+        end
+        UpdateGroupLook()
+    end
+
+    /*
+        This action keeps the color and closes the picker, as OK and Enter
+        do. The well's listeners are told of the change, as final.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        picker:Accept()
+    */
+    action Accept
+        // A number still being typed in a red, green or blue field counts.
+        TakeTypedNumber(redField)
+        TakeTypedNumber(greenField)
+        TakeTypedNumber(blueField)
+        if well not= undefined
+            well:Accept()
+        end
+    end
+
+    /*
+        Takes the number typed in a slider field's number field, if that
+        field has the focus.
+    */
+    private action TakeTypedNumber(SliderField field)
+        TextField numberField = field:GetField()
+        if numberField:IsFocused()
+            field:TakeFieldText()
+        end
+    end
+
+    /*
+        This action puts the old color back and closes the picker, as Cancel,
+        Escape and a click outside it do.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        picker:Cancel()
+    */
+    action Cancel
+        if well not= undefined
+            well:Close()
+        end
+    end
+
+    /*
+        This action is told of mouse clicks on the pop-over's layer that miss
+        the pop-over: the picker cancels. A click on the well itself stops
+        here, so it closes the picker rather than opening it again; any
+        other click goes on to what is under it.
+
+        Attribute: Parameter event The mouse event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.MouseEvent
+        ColorPicker picker
+        MouseEvent event
+        picker:ClickedMouse(event)
+    */
+    action ClickedMouse(MouseEvent event)
+        if well = undefined
+            return now
+        end
+        if not well:IsOpen()
+            return now
+        end
+        if event:eventType not= event:CLICKED_MOUSE
+            return now
+        end
+        if event:GetSource() not= undefined
+            return now
+        end
+
+        if not IsOnWell(event:GetX(), event:GetY())
+            event:SetEventHandled(false)
+        end
+        Cancel()
+    end
+
+    /*
+        This action is told when a mouse button comes up on the pop-over's
+        layer. It does nothing.
+
+        Attribute: Parameter event The mouse event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Events.MouseEvent
+        ColorPicker picker
+        MouseEvent event
+        picker:ReleasedMouse(event)
+    */
+    action ReleasedMouse(MouseEvent event)
+    end
+
+    /*
+        True if a place on the screen is on the well.
+    */
+    private action IsOnWell(number x, number y) returns boolean
+        number left = well:GetScreenX()
+        number bottom = well:GetScreenY()
+        if x < left
+            return false
+        end
+        if x > left + well:GetWidth()
+            return false
+        end
+        if y < bottom
+            return false
+        end
+        if y > bottom + well:GetHeight()
+            return false
+        end
+        return true
+    end
+
+    /*
+        This action returns the hue ring.
+
+        Attribute: Returns The ring.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.HueRing
+        ColorPicker picker
+        HueRing ring = picker:GetHueRing()
+    */
+    action GetHueRing returns HueRing
+        return ring
+    end
+
+    /*
+        This action returns the saturation and brightness square.
+
+        Attribute: Returns The square.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.SaturationBrightnessSquare
+        ColorPicker picker
+        SaturationBrightnessSquare square = picker:GetSaturationBrightnessSquare()
+    */
+    action GetSaturationBrightnessSquare returns SaturationBrightnessSquare
+        return square
+    end
+
+    /*
+        This action returns the group of swatches.
+
+        Attribute: Returns The group.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.ButtonGroup
+        ColorPicker picker
+        ButtonGroup swatches = picker:GetSwatchGroup()
+    */
+    action GetSwatchGroup returns ButtonGroup
+        return swatchGroup
+    end
+
+    /*
+        This action returns the slider field for red, from 0 to 255.
+
+        Attribute: Returns The red field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.SliderField
+        ColorPicker picker
+        SliderField red = picker:GetRedField()
+    */
+    action GetRedField returns SliderField
+        return redField
+    end
+
+    /*
+        This action returns the slider field for green, from 0 to 255.
+
+        Attribute: Returns The green field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.SliderField
+        ColorPicker picker
+        SliderField green = picker:GetGreenField()
+    */
+    action GetGreenField returns SliderField
+        return greenField
+    end
+
+    /*
+        This action returns the slider field for blue, from 0 to 255.
+
+        Attribute: Returns The blue field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.SliderField
+        ColorPicker picker
+        SliderField blue = picker:GetBlueField()
+    */
+    action GetBlueField returns SliderField
+        return blueField
+    end
+
+    /*
+        This action returns the hex field.
+
+        Attribute: Returns The field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.TextField
+        ColorPicker picker
+        TextField field = picker:GetHexField()
+    */
+    action GetHexField returns TextField
+        return hexField
+    end
+
+    /*
+        This action returns the Cancel button.
+
+        Attribute: Returns The button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.Button
+        ColorPicker picker
+        Button cancel = picker:GetCancelButton()
+    */
+    action GetCancelButton returns Button
+        return cancelButton
+    end
+
+    /*
+        This action returns the OK button.
+
+        Attribute: Returns The button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorPicker
+        use Libraries.Interface.Controls.Button
+        ColorPicker picker
+        Button ok = picker:GetOKButton()
+    */
+    action GetOKButton returns Button
+        return okButton
+    end
+end

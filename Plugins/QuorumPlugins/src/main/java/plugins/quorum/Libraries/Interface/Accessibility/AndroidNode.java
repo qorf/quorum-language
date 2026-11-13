@@ -55,5 +55,23 @@ public class AndroidNode {
     public String tooltipText = null;
     public String[] tooltipButtons = new String[0];
 
+    // Said in place of the text, as a View's content description is.
+    public String contentDescription = null;
+    // False for something that can't be used now, such as a day outside a
+    // calendar's allowed range.
+    public boolean enabled = true;
+    // A combo box: it can open (expand) or close (collapse) its list.
+    public boolean expandable = false;
+    public boolean expanded = false;
+    // A grid (a calendar's days): its rows and columns, or 0 for none.
+    public int collectionRows = 0;
+    public int collectionColumns = 0;
+    // A cell in a grid: its row and column, or -1 for none.
+    public int collectionRow = -1;
+    public int collectionColumn = -1;
+    // A calendar's day: a virtual node with no Quorum item, in its
+    // calendar's node.
+    public boolean calendarDay = false;
+
     public static final int HOST = android.view.View.NO_ID;
 }

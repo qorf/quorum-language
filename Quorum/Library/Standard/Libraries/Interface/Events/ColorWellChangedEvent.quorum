@@ -1,0 +1,162 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Game.Graphics.Color
+
+/*
+    The ColorWellChangedEvent says a ColorWell's color was changed by the
+    user, with the color before and after the change. While the picker is
+    open, each change is shown in the well at once and sent as an event that
+    is not final. When the user presses OK, one final event is sent, whose
+    old color is the color before the picker opened. When the user cancels
+    after changing the color, one final event puts the old color back.
+
+    A listener can show cheap changes while the picker is open and do costly
+    work, such as saving an undo step, only on the final event.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.ColorWellChangedEvent
+    use Libraries.Interface.Events.ColorWellListener
+
+    class FogColorListener is ColorWellListener
+        action ColorWellChanged(ColorWellChangedEvent event)
+            if event:IsFinal()
+                output "The fog is now " + event:GetColorWell():GetColorText()
+            end
+        end
+    end
+*/
+class ColorWellChangedEvent
+    ColorWell well = undefined
+    Color oldColor = undefined
+    Color newColor = undefined
+    boolean finished = true
+
+    /*
+        This action returns the color well whose color changed.
+
+        Attribute: Returns The color well.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Interface.Controls.ColorWell
+        ColorWellChangedEvent event
+        ColorWell well = event:GetColorWell()
+    */
+    action GetColorWell returns ColorWell
+        return well
+    end
+
+    /*
+        This action sets the color well whose color changed.
+
+        Attribute: Parameter colorWell The color well.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        ColorWellChangedEvent event
+        event:SetColorWell(well)
+    */
+    action SetColorWell(ColorWell colorWell)
+        well = colorWell
+    end
+
+    /*
+        This action returns the color before the change. For a final event
+        when the picker closes with OK, this is the color before the picker
+        opened.
+
+        Attribute: Returns The old color.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Game.Graphics.Color
+        ColorWellChangedEvent event
+        Color before = event:GetOldColor()
+    */
+    action GetOldColor returns Color
+        return oldColor
+    end
+
+    /*
+        This action sets the color before the change.
+
+        Attribute: Parameter color The old color.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorWellChangedEvent event
+        event:SetOldColor(color:Red())
+    */
+    action SetOldColor(Color color)
+        oldColor = color
+    end
+
+    /*
+        This action returns the color after the change.
+
+        Attribute: Returns The new color.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Game.Graphics.Color
+        ColorWellChangedEvent event
+        Color after = event:GetNewColor()
+    */
+    action GetNewColor returns Color
+        return newColor
+    end
+
+    /*
+        This action sets the color after the change.
+
+        Attribute: Parameter color The new color.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorWellChangedEvent event
+        event:SetNewColor(color:Blue())
+    */
+    action SetNewColor(Color color)
+        newColor = color
+    end
+
+    /*
+        This action returns true if the change is finished: the picker closed
+        with OK, a cancel put the old color back, or a program set the color.
+        It returns false while the picker is still open.
+
+        Attribute: Returns True if the change is finished.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        ColorWellChangedEvent event
+        boolean done = event:IsFinal()
+    */
+    action IsFinal returns boolean
+        return finished
+    end
+
+    /*
+        This action sets whether the change is finished.
+
+        Attribute: Parameter isFinal True if the change is finished.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ColorWellChangedEvent
+        ColorWellChangedEvent event
+        event:SetFinal(true)
+    */
+    action SetFinal(boolean isFinal)
+        finished = isFinal
+    end
+end

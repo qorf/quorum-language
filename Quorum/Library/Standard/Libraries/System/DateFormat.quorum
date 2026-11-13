@@ -1,0 +1,673 @@
+package Libraries.System
+
+use Libraries.Containers.Array
+use Libraries.System.CalendarDate
+
+/*
+    The DateFormat class writes a CalendarDate as text, and reads text back
+    into a CalendarDate, by a pattern such as "MMMM d, yyyy" ("November 12,
+    2026"), "MM/dd/yyyy" ("11/12/2026") or "yyyy-MM-dd" ("2026-11-12"). The
+    pattern's letters are those of the Unicode date format patterns (Unicode
+    Technical Standard #35), which most platforms follow:
+
+    yyyy: the year, such as 2026 (yy is its last two digits).
+    M: the month's number, such as 1 or 11. MM: two digits, such as 01.
+    MMM: the month's short name, such as "Nov". MMMM: its name, "November".
+    d: the day of the month, such as 3. dd: two digits, such as 03.
+    EEE: the weekday's short name, such as "Thu". EEEE: its name, "Thursday".
+
+    Any other character is written as it is. Text in single quotes is
+    written as it is too, even letters, and two single quotes are one quote.
+
+    The month and weekday names are English unless set with SetMonthNames
+    and SetDayNames, so a format for another language is a pattern with
+    other names. A short name is the first three letters of the name.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.System.CalendarDate
+    use Libraries.System.DateFormat
+
+    DateFormat format
+    format:SetPattern("EEEE, MMMM d, yyyy")
+    CalendarDate date
+    date:SetDate(2026, 11, 12)
+    output format:ToText(date)
+
+    CalendarDate typed = format:Parse("Friday, November 13, 2026")
+    if typed not= undefined
+        output typed:ToText()
+    end
+*/
+class DateFormat
+    text pattern = ""
+    // The month names, January first.
+    Array<text> monthNames
+    // The weekday names, Monday first, as GetDayOfWeek numbers them.
+    Array<text> dayNames
+
+    // The pattern, split into its parts: what each part is, how many
+    // letters it has, and the text of a written part.
+    Array<integer> tokenKinds
+    Array<integer> tokenCounts
+    Array<text> tokenTexts
+
+    // How many characters the last MatchName matched.
+    integer matchedLength = 0
+
+    text digits = "0123456789"
+
+    constant integer LITERAL = 0
+    constant integer YEAR = 1
+    constant integer MONTH = 2
+    constant integer DAY = 3
+    constant integer WEEKDAY = 4
+
+    on create
+        CalendarDate date
+        integer counter = 1
+        repeat while counter <= 12
+            boolean valid = date:SetDate(2000, counter, 1)
+            monthNames:Add(date:GetMonthName())
+            counter = counter + 1
+        end
+        // Day 0, January 1, 1970, was a Thursday (4), so day -3 was a Monday.
+        counter = 1
+        repeat while counter <= 7
+            date:SetDayNumber(counter - 4)
+            dayNames:Add(date:GetDayName())
+            counter = counter + 1
+        end
+        SetPattern("MMMM d, yyyy")
+    end
+
+    /*
+        This action sets the pattern dates are written and read with, such as
+        "MMMM d, yyyy" or "MM/dd/yyyy". The letters are described with the
+        class. A new DateFormat uses "MMMM d, yyyy".
+
+        Attribute: Parameter newPattern The pattern.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+
+        DateFormat format
+        format:SetPattern("dd.MM.yyyy")
+    */
+    action SetPattern(text newPattern)
+        if newPattern = undefined
+            pattern = ""
+        else
+            pattern = newPattern
+        end
+        Tokenize()
+    end
+
+    /*
+        This action returns the pattern dates are written and read with.
+
+        Attribute: Returns The pattern, such as "MMMM d, yyyy".
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+
+        DateFormat format
+        output format:GetPattern()
+    */
+    action GetPattern returns text
+        return pattern
+    end
+
+    /*
+        This action writes a date as text in this format. An undefined date
+        is an empty text.
+
+        Attribute: Parameter date The date to write.
+        Attribute: Returns The date as text, such as "November 12, 2026".
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+        use Libraries.System.DateFormat
+
+        DateFormat format
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        output format:ToText(date)
+    */
+    action ToText(CalendarDate date) returns text
+        if date = undefined
+            return ""
+        end
+        text result = ""
+        integer index = 0
+        repeat while index < tokenKinds:GetSize()
+            integer kind = tokenKinds:Get(index)
+            integer count = tokenCounts:Get(index)
+            if kind = LITERAL
+                result = result + tokenTexts:Get(index)
+            elseif kind = YEAR
+                if count = 2
+                    integer lastTwo = date:GetYear() mod 100
+                    if lastTwo < 0
+                        lastTwo = -lastTwo
+                    end
+                    result = result + Pad(lastTwo, 2)
+                else
+                    result = result + Pad(date:GetYear(), count)
+                end
+            elseif kind = MONTH
+                text monthName = monthNames:Get(date:GetMonth() - 1)
+                if count <= 2
+                    result = result + Pad(date:GetMonth(), count)
+                elseif count = 3
+                    result = result + ShortName(monthName)
+                else
+                    result = result + monthName
+                end
+            elseif kind = DAY
+                result = result + Pad(date:GetDay(), count)
+            elseif kind = WEEKDAY
+                text dayName = dayNames:Get(date:GetDayOfWeek() - 1)
+                if count <= 3
+                    result = result + ShortName(dayName)
+                else
+                    result = result + dayName
+                end
+            end
+            index = index + 1
+        end
+        return result
+    end
+
+    /*
+        This action reads a date from text in this format, or returns
+        undefined if the text isn't a date in this format, such as
+        "November 31, 2026" or "tomorrow". Names are read with any case,
+        in full or short ("nov 12, 2026"), numbers with or without zeros in
+        front, and spaces in the pattern match any number of spaces. Space
+        before and after the date is ignored. A pattern with no year reads
+        dates in 1970; with no month, January; with no day, the first.
+
+        Attribute: Parameter value The text to read.
+        Attribute: Returns The date, or undefined.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+        use Libraries.System.DateFormat
+
+        DateFormat format
+        format:SetPattern("MM/dd/yyyy")
+        CalendarDate date = format:Parse("11/12/2026")
+    */
+    action Parse(text value) returns CalendarDate
+        if value = undefined
+            return undefined
+        end
+        text source = value:Trim()
+        integer size = source:GetSize()
+        integer position = 0
+        integer parsedYear = 1970
+        integer parsedMonth = 1
+        integer parsedDay = 1
+
+        integer index = 0
+        repeat while index < tokenKinds:GetSize()
+            integer kind = tokenKinds:Get(index)
+            integer count = tokenCounts:Get(index)
+            if kind = LITERAL
+                position = MatchLiteral(source, position, tokenTexts:Get(index))
+                if position < 0
+                    return undefined
+                end
+            elseif IsNumberToken(index)
+                // Next to another number, as in "yyyyMMdd", a number can't
+                // run on, so it reads only its own digits.
+                integer maximumDigits = 9
+                if IsNumberToken(index + 1)
+                    maximumDigits = count
+                    if kind not= YEAR and maximumDigits < 2
+                        maximumDigits = 2
+                    end
+                end
+                integer start = position
+                integer amount = 0
+                boolean reading = true
+                repeat while reading
+                    if position - start >= maximumDigits
+                        reading = false
+                    elseif IsDigitAt(source, position)
+                        amount = amount * 10 + digits:IndexOf(source:GetCharacter(position))
+                        position = position + 1
+                    else
+                        reading = false
+                    end
+                end
+                if position = start
+                    return undefined
+                end
+                if kind = YEAR
+                    if count = 2 and position - start = 2
+                        parsedYear = 2000 + amount
+                    else
+                        parsedYear = amount
+                    end
+                elseif kind = MONTH
+                    parsedMonth = amount
+                else
+                    parsedDay = amount
+                end
+            elseif kind = MONTH
+                integer monthIndex = MatchName(source, position, monthNames)
+                if monthIndex < 0
+                    return undefined
+                end
+                parsedMonth = monthIndex + 1
+                position = position + matchedLength
+            elseif kind = WEEKDAY
+                // The weekday is read, but the date comes from the rest.
+                integer dayIndex = MatchName(source, position, dayNames)
+                if dayIndex < 0
+                    return undefined
+                end
+                position = position + matchedLength
+            end
+            index = index + 1
+        end
+
+        if position not= size
+            return undefined
+        end
+        CalendarDate result
+        if not result:SetDate(parsedYear, parsedMonth, parsedDay)
+            return undefined
+        end
+        return result
+    end
+
+    /*
+        This action sets the twelve month names, January first, for another
+        language. The short names are their first three letters. An array
+        that doesn't have twelve names is ignored.
+
+        Attribute: Parameter names The twelve month names.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+        use Libraries.Containers.Array
+
+        Array<text> names
+        names:Add("enero")
+        names:Add("febrero")
+        names:Add("marzo")
+        names:Add("abril")
+        names:Add("mayo")
+        names:Add("junio")
+        names:Add("julio")
+        names:Add("agosto")
+        names:Add("septiembre")
+        names:Add("octubre")
+        names:Add("noviembre")
+        names:Add("diciembre")
+        DateFormat format
+        format:SetPattern("d 'de' MMMM 'de' yyyy")
+        format:SetMonthNames(names)
+    */
+    action SetMonthNames(Array<text> names)
+        if names = undefined
+            return now
+        end
+        if names:GetSize() not= 12
+            return now
+        end
+        CopyNames(names, monthNames)
+    end
+
+    /*
+        This action sets the seven weekday names, Monday first, for another
+        language. The short names are their first three letters. An array
+        that doesn't have seven names is ignored.
+
+        Attribute: Parameter names The seven weekday names, Monday first.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+        use Libraries.Containers.Array
+
+        Array<text> names
+        names:Add("lunes")
+        names:Add("martes")
+        names:Add("miércoles")
+        names:Add("jueves")
+        names:Add("viernes")
+        names:Add("sábado")
+        names:Add("domingo")
+        DateFormat format
+        format:SetDayNames(names)
+    */
+    action SetDayNames(Array<text> names)
+        if names = undefined
+            return now
+        end
+        if names:GetSize() not= 7
+            return now
+        end
+        CopyNames(names, dayNames)
+    end
+
+    /*
+        This action returns a new format for long dates, "MMMM d, yyyy", such
+        as "November 12, 2026", with this format's names. This is the
+        pattern a new DateFormat has.
+
+        Attribute: Returns The long format.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+
+        DateFormat formats
+        DateFormat long = formats:GetLongFormat()
+    */
+    action GetLongFormat returns DateFormat
+        return MakeFormat("MMMM d, yyyy")
+    end
+
+    /*
+        This action returns a new format for dates as numbers, "MM/dd/yyyy",
+        such as "11/12/2026", with this format's names.
+
+        Attribute: Returns The numeric format.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+
+        DateFormat formats
+        DateFormat numeric = formats:GetNumericFormat()
+    */
+    action GetNumericFormat returns DateFormat
+        return MakeFormat("MM/dd/yyyy")
+    end
+
+    /*
+        This action returns a new format for ISO 8601 dates, "yyyy-MM-dd",
+        such as "2026-11-12", with this format's names.
+
+        Attribute: Returns The ISO format.
+
+        Attribute: Example
+        use Libraries.System.DateFormat
+
+        DateFormat formats
+        DateFormat iso = formats:GetISOFormat()
+    */
+    action GetISOFormat returns DateFormat
+        return MakeFormat("yyyy-MM-dd")
+    end
+
+    /*
+        A new format with a pattern and this format's names.
+    */
+    private action MakeFormat(text newPattern) returns DateFormat
+        DateFormat result
+        result:SetPattern(newPattern)
+        result:SetMonthNames(monthNames)
+        result:SetDayNames(dayNames)
+        return result
+    end
+
+    /*
+        Copies names into one of the name lists.
+    */
+    private action CopyNames(Array<text> source, Array<text> target)
+        Array<text> copy
+        integer counter = 0
+        repeat while counter < source:GetSize()
+            copy:Add(source:Get(counter))
+            counter = counter + 1
+        end
+        target:Empty()
+        counter = 0
+        repeat while counter < copy:GetSize()
+            target:Add(copy:Get(counter))
+            counter = counter + 1
+        end
+    end
+
+    /*
+        Splits the pattern into its parts: runs of one pattern letter, and
+        the text written as it is between them.
+    */
+    private action Tokenize
+        tokenKinds:Empty()
+        tokenCounts:Empty()
+        tokenTexts:Empty()
+
+        text literal = ""
+        integer size = pattern:GetSize()
+        integer index = 0
+        repeat while index < size
+            text character = pattern:GetCharacter(index)
+            integer kind = KindOf(character)
+            if character = "'"
+                if PatternHas(index + 1, "'")
+                    literal = literal + "'"
+                    index = index + 2
+                else
+                    // Quoted text, up to the closing quote.
+                    index = index + 1
+                    boolean closed = false
+                    repeat while index < size and not closed
+                        text quoted = pattern:GetCharacter(index)
+                        if quoted = "'"
+                            if PatternHas(index + 1, "'")
+                                literal = literal + "'"
+                                index = index + 2
+                            else
+                                closed = true
+                                index = index + 1
+                            end
+                        else
+                            literal = literal + quoted
+                            index = index + 1
+                        end
+                    end
+                end
+            elseif kind not= LITERAL
+                AddLiteral(literal)
+                literal = ""
+                integer count = 0
+                repeat while PatternHas(index, character)
+                    count = count + 1
+                    index = index + 1
+                end
+                tokenKinds:Add(kind)
+                tokenCounts:Add(count)
+                tokenTexts:Add("")
+            else
+                literal = literal + character
+                index = index + 1
+            end
+        end
+        AddLiteral(literal)
+    end
+
+    /*
+        Adds a part written as it is, if it isn't empty.
+    */
+    private action AddLiteral(text value)
+        if value:IsEmpty()
+            return now
+        end
+        tokenKinds:Add(LITERAL)
+        tokenCounts:Add(0)
+        tokenTexts:Add(value)
+    end
+
+    /*
+        Whether the pattern has a character at a place.
+    */
+    private action PatternHas(integer index, text character) returns boolean
+        if index < 0 or index >= pattern:GetSize()
+            return false
+        end
+        return pattern:GetCharacter(index) = character
+    end
+
+    /*
+        What a pattern letter stands for, or LITERAL for any other character.
+    */
+    private action KindOf(text character) returns integer
+        if character = "y"
+            return YEAR
+        elseif character = "M"
+            return MONTH
+        elseif character = "d"
+            return DAY
+        elseif character = "E"
+            return WEEKDAY
+        end
+        return LITERAL
+    end
+
+    /*
+        Whether a part of the pattern is read as a number: a year, a day, or
+        a month with one or two letters.
+    */
+    private action IsNumberToken(integer index) returns boolean
+        if index < 0 or index >= tokenKinds:GetSize()
+            return false
+        end
+        integer kind = tokenKinds:Get(index)
+        if kind = YEAR or kind = DAY
+            return true
+        end
+        if kind = MONTH
+            return tokenCounts:Get(index) <= 2
+        end
+        return false
+    end
+
+    /*
+        Matches written text at a place in the input, ignoring case. A space
+        matches any number of spaces, even none. Returns the place after the
+        match, or -1 if it doesn't match.
+    */
+    private action MatchLiteral(text source, integer start, text literal) returns integer
+        integer position = start
+        integer size = source:GetSize()
+        integer index = 0
+        repeat while index < literal:GetSize()
+            text expected = literal:GetCharacter(index)
+            if expected = " "
+                repeat while InputHas(source, position, " ")
+                    position = position + 1
+                end
+            else
+                if position >= size
+                    return -1
+                end
+                text found = source:GetCharacter(position)
+                if not found:EqualsIgnoringCase(expected)
+                    return -1
+                end
+                position = position + 1
+            end
+            index = index + 1
+        end
+        return position
+    end
+
+    /*
+        Whether the input has a character at a place.
+    */
+    private action InputHas(text source, integer index, text character) returns boolean
+        if index < 0 or index >= source:GetSize()
+            return false
+        end
+        return source:GetCharacter(index) = character
+    end
+
+    /*
+        Whether the input has a digit at a place.
+    */
+    private action IsDigitAt(text source, integer index) returns boolean
+        if index < 0 or index >= source:GetSize()
+            return false
+        end
+        return digits:IndexOf(source:GetCharacter(index)) >= 0
+    end
+
+    /*
+        Finds the longest name, in full or short, at a place in the input,
+        ignoring case. Returns its place in the list, or -1, and keeps how
+        many characters it matched in matchedLength.
+    */
+    private action MatchName(text source, integer position, Array<text> names) returns integer
+        integer best = -1
+        integer bestLength = 0
+        integer index = 0
+        repeat while index < names:GetSize()
+            text name = names:Get(index)
+            if StartsWithIgnoringCase(source, position, name)
+                if name:GetSize() > bestLength
+                    best = index
+                    bestLength = name:GetSize()
+                end
+            end
+            text abbreviation = ShortName(name)
+            if StartsWithIgnoringCase(source, position, abbreviation)
+                if abbreviation:GetSize() > bestLength
+                    best = index
+                    bestLength = abbreviation:GetSize()
+                end
+            end
+            index = index + 1
+        end
+        matchedLength = bestLength
+        return best
+    end
+
+    /*
+        Whether the input has a word at a place, ignoring case.
+    */
+    private action StartsWithIgnoringCase(text source, integer position, text word) returns boolean
+        if word:IsEmpty()
+            return false
+        end
+        integer finish = position + word:GetSize()
+        if position < 0 or finish > source:GetSize()
+            return false
+        end
+        text part = source:GetSubtext(position, finish)
+        return part:EqualsIgnoringCase(word)
+    end
+
+    /*
+        A name's short form: its first three letters.
+    */
+    private action ShortName(text name) returns text
+        if name:GetSize() > 3
+            return name:GetSubtext(0, 3)
+        end
+        return name
+    end
+
+    /*
+        Writes a number with zeros in front, to at least a width of digits.
+        A negative number gets its minus sign in front of the zeros.
+    */
+    private action Pad(integer value, integer width) returns text
+        integer magnitude = value
+        text sign = ""
+        if value < 0
+            magnitude = -value
+            sign = "-"
+        end
+        text result = "" + magnitude
+        repeat while result:GetSize() < width
+            result = "0" + result
+        end
+        return sign + result
+    end
+end

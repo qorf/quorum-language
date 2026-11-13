@@ -1,0 +1,329 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Containers.Array
+
+/*
+    A ColorSwatch is a radio button drawn as a square of one color, for
+    choosing that color in a ColorPicker. Its name is the color's hex code
+    and name, such as "#FF0000, red", which is what screen readers say for
+    it. A ColorPicker puts its swatches in one ButtonGroup, so the arrow keys
+    move among them and choose, as in any group of radio buttons.
+
+    A selected swatch has a thick edge in a color that stands out from it;
+    the selected swatch of a focused group has its edge in the focus color.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Color
+    use Libraries.Interface.Controls.ColorSwatch
+    use Libraries.Interface.Controls.ButtonGroup
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            ButtonGroup group
+            ColorSwatch red
+            red:SetColor(color:Red())
+            group:AddToGrouping(red)
+            group:Add(red)
+            Add(group)
+        end
+    end
+*/
+class ColorSwatch is RadioButton
+    Color swatchColor
+    // The picker told when this swatch is chosen, or undefined.
+    ColorPicker picker = undefined
+    // The square of color, over the radio button's own parts, which are
+    // never drawn.
+    Control colorSquare
+    // A light ring just inside the square's dark edge while the swatch is
+    // selected: one of the two always stands out, on light or dark colors.
+    Control innerRing
+    ColorNamer namer
+    boolean swatchLoaded = false
+
+    // Sizes in pixels before the interface scale.
+    constant number SIZE = 24
+    constant number ROUNDING = 4
+    // The selected swatch's dark (or focus colored) edge, and the light
+    // ring inside it.
+    constant number OUTER_RING = 3
+    constant number INNER_RING = 2
+
+    on create
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(SIZE)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(SIZE)
+        SetSize(SIZE, SIZE)
+
+        colorSquare:SetName("Swatch Color")
+        colorSquare:SetAcceptsMouseInput(false)
+        colorSquare:SetFocusable(false)
+        colorSquare:SetAccessibilityCode(colorSquare:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties squareProperties = colorSquare:GetDefaultLayoutProperties()
+        squareProperties:SetHorizontalLayoutMode(squareProperties:STANDARD)
+        squareProperties:SetVerticalLayoutMode(squareProperties:STANDARD)
+        colorSquare:SetPercentageX(0)
+        colorSquare:SetPercentageY(0)
+        colorSquare:SetPercentageWidth(1)
+        colorSquare:SetPercentageHeight(1)
+        colorSquare:SetCornerPixelRounding(ROUNDING, ROUNDING, ROUNDING, ROUNDING)
+
+        innerRing:SetName("Swatch Inner Ring")
+        innerRing:SetAcceptsMouseInput(false)
+        innerRing:SetFocusable(false)
+        innerRing:SetAccessibilityCode(innerRing:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties ringProperties = innerRing:GetDefaultLayoutProperties()
+        ringProperties:SetHorizontalLayoutMode(ringProperties:STANDARD)
+        ringProperties:SetVerticalLayoutMode(ringProperties:STANDARD)
+        // Inside the square's edge, which is OUTER_RING pixels thick.
+        innerRing:SetPercentageX(0.5)
+        innerRing:SetPercentageY(0.5)
+        innerRing:SetPercentageOriginX(0.5)
+        innerRing:SetPercentageOriginY(0.5)
+        innerRing:SetPercentageWidth(1)
+        innerRing:SetPercentageHeight(1)
+        innerRing:SetPixelWidth(-2 * OUTER_RING)
+        innerRing:SetPixelHeight(-2 * OUTER_RING)
+        innerRing:SetCornerPixelRounding(ROUNDING - 1, ROUNDING - 1, ROUNDING - 1, ROUNDING - 1)
+        innerRing:Hide()
+
+        swatchColor:SetColor(0, 0, 0, 1)
+        SetName(namer:GetColorText(swatchColor))
+    end
+
+    /*
+        This action sets the swatch's color. Its name becomes the color's hex
+        code and name, such as "#FF0000, red".
+
+        Attribute: Parameter color The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorSwatch swatch
+        swatch:SetColor(color:Red())
+    */
+    action SetColor(Color color)
+        swatchColor:SetColor(color)
+        SetName(namer:GetColorText(swatchColor))
+        UpdateSwatchLook()
+    end
+
+    /*
+        This action returns a copy of the swatch's color.
+
+        Attribute: Returns The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        use Libraries.Game.Graphics.Color
+        ColorSwatch swatch
+        Color color = swatch:GetColor()
+    */
+    action GetColor returns Color
+        Color result
+        result:SetColor(swatchColor)
+        return result
+    end
+
+    /*
+        This action sets the color picker told when this swatch is chosen, or
+        undefined for none. ColorPicker calls it for its swatches.
+
+        Attribute: Parameter newPicker The picker.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        use Libraries.Interface.Controls.ColorPicker
+        ColorPicker picker
+        ColorSwatch swatch
+        swatch:SetColorPicker(picker)
+    */
+    action SetColorPicker(ColorPicker newPicker)
+        picker = newPicker
+    end
+
+    /*
+        This action returns the color picker told when this swatch is chosen,
+        or undefined.
+
+        Attribute: Returns The picker.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        use Libraries.Interface.Controls.ColorPicker
+        ColorSwatch swatch
+        ColorPicker picker = swatch:GetColorPicker()
+    */
+    action GetColorPicker returns ColorPicker
+        return picker
+    end
+
+    /*
+        This action loads the radio button's graphics, then hides its circle
+        and label and draws the square of color in their place. The game
+        engine calls this as needed, so most users won't need to call it
+        directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        ColorSwatch swatch
+        swatch:LoadGraphics(swatch:GetDefaultLayoutProperties())
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+        parent:RadioButton:LoadGraphics(properties)
+
+        if not swatchLoaded
+            swatchLoaded = true
+            Array<Item2D> parts = GetChildren()
+            integer i = 0
+            repeat while i < parts:GetSize()
+                parts:Get(i):Hide()
+                i = i + 1
+            end
+
+            ManualLayout layout
+            SetLayout(layout)
+
+            ControlShaderView view
+            view:Initialize()
+            colorSquare:SetView2D(view)
+            Add(colorSquare)
+            ControlShaderView ringView
+            ringView:Initialize()
+            innerRing:SetView2D(ringView)
+            Add(innerRing)
+        end
+
+        UpdateSwatchLook()
+    end
+
+    /*
+        This action sets whether the swatch is selected, as RadioButton's
+        does, and redraws its edge. While the picker holds back the choice
+        that a group makes on its own when it gains the focus, a swatch isn't
+        selected that way, so tabbing to the swatches doesn't change the
+        color.
+
+        Attribute: Parameter toggleState True to select the swatch.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        ColorSwatch swatch
+        swatch:SetToggleState(true)
+    */
+    action SetToggleState(boolean toggleState)
+        if toggleState and picker not= undefined
+            if picker:IsHoldingSwatchSelection()
+                return now
+            end
+        end
+        parent:RadioButton:SetToggleState(toggleState)
+        UpdateSwatchLook()
+    end
+
+    /*
+        This action is called each time the swatch is selected: the picker,
+        if there is one, takes the swatch's color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        ColorSwatch swatch
+        swatch:OnToggleOn()
+    */
+    action OnToggleOn
+        if picker not= undefined
+            picker:SwatchChosen(me)
+        end
+    end
+
+    /*
+        This action redraws the swatch's edge to match whether it is
+        selected and whether it shows the focus.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatch
+        ColorSwatch swatch
+        swatch:RefreshChoiceFocus()
+    */
+    action RefreshChoiceFocus
+        parent:RadioButton:RefreshChoiceFocus()
+        UpdateSwatchLook()
+    end
+
+    /*
+        Colors the square and its edge. A selected swatch has a two-tone
+        mark that shows on any color: a dark edge, in the focus color while
+        it shows the focus, with a white ring just inside it. Otherwise it
+        has a thin gray edge.
+    */
+    private action UpdateSwatchLook
+        colorSquare:SetBackgroundColor(swatchColor)
+
+        boolean showsFocus = false
+        if swatchLoaded
+            showsFocus = IsShowingChoiceFocus()
+        end
+
+        Color dark
+        dark:SetColor(0.1, 0.1, 0.1, 1)
+        Color white
+        white:SetColor(1, 1, 1, 1)
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        innerRing:SetBackgroundColor(clear)
+        innerRing:SetBorderColor(white)
+        innerRing:SetBorderThickness(INNER_RING)
+
+        if showsFocus
+            ColorGroup focusColor = GetFocusBorderColor()
+            if focusColor = undefined
+                focusColor = dark
+            end
+            colorSquare:SetBorderColor(focusColor)
+            colorSquare:SetBorderThickness(OUTER_RING)
+            innerRing:Show()
+        elseif GetToggleState()
+            colorSquare:SetBorderColor(dark)
+            colorSquare:SetBorderThickness(OUTER_RING)
+            innerRing:Show()
+        else
+            Color edge
+            edge:SetColor(0.5, 0.5, 0.5, 0.6)
+            colorSquare:SetBorderColor(edge)
+            colorSquare:SetBorderThickness(1)
+            innerRing:Hide()
+        end
+
+        if swatchLoaded
+            colorSquare:RequestVerticesUpdate()
+            innerRing:RequestVerticesUpdate()
+        end
+    end
+end

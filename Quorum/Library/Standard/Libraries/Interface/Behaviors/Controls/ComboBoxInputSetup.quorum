@@ -1,0 +1,89 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Game.GameInput
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+
+/*
+The ComboBoxInputSetup class builds the input table of combo boxes, the
+"ComboBox" input group. It starts as a copy of the "TextField" table, so typing,
+the caret and the selection work as in a text field, and adds the combo box's
+keys: Down and Alt+Down open the list or highlight the next choice, Up opens it
+or highlights the previous choice, Home and End go to the first and last choice
+while the list is open, Enter and the keypad's Enter choose the highlighted
+choice, and Escape closes the list. DefaultInputSets:SetupComboBoxInput calls it
+when the game starts, so most users won't need to.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Behaviors.Controls.ComboBoxInputSetup
+use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
+
+GameStateManager manager
+GameInput gameInput = manager:GetInput()
+ComboBoxInputSetup setup
+setup:Setup(gameInput)
+*/
+class ComboBoxInputSetup
+    KeyboardEvent keys
+
+    /*
+        This action builds the "ComboBox" input table and adds it to the game's
+        input. The "TextField" table must already be set up, since the combo
+        box's table starts as a copy of it.
+
+        Attribute: Parameter gameInput The game's input, which gets the table.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.ComboBoxInputSetup
+        use Libraries.Game.GameStateManager
+        use Libraries.Game.GameInput
+
+        GameStateManager manager
+        GameInput gameInput = manager:GetInput()
+        ComboBoxInputSetup setup
+        setup:Setup(gameInput)
+    */
+    action Setup(GameInput gameInput)
+        InputTable textFieldTable = gameInput:GetInputTable("TextField")
+        InputTable comboTable = undefined
+        if textFieldTable = undefined
+            InputTable newTable
+            comboTable = newTable
+        else
+            comboTable = textFieldTable:Copy()
+        end
+        comboTable:SetIdentifier("ComboBox")
+
+        ComboBoxKeyBehavior temp
+        AddKey(comboTable, keys:DOWN, false, temp:NEXT)
+        AddKey(comboTable, keys:DOWN, true, temp:OPEN)
+        AddKey(comboTable, keys:UP, false, temp:PREVIOUS)
+        AddKey(comboTable, keys:HOME, false, temp:FIRST)
+        AddKey(comboTable, keys:END, false, temp:LAST)
+        AddKey(comboTable, keys:ENTER, false, temp:CHOOSE)
+        AddKey(comboTable, keys:NUMPAD_ENTER, false, temp:CHOOSE)
+        AddKey(comboTable, keys:ESCAPE, false, temp:CLOSE)
+
+        gameInput:AddInputTable(comboTable)
+    end
+
+    /*
+        Adds one of the combo box's keys, with or without Alt, replacing what
+        the text field's table gave that key.
+    */
+    private action AddKey(InputTable table, integer key, boolean alt, integer move)
+        InputSet set
+        set:SetKeyboardInput(key)
+        if alt
+            set:AddModifier(set:ALT)
+        end
+        ComboBoxKeyBehavior behavior
+        behavior:Setup(move)
+        table:Add(set, behavior)
+    end
+end

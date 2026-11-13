@@ -1,0 +1,129 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.DateField
+
+/*
+    The CalendarKeyBehavior carries out one of a Calendar's keys: moving the
+    current day by a day, a week, a month or a year, to the start or end of
+    its week, choosing it, or closing a date field's calendar. Which one is
+    set with Setup, using the constants here. The moves work only while the
+    calendar itself has the focus, not one of its month buttons.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.CalendarKeyBehavior
+
+    CalendarKeyBehavior behavior
+    behavior:Setup(behavior:NEXT_DAY)
+*/
+class CalendarKeyBehavior is Behavior
+    public constant integer NEXT_DAY = 0
+    public constant integer PREVIOUS_DAY = 1
+    public constant integer NEXT_WEEK = 2
+    public constant integer PREVIOUS_WEEK = 3
+    public constant integer WEEK_START = 4
+    public constant integer WEEK_END = 5
+    public constant integer NEXT_MONTH = 6
+    public constant integer PREVIOUS_MONTH = 7
+    public constant integer NEXT_YEAR = 8
+    public constant integer PREVIOUS_YEAR = 9
+    public constant integer CHOOSE = 10
+    public constant integer CLOSE = 11
+
+    integer move = NEXT_DAY
+
+    /*
+        This action sets what the key does.
+
+        Attribute: Parameter newMove One of the constants, such as NEXT_DAY.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.CalendarKeyBehavior
+
+        CalendarKeyBehavior behavior
+        behavior:Setup(behavior:CHOOSE)
+    */
+    action Setup(integer newMove)
+        move = newMove
+    end
+
+    /*
+        This action returns what the key does, one of the constants.
+
+        Attribute: Returns What the key does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.CalendarKeyBehavior
+
+        CalendarKeyBehavior behavior
+        integer value = behavior:GetMove()
+    */
+    action GetMove returns integer
+        return move
+    end
+
+    /*
+        This action carries out the key on the calendar. The input tables
+        call it, so most users won't need to.
+
+        Attribute: Parameter event The key event, whose item is the calendar.
+    */
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Calendar)
+            return now
+        end
+        Calendar calendar = cast(Calendar, event:GetItem())
+
+        if move = CLOSE
+            DateField field = calendar:GetDateField()
+            if field not= undefined
+                field:CloseCalendar()
+            end
+            return now
+        end
+
+        // A key that reached the calendar from one of its month buttons
+        // doesn't move the days.
+        if not calendar:IsFocused()
+            return now
+        end
+
+        if move = NEXT_DAY
+            calendar:MoveCurrentDay(1)
+        elseif move = PREVIOUS_DAY
+            calendar:MoveCurrentDay(-1)
+        elseif move = NEXT_WEEK
+            calendar:MoveCurrentDay(7)
+        elseif move = PREVIOUS_WEEK
+            calendar:MoveCurrentDay(-7)
+        elseif move = WEEK_START
+            calendar:MoveToWeekStart()
+        elseif move = WEEK_END
+            calendar:MoveToWeekEnd()
+        elseif move = NEXT_MONTH
+            calendar:MoveCurrentMonth(1)
+        elseif move = PREVIOUS_MONTH
+            calendar:MoveCurrentMonth(-1)
+        elseif move = NEXT_YEAR
+            calendar:MoveCurrentYear(1)
+        elseif move = PREVIOUS_YEAR
+            calendar:MoveCurrentYear(-1)
+        elseif move = CHOOSE
+            calendar:ChooseCurrentDay()
+        end
+    end
+
+    /*
+        This action returns true: the key's work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

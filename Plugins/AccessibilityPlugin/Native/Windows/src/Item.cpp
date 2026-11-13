@@ -46,18 +46,60 @@ void Item::SetQuorumFocus()
 	}
 }
 
+void Item::SetActivePart(_In_opt_ Item* part)
+{
+	if (m_root == nullptr || !HasQuorumFocus())
+	{
+		return;
+	}
+
+	// A part that is this item, or that isn't in this window's tree, can't
+	// take the focus, so the focus goes back to this item.
+	if (part == this)
+	{
+		part = nullptr;
+	}
+	if (part != nullptr && part->GetRoot() != m_root)
+	{
+		part = nullptr;
+	}
+
+	m_root->SetActivePart(part);
+
+	// Raise the focus changed event on what UI Automation now has as the
+	// focus: the part, or this item.
+	Item::NotifyFocusGained();
+}
+
 void Item::NotifyFocusGained()
 {
 	const auto uiaFocusItem = m_root->GetUiaFocus();
 
 	if (uiaFocusItem && IsReadyForEvents())
 	{
-		const auto provider = uiaFocusItem->GetProviderSimple();
-		UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
+		const auto fragment = uiaFocusItem->GetUiaFocusFragment();
+		if (fragment)
+		{
+			const auto provider = fragment.try_query<IRawElementProviderSimple>();
+			if (provider)
+			{
+				UiaRaiseAutomationEvent(provider.get(), UIA_AutomationFocusChangedEventId);
+			}
+		}
 	}
 }
 
 Item* Item::GetUiaFocusDescendant() const noexcept
+{
+	return nullptr;
+}
+
+wil::com_ptr<IRawElementProviderFragment> Item::GetUiaFocusFragment()
+{
+	return GetProviderFragment();
+}
+
+wil::com_ptr<IRawElementProviderFragment> Item::GetFragmentAfterChildren()
 {
 	return nullptr;
 }
@@ -307,6 +349,12 @@ void Item::Disconnect() noexcept
 	if (m_root && (m_root->GetQuorumFocus() == this))
 	{
 		m_root->SetQuorumFocus(nullptr);
+	}
+
+	// A removed active part can't keep UI Automation's focus.
+	if (m_root && (m_root->GetActivePart() == this))
+	{
+		m_root->SetActivePart(nullptr);
 	}
 
 	if (IsProviderCreated())

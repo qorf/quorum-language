@@ -1,0 +1,73 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.SaturationBrightnessSquare
+
+/*
+    The SaturationBrightnessKeyBehavior changes a focused
+    SaturationBrightnessSquare for one of its arrow keys: Right and Left
+    raise and lower the saturation, Up and Down the brightness, by one
+    percent, or by a tenth of a percent with Shift. Which change it makes is
+    set with Setup, using the constants here.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.InputTable
+    use Libraries.Game.InputSet
+    use Libraries.Interface.Events.KeyboardEvent
+    use Libraries.Interface.Behaviors.Controls.SaturationBrightnessKeyBehavior
+
+    KeyboardEvent keys
+    InputTable table
+    table:SetIdentifier("SaturationBrightnessSquare")
+    InputSet right
+    right:SetKeyboardInput(keys:RIGHT)
+    SaturationBrightnessKeyBehavior behavior
+    behavior:Setup(behavior:SATURATION_UP, false)
+    table:Add(right, behavior)
+*/
+class SaturationBrightnessKeyBehavior is Behavior
+    public constant integer SATURATION_UP = 0
+    public constant integer SATURATION_DOWN = 1
+    public constant integer BRIGHTNESS_UP = 2
+    public constant integer BRIGHTNESS_DOWN = 3
+
+    integer move = SATURATION_UP
+    boolean fine = false
+
+    /*
+        This action sets which change the key makes, and whether it is a
+        small one, as with Shift.
+
+        Attribute: Parameter newMove One of the constants, such as SATURATION_UP.
+        Attribute: Parameter isFine True for a tenth of a step.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.SaturationBrightnessKeyBehavior
+        SaturationBrightnessKeyBehavior behavior
+        behavior:Setup(behavior:BRIGHTNESS_DOWN, true)
+    */
+    action Setup(integer newMove, boolean isFine)
+        move = newMove
+        fine = isFine
+    end
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is SaturationBrightnessSquare)
+            return now
+        end
+        SaturationBrightnessSquare square = cast(SaturationBrightnessSquare, event:GetItem())
+        if move = SATURATION_UP
+            square:IncreaseSaturation(fine)
+        elseif move = SATURATION_DOWN
+            square:DecreaseSaturation(fine)
+        elseif move = BRIGHTNESS_UP
+            square:IncreaseBrightness(fine)
+        elseif move = BRIGHTNESS_DOWN
+            square:DecreaseBrightness(fine)
+        end
+    end
+end

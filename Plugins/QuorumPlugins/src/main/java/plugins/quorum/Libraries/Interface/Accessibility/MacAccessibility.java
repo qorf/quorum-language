@@ -275,6 +275,22 @@ public class MacAccessibility {
                     Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
                         "A VoiceOver action failed: " + request.action, error);
                 }
+            } else if (request.action != null) {
+                // An internal child's id is (kit id << 32) | number: the kit
+                // that holds it carries out the request (a calendar's day).
+                NodeId ownerID = new NodeId(request.target.value >>> 32);
+                ItemKit owner = items.get(ownerID);
+                if (owner != null) {
+                    try {
+                        owner.DoInternalChildAction(request);
+                        if (items.containsKey(ownerID)) {
+                            dirtyNodes.add(ownerID);
+                        }
+                    } catch (RuntimeException error) {
+                        Logger.getLogger(MacAccessibility.class.getName()).log(Level.WARNING,
+                            "A VoiceOver action failed: " + request.action, error);
+                    }
+                }
             }
             request = pendingActions.poll();
         }
@@ -333,10 +349,60 @@ public class MacAccessibility {
         }
     }
 
-    // Where AccessKit's focus goes: the focused kit's GetFocusTarget.
+    /*
+        Where AccessKit's focus goes: the focused kit's GetFocusTarget, or,
+        while the focused item has an active part (Item:GetActiveDescendant,
+        such as a combo box's highlighted row, a color square's slider or a
+        group's selected swatch), that part's node. VoiceOver then reads the
+        part as the keys move it, while Quorum's focus stays where it is.
+        This is asked every update, so a new active part needs no event.
+    */
     private NodeId FocusTarget() {
         ItemKit kit = items.get(focus);
-        return kit == null ? focus : kit.GetFocusTarget();
+        if (kit == null) {
+            return focus;
+        }
+        ItemKit active = GetActiveKit(kit, false);
+        return active != null ? active.GetFocusTarget() : kit.GetFocusTarget();
+    }
+
+    /*
+        The kit of the active part of a kit's item, or null if it has none
+        or the part's kit doesn't hang from the root. With add, a part with
+        no kit yet gets one (NativeAdd), which marks it and its parent to be
+        built in the coming update, so its node is in the tree by the time
+        the focus names it. Only NativeUpdate adds, before any update is
+        built; while one is built, a part with no kit is left alone.
+    */
+    private ItemKit GetActiveKit(ItemKit kit, boolean add) {
+        Item_ item = kit.GetItem();
+        if (item == null) {
+            return null;
+        }
+        Item_ active = item.GetActiveDescendant();
+        if (active == null || active == item) {
+            return null;
+        }
+        ItemKit activeKit = GetKit(active);
+        if (activeKit == null && add && NativeAdd(active)) {
+            activeKit = GetKit(active);
+        }
+        if (activeKit == null || activeKit == kit || !IsAttached(activeKit)) {
+            return null;
+        }
+        return activeKit;
+    }
+
+    /*
+        Makes sure the focused item's active part, if any, has a node before
+        the focus is worked out (GetActiveKit). A part whose kit was just
+        made is built in the coming update with its parent.
+    */
+    private void PrepareActivePart() {
+        ItemKit kit = items.get(focus);
+        if (kit != null) {
+            GetActiveKit(kit, true);
+        }
     }
 
     /*
@@ -384,6 +450,7 @@ public class MacAccessibility {
             }
         }
         refreshChildren.clear();
+        PrepareActivePart();
         final NodeId target = FocusTarget();
         if (!target.equals(sentFocus)) {
             isFocusDirty = true;
@@ -627,6 +694,25 @@ public class MacAccessibility {
     }
 
     /*
+        A calendar changed: its current day moved, its month changed or a day
+        was chosen. Its kit checks whether the days shown changed (which
+        gives the days new node ids, CalendarKit.SyncDays), and the grid,
+        its rows and days are built again on the next update, with the
+        focus on the current day's node while the calendar has the focus.
+    */
+    public void NativeCalendarChanged(Calendar_ calendar) {
+        ItemKit kit = GetKit(calendar);
+        if (kit == null) {
+            return;
+        }
+        if (kit instanceof CalendarKit) {
+            ((CalendarKit) kit).SyncDays();
+        }
+        dirtyNodes.add(kit.GetNodeID());
+        isFocusDirty = true;
+    }
+
+    /*
         A tooltip opened. Showing its dialog added the tooltip's kit (a
         TooltipKit under the root); its control's node now names it as
         describing it. Both are sent on the next update. A control with no
@@ -836,6 +922,15 @@ public class MacAccessibility {
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__SLIDER_()) {
             SliderKit kit = new SliderKit();
+            itemKit = kit;
+        } else if (code == item.Get_Libraries_Interface_Item__COMBO_BOX_()) {
+            ComboBoxKit kit = new ComboBoxKit();
+            itemKit = kit;
+        } else if (code == item.Get_Libraries_Interface_Item__COLOR_WELL_()) {
+            ColorWellKit kit = new ColorWellKit();
+            itemKit = kit;
+        } else if (code == item.Get_Libraries_Interface_Item__CALENDAR_()) {
+            CalendarKit kit = new CalendarKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TOOLTIP_()) {
             // A tooltip of plain text has no node: as with AppKit's own

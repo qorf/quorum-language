@@ -14,6 +14,9 @@ use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -70,6 +73,78 @@ class AndroidAccessibility is Accessibility
             NativeTooltipHidden(tooltip)
         end
     end
+
+    /*
+        A combo box's list opened. The combo box's node shows it expanded:
+        the snapshot is made again.
+    */
+    action ComboBoxOpened(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A combo box's list closed. The combo box's node shows it collapsed:
+        the snapshot is made again.
+    */
+    action ComboBoxClosed(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A color well's color changed. TalkBack gets the new color's words as
+        the well's state: the snapshot is made again.
+    */
+    action ColorWellChanged(ColorWell well)
+        if well not= undefined
+            NameChanged(well)
+        end
+    end
+
+    /*
+        A calendar's current day moved, its month changed, or a day was
+        chosen. The days are made again, and TalkBack follows the current day
+        while the calendar has the focus.
+    */
+    action CalendarChanged(Calendar calendar)
+        if calendar not= undefined
+            NativeCalendarChanged(calendar)
+        end
+    end
+
+    /*
+        This action indicates that the active part of the focused item
+        changed, such as the row a combo box highlights as the arrow keys
+        move. The part's node takes the input focus and TalkBack moves to it,
+        so it reads the part, while Quorum's focus stays on the item. When
+        the active part is undefined, both go back to the item itself.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's new active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility.AndroidAccessibility
+        use Libraries.Interface.Controls.ComboBox
+
+        AndroidAccessibility accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantChanged(sizes, sizes:GetActiveDescendant())
+    */
+    action ActiveDescendantChanged(Item focus, Item active)
+        if focus not= undefined
+            NativeActiveDescendantChanged(focus, active)
+        end
+    end
+
+    private system action NativeActiveDescendantChanged(Item focus, Item active)
+
+    private system action NativeCalendarChanged(Calendar calendar)
 
     private system action NativeTooltipShown(Tooltip tooltip)
 

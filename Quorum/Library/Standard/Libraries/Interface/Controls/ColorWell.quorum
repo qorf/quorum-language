@@ -1,0 +1,655 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.ColorWellChangedEvent
+use Libraries.Interface.Events.ColorWellListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Game.Graphics.Drawable
+use Libraries.Containers.Array
+
+/*
+    A ColorWell is a button that shows a color: a small square of it, then
+    its hex code, such as "#4A5A6E". Pressing it, with the mouse, a finger,
+    Space or Enter, opens a ColorPicker in a pop-over just below it, to
+    choose a new color with a hue ring, a saturation and brightness square,
+    swatches or a hex code. The well shows the color as it changes. OK or
+    Enter keeps the new color; Cancel, Escape or a click outside the
+    pop-over puts the old one back. Either way the focus comes back to the
+    well.
+
+    Listeners (AddColorWellListener) are told of each change while the
+    picker is open, as not final, and once more, as final, when OK keeps a
+    new color or a cancel puts the old one back.
+
+    For screen readers, the well's name is its label, such as "Fog color",
+    and its description is the color's hex code and then its name, such as
+    "#4A5A6E, dim gray", kept up to date as the color changes. The hex code
+    comes first because the name is only the closest of a list of named
+    colors.
+
+    Its colors come from the interface options under the key "ColorWell".
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.ColorWell
+    use Libraries.Game.Graphics.Color
+
+    Form form
+    Page page = form:GetMainPage()
+
+    Color gray
+    gray:SetHexColor("#4A5A6E")
+    ColorWell fog = page:AddColorWell("Fog color", gray)
+
+    form:Display()
+*/
+class ColorWell is Button
+    Color color
+    // The color when the picker opened, put back by a cancel.
+    Color colorBefore
+    boolean allowsAlpha = false
+    Array<ColorWellListener> colorWellListeners
+    ColorNamer namer
+    GameStateManager manager
+
+    // Made the first time the well opens.
+    ColorPicker picker = undefined
+    Dialog dialog = undefined
+
+    // The square of color at the left, drawn over the button.
+    Drawable swatch = undefined
+    LayoutProperties swatchProperties
+
+    // Sizes in pixels before the interface scale.
+    constant number SWATCH_SIZE = 18
+    constant number SWATCH_LEFT = 7
+    constant number SWATCH_GAP = 6
+    constant number SWATCH_ROUNDING = 3
+    // Space between the well and the pop-over.
+    constant number GAP = 4
+    // How wide the pop-over is: the picker's width.
+    constant number POP_OVER_WIDTH = 260
+
+    on create
+        SetInterfaceOptionsKey("ColorWell")
+        SetAccessibilityCode(parent:Item:COLOR_WELL)
+        SetName("Color")
+        // Room at the left for the square of color.
+        SetLeftPadding(SWATCH_LEFT + SWATCH_SIZE + SWATCH_GAP)
+        color:SetColor(0, 0, 0, 1)
+        colorBefore:SetColor(color)
+        ShowColorText()
+    end
+
+    /*
+        This action sets the well's name, which screen readers say before its
+        color, such as "Fog color". Unlike other buttons, the well shows its
+        color's hex code instead of its name.
+
+        Attribute: Parameter name The name.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:SetName("Fog color")
+    */
+    action SetName(text name)
+        parent:Item2D:SetName(name)
+        if picker not= undefined
+            picker:SetName(name)
+        end
+        if dialog not= undefined
+            dialog:SetName(name)
+        end
+    end
+
+    /*
+        This action sets the well's color, as a program does: the well shows
+        it and screen readers are told, but listeners aren't. If the picker is
+        open, it shows the color too.
+
+        Attribute: Parameter newColor The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorWell well
+        well:SetColor(color:Teal())
+    */
+    action SetColor(Color newColor)
+        if newColor = undefined
+            return now
+        end
+        color:SetColor(newColor)
+        ShowColorText()
+        NotifyAccessibility()
+        if IsOpen()
+            picker:SetColor(color)
+        end
+    end
+
+    /*
+        This action returns a copy of the well's color.
+
+        Attribute: Returns The color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Game.Graphics.Color
+        ColorWell well
+        Color color = well:GetColor()
+    */
+    action GetColor returns Color
+        Color result
+        result:SetColor(color)
+        return result
+    end
+
+    /*
+        This action sets whether the picker's hex field shows and takes the
+        alpha too, as 8 hex digits such as "#4A5A6E80". By default it shows 6,
+        and the color's alpha is kept as it is.
+
+        Attribute: Parameter allow True to show and take the alpha.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:SetAllowsAlpha(true)
+    */
+    action SetAllowsAlpha(boolean allow)
+        allowsAlpha = allow
+        if picker not= undefined
+            picker:SetAllowsAlpha(allow)
+        end
+    end
+
+    /*
+        This action returns whether the picker shows and takes the alpha.
+
+        Attribute: Returns True if the alpha is shown.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        boolean alpha = well:AllowsAlpha()
+    */
+    action AllowsAlpha returns boolean
+        return allowsAlpha
+    end
+
+    /*
+        This action returns the words screen readers say for the color: the
+        hex code, then the name of the closest named color, such as "#4A5A6E,
+        dim gray".
+
+        Attribute: Returns The color's words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        text words = well:GetColorText()
+    */
+    action GetColorText returns text
+        return namer:GetColorText(color)
+    end
+
+    /*
+        Shows the color: the square of color, the hex code on the button,
+        and the description screen readers hear.
+    */
+    private action ShowColorText
+        Color rounded
+        rounded:SetColor(RoundComponent(color:GetRed()), RoundComponent(color:GetGreen()), RoundComponent(color:GetBlue()), 1)
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetLabelText("#" + rounded:GetHexColorWithoutAlpha())
+        properties:SetRenderingFlag(true)
+        SetDescription(GetColorText())
+        UpdateSwatch()
+        RequestLayout()
+    end
+
+    /*
+        Rounds a color component, from 0 to 1, to the nearest of 256 steps,
+        plus a quarter of a step, since the hex code cuts off the fraction.
+    */
+    private action RoundComponent(number value) returns number
+        integer step = cast(integer, value * 255 + 0.5)
+        return (step + 0.25) / 255.0
+    end
+
+    /*
+        This action loads the button's graphics, then adds the square of
+        color at its left. The game engine calls this as needed, so most
+        users won't need to call it directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:LoadGraphics(well:GetDefaultLayoutProperties())
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:Button:LoadGraphics(properties)
+        if properties = undefined
+            return now
+        end
+
+        if swatch = undefined
+            Drawable newSwatch
+            swatch = newSwatch
+            swatch:SetName("Well Color")
+            swatch:SetAcceptsMouseInput(false)
+            ControlShaderView swatchView
+            swatchView:Initialize()
+            swatchView:SetShaderData(swatchProperties)
+            swatch:SetView2D(swatchView)
+            Add(swatch)
+        end
+        UpdateSwatch()
+    end
+
+    /*
+        Colors, sizes and places the square of color: at the left, centered
+        up and down.
+    */
+    private action UpdateSwatch
+        if swatch = undefined
+            return now
+        end
+        number scale = GetInterfaceScale()
+        Color edge
+        edge:SetColor(0, 0, 0, 0.35)
+        Color shown
+        shown:SetColor(color)
+        swatchProperties:SetBackgroundColor(shown)
+        swatchProperties:SetBorderColor(edge)
+        swatchProperties:SetBorderThickness(1)
+        swatchProperties:SetBottomLeftPixelRounding(SWATCH_ROUNDING)
+        swatchProperties:SetBottomRightPixelRounding(SWATCH_ROUNDING)
+        swatchProperties:SetTopLeftPixelRounding(SWATCH_ROUNDING)
+        swatchProperties:SetTopRightPixelRounding(SWATCH_ROUNDING)
+        swatchProperties:SetInterfaceScale(scale)
+
+        number size = SWATCH_SIZE * scale
+        swatch:SetSize(size, size)
+        swatch:SetPosition(SWATCH_LEFT * scale, (GetHeight() - size) / 2.0)
+        swatch:RequestVerticesUpdate()
+    end
+
+    /*
+        This action sets the width and height of the well, and keeps the
+        square of color centered up and down.
+
+        Attribute: Parameter newWidth The new width.
+        Attribute: Parameter newHeight The new height.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:SetSize(140, 32)
+    */
+    action SetSize(number newWidth, number newHeight)
+        parent:Button:SetSize(newWidth, newHeight)
+        UpdateSwatch()
+    end
+
+    /*
+        This action sets the height of the well, and keeps the square of
+        color centered up and down.
+
+        Attribute: Parameter newHeight The new height.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:SetHeight(32)
+    */
+    action SetHeight(number newHeight)
+        parent:Button:SetHeight(newHeight)
+        UpdateSwatch()
+    end
+
+    /*
+        This action is called when the well is pressed: it runs the well's
+        behavior, if it has one, then opens the picker, or closes it if it is
+        open.
+
+        Attribute: Parameter event The event that pressed the well.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Interface.Events.BehaviorEvent
+        ColorWell well
+        BehaviorEvent event
+        event:SetItem(well)
+        well:Activate(event)
+    */
+    action Activate(BehaviorEvent event)
+        parent:Button:Activate(event)
+        if IsOpen()
+            Close()
+        else
+            Open()
+        end
+    end
+
+    /*
+        This action opens the picker in a pop-over just below the well, or
+        above it if there's no room below, with the focus on the hue ring.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:Open()
+    */
+    action Open
+        if IsOpen()
+            return now
+        end
+        Game game = manager:GetGame()
+        if game = undefined
+            return now
+        end
+
+        if picker = undefined
+            ColorPicker newPicker
+            picker = newPicker
+            Dialog newDialog
+            dialog = newDialog
+            dialog:SetTopBarVisible(false)
+            dialog:SetModal(false)
+            dialog:SetAccessibilityCode(dialog:parent:Item:NOT_ACCESSIBLE)
+            LayoutProperties dialogProperties = dialog:GetDefaultLayoutProperties()
+            dialogProperties:SetPercentageWidth(0)
+            dialogProperties:SetPixelWidth(POP_OVER_WIDTH)
+            dialog:Add(picker)
+        end
+        dialog:SetName(GetName())
+        picker:SetColorWell(me)
+        picker:SetAllowsAlpha(allowsAlpha)
+        picker:SetColor(color)
+        colorBefore:SetColor(color)
+
+        PlacePopOver(game)
+        dialog:Show()
+        Layer layer = dialog:GetLayer()
+        if layer not= undefined
+            layer:AddMouseListener(picker)
+        end
+        picker:GetHueRing():Focus()
+    end
+
+    /*
+        Places the pop-over below the well, or above it when it doesn't fit
+        below, and keeps it inside the window.
+    */
+    private action PlacePopOver(Game game)
+        number scale = game:GetInterfaceScale()
+        if scale <= 0
+            scale = 1
+        end
+        number gap = GAP * scale
+        number width = POP_OVER_WIDTH * scale
+        // The picker's height, so the whole pop-over stays in the window.
+        number height = picker:GetDefaultLayoutProperties():GetPixelHeight() * scale
+        number windowWidth = manager:GetGameDisplay():GetWidth()
+        number windowHeight = manager:GetGameDisplay():GetHeight()
+
+        // Screen positions count up from the bottom left of the window.
+        number x = GetScreenX()
+        number bottom = GetScreenY()
+        number top = bottom - gap
+        if top - height < 0
+            top = bottom + GetHeight() + gap + height
+        end
+        if x + width > windowWidth
+            x = windowWidth - width
+        end
+        if x < 0
+            x = 0
+        end
+        if top > windowHeight
+            top = windowHeight
+        end
+        if top - height < 0
+            top = height
+        end
+
+        LayoutProperties properties = dialog:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(top)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+    end
+
+    /*
+        This action closes the picker, if it is open, and puts back the color
+        the well had when it opened, as Cancel, Escape and a click outside it
+        do. If the color had changed, listeners are told, as final. The focus
+        comes back to the well.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:Open()
+        well:Close()
+    */
+    action Close
+        if not IsOpen()
+            return now
+        end
+        HidePopOver()
+        if not SameColor(color, colorBefore)
+            Color shown = GetColor()
+            color:SetColor(colorBefore)
+            ShowColorText()
+            NotifyAccessibility()
+            NotifyListeners(shown, GetColor(), true)
+        end
+        Focus()
+    end
+
+    /*
+        This action keeps the color chosen in the picker and closes it, as OK
+        and Enter do. If the color changed since the picker opened, listeners
+        are told, as final, with the color before it opened as the old color.
+        The focus comes back to the well. ColorPicker calls this, so most
+        users won't need to.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        well:Open()
+        well:Accept()
+    */
+    action Accept
+        if not IsOpen()
+            return now
+        end
+        HidePopOver()
+        if not SameColor(color, colorBefore)
+            Color before = GetColor()
+            before:SetColor(colorBefore)
+            NotifyListeners(before, GetColor(), true)
+        end
+        colorBefore:SetColor(color)
+        Focus()
+    end
+
+    /*
+        Hides the pop-over and stops listening for clicks outside it.
+    */
+    private action HidePopOver
+        Layer layer = dialog:GetLayer()
+        if layer not= undefined
+            layer:RemoveMouseListener(picker)
+        end
+        dialog:Hide()
+    end
+
+    /*
+        This action shows a color the user is choosing in the picker: the well
+        shows it, screen readers are told, and so are listeners, as not final.
+        ColorPicker calls this, so most users won't need to.
+
+        Attribute: Parameter newColor The color being chosen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Game.Graphics.Color
+        Color color
+        ColorWell well
+        well:PreviewColor(color:Orange())
+    */
+    action PreviewColor(Color newColor)
+        if newColor = undefined
+            return now
+        end
+        if SameColor(color, newColor)
+            return now
+        end
+        Color old = GetColor()
+        color:SetColor(newColor)
+        ShowColorText()
+        NotifyAccessibility()
+        NotifyListeners(old, GetColor(), false)
+    end
+
+    /*
+        This action returns true while the picker is open.
+
+        Attribute: Returns True if the picker is showing.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        ColorWell well
+        boolean open = well:IsOpen()
+    */
+    action IsOpen returns boolean
+        if dialog = undefined
+            return false
+        end
+        return dialog:IsShowing()
+    end
+
+    /*
+        This action returns the picker the well opens, or undefined before it
+        first opens.
+
+        Attribute: Returns The picker.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Interface.Controls.ColorPicker
+        ColorWell well
+        ColorPicker picker = well:GetColorPicker()
+    */
+    action GetColorPicker returns ColorPicker
+        return picker
+    end
+
+    /*
+        This action adds a listener, told when the user changes the color.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Interface.Events.ColorWellListener
+        ColorWellListener listener
+        ColorWell well
+        well:AddColorWellListener(listener)
+    */
+    action AddColorWellListener(ColorWellListener listener)
+        colorWellListeners:Add(listener)
+    end
+
+    /*
+        This action removes a listener.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorWell
+        use Libraries.Interface.Events.ColorWellListener
+        ColorWellListener listener
+        ColorWell well
+        well:AddColorWellListener(listener)
+        well:RemoveColorWellListener(listener)
+    */
+    action RemoveColorWellListener(ColorWellListener listener)
+        colorWellListeners:Remove(listener)
+    end
+
+    /*
+        Tells every listener of a change, from a copy of the list, so a
+        listener can add or remove listeners while it is told.
+    */
+    private action NotifyListeners(Color oldColor, Color newColor, boolean isFinal)
+        if colorWellListeners:IsEmpty()
+            return now
+        end
+        ColorWellChangedEvent event
+        event:SetColorWell(me)
+        event:SetOldColor(oldColor)
+        event:SetNewColor(newColor)
+        event:SetFinal(isFinal)
+        Array<ColorWellListener> listeners = colorWellListeners:CopyToArray()
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            listeners:Get(i):ColorWellChanged(event)
+            i = i + 1
+        end
+    end
+
+    /*
+        Tells screen readers that the color changed, so they refresh the
+        well. Nothing is announced.
+    */
+    private action NotifyAccessibility
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:ColorWellChanged(me)
+        end
+    end
+
+    /*
+        One color component as a whole number from 0 to 255.
+    */
+    private action ToStep(number value) returns integer
+        return cast(integer, value * 255 + 0.5)
+    end
+
+    /*
+        True if two colors have the same red, green and blue, to the nearest
+        of 256 steps.
+    */
+    private action SameColor(Color one, Color two) returns boolean
+        if ToStep(one:GetRed()) not= ToStep(two:GetRed())
+            return false
+        end
+        if ToStep(one:GetGreen()) not= ToStep(two:GetGreen())
+            return false
+        end
+        if ToStep(one:GetBlue()) not= ToStep(two:GetBlue())
+            return false
+        end
+        return ToStep(one:GetAlpha()) = ToStep(two:GetAlpha())
+    end
+end

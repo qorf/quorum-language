@@ -1,0 +1,31 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Events.ComboBoxChangedEvent
+
+/*
+    A ComboBoxListener is told when the user chooses a different choice in a
+    ComboBox. Add one with the combo box's AddComboBoxListener action, and
+    write ComboBoxChanged. A program's own Select doesn't tell listeners.
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.ComboBoxChangedEvent
+    use Libraries.Interface.Events.ComboBoxListener
+
+    class SizeListener is ComboBoxListener
+        integer chosen = -1
+
+        action ComboBoxChanged(ComboBoxChangedEvent event)
+            chosen = event:GetNewIndex()
+        end
+    end
+*/
+class ComboBoxListener
+    /*
+        This action is called when the user chooses a different choice in a
+        combo box.
+
+        Attribute: Parameter event The combo box, the old and new index, and the chosen text.
+    */
+    blueprint action ComboBoxChanged(ComboBoxChangedEvent event)
+end

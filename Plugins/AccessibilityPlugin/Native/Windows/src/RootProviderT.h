@@ -28,7 +28,11 @@ public:
 		const auto item = m_control->GetUiaFocus();
 		if (item && (item != m_control))
 		{
-			item->GetProviderFragment().query_to(retVal);
+			const auto fragment = item->GetUiaFocusFragment();
+			if (fragment)
+			{
+				fragment.query_to(retVal);
+			}
 		}
 
 		return S_OK;

@@ -5,6 +5,9 @@ import android.os.Build;
 import plugins.quorum.Libraries.Game.AndroidDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Interface.Controls.Button_;
+import quorum.Libraries.Interface.Controls.Calendar_;
+import quorum.Libraries.Interface.Controls.ColorWell_;
+import quorum.Libraries.Interface.Controls.ComboBox_;
 import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
@@ -30,6 +33,7 @@ import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Selections.TextBoxSelection_;
 import quorum.Libraries.Interface.Selections.TextFieldSelection_;
+import quorum.Libraries.System.CalendarDate_;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,6 +78,37 @@ public class AndroidAccessibility {
     // The tooltip that shows, between TooltipShown and TooltipHidden.
     private Tooltip_ openTooltip = null;
 
+    // A calendar's grid, as Calendar.quorum lays it out (its WIDTH, HEIGHT,
+    // PADDING and CELL_SIZE): the days fill 7 by 6 cells in the bottom left,
+    // a padding in from the edges.
+    static final int CALENDAR_ROWS = 6;
+    static final int CALENDAR_COLUMNS = 7;
+    private static final double CALENDAR_WIDTH = 268;
+    private static final double CALENDAR_HEIGHT = 292;
+    private static final double CALENDAR_PADDING = 8;
+    private static final double CALENDAR_CELL_SIZE = 36;
+
+    // A calendar's days are virtual nodes with no item. Each calendar gets a
+    // block of ids, kept while it is accessible, so TalkBack stays on the
+    // same place in the grid when the snapshot is remade: the block's first
+    // id plus row * 7 + column. Blocks start far above item ids (hash codes,
+    // which Android keeps below 2 to the 28th).
+    private static final int FIRST_CALENDAR_DAY_ID = 0x70000000;
+    private static final int CALENDAR_DAY_BLOCK = 64;
+    private final Map<Integer, Integer> calendarDayIds = new HashMap<>();
+    private int nextCalendarDayId = FIRST_CALENDAR_DAY_ID;
+    // A calendar whose current day moved, so TalkBack may follow it.
+    private Calendar_ calendarToFollow = null;
+
+    // The focused item's active part (Item:GetActiveDescendant, such as a
+    // combo box's highlighted row) and that item, its owner. While there is
+    // one, the part's node has the input focus in place of its owner's.
+    // HOST when there is none.
+    private int activePartId = AndroidNode.HOST;
+    private int activeOwnerId = AndroidNode.HOST;
+    // The active part changed: TalkBack moves to it, or back to its owner.
+    private boolean activePartToFollow = false;
+
     public AndroidAccessibility() {
         instance = this;
     }
@@ -96,7 +131,54 @@ public class AndroidAccessibility {
             return false;
         }
         changed = true;
+        calendarDayIds.remove(item.GetHashCode());
+        if (calendarToFollow == item) {
+            calendarToFollow = null;
+        }
+        if (activePartId == item.GetHashCode()) {
+            activePartId = AndroidNode.HOST;
+        }
         return items.remove(item.GetHashCode()) != null;
+    }
+
+    /*
+        The focused item's active part changed (Accessibility's
+        UpdateActiveDescendant). A part with no node yet is added first, as
+        on the Mac. The part's node gets the input focus on the next
+        snapshot, and then TalkBack moves to it, so it reads the part as the
+        keys move it, while Quorum's focus stays on the owner. With no part
+        (or one that can't be added), both go back to the owner.
+     */
+    public void NativeActiveDescendantChanged(Item_ focus, Item_ active) {
+        if (focus == null) {
+            return;
+        }
+        activeOwnerId = focus.GetHashCode();
+        activePartId = AndroidNode.HOST;
+        if (active != null && active != focus) {
+            boolean known = items.containsKey(active.GetHashCode());
+            if (!known) {
+                known = NativeAdd(active);
+            }
+            if (known) {
+                activePartId = active.GetHashCode();
+            }
+        }
+        activePartToFollow = true;
+        changed = true;
+    }
+
+    /*
+        A calendar changed: its current day moved, its month changed, or a
+        day was chosen. The days are made again, and if the calendar has the
+        focus and TalkBack is on one of its days (or on nothing), TalkBack
+        follows the current day, as Quorum's focus moves TalkBack.
+     */
+    public void NativeCalendarChanged(Calendar_ calendar) {
+        changed = true;
+        if (calendar != null) {
+            calendarToFollow = calendar;
+        }
     }
 
     public void NameChanged(Item_ item) { changed = true; }
@@ -143,6 +225,13 @@ public class AndroidAccessibility {
         // The keyboard goes when the focus leaves a text control.
         if (AndroidTextInput.IsActive() && !(item instanceof TextField_) && !(item instanceof TextBox_)) {
             AndroidTextInput.Hide();
+        }
+        // The old owner's active part loses the input focus. A new active
+        // part is found in this frame's Update (NativeActiveDescendantChanged).
+        if (activeOwnerId != AndroidNode.HOST && (item == null || item.GetHashCode() != activeOwnerId)) {
+            activePartId = AndroidNode.HOST;
+            activeOwnerId = AndroidNode.HOST;
+            changed = true;
         }
         if (item == null || !items.containsKey(item.GetHashCode())) {
             return;
@@ -197,10 +286,134 @@ public class AndroidAccessibility {
             changed = false;
             BuildSnapshot(provider);
         }
-        if (focusToFollow != null) {
-            provider.MoveTalkBackTo(focusToFollow.GetHashCode(), followReason);
+        // TalkBack goes straight to a newly focused item's active part, not
+        // to the item first.
+        if (activePartToFollow && focusToFollow != null && focusToFollow.GetHashCode() == activeOwnerId) {
             focusToFollow = null;
         }
+        if (focusToFollow != null) {
+            // A calendar's node is only its days' grid: TalkBack goes to
+            // the current day.
+            if (focusToFollow instanceof Calendar_) {
+                int day = CurrentDayId((Calendar_) focusToFollow);
+                if (day != AndroidNode.HOST) {
+                    provider.MoveTalkBackTo(day, followReason);
+                }
+            } else {
+                provider.MoveTalkBackTo(focusToFollow.GetHashCode(), followReason);
+            }
+            focusToFollow = null;
+        }
+        if (activePartToFollow) {
+            activePartToFollow = false;
+            if (activeOwnerId != AndroidNode.HOST) {
+                provider.MoveToActivePart(activePartId, activeOwnerId);
+            }
+        }
+        if (calendarToFollow != null) {
+            FollowCalendar(provider, calendarToFollow);
+            calendarToFollow = null;
+        }
+    }
+
+    private void FollowCalendar(AndroidAccessibilityProvider provider, Calendar_ calendar) {
+        if (!HasFocus(calendar)) {
+            return;
+        }
+        int day = CurrentDayId(calendar);
+        if (day == AndroidNode.HOST) {
+            return;
+        }
+        int on = provider.GetAccessibilityFocusId();
+        Integer first = calendarDayIds.get(calendar.GetHashCode());
+        boolean onDays = first != null && on >= first && on < first + CALENDAR_ROWS * CALENDAR_COLUMNS;
+        if (on == AndroidNode.HOST || onDays) {
+            provider.MoveTalkBackTo(day, "calendar day");
+        }
+    }
+
+    // The node id of a calendar's current day, or HOST when it isn't shown.
+    private int CurrentDayId(Calendar_ calendar) {
+        Integer first = calendarDayIds.get(calendar.GetHashCode());
+        CalendarDate_ topLeft = calendar.GetShownDay(0, 0);
+        CalendarDate_ current = calendar.GetCurrentDay();
+        if (first == null || topLeft == null || current == null) {
+            return AndroidNode.HOST;
+        }
+        int index = topLeft.DaysUntil(current);
+        if (index < 0 || index >= CALENDAR_ROWS * CALENDAR_COLUMNS) {
+            return AndroidNode.HOST;
+        }
+        return first + index;
+    }
+
+    // The first id of a calendar's block of day ids, given out the first time.
+    private int CalendarDayBase(Calendar_ calendar) {
+        Integer first = calendarDayIds.get(calendar.GetHashCode());
+        if (first == null) {
+            first = nextCalendarDayId;
+            nextCalendarDayId = nextCalendarDayId + CALENDAR_DAY_BLOCK;
+            calendarDayIds.put(calendar.GetHashCode(), first);
+        }
+        return first;
+    }
+
+    /*
+        A calendar's 42 days, as nodes in its grid node: each with its row and
+        column, the date in words (and "today"), selected when it is the
+        chosen day, and
+        not enabled outside the allowed range. Their bounds are the calendar's
+        cells, from its layout. Returns their ids in reading order.
+     */
+    private int[] AddCalendarDays(Calendar_ calendar, AndroidNode grid, Map<Integer, AndroidNode> nodes) {
+        int first = CalendarDayBase(calendar);
+        CalendarDate_ chosen = calendar.GetDate();
+        // Today, read once for all the days.
+        quorum.Libraries.System.CalendarDate today = new quorum.Libraries.System.CalendarDate();
+        today.SetToToday();
+        Rect bounds = grid.bounds;
+        double width = bounds.width();
+        double height = bounds.height();
+        double gridLeft = bounds.left + width * CALENDAR_PADDING / CALENDAR_WIDTH;
+        double gridBottom = bounds.bottom - height * CALENDAR_PADDING / CALENDAR_HEIGHT;
+        double cellWidth = width * CALENDAR_CELL_SIZE / CALENDAR_WIDTH;
+        double cellHeight = height * CALENDAR_CELL_SIZE / CALENDAR_HEIGHT;
+        double gridTop = gridBottom - cellHeight * CALENDAR_ROWS;
+
+        int[] ids = new int[CALENDAR_ROWS * CALENDAR_COLUMNS];
+        for (int row = 0; row < CALENDAR_ROWS; row++) {
+            for (int column = 0; column < CALENDAR_COLUMNS; column++) {
+                int index = row * CALENDAR_COLUMNS + column;
+                CalendarDate_ date = calendar.GetShownDay(row, column);
+                AndroidNode day = new AndroidNode();
+                day.id = first + index;
+                day.parentId = grid.id;
+                day.calendarDay = true;
+                day.className = "android.view.View";
+                day.collectionRow = row;
+                day.collectionColumn = column;
+                // The date in words, and "today": not the calendar's own words
+                // for selected and unavailable, which TalkBack already says
+                // from the node's selected and enabled states.
+                String words = date == null ? null : date.ToSpokenText();
+                if (words != null && date.Equals(today)) {
+                    words = words + ", today";
+                }
+                day.contentDescription = Clean(words);
+                day.selected = chosen != null && date != null && date.Equals(chosen);
+                day.enabled = calendar.IsAvailable(date);
+                day.clickable = true;
+                day.clickLabel = "choose";
+                day.bounds = new Rect(
+                    (int) Math.round(gridLeft + column * cellWidth),
+                    (int) Math.round(gridTop + row * cellHeight),
+                    (int) Math.round(gridLeft + (column + 1) * cellWidth),
+                    (int) Math.round(gridTop + (row + 1) * cellHeight));
+                nodes.put(day.id, day);
+                ids[index] = day.id;
+            }
+        }
+        return ids;
     }
 
     private void BuildSnapshot(AndroidAccessibilityProvider provider) {
@@ -236,6 +449,16 @@ public class AndroidAccessibility {
             }
             AndroidNode node = MakeNode(item);
             nodes.put(node.id, node);
+        }
+        // While the focused item has an active part, the part's node has the
+        // input focus in place of its owner's.
+        AndroidNode activeNode = activePartId == AndroidNode.HOST ? null : nodes.get(activePartId);
+        if (activeNode != null) {
+            activeNode.focused = true;
+            AndroidNode owner = nodes.get(activeOwnerId);
+            if (owner != null) {
+                owner.focused = false;
+            }
         }
         for (Item_ item : all) {
             AndroidNode node = nodes.get(item.GetHashCode());
@@ -280,6 +503,9 @@ public class AndroidAccessibility {
                     }
                 }
                 node.childIds = ToArray(ids);
+            } else if (item instanceof Calendar_) {
+                // A calendar's days, which have no items.
+                node.childIds = AddCalendarDays((Calendar_) item, node, nodes);
             }
         }
         provider.Publish(nodes, ToArray(roots));
@@ -369,6 +595,46 @@ public class AndroidAccessibility {
             node.hint = node.text;
             node.text = Clean(((TextField_) item).GetText());
             node.focused = HasFocus(item);
+        } else if (code == item.Get_Libraries_Interface_Item__COMBO_BOX_() && item instanceof ComboBox_) {
+            // A text field with a list of choices below it, as Android's
+            // AutoCompleteTextView and Material's editable exposed drop-down
+            // are: an edit box to TalkBack. Its Actions menu opens or closes
+            // the list, and its state says which.
+            ComboBox_ box = (ComboBox_) item;
+            node.className = "android.widget.EditText";
+            node.clickable = true;
+            node.editable = true;
+            node.hint = node.text;
+            node.text = Clean(box.GetText());
+            node.focused = HasFocus(item);
+            node.expandable = true;
+            node.expanded = box.IsOpen();
+            node.stateDescription = node.expanded ? "expanded" : "collapsed";
+        } else if (code == item.Get_Libraries_Interface_Item__COLOR_WELL_() && item instanceof ColorWell_) {
+            // A button showing a color: its name, then the color's words
+            // ("#4A5A6E, dim gray") as its state (Android 11 and later), or
+            // after its name before that. Its description is the same words.
+            ColorWell_ well = (ColorWell_) item;
+            node.className = "android.widget.Button";
+            node.clickable = true;
+            String color = Clean(well.GetColorText());
+            node.hint = node.hint != null && node.hint.equals(color) ? null : node.hint;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                node.stateDescription = color;
+            } else if (color != null) {
+                node.text = node.text == null ? color : node.text + ", " + color;
+            }
+        } else if (code == item.Get_Libraries_Interface_Item__CALENDAR_() && item instanceof Calendar_) {
+            // The days' grid, titled with the month: TalkBack says the title
+            // and the grid's size when it enters, then reads the days
+            // (BuildSnapshot adds them). The grid itself isn't a stop.
+            node.className = "android.widget.GridView";
+            node.containerTitle = Clean(item.GetName());
+            node.text = null;
+            node.hint = null;
+            node.readerFocusable = false;
+            node.collectionRows = CALENDAR_ROWS;
+            node.collectionColumns = CALENDAR_COLUMNS;
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
             node.className = "android.widget.EditText";
             node.clickable = true;
@@ -830,6 +1096,56 @@ public class AndroidAccessibility {
                 String current = self.Clean(((Control_) button).GetName());
                 if (current != null && !current.equals(name)) return;
                 ((Control_) button).Activate();
+                self.changed = true;
+            }
+        });
+    }
+
+    // TalkBack's expand or collapse action on a combo box: its list opens
+    // or closes.
+    static void ComboBoxFromTalkBack(final int id, final boolean open) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (!(item instanceof ComboBox_)) return;
+                ComboBox_ box = (ComboBox_) item;
+                if (open) {
+                    box.Open();
+                } else {
+                    box.Close();
+                }
+                self.changed = true;
+            }
+        });
+    }
+
+    /*
+        A double tap on a calendar's day: the current day moves there and is
+        chosen, as Enter does. The calendar takes the focus first, as a touch
+        gives it. A day outside the allowed range is left alone.
+     */
+    static void CalendarDayFromTalkBack(final int calendarId, final int row, final int column) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(calendarId);
+                if (!(item instanceof Calendar_)) return;
+                Calendar_ calendar = (Calendar_) item;
+                CalendarDate_ date = calendar.GetShownDay(row, column);
+                if (date == null || !calendar.IsAvailable(date)) return;
+                if (!self.HasFocus(calendar)) {
+                    self.focusFromTalkBack = calendarId;
+                    calendar.Focus();
+                }
+                CalendarDate_ current = calendar.GetCurrentDay();
+                int days = current == null ? 0 : current.DaysUntil(date);
+                if (days != 0) {
+                    calendar.MoveCurrentDay(days);
+                }
+                calendar.ChooseCurrentDay();
                 self.changed = true;
             }
         });

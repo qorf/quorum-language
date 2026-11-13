@@ -1,0 +1,64 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Controls.SaturationBrightnessSquare
+
+/*
+    The SaturationBrightnessPointerBehavior sets a
+    SaturationBrightnessSquare's saturation and brightness with the mouse or
+    a finger: the button or finger going down on the square, and each move
+    of a drag, set them from the place of the pointer. Each change is final,
+    so there is nothing to finish when the button comes up.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.InputTable
+    use Libraries.Game.InputSet
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Behaviors.Controls.SaturationBrightnessPointerBehavior
+
+    MouseEvent mouse
+    InputTable table
+    table:SetIdentifier("SaturationBrightnessSquare")
+    InputSet press
+    press:SetMouseInput(mouse:LEFT)
+    SaturationBrightnessPointerBehavior behavior
+    table:Add(press, behavior)
+*/
+class SaturationBrightnessPointerBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is SaturationBrightnessSquare)
+            return now
+        end
+        SaturationBrightnessSquare square = cast(SaturationBrightnessSquare, event:GetItem())
+
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent not= undefined
+            if dragEvent:eventType = dragEvent:DRAGGING_BEGAN or dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+                square:MovePointerTo(dragEvent:GetX(), dragEvent:GetY())
+            end
+            return now
+        end
+
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if touchEvent not= undefined
+            if touchEvent:eventType = touchEvent:BEGAN or touchEvent:eventType = touchEvent:MOVED
+                square:MovePointerTo(touchEvent:x, touchEvent:y)
+            end
+            return now
+        end
+
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        if mouseEvent not= undefined
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                square:MovePointerTo(mouseEvent:GetX(), mouseEvent:GetY())
+            end
+        end
+    end
+end

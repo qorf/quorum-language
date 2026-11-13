@@ -1,0 +1,89 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.MouseListener
+use Libraries.Interface.Controls.DateField
+
+/*
+    The DateFieldPopupListener closes a DateField's calendar when the user
+    clicks outside it. The field adds it to the calendar's layer while the
+    calendar is open. A click on the field itself is left to the field, so
+    its "Choose date" button can close the calendar without opening it
+    again.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.DateFieldPopupListener
+    use Libraries.Interface.Controls.DateField
+
+    DateField field
+    DateFieldPopupListener listener
+    listener:SetDateField(field)
+*/
+class DateFieldPopupListener is MouseListener
+    DateField field = undefined
+
+    /*
+        This action sets the date field whose calendar this listener closes.
+
+        Attribute: Parameter value The date field.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.DateFieldPopupListener
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        DateFieldPopupListener listener
+        listener:SetDateField(field)
+    */
+    action SetDateField(DateField value)
+        field = value
+    end
+
+    /*
+        This action returns the date field whose calendar this listener
+        closes.
+
+        Attribute: Returns The date field.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.DateFieldPopupListener
+        use Libraries.Interface.Controls.DateField
+
+        DateFieldPopupListener listener
+        DateField field = listener:GetDateField()
+    */
+    action GetDateField returns DateField
+        return field
+    end
+
+    /*
+        This action closes the calendar when a mouse button goes down outside
+        it, on the field and its button too. The click still goes on to
+        whatever is under it.
+
+        Attribute: Parameter event The mouse event.
+    */
+    action ClickedMouse(MouseEvent event)
+        if field = undefined
+            return now
+        end
+        if event:eventType not= event:CLICKED_MOUSE
+            return now
+        end
+        // A click on the calendar has the calendar, or a part of it, as
+        // its source.
+        if event:GetSource() not= undefined
+            return now
+        end
+        // Any click off the calendar closes it, the field and its button
+        // included. The calendar's layer marks the click handled before
+        // telling this listener, so it is handed back to whatever is under
+        // it; the field and its button know this click closed the calendar
+        // and don't open it again.
+        field:CloseCalendarForClick(event:GetX(), event:GetY())
+        event:SetEventHandled(false)
+    end
+end

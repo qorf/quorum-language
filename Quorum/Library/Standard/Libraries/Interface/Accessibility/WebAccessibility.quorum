@@ -17,6 +17,9 @@ use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Controls.Slider
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Item2D
@@ -96,6 +99,103 @@ class WebAccessibility is Accessibility
     system action TooltipOpened(Tooltip tooltip)
 
     system action TooltipClosed(Tooltip tooltip)
+
+    /*
+        A combo box's list opened: its element is marked expanded, controls
+        the list's element, and points at the highlighted choice.
+    */
+    action ComboBoxOpened(ComboBox box)
+        if box not= undefined
+            ComboBoxExpanded(box)
+        end
+    end
+
+    /*
+        A combo box's list closed: its element is marked collapsed, with no
+        highlighted choice.
+    */
+    action ComboBoxClosed(ComboBox box)
+        if box not= undefined
+            ComboBoxCollapsed(box)
+        end
+    end
+
+    system action ComboBoxExpanded(ComboBox box)
+
+    system action ComboBoxCollapsed(ComboBox box)
+
+    /*
+        A color well's color changed: its element's label gets the new
+        color's words, and whether its picker is open.
+    */
+    action ColorWellChanged(ColorWell well)
+        if well not= undefined
+            ColorWellUpdated(well)
+        end
+    end
+
+    system action ColorWellUpdated(ColorWell well)
+
+    /*
+        A calendar changed: its grid's days are filled in again, and the
+        focus follows the current day.
+    */
+    action CalendarChanged(Calendar calendar)
+        if calendar not= undefined
+            CalendarUpdated(calendar)
+        end
+    end
+
+    system action CalendarUpdated(Calendar calendar)
+
+    /*
+        This action indicates that the active part of the focused item changed,
+        such as the row a combo box highlights as the arrow keys move. The
+        item's element gets an aria-activedescendant pointing at the part's
+        element, so a screen reader reads the part while the focus stays on the
+        item. When the active part is undefined, the attribute is removed.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's new active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility.WebAccessibility
+        use Libraries.Interface.Controls.ComboBox
+
+        WebAccessibility accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantChanged(sizes, sizes:GetActiveDescendant())
+    */
+    action ActiveDescendantChanged(Item focus, Item active)
+        if focus not= undefined
+            ActiveDescendantUpdated(focus, active)
+        end
+    end
+
+    /*
+        This action points the focused item's element at the element of its
+        active part, adding the part's element if it is missing, or removes
+        the pointer when the part is undefined. ActiveDescendantChanged calls
+        it, so most users won't need to call it directly.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility.WebAccessibility
+        use Libraries.Interface.Controls.ComboBox
+
+        WebAccessibility accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantUpdated(sizes, sizes:GetActiveDescendant())
+    */
+    system action ActiveDescendantUpdated(Item focus, Item active)
 
     system action Select(Item item) returns boolean
 

@@ -1,0 +1,382 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Item2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.ColorNamer
+use Libraries.Containers.Array
+use Libraries.Compute.Math
+
+/*
+    A HueRing chooses a hue, from 0 to 360 degrees, on a ring of colors: red
+    at the top, then yellow, green, cyan, blue and magenta going clockwise. A
+    marker shows the chosen hue. It is a Slider, so the keys, the listeners
+    and screen readers work as they do for any slider: Right and Up turn the
+    hue one degree clockwise, Left and Down one degree back, Page Up and Page
+    Down move 15 degrees, and Shift with an arrow a tenth of a degree. A
+    click or a drag on the ring sets the hue from the angle of the pointer
+    around the center.
+
+    Screen readers hear the degrees and the name of the pure color at that
+    hue, such as "213 degrees, dodger blue".
+
+    A ColorPicker puts a SaturationBrightnessSquare inside the ring.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Interface.Controls.HueRing
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            HueRing ring
+            ring:SetValue(213)
+            Add(ring)
+        end
+    end
+*/
+class HueRing is Slider
+    // The dots of color that make up the ring, from the top going clockwise.
+    Array<Control> dots
+    Control marker
+
+    Math ringMath
+    ColorNamer namer
+
+    boolean ringLoaded = false
+    boolean ringFocused = false
+
+    // Sizes in pixels before the interface scale.
+    constant number SIZE = 220
+    constant integer DOT_COUNT = 72
+    constant number DOT_SIZE = 18
+    // From the center of the ring to the center of each dot.
+    constant number RADIUS = 99
+    constant number MARKER_SIZE = 20
+    constant number FOCUSED_MARKER_SIZE = 24
+
+    on create
+        SetName("Hue")
+        SetRange(0, 360)
+        // Ten degrees an arrow key, so 36 presses go around; Shift moves a
+        // tenth of a step, one degree, for fine control.
+        SetStep(10)
+        SetPageStep(30)
+        SetUnits("degrees")
+        SetInputGroup("HueRing")
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetPercentageWidth(0)
+        properties:SetPixelWidth(SIZE)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelHeight(SIZE)
+        SetSize(SIZE, SIZE)
+
+        // The slider's own track and thumb are never drawn: the ring and
+        // its marker take their place.
+        Array<Item2D> parts = GetChildren()
+        integer i = 0
+        repeat while i < parts:GetSize()
+            parts:Get(i):Hide()
+            i = i + 1
+        end
+
+        Color hueColor
+        i = 0
+        repeat while i < DOT_COUNT
+            Control dot
+            number hue = i * 360.0 / DOT_COUNT
+            SetupRingPart(dot, "Hue Dot", DOT_SIZE)
+            PlaceOnRing(dot, hue)
+            hueColor:SetHSB(hue, 1, 1)
+            hueColor:SetAlpha(1)
+            Color dotColor
+            dotColor:SetColor(hueColor)
+            dot:SetBackgroundColor(dotColor)
+            dots:Add(dot)
+            Add(dot)
+            i = i + 1
+        end
+
+        SetupRingPart(marker, "Hue Marker", MARKER_SIZE)
+        Add(marker)
+    end
+
+    /*
+        Readies a dot or the marker: a circle sized in pixels, placed by its
+        center, that lets the mouse through to the ring and isn't read by
+        screen readers.
+    */
+    private action SetupRingPart(Control part, text name, number size)
+        part:SetName(name)
+        part:SetAcceptsMouseInput(false)
+        part:SetFocusable(false)
+        part:SetAccessibilityCode(part:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetHorizontalLayoutMode(partProperties:STANDARD)
+        partProperties:SetVerticalLayoutMode(partProperties:STANDARD)
+        part:SetPercentageWidth(0)
+        part:SetPercentageHeight(0)
+        part:SetPixelWidth(size)
+        part:SetPixelHeight(size)
+        part:SetPercentageOriginX(0.5)
+        part:SetPercentageOriginY(0.5)
+        part:SetCornerRounding(1, 1, 1, 1)
+    end
+
+    /*
+        Places a part's center on the ring at a hue. The place is a share of
+        the ring's size, so it doesn't change with the interface scale.
+    */
+    private action PlaceOnRing(Control part, number hue)
+        number radians = hue * ringMath:pi / 180.0
+        number share = RADIUS / SIZE
+        part:SetPercentageX(0.5 + share * ringMath:Sine(radians))
+        part:SetPercentageY(0.5 + share * ringMath:Cosine(radians))
+    end
+
+    /*
+        This action loads the views of the ring's dots and marker the first
+        time, then updates the marker. The slider's own track and thumb are
+        not loaded. The game engine calls this as needed, so most users won't
+        need to call it directly.
+
+        Attribute: Parameter properties The layout properties to load the graphics with.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:LoadGraphics(ring:GetDefaultLayoutProperties())
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if properties = undefined
+            return now
+        end
+
+        if not ringLoaded
+            ringLoaded = true
+            integer i = 0
+            repeat while i < dots:GetSize()
+                LoadRingView(dots:Get(i))
+                i = i + 1
+            end
+            LoadRingView(marker)
+        end
+
+        UpdateMarker()
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+        Gives a part a ControlShaderView, so it is drawn as a circle.
+    */
+    private action LoadRingView(Control part)
+        ControlShaderView view
+        view:Initialize()
+        part:SetView2D(view)
+    end
+
+    /*
+        Moves the marker to the hue and colors it. With the focus, it grows
+        and its edge turns the focus color.
+    */
+    private action UpdateMarker
+        PlaceOnRing(marker, GetValue())
+
+        Color hueColor
+        hueColor:SetColor(1, 0, 0, 1)
+        hueColor:SetHSB(GetValue(), 1, 1)
+        marker:SetBackgroundColor(hueColor)
+
+        number size = MARKER_SIZE
+        if ringFocused
+            size = FOCUSED_MARKER_SIZE
+            ColorGroup focusColor = GetFocusBorderColor()
+            if focusColor = undefined
+                Color dark
+                dark:SetColor(0, 0, 0, 1)
+                focusColor = dark
+            end
+            marker:SetBorderColor(focusColor)
+            marker:SetBorderThickness(4)
+        else
+            Color white
+            white:SetColor(1, 1, 1, 1)
+            marker:SetBorderColor(white)
+            marker:SetBorderThickness(3)
+        end
+        marker:SetPixelWidth(size)
+        marker:SetPixelHeight(size)
+
+        if ringLoaded
+            marker:RequestVerticesUpdate()
+            marker:RequestLayout()
+            RequestLayout()
+        end
+    end
+
+    /*
+        This action is called when the ring gains the focus: its marker grows
+        and its edge turns the focus color.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        use Libraries.Interface.Events.FocusEvent
+        HueRing ring
+        FocusEvent event
+        ring:GainedFocus(event)
+    */
+    action GainedFocus(FocusEvent event)
+        ringFocused = true
+        UpdateMarker()
+        parent:Slider:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the ring loses the focus: its marker goes
+        back to its usual look.
+
+        Attribute: Parameter event The focus event.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        use Libraries.Interface.Events.FocusEvent
+        HueRing ring
+        FocusEvent event
+        ring:LostFocus(event)
+    */
+    action LostFocus(FocusEvent event)
+        ringFocused = false
+        UpdateMarker()
+        parent:Slider:LostFocus(event)
+    end
+
+    /*
+        This action sets the hue, in degrees, as a program does: the marker
+        moves and the screen reader is told, but listeners aren't.
+
+        Attribute: Parameter newValue The hue, from 0 to 360.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:SetValue(120)
+    */
+    action SetValue(number newValue)
+        parent:Slider:SetValue(newValue)
+        UpdateMarker()
+    end
+
+    /*
+        This action changes the hue as the user does: the marker moves, and
+        the screen reader and listeners are told.
+
+        Attribute: Parameter newValue The hue, from 0 to 360.
+        Attribute: Parameter isFinal False while a drag goes on, true otherwise.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:ChangeValue(240, true)
+    */
+    action ChangeValue(number newValue, boolean isFinal)
+        parent:Slider:ChangeValue(newValue, isFinal)
+        UpdateMarker()
+    end
+
+    /*
+        This action returns what a screen reader says for the hue: the
+        degrees, then the name of the pure color at that hue, such as "213
+        degrees, dodger blue".
+
+        Attribute: Returns The value text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:SetValue(213)
+        text words = ring:GetValueText()
+    */
+    action GetValueText returns text
+        Color hueColor
+        hueColor:SetColor(1, 0, 0, 1)
+        hueColor:SetHSB(GetValue(), 1, 1)
+        return FormatNumber(GetValue()) + " " + GetUnits() + ", " + namer:GetSpokenName(hueColor)
+    end
+
+    /*
+        This action returns the hue at a place on the screen: the angle of
+        the place around the ring's center, clockwise from the top, rounded
+        to a whole degree.
+
+        Attribute: Parameter x Where the place is, across the screen.
+        Attribute: Parameter y Where the place is, up the screen.
+        Attribute: Returns The hue, from 0 to 360.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        number hue = ring:GetHueAt(100, 100)
+    */
+    action GetHueAt(number x, number y) returns number
+        number across = x - (GetGlobalX() + GetWidth() / 2.0)
+        number up = y - (GetGlobalY() + GetHeight() / 2.0)
+        if across = 0 and up = 0
+            return GetValue()
+        end
+        // Measured from the top going clockwise, so the arguments are
+        // swapped from the usual angle from the right going counterclockwise.
+        number degrees = ringMath:InverseTangent(up, across) * 180.0 / ringMath:pi
+        if degrees < 0
+            degrees = degrees + 360
+        end
+        return ringMath:Round(degrees)
+    end
+
+    /*
+        This action is called when the mouse button or a finger goes down on
+        the ring: the ring takes the focus, and the hue jumps to the angle of
+        the pointer.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+        Attribute: Parameter y Where the pointer is, up the screen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:BeginPointerAt(100, 100)
+    */
+    action BeginPointerAt(number x, number y)
+        if not IsFocused()
+            Focus()
+        end
+        ChangeValue(GetHueAt(x, y), true)
+    end
+
+    /*
+        This action is called as the pointer is dragged: the hue follows the
+        angle of the pointer around the center.
+
+        Attribute: Parameter x Where the pointer is, across the screen.
+        Attribute: Parameter y Where the pointer is, up the screen.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.HueRing
+        HueRing ring
+        ring:MovePointerAt(120, 100)
+    */
+    action MovePointerAt(number x, number y)
+        ChangeValue(GetHueAt(x, y), true)
+    end
+end

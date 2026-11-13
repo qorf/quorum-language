@@ -1,0 +1,868 @@
+package Libraries.Interface.Controls
+
+use Libraries.System.DateTime
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.CalendarChangedEvent
+use Libraries.Interface.Events.CalendarListener
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Interface.Behaviors.Controls.DateFieldBehavior
+use Libraries.Interface.Behaviors.Controls.DateFieldPopupListener
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Containers.Array
+use Libraries.System.CalendarDate
+use Libraries.System.DateFormat
+
+/*
+    A DateField is a text field for a date, with a button at its right edge
+    that opens a Calendar below it. The date is shown in the field's format,
+    "November 12, 2026" unless set otherwise with SetDateFormat, and typed
+    dates are read in that format when the field loses the focus. Text that
+    isn't a date in the format is left as typed, and the field says so to
+    screen readers ("Not a date") until it is fixed.
+
+    The calendar opens with the "Choose date" button, or with Alt and Down
+    from the field, which also moves the focus into it. Choosing a day
+    writes it in the field and closes the calendar; Escape, Alt and Up, or a
+    click outside closes it without choosing. When the focus was in the
+    calendar, it goes back to the field. Listeners (AddCalendarListener)
+    are told when the user chooses a date, in the calendar or by typing.
+
+    Screen readers hear the date in words as the field's description, such
+    as "Thursday, November 12, 2026", whatever the format.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Forms.Form
+    use Libraries.Interface.Forms.Page
+    use Libraries.Interface.Controls.DateField
+    use Libraries.System.CalendarDate
+
+    Form form
+    Page page = form:GetMainPage()
+
+    page:AddLabel("Due date")
+    DateField due
+    due:SetName("Due date")
+    CalendarDate date
+    date:SetDate(2026, 11, 20)
+    due:SetDate(date)
+    page:Add(due)
+
+    form:Display()
+*/
+class DateField is TextField, CalendarListener
+    // The last date the field held, or undefined.
+    CalendarDate date = undefined
+    // False while the text isn't a date in the format.
+    boolean dateValid = true
+    DateFormat format
+    Array<CalendarListener> dateListeners
+    GameStateManager manager
+
+    // The button and the small calendar drawn on it.
+    Button calendarButton
+    // When a click outside the calendar last closed it, in milliseconds since
+    // 1970, or -1. The button acts when the mouse is released, after the
+    // press has already closed the calendar; within a moment of that, it
+    // doesn't open the calendar again.
+    number closedByClickAt = -1
+    // How long after a click closed the calendar the button still counts as
+    // part of that click, in milliseconds.
+    constant number CLOSING_CLICK_TIME = 500
+    // Where the click that last closed the calendar from outside it was.
+    number closingClickX = 0
+    number closingClickY = 0
+    boolean hasClosingClick = false
+    Icon iconFrame
+    Icon iconBar
+    boolean iconLoaded = false
+
+    // The pop-up: a calendar in a dialog with no top bar.
+    Calendar calendar
+    Dialog dialog
+    DateFieldPopupListener popupListener
+
+    // Sizes in points before the interface scale.
+    constant number BUTTON_SIZE = 24
+    constant number BUTTON_GAP = 3
+    constant number ICON_WIDTH = 14
+    constant number ICON_HEIGHT = 12
+    constant number ICON_BAR_HEIGHT = 4
+    constant number POPUP_GAP = 4
+
+    on create
+        SetName("Date")
+        SetInputGroup("DateField")
+        SetupButton()
+
+        calendar:SetDateField(me)
+        calendar:SetInputGroup("DateFieldCalendar")
+        calendar:AddCalendarListener(me)
+        // In the pop-up, Tab goes around the calendar's days and month
+        // buttons.
+        calendar:SetNextFocus(calendar)
+        calendar:SetPreviousFocus(calendar:GetNextMonthButton())
+
+        dialog:SetName("Choose date")
+        dialog:SetTopBarVisible(false)
+        dialog:SetModal(false)
+        dialog:SetAccessibilityCode(dialog:parent:Item:NOT_ACCESSIBLE)
+        dialog:Add(calendar)
+
+        popupListener:SetDateField(me)
+    end
+
+    /*
+        Makes the "Choose date" button at the right edge, which draws a small
+        calendar instead of its name.
+    */
+    private action SetupButton
+        // Its view is made in LoadGraphics: drawing needs the graphics, which
+        // a program may not have yet when it makes a date field.
+        LayoutProperties buttonProperties = calendarButton:GetDefaultLayoutProperties()
+        buttonProperties:SetHorizontalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetVerticalLayoutMode(buttonProperties:STANDARD)
+        buttonProperties:SetPercentageWidth(0)
+        buttonProperties:SetPercentageHeight(0)
+        buttonProperties:SetPixelWidth(BUTTON_SIZE)
+        buttonProperties:SetPixelHeight(BUTTON_SIZE)
+        buttonProperties:SetPercentageX(1)
+        buttonProperties:SetPercentageOriginX(1)
+        buttonProperties:SetPixelX(-BUTTON_GAP)
+        buttonProperties:SetPercentageY(0.5)
+        buttonProperties:SetPercentageOriginY(0.5)
+        ManualLayout buttonLayout
+        calendarButton:SetLayout(buttonLayout)
+        calendarButton:SetName("Choose date")
+        buttonProperties:SetLabelText("")
+
+        DateFieldBehavior toggle
+        toggle:Setup(toggle:TOGGLE)
+        calendarButton:SetBehavior(toggle)
+
+        SetupIconPart(iconFrame, "Calendar Picture")
+        LayoutProperties frameProperties = iconFrame:GetDefaultLayoutProperties()
+        frameProperties:SetPixelWidth(ICON_WIDTH)
+        frameProperties:SetPixelHeight(ICON_HEIGHT)
+        frameProperties:SetPercentageX(0.5)
+        frameProperties:SetPercentageOriginX(0.5)
+        frameProperties:SetPercentageY(0.5)
+        frameProperties:SetPercentageOriginY(0.5)
+        ManualLayout frameLayout
+        iconFrame:SetLayout(frameLayout)
+
+        SetupIconPart(iconBar, "Calendar Picture Top")
+        LayoutProperties barProperties = iconBar:GetDefaultLayoutProperties()
+        barProperties:SetPercentageWidth(1)
+        barProperties:SetPixelHeight(ICON_BAR_HEIGHT)
+        barProperties:SetPercentageX(0)
+        barProperties:SetPercentageY(1)
+        barProperties:SetPercentageOriginY(1)
+
+        iconFrame:Add(iconBar)
+        calendarButton:Add(iconFrame)
+        Add(calendarButton)
+    end
+
+    /*
+        Readies a part of the button's picture: hidden from screen readers,
+        letting the mouse through to the button, sized in points.
+    */
+    private action SetupIconPart(Icon part, text name)
+        part:SetName(name)
+        part:SetAccessibilityCode(part:parent:Item:NOT_ACCESSIBLE)
+        part:SetAcceptsMouseInput(false)
+        part:SetFocusable(false)
+        LayoutProperties partProperties = part:GetDefaultLayoutProperties()
+        partProperties:SetHorizontalLayoutMode(partProperties:STANDARD)
+        partProperties:SetVerticalLayoutMode(partProperties:STANDARD)
+        partProperties:SetPercentageWidth(0)
+        partProperties:SetPercentageHeight(0)
+    end
+
+    /*
+        This action loads the field's graphics, then draws the small calendar
+        on its button in the button's text color. The game engine calls it as
+        needed, so most users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the field.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        parent:TextField:LoadGraphics(properties)
+        if not iconLoaded
+            iconLoaded = true
+            ControlShaderView buttonView
+            buttonView:Initialize()
+            LayoutProperties buttonProperties = calendarButton:GetDefaultLayoutProperties()
+            buttonProperties:SetView2D(buttonView)
+            ControlShaderView frameView
+            frameView:Initialize()
+            iconFrame:SetView2D(frameView)
+            ControlShaderView barView
+            barView:Initialize()
+            iconBar:SetView2D(barView)
+        end
+
+        ColorGroup color = calendarButton:GetFontColor()
+        if color not= undefined
+            Color clear
+            clear:SetColor(0, 0, 0, 0)
+            iconFrame:SetBackgroundColor(clear)
+            iconFrame:SetBorderColor(color)
+            iconFrame:SetBorderThickness(1.5)
+            iconFrame:SetCornerPixelRounding(2, 2, 2, 2)
+            iconBar:SetBackgroundColor(color)
+            iconBar:SetCornerPixelRounding(0, 0, 2, 2)
+            iconFrame:RequestVerticesUpdate()
+            iconBar:RequestVerticesUpdate()
+        end
+    end
+
+    /*
+        This action sets the date the field shows, as a program does: the
+        text is the date in the field's format, and listeners aren't told.
+        With undefined, the field is emptied.
+
+        Attribute: Parameter newDate The date, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.System.CalendarDate
+
+        DateField field
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        field:SetDate(date)
+    */
+    action SetDate(CalendarDate newDate)
+        dateValid = true
+        if newDate = undefined
+            date = undefined
+            SetText("")
+        else
+            date = newDate:Copy()
+            SetText(format:ToText(date))
+        end
+        UpdateDescription()
+    end
+
+    /*
+        This action returns the date in the field, read from its text in the
+        field's format, or undefined while the text is empty or isn't a date
+        in the format.
+
+        Attribute: Returns The date, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.System.CalendarDate
+
+        DateField field
+        CalendarDate date = field:GetDate()
+    */
+    action GetDate returns CalendarDate
+        text value = GetText()
+        if value = undefined
+            return undefined
+        end
+        text trimmed = value:Trim()
+        if trimmed:IsEmpty()
+            return undefined
+        end
+        return format:Parse(value)
+    end
+
+    /*
+        This action returns whether the field's text is a date in its format,
+        or empty. It is false after the user typed text that isn't a date and
+        left the field.
+
+        Attribute: Returns True unless the text isn't a date.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        boolean valid = field:IsDateValid()
+    */
+    action IsDateValid returns boolean
+        return dateValid
+    end
+
+    /*
+        This action sets the format the date is shown and read in, such as
+        one from DateFormat's GetNumericFormat ("11/12/2026"). A date in the
+        field is written again in the new format. The format is "MMMM d,
+        yyyy" ("November 12, 2026") unless set.
+
+        Attribute: Parameter newFormat The format.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.System.DateFormat
+
+        DateField field
+        DateFormat formats
+        field:SetDateFormat(formats:GetISOFormat())
+    */
+    action SetDateFormat(DateFormat newFormat)
+        if newFormat = undefined
+            return now
+        end
+        CalendarDate shown = GetDate()
+        format = newFormat
+        if shown not= undefined
+            SetDate(shown)
+        end
+    end
+
+    /*
+        This action returns the format the date is shown and read in.
+
+        Attribute: Returns The format.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.System.DateFormat
+
+        DateField field
+        DateFormat format = field:GetDateFormat()
+    */
+    action GetDateFormat returns DateFormat
+        return format
+    end
+
+    /*
+        This action returns the calendar the field opens, so a program can set
+        its range or first day of the week.
+
+        Attribute: Returns The calendar.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.Interface.Controls.Calendar
+        use Libraries.System.CalendarDate
+
+        DateField field
+        CalendarDate today
+        today:SetToToday()
+        Calendar calendar = field:GetCalendar()
+        calendar:SetMinimumDate(today)
+    */
+    action GetCalendar returns Calendar
+        return calendar
+    end
+
+    /*
+        This action returns the "Choose date" button at the field's right
+        edge.
+
+        Attribute: Returns The button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.Interface.Controls.Button
+
+        DateField field
+        Button button = field:GetCalendarButton()
+    */
+    action GetCalendarButton returns Button
+        return calendarButton
+    end
+
+    /*
+        This action opens the calendar below the field, showing the field's
+        date, or today's month when the field has none, and moves the focus
+        into it, as Alt and Down do.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        field:OpenCalendar()
+    */
+    action OpenCalendar
+        OpenCalendar(true)
+    end
+
+    /*
+        This action opens the calendar below the field, or above it if there
+        isn't room below, showing the field's date, or today's month when the
+        field has none. The focus moves into the calendar if asked, as it
+        does from the keyboard; a click on the button leaves it where it is.
+
+        Attribute: Parameter moveFocus True to move the focus into the calendar.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        field:OpenCalendar(false)
+    */
+    action OpenCalendar(boolean moveFocus)
+        if IsCalendarOpen()
+            if moveFocus
+                calendar:Focus()
+            end
+            return now
+        end
+
+        CalendarDate shown = GetDate()
+        if shown not= undefined
+            calendar:SetDate(shown)
+        else
+            // The keys start from today, with no day chosen.
+            CalendarDate today
+            today:SetToToday()
+            calendar:SetDate(today)
+            calendar:SetDate(undefined)
+        end
+
+        PlacePopup()
+        dialog:Show()
+        Layer2D layer = dialog:GetLayer()
+        if layer not= undefined
+            layer:AddMouseListener(popupListener)
+        end
+        if moveFocus
+            calendar:Focus()
+        end
+    end
+
+    /*
+        Places the pop-up's dialog below the field, or above it when there
+        isn't room below, kept inside the window.
+    */
+    private action PlacePopup
+        number scale = GetGameInterfaceScale()
+        number gap = POPUP_GAP * scale
+        number popupWidth = calendar:GetPixelWidth() * scale
+        number popupHeight = calendar:GetPixelHeight() * scale
+
+        number windowWidth = manager:GetGameDisplay():GetWidth()
+        number windowHeight = manager:GetGameDisplay():GetHeight()
+
+        // Screen positions count up from the bottom left of the window.
+        number x = GetScreenX()
+        number bottom = GetScreenY()
+        if x:IsNotANumber()
+            x = 0
+        end
+        if bottom:IsNotANumber()
+            bottom = windowHeight
+        end
+
+        // The top of the pop-up.
+        number top = bottom - gap
+        if top - popupHeight < 0
+            top = bottom + GetHeight() + gap + popupHeight
+        end
+
+        if x + popupWidth > windowWidth
+            x = windowWidth - popupWidth
+        end
+        if x < 0
+            x = 0
+        end
+        if top > windowHeight
+            top = windowHeight
+        end
+        if top - popupHeight < 0
+            top = popupHeight
+        end
+
+        LayoutProperties properties = dialog:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(top)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+    end
+
+    /*
+        The game's interface scale, or 1 when there is no game yet.
+    */
+    private action GetGameInterfaceScale returns number
+        Game game = manager:GetGame()
+        if game = undefined
+            return 1
+        end
+        number scale = game:GetInterfaceScale()
+        if scale <= 0
+            return 1
+        end
+        return scale
+    end
+
+    /*
+        This action closes the calendar without choosing a day, as Escape
+        does. If the focus was in the calendar, it goes back to the field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        field:OpenCalendar()
+        field:CloseCalendar()
+    */
+    action CloseCalendar
+        if not IsCalendarOpen()
+            return now
+        end
+
+        boolean focusInside = false
+        Item focus = manager:GetFocus()
+        if focus is Item2D
+            Item2D item = cast(Item2D, focus)
+            repeat while item not= undefined
+                if item:Equals(dialog)
+                    focusInside = true
+                end
+                item = item:GetParent()
+            end
+        end
+
+        Layer2D layer = dialog:GetLayer()
+        if layer not= undefined
+            layer:RemoveMouseListener(popupListener)
+        end
+        dialog:Hide()
+        if focusInside
+            Focus()
+        end
+    end
+
+    /*
+        This action returns whether the calendar is open.
+
+        Attribute: Returns True if the calendar is showing.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        boolean open = field:IsCalendarOpen()
+    */
+    action IsCalendarOpen returns boolean
+        return dialog:IsShowing()
+    end
+
+    /*
+        This action returns whether a point on the screen is on the field,
+        such as a click on its button.
+
+        Attribute: Parameter x The point's place across the screen.
+        Attribute: Parameter y The point's place up the screen.
+        Attribute: Returns True if the point is on the field.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        boolean inside = field:IsOnScreenPoint(10, 10)
+    */
+    action IsOnScreenPoint(number x, number y) returns boolean
+        number left = GetScreenX()
+        number bottom = GetScreenY()
+        if left:IsNotANumber() or bottom:IsNotANumber()
+            return false
+        end
+        if x < left or x > left + GetWidth()
+            return false
+        end
+        if y < bottom or y > bottom + GetHeight()
+            return false
+        end
+        return true
+    end
+
+    /*
+        This action adds a listener, told when the user chooses a date: in
+        the calendar, or by typing one and leaving the field. When the user
+        empties the field, the event's new date is undefined.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.Interface.Events.CalendarListener
+
+        DateField field
+        CalendarListener listener
+        field:AddCalendarListener(listener)
+    */
+    action AddCalendarListener(CalendarListener listener)
+        dateListeners:Add(listener)
+    end
+
+    /*
+        This action removes a listener.
+
+        Attribute: Parameter listener The listener.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.Interface.Events.CalendarListener
+
+        DateField field
+        CalendarListener listener
+        field:AddCalendarListener(listener)
+        field:RemoveCalendarListener(listener)
+    */
+    action RemoveCalendarListener(CalendarListener listener)
+        dateListeners:Remove(listener)
+    end
+
+    /*
+        This action is called when the user chooses a day in the field's
+        calendar: the date is written in the field, the calendar closes, and
+        the field's listeners are told.
+
+        Attribute: Parameter event The calendar, and the old and new dates.
+    */
+    action CalendarChanged(CalendarChangedEvent event)
+        CalendarDate oldDate = date
+        SetDate(event:GetNewDate())
+        CloseCalendar()
+        NotifyListeners(oldDate, GetDate())
+    end
+
+    /*
+        This action sets where the focus goes after the field. Tab goes from
+        the text to the "Choose date" button, then to the item given.
+
+        Attribute: Parameter item The item after the field's button.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+        use Libraries.Interface.Controls.Button
+
+        DateField field
+        Button done
+        field:SetNextFocus(done)
+    */
+    action SetNextFocus(Item item)
+        parent:Item:SetNextFocus(calendarButton)
+        calendarButton:SetPreviousFocus(me)
+        calendarButton:SetNextFocus(item)
+    end
+
+    /*
+        This action returns whether the button's activation should be ignored
+        because the press that started it closed the calendar: a click outside
+        the calendar closed it within the last half second. It forgets that
+        click either way, so only the activation right after it is ignored. The button's behavior calls it, so most users won't need to.
+
+        Attribute: Returns true if the button's activation should do nothing.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        boolean skip = field:TakeIgnoreNextToggle()
+    */
+    action TakeIgnoreNextToggle returns boolean
+        if closedByClickAt < 0
+            return false
+        end
+        DateTime clock
+        number elapsed = clock:GetEpochTime() - closedByClickAt
+        closedByClickAt = -1
+        return elapsed >= 0 and elapsed < CLOSING_CLICK_TIME
+    end
+
+    /*
+        This action closes the calendar because of a click outside it, and
+        remembers where the click was, so that if the same click reaches the
+        field or its button next, it doesn't open the calendar again. The
+        calendar's click listener calls it, so most users won't need to.
+
+        Attribute: Parameter x The click's x position.
+        Attribute: Parameter y The click's y position.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        field:CloseCalendarForClick(10, 10)
+    */
+    action CloseCalendarForClick(number x, number y)
+        CloseCalendar()
+        DateTime clock
+        closedByClickAt = clock:GetEpochTime()
+        closingClickX = x
+        closingClickY = y
+        hasClosingClick = true
+    end
+
+    /*
+        This action returns whether a click is the one that just closed the
+        calendar from outside it, and forgets that click, so it is only
+        recognized once.
+
+        Attribute: Parameter x The click's x position.
+        Attribute: Parameter y The click's y position.
+        Attribute: Returns true if this click closed the calendar.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.DateField
+
+        DateField field
+        boolean closing = field:IsClosingClick(10, 10)
+    */
+    action IsClosingClick(number x, number y) returns boolean
+        if hasClosingClick = false
+            return false
+        end
+        hasClosingClick = false
+        if x = closingClickX and y = closingClickY
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action is called for a click on the field. It does what a text field
+        does, placing the caret, and also opens the calendar, or closes it if it
+        is open. A click on the calendar button is the button's own, which does
+        the same.
+
+        Attribute: Parameter event The mouse event for the click.
+    */
+    action ClickedMouse(MouseEvent event)
+        // A press on the button is the button's: it opens or closes the
+        // calendar itself, when the mouse is released.
+        Item source = event:GetSource()
+        if source not= undefined
+            if source:Equals(calendarButton)
+                return now
+            end
+        end
+
+        parent:TextField:ClickedMouse(event)
+        if event:clickCount not= 1
+            return now
+        end
+        if IsClosingClick(event:GetX(), event:GetY())
+            return now
+        end
+        if IsCalendarOpen()
+            CloseCalendar()
+        else
+            OpenCalendar(false)
+        end
+    end
+
+    /*
+        This action is called when the field gets the focus. It does what a text
+        field does. (A text field gets this action from two parents, so a
+        subclass has to name the one it means.)
+
+        Attribute: Parameter event The focus event.
+    */
+    action GainedFocus(FocusEvent event)
+        parent:TextField:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the field loses the focus: the typed text
+        is read as a date in the field's format.
+
+        Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        parent:TextField:LostFocus(event)
+        ReadTypedText()
+    end
+
+    /*
+        Reads the text as a date. A date is written again in the format, and
+        listeners are told if it changed. Text that isn't a date is left as
+        it is, and marked.
+    */
+    private action ReadTypedText
+        text value = GetText()
+        CalendarDate oldDate = date
+        text trimmed = ""
+        if value not= undefined
+            trimmed = value:Trim()
+        end
+
+        if trimmed:IsEmpty()
+            dateValid = true
+            date = undefined
+            UpdateDescription()
+            if oldDate not= undefined
+                NotifyListeners(oldDate, undefined)
+            end
+            return now
+        end
+
+        CalendarDate parsed = format:Parse(value)
+        if parsed = undefined
+            dateValid = false
+            UpdateDescription()
+            return now
+        end
+
+        dateValid = true
+        date = parsed
+        text formatted = format:ToText(parsed)
+        if formatted not= value
+            SetText(formatted)
+        end
+        UpdateDescription()
+
+        if oldDate = undefined
+            NotifyListeners(oldDate, parsed:Copy())
+        elseif not oldDate:Equals(parsed)
+            NotifyListeners(oldDate, parsed:Copy())
+        end
+    end
+
+    /*
+        Keeps the description, which screen readers say, the date in words.
+    */
+    private action UpdateDescription
+        text words = ""
+        if not dateValid
+            words = "Not a date"
+        elseif date not= undefined
+            words = date:ToSpokenText()
+        end
+        if GetDescription() not= words
+            SetDescription(words)
+        end
+    end
+
+    /*
+        Tells every listener that the user chose a date.
+    */
+    private action NotifyListeners(CalendarDate oldDate, CalendarDate newDate)
+        if dateListeners:IsEmpty()
+            return now
+        end
+        CalendarChangedEvent event
+        event:SetCalendar(calendar)
+        event:SetOldDate(oldDate)
+        event:SetNewDate(newDate)
+        Array<CalendarListener> listeners = dateListeners:CopyToArray()
+        integer counter = 0
+        repeat while counter < listeners:GetSize()
+            listeners:Get(counter):CalendarChanged(event)
+            counter = counter + 1
+        end
+    end
+end

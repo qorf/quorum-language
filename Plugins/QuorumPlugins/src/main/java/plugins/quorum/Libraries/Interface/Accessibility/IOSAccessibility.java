@@ -32,6 +32,11 @@ public class IOSAccessibility {
     // Each tree item's group: its element, then its open children's groups.
     private HashMap<Integer, TreeItemGroupIOS> treeGroups = new HashMap<>();
 
+    // Each combo box's list, by the list's hash code, so the list and its
+    // choices are made for the combo box (ComboBoxChoiceIOS) and placed
+    // right after it.
+    private HashMap<Integer, ComboBox_> comboBoxLists = new HashMap<>();
+
     /*
         Set to true (and rebuild the plugins) to print, on the console, the
         containers' structure after every change and every notification sent
@@ -51,6 +56,13 @@ public class IOSAccessibility {
 
     // The focused element was removed, as when a Form changes page.
     private boolean focusRemoved = false;
+
+    // Where VoiceOver goes at the end of this frame because the focused
+    // item's active part changed (NativeActiveDescendantChanged), or null.
+    private UIAccessibilityElement pendingActive = null;
+
+    // The item whose active part VoiceOver was last sent for.
+    private Item_ activeOwner = null;
 
     // The accessibility in use, for elements that look up others (the rotor).
     private static IOSAccessibility instance = null;
@@ -109,7 +121,14 @@ public class IOSAccessibility {
         VoiceOver once that the screen changed, pointing it at the focus.
      */
     public void PostPendingChanges() {
+        // Where the focused item's active part sent VoiceOver this frame
+        // (NativeActiveDescendantChanged), or null.
+        UIAccessibilityElement active = pendingActive;
+        pendingActive = null;
         if (!screenChanged) {
+            if (active != null) {
+                Post(UIAccessibilityNotification.LayoutChangedNotification, active);
+            }
             return;
         }
         screenChanged = false;
@@ -120,17 +139,140 @@ public class IOSAccessibility {
         // A new page: VoiceOver says so, and goes to the new focus.
         if (focusRemoved) {
             focusRemoved = false;
-            Post(UIAccessibilityNotification.ScreenChangedNotification, GetVoiceOverTarget(focus));
+            Post(UIAccessibilityNotification.ScreenChangedNotification, active != null ? active : GetVoiceOverTarget(focus));
+            return;
+        }
+
+        // An active part moved (and perhaps was just added): VoiceOver goes
+        // there, rather than staying where it was.
+        if (active != null) {
+            Post(UIAccessibilityNotification.LayoutChangedNotification, active);
             return;
         }
 
         // Elements came or went on the same page (a tree item opened):
         // VoiceOver stays where it is.
         ItemIOS current = ItemIOS.GetVoiceOverFocus();
-        if (current != null && mapAccessibilityElements.containsValue(current)) {
+        if (current != null && IsStillThere(current)) {
             Post(UIAccessibilityNotification.LayoutChangedNotification, current);
         } else {
             Post(UIAccessibilityNotification.LayoutChangedNotification, GetVoiceOverTarget(focus));
+        }
+    }
+
+    /*
+        Whether an element is still in VoiceOver's structure: one of an
+        item's, or a calendar's title or day while its calendar is.
+     */
+    private boolean IsStillThere(ItemIOS element) {
+        if (mapAccessibilityElements.containsValue(element)) {
+            return true;
+        }
+        if (element instanceof CalendarDayIOS || element instanceof CalendarTitleIOS) {
+            Item_ calendar = element.GetItem();
+            return calendar != null && mapAccessibilityElements.get(calendar.GetHashCode()) instanceof CalendarIOS;
+        }
+        return false;
+    }
+
+    /*
+        The focused item's active part changed (Item:GetActiveDescendant,
+        such as a combo box's highlighted row, a color square's slider or a
+        group's selected swatch), or, with active null, it has none now.
+        Quorum's focus stays on the item; VoiceOver goes to the part, so it
+        reads the part as the keys move it, or back to the item. A part with
+        no element yet gets one first (NativeAdd), so it is among the elements
+        VoiceOver sees. VoiceOver is sent once, at the end of the frame
+        (PostPendingChanges), after any elements added or removed this frame.
+     */
+    public void NativeActiveDescendantChanged(Item_ item, Item_ active) {
+        IOSDisplay.RequestFrame();
+        if (item == null) {
+            return;
+        }
+        Object itemElement = mapAccessibilityElements.get(item.GetHashCode());
+        if (!(itemElement instanceof ItemIOS)) {
+            return;
+        }
+
+        ItemIOS activeElement = GetActiveElement((ItemIOS) itemElement, active);
+        UIAccessibilityElement target = GetVoiceOverTarget(activeElement != null ? activeElement : (ItemIOS) itemElement);
+        boolean newOwner = item != activeOwner;
+        activeOwner = item;
+        if (target == null) {
+            return;
+        }
+
+        // VoiceOver is already there, as when it changed a slider itself.
+        // When the item was just focused, VoiceOver may also be on the item
+        // or a part of it it chose (a slider of a color square it swiped
+        // to), and stays.
+        ItemIOS current = ItemIOS.GetVoiceOverFocus();
+        boolean alreadyThere = current != null && (current == target || current == activeElement);
+        if (!alreadyThere && newOwner && current != null) {
+            alreadyThere = current == itemElement || current.GetItem() == item
+                    || (item instanceof Item2D_ && IsInside(current.GetItem(), (Item2D_) item));
+        }
+        if (debug) {
+            System.out.println("Active part of " + Describe((ItemIOS) itemElement) + " -> " + Describe(activeElement)
+                    + (alreadyThere ? " (VoiceOver already there)" : ""));
+        }
+        if (!alreadyThere) {
+            pendingActive = target;
+        }
+    }
+
+    /*
+        The element of an item's active part, or null if it has none, or the
+        part can't have an element (it isn't showing or accessible) or isn't
+        among the elements VoiceOver sees (a chart part off the level shown).
+        A part with no element yet is added first, as on the Mac.
+     */
+    private ItemIOS GetActiveElement(ItemIOS itemElement, Item_ active) {
+        if (active == null || active == itemElement.GetItem()) {
+            return null;
+        }
+        Object element = mapAccessibilityElements.get(active.GetHashCode());
+        if (element == null && NativeAdd(active)) {
+            element = mapAccessibilityElements.get(active.GetHashCode());
+        }
+        if (!(element instanceof ItemIOS) || element == itemElement) {
+            return null;
+        }
+
+        // Tree items are in their groups, not in elementArrays.
+        NSMutableArray<UIAccessibilityElement> elements = elementArrays.get(element);
+        if (elements != null && !elements.contains(element)) {
+            return null;
+        }
+        return (ItemIOS) element;
+    }
+
+    /*
+        A calendar changed: the current day moved, the month shown changed,
+        or a day was chosen. Its title and days read the calendar as it is
+        whenever VoiceOver asks, so only VoiceOver's place may need to change:
+        when it is on a day other than the current one (a double tap on a day
+        of another month showed that month, or the keys moved the current
+        day), it goes to the current day. On the title, it stays, and reads
+        the new month by itself after a swipe.
+     */
+    public void NativeCalendarChanged(Calendar_ calendar) {
+        IOSDisplay.RequestFrame();
+        if (calendar == null) {
+            return;
+        }
+        Object element = mapAccessibilityElements.get(calendar.GetHashCode());
+        if (!(element instanceof CalendarIOS)) {
+            return;
+        }
+        CalendarIOS calendarElement = (CalendarIOS) element;
+        ItemIOS current = ItemIOS.GetVoiceOverFocus();
+        if (current instanceof CalendarDayIOS && current.GetItem() == calendar) {
+            UIAccessibilityElement target = calendarElement.GetCurrentDayElement();
+            if (target != null && target != current) {
+                Post(UIAccessibilityNotification.LayoutChangedNotification, target);
+            }
         }
     }
 
@@ -189,6 +331,9 @@ public class IOSAccessibility {
 
     public void  FocusChanged(FocusEvent_ event) throws Exception {
         IOSDisplay.RequestFrame();
+        // The new focus's active part, if any, is a new one
+        // (NativeActiveDescendantChanged), even when it was focused before.
+        activeOwner = null;
         Item_ item = event.GetNewFocus();
         if (item == null) {
             return;
@@ -218,6 +363,7 @@ public class IOSAccessibility {
             ItemIOS current = ItemIOS.GetVoiceOverFocus();
             UIAccessibilityElement target = GetVoiceOverTarget(element);
             boolean alreadyThere = current != null && (current == element || current == target
+                    || current.GetItem() == item
                     || (item instanceof Item2D_ && IsInside(current.GetItem(), (Item2D_) item)));
             if (!alreadyThere) {
                 Post(UIAccessibilityNotification.LayoutChangedNotification, target);
@@ -322,6 +468,9 @@ public class IOSAccessibility {
         if (element instanceof ChartIOS) {
             return ((ChartIOS) element).GetSummary();
         }
+        if (element instanceof CalendarIOS) {
+            return ((CalendarIOS) element).GetCurrentDayElement();
+        }
         if (element instanceof GroupIOS) {
             GroupIOS group = (GroupIOS) element;
             if (group.getAccessibilityElementCount() == 0) {
@@ -376,6 +525,14 @@ public class IOSAccessibility {
         } else if (parentContainer != null) {
             container = (UIAccessibilityContainer) parentContainer;
         }
+
+        // A combo box's list floats in a dialog of its own, but VoiceOver
+        // finds it right after the combo box, in the same container.
+        ItemIOS comboBoxElement = GetComboBoxElementForList(item);
+        NSMutableArray<UIAccessibilityElement> comboBoxArray = comboBoxElement == null ? null : elementArrays.get(comboBoxElement);
+        if (comboBoxArray != null && comboBoxElement.getAccessibilityContainer() != null) {
+            container = comboBoxElement.getAccessibilityContainer();
+        }
         ItemIOS element = CreateElement(item, code, container);
 
         // The identifier is how UI automation tools (XCUITest, Appium) find an
@@ -393,6 +550,9 @@ public class IOSAccessibility {
         if (group != null) {
             RebuildGroup((TreeItem_) item);
             RebuildParentOf((TreeItem_) item);
+        } else if (comboBoxArray != null) {
+            comboBoxArray.add(comboBoxArray.indexOf(comboBoxElement) + 1, element);
+            elementArrays.put(element, comboBoxArray);
         } else {
             NSMutableArray<UIAccessibilityElement> elements = IOSApplication.accessibilityContainer.getAccessibilityElements();
             if (parentContainer != null) {
@@ -407,9 +567,15 @@ public class IOSAccessibility {
                 elements.add(GetInsertionIndex(item, elements), element);
                 elementArrays.put(element, elements);
             }
+            if (parentContainer instanceof CalendarIOS) {
+                RebuildCalendar((CalendarIOS) parentContainer);
+            }
         }
         if (element instanceof ChartIOS) {
             RebuildChart((ChartIOS) element);
+        }
+        if (element instanceof CalendarIOS) {
+            RebuildCalendar((CalendarIOS) element);
         }
 
         // The change is announced once, by PostPendingChanges, not per element.
@@ -446,6 +612,22 @@ public class IOSAccessibility {
             TextBoxIOS textBox = new TextBoxIOS(container);
             textBox.Initialize((TextBox_) item);
             return textBox;
+        } else if (code == item.Get_Libraries_Interface_Item__COMBO_BOX_() && item instanceof ComboBox_) {
+            ComboBox_ box = (ComboBox_) item;
+            ComboBoxIOS comboBox = new ComboBoxIOS(container);
+            comboBox.Initialize(box);
+            if (box.GetChoiceList() != null) {
+                comboBoxLists.put(box.GetChoiceList().GetHashCode(), box);
+            }
+            return comboBox;
+        } else if (code == item.Get_Libraries_Interface_Item__COLOR_WELL_() && item instanceof ColorWell_) {
+            ColorWellIOS well = new ColorWellIOS(container);
+            well.Initialize((ColorWell_) item);
+            return well;
+        } else if (code == item.Get_Libraries_Interface_Item__CALENDAR_() && item instanceof Calendar_) {
+            CalendarIOS calendar = new CalendarIOS(container);
+            calendar.Initialize(item);
+            return calendar;
         } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
             TextFieldIOS textField = new TextFieldIOS(container);
             textField.Initialize((TextField_) item);
@@ -458,6 +640,11 @@ public class IOSAccessibility {
             ListIOS list = new ListIOS(container);
             list.Initialize(item);
             return list;
+        } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_() && GetComboBoxOfChoice(item) != null) {
+            ComboBoxChoiceIOS choice = new ComboBoxChoiceIOS(container);
+            choice.Initialize(item);
+            choice.SetComboBox(GetComboBoxOfChoice(item));
+            return choice;
         } else if (code == item.Get_Libraries_Interface_Item__LIST_ITEM_()) {
             ListItemIOS listItem = new ListItemIOS(container);
             listItem.Initialize(item);
@@ -593,6 +780,63 @@ public class IOSAccessibility {
         }
     }
 
+    // The combo box whose list an item is, or null.
+    private ComboBox_ GetComboBoxOfList(Item_ item) {
+        if (!(item instanceof List_)) {
+            return null;
+        }
+        return comboBoxLists.get(item.GetHashCode());
+    }
+
+    // The combo box whose list holds a list item, or null.
+    private ComboBox_ GetComboBoxOfChoice(Item_ item) {
+        if (!(item instanceof ListItem_)) {
+            return null;
+        }
+        return GetComboBoxOfList(((ListItem_) item).GetList());
+    }
+
+    // The element of the combo box whose list an item is, or null.
+    private ItemIOS GetComboBoxElementForList(Item_ item) {
+        ComboBox_ box = GetComboBoxOfList(item);
+        if (box == null) {
+            return null;
+        }
+        Object element = mapAccessibilityElements.get(box.GetHashCode());
+        return element instanceof ItemIOS ? (ItemIOS) element : null;
+    }
+
+    /*
+        Puts a calendar's elements in reading order: the previous month
+        button, the month title, the next month button and any other
+        controls in it, then the days, week by week.
+     */
+    private void RebuildCalendar(CalendarIOS calendar) {
+        NSMutableArray<UIAccessibilityElement> elements = calendar.getAccessibilityElements();
+        java.util.ArrayList<UIAccessibilityElement> controls = new java.util.ArrayList<>();
+        for (UIAccessibilityElement element : elements) {
+            if (!(element instanceof CalendarDayIOS) && !(element instanceof CalendarTitleIOS)) {
+                controls.add(element);
+            }
+        }
+
+        Calendar_ quorumCalendar = calendar.GetCalendar();
+        Object previous = quorumCalendar.GetPreviousMonthButton() == null ? null
+                : mapAccessibilityElements.get(quorumCalendar.GetPreviousMonthButton().GetHashCode());
+
+        elements.clear();
+        if (previous != null && controls.remove(previous)) {
+            elements.add((UIAccessibilityElement) previous);
+        }
+        if (calendar.GetTitle() != null) {
+            elements.add(calendar.GetTitle());
+        }
+        elements.addAll(controls);
+        for (CalendarDayIOS day : calendar.GetDays()) {
+            elements.add(day);
+        }
+    }
+
     // Rebuilds the array a tree item's group is in: its parent's group, or
     // its tree's top-level groups.
     private void RebuildParentOf(TreeItem_ treeItem) {
@@ -624,7 +868,8 @@ public class IOSAccessibility {
 
     /*
         The container an element goes in: a list item's list, or the nearest
-        ancestor that is a list or a group. Undefined means the top container.
+        ancestor that is a list, a group, a chart or a calendar. Undefined
+        means the top container.
      */
     private ItemIOS GetParentContainer(Item_ item) {
         if (item instanceof ListItem_) {
@@ -640,7 +885,8 @@ public class IOSAccessibility {
         Item2D_ ancestor = item instanceof Item2D_ ? ((Item2D_) item).GetParent() : null;
         while (ancestor != null) {
             Object element = mapAccessibilityElements.get(ancestor.GetHashCode());
-            if (element instanceof ListIOS || element instanceof GroupIOS || element instanceof ChartIOS) {
+            if (element instanceof ListIOS || element instanceof GroupIOS || element instanceof ChartIOS
+                    || element instanceof CalendarIOS) {
                 return (ItemIOS) element;
             }
             ancestor = ancestor.GetParent();
@@ -756,6 +1002,16 @@ public class IOSAccessibility {
         }
         if (treeGroups.remove(item.GetHashCode()) != null) {
             RebuildParentOf((TreeItem_) item);
+        }
+        if (item instanceof ComboBox_ && ((ComboBox_) item).GetChoiceList() != null) {
+            comboBoxLists.remove(((ComboBox_) item).GetChoiceList().GetHashCode());
+        }
+        if (element instanceof CalendarIOS) {
+            CalendarIOS calendar = (CalendarIOS) element;
+            ItemIOS.ClearVoiceOverFocus(calendar.GetTitle());
+            for (CalendarDayIOS day : calendar.GetDays()) {
+                ItemIOS.ClearVoiceOverFocus(day);
+            }
         }
         if (focus == element) {
             focus = null;

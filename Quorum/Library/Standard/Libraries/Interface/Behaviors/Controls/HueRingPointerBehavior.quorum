@@ -1,0 +1,66 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Controls.HueRing
+
+/*
+    The HueRingPointerBehavior sets a HueRing's hue with the mouse or a
+    finger: the button or finger going down on the ring, and each move of a
+    drag, set the hue from the angle of the pointer around the ring's
+    center. Each change is final, so there is nothing to finish when the
+    button comes up.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.InputTable
+    use Libraries.Game.InputSet
+    use Libraries.Interface.Events.MouseEvent
+    use Libraries.Interface.Behaviors.Controls.HueRingPointerBehavior
+
+    MouseEvent mouse
+    InputTable table
+    table:SetIdentifier("HueRing")
+    InputSet press
+    press:SetMouseInput(mouse:LEFT)
+    HueRingPointerBehavior behavior
+    table:Add(press, behavior)
+*/
+class HueRingPointerBehavior is Behavior
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is HueRing)
+            return now
+        end
+        HueRing ring = cast(HueRing, event:GetItem())
+
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent not= undefined
+            if dragEvent:eventType = dragEvent:DRAGGING_BEGAN or dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+                ring:MovePointerAt(dragEvent:GetX(), dragEvent:GetY())
+            end
+            return now
+        end
+
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if touchEvent not= undefined
+            if touchEvent:eventType = touchEvent:BEGAN
+                ring:BeginPointerAt(touchEvent:x, touchEvent:y)
+            elseif touchEvent:eventType = touchEvent:MOVED
+                ring:MovePointerAt(touchEvent:x, touchEvent:y)
+            end
+            return now
+        end
+
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        if mouseEvent not= undefined
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                ring:BeginPointerAt(mouseEvent:GetX(), mouseEvent:GetY())
+            end
+        end
+    end
+end

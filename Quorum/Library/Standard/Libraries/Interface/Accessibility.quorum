@@ -16,6 +16,9 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 use Libraries.Interface.Selections.ButtonGroupSelection
@@ -47,6 +50,9 @@ use Libraries.Interface.Selections.TabPaneSelection
 class Accessibility
     GameStateManager manager
     Item lastFocused = undefined
+    // The focused item and its active part the last time they were checked.
+    Item activeOwner = undefined
+    Item lastActive = undefined
 
     /*
         This action indicates that an item had its name changed.
@@ -88,6 +94,70 @@ class Accessibility
             
             lastFocused = focus
         end
+        UpdateActiveDescendant()
+    end
+
+    /*
+        This action checks the active part of the focused item (its
+        GetActiveDescendant, such as a combo box's highlighted row) and calls
+        ActiveDescendantChanged when the part changes. Update calls it each
+        frame, after any focus change, so a platform that overrides Update
+        calls it too. A new focus that has no active part is left to
+        FocusChanged.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility
+
+        Accessibility accessibility
+        accessibility:UpdateActiveDescendant()
+    */
+    action UpdateActiveDescendant
+        Item focus = manager:GetFocus()
+        Item active = undefined
+        if focus not= undefined
+            active = focus:GetActiveDescendant()
+        end
+
+        boolean changed = false
+        if focus not= activeOwner
+            if active not= undefined
+                changed = true
+            end
+        elseif active not= lastActive
+            changed = true
+        end
+
+        activeOwner = focus
+        lastActive = active
+        if changed and focus not= undefined
+            ActiveDescendantChanged(focus, active)
+        end
+    end
+
+    /*
+        This action indicates that the active part of the focused item changed,
+        such as the row a combo box highlights as the arrow keys move. The
+        keyboard focus stays on the item, but a platform that supports active
+        parts overrides this to point the screen reader at the part, so it
+        reads what the keys just changed, as ARIA's active descendant does. It
+        does nothing here. When the active part is undefined, the item no
+        longer has one, and the screen reader goes back to the item itself.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's new active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility
+        use Libraries.Interface.Controls.ComboBox
+
+        Accessibility accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantChanged(sizes, sizes:GetActiveDescendant())
+    */
+    action ActiveDescendantChanged(Item focus, Item active)
     end
 
     /*
@@ -126,6 +196,46 @@ class Accessibility
         Attribute: Parameter tooltip The tooltip that is closing. Its GetOwner is still the control.
     */
     action TooltipHidden(Tooltip tooltip)
+    end
+
+    /*
+        This action indicates that a combo box's list opened. It does nothing
+        here; a platform that supports combo boxes overrides it, such as to
+        mark the combo box expanded.
+
+        Attribute: Parameter box The combo box whose list opened.
+    */
+    action ComboBoxOpened(ComboBox box)
+    end
+
+    /*
+        This action indicates that a combo box's list closed. It does nothing
+        here; a platform that supports combo boxes overrides it.
+
+        Attribute: Parameter box The combo box whose list closed.
+    */
+    action ComboBoxClosed(ComboBox box)
+    end
+
+    /*
+        This action indicates that a color well's color changed. It does nothing
+        here; a platform that supports color wells overrides it to give the
+        screen reader the new color's words.
+
+        Attribute: Parameter well The color well whose color changed.
+    */
+    action ColorWellChanged(ColorWell well)
+    end
+
+    /*
+        This action indicates that a calendar changed: the day the keys are on
+        moved, the month shown changed, or a day was chosen. It does nothing
+        here; a platform that supports calendars overrides it to refresh the
+        days and move its focus to the current day.
+
+        Attribute: Parameter calendar The calendar that changed.
+    */
+    action CalendarChanged(Calendar calendar)
     end
 
     blueprint action TextSelectionChanged(TextBoxSelection selection)

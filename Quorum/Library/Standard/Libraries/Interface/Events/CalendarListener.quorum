@@ -1,0 +1,41 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Events.CalendarChangedEvent
+
+/*
+    A CalendarListener is told when the user chooses a day on a Calendar, or
+    a date in a DateField. Add one with the calendar's or date field's
+    AddCalendarListener action, and override CalendarChanged.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.CalendarChangedEvent
+    use Libraries.Interface.Events.CalendarListener
+
+    class DueDateListener is CalendarListener
+        action CalendarChanged(CalendarChangedEvent event)
+            output "Due " + event:GetNewDate():ToText()
+        end
+    end
+*/
+class CalendarListener
+    /*
+        This action is called when the user chooses a day.
+
+        Attribute: Parameter event The calendar, and the old and new dates.
+
+        Attribute: Example
+        use Libraries.Interface.Events.CalendarChangedEvent
+        use Libraries.Interface.Events.CalendarListener
+
+        class DueDateListener is CalendarListener
+            action CalendarChanged(CalendarChangedEvent event)
+                output event:GetNewDate():ToText()
+            end
+        end
+    */
+    action CalendarChanged(CalendarChangedEvent event)
+    end
+end

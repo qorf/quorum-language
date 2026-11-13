@@ -1,0 +1,108 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.GameDisplay
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Interface.Options.InterfaceOptions
+
+/*
+The ComboBoxChoice class is a row of a ComboBox's open list. It is a ListItem
+that looks like any other, except for the row under the mouse: that row is
+tinted with the mouse-over color of the interface options key
+"ComboBoxChoice", a light gray, so other lists keep their own look. The row
+the keyboard highlights keeps the list's selection color, even with the mouse
+on it. The ComboBox makes its rows itself, so most programs never make one.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.ComboBox
+
+Form form
+Page page = form:GetMainPage()
+
+// The rows of the list that opens are ComboBoxChoices.
+ComboBox sizes
+sizes:SetName("Size")
+sizes:Add("Small")
+sizes:Add("Large")
+page:Add(sizes)
+
+form:Display()
+*/
+class ComboBoxChoice is ListItem
+    GameStateManager manager
+
+    /*
+        This action returns the color of the row while the mouse is on it: the
+        mouse-over color of the interface options key "ComboBoxChoice", or, when
+        that key has none, a list item's own mouse-over color.
+
+        Attribute: Returns The row's mouse-over color.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBoxChoice
+        use Libraries.Game.Graphics.ColorGroup
+
+        ComboBoxChoice choice
+        ColorGroup color = choice:GetMouseOverColor()
+    */
+    action GetMouseOverColor returns ColorGroup
+        InterfaceOptions options = manager:GetInterfaceOptions()
+        if options not= undefined
+            ColorGroup color = options:GetMouseOverColor("ComboBoxChoice")
+            if color not= undefined
+                return color
+            end
+        end
+        return parent:Control:GetMouseOverColor()
+    end
+
+    /*
+        This action is called when the mouse moves onto the row. It tints the row
+        and asks the display to draw again, so the tint shows at once.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBoxChoice
+
+        ComboBoxChoice choice
+        choice:BeginMouseOver()
+    */
+    action BeginMouseOver
+        if IsRenderingMouseOver()
+            return now
+        end
+        parent:Control:BeginMouseOver()
+        RequestDrawing()
+    end
+
+    /*
+        This action is called when the mouse moves off the row. It takes away the
+        tint and asks the display to draw again.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBoxChoice
+
+        ComboBoxChoice choice
+        choice:BeginMouseOver()
+        choice:EndMouseOver()
+    */
+    action EndMouseOver
+        if not IsRenderingMouseOver()
+            return now
+        end
+        parent:Control:EndMouseOver()
+        RequestDrawing()
+    end
+
+    // Asks a display that draws only when something changes to draw again.
+    private action RequestDrawing
+        GameDisplay display = manager:GetGameDisplay()
+        if display not= undefined
+            display:RequestRendering()
+        end
+    end
+end

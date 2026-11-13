@@ -164,6 +164,36 @@ class DarkModeOptions is InterfaceOptions
         SetBottomLeftPixelRounding("Tooltip", 6)
         SetBottomRightPixelRounding("Tooltip", 6)
 
+        // ComboBox: a field like a text field's, with the chevron in the
+        // foreground color; its open list uses "MenuPanel".
+        SetBackgroundColor("ComboBox", color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetBorderColor("ComboBox", color:CustomColor(107.0 / MAX, 113.0 / MAX, 120.0 / MAX, 1))
+        SetForegroundColor("ComboBox", color:CustomColor(201.0 / MAX, 209.0 / MAX, 219.0 / MAX, 1))
+        SetFocusBorderColor("ComboBox", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+
+        // ColorWell: a field-like button with a swatch; the border is the
+        // swatch's edge too.
+        SetBackgroundColor("ColorWell", color:CustomColor(43.0 / MAX, 43.0 / MAX, 43.0 / MAX, 1))
+        SetBorderColor("ColorWell", color:CustomColor(150.0 / MAX, 157.0 / MAX, 166.0 / MAX, 1))
+        SetFocusBorderColor("ColorWell", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+
+        // Calendar: font = a day's number; foreground = other months' and
+        // unavailable days (dimmed, still 4.5 to 1 against the panel); border = today's ring; accent = the
+        // chosen day's fill (its number in white); focus border = the ring
+        // around the day the keys are on.
+        SetFontColor("Calendar", color:CustomColor(230.0 / MAX, 232.0 / MAX, 235.0 / MAX, 1))
+        SetForegroundColor("Calendar", color:CustomColor(170.0 / MAX, 176.0 / MAX, 184.0 / MAX, 1))
+        SetBorderColor("Calendar", color:CustomColor(201.0 / MAX, 209.0 / MAX, 219.0 / MAX, 1))
+        SetAccentColor("Calendar", color:CustomColor(47.0 / MAX, 91.0 / MAX, 187.0 / MAX, 1))
+        SetFocusBorderColor("Calendar", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+        // The circle under the mouse: the menus' and trees' mouse-over gray.
+        SetMouseOverColor("Calendar", color:CustomColor(78.0 / MAX, 81.0 / MAX, 84.0 / MAX, 1))
+
+        // ComboBoxChoice: a row of a combo box's open list. The row under the
+        // mouse has the menus' and trees' mouse-over gray; the keyboard's row
+        // keeps the selection color.
+        SetMouseOverColor("ComboBoxChoice", color:CustomColor(78.0 / MAX, 81.0 / MAX, 84.0 / MAX, 1))
+
         // ScrollPane specific colors.
         SetScrollPaneBackgroundColor(darkGray)
         SetScrollPaneForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))

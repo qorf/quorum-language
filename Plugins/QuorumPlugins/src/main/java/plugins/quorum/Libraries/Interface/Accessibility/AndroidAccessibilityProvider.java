@@ -42,6 +42,9 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
     // The node TalkBack's focus is on, and the one under the finger.
     private volatile int accessibilityFocusId = AndroidNode.HOST;
     private int hoverId = AndroidNode.HOST;
+    // The focused item's active part, whose node has the input focus
+    // (MoveToActivePart), or HOST when there is none.
+    private int activePartId = AndroidNode.HOST;
 
     private AndroidAccessibilityProvider(View view) {
         this.view = view;
@@ -75,6 +78,12 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 rootIds = newRootIds;
                 if (accessibilityFocusId != AndroidNode.HOST && !nodes.containsKey(accessibilityFocusId)) {
                     accessibilityFocusId = AndroidNode.HOST;
+                }
+                // A part that is gone, or no longer has the input focus (its
+                // owner lost Quorum's focus), isn't the active part anymore.
+                AndroidNode part = nodes.get(activePartId);
+                if (activePartId != AndroidNode.HOST && (part == null || !part.focused)) {
+                    activePartId = AndroidNode.HOST;
                 }
                 AccessibilityEvent event = new AccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
                 event.setContentChangeTypes(AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE);
@@ -118,6 +127,30 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         });
     }
 
+    /*
+        The focused item's active part changed (such as a combo box's
+        highlighted row), from the game thread, after the snapshot that
+        gives the part's node the input focus. TalkBack moves to the part and
+        reads it, while Quorum's focus stays on the owner. With no part
+        (HOST), the owner has the input focus again and TalkBack goes back
+        to it.
+     */
+    public void MoveToActivePart(final int partId, final int ownerId) {
+        view.post(new Runnable() {
+            public void run() {
+                activePartId = nodes.containsKey(partId) ? partId : AndroidNode.HOST;
+                int id = activePartId != AndroidNode.HOST ? activePartId : ownerId;
+                if (!nodes.containsKey(id)) {
+                    return;
+                }
+                if (id != accessibilityFocusId && IsTalkBackOn()) {
+                    SetAccessibilityFocus(id, "Quorum (active part)");
+                }
+                Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED), id);
+            }
+        });
+    }
+
     @Override
     public AccessibilityNodeInfo createAccessibilityNodeInfo(int id) {
         if (id == AndroidNode.HOST) {
@@ -147,11 +180,16 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         }
         info.setBoundsInScreen(node.bounds);
         info.setVisibleToUser(true);
-        info.setEnabled(true);
+        info.setEnabled(node.enabled);
         info.setImportantForAccessibility(true);
         info.setText(node.text);
         info.setHintText(node.hint);
-        info.setStateDescription(node.stateDescription);
+        info.setContentDescription(node.contentDescription);
+        // Android 11 and later; before that, the state is in the text
+        // (AndroidAccessibility.MakeNode).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            info.setStateDescription(node.stateDescription);
+        }
         info.setCheckable(node.checkable);
         info.setChecked(node.checked);
         info.setSelected(node.selected);
@@ -159,7 +197,7 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         info.setHeading(node.heading);
         info.setClickable(node.clickable);
         info.setFocused(node.focused);
-        info.setFocusable(node.clickable || node.editable);
+        info.setFocusable(node.clickable || node.editable || node.focused);
         info.setScreenReaderFocusable(node.readerFocusable);
         info.setContainerTitle(node.containerTitle);
 
@@ -216,6 +254,21 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                     android.R.id.accessibilityActionShowTooltip, "Show tooltip"));
             }
         }
+        // A combo box: TalkBack's Actions menu opens or closes its list.
+        if (node.expandable) {
+            info.addAction(node.expanded ? AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
+                                         : AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
+        }
+        // A grid (a calendar's days), and a cell in one: TalkBack says the
+        // grid's size on entering it, and each cell's row and column.
+        if (node.collectionRows > 0 && node.collectionColumns > 0) {
+            info.setCollectionInfo(AccessibilityNodeInfo.CollectionInfo.obtain(
+                node.collectionRows, node.collectionColumns, false));
+        }
+        if (node.collectionRow >= 0 && node.collectionColumn >= 0) {
+            info.setCollectionItemInfo(AccessibilityNodeInfo.CollectionItemInfo.obtain(
+                node.collectionRow, 1, node.collectionColumn, 1, false, node.selected));
+        }
         // While an interactive tooltip shows: its buttons, by name.
         for (int i = 0; i < node.tooltipButtons.length && i < MAXIMUM_TOOLTIP_BUTTONS; i++) {
             info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_TOOLTIP_BUTTON + i, node.tooltipButtons[i]));
@@ -236,8 +289,27 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         switch (action) {
             case AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS:
                 SetAccessibilityFocus(id, "TalkBack");
+                // The active part is already Quorum's: its owner keeps the
+                // focus, so TalkBack following its input focus (or going
+                // back to it) doesn't move Quorum's focus onto the part.
+                if (id == activePartId) {
+                    return true;
+                }
                 // Quorum's focus follows TalkBack, as it follows VoiceOver.
-                AndroidAccessibility.FocusFromTalkBack(id);
+                // A calendar's day has no item: its calendar takes the focus.
+                AndroidAccessibility.FocusFromTalkBack(node.calendarDay ? node.parentId : id);
+                return true;
+            case AccessibilityNodeInfo.ACTION_EXPAND:
+                if (!node.expandable) {
+                    return false;
+                }
+                AndroidAccessibility.ComboBoxFromTalkBack(id, true);
+                return true;
+            case AccessibilityNodeInfo.ACTION_COLLAPSE:
+                if (!node.expandable) {
+                    return false;
+                }
+                AndroidAccessibility.ComboBoxFromTalkBack(id, false);
                 return true;
             case AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS:
                 if (accessibilityFocusId == id) {
@@ -289,10 +361,14 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                     arguments.getFloat(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE, node.rangeValue));
                 return true;
             case AccessibilityNodeInfo.ACTION_CLICK:
-                if (!node.clickable) {
+                if (!node.clickable || !node.enabled) {
                     return false;
                 }
-                AndroidAccessibility.ActivateFromTalkBack(id);
+                if (node.calendarDay) {
+                    AndroidAccessibility.CalendarDayFromTalkBack(node.parentId, node.collectionRow, node.collectionColumn);
+                } else {
+                    AndroidAccessibility.ActivateFromTalkBack(id);
+                }
                 Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED), id);
                 return true;
             case android.R.id.accessibilityActionShowTooltip:
@@ -320,6 +396,10 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
     public AccessibilityNodeInfo findFocus(int focus) {
         if (focus == AccessibilityNodeInfo.FOCUS_ACCESSIBILITY && accessibilityFocusId != AndroidNode.HOST) {
             return createAccessibilityNodeInfo(accessibilityFocusId);
+        }
+        // The active part has the input focus while its owner has Quorum's.
+        if (focus == AccessibilityNodeInfo.FOCUS_INPUT && activePartId != AndroidNode.HOST) {
+            return createAccessibilityNodeInfo(activePartId);
         }
         return null;
     }
@@ -413,7 +493,8 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         if (node == null) {
             return "" + id;
         }
-        String words = "\"" + (node.text == null ? "" : node.text) + "\"";
+        String shown = node.text != null ? node.text : node.contentDescription;
+        String words = "\"" + (shown == null ? "" : shown) + "\"";
         if (node.text == null && node.hint != null) {
             words = words + " (" + node.hint + ")";
         }
@@ -427,6 +508,8 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             case AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS: return "accessibility focus";
             case AccessibilityNodeInfo.ACTION_CLEAR_ACCESSIBILITY_FOCUS: return "clear accessibility focus";
             case AccessibilityNodeInfo.ACTION_SET_TEXT: return "set text";
+            case AccessibilityNodeInfo.ACTION_EXPAND: return "expand";
+            case AccessibilityNodeInfo.ACTION_COLLAPSE: return "collapse";
             case ACTION_CHART_ESCAPE: return "back to the group";
             case ACTION_CHART_UP: return "next by value";
             case ACTION_CHART_DOWN: return "previous by value";
@@ -463,6 +546,9 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             event.setClassName(node.className);
             if (node.text != null) {
                 event.getText().add(node.text);
+            }
+            if (node.contentDescription != null) {
+                event.setContentDescription(node.contentDescription);
             }
         }
         parent.requestSendAccessibilityEvent(view, event);

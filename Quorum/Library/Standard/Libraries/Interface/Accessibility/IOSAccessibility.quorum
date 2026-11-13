@@ -15,6 +15,9 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Controls.Control
 use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.Calendar
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -80,6 +83,74 @@ class IOSAccessibility is Accessibility
             end
         end
     end
+
+    /*
+        A combo box's list opened. VoiceOver reads the combo box as expanded
+        (ComboBoxIOS) and finds the list's choices right after it; the combo
+        box is refreshed and a frame drawn, as for a name change.
+    */
+    action ComboBoxOpened(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A combo box's list closed: the combo box reads as collapsed again.
+    */
+    action ComboBoxClosed(ComboBox box)
+        if box not= undefined
+            NameChanged(box)
+        end
+    end
+
+    /*
+        A color well's color changed. VoiceOver reads the color's words as the
+        well's value (ColorWellIOS); the well is refreshed and a frame drawn.
+    */
+    action ColorWellChanged(ColorWell well)
+        if well not= undefined
+            NameChanged(well)
+        end
+    end
+
+    /*
+        A calendar changed. Its days and month title always read the calendar
+        as it is, and when VoiceOver is on a day, it goes to the current day.
+    */
+    action CalendarChanged(Calendar calendar)
+        if calendar not= undefined
+            NativeCalendarChanged(calendar)
+        end
+    end
+
+    /*
+        This action moves VoiceOver to the focused item's new active part,
+        such as a combo box's highlighted row, so it reads the part as the
+        keys move it, while the focus stays on the item. When the active part
+        is undefined, VoiceOver goes back to the item itself.
+
+        Attribute: Parameter focus The focused item.
+        Attribute: Parameter active The item's new active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Accessibility.IOSAccessibility
+        use Libraries.Interface.Controls.ComboBox
+
+        IOSAccessibility accessibility
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        accessibility:ActiveDescendantChanged(sizes, sizes:GetActiveDescendant())
+    */
+    action ActiveDescendantChanged(Item focus, Item active)
+        NativeActiveDescendantChanged(focus, active)
+    end
+
+    private system action NativeActiveDescendantChanged(Item focus, Item active)
+
+    private system action NativeCalendarChanged(Calendar calendar)
 
     private system action NativeTooltipShown(Tooltip tooltip)
 

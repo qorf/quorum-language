@@ -21,6 +21,11 @@ public:
 	bool HasUiaFocus() const noexcept;
 	void SetQuorumFocus();
 
+	// Points UI Automation's focus at this item's active part, such as a
+	// combo box's highlighted row, while this item keeps the Quorum focus;
+	// null points it back at this item. Raises a focus changed event.
+	void SetActivePart(_In_opt_ Item* part);
+
 	// These methods are only called on items that can receive the Quorum focus, e.g. a menu bar
 	// but not the menu items. However, they may be called in cases other than Quorum focus changes,
 	// e.g. when the host window gains or loses focus.
@@ -30,6 +35,16 @@ public:
 	// If the focus that we expose to UIA is a descendant of the Quorum focus, e.g. an item
 	// in a list or tree, return that descendant here. Otherwise, return null.
 	virtual Item* GetUiaFocusDescendant() const noexcept;
+
+	// The element UI Automation treats as focused while this item is the UIA
+	// focus: usually its own provider. A control whose parts aren't Quorum
+	// items, such as a calendar's days, returns the focused part instead.
+	virtual wil::com_ptr<IRawElementProviderFragment> GetUiaFocusFragment();
+
+	// The element that follows this item's last child, for a control whose
+	// children include parts that aren't Quorum items (a calendar's days).
+	// Null for most items.
+	virtual wil::com_ptr<IRawElementProviderFragment> GetFragmentAfterChildren();
 
 	void SetName(_In_ std::wstring name);
 	const WCHAR* GetName();

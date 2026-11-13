@@ -1,0 +1,52 @@
+package Libraries.Interface.Controls
+
+use Libraries.Interface.Item
+
+/*
+    A ColorSwatchGroup is the ButtonGroup that holds a ColorPicker's
+    swatches. The keyboard focus stays on the group while the arrow keys
+    choose swatches, so the group points screen readers at the chosen
+    swatch (GetActiveDescendant), and they read its color, such as
+    "#FF0000, red", as it changes.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Color
+    use Libraries.Interface.Controls.ColorSwatch
+    use Libraries.Interface.Controls.ColorSwatchGroup
+
+    Color color
+    ColorSwatchGroup group
+    group:SetName("Swatches")
+    ColorSwatch red
+    red:SetColor(color:Red())
+    group:AddToGrouping(red)
+    group:Add(red)
+*/
+class ColorSwatchGroup is ButtonGroup
+    /*
+        This action returns the chosen swatch, which screen readers are
+        pointed at while the group has the focus, or undefined when no swatch
+        is chosen.
+
+        Attribute: Returns The chosen swatch, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ColorSwatchGroup
+        use Libraries.Interface.Item
+        ColorSwatchGroup group
+        Item active = group:GetActiveDescendant()
+    */
+    action GetActiveDescendant returns Item
+        ToggleButton chosen = GetSelectedButton()
+        if chosen = undefined
+            return undefined
+        end
+        if not chosen:GetToggleState()
+            return undefined
+        end
+        return chosen
+    end
+end

@@ -1,0 +1,71 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.ColorPicker
+
+/*
+    The ColorPickerCloseBehavior closes the ColorPicker that holds the item
+    it runs on: with OK, which keeps the color, or with CANCEL, which puts
+    the old color back. The picker's OK and Cancel buttons use it, and so
+    do Enter and Escape anywhere in the picker. Which one it is is set with
+    Setup.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Controls.Button
+    use Libraries.Interface.Behaviors.Controls.ColorPickerCloseBehavior
+
+    Button cancel
+    cancel:SetName("Cancel")
+    ColorPickerCloseBehavior behavior
+    behavior:Setup(behavior:CANCEL)
+    cancel:SetBehavior(behavior)
+*/
+class ColorPickerCloseBehavior is Behavior
+    public constant integer OK = 0
+    public constant integer CANCEL = 1
+
+    integer choice = OK
+
+    /*
+        This action sets whether the behavior keeps the color (OK) or puts
+        the old one back (CANCEL).
+
+        Attribute: Parameter newChoice OK or CANCEL.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.ColorPickerCloseBehavior
+        ColorPickerCloseBehavior behavior
+        behavior:Setup(behavior:OK)
+    */
+    action Setup(integer newChoice)
+        choice = newChoice
+    end
+
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        repeat while item not= undefined
+            if item is ColorPicker
+                ColorPicker picker = cast(ColorPicker, item)
+                if choice = OK
+                    picker:Accept()
+                else
+                    picker:Cancel()
+                end
+                return now
+            end
+
+            if item is Item2D
+                Item2D item2D = cast(Item2D, item)
+                item = item2D:GetParent()
+            else
+                item = undefined
+            end
+        end
+    end
+end

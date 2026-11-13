@@ -1,0 +1,1250 @@
+package Libraries.Interface.Controls
+
+use Libraries.Containers.Array
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Accessibility
+use Libraries.Interface.Events.ComboBoxChangedEvent
+use Libraries.Interface.Events.ComboBoxListener
+use Libraries.Interface.Events.FocusEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Events.SelectionListener
+use Libraries.Interface.Events.TextChangeEvent
+use Libraries.Interface.Events.TextChangeListener
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+
+/*
+The ComboBox class is a text field with a list of choices. A chevron at the
+field's right edge opens the list below the field, or above it when there is
+no room below. The user can pick a choice from the list or type in the field.
+Typing narrows the list to the choices that start with the typed text,
+ignoring case; when no choice matches, the list shows no choices. Moving
+through the list with the arrow keys writes each choice into the field, so the
+focus never leaves the field, and Enter chooses it. Escape closes the list,
+and a second Escape puts back the text the field had when the list opened.
+
+Programs add choices with Add, choose one with Select, and hear the user's
+choices with a ComboBoxListener. Its colors come from the interface options
+under the key "ComboBox": the field's background and border, and the
+foreground color for the chevron.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.ComboBox
+
+Form form
+Page page = form:GetMainPage()
+
+ComboBox sizes
+sizes:SetName("Size")
+sizes:Add("Small")
+sizes:Add("Medium")
+sizes:Add("Large")
+sizes:SetPlaceholder("Choose a size")
+page:Add(sizes)
+
+form:Display()
+*/
+class ComboBox is TextField, TextChangeListener, SelectionListener
+    // The choices, in order.
+    Array<text> entries
+    // For each row of the list that opens, the index of its choice in entries.
+    Array<integer> matchingRows
+    // The index of the chosen choice, or -1 for none.
+    integer selectedIndex = -1
+    // The highlighted row of the list, or -1 for none.
+    integer highlightedIndex = -1
+
+    // The list floats in a dialog of its own, with no top bar, which doesn't
+    // block the rest of the game.
+    Dialog listDialog
+    List choiceList
+
+    // The chevron at the field's right edge, drawn as two strokes.
+    Icon chevron
+    Control leftStroke
+    // Where the click that last closed the list from outside it was, so that
+    // the same click reaching the field doesn't open the list again.
+    number closingClickX = 0
+    number closingClickY = 0
+    boolean hasClosingClick = false
+    // True once the chevron's views are made, in LoadGraphics.
+    boolean chevronLoaded = false
+    // The row under the mouse, tinted, or undefined.
+    ComboBoxChoice hoveredRow = undefined
+    Control rightStroke
+
+    // The words shown in the field while it is empty, such as "Choose a size".
+    Label placeholderLabel
+    text placeholderText = ""
+
+    // True while the combo box writes its own text, so the change doesn't
+    // narrow the list.
+    boolean writingText = false
+    // True while the combo box changes the list's selection itself, so the
+    // change isn't taken as a click on a choice.
+    boolean updatingList = false
+    // True after Escape closed the list, until the text changes or the list
+    // opens again: a second Escape then puts back textAtOpen.
+    boolean escapePending = false
+    text textAtOpen = ""
+
+    Array<ComboBoxListener> comboBoxListeners
+    GameStateManager manager
+
+    // The most rows the list shows before it scrolls.
+    constant integer MAXIMUM_ROWS = 12
+    // The chevron's width and height, before the interface scale.
+    constant number CHEVRON_SIZE = 12
+    // Space between the chevron and the field's right edge, before the interface scale.
+    constant number CHEVRON_MARGIN = 8
+    // The width at the field's right edge where a click opens or closes the list, before the interface scale.
+    constant number CHEVRON_AREA = 28
+    // Space between the field and its list, before the interface scale.
+    constant number GAP = 2
+    // A row's height when the field has no font yet, before the interface scale.
+    constant number DEFAULT_ROW_HEIGHT = 20
+
+    on create
+        SetName("Combo Box")
+        SetInterfaceOptionsKey("ComboBox")
+        SetInputGroup("ComboBox")
+        SetAccessibilityCode(parent:Item:COMBO_BOX)
+        AddTextChangeListener(me)
+
+        // The chevron: two strokes meeting at the bottom, at the field's
+        // right edge, centered up and down.
+        // Their views are made in LoadGraphics: drawing needs the graphics,
+        // which a program may not have yet when it makes a combo box.
+        Color clear
+        clear:SetColor(0, 0, 0, 0)
+        ManualLayout chevronLayout
+        chevron:SetLayout(chevronLayout)
+        chevron:SetBackgroundColor(clear)
+        chevron:SetName("Chevron")
+        chevron:SetAccessibilityCode(chevron:parent:Item:NOT_ACCESSIBLE)
+        chevron:SetFocusable(false)
+        chevron:SetAcceptsMouseInput(false)
+        chevron:SetHorizontalLayoutMode(chevron:parent:Control:STANDARD)
+        chevron:SetVerticalLayoutMode(chevron:parent:Control:STANDARD)
+        chevron:SetPixelWidth(CHEVRON_SIZE)
+        chevron:SetPixelHeight(CHEVRON_SIZE)
+        chevron:SetPercentageX(1)
+        chevron:SetPercentageOriginX(1)
+        chevron:SetPercentageY(0.5)
+        chevron:SetPercentageOriginY(0.5)
+        SetUpStroke(leftStroke, 0.5 - 0.177, -45)
+        SetUpStroke(rightStroke, 0.5 + 0.177, 45)
+        chevron:Add(leftStroke)
+        chevron:Add(rightStroke)
+        parent:Control:Add(chevron)
+
+        // The placeholder is read as part of the combo box, not on its own.
+        placeholderLabel:SetName("Placeholder")
+        placeholderLabel:SetAccessibilityCode(placeholderLabel:parent:Item:NOT_ACCESSIBLE)
+        placeholderLabel:SetAcceptsMouseInput(false)
+        placeholderLabel:SetPositionOnBaseLine(false)
+        placeholderLabel:SetDescendingLines(false)
+        LayoutProperties placeholderProperties = placeholderLabel:GetDefaultLayoutProperties()
+        placeholderProperties:SetPercentageX(0)
+        placeholderProperties:SetPercentageOriginX(0)
+        placeholderProperties:SetPercentageY(0.5)
+        placeholderProperties:SetPercentageOriginY(0.5)
+        placeholderProperties:SetPixelX(GetLeftCharacterPadding())
+        parent:Control:Add(placeholderLabel)
+        placeholderLabel:Hide()
+
+        // The list never takes the focus, so the focus stays in the field
+        // while the user clicks a choice.
+        choiceList:SetFocusable(false)
+        choiceList:SetInterfaceOptionsKey("MenuPanel")
+        choiceList:SetBorderThickness(1)
+        choiceList:AddSelectionListener(me)
+        // The combo box follows the mouse over the list itself, so the row
+        // under it is tinted.
+        choiceList:AddMouseMovementListener(me)
+
+        listDialog:SetName("Combo Box List")
+        listDialog:SetTopBarVisible(false)
+        listDialog:SetModal(false)
+        listDialog:SetAccessibilityCode(listDialog:parent:Item:NOT_ACCESSIBLE)
+        listDialog:Add(choiceList)
+    end
+
+    // Gives a part of the chevron a ControlShaderView, so it is drawn as a
+    // rounded shape in its colors.
+    private action LoadPartView(Control part)
+        ControlShaderView view
+        view:Initialize()
+        part:SetView2D(view)
+    end
+
+    // Sets up one stroke of the chevron, centered at the given place across
+    // the chevron and turned by the given degrees.
+    private action SetUpStroke(Control stroke, number centerX, number degrees)
+        stroke:SetName("Chevron Stroke")
+        stroke:SetAccessibilityCode(stroke:parent:Item:NOT_ACCESSIBLE)
+        stroke:SetFocusable(false)
+        stroke:SetAcceptsMouseInput(false)
+        stroke:SetPercentageWidth(0.5)
+        stroke:SetPercentageHeight(0.14)
+        stroke:SetCornerRounding(1, 1, 1, 1)
+        stroke:SetRotation(degrees)
+        stroke:SetPercentageOriginX(0.5)
+        stroke:SetPercentageOriginY(0.5)
+        stroke:SetPercentageX(centerX)
+        stroke:SetPercentageY(0.59)
+    end
+
+    /*
+        This action loads the graphics for the combo box. It lets TextField load
+        the field, then colors the chevron in the "ComboBox" foreground color and
+        the placeholder in a lighter shade of the text color. The game engine
+        calls this as needed, so most users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the combo box.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if chevronLoaded = false
+            chevronLoaded = true
+            LoadPartView(chevron)
+            LoadPartView(leftStroke)
+            LoadPartView(rightStroke)
+        end
+
+        parent:TextField:LoadGraphics(properties)
+
+        number scale = GetInterfaceScale()
+        if scale <= 0
+            scale = 1
+        end
+
+        ColorGroup strokeColor = GetForegroundColor()
+        if strokeColor = undefined
+            strokeColor = GetFontColor()
+        end
+        if strokeColor not= undefined
+            leftStroke:SetBackgroundColor(strokeColor)
+            rightStroke:SetBackgroundColor(strokeColor)
+        end
+
+        // ManualLayout scales sizes but not positions, so the margin is scaled here.
+        LayoutProperties chevronProperties = chevron:GetDefaultLayoutProperties()
+        chevronProperties:SetPixelX(-1 * CHEVRON_MARGIN * scale)
+
+        placeholderLabel:SetFontSize(GetFontSize())
+        placeholderLabel:SetInterfaceScale(scale)
+        ColorGroup fontColor = GetFontColor()
+        if fontColor is Color
+            Color solid = cast(Color, fontColor)
+            Color faded
+            faded:SetColor(solid:GetRed(), solid:GetGreen(), solid:GetBlue(), solid:GetAlpha() * 0.6)
+            placeholderLabel:SetColor(faded)
+        elseif fontColor not= undefined
+            placeholderLabel:SetColor(fontColor)
+        end
+    end
+
+    /*
+        This action adds a choice to the end of the list.
+
+        Attribute: Parameter item The choice's text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+    */
+    action Add(text item)
+        entries:Add(item)
+        RefreshOpenList()
+    end
+
+    /*
+        This action adds a choice at the given place in the list. Index 0 is the
+        top of the list, and the choices at or after it move down by one.
+
+        Attribute: Parameter index The index the new choice will have.
+        Attribute: Parameter item The choice's text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Large")
+        sizes:Add(0, "Small")
+    */
+    action Add(integer index, text item)
+        entries:Add(index, item)
+        if selectedIndex >= index
+            selectedIndex = selectedIndex + 1
+        end
+        RefreshOpenList()
+    end
+
+    /*
+        This action removes the choice at the given index. The choices after it
+        move up by one. If it was the chosen one, nothing is chosen, and the
+        field keeps its text.
+
+        Attribute: Parameter index The index of the choice to remove.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+        sizes:RemoveAt(0)
+    */
+    action RemoveAt(integer index)
+        text removed = entries:RemoveAt(index)
+        if selectedIndex = index
+            selectedIndex = -1
+        elseif selectedIndex > index
+            selectedIndex = selectedIndex - 1
+        end
+        RefreshOpenList()
+    end
+
+    /*
+        This action empties the combo box: it removes every choice, chooses
+        nothing and clears the field's text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Empty()
+    */
+    action Empty
+        entries:Empty()
+        selectedIndex = -1
+        highlightedIndex = -1
+        writingText = true
+        parent:TextField:Empty()
+        writingText = false
+        RefreshOpenList()
+    end
+
+    /*
+        This action returns how many choices the combo box has. The text field's
+        own GetSize returns the number of characters in the field.
+
+        Attribute: Returns The number of choices.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        integer count = sizes:GetChoiceCount()
+    */
+    action GetChoiceCount returns integer
+        return entries:GetSize()
+    end
+
+    /*
+        This action returns the text of the choice at the given index.
+
+        Attribute: Parameter index The index of the choice.
+        Attribute: Returns The choice's text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        text first = sizes:GetChoice(0)
+    */
+    action GetChoice(integer index) returns text
+        return entries:Get(index)
+    end
+
+    /*
+        This action chooses the choice at the given index, as a program does:
+        its text is put in the field, and combo box listeners aren't told. With
+        -1, nothing is chosen and the field is emptied, so the placeholder shows.
+
+        Attribute: Parameter index The index of the choice, or -1 for none.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+        sizes:Select(1)
+    */
+    action Select(integer index)
+        if index < 0 or index >= entries:GetSize()
+            selectedIndex = -1
+            WriteText("")
+        else
+            selectedIndex = index
+            WriteText(entries:Get(index))
+        end
+
+        if IsOpen()
+            HighlightRow(GetRowOf(selectedIndex), false)
+        end
+    end
+
+    /*
+        This action returns the index of the chosen choice, or -1 when nothing is
+        chosen.
+
+        Attribute: Returns The index of the chosen choice, or -1.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Select(0)
+        integer index = sizes:GetSelectedIndex()
+    */
+    action GetSelectedIndex returns integer
+        return selectedIndex
+    end
+
+    /*
+        This action returns the text of the chosen choice, or undefined when
+        nothing is chosen.
+
+        Attribute: Returns The chosen choice's text, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Select(0)
+        text chosen = sizes:GetSelectedItem()
+    */
+    action GetSelectedItem returns text
+        if selectedIndex < 0 or selectedIndex >= entries:GetSize()
+            return undefined
+        end
+        return entries:Get(selectedIndex)
+    end
+
+    /*
+        This action sets the words shown in the field while it is empty, such as
+        "Choose a size". An empty text shows nothing.
+
+        Attribute: Parameter value The placeholder's words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:SetPlaceholder("Choose a size")
+    */
+    action SetPlaceholder(text value)
+        if value = undefined
+            value = ""
+        end
+        placeholderText = value
+        placeholderLabel:SetText(value)
+        UpdatePlaceholder()
+    end
+
+    /*
+        This action returns the words shown in the field while it is empty, or
+        an empty text when there are none.
+
+        Attribute: Returns The placeholder's words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:SetPlaceholder("Choose a size")
+        text words = sizes:GetPlaceholder()
+    */
+    action GetPlaceholder returns text
+        return placeholderText
+    end
+
+    /*
+        This action returns the list that opens below the field, which shows the
+        choices matching the field's text. Accessibility tools use it to tie the
+        field to its list; most programs don't need it.
+
+        Attribute: Returns The combo box's list.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Interface.Controls.List
+
+        ComboBox sizes
+        List shown = sizes:GetChoiceList()
+    */
+    action GetChoiceList returns List
+        return choiceList
+    end
+
+    // Shows the placeholder while the field is empty.
+    private action UpdatePlaceholder
+        if placeholderText:IsEmpty() = false and GetText():IsEmpty()
+            placeholderLabel:Show()
+        else
+            placeholderLabel:Hide()
+        end
+    end
+
+    /*
+        This action opens the list below the field, or above it when there is no
+        room below, showing every choice with the chosen one highlighted. If the
+        list is open, nothing happens.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+        sizes:Open()
+    */
+    action Open
+        if IsOpen()
+            return now
+        end
+        Narrow("")
+        HighlightRow(GetRowOf(selectedIndex), false)
+        ShowList()
+    end
+
+    /*
+        This action closes the list, if it is open. The field keeps its text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:Close()
+    */
+    action Close
+        if not IsOpen()
+            return now
+        end
+        SetHoveredRow(undefined)
+        listDialog:Hide()
+        highlightedIndex = -1
+
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:ComboBoxClosed(me)
+        end
+    end
+
+    /*
+        This action returns whether the list is open on the screen.
+
+        Attribute: Returns true if the list is showing.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        boolean open = sizes:IsOpen()
+    */
+    action IsOpen returns boolean
+        return listDialog:IsShowing()
+    end
+
+    /*
+        This action returns the choices the list shows: those that start with the
+        text the user last typed, ignoring case, or every choice when the list was
+        opened without typing. Moving the highlight writes a choice into the
+        field without changing these.
+
+        Attribute: Returns The texts of the choices in the list, in order.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Containers.Array
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+        sizes:Open()
+        Array<text> shown = sizes:GetMatchingItems()
+    */
+    action GetMatchingItems returns Array<text>
+        Array<text> result
+        integer counter = 0
+        repeat while counter < matchingRows:GetSize()
+            result:Add(entries:Get(matchingRows:Get(counter)))
+            counter = counter + 1
+        end
+        return result
+    end
+
+    /*
+        This action returns the highlighted row of the list, counted among the
+        choices the list shows (GetMatchingItems), or -1 when no row is
+        highlighted.
+
+        Attribute: Returns The highlighted row, or -1.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        integer row = sizes:GetHighlightedIndex()
+    */
+    action GetHighlightedIndex returns integer
+        return highlightedIndex
+    end
+
+    /*
+        This action moves the highlight in the list by the given number of rows,
+        stopping at the first and last rows, and writes the highlighted choice
+        into the field, as the arrow keys do. With nothing highlighted, a step of
+        1 highlights the first row and a step of -1 the last. A step as large as
+        the list goes to the first or last row.
+
+        Attribute: Parameter step How many rows to move: positive moves down, negative moves up.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Add("Large")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+    */
+    action MoveHighlight(integer step)
+        integer count = matchingRows:GetSize()
+        if count = 0 or step = 0
+            return now
+        end
+
+        integer target = 0
+        if highlightedIndex < 0
+            if step > 0
+                target = step - 1
+            else
+                target = count + step
+            end
+        else
+            target = highlightedIndex + step
+        end
+
+        if target < 0
+            target = 0
+        end
+        if target >= count
+            target = count - 1
+        end
+        HighlightRow(target, true)
+    end
+
+    /*
+        This action chooses the highlighted choice as the user does: its text is
+        put in the field, combo box listeners are told if the choice changed, and
+        the list closes. With nothing highlighted, the field's text is kept, the
+        choice whose text is the same is chosen (or none), and the list closes.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        sizes:ChooseHighlighted()
+    */
+    action ChooseHighlighted
+        if highlightedIndex >= 0 and highlightedIndex < matchingRows:GetSize()
+            integer index = matchingRows:Get(highlightedIndex)
+            integer oldIndex = selectedIndex
+            selectedIndex = index
+            WriteText(entries:Get(index))
+            Close()
+            if oldIndex not= index
+                NotifyComboBoxListeners(oldIndex, index)
+            end
+        else
+            Close()
+            ChooseFromText()
+        end
+    end
+
+    /*
+        This action does what Escape does in the combo box. With the list open, it
+        closes the list. Pressed again right after, it puts back the text the
+        field had when the list opened. It returns false when it did neither, so
+        Escape can do what it does elsewhere, such as close a tooltip.
+
+        Attribute: Returns true if Escape was used by the combo box.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        boolean used = sizes:Cancel()
+    */
+    action Cancel returns boolean
+        if IsOpen()
+            Close()
+            escapePending = true
+            return true
+        end
+        if escapePending
+            escapePending = false
+            WriteText(textAtOpen)
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action adds a listener that is told each time the user chooses a
+        different choice.
+
+        Attribute: Parameter listener The listener to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Interface.Events.ComboBoxListener
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        class Main is ComboBoxListener
+            integer chosen = -1
+
+            action Main
+                ComboBox sizes
+                sizes:Add("Small")
+                sizes:AddComboBoxListener(me)
+            end
+
+            action ComboBoxChanged(ComboBoxChangedEvent event)
+                chosen = event:GetNewIndex()
+            end
+        end
+    */
+    action AddComboBoxListener(ComboBoxListener listener)
+        comboBoxListeners:Add(listener)
+    end
+
+    /*
+        This action removes a listener, so it is no longer told of the user's
+        choices.
+
+        Attribute: Parameter listener The listener to remove.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Interface.Events.ComboBoxListener
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        class Main is ComboBoxListener
+            action Main
+                ComboBox sizes
+                sizes:AddComboBoxListener(me)
+                sizes:RemoveComboBoxListener(me)
+            end
+
+            action ComboBoxChanged(ComboBoxChangedEvent event)
+            end
+        end
+    */
+    action RemoveComboBoxListener(ComboBoxListener listener)
+        comboBoxListeners:Remove(listener)
+    end
+
+    // Tells each combo box listener of a choice the user made. It works from a
+    // copy of the listeners, so a listener can add or remove listeners.
+    private action NotifyComboBoxListeners(integer oldIndex, integer newIndex)
+        ComboBoxChangedEvent event
+        event:SetComboBox(me)
+        event:SetOldIndex(oldIndex)
+        event:SetNewIndex(newIndex)
+        if newIndex >= 0 and newIndex < entries:GetSize()
+            event:SetText(entries:Get(newIndex))
+        else
+            event:SetText(GetText())
+        end
+
+        Array<ComboBoxListener> listeners = comboBoxListeners:CopyToArray()
+        integer counter = 0
+        repeat while counter < listeners:GetSize()
+            listeners:Get(counter):ComboBoxChanged(event)
+            counter = counter + 1
+        end
+    end
+
+    // Chooses the choice whose text is the field's text, or none, telling the
+    // listeners if the choice changed. The field keeps its text.
+    private action ChooseFromText
+        integer found = -1
+        text current = GetText()
+        integer counter = 0
+        repeat while counter < entries:GetSize() and found < 0
+            if entries:Get(counter) = current
+                found = counter
+            end
+            counter = counter + 1
+        end
+
+        if found not= selectedIndex
+            integer oldIndex = selectedIndex
+            selectedIndex = found
+            NotifyComboBoxListeners(oldIndex, found)
+        end
+    end
+
+    // Puts text in the field, with the caret at its end, without narrowing the list.
+    private action WriteText(text value)
+        writingText = true
+        SetText(value)
+        SetCaretPosition(value:GetSize())
+        writingText = false
+    end
+
+    // Fills the list with the choices that start with the given text, ignoring
+    // case, or every choice when the text is empty. Nothing is highlighted.
+    private action Narrow(text typed)
+        matchingRows:Empty()
+        text prefix = ""
+        if typed not= undefined
+            prefix = typed:ToLowerCase()
+        end
+
+        integer counter = 0
+        repeat while counter < entries:GetSize()
+            text entry = entries:Get(counter)
+            if prefix:IsEmpty()
+                matchingRows:Add(counter)
+            else
+                text lowered = entry:ToLowerCase()
+                if lowered:StartsWith(prefix)
+                    matchingRows:Add(counter)
+                end
+            end
+            counter = counter + 1
+        end
+
+        updatingList = true
+        hoveredRow = undefined
+        choiceList:Deselect()
+        repeat while choiceList:GetSize() > 0
+            Item2D removed = choiceList:Remove(choiceList:GetSize() - 1)
+        end
+        counter = 0
+        repeat while counter < matchingRows:GetSize()
+            ComboBoxChoice row
+            row:SetText(entries:Get(matchingRows:Get(counter)))
+            row:SetFontSize(choiceList:GetFontSize())
+            choiceList:Add(row)
+            counter = counter + 1
+        end
+        updatingList = false
+        highlightedIndex = -1
+    end
+
+    // After the choices change while the list is open, fills it again with the
+    // choices that match the field's text, and sizes it again.
+    private action RefreshOpenList
+        if IsOpen()
+            Narrow(GetText())
+            HighlightRow(GetRowOf(selectedIndex), false)
+            PlaceList()
+        end
+    end
+
+    // The row of the list that shows a choice, or -1 if the list doesn't show it.
+    private action GetRowOf(integer index) returns integer
+        if index < 0
+            return -1
+        end
+        integer counter = 0
+        repeat while counter < matchingRows:GetSize()
+            if matchingRows:Get(counter) = index
+                return counter
+            end
+            counter = counter + 1
+        end
+        return -1
+    end
+
+    // Highlights a row of the list, or none with -1, scrolling it into view,
+    // and when asked writes its choice into the field.
+    private action HighlightRow(integer row, boolean writeChoice)
+        updatingList = true
+        if row < 0 or row >= matchingRows:GetSize()
+            highlightedIndex = -1
+            choiceList:Deselect()
+        else
+            highlightedIndex = row
+            choiceList:Select(row)
+        end
+        updatingList = false
+
+        if writeChoice and highlightedIndex >= 0
+            WriteText(entries:Get(matchingRows:Get(highlightedIndex)))
+        end
+    end
+
+    // Shows the list, placed below or above the field, and starts listening for
+    // clicks outside it.
+    private action ShowList
+        textAtOpen = GetText()
+        escapePending = false
+        choiceList:SetName(GetName())
+        PlaceList()
+
+        if not listDialog:IsShowing()
+            listDialog:Show()
+            Layer2D layer = listDialog:GetLayer()
+            if layer not= undefined
+                layer:AddMouseListener(me)
+                // Told when the mouse moves where the list's layer has nothing,
+                // so the tint leaves the list's rows.
+                layer:AddMouseMovementListener(me)
+            end
+
+            Accessibility access = manager:GetAccessibility()
+            if access not= undefined
+                access:ComboBoxOpened(me)
+            end
+        end
+    end
+
+    // Sizes the list for its rows, up to MAXIMUM_ROWS, at least as wide as the
+    // field, and places it below the field, or above when there's no room below.
+    private action PlaceList
+        number scale = GetGameInterfaceScale()
+
+        number rowHeight = DEFAULT_ROW_HEIGHT * scale
+        Font font = GetFont()
+        if font not= undefined
+            if font:GetLineHeight() > 0
+                rowHeight = font:GetLineHeight()
+            end
+        end
+
+        integer rows = matchingRows:GetSize()
+        if rows > MAXIMUM_ROWS
+            rows = MAXIMUM_ROWS
+        end
+        // With no matching choices, the list stays open, one empty row tall.
+        if rows < 1
+            rows = 1
+        end
+
+        choiceList:SetFontSize(GetFontSize())
+        choiceList:SetFixedLineHeight(rowHeight)
+
+        // Layouts multiply pixel sizes by the interface scale, so the sizes are
+        // given before it. Two more pixels leave room for the border.
+        number listWidth = GetWidth() / scale
+        number listHeight = rows * rowHeight / scale + 2
+        LayoutProperties listProperties = choiceList:GetDefaultLayoutProperties()
+        listProperties:SetPixelWidth(listWidth)
+        listProperties:SetPixelHeight(listHeight)
+        choiceList:RequestLayout()
+
+        number width = listWidth * scale
+        number height = listHeight * scale
+        number gap = GAP * scale
+        number windowWidth = manager:GetGameDisplay():GetWidth()
+        number windowHeight = manager:GetGameDisplay():GetHeight()
+
+        // Screen positions count up from the bottom left of the window.
+        number x = GetScreenX()
+        number bottom = GetScreenY()
+        number top = bottom - gap
+        if top - height < 0
+            top = bottom + GetHeight() + gap + height
+        end
+
+        // Kept inside the window.
+        if x + width > windowWidth
+            x = windowWidth - width
+        end
+        if x < 0
+            x = 0
+        end
+        if top > windowHeight
+            top = windowHeight
+        end
+        if top - height < 0
+            top = height
+        end
+
+        LayoutProperties properties = listDialog:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(top)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+
+        if listDialog:IsShowing()
+            listDialog:RequestLayout()
+        end
+    end
+
+    // The game's interface scale, or 1 when there is no game yet.
+    private action GetGameInterfaceScale returns number
+        Game game = manager:GetGame()
+        if game = undefined
+            return 1
+        end
+        number scale = game:GetInterfaceScale()
+        if scale <= 0
+            return 1
+        end
+        return scale
+    end
+
+    // Whether a point on the screen is on the field.
+    private action IsOnField(number x, number y) returns boolean
+        number left = GetScreenX()
+        number bottom = GetScreenY()
+        return x >= left and x <= left + GetWidth() and y >= bottom and y <= bottom + GetHeight()
+    end
+
+    // Whether a point on the screen is on the chevron's part of the field.
+    private action IsOnChevron(number x, number y) returns boolean
+        if not IsOnField(x, y)
+            return false
+        end
+        number right = GetScreenX() + GetWidth()
+        return x >= right - CHEVRON_AREA * GetGameInterfaceScale()
+    end
+
+    /*
+        This action is called when the field's text changes. It shows or hides
+        the placeholder. When the user changed the text while the field has the
+        focus, it narrows the list to the choices that start with the text and
+        opens it. Text the combo box writes itself, such as a highlighted choice,
+        doesn't narrow the list. The text field calls this, so most users won't
+        need to call it directly.
+
+        Attribute: Parameter event The change to the text.
+    */
+    action TextChanged(TextChangeEvent event)
+        UpdatePlaceholder()
+        if writingText
+            return now
+        end
+        if not IsFocused()
+            return now
+        end
+
+        escapePending = false
+        Narrow(GetText())
+        if IsOpen()
+            PlaceList()
+        else
+            ShowList()
+        end
+    end
+
+    /*
+        This action is called when the list's selection changes. When the user
+        clicked a choice in the list, it chooses that choice and closes the list.
+        The list calls this, so most users won't need to call it directly.
+
+        Attribute: Parameter event The change to the list's selection.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if updatingList
+            return now
+        end
+        integer row = choiceList:GetSelection():GetIndex()
+        if row >= 0 and row < matchingRows:GetSize()
+            highlightedIndex = row
+            ChooseHighlighted()
+        end
+    end
+
+    /*
+        This action is called for a click on the field, and for a click outside
+        the open list. A click on the field, the chevron included, opens the
+        list, or closes it if it is open; a click anywhere but the list and the
+        field closes it. The input system
+        calls this, so most users won't need to call it directly.
+
+        Attribute: Parameter event The mouse event for the click.
+    */
+    action ClickedMouse(MouseEvent event)
+        if event:GetSource() = undefined
+            // A click that the list's layer found nothing under.
+            // Any click off the list closes it, the chevron and the field
+            // included. The list's layer marks the click handled before
+            // telling this listener, so it is handed back to whatever is
+            // under it; if that is the field, it knows this click closed the
+            // list and doesn't open it again.
+            if event:eventType = event:CLICKED_MOUSE and IsOpen()
+                Close()
+                closingClickX = event:GetX()
+                closingClickY = event:GetY()
+                hasClosingClick = true
+                event:SetEventHandled(false)
+            end
+            return now
+        end
+
+        parent:TextField:ClickedMouse(event)
+        if hasClosingClick
+            hasClosingClick = false
+            if event:GetX() = closingClickX and event:GetY() = closingClickY
+                return now
+            end
+        end
+        if event:clickCount = 1
+            if IsOpen()
+                Close()
+            else
+                Open()
+            end
+        end
+    end
+
+    /*
+        This action is called when the mouse moves over the field, over the open
+        list, or anywhere the list's layer has nothing. Over a row of the list,
+        that row is tinted with the "ComboBoxChoice" mouse-over color; anywhere
+        else, no row is. The row the keyboard highlights keeps the selection
+        color. The input system calls this, so most users won't need to call it
+        directly.
+
+        Attribute: Parameter event The mouse event for the movement.
+    */
+    action MovedMouse(MouseEvent event)
+        ComboBoxChoice row = undefined
+        Item source = event:GetSource()
+        // Off the list, the list's layer marked the movement handled before
+        // telling this listener; hand it back, so what is under it still
+        // hears the mouse move.
+        if source = undefined
+            event:SetEventHandled(false)
+        end
+        if IsOpen() and source is Item2D
+            Item2D current = cast(Item2D, source)
+            boolean searching = true
+            repeat while searching
+                if current = undefined
+                    searching = false
+                elseif current is ComboBoxChoice
+                    ComboBoxChoice choice = cast(ComboBoxChoice, current)
+                    List owner = choice:GetList()
+                    if owner not= undefined
+                        if owner:Equals(choiceList)
+                            row = choice
+                        end
+                    end
+                    searching = false
+                else
+                    current = current:GetParent()
+                end
+            end
+        end
+        SetHoveredRow(row)
+    end
+
+    /*
+        This action returns the highlighted row of the open list, which is also
+        the list's selection, or undefined when the list is closed or no row is
+        highlighted. The focus stays in the field, but screen readers are pointed
+        at this row, so they read the choice the arrow keys just moved to.
+
+        Attribute: Returns The highlighted row, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ComboBox
+        use Libraries.Interface.Item
+
+        ComboBox sizes
+        sizes:Add("Small")
+        sizes:Open()
+        sizes:MoveHighlight(1)
+        Item active = sizes:GetActiveDescendant()
+    */
+    action GetActiveDescendant returns Item
+        if not IsOpen()
+            return undefined
+        end
+        if highlightedIndex < 0 or highlightedIndex >= choiceList:GetSize()
+            return undefined
+        end
+        ListItem row = choiceList:GetListItem(highlightedIndex)
+        return row
+    end
+
+    // Tints the given row as the one under the mouse, taking the tint from the
+    // row that had it; undefined leaves no row tinted.
+    private action SetHoveredRow(ComboBoxChoice row)
+        if hoveredRow = undefined and row = undefined
+            return now
+        end
+        if hoveredRow not= undefined and row not= undefined
+            if hoveredRow:Equals(row)
+                return now
+            end
+        end
+        if hoveredRow not= undefined
+            hoveredRow:EndMouseOver()
+        end
+        hoveredRow = row
+        if hoveredRow not= undefined
+            hoveredRow:BeginMouseOver()
+        end
+    end
+
+    /*
+        This action is called when the field gets the focus. It does what a text
+        field does. (A text field gets this action from two parents, so a
+        subclass has to name the one it means.)
+
+        Attribute: Parameter event The focus event.
+    */
+    action GainedFocus(FocusEvent event)
+        parent:TextField:GainedFocus(event)
+    end
+
+    /*
+        This action is called when the field loses the focus. It closes the list,
+        keeping the field's text, and chooses the choice whose text is the field's
+        text, or none, telling combo box listeners if the choice changed.
+
+        Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        parent:TextField:LostFocus(event)
+        Close()
+        escapePending = false
+        ChooseFromText()
+    end
+end

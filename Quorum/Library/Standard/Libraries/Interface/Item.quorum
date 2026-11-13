@@ -2,6 +2,7 @@ package Libraries.Interface
 
 use Libraries.Containers.Array
 use Libraries.Containers.Iterator
+use Libraries.Game.Game
 use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.MouseListener
 use Libraries.Interface.Events.MouseMovementListener
@@ -72,6 +73,12 @@ class Item
     public constant integer SLIDER = 30
     // A small panel of help that appears beside a control (Tooltip).
     public constant integer TOOLTIP = 31
+    // A text field with a list of choices that typing narrows (ComboBox).
+    public constant integer COMBO_BOX = 32
+    // A button showing a color, which opens a color picker (ColorWell).
+    public constant integer COLOR_WELL = 33
+    // A month of days to choose a date from (Calendar).
+    public constant integer CALENDAR = 34
 
     private integer accessibilityCode = NOT_ACCESSIBLE
     private text accessibilityRoleDescription = undefined
@@ -1227,13 +1234,18 @@ class Item
 
     /*
     The IsFocused action determines if this Item is currently focused, returning
-    true if it is, or false if it is not.
+    true if it is, or false if it is not. Before the game has started, nothing
+    has the focus, so it returns false.
     */
     action IsFocused returns boolean
         // Although we can get the focus directly from the manager, we request
         // it from the Game instead. This allows the Game to do any necessary
         // additional book-keeping.
-        return manager:GetGame():GetFocus() = me
+        Game game = manager:GetGame()
+        if game = undefined
+            return false
+        end
+        return game:GetFocus() = me
     end
 
     /*
@@ -1324,6 +1336,26 @@ class Item
     */
     action SetAccessibilityRoleDescription(text newRoleDescription)
         accessibilityRoleDescription = newRoleDescription
+    end
+
+    /*
+        This action returns the part inside this item that is active while this
+        item has the focus, such as the highlighted row of a combo box's list
+        or the selected swatch of a group, or undefined when there is none (the
+        default). The keyboard focus stays on this item, but screen readers are
+        pointed at the active part, so they read what the keys just changed, as
+        ARIA's active descendant does on the web.
+
+        Attribute: Returns The active part, or undefined.
+
+        Attribute: Example
+        use Libraries.Interface.Item
+
+        Item item
+        Item active = item:GetActiveDescendant()
+    */
+    action GetActiveDescendant returns Item
+        return undefined
     end
 
     /*

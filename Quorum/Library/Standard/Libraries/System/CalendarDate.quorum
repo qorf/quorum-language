@@ -1,0 +1,676 @@
+package Libraries.System
+
+use Libraries.System.DateTime
+
+/*
+    The CalendarDate class is a day on the calendar, with no time of day and
+    no time zone: a year, a month from 1 to 12, and a day of the month. It
+    follows the Gregorian calendar, carried back before it was adopted, so
+    every date works the same way. A new CalendarDate is January 1, 1970.
+
+    Dates can be moved by days, months or years, compared, and written as
+    text, such as "2026-11-12" (ISO 8601), "November 12, 2026" (with a
+    DateFormat), or "Thursday, November 12, 2026" for screen readers. All of
+    the arithmetic is done in Quorum: each date is counted as a number of
+    days from January 1, 1970, using Howard Hinnant's public-domain
+    algorithms (days_from_civil and civil_from_days, from "chrono-Compatible
+    Low-Level Date Algorithms"). Only SetToToday asks the system, through
+    DateTime, what day it is.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.System.CalendarDate
+
+    CalendarDate date
+    date:SetDate(2026, 11, 12)
+    date:AddDays(30)
+    output date:ToSpokenText()
+*/
+class CalendarDate
+    integer year = 1970
+    integer month = 1
+    integer day = 1
+    // Days since January 1, 1970, which is day 0. Earlier dates are negative.
+    integer dayNumber = 0
+
+    // Days from March 1 of year 0 to January 1, 1970, in the algorithms.
+    constant integer EPOCH_SHIFT = 719468
+    // The days in each 400 year cycle of the Gregorian calendar.
+    constant integer DAYS_IN_ERA = 146097
+
+    /*
+        This action sets the date to a year, month and day. If there is no
+        such date, such as February 30, the date is not changed and the
+        action returns false.
+
+        Attribute: Parameter newYear The year, such as 2026.
+        Attribute: Parameter newMonth The month, from 1 (January) to 12 (December).
+        Attribute: Parameter newDay The day of the month, from 1.
+        Attribute: Returns True if the date was set, or false if there is no such date.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        boolean valid = date:SetDate(2026, 11, 12)
+    */
+    action SetDate(integer newYear, integer newMonth, integer newDay) returns boolean
+        if newMonth < 1 or newMonth > 12
+            return false
+        end
+        if newDay < 1 or newDay > DaysIn(newYear, newMonth)
+            return false
+        end
+        year = newYear
+        month = newMonth
+        day = newDay
+        dayNumber = DaysFromCivil(year, month, day)
+        return true
+    end
+
+    /*
+        This action sets the date to today, on the computer's clock and in its
+        time zone. The clock is read once, so the year, month and day always
+        come from the same moment, even at midnight.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate today
+        today:SetToToday()
+    */
+    action SetToToday
+        DateTime clock
+        number epochTime = clock:GetEpochTime()
+        // Setting the time stops the DateTime from reading the clock again
+        // for each of the three values below.
+        clock:SetEpochTime(epochTime)
+        integer newYear = clock:GetYear()
+        integer newMonth = clock:GetMonth()
+        integer newDay = clock:GetDayOfMonth()
+        boolean valid = SetDate(newYear, newMonth, newDay)
+    end
+
+    /*
+        This action returns the year.
+
+        Attribute: Returns The year, such as 2026.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        integer year = date:GetYear()
+    */
+    action GetYear returns integer
+        return year
+    end
+
+    /*
+        This action returns the month, from 1 (January) to 12 (December).
+
+        Attribute: Returns The month.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        integer month = date:GetMonth()
+    */
+    action GetMonth returns integer
+        return month
+    end
+
+    /*
+        This action returns the day of the month, from 1.
+
+        Attribute: Returns The day of the month.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        integer day = date:GetDay()
+    */
+    action GetDay returns integer
+        return day
+    end
+
+    /*
+        This action returns the day of the week, numbered as ISO 8601 and
+        DateTime do: 1 is Monday and 7 is Sunday.
+
+        Attribute: Returns The day of the week, from 1 (Monday) to 7 (Sunday).
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        // 4, a Thursday.
+        integer weekday = date:GetDayOfWeek()
+    */
+    action GetDayOfWeek returns integer
+        // January 1, 1970 (day 0) was a Thursday, day 4.
+        return FloorModulus(dayNumber + 3, 7) + 1
+    end
+
+    /*
+        This action returns the day of the year, from 1 for January 1 to 365,
+        or 366 in a leap year.
+
+        Attribute: Returns The day of the year.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 2, 1)
+        // 32
+        integer dayOfYear = date:GetDayOfYear()
+    */
+    action GetDayOfYear returns integer
+        return dayNumber - DaysFromCivil(year, 1, 1) + 1
+    end
+
+    /*
+        This action returns whether the date's year is a leap year, with a
+        February 29: a year divisible by 4, except for years divisible by 100
+        but not by 400. So 2024 and 2000 are leap years, and 1900 is not.
+
+        Attribute: Returns True if the year is a leap year.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2024, 1, 1)
+        boolean leap = date:IsLeapYear()
+    */
+    action IsLeapYear returns boolean
+        return IsLeap(year)
+    end
+
+    /*
+        This action returns how many days the date's month has.
+
+        Attribute: Returns The days in the month, from 28 to 31.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 2, 1)
+        // 28
+        integer days = date:GetDaysInMonth()
+    */
+    action GetDaysInMonth returns integer
+        return DaysIn(year, month)
+    end
+
+    /*
+        This action returns the number of days from January 1, 1970 to the
+        date. January 1, 1970 is 0, the next day is 1, and earlier dates are
+        negative.
+
+        Attribute: Returns The day number.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(1970, 1, 2)
+        // 1
+        integer days = date:GetDayNumber()
+    */
+    action GetDayNumber returns integer
+        return dayNumber
+    end
+
+    /*
+        This action sets the date from a number of days from January 1, 1970.
+        0 is January 1, 1970, and negative numbers are earlier dates.
+
+        Attribute: Parameter days The day number.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDayNumber(20769)
+        // 2026-11-12
+        output date:ToText()
+    */
+    action SetDayNumber(integer days)
+        dayNumber = days
+        integer shifted = days + EPOCH_SHIFT
+        integer era = FloorDivide(shifted, DAYS_IN_ERA)
+        // The day of the 400 year era, from 0 to 146096.
+        integer dayOfEra = shifted - era * DAYS_IN_ERA
+        // The year of the era, from 0 to 399.
+        integer yearOfEra = (dayOfEra - dayOfEra / 1460 + dayOfEra / 36524 - dayOfEra / 146096) / 365
+        integer newYear = yearOfEra + era * 400
+        // The day of a year that starts on March 1, from 0 to 365.
+        integer dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100)
+        // The month of a year that starts in March, from 0 (March) to 11 (February).
+        integer shiftedMonth = (5 * dayOfYear + 2) / 153
+        integer newDay = dayOfYear - (153 * shiftedMonth + 2) / 5 + 1
+        integer newMonth = shiftedMonth + 3
+        if shiftedMonth >= 10
+            newMonth = shiftedMonth - 9
+        end
+        if newMonth <= 2
+            newYear = newYear + 1
+        end
+        year = newYear
+        month = newMonth
+        day = newDay
+    end
+
+    /*
+        This action moves the date by a number of days, forward for a positive
+        number and back for a negative one.
+
+        Attribute: Parameter days How many days to move.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 12, 31)
+        date:AddDays(1)
+        // 2027-01-01
+        output date:ToText()
+    */
+    action AddDays(integer days)
+        SetDayNumber(dayNumber + days)
+    end
+
+    /*
+        This action moves the date by a number of months, forward for a
+        positive number and back for a negative one. The day of the month is
+        kept, unless the new month is shorter: then the date is the new
+        month's last day, so January 31 plus a month is February 28, or 29 in
+        a leap year.
+
+        Attribute: Parameter months How many months to move.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 1, 31)
+        date:AddMonths(1)
+        // 2026-02-28
+        output date:ToText()
+    */
+    action AddMonths(integer months)
+        integer total = year * 12 + (month - 1) + months
+        integer newYear = FloorDivide(total, 12)
+        integer newMonth = FloorModulus(total, 12) + 1
+        integer newDay = day
+        integer last = DaysIn(newYear, newMonth)
+        if newDay > last
+            newDay = last
+        end
+        boolean valid = SetDate(newYear, newMonth, newDay)
+    end
+
+    /*
+        This action moves the date by a number of years, forward for a
+        positive number and back for a negative one. February 29 moved to a
+        year that isn't a leap year becomes February 28.
+
+        Attribute: Parameter years How many years to move.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2024, 2, 29)
+        date:AddYears(1)
+        // 2025-02-28
+        output date:ToText()
+    */
+    action AddYears(integer years)
+        AddMonths(years * 12)
+    end
+
+    /*
+        This action returns how many days there are from this date to another:
+        positive if the other date is later, negative if it is earlier, and 0
+        if it is the same day.
+
+        Attribute: Parameter other The other date.
+        Attribute: Returns The number of days from this date to the other.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate start
+        start:SetDate(2026, 11, 12)
+        CalendarDate finish
+        finish:SetDate(2026, 12, 25)
+        // 43
+        integer days = start:DaysUntil(finish)
+    */
+    action DaysUntil(CalendarDate other) returns integer
+        return other:GetDayNumber() - dayNumber
+    end
+
+    /*
+        This action compares this date with another: -1 if this date is
+        earlier, 0 if they are the same day, and 1 if this date is later.
+
+        Attribute: Parameter object The CalendarDate to compare with.
+        Attribute: Returns -1, 0 or 1.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate first
+        first:SetDate(2026, 11, 12)
+        CalendarDate second
+        second:SetDate(2026, 11, 13)
+        // -1
+        integer result = first:Compare(second)
+    */
+    action Compare(Object object) returns integer
+        if object is CalendarDate
+            CalendarDate other = cast(CalendarDate, object)
+            integer otherNumber = other:GetDayNumber()
+            if dayNumber < otherNumber
+                return -1
+            elseif dayNumber > otherNumber
+                return 1
+            end
+            return 0
+        end
+        return parent:Object:Compare(object)
+    end
+
+    /*
+        This action returns whether another object is a CalendarDate for the
+        same day.
+
+        Attribute: Parameter object The object to compare with.
+        Attribute: Returns True if the object is the same date.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate first
+        first:SetDate(2026, 11, 12)
+        CalendarDate second
+        second:SetDayNumber(20769)
+        boolean same = first:Equals(second)
+    */
+    action Equals(Object object) returns boolean
+        if object is CalendarDate
+            CalendarDate other = cast(CalendarDate, object)
+            return dayNumber = other:GetDayNumber()
+        end
+        return false
+    end
+
+    /*
+        This action returns a hash code for the date, the same for equal dates.
+
+        Attribute: Returns The hash code.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        integer hash = date:GetHashCode()
+    */
+    action GetHashCode returns integer
+        return dayNumber
+    end
+
+    /*
+        This action returns a new CalendarDate for the same day.
+
+        Attribute: Returns The copy.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        CalendarDate copy = date:Copy()
+    */
+    action Copy returns CalendarDate
+        CalendarDate result
+        result:SetDayNumber(dayNumber)
+        return result
+    end
+
+    /*
+        This action returns the name of the date's month, in English, such as
+        "November". For other languages, use a DateFormat with other names.
+
+        Attribute: Returns The month's name.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        text name = date:GetMonthName()
+    */
+    action GetMonthName returns text
+        if month = 1
+            return "January"
+        elseif month = 2
+            return "February"
+        elseif month = 3
+            return "March"
+        elseif month = 4
+            return "April"
+        elseif month = 5
+            return "May"
+        elseif month = 6
+            return "June"
+        elseif month = 7
+            return "July"
+        elseif month = 8
+            return "August"
+        elseif month = 9
+            return "September"
+        elseif month = 10
+            return "October"
+        elseif month = 11
+            return "November"
+        end
+        return "December"
+    end
+
+    /*
+        This action returns the name of the date's day of the week, in
+        English, such as "Thursday". For other languages, use a DateFormat
+        with other names.
+
+        Attribute: Returns The weekday's name.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        text name = date:GetDayName()
+    */
+    action GetDayName returns text
+        integer weekday = GetDayOfWeek()
+        if weekday = 1
+            return "Monday"
+        elseif weekday = 2
+            return "Tuesday"
+        elseif weekday = 3
+            return "Wednesday"
+        elseif weekday = 4
+            return "Thursday"
+        elseif weekday = 5
+            return "Friday"
+        elseif weekday = 6
+            return "Saturday"
+        end
+        return "Sunday"
+    end
+
+    /*
+        This action returns the date as ISO 8601 text: the year, month and
+        day, with dashes, such as "2026-11-12".
+
+        Attribute: Returns The date as text.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        output date:ToText()
+    */
+    action ToText returns text
+        return Pad(year, 4) + "-" + Pad(month, 2) + "-" + Pad(day, 2)
+    end
+
+    /*
+        This action returns the date as text in a format, such as
+        "November 12, 2026" or "11/12/2026".
+
+        Attribute: Parameter format The format to write the date in.
+        Attribute: Returns The date as text.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+        use Libraries.System.DateFormat
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        DateFormat format
+        format:SetPattern("MM/dd/yyyy")
+        output date:ToText(format)
+    */
+    action ToText(DateFormat format) returns text
+        if format = undefined
+            return ToText()
+        end
+        return format:ToText(me)
+    end
+
+    /*
+        This action returns the date in words, the way a screen reader should
+        say it: the day of the week, the month, the day and the year, such as
+        "Thursday, November 12, 2026".
+
+        Attribute: Returns The date in words.
+
+        Attribute: Example
+        use Libraries.System.CalendarDate
+
+        CalendarDate date
+        date:SetDate(2026, 11, 12)
+        output date:ToSpokenText()
+    */
+    action ToSpokenText returns text
+        return GetDayName() + ", " + GetMonthName() + " " + day + ", " + year
+    end
+
+    /*
+        The days from January 1, 1970 to a date, by Howard Hinnant's
+        days_from_civil. The year is counted from March, so a leap day is the
+        last day of its year.
+    */
+    private action DaysFromCivil(integer civilYear, integer civilMonth, integer civilDay) returns integer
+        integer shiftedYear = civilYear
+        if civilMonth <= 2
+            shiftedYear = shiftedYear - 1
+        end
+        integer era = FloorDivide(shiftedYear, 400)
+        // The year of the era, from 0 to 399.
+        integer yearOfEra = shiftedYear - era * 400
+        // The month of a year that starts in March, from 0 (March) to 11 (February).
+        integer shiftedMonth = civilMonth + 9
+        if civilMonth > 2
+            shiftedMonth = civilMonth - 3
+        end
+        // The day of that year, from 0 to 365.
+        integer dayOfYear = (153 * shiftedMonth + 2) / 5 + civilDay - 1
+        // The day of the era, from 0 to 146096.
+        integer dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
+        return era * DAYS_IN_ERA + dayOfEra - EPOCH_SHIFT
+    end
+
+    /*
+        Whether a year is a leap year.
+    */
+    private action IsLeap(integer value) returns boolean
+        if FloorModulus(value, 4) not= 0
+            return false
+        end
+        if FloorModulus(value, 100) not= 0
+            return true
+        end
+        return FloorModulus(value, 400) = 0
+    end
+
+    /*
+        The days in a month of a year.
+    */
+    private action DaysIn(integer value, integer monthValue) returns integer
+        if monthValue = 2
+            if IsLeap(value)
+                return 29
+            end
+            return 28
+        end
+        if monthValue = 4 or monthValue = 6 or monthValue = 9 or monthValue = 11
+            return 30
+        end
+        return 31
+    end
+
+    /*
+        Divides by a positive number, rounding down, so -1 divided by 400 is
+        -1, not 0. Only numbers 0 or more are divided with the integer
+        division, which rounds those down on every platform.
+    */
+    private action FloorDivide(integer value, integer divisor) returns integer
+        if value >= 0
+            return value / divisor
+        end
+        return -((-value + divisor - 1) / divisor)
+    end
+
+    /*
+        The remainder after FloorDivide, from 0 to one less than the divisor,
+        even for negative numbers.
+    */
+    private action FloorModulus(integer value, integer divisor) returns integer
+        return value - divisor * FloorDivide(value, divisor)
+    end
+
+    /*
+        Writes a number with zeros in front, to at least a width of digits.
+        A negative number gets its minus sign in front of the zeros.
+    */
+    private action Pad(integer value, integer width) returns text
+        integer magnitude = value
+        text sign = ""
+        if value < 0
+            magnitude = -value
+            sign = "-"
+        end
+        text digits = "" + magnitude
+        repeat while digits:GetSize() < width
+            digits = "0" + digits
+        end
+        return sign + digits
+    end
+end

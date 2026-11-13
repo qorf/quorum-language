@@ -10,10 +10,17 @@ add_library(AccessibilityManagerWindows MODULE
     ButtonGroupControl.cpp
     ButtonGroupProvider.cpp
     ButtonProvider.cpp
+    CalendarControl.cpp
+    CalendarDayProvider.cpp
+    CalendarProvider.cpp
     CellControl.cpp
     CellProvider.cpp
     CheckBoxControl.cpp
     CheckBoxProvider.cpp
+    ColorWellControl.cpp
+    ColorWellProvider.cpp
+    ComboBoxControl.cpp
+    ComboBoxProvider.cpp
     DialogControl.cpp
     DialogProvider.cpp
     Item.cpp

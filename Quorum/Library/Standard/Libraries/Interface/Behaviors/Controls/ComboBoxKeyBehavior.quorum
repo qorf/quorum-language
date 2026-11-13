@@ -1,0 +1,170 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.ComboBox
+use Libraries.Interface.Item
+use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+
+/*
+The ComboBoxKeyBehavior class carries out the keys of combo boxes, which
+ComboBoxInputSetup gives it. Each key gets its own behavior, set up with one of
+the constants. With the list open, Down and Up move the highlight, Home and End
+go to the first and last choice, Enter chooses the highlighted choice, and
+Escape closes the list. With the list closed, Down, Alt+Down and Up open it,
+Escape right after closing puts the text back, and the other keys do what they
+do in a text field, or elsewhere in the game.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Behaviors.Controls.ComboBoxKeyBehavior
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+
+KeyboardEvent keys
+InputSet downKey
+downKey:SetKeyboardInput(keys:DOWN)
+
+ComboBoxKeyBehavior behavior
+behavior:Setup(behavior:NEXT)
+
+InputTable table
+table:SetIdentifier("MyComboBoxKeys")
+table:Add(downKey, behavior)
+*/
+class ComboBoxKeyBehavior is Behavior
+    // Opens the list; with the list open, highlights the next choice.
+    public constant integer OPEN = 0
+    // Closes the list; with the list closed, right after Escape closed it, puts the text back.
+    public constant integer CLOSE = 1
+    // Highlights the next choice; with the list closed, opens it.
+    public constant integer NEXT = 2
+    // Highlights the previous choice; with the list closed, opens it.
+    public constant integer PREVIOUS = 3
+    // Highlights the first choice; with the list closed, the text field's own key.
+    public constant integer FIRST = 4
+    // Highlights the last choice; with the list closed, the text field's own key.
+    public constant integer LAST = 5
+    // Chooses the highlighted choice and closes the list; with the list closed, the key does what it does elsewhere.
+    public constant integer CHOOSE = 6
+
+    integer move = OPEN
+    GameStateManager manager
+
+    /*
+        This action chooses what the key does: OPEN, CLOSE, NEXT, PREVIOUS,
+        FIRST, LAST or CHOOSE.
+
+        Attribute: Parameter value What the key does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.ComboBoxKeyBehavior
+
+        ComboBoxKeyBehavior behavior
+        behavior:Setup(behavior:CHOOSE)
+    */
+    action Setup(integer value)
+        move = value
+    end
+
+    /*
+        This action returns what the key does: OPEN, CLOSE, NEXT, PREVIOUS,
+        FIRST, LAST or CHOOSE.
+
+        Attribute: Returns What the key does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.ComboBoxKeyBehavior
+
+        ComboBoxKeyBehavior behavior
+        integer value = behavior:GetMove()
+    */
+    action GetMove returns integer
+        return move
+    end
+
+    /*
+        This action carries out the key on the combo box that has the focus. The
+        input tables call it, so most users won't need to.
+
+        Attribute: Parameter event The key event, whose item is the combo box.
+    */
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if not (item is ComboBox)
+            return now
+        end
+        ComboBox box = cast(ComboBox, item)
+
+        if box:IsOpen()
+            integer count = box:GetMatchingItems():GetSize()
+            if move = OPEN or move = NEXT
+                box:MoveHighlight(1)
+            elseif move = PREVIOUS
+                box:MoveHighlight(-1)
+            elseif move = FIRST
+                box:MoveHighlight(-1 * count)
+            elseif move = LAST
+                box:MoveHighlight(count)
+            elseif move = CHOOSE
+                box:ChooseHighlighted()
+            elseif move = CLOSE
+                boolean closed = box:Cancel()
+            end
+            return now
+        end
+
+        if move = OPEN or move = NEXT or move = PREVIOUS
+            box:Open()
+        elseif move = FIRST or move = LAST
+            PassTo("TextField", event)
+        elseif move = CLOSE
+            if not box:Cancel()
+                PassTo("", event)
+            end
+        elseif move = CHOOSE
+            PassTo("", event)
+        end
+    end
+
+    /*
+        Gives the key to another input table: the one with the given identifier,
+        or the default table, which every control falls back to, when the
+        identifier is empty.
+    */
+    private action PassTo(text identifier, BehaviorEvent event)
+        GameInput gameInput = manager:GetInput()
+        if gameInput = undefined
+            return now
+        end
+        InputSet set = event:GetInputSet()
+        if set = undefined
+            return now
+        end
+
+        InputTable table = undefined
+        if identifier:IsEmpty()
+            table = gameInput:GetDefaultInputTable()
+        else
+            table = gameInput:GetInputTable(identifier)
+        end
+        if table not= undefined
+            boolean used = table:ProcessInput(set, event)
+        end
+    end
+
+    /*
+        This action returns true: the key's work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

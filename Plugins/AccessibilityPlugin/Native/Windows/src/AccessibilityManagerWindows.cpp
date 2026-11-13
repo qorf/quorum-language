@@ -20,6 +20,15 @@
 #include "ProgressBarControl.h"
 #include "SliderControl.h"
 #include "TooltipControl.h"
+#include "ComboBoxControl.h"
+#include "ColorWellControl.h"
+#include "CalendarControl.h"
+// The providers of the controls made in this file, so the controls' members
+// are complete wherever their destructors are generated.
+#include "TextFieldProvider.h"
+#include "ComboBoxProvider.h"
+#include "ColorWellProvider.h"
+#include "CalendarProvider.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -582,6 +591,54 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 
 
 #pragma endregion
+// A combo box: its text is typed as in a text field, and its list opens below it.
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateComboBoxNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pControl = Create<ComboBoxControl>(env, parentItem, wName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pControl);
+}
+
+// A color well: a button whose value is its color in words.
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateColorWellNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pControl = Create<ColorWellControl>(env, parentItem, wName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pControl);
+}
+
+// A calendar: a grid of days with the weekday names as column headers.
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateCalendarNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pControl = Create<CalendarControl>(env, parentItem, wName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pControl);
+}
+
 #pragma region Send A Message
 
 // SetFocus: This function will send a message to the window procedure for the control to change focus to that control. This function can only be called
@@ -608,6 +665,20 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	#endif
 
 	return 0; // failure
+}
+
+// SetActivePart: The focused item's active part (Item:GetActiveDescendant) changed, such as a combo box's highlighted row. UI Automation's focus
+//						moves to the part, as a browser does for aria-activedescendant, while the Quorum focus stays on the item. A part of 0 moves it back to the item.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SetActivePartNative(JNIEnv*, jobject, jlong focus, jlong part)
+{
+	Item* pFocus = GetItemFromLong(focus);
+	if (pFocus == nullptr)
+	{
+		return false;
+	}
+
+	pFocus->SetActivePart(GetItemFromLong(part));
+	return true;
 }
 
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_NameChangedNative(JNIEnv* env, jobject obj, jlong itemPointer, jstring name)
@@ -684,6 +755,45 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		return false;
 	}
 	tooltip->NotifyClosed();
+
+	return true;
+}
+
+// A combo box's list opened or closed in Quorum: raise the expand collapse state's change.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ComboBoxExpandCollapseNative(JNIEnv*, jobject, jlong pointer, jboolean open)
+{
+	ComboBoxControl* comboBox = static_cast<ComboBoxControl*>(GetItemFromLong(pointer));
+	if (comboBox == nullptr)
+	{
+		return false;
+	}
+	comboBox->NotifyExpandCollapse(open == JNI_TRUE);
+
+	return true;
+}
+
+// A color well's color changed in Quorum: raise the value's change.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ColorWellChangedNative(JNIEnv*, jobject, jlong pointer)
+{
+	ColorWellControl* well = static_cast<ColorWellControl*>(GetItemFromLong(pointer));
+	if (well == nullptr)
+	{
+		return false;
+	}
+	well->NotifyColorChanged();
+
+	return true;
+}
+
+// A calendar changed in Quorum: refresh its days and follow the current day.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CalendarChangedNative(JNIEnv*, jobject, jlong pointer)
+{
+	CalendarControl* calendar = static_cast<CalendarControl*>(GetItemFromLong(pointer));
+	if (calendar == nullptr)
+	{
+		return false;
+	}
+	calendar->NotifyChanged();
 
 	return true;
 }

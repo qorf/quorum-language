@@ -177,6 +177,36 @@ class LightModeOptions is InterfaceOptions
         SetBottomLeftPixelRounding("Tooltip", 6)
         SetBottomRightPixelRounding("Tooltip", 6)
 
+        // ComboBox: a field like a text field's, with the chevron in the
+        // foreground color; its open list uses "MenuPanel".
+        SetBackgroundColor("ComboBox", color:White())
+        SetBorderColor("ComboBox", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
+        SetForegroundColor("ComboBox", color:CustomColor(60.0 / MAX, 64.0 / MAX, 70.0 / MAX, 1))
+        SetFocusBorderColor("ComboBox", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+
+        // ColorWell: a field-like button with a swatch; the border is the
+        // swatch's edge too.
+        SetBackgroundColor("ColorWell", color:White())
+        SetBorderColor("ColorWell", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
+        SetFocusBorderColor("ColorWell", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+
+        // Calendar: font = a day's number; foreground = other months' and
+        // unavailable days (dimmed, still 4.5 to 1 against the panel); border = today's ring; accent = the
+        // chosen day's fill (its number in white); focus border = the ring
+        // around the day the keys are on.
+        SetFontColor("Calendar", color:CustomColor(32.0 / MAX, 33.0 / MAX, 36.0 / MAX, 1))
+        SetForegroundColor("Calendar", color:CustomColor(100.0 / MAX, 106.0 / MAX, 114.0 / MAX, 1))
+        SetBorderColor("Calendar", color:CustomColor(60.0 / MAX, 64.0 / MAX, 70.0 / MAX, 1))
+        SetAccentColor("Calendar", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetFocusBorderColor("Calendar", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        // The circle under the mouse: the menus' and trees' mouse-over gray.
+        SetMouseOverColor("Calendar", color:CustomColor(218.0 / MAX, 218.0 / MAX, 218.0 / MAX, 1))
+
+        // ComboBoxChoice: a row of a combo box's open list. The row under the
+        // mouse has the menus' and trees' mouse-over gray; the keyboard's row
+        // keeps the selection color.
+        SetMouseOverColor("ComboBoxChoice", color:CustomColor(218.0 / MAX, 218.0 / MAX, 218.0 / MAX, 1))
+
         // RadioButton specific colors.
         SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
         SetRadioButtonBorderColor(color:CustomColor(118.0/255.0, 118.0/255.0, 118.0/255.0, 1))

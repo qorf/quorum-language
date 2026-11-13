@@ -1,0 +1,156 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.ComboBox
+
+/*
+    The ComboBoxChangedEvent says the user chose a different choice in a
+    ComboBox: by clicking it in the list, by pressing Enter on the highlighted
+    choice, or by leaving the field with text that is a different choice's, or
+    no choice's. It holds the combo box, the index of the old and new choices
+    (-1 for none), and the chosen text.
+
+    Attribute: Example
+
+    use Libraries.Interface.Events.ComboBoxChangedEvent
+    use Libraries.Interface.Events.ComboBoxListener
+
+    class SizeListener is ComboBoxListener
+        text size = ""
+
+        action ComboBoxChanged(ComboBoxChangedEvent event)
+            size = event:GetText()
+        end
+    end
+*/
+class ComboBoxChangedEvent
+    ComboBox comboBox = undefined
+    integer oldIndex = -1
+    integer newIndex = -1
+    text chosenText = ""
+
+    /*
+        This action returns the combo box whose choice changed.
+
+        Attribute: Returns The combo box.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBoxChangedEvent event
+        ComboBox box = event:GetComboBox()
+    */
+    action GetComboBox returns ComboBox
+        return comboBox
+    end
+
+    /*
+        This action sets the combo box whose choice changed.
+
+        Attribute: Parameter box The combo box.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+        use Libraries.Interface.Controls.ComboBox
+
+        ComboBox box
+        ComboBoxChangedEvent event
+        event:SetComboBox(box)
+    */
+    action SetComboBox(ComboBox box)
+        comboBox = box
+    end
+
+    /*
+        This action returns the index of the choice before the change, or -1 if
+        nothing was chosen.
+
+        Attribute: Returns The old index.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        integer index = event:GetOldIndex()
+    */
+    action GetOldIndex returns integer
+        return oldIndex
+    end
+
+    /*
+        This action sets the index of the choice before the change.
+
+        Attribute: Parameter index The old index, or -1 for none.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        event:SetOldIndex(0)
+    */
+    action SetOldIndex(integer index)
+        oldIndex = index
+    end
+
+    /*
+        This action returns the index of the choice after the change, or -1 if
+        the field's text is no choice's.
+
+        Attribute: Returns The new index.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        integer index = event:GetNewIndex()
+    */
+    action GetNewIndex returns integer
+        return newIndex
+    end
+
+    /*
+        This action sets the index of the choice after the change.
+
+        Attribute: Parameter index The new index, or -1 for none.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        event:SetNewIndex(1)
+    */
+    action SetNewIndex(integer index)
+        newIndex = index
+    end
+
+    /*
+        This action returns the chosen text: the new choice's text, or the
+        field's text when no choice is chosen.
+
+        Attribute: Returns The chosen text.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        text chosen = event:GetText()
+    */
+    action GetText returns text
+        return chosenText
+    end
+
+    /*
+        This action sets the chosen text.
+
+        Attribute: Parameter value The chosen text.
+
+        Attribute: Example
+        use Libraries.Interface.Events.ComboBoxChangedEvent
+
+        ComboBoxChangedEvent event
+        event:SetText("Medium")
+    */
+    action SetText(text value)
+        chosenText = value
+    end
+end

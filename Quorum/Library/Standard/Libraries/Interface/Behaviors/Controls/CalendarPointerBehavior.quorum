@@ -1,0 +1,59 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Controls.Calendar
+
+/*
+    The CalendarPointerBehavior answers a click or touch on a Calendar: a
+    day of the month shown is chosen, and a day of another month is moved
+    to, with Calendar:ChooseDayAt.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+
+    use Libraries.Interface.Behaviors.Controls.CalendarPointerBehavior
+
+    CalendarPointerBehavior behavior
+*/
+class CalendarPointerBehavior is Behavior
+    /*
+        This action passes the place of the click or touch to the calendar.
+        The input tables call it, so most users won't need to.
+
+        Attribute: Parameter event The mouse or touch event, whose item is the calendar.
+    */
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Calendar)
+            return now
+        end
+        Calendar calendar = cast(Calendar, event:GetItem())
+
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if touchEvent not= undefined
+            if touchEvent:eventType = touchEvent:BEGAN
+                calendar:ChooseDayAt(touchEvent:x, touchEvent:y)
+            end
+            return now
+        end
+
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        if mouseEvent not= undefined
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                calendar:ChooseDayAt(mouseEvent:GetX(), mouseEvent:GetY())
+            end
+        end
+    end
+
+    /*
+        This action returns true: the click's work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end
