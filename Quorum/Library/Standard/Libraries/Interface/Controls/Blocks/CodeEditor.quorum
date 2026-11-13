@@ -1760,6 +1760,70 @@ editManager:SetSpecialAction(false)
         RequestLayout()
     end
     
+    /*
+    This action replaces a stretch of the code's text with new text, as one
+    change that Undo takes back, and rebuilds the blocks. Text change and
+    block change listeners are told, as when the user edits. The stretch may
+    be empty, to insert, and may start at the very end of the text, to add
+    text there; the new text may be empty, to delete.
+
+    Attribute: Parameter index The character index where the stretch starts.
+    Attribute: Parameter size How many characters to replace.
+    Attribute: Parameter value The new text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Blocks.CodeEditor
+
+    CodeEditor editor
+    editor:SetCode("output 1")
+    // Replaces the 1 with a 2.
+    editor:ReplaceText(7, 1, "2")
+    */
+    action ReplaceText(integer index, integer size, text value)
+        text added = SanitizeNewLines(value)
+        integer length = rawCode:GetSize()
+        integer start = index
+        if start < 0
+            start = 0
+        end
+        if start > length
+            start = length
+        end
+        integer count = size
+        if count < 0
+            count = 0
+        end
+        if start + count > length
+            count = length - start
+        end
+
+        text deleted = ""
+        if count > 0
+            deleted = rawCode:GetText(start, start + count)
+        end
+        if deleted:IsEmpty() and added:IsEmpty()
+            return now
+        end
+
+        editManager:SetSpecialAction(true)
+        MultipleLineText oldCode = GetCode()
+        // OnTextChange updates the MultipleLineText.
+        TextChangeEvent event
+        event:Initialize(me, added, deleted, start)
+        OnTextChange(event, 0)
+
+        BlockChangeEvent blockEvent
+        blockEvent:Set(me, oldCode, GetCode())
+        NotifyBlockChangeListeners(blockEvent)
+        editManager:SetSpecialAction(false)
+
+        shouldCalculateWidth = true
+        shouldCalculateHeight = true
+        shouldRegenerateBlocks = true
+        shouldCalculateNavigationIndices = true
+        RequestLayout()
+    end
+
     /*Inserts text after the line of the currently selected block into a freeform block for parsing*/
     action InsertTextAfterLineIntoFreeform(text value)
         // If the selected block is a FreeformBlock, try to parse it before making a new one.

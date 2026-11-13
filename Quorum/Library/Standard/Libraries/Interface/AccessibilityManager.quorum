@@ -39,6 +39,7 @@ use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Controls.Slider
 use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Accessibility
 
@@ -96,6 +97,10 @@ class AccessibilityManager is Accessibility
 
     private system action SliderChanged(Slider slider)
 
+    private system action TooltipOpened(Tooltip tooltip)
+
+    private system action TooltipClosed(Tooltip tooltip)
+
     // =====
 
     private system action NativeMenuChanged(MenuChangeEvent event) returns boolean
@@ -148,6 +153,27 @@ class AccessibilityManager is Accessibility
     action SliderValueChanged(SliderChangedEvent event)
         if event:GetSlider() not= undefined
             SliderChanged(event:GetSlider())
+        end
+    end
+
+    /*
+        A tooltip opened: UI Automation's tooltip opened event is raised on
+        it, so Narrator reads it, as for a native Windows tooltip. Its control's
+        help text is already the tooltip's words.
+    */
+    action TooltipShown(Tooltip tooltip)
+        if tooltip not= undefined
+            TooltipOpened(tooltip)
+        end
+    end
+
+    /*
+        A tooltip is closing: UI Automation's tooltip closed event is raised
+        on it before it leaves the accessibility tree.
+    */
+    action TooltipHidden(Tooltip tooltip)
+        if tooltip not= undefined
+            TooltipClosed(tooltip)
         end
     end
 

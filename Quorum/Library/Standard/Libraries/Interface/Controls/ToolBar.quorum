@@ -18,6 +18,7 @@ Attribute: Author William Allee
 Attribute: Example
 
 use Libraries.Game.Game
+use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.ToolBar
 use Libraries.Interface.Controls.Button
 
@@ -65,6 +66,58 @@ class ToolBar is Control
     */
     action IsAccessibleParent returns boolean
         return true
+    end
+
+    /*
+        This action adds an item to the ToolBar. A button or other control on a
+        ToolBar shows a tooltip by default, since a toolbar's buttons are often
+        only icons; call SetTooltipEnabled(false) on it after adding it to turn
+        that off.
+
+        Attribute: Parameter newItem The item to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ToolBar
+        use Libraries.Interface.Controls.Button
+
+        ToolBar toolbar
+        Button open
+        open:SetName("Open")
+        open:SetDescription("Opens a file")
+        toolbar:Add(open)
+    */
+    action Add(Item2D newItem)
+        EnableTooltip(newItem)
+        parent:Control:Add(newItem)
+    end
+
+    /*
+        This action adds an item to the ToolBar at a position among its items. A
+        control added this way shows a tooltip by default, as with Add.
+
+        Attribute: Parameter index Where the item goes, counting from 0.
+        Attribute: Parameter newItem The item to add.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.ToolBar
+        use Libraries.Interface.Controls.Button
+
+        ToolBar toolbar
+        Button open
+        open:SetName("Open")
+        open:SetDescription("Opens a file")
+        toolbar:Add(0, open)
+    */
+    action Add(integer index, Item2D newItem)
+        EnableTooltip(newItem)
+        parent:Control:Add(index, newItem)
+    end
+
+    private action EnableTooltip(Item2D item)
+        if item is Control
+            Control control = cast(Control, item)
+            control:SetTooltipEnabled(true)
+        end
     end
 
     /*

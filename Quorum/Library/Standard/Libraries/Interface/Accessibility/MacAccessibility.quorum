@@ -15,6 +15,7 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Selections.TextBoxSelection
@@ -58,6 +59,29 @@ class MacAccessibility is Accessibility
             NameChanged(event:GetSlider())
         end
     end
+
+    /*
+        A tooltip opened: VoiceOver gets a node for it (TooltipKit), and its
+        control's node is described by it, on the next update.
+    */
+    action TooltipShown(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipShown(tooltip)
+        end
+    end
+
+    /*
+        A tooltip is closing: its control's node is no longer described by it.
+    */
+    action TooltipHidden(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipHidden(tooltip)
+        end
+    end
+
+    private system action NativeTooltipShown(Tooltip tooltip)
+
+    private system action NativeTooltipHidden(Tooltip tooltip)
 
     system action ButtonActivated(Button button)
 

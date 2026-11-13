@@ -1,0 +1,102 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Interface.TooltipManager
+use Libraries.Game.GameStateManager
+
+/*
+The TooltipLongPressBehavior class shows tooltips on phones and tablets. A
+finger held on a control with tooltips turned on shows its tooltip, as a long
+press does on Android; when the finger lifts, the tooltip stays a moment and
+then hides. DefaultInputSets:SetupTooltipInput gives one of these to the
+start of a long press and one, set up with SetEnding(true), to its end.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Behaviors.Controls.TooltipLongPressBehavior
+use Libraries.Interface.Events.GestureEvent
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+
+GestureEvent gestures
+InputSet longPress
+longPress:SetGestureInput(gestures:LONG_PRESS)
+longPress:SetInputTrigger(longPress:BEGIN)
+
+TooltipLongPressBehavior behavior
+InputTable table
+table:SetIdentifier("MyTooltipTouches")
+table:Add(longPress, behavior)
+*/
+class TooltipLongPressBehavior is Behavior
+    boolean ending = false
+    GameStateManager manager
+
+    /*
+        This action chooses whether the behavior is for the end of the long press,
+        when the finger lifts, instead of its start.
+
+        Attribute: Parameter value true for the end of the long press.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.TooltipLongPressBehavior
+
+        TooltipLongPressBehavior behavior
+        behavior:SetEnding(true)
+    */
+    action SetEnding(boolean value)
+        ending = value
+    end
+
+    /*
+        This action returns whether the behavior is for the end of the long press.
+
+        Attribute: Returns true if it is for the end of the long press.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.TooltipLongPressBehavior
+
+        TooltipLongPressBehavior behavior
+        boolean last = behavior:IsEnding()
+    */
+    action IsEnding returns boolean
+        return ending
+    end
+
+    /*
+        This action tells the game's TooltipManager about the long press: the item
+        under the finger at its start, or that the finger lifted. The input tables
+        call it, so most users won't need to.
+
+        Attribute: Parameter event The gesture event.
+    */
+    action Run(BehaviorEvent event)
+        TooltipManager tooltips = manager:GetTooltipManager()
+        if tooltips = undefined
+            return now
+        end
+
+        if ending
+            tooltips:LongPressEnded()
+            return now
+        end
+
+        GestureEvent gesture = event:GetGestureEvent()
+        if gesture not= undefined
+            tooltips:LongPressBegan(gesture:GetSource())
+        end
+    end
+
+    /*
+        This action returns true: the gesture's work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

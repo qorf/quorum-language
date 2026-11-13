@@ -165,6 +165,18 @@ class LightModeOptions is InterfaceOptions
         SetFocusBorderColor("Slider", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
         SetFocusColor("Slider", color:White())
 
+        // Tooltip: a white panel with dark text and a gray edge, so it
+        // stands apart from what is under it. A focused button inside gets
+        // the accent.
+        SetBackgroundColor("Tooltip", color:White())
+        SetFontColor("Tooltip", color:CustomColor(32.0 / MAX, 33.0 / MAX, 36.0 / MAX, 1))
+        SetBorderColor("Tooltip", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
+        SetFocusBorderColor("Tooltip", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
+        SetTopLeftPixelRounding("Tooltip", 6)
+        SetTopRightPixelRounding("Tooltip", 6)
+        SetBottomLeftPixelRounding("Tooltip", 6)
+        SetBottomRightPixelRounding("Tooltip", 6)
+
         // RadioButton specific colors.
         SetRadioButtonBackgroundColor(color:CustomColor(211.0/255.0, 211.0/255.0, 211.0/255.0, 1))
         SetRadioButtonBorderColor(color:CustomColor(118.0/255.0, 118.0/255.0, 118.0/255.0, 1))

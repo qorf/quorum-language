@@ -16,6 +16,10 @@ import quorum.Libraries.Interface.Item2D_;
 import quorum.Libraries.Interface.Item3D_;
 import quorum.Libraries.Interface.Item_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
+import quorum.Libraries.Interface.Controls.Control_;
+import quorum.Libraries.Interface.Controls.Tooltip_;
+import quorum.Libraries.Containers.Array_;
+import plugins.quorum.Libraries.Game.IOSDisplay;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -200,9 +204,83 @@ public class ItemIOS extends UIAccessibilityElement implements UIAccessibilityAc
         item.GetPreviousFocus().Focus();
     }
 
+    /*
+        The buttons of this item's open tooltip, as actions VoiceOver offers
+        in its rotor, or null while no tooltip with buttons is open.
+     */
+    private NSArray<UIAccessibilityCustomAction> tooltipActions = null;
+
     @Override
     public NSArray<UIAccessibilityCustomAction> getAccessibilityCustomActions() {
-        return customActions;
+        if (tooltipActions == null) {
+            return customActions;
+        }
+        NSMutableArray<UIAccessibilityCustomAction> all = new NSMutableArray<UIAccessibilityCustomAction>();
+        if (customActions != null) {
+            all.addAll(customActions);
+        }
+        all.addAll(tooltipActions);
+        return all;
+    }
+
+    /*
+        Offers the buttons of an open tooltip as this item's actions, each
+        named by its button, so VoiceOver's rotor lists them on the control
+        the tooltip is for. Choosing one activates its button. A tooltip of
+        plain text, or null, takes them away.
+     */
+    public void SetTooltipActions(Tooltip_ tooltip) {
+        tooltipActions = null;
+        if (tooltip == null || tooltip.GetContent() == null) {
+            return;
+        }
+
+        Array_ stops = tooltip.GetFocusableItems();
+        if (stops == null) {
+            return;
+        }
+        NSMutableArray<UIAccessibilityCustomAction> actions = new NSMutableArray<UIAccessibilityCustomAction>();
+        for (int i = 0; i < stops.GetSize(); i++) {
+            Object stop = stops.Get(i);
+            if (!(stop instanceof Control_)) {
+                continue;
+            }
+            Control_ button = (Control_) stop;
+            String name = button.GetName();
+            if (name == null || name.isEmpty()) {
+                continue;
+            }
+            actions.add(new UIAccessibilityCustomAction(name, chosen -> {
+                if (IOSAccessibility.debug) {
+                    System.out.println("VoiceOver tooltip action \"" + name + "\" on \"" + getAccessibilityLabel() + "\"");
+                }
+                button.Activate();
+                IOSDisplay.RequestFrame();
+                return true;
+            }));
+        }
+        if (!actions.isEmpty()) {
+            tooltipActions = actions;
+        }
+    }
+
+    /*
+        A control with its tooltip on: the tooltip's words (its title and
+        text) are the hint, which VoiceOver reads after the name, as the
+        tooltip itself isn't an element. Otherwise the hint RefreshText set.
+     */
+    @Override
+    public String getAccessibilityHint() {
+        if (item instanceof Control_) {
+            Control_ control = (Control_) item;
+            if (control.IsTooltipEnabled() && control.HasTooltipContent()) {
+                String words = control.GetTooltipWords();
+                if (words != null && !words.isEmpty()) {
+                    return words;
+                }
+            }
+        }
+        return super.getAccessibilityHint();
     }
 
     @Override

@@ -26,6 +26,9 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Containers.Iterator
 use Libraries.Containers.Support.EmptyIterator
 use Libraries.Interface.Forms.FormConstants
+use Libraries.Interface.TooltipManager
+use Libraries.Interface.Accessibility
+use Libraries.Game.Shapes.Rectangle
 
 /*
 The Control class is the parent of the user interface elements in Quorum,
@@ -141,6 +144,24 @@ class Control is Item2D
 
     PopupMenu contextMenu = undefined
 
+    // Tooltips: off by default. The text, when set, is used instead of the
+    // description.
+    boolean tooltipEnabled = false
+    text tooltipText = undefined
+    // The tooltip's optional first line, such as a name and key.
+    text tooltipTitle = undefined
+
+    /*
+    The values for GetTooltipPlacement. A tooltip goes below its control, or
+    above it, beside it (to the right, or to the left when there's no room),
+    or over it, covering it. Any of them moves to the other side when it
+    doesn't fit.
+    */
+    public constant integer TOOLTIP_BELOW = 0
+    public constant integer TOOLTIP_ABOVE = 1
+    public constant integer TOOLTIP_BESIDE = 2
+    public constant integer TOOLTIP_OVER = 3
+
     /*
     SelectionListeners which are registered with this Control. They'll be
     informed of selection changes in this Control, if the Control has an
@@ -200,6 +221,13 @@ class Control is Item2D
         end
 
         RequestVerticesUpdate()
+
+        if tooltipEnabled
+            TooltipManager tooltips = GetGameTooltipManager()
+            if tooltips not= undefined
+                tooltips:PointerPressed(me)
+            end
+        end
     end
     /*
         This action is used when a control is released by the mouse.
@@ -224,6 +252,16 @@ class Control is Item2D
         end
 
         RequestVerticesUpdate()
+
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips not= undefined
+            if tooltipEnabled
+                tooltips:PointerEntered(me)
+            else
+                // A button inside an open tooltip keeps the tooltip open.
+                tooltips:PointerEnteredItem(me)
+            end
+        end
     end
     /*
         This action is used when a control is moused over and it ends.
@@ -236,6 +274,15 @@ class Control is Item2D
         end
 
         RequestVerticesUpdate()
+
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips not= undefined
+            if tooltipEnabled
+                tooltips:PointerLeft(me)
+            else
+                tooltips:PointerLeftItem(me)
+            end
+        end
     end
     /*
         This action is used when a control gains the selection.
@@ -2908,6 +2955,462 @@ elseif font:IsFontAvailable("courbd")
     */
     action HasShadowEdgeFade returns boolean
         return defaultProperties:HasShadowEdgeFade()
+    end
+
+
+    /*
+        This action turns the control's tooltip on or off. Tooltips are off by
+        default, except on a ToolBar's buttons. When on, resting the mouse on
+        the control, or pressing Shift+F1 while it has the focus, shows the
+        tooltip. Its text is the control's description, unless SetTooltipText
+        gives other words. Turning the tooltip off hides it if it shows.
+
+        Attribute: Parameter enabled true to turn the tooltip on.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Button
+
+        Form form
+        Page page = form:GetMainPage()
+        Button button = page:AddButton("Save")
+        button:SetDescription("Saves the file to the disk")
+        button:SetTooltipEnabled(true)
+        form:Display()
+    */
+    action SetTooltipEnabled(boolean enabled)
+        if tooltipEnabled = enabled
+            return now
+        end
+        tooltipEnabled = enabled
+        if enabled = false
+            HideTooltip()
+        end
+        TooltipWordsChanged()
+    end
+
+    /*
+        This action returns whether the control's tooltip is turned on.
+
+        Attribute: Returns true if the tooltip is on.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean on = button:IsTooltipEnabled()
+    */
+    action IsTooltipEnabled returns boolean
+        return tooltipEnabled
+    end
+
+    /*
+        This action sets the words the tooltip shows instead of the control's
+        description. Setting undefined goes back to the description. The
+        description is still what screen readers read for the control.
+
+        Attribute: Parameter value The tooltip's text, or undefined to use the description.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Button
+
+        Form form
+        Page page = form:GetMainPage()
+        Button button = page:AddButton("Run")
+        button:SetTooltipText("Run the program (Ctrl+R)")
+        button:SetTooltipEnabled(true)
+        form:Display()
+    */
+    action SetTooltipText(text value)
+        tooltipText = value
+        TooltipWordsChanged()
+    end
+
+    /*
+        This action sets an optional first line for the control's tooltip, its
+        title, drawn above the text in the title font (TooltipManager's
+        SetTitleFont), such as a button's name and key above a sentence saying
+        what it does. Setting undefined or an empty text leaves it out.
+
+        Attribute: Parameter value The tooltip's title, or undefined for none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Button
+
+        Form form
+        Page page = form:GetMainPage()
+        Button button = page:AddButton("Run")
+        button:SetDescription("Builds the project and runs it.")
+        button:SetTooltipTitle("Run, Control + R")
+        button:SetTooltipEnabled(true)
+        form:Display()
+    */
+    action SetTooltipTitle(text value)
+        tooltipTitle = value
+        TooltipWordsChanged()
+    end
+
+    /*
+        This action returns everything the control's tooltip says, as one text:
+        its title, a period, then its text, or whichever of the two it has. A
+        tooltip is also the control's help for screen readers on platforms that
+        read a control's tooltip as help, as VoiceOver does on the Mac.
+
+        Attribute: Returns The tooltip's words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:SetDescription("Builds the project and runs it.")
+        button:SetTooltipTitle("Run, Control + R")
+        text words = button:GetTooltipWords()
+    */
+    action GetTooltipWords returns text
+        text title = GetTooltipTitle()
+        text words = GetTooltipText()
+        if title = undefined
+            title = ""
+        end
+        if words = undefined
+            words = ""
+        end
+        if title:IsEmpty()
+            return words
+        end
+        if words:IsEmpty()
+            return title
+        end
+        return title + ". " + words
+    end
+
+    /*
+        The tooltip's words changed, or it was turned on or off: platforms that
+        give screen readers the tooltip as the control's help are told, as when
+        the description changes.
+    */
+    private action TooltipWordsChanged
+        GameStateManager manager
+        Accessibility accessibility = manager:GetAccessibility()
+        if accessibility not= undefined
+            accessibility:DescriptionChanged(me)
+        end
+    end
+
+    /*
+        This action returns the first line of the control's tooltip, or an empty
+        text when it has none. A subclass can override it.
+
+        Attribute: Returns The tooltip's title.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        text title = button:GetTooltipTitle()
+    */
+    action GetTooltipTitle returns text
+        if tooltipTitle = undefined
+            return ""
+        end
+        return tooltipTitle
+    end
+
+    /*
+        This action returns the words the control's tooltip shows: the text set
+        with SetTooltipText, or else the control's description. A subclass can
+        override it to add to the words, such as a key or a current value.
+
+        Attribute: Returns The tooltip's text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:SetDescription("Saves the file to the disk")
+        text words = button:GetTooltipText()
+    */
+    action GetTooltipText returns text
+        if tooltipText not= undefined
+            return tooltipText
+        end
+        text description = GetDescription()
+        if description = undefined
+            return ""
+        end
+        return description
+    end
+
+    /*
+        This action returns whether the control has something to show in a
+        tooltip. By default that is when its tooltip title or text isn't empty. A subclass
+        can override it, such as a tree row that shows its full name only when
+        the name is cut off.
+
+        Attribute: Returns true if there is something to show.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean something = button:HasTooltipContent()
+    */
+    action HasTooltipContent returns boolean
+        text title = GetTooltipTitle()
+        if title not= undefined
+            if title:IsEmpty() = false
+                return true
+            end
+        end
+        text words = GetTooltipText()
+        if words = undefined
+            return false
+        end
+        return words:IsEmpty() = false
+    end
+
+    /*
+        This action makes the content of the control's tooltip, called each time
+        the tooltip opens. By default it returns undefined, and the tooltip shows
+        its text. A subclass can override it to show more, such as a few lines
+        and a button; the content's size comes from its layout properties' pixel
+        width and height, or from its own size. When the content has buttons,
+        override IsTooltipInteractive too, and have each button's behavior call
+        HideTooltip when it is done.
+
+        Attribute: Returns The tooltip's content, or undefined for plain text.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Control
+        use Libraries.Interface.Controls.Button
+
+        class SaveButton is Button
+            action CreateTooltipContent returns Control
+                Button undo
+                undo:SetName("Undo the last save")
+                return undo
+            end
+
+            action IsTooltipInteractive returns boolean
+                return true
+            end
+        end
+    */
+    action CreateTooltipContent returns Control
+        return undefined
+    end
+
+    /*
+        This action returns whether the control's tooltip holds things to press,
+        such as buttons. It is false by default. When true, Shift+F1 moves the
+        focus into the tooltip, Tab and Shift+Tab move among its buttons, and
+        Escape closes it and brings the focus back to the control.
+
+        Attribute: Returns true if the tooltip holds buttons.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean buttons = button:IsTooltipInteractive()
+    */
+    action IsTooltipInteractive returns boolean
+        return false
+    end
+
+    /*
+        This action returns where the tooltip goes: TOOLTIP_BELOW (the default),
+        TOOLTIP_ABOVE, TOOLTIP_BESIDE or TOOLTIP_OVER. A subclass can override it,
+        such as a menu item, whose tooltip goes beside the menu so the next items
+        stay visible.
+
+        Attribute: Returns Where the tooltip goes.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        integer placement = button:GetTooltipPlacement()
+    */
+    action GetTooltipPlacement returns integer
+        return TOOLTIP_BELOW
+    end
+
+    /*
+        This action returns whether resting the mouse on the control shows its
+        tooltip. It is true by default. A subclass can return false so that only
+        Shift+F1 (or a program) shows it, such as a code editor whose tooltip is
+        about the line with the caret, not where the mouse is.
+
+        Attribute: Returns true if the mouse shows the tooltip.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean hover = button:IsTooltipShownOnHover()
+    */
+    action IsTooltipShownOnHover returns boolean
+        return true
+    end
+
+    /*
+        This action returns the part of the screen the tooltip is placed against,
+        in pixels from the bottom left of the window, as GetScreenX and GetScreenY
+        count. By default it returns undefined, and the tooltip is placed against
+        the whole control. A subclass can return a smaller area, such as one line
+        of a code editor.
+
+        Attribute: Returns The area to place the tooltip against, or undefined for the whole control.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Game.Shapes.Rectangle
+
+        Button button
+        Rectangle area = button:GetTooltipArea()
+    */
+    action GetTooltipArea returns Rectangle
+        return undefined
+    end
+
+    /*
+        This action returns true when what the tooltip is about has changed since
+        the last time it was asked, such as the mouse moving to another line of
+        a gutter. The TooltipManager asks once each frame while the mouse is on the
+        control: a tooltip showing is filled again for the new place at once, and
+        one waiting to show starts its delay again. It returns false by default.
+
+        Attribute: Returns true if the tooltip's subject changed.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean moved = button:IsTooltipTargetChanged()
+    */
+    action IsTooltipTargetChanged returns boolean
+        return false
+    end
+
+    /*
+        This action returns how long the mouse rests on the control before its
+        tooltip shows, in seconds: the TooltipManager's delay, half a second by
+        default. A subclass can override it.
+
+        Attribute: Returns The delay, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        number delay = button:GetTooltipShowDelay()
+    */
+    action GetTooltipShowDelay returns number
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips = undefined
+            return 0.5
+        end
+        return tooltips:GetShowDelay()
+    end
+
+    /*
+        This action is called when the control's tooltip opens. It does nothing
+        by default; a subclass can override it, such as to change its own look
+        while the tooltip shows.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:TooltipShown()
+    */
+    action TooltipShown
+    end
+
+    /*
+        This action is called when the control's tooltip closes. It does nothing
+        by default; a subclass can override it.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:TooltipHidden()
+    */
+    action TooltipHidden
+    end
+
+    /*
+        This action shows the control's tooltip at once, as if the mouse had
+        rested on it, if the tooltip is on and has something to show.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Button
+
+        Form form
+        Page page = form:GetMainPage()
+        Button button = page:AddButton("Save")
+        button:SetDescription("Saves the file to the disk")
+        button:SetTooltipEnabled(true)
+        form:Display()
+        button:ShowTooltip()
+    */
+    action ShowTooltip
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips not= undefined
+            tooltips:Show(me, false)
+        end
+    end
+
+    /*
+        This action hides the control's tooltip, if it shows.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:HideTooltip()
+    */
+    action HideTooltip
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips not= undefined
+            if tooltips:IsShowingFor(me)
+                tooltips:HideTooltip()
+            end
+        end
+    end
+
+    /*
+        This action returns whether the control's tooltip shows.
+
+        Attribute: Returns true if the tooltip shows.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        boolean open = button:IsTooltipShowing()
+    */
+    action IsTooltipShowing returns boolean
+        TooltipManager tooltips = GetGameTooltipManager()
+        if tooltips = undefined
+            return false
+        end
+        return tooltips:IsShowingFor(me)
+    end
+
+    // The game's tooltip manager, or undefined when there is no game.
+    private action GetGameTooltipManager returns TooltipManager
+        GameStateManager manager
+        return manager:GetTooltipManager()
     end
 
 end

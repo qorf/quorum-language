@@ -1,6 +1,7 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
 import android.graphics.Rect;
+import android.os.Build;
 import plugins.quorum.Libraries.Game.AndroidDisplay;
 import plugins.quorum.Libraries.Game.GameStateManager;
 import quorum.Libraries.Interface.Controls.Button_;
@@ -8,6 +9,8 @@ import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Slider_;
+import quorum.Libraries.Interface.Controls.Tooltip_;
+import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Interface.Controls.Tree_;
 import quorum.Libraries.Interface.Controls.TreeItem_;
 import quorum.Libraries.Interface.Forms.Banner_;
@@ -68,6 +71,8 @@ public class AndroidAccessibility {
     // Where Quorum's focus ended up after TalkBack moved it: a control may
     // pass it on (a radio button to its group, a tree item to its tree).
     private int focusAfterTalkBack = AndroidNode.HOST;
+    // The tooltip that shows, between TooltipShown and TooltipHidden.
+    private Tooltip_ openTooltip = null;
 
     public AndroidAccessibility() {
         instance = this;
@@ -111,6 +116,26 @@ public class AndroidAccessibility {
     public void TextSelectionChanged(TextFieldSelection_ selection) { }
     public void WindowFocusChanged(WindowFocusEvent_ event) { }
     public boolean Select(Item_ item) { return false; }
+
+    /*
+        A tooltip opened (after its dialog showed): its control's node gets
+        the tooltip's buttons as actions on the next snapshot.
+     */
+    public void NativeTooltipShown(Tooltip_ tooltip) {
+        openTooltip = tooltip;
+        changed = true;
+    }
+
+    /*
+        A tooltip is closing (before its dialog hides): the next snapshot,
+        made after it closed, drops its buttons from its control's node.
+     */
+    public void NativeTooltipHidden(Tooltip_ tooltip) {
+        if (openTooltip == tooltip) {
+            openTooltip = null;
+        }
+        changed = true;
+    }
     public void Shutdown() { }
 
     public void FocusChanged(FocusEvent_ event) {
@@ -202,6 +227,11 @@ public class AndroidAccessibility {
                 continue;
             }
             if (item instanceof ChartItem_ && !(item instanceof Chart_) && !chartParts.contains(item)) {
+                continue;
+            }
+            // A plain tooltip isn't a node, as an Android tooltip isn't: its
+            // words are on its control's node.
+            if (item instanceof Tooltip_ && ((Tooltip_) item).GetContent() == null) {
                 continue;
             }
             AndroidNode node = MakeNode(item);
@@ -299,7 +329,8 @@ public class AndroidAccessibility {
             || code == item.Get_Libraries_Interface_Item__TREE_()
             || code == item.Get_Libraries_Interface_Item__CHART_()
             || code == item.Get_Libraries_Interface_Item__DIALOG_()
-            || code == item.Get_Libraries_Interface_Item__TAB_PANE_();
+            || code == item.Get_Libraries_Interface_Item__TAB_PANE_()
+            || code == item.Get_Libraries_Interface_Item__TOOLTIP_();
     }
 
     private AndroidNode MakeNode(Item_ item) {
@@ -416,8 +447,68 @@ public class AndroidAccessibility {
             node.text = null;
             node.hint = null;
             node.readerFocusable = false;
+        } else if (code == item.Get_Libraries_Interface_Item__TOOLTIP_() && item instanceof Tooltip_) {
+            // An interactive tooltip (a plain one has no node): a group
+            // holding its buttons, titled with its words, as a group is.
+            node.className = "android.view.ViewGroup";
+            node.containerTitle = Clean(((Tooltip_) item).GetText());
+            node.text = null;
+            node.hint = null;
+            node.readerFocusable = false;
+        }
+        if (item instanceof Control_ && !(item instanceof Tooltip_)) {
+            AddTooltip((Control_) item, node);
         }
         return node;
+    }
+
+    /*
+        A control whose tooltip is on and has words: TalkBack can show or
+        hide it, and reads its words as the tooltip text, as for a View with
+        a tooltip. The words are left off when they are the node's text or
+        hint, so they aren't said twice. When they hold the hint (a tooltip
+        title before the description), the hint is left off instead, since
+        the words say more; Android before 9 has no tooltip text, so there
+        the hint stays. While an interactive tooltip shows, its buttons are
+        actions on this node.
+     */
+    private void AddTooltip(Control_ control, AndroidNode node) {
+        if (!control.IsTooltipEnabled() || !control.HasTooltipContent()) {
+            return;
+        }
+        String words = Clean(control.GetTooltipWords());
+        if (words == null) {
+            return;
+        }
+        node.hasTooltip = true;
+        node.tooltipShowing = control.IsTooltipShowing();
+        if (!words.equals(node.text) && !words.equals(node.hint)) {
+            node.tooltipText = words;
+            if (node.hint != null && words.contains(node.hint)
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                node.hint = null;
+            }
+        }
+
+        Tooltip_ tooltip = openTooltip;
+        if (tooltip == null || !tooltip.IsOpen() || tooltip.GetContent() == null) {
+            return;
+        }
+        Control_ owner = tooltip.GetOwner();
+        if (owner == null || owner.GetHashCode() != control.GetHashCode()) {
+            return;
+        }
+        Array_ buttons = tooltip.GetFocusableItems();
+        if (buttons == null) {
+            return;
+        }
+        List<String> names = new ArrayList<>();
+        for (int i = 0; i < buttons.GetSize(); i++) {
+            Object button = buttons.Get(i);
+            String name = button instanceof Item_ ? Clean(((Item_) button).GetName()) : null;
+            names.add(name != null ? name : "Button " + (i + 1));
+        }
+        node.tooltipButtons = names.toArray(new String[0]);
     }
 
     /*
@@ -693,6 +784,52 @@ public class AndroidAccessibility {
                 Item_ item = self.items.get(id);
                 if (!(item instanceof Slider_)) return;
                 ((Slider_) item).ChangeValue(value, true);
+                self.changed = true;
+            }
+        });
+    }
+
+    // TalkBack's show or hide tooltip action on a control.
+    static void TooltipFromTalkBack(final int id, final boolean show) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(id);
+                if (!(item instanceof Control_)) return;
+                Control_ control = (Control_) item;
+                if (show) {
+                    control.ShowTooltip();
+                } else {
+                    control.HideTooltip();
+                }
+                self.changed = true;
+            }
+        });
+    }
+
+    /*
+        One of an interactive tooltip's buttons, chosen from its control's
+        actions: the button is activated, as a double tap on it would. The
+        button must still be at that place with that name, in the tooltip
+        that shows for the control.
+     */
+    static void TooltipButtonFromTalkBack(final int id, final int index, final String name) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Tooltip_ tooltip = self.openTooltip;
+                if (tooltip == null || !tooltip.IsOpen()) return;
+                Control_ owner = tooltip.GetOwner();
+                if (owner == null || owner.GetHashCode() != id) return;
+                Array_ buttons = tooltip.GetFocusableItems();
+                if (buttons == null || index < 0 || index >= buttons.GetSize()) return;
+                Object button = buttons.Get(index);
+                if (!(button instanceof Control_)) return;
+                String current = self.Clean(((Control_) button).GetName());
+                if (current != null && !current.equals(name)) return;
+                ((Control_) button).Activate();
                 self.changed = true;
             }
         });

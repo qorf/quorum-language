@@ -15,6 +15,7 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 use Libraries.Interface.Selections.ButtonGroupSelection
@@ -105,6 +106,26 @@ class Accessibility
         Attribute: Parameter event The slider and its old and new values.
     */
     action SliderValueChanged(SliderChangedEvent event)
+    end
+
+    /*
+        This action indicates that a control's tooltip opened. It does nothing
+        here, so platforms that don't support tooltips yet need no change; a
+        platform that does, such as the Mac, overrides it to give the screen
+        reader the tooltip and tie it to its control.
+
+        Attribute: Parameter tooltip The tooltip that opened. Its GetOwner is the control.
+    */
+    action TooltipShown(Tooltip tooltip)
+    end
+
+    /*
+        This action indicates that a control's tooltip is about to close. It does
+        nothing here; a platform that supports tooltips overrides it.
+
+        Attribute: Parameter tooltip The tooltip that is closing. Its GetOwner is still the control.
+    */
+    action TooltipHidden(Tooltip tooltip)
     end
 
     blueprint action TextSelectionChanged(TextBoxSelection selection)

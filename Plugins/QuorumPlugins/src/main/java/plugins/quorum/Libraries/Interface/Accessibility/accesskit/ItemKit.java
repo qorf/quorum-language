@@ -39,6 +39,9 @@ public class ItemKit {
     // True while Mac.so holds a HAS_MENU fact for this node (SendExtras).
     private boolean sentMenuFlag = false;
 
+    // The open tooltip's node while this item's tooltip shows, else null.
+    private NodeId describedBy = null;
+
     public ItemKit() {
         SetRole(Role.UNKNOWN);
     }
@@ -85,8 +88,50 @@ public class ItemKit {
                 }
             }
             AddActions(node, item);
+            String help = GetTooltipHelp(item);
+            if (help != null) {
+                node.setDescription(help);
+            }
+            if (describedBy != null) {
+                node.addDescribedBy(describedBy);
+            }
         }
         return node;
+    }
+
+    /*
+        A control's tooltip words, when its tooltip is on, else null. AccessKit
+        gives a node's description to VoiceOver as its help (AXHelp), and a
+        Mac control's tooltip is its help: VoiceOver reads it as a hint after
+        a pause, or with VO-Shift-H, and says nothing when the tooltip itself
+        pops up, as with AppKit's own tooltips. So the tooltip's words replace
+        the description each kit set.
+    */
+    private static String GetTooltipHelp(Item_ item) {
+        if (!(item instanceof Control_)) {
+            return null;
+        }
+        Control_ control = (Control_) item;
+        if (!control.IsTooltipEnabled() || !control.HasTooltipContent()) {
+            return null;
+        }
+        String words = control.GetTooltipWords();
+        if (words == null || words.isEmpty()) {
+            return null;
+        }
+        return words;
+    }
+
+    /*
+        The node of this item's open tooltip, which describes it, or null
+        when the tooltip closes (MacAccessibility.NativeTooltipShown).
+    */
+    public final void SetDescribedBy(NodeId id) {
+        describedBy = id;
+    }
+
+    public final NodeId GetDescribedBy() {
+        return describedBy;
     }
 
     /*
@@ -98,6 +143,14 @@ public class ItemKit {
     protected void AddActions(Node node, Item_ item) {
         if (item.IsFocusable()) {
             node.addAction(Action.FOCUS);
+        }
+        // A control with a tooltip offers to show it, or to hide it while
+        // it shows.
+        if (item instanceof Control_) {
+            Control_ control = (Control_) item;
+            if (control.IsTooltipEnabled() && control.HasTooltipContent()) {
+                node.addAction(control.IsTooltipShowing() ? Action.HIDE_TOOLTIP : Action.SHOW_TOOLTIP);
+            }
         }
     }
 
@@ -115,6 +168,10 @@ public class ItemKit {
             item.Focus();
         } else if (request.action == Action.SHOW_CONTEXT_MENU) {
             ShowPopupMenu(item);
+        } else if (request.action == Action.SHOW_TOOLTIP && item instanceof Control_) {
+            ((Control_) item).ShowTooltip();
+        } else if (request.action == Action.HIDE_TOOLTIP && item instanceof Control_) {
+            ((Control_) item).HideTooltip();
         }
     }
 

@@ -8,6 +8,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
     var elementType = "DIV";   //specifies the type of element DEFAULT is DIV right now for testing
     var elementList = [];   // array using the item's hashCode value as an index and the item as the value 
     var controlElementList = new Map();
+    // the controls whose plain tooltip is showing, by the control's element id;
+    // while it shows, the control's label leaves out its description, which the
+    // tooltip's element gives through aria-describedby
+    var plainTooltipOwners = new Set();
     var currentFocus = null;
     let root = null;
     let controlElementRoot = null;
@@ -267,11 +271,16 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             if (item.GetAccessibilityCode() == 29) { //labels
                 var itemName = item.GetText()
                 var itemDescription =item.GetDescription();
+                if (plainTooltipOwners.has(id)) {
+                    itemDescription = null;
+                }
                 var result = itemName;
                 if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
                     result = result + ", " + item.GetDescription()
                 }
                 element.setAttribute("aria-label", result);
+            } else if (plainTooltipOwners.has(id)) {
+                element.setAttribute("aria-label", item.GetName());
             } else {
                 element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
             }
@@ -287,11 +296,16 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             if (item.GetAccessibilityCode() == 29) { //labels
                 var itemName = item.GetText()
                 var itemDescription =item.GetDescription();
+                if (plainTooltipOwners.has(id)) {
+                    itemDescription = null;
+                }
                 var result = itemName;
                 if(itemName != null && itemDescription != null && itemName.localeCompare(itemDescription) != 0) {
                     result = result + ", " + item.GetDescription()
                 }
                 element.setAttribute("aria-label", result);
+            } else if (plainTooltipOwners.has(id)) {
+                element.setAttribute("aria-label", item.GetName());
             } else {
                 element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
             }
@@ -376,6 +390,70 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
                 element.setAttribute("aria-valuemax", slider.GetMaximum());
                 element.setAttribute("aria-valuenow", slider.GetValue());
                 element.setAttribute("aria-valuetext", slider.GetValueText());
+            }
+        }
+    };
+
+    // The element of a tooltip's control, or of its nearest accessible parent
+    // when the control itself has no element.
+    function getTooltipOwnerElement(tooltip) {
+        let owner = tooltip.GetOwner();
+        if (owner == null) {
+            return null;
+        }
+        if (owner.GetAccessibilityCode() == -1) {
+            owner = owner.GetAccessibleParent();
+            if (owner == null) {
+                return null;
+            }
+        }
+        let ownerID = owner.GetHashCode();
+        if (elementList[ownerID] == null) {
+            return null;
+        }
+        return document.getElementById(ownerID);
+    }
+
+//    system action TooltipOpened(Tooltip tooltip)
+    // The control's element is described by the tooltip's element. For a plain
+    // tooltip, the control's label leaves out its description while it shows,
+    // so the same words aren't read twice.
+    this.TooltipOpened$quorum_Libraries_Interface_Controls_Tooltip = function(tooltip) {
+        let tooltipID = tooltip.GetHashCode();
+        if (elementList[tooltipID] == null) {
+            return;
+        }
+        let ownerElement = getTooltipOwnerElement(tooltip);
+        if (ownerElement == null) {
+            return;
+        }
+        ownerElement.setAttribute("aria-describedby", tooltipID);
+        if (tooltip.GetContent() == null) {
+            let owner = elementList[parseInt(ownerElement.id)];
+            plainTooltipOwners.add(parseInt(ownerElement.id));
+            if (owner != null) {
+                this.DescriptionChanged$quorum_Libraries_Interface_Item(owner);
+            }
+        }
+    };
+
+//    system action TooltipClosed(Tooltip tooltip)
+    // The control's element is no longer described by the tooltip, and its
+    // label gets its description back.
+    this.TooltipClosed$quorum_Libraries_Interface_Controls_Tooltip = function(tooltip) {
+        let ownerElement = getTooltipOwnerElement(tooltip);
+        if (ownerElement == null) {
+            return;
+        }
+        let ownerID = parseInt(ownerElement.id);
+        if (ownerElement.getAttribute("aria-describedby") == String(tooltip.GetHashCode())) {
+            ownerElement.removeAttribute("aria-describedby");
+        }
+        if (plainTooltipOwners.has(ownerID)) {
+            plainTooltipOwners.delete(ownerID);
+            let owner = elementList[ownerID];
+            if (owner != null) {
+                this.DescriptionChanged$quorum_Libraries_Interface_Item(owner);
             }
         }
     };
@@ -820,6 +898,25 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     para.setAttribute("aria-valuetext", slider.GetValueText());
                 }
                 break;
+            //TOOLTIP: a plain tooltip is role tooltip holding its words; one
+            //with buttons is a dialog that doesn't trap the focus, and its
+            //buttons are its child elements.
+            case 31:
+                if (global_InstanceOf(item,"Libraries.Interface.Controls.Tooltip")) {
+                    let tooltip = global_CheckCast(item, "Libraries.Interface.Controls.Tooltip");
+                    itemName = tooltip.GetText();
+                    itemDescription = null;
+                    if (tooltip.GetContent() == null) {
+                        role = "tooltip";
+                        para.textContent = itemName;
+                    } else {
+                        role = "dialog";
+                        para.setAttribute("aria-modal", "false");
+                    }
+                } else {
+                    role = "tooltip";
+                }
+                break;
             default:
                 // do nothing?
         }
@@ -956,6 +1053,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
 
             element.remove();
         }
+        plainTooltipOwners.delete(id);
         //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
         return true;

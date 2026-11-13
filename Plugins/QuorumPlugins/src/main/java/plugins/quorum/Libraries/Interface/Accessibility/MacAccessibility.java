@@ -55,6 +55,10 @@ public class MacAccessibility {
     private NodeId focus = root.GetNodeID();
     private final HashSet<NodeId> dirtyNodes = new HashSet<NodeId>();
 
+    // The kit of the control whose tooltip shows, which names the
+    // tooltip's node as describing it, or null.
+    private ItemKit tooltipOwner = null;
+
     // The node AccessKit's focus was last set to: focus's kit's
     // GetFocusTarget, which is focus itself unless a kit moves it inside.
     private NodeId sentFocus = null;
@@ -566,6 +570,50 @@ public class MacAccessibility {
     }
 
     /*
+        A tooltip opened. Showing its dialog added the tooltip's kit (a
+        TooltipKit under the root); its control's node now names it as
+        describing it. Both are sent on the next update. A control with no
+        node, or a tooltip with none, is left alone.
+    */
+    public void NativeTooltipShown(Tooltip_ tooltip) {
+        ClearTooltipOwner();
+        ItemKit tooltipKit = GetKit(tooltip);
+        if (tooltipKit == null) {
+            NativeAdd(tooltip);
+            tooltipKit = GetKit(tooltip);
+        }
+        ItemKit ownerKit = GetKit(tooltip.GetOwner());
+        if (tooltipKit == null || ownerKit == null) {
+            return;
+        }
+        ownerKit.SetDescribedBy(tooltipKit.GetNodeID());
+        tooltipOwner = ownerKit;
+        dirtyNodes.add(ownerKit.GetNodeID());
+        dirtyNodes.add(tooltipKit.GetNodeID());
+    }
+
+    /*
+        A tooltip is closing: its control's node stops naming it, in the same
+        update that removes the tooltip's node.
+    */
+    public void NativeTooltipHidden(Tooltip_ tooltip) {
+        ClearTooltipOwner();
+    }
+
+    // Takes the described-by relation off the tooltip's control, if any.
+    private void ClearTooltipOwner() {
+        if (tooltipOwner == null) {
+            return;
+        }
+        tooltipOwner.SetDescribedBy(null);
+        NodeId id = tooltipOwner.GetNodeID();
+        if (items.containsKey(id)) {
+            dirtyNodes.add(id);
+        }
+        tooltipOwner = null;
+    }
+
+    /*
         A tree or list that gains focus has already reported its selection
         (Tree.GainedFocus forces a selection event), and this runs later in
         the same frame (Accessibility.Update). Focusing the container would
@@ -732,6 +780,15 @@ public class MacAccessibility {
         } else if (code == item.Get_Libraries_Interface_Item__SLIDER_()) {
             SliderKit kit = new SliderKit();
             itemKit = kit;
+        } else if (code == item.Get_Libraries_Interface_Item__TOOLTIP_()) {
+            // A tooltip of plain text has no node: as with AppKit's own
+            // tooltips, its words are its control's help (ItemKit). One with
+            // content, such as buttons, is a node, so VoiceOver can reach them.
+            if (item instanceof Tooltip_ && ((Tooltip_) item).GetContent() == null) {
+                return null;
+            }
+            TooltipKit kit = new TooltipKit();
+            itemKit = kit;
         }
         return itemKit;
     }
@@ -817,6 +874,11 @@ public class MacAccessibility {
             MacAccessibilityExtras.remove(id);
             if (kit instanceof MenuItemKit) {
                 MacAccessibilityExtras.remove(((MenuItemKit) kit).GetMenuID());
+            }
+            // A node may only name nodes in the tree: a control stops naming
+            // its tooltip when either goes away.
+            if (kit == tooltipOwner || (tooltipOwner != null && id.equals(tooltipOwner.GetDescribedBy()))) {
+                ClearTooltipOwner();
             }
             ItemKit parent = kit.GetParent();
             NodeId parentID = parent.GetNodeID();

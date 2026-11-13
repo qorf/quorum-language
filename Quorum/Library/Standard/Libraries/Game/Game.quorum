@@ -43,6 +43,7 @@ use Libraries.Game.Graphics.AmbientLight
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Graphics.Fonts.FontManager
 use Libraries.Interface.Accessibility
+use Libraries.Interface.TooltipManager
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Behaviors.FocusNextBehavior
 use Libraries.Interface.Behaviors.FocusPreviousBehavior
@@ -190,6 +191,8 @@ class Game
     GraphicsManager gl20 = undefined
     GameStateManager manager
     FocusManager focusManager
+    // Shows, places and hides the tooltips of the game's controls.
+    TooltipManager tooltipManager
 
     // True while the focus outline is hidden until the next touch or key
     // press (HideFocusOutlineUntilTouch).
@@ -685,6 +688,9 @@ class Game
 
         // Add the default input sets for Sliders.
         sets:SetupSliderInput(gameInput)
+
+        // Add Shift+F1 and Escape for tooltips, and the "Tooltip" input group.
+        sets:SetupTooltipInput(gameInput)
     end
 
     /*
@@ -911,6 +917,12 @@ if gl20 is OpenGLManager
         end
         UpdateFollowingCameras(seconds)
         UpdateAfterPhysics(seconds)
+
+        // The tooltips' show delay and grace time, and hiding a tooltip
+        // when its control goes away or the focus leaves it.
+        if tooltipManager not= undefined
+            tooltipManager:Update(seconds)
+        end
 
         if accessibility not= undefined
             accessibility:Update()
@@ -4342,6 +4354,62 @@ if gl20 is OpenGLManager
     */
     action GetFocusManager returns FocusManager
         return focusManager
+    end
+
+    /*
+    This action sets the TooltipManager used for the Game. The TooltipManager
+    shows, places and hides the tooltips of the game's controls, at most one
+    at a time. The game starts with one of its own, so most programs never
+    need to set it.
+
+    Attribute: Parameter tooltips The TooltipManager to use.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.TooltipManager
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            TooltipManager tooltips
+            tooltips:SetShowDelay(0.25)
+            SetTooltipManager(tooltips)
+        end
+    end
+    */
+    action SetTooltipManager(TooltipManager tooltips)
+        if tooltipManager not= undefined
+            tooltipManager:HideTooltip()
+        end
+        tooltipManager = tooltips
+    end
+
+    /*
+    This action returns the TooltipManager used for the Game, which shows,
+    places and hides the tooltips of the game's controls.
+
+    Attribute: Returns The game's TooltipManager.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Interface.TooltipManager
+
+    class Main is Game
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            TooltipManager tooltips = GetTooltipManager()
+            tooltips:SetShowDelay(0.25)
+        end
+    end
+    */
+    action GetTooltipManager returns TooltipManager
+        return tooltipManager
     end
 
     /*

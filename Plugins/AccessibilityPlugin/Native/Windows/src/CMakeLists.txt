@@ -53,6 +53,8 @@ add_library(AccessibilityManagerWindows MODULE
     TextRangeProvider.cpp
     ToolBarControl.cpp
     ToolBarProvider.cpp
+    TooltipControl.cpp
+    TooltipProvider.cpp
     TreeControl.cpp
     TreeItemControl.cpp
     TreeItemProvider.cpp

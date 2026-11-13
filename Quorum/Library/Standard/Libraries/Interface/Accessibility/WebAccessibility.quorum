@@ -16,6 +16,7 @@ use Libraries.Interface.Controls.TextField
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Controls.Slider
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Item2D
@@ -70,6 +71,31 @@ class WebAccessibility is Accessibility
     end
 
     system action SliderChanged(Slider slider)
+
+    /*
+        A control's tooltip opened: the control's element is described by the
+        tooltip's element, so a screen reader reads the tooltip with it.
+    */
+    action TooltipShown(Tooltip tooltip)
+        if tooltip not= undefined
+            TooltipOpened(tooltip)
+        end
+    end
+
+    /*
+        A control's tooltip is about to close: the control's element is no
+        longer described by the tooltip's element, and its own description
+        comes back.
+    */
+    action TooltipHidden(Tooltip tooltip)
+        if tooltip not= undefined
+            TooltipClosed(tooltip)
+        end
+    end
+
+    system action TooltipOpened(Tooltip tooltip)
+
+    system action TooltipClosed(Tooltip tooltip)
 
     system action Select(Item item) returns boolean
 

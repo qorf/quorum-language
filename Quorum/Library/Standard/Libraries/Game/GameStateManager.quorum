@@ -1,5 +1,6 @@
 package Libraries.Game
 
+use Libraries.Interface.TooltipManager
 use Libraries.Game.Application
 use Libraries.Game.Game
 use Libraries.Game.GameDisplay
@@ -88,6 +89,27 @@ shared class GameStateManager
         Game game = GetGame()
         if game not= undefined
             return game:GetFocusManager()
+        else
+            return undefined
+        end
+    end
+
+    /*
+    This action sets the TooltipManager to be used across the Game. The
+    TooltipManager shows, places and hides the tooltips of the game's controls.
+    */
+    action SetTooltipManager(TooltipManager tooltips)
+        GetGame():SetTooltipManager(tooltips)
+    end
+
+    /*
+    This action returns the TooltipManager which is being used across the Game,
+    or undefined if there is no game.
+    */
+    action GetTooltipManager returns TooltipManager
+        Game game = GetGame()
+        if game not= undefined
+            return game:GetTooltipManager()
         else
             return undefined
         end

@@ -134,6 +134,43 @@ public class IOSAccessibility {
         }
     }
 
+    /*
+        A tooltip opened: the buttons of one with buttons become actions of
+        its control's element, which VoiceOver's rotor offers there.
+     */
+    public void NativeTooltipShown(Tooltip_ tooltip) {
+        IOSDisplay.RequestFrame();
+        ItemIOS owner = GetTooltipOwnerElement(tooltip);
+        if (owner != null) {
+            owner.SetTooltipActions(tooltip);
+            if (debug) {
+                System.out.println("Tooltip shown on " + Describe(owner) + ", "
+                    + owner.getAccessibilityCustomActions().size() + " actions");
+            }
+        }
+    }
+
+    // A tooltip is closing: its control's element loses its buttons' actions.
+    public void NativeTooltipHidden(Tooltip_ tooltip) {
+        IOSDisplay.RequestFrame();
+        ItemIOS owner = GetTooltipOwnerElement(tooltip);
+        if (owner != null) {
+            owner.SetTooltipActions(null);
+            if (debug) {
+                System.out.println("Tooltip hidden on " + Describe(owner));
+            }
+        }
+    }
+
+    // The element of the control a tooltip is for, or null.
+    private ItemIOS GetTooltipOwnerElement(Tooltip_ tooltip) {
+        if (tooltip == null || tooltip.GetOwner() == null) {
+            return null;
+        }
+        Object element = mapAccessibilityElements.get(tooltip.GetOwner().GetHashCode());
+        return element instanceof ItemIOS ? (ItemIOS) element : null;
+    }
+
     public void  ProgressBarValueChanged(ProgressBarValueChangedEvent_ progress) {
         IOSDisplay.RequestFrame();
     }
@@ -316,6 +353,15 @@ public class IOSAccessibility {
 
         int code = item.GetAccessibilityCode();
         if (code == item.Get_Libraries_Interface_Item__NOT_ACCESSIBLE_() || !item.IsShowing()) {
+            return false;
+        }
+
+        // iOS has no tooltip element. A tooltip of plain text is read as its
+        // control's hint (ItemIOS.getAccessibilityHint), so it has none. One
+        // with buttons offers them as its control's actions while it is open
+        // (NativeTooltipShown), and is an element so they can be reached.
+        if (code == item.Get_Libraries_Interface_Item__TOOLTIP_()
+                && item instanceof Tooltip_ && ((Tooltip_) item).GetContent() == null) {
             return false;
         }
 

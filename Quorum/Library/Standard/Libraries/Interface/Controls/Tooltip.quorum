@@ -1,0 +1,629 @@
+package Libraries.Interface.Controls
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Shapes.Rectangle
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.TooltipManager
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Containers.Array
+
+/*
+The Tooltip class is the small panel of help that appears beside a control
+when the mouse rests on it, or when the user presses Shift+F1 while the
+control has the focus. It holds the control's tooltip text, wrapped to a
+comfortable width, or other content the control gives it, such as a few
+lines and a button. It floats above everything else in the game, so it is
+never cut off by a scroll pane, and it takes its colors from the interface
+options under the key "Tooltip".
+
+Programs don't make or show a Tooltip themselves. A control's tooltip is
+turned on with SetTooltipEnabled, and the game's TooltipManager shows it,
+places it and hides it. To change what a control's tooltip shows, set its
+text with SetTooltipText, or, in a subclass of Control, override
+GetTooltipText or CreateTooltipContent.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+
+Form form
+Page page = form:GetMainPage()
+
+// Resting the mouse on the button, or pressing Shift+F1 while it has the
+// focus, shows a Tooltip with its description.
+Button button = page:AddButton("Save")
+button:SetDescription("Saves the file to the disk")
+button:SetTooltipEnabled(true)
+
+form:Display()
+*/
+class Tooltip is Control
+    // The tooltip floats in a dialog of its own, with no top bar, which
+    // doesn't block the rest of the game.
+    Dialog dialog
+    // The text, when the control gives no content of its own.
+    Label label
+    // The optional first line, such as a button's name and key.
+    Label titleLabel
+    // The font of the first line, or undefined to use the text's font.
+    Font titleFont = undefined
+    text titleText = ""
+    text bodyText = ""
+    // Content the control gave instead of the text, or undefined.
+    Control content = undefined
+    // The control the tooltip is showing for, or undefined.
+    Control owner = undefined
+    GameStateManager manager
+
+    // Space between the tooltip's edge and its text, before the interface scale.
+    constant number PADDING = 8
+    // The widest the text gets before it wraps, before the interface scale.
+    constant number MAXIMUM_TEXT_WIDTH = 320
+    // Space between the control and its tooltip, before the interface scale.
+    constant number GAP = 6
+    // Space between the first line and the text, before the interface scale.
+    constant number TITLE_GAP = 2
+
+    on create
+        SetName("Tooltip")
+        SetInterfaceOptionsKey("Tooltip")
+        SetInputGroup("Tooltip")
+        SetAccessibilityCode(parent:Item:TOOLTIP)
+
+        ManualLayout layout
+        SetLayout(layout)
+
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        SetBorderThickness(1)
+
+        // The text is read through the tooltip itself, so the label
+        // inside isn't read a second time.
+        label:SetInterfaceOptionsKey("Tooltip")
+        label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
+        titleLabel:SetInterfaceOptionsKey("Tooltip")
+        titleLabel:SetAccessibilityCode(titleLabel:parent:Item:NOT_ACCESSIBLE)
+
+        // A label normally draws its first line at its position and the rest
+        // below it, outside its box. Placed from the bottom up, the lines of
+        // wrapped text then fill the box the tooltip is sized to.
+        label:SetDescendingLines(false)
+        titleLabel:SetDescendingLines(false)
+
+        dialog:SetName("Tooltip")
+        dialog:SetTopBarVisible(false)
+        dialog:SetModal(false)
+        dialog:SetAccessibilityCode(dialog:parent:Item:NOT_ACCESSIBLE)
+        dialog:Add(me)
+    end
+
+    /*
+        This action loads the graphics for the tooltip. It gives the tooltip a
+        ControlShaderView, which draws its rounded background and border in the
+        "Tooltip" colors, and then lets Control finish loading. The game engine
+        calls this as needed, so most users won't need to call it directly.
+
+        Attribute: Parameter properties The LayoutProperties used to draw the tooltip.
+    */
+    action LoadGraphics(LayoutProperties properties)
+        if GetView2D() = undefined
+            ControlShaderView view
+            view:Initialize()
+            SetView2D(view)
+        end
+        parent:Control:LoadGraphics(properties)
+    end
+
+    /*
+        This action tells accessibility tools, such as screen readers, that the
+        tooltip holds the controls inside it, so a tooltip with buttons is read
+        as one group.
+
+        Attribute: Returns true, because a Tooltip contains its content for accessibility.
+    */
+    action IsAccessibleParent returns boolean
+        return true
+    end
+
+    /*
+        This action fills the tooltip for a control and sizes it to fit. An
+        optional first line, the title, goes at the top, such as a button's name
+        and key. Below it, with no content, the tooltip shows the text, wrapped
+        to about 320 points; otherwise it shows the content. The TooltipManager
+        calls this before the tooltip opens, so most users won't need to call it
+        directly.
+
+        Attribute: Parameter control The control the tooltip is for.
+        Attribute: Parameter newContent The control's own content, or undefined to show the text.
+        Attribute: Parameter title The first line, or an empty text for none.
+        Attribute: Parameter value The tooltip's text. With the title, it is the tooltip's name, which screen readers read.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:SetName("Save")
+        Tooltip tooltip
+        tooltip:Fill(button, undefined, "Save, Control + S", "Saves the file to the disk")
+    */
+    action Fill(Control control, Control newContent, text title, text value)
+        Empty()
+        owner = control
+        content = newContent
+
+        titleText = title
+        if titleText = undefined
+            titleText = ""
+        end
+        bodyText = value
+        if bodyText = undefined
+            bodyText = ""
+        end
+        boolean hasTitle = titleText:IsEmpty() = false
+
+        // The same words as Control:GetTooltipWords.
+        if hasTitle and bodyText:IsEmpty() = false
+            SetName(titleText + ". " + bodyText)
+        elseif hasTitle
+            SetName(titleText)
+        else
+            SetName(bodyText)
+        end
+
+        number scale = GetGameInterfaceScale()
+        SetInterfaceScale(scale)
+
+        Control shown = content
+        if content = undefined
+            label:SetInterfaceScale(scale)
+            label:SetMaximumWidth(MAXIMUM_TEXT_WIDTH * scale)
+            label:SetText(bodyText)
+            shown = label
+        end
+
+        // ManualLayout doesn't scale positions, so the padding is scaled
+        // here. Positions count up from the bottom, so the text goes first.
+        PlaceAt(shown, PADDING * scale, PADDING * scale)
+        Add(shown)
+
+        number shownWidth = MeasureWidth(shown, scale)
+        number shownHeight = MeasureHeight(shown, scale)
+        number totalWidth = shownWidth
+        number totalHeight = shownHeight
+
+        if hasTitle
+            if titleFont not= undefined
+                titleLabel:SetFont(titleFont)
+            end
+            titleLabel:SetFontSize(label:GetFontSize())
+            titleLabel:SetInterfaceScale(scale)
+            titleLabel:SetMaximumWidth(MAXIMUM_TEXT_WIDTH * scale)
+            titleLabel:SetText(titleText)
+
+            number titleY = PADDING * scale
+            if shownHeight > 0
+                titleY = titleY + shownHeight + TITLE_GAP * scale
+                totalHeight = totalHeight + TITLE_GAP * scale
+            end
+            PlaceAt(titleLabel, PADDING * scale, titleY)
+            Add(titleLabel)
+
+            totalHeight = totalHeight + titleLabel:GetHeight()
+            if titleLabel:GetWidth() > totalWidth
+                totalWidth = titleLabel:GetWidth()
+            end
+        end
+
+        // Layouts multiply pixel sizes by the interface scale, so the sizes
+        // are given before it.
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetPixelWidth(totalWidth / scale + 2 * PADDING)
+        properties:SetPixelHeight(totalHeight / scale + 2 * PADDING)
+        SetSize(totalWidth + 2 * PADDING * scale, totalHeight + 2 * PADDING * scale)
+        RequestLayout()
+    end
+
+    // Places a part of the tooltip at a spot measured from its bottom left.
+    private action PlaceAt(Control part, number x, number y)
+        LayoutProperties properties = part:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(y)
+    end
+
+    /*
+        This action sets the font of the tooltip's first line, its title, such as
+        a bold font. With undefined, the title uses the same font as the text.
+        TooltipManager:SetTitleFont sets it for every tooltip in the game.
+
+        Attribute: Parameter font The title's font.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Game.Graphics.Font
+
+        Font bold
+        bold:LoadFont("Arial Bold")
+        Tooltip tooltip
+        tooltip:SetTitleFont(bold)
+    */
+    action SetTitleFont(Font font)
+        titleFont = font
+    end
+
+    /*
+        This action returns the font of the tooltip's title, or undefined when it
+        uses the text's font.
+
+        Attribute: Returns The title's font.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Game.Graphics.Font
+
+        Tooltip tooltip
+        Font font = tooltip:GetTitleFont()
+    */
+    action GetTitleFont returns Font
+        return titleFont
+    end
+
+    /*
+        This action returns the tooltip's first line, or an empty text when it has
+        none.
+
+        Attribute: Returns The tooltip's title.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+
+        Tooltip tooltip
+        text title = tooltip:GetTitle()
+    */
+    action GetTitle returns text
+        return titleText
+    end
+
+    /*
+        The width a control in the tooltip takes up: its pixel width (scaled)
+        when its layout sets one, or its own width.
+    */
+    private action MeasureWidth(Control control, number scale) returns number
+        LayoutProperties properties = control:GetDefaultLayoutProperties()
+        if properties:GetHorizontalLayoutMode() = properties:STANDARD and properties:GetPixelWidth() > 0
+            return properties:GetPixelWidth() * scale
+        end
+        return control:GetWidth()
+    end
+
+    /*
+        The height a control in the tooltip takes up: its pixel height (scaled)
+        when its layout sets one, or its own height.
+    */
+    private action MeasureHeight(Control control, number scale) returns number
+        LayoutProperties properties = control:GetDefaultLayoutProperties()
+        if properties:GetVerticalLayoutMode() = properties:STANDARD and properties:GetPixelHeight() > 0
+            return properties:GetPixelHeight() * scale
+        end
+        return control:GetHeight()
+    end
+
+    /*
+        The game's interface scale, or 1 when there is no game yet.
+    */
+    private action GetGameInterfaceScale returns number
+        Game game = manager:GetGame()
+        if game = undefined
+            return 1
+        end
+        number scale = game:GetInterfaceScale()
+        if scale <= 0
+            return 1
+        end
+        return scale
+    end
+
+    /*
+        This action opens the tooltip next to its control, where the control's
+        GetTooltipPlacement says: below it, above it, beside it, or over it. A
+        tooltip that doesn't fit on that side moves to the other side, and it is
+        kept inside the window. The TooltipManager calls this, so most users
+        won't need to call it directly.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Controls.Button
+
+        Button button
+        button:SetName("Save")
+        Tooltip tooltip
+        tooltip:Fill(button, undefined, "", "Saves the file to the disk")
+        tooltip:Open()
+    */
+    action Open
+        if owner = undefined
+            return now
+        end
+
+        number scale = GetGameInterfaceScale()
+        number gap = GAP * scale
+        number width = GetWidth()
+        number height = GetHeight()
+
+        number windowWidth = manager:GetGameDisplay():GetWidth()
+        number windowHeight = manager:GetGameDisplay():GetHeight()
+
+        // Screen positions count up from the bottom left of the window.
+        number left = owner:GetScreenX()
+        number bottom = owner:GetScreenY()
+        number ownerWidth = owner:GetWidth()
+        number ownerHeight = owner:GetHeight()
+
+        // A control may give a smaller area, such as one of its lines.
+        Rectangle area = owner:GetTooltipArea()
+        if area not= undefined
+            left = area:GetX()
+            bottom = area:GetY()
+            ownerWidth = area:GetWidth()
+            ownerHeight = area:GetHeight()
+        end
+
+        integer placement = owner:GetTooltipPlacement()
+
+        number x = left
+        // The top of the tooltip.
+        number top = bottom - gap
+
+        if placement = owner:TOOLTIP_ABOVE
+            top = bottom + ownerHeight + gap + height
+            if top > windowHeight
+                top = bottom - gap
+            end
+        elseif placement = owner:TOOLTIP_BESIDE
+            x = left + ownerWidth + gap
+            if x + width > windowWidth
+                x = left - gap - width
+            end
+            top = bottom + ownerHeight
+        elseif placement = owner:TOOLTIP_OVER
+            top = bottom + ownerHeight
+        else
+            if top - height < 0
+                top = bottom + ownerHeight + gap + height
+            end
+        end
+
+        // Kept inside the window.
+        if x + width > windowWidth
+            x = windowWidth - width
+        end
+        if x < 0
+            x = 0
+        end
+        if top > windowHeight
+            top = windowHeight
+        end
+        if top - height < 0
+            top = height
+        end
+
+        LayoutProperties properties = dialog:GetDefaultLayoutProperties()
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelX(x)
+        properties:SetPixelY(top)
+        properties:SetPercentageOriginX(0)
+        properties:SetPercentageOriginY(1)
+
+        if dialog:IsShowing()
+            dialog:RequestLayout()
+        else
+            dialog:Show()
+        end
+    end
+
+    /*
+        This action closes the tooltip, if it is open. If the focus was inside it,
+        the focus goes back to where it was when the tooltip opened. The
+        TooltipManager calls this, so most users won't need to call it directly.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+
+        Tooltip tooltip
+        tooltip:Close()
+    */
+    action Close
+        if dialog:IsShowing()
+            dialog:Hide()
+        end
+        owner = undefined
+    end
+
+    /*
+        This action returns whether the tooltip is open on the screen.
+
+        Attribute: Returns true if the tooltip is showing.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+
+        Tooltip tooltip
+        boolean open = tooltip:IsOpen()
+    */
+    action IsOpen returns boolean
+        return dialog:IsShowing()
+    end
+
+    /*
+        This action returns the control the tooltip is showing for, or undefined
+        when it is closed.
+
+        Attribute: Returns The control whose tooltip this is.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Controls.Control
+
+        Tooltip tooltip
+        Control control = tooltip:GetOwner()
+    */
+    action GetOwner returns Control
+        return owner
+    end
+
+    /*
+        This action returns the content the control gave the tooltip, or
+        undefined when the tooltip shows plain text.
+
+        Attribute: Returns The tooltip's content.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Controls.Control
+
+        Tooltip tooltip
+        Control content = tooltip:GetContent()
+    */
+    action GetContent returns Control
+        return content
+    end
+
+    /*
+        This action returns everything the tooltip says: its title, if it has
+        one, then its text. This is also its name, which screen readers read.
+
+        Attribute: Returns The tooltip's words.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+
+        Tooltip tooltip
+        text words = tooltip:GetText()
+    */
+    action GetText returns text
+        return GetName()
+    end
+
+    /*
+        This action returns whether the item is the tooltip or inside it, such as
+        a button in its content.
+
+        Attribute: Parameter item The item to check.
+        Attribute: Returns true if the item is part of the tooltip.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Controls.Button
+
+        Tooltip tooltip
+        Button button
+        boolean inside = tooltip:Contains(button)
+    */
+    action Contains(Item item) returns boolean
+        if item is Item2D
+            Item2D current = cast(Item2D, item)
+            repeat while current not= undefined
+                if current:Equals(me)
+                    return true
+                end
+                current = current:GetParent()
+            end
+        end
+        return false
+    end
+
+    /*
+        This action returns the focusable items inside the tooltip's content, in
+        order, such as its buttons. A tooltip with plain text has none.
+
+        Attribute: Returns The focusable items in the content.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.Item2D
+        use Libraries.Containers.Array
+
+        Tooltip tooltip
+        Array<Item2D> stops = tooltip:GetFocusableItems()
+    */
+    action GetFocusableItems returns Array<Item2D>
+        Array<Item2D> result
+        if content not= undefined
+            AddFocusable(content, result)
+        end
+        return result
+    end
+
+    private action AddFocusable(Item2D item, Array<Item2D> result)
+        if item:IsFocusable() and item:IsShowing()
+            result:Add(item)
+        end
+        Array<Item2D> children = item:GetChildren()
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            AddFocusable(children:Get(counter), result)
+            counter = counter + 1
+        end
+    end
+
+    /*
+        This action moves the focus to the next focusable item in the tooltip,
+        going back to the first after the last, as Tab does inside a tooltip
+        with buttons. With a negative step it moves back, as Shift+Tab does. It
+        returns false when the tooltip has nothing to focus.
+
+        Attribute: Parameter step 1 to move forward, or -1 to move back.
+        Attribute: Returns true if the focus moved.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+
+        Tooltip tooltip
+        tooltip:MoveFocus(1)
+    */
+    action MoveFocus(integer step) returns boolean
+        Array<Item2D> stops = GetFocusableItems()
+        if stops:IsEmpty()
+            return false
+        end
+
+        integer index = -1
+        Item focus = manager:GetFocus()
+        integer counter = 0
+        repeat while counter < stops:GetSize()
+            if focus not= undefined and stops:Get(counter):Equals(focus)
+                index = counter
+            end
+            counter = counter + 1
+        end
+
+        integer target = 0
+        if index >= 0
+            target = (index + step + stops:GetSize()) mod stops:GetSize()
+        elseif step < 0
+            target = stops:GetSize() - 1
+        end
+        stops:Get(target):Focus()
+        return true
+    end
+
+    // The mouse moving on and off the tooltip, or any part of it, reaches the
+    // TooltipManager through Control:BeginMouseOver and EndMouseOver, which
+    // keep the tooltip open while the mouse is on it.
+end

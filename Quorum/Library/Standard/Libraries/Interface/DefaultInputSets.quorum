@@ -3019,6 +3019,74 @@ connectorTable:Add(startDrag, dragBehavior)
         table:Add(set, behavior)
     end
 
+    /*
+        Adds the keys of tooltips. In the default input table, which every
+        control falls back to, Shift+F1 shows or hides the focused control's
+        tooltip, Escape closes a tooltip, and a long press shows the tooltip
+        of the control under the finger. The "Tooltip" input group, used
+        by the tooltip and the buttons inside it, has those two keys too,
+        plus Tab and Shift+Tab to move among its buttons, and the mouse
+        moving on and off the tooltip, which keeps it open while the mouse
+        is on it.
+    */
+    action SetupTooltipInput(GameInput gameInput)
+        TooltipKeyBehavior temp
+        InputTable defaultTable = gameInput:GetDefaultInputTable()
+        AddTooltipKey(defaultTable, keys:F1, true, temp:SHOW_OR_HIDE)
+        AddTooltipKey(defaultTable, keys:ESCAPE, false, temp:CLOSE)
+
+        // A finger held on a control shows its tooltip; lifting it hides
+        // the tooltip a moment later.
+        GestureEvent tooltipGestures
+        InputSet longPressStart
+        longPressStart:SetGestureInput(tooltipGestures:LONG_PRESS)
+        longPressStart:SetInputTrigger(longPressStart:BEGIN)
+        TooltipLongPressBehavior longPressBehavior
+        defaultTable:Add(longPressStart, longPressBehavior)
+
+        InputSet longPressEnd
+        longPressEnd:SetGestureInput(tooltipGestures:LONG_PRESS)
+        longPressEnd:SetInputTrigger(longPressEnd:FINISH)
+        TooltipLongPressBehavior longPressEndBehavior
+        longPressEndBehavior:SetEnding(true)
+        defaultTable:Add(longPressEnd, longPressEndBehavior)
+
+        InputTable tooltipTable
+        tooltipTable:SetIdentifier("Tooltip")
+        AddTooltipKey(tooltipTable, keys:F1, true, temp:SHOW_OR_HIDE)
+        AddTooltipKey(tooltipTable, keys:ESCAPE, false, temp:CLOSE)
+        AddTooltipKey(tooltipTable, keys:TAB, false, temp:NEXT)
+        AddTooltipKey(tooltipTable, keys:TAB, true, temp:PREVIOUS)
+
+        InputSet mouseOn
+        mouseOn:SetInputType(mouseOn:MOUSE_MOVEMENT_INPUT)
+        mouseOn:SetInputTrigger(mouseOn:BEGIN)
+        MouseOnBehavior mouseOnBehavior
+        tooltipTable:Add(mouseOn, mouseOnBehavior)
+
+        InputSet mouseOff
+        mouseOff:SetInputType(mouseOff:MOUSE_MOVEMENT_INPUT)
+        mouseOff:SetInputTrigger(mouseOff:FINISH)
+        MouseOffBehavior mouseOffBehavior
+        tooltipTable:Add(mouseOff, mouseOffBehavior)
+
+        gameInput:AddInputTable(tooltipTable)
+    end
+
+    /*
+        Adds one of the tooltip keys, with or without Shift.
+    */
+    private action AddTooltipKey(InputTable table, integer key, boolean shift, integer move)
+        InputSet set
+        set:SetKeyboardInput(key)
+        if shift
+            set:AddModifier(set:SHIFT)
+        end
+        TooltipKeyBehavior behavior
+        behavior:Setup(move)
+        table:Add(set, behavior)
+    end
+
     action SetupScrollPaneInput(GameInput gameInput)
         InputTable scrollPaneTable
         scrollPaneTable:SetIdentifier("ScrollPane")

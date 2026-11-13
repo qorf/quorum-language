@@ -95,6 +95,29 @@ public final class Node {
         }
     }
 
+    /*
+        Names a node whose text describes this one, such as a control's open
+        tooltip. The native side needs Mac.so built with nativeAddDescribedBy;
+        with an older Mac.so the relation is left out, once noted, and
+        everything else still works.
+    */
+    public void addDescribedBy(NodeId id) {
+        checkActive();
+        if (!describedByAvailable) {
+            return;
+        }
+        try {
+            nativeAddDescribedBy(ptr, id.value);
+        } catch (UnsatisfiedLinkError error) {
+            describedByAvailable = false;
+            java.util.logging.Logger.getLogger(Node.class.getName()).log(java.util.logging.Level.WARNING,
+                "Mac.so has no nativeAddDescribedBy, so tooltips aren't tied to their controls for VoiceOver. Rebuild the native library to add it.");
+        }
+    }
+
+    // False once an older Mac.so turns out not to have nativeAddDescribedBy.
+    private static boolean describedByAvailable = true;
+
     public void setToggled(Toggled value) {
         checkActive();
         nativeSetToggled(ptr, value.value);
@@ -225,6 +248,7 @@ public final class Node {
     private static native void nativeAddChild(long ptr, long id);
 
     private static native void nativeClearChildren(long ptr);
+    private static native void nativeAddDescribedBy(long ptr, long id);
 
     private static native void nativeSetToggled(long ptr, int value);
 

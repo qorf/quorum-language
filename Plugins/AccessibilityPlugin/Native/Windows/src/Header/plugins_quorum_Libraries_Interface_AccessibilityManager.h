@@ -33,6 +33,7 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuNative(JNIEnv*, jobject, jlong parent, jstring, jobject);
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateProgressBarNative(JNIEnv*, jobject, jlong parent, jstring, jstring, jobject);
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateSliderNative(JNIEnv*, jobject, jlong parent, jstring, jstring, jobject);
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTooltipNative(JNIEnv*, jobject, jlong parent, jstring, jstring, jboolean, jobject);
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateMenuItemNative(JNIEnv *, jobject, jlong parent, jstring, jstring, jboolean, jlong, jlong, jobject, jboolean);
 
 //removes
@@ -49,6 +50,8 @@ JNIEXPORT void JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ButtonInvoked(JNIEnv*, jobject, jlong buttonPointer);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ProgressBarValueChanged(JNIEnv*, jobject, jlong pointer, jdouble);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SliderValueChangedNative(JNIEnv*, jobject, jlong pointer, jdouble);
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TooltipOpenedNative(JNIEnv*, jobject, jlong pointer);
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TooltipClosedNative(JNIEnv*, jobject, jlong pointer);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_ToggleButtonToggled(JNIEnv*, jobject, jlong buttonPointer, jboolean toggleState);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SelectMenuItemNative(JNIEnv *, jobject, jlong);
 JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_DeselectMenuItemNative(JNIEnv *, jobject, jlong);

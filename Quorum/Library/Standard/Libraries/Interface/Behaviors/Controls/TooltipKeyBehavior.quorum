@@ -1,0 +1,118 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.TooltipManager
+use Libraries.Interface.Controls.Tooltip
+use Libraries.Game.GameStateManager
+
+/*
+The TooltipKeyBehavior class carries out the keys of tooltips, which
+DefaultInputSets:SetupTooltipInput gives it: Shift+F1 shows or hides the
+focused control's tooltip, Escape closes a tooltip, and Tab and Shift+Tab
+move among the buttons of a tooltip that has them. Each key gets its own
+behavior, set up with one of the constants.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Behaviors.Controls.TooltipKeyBehavior
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+
+KeyboardEvent keys
+InputSet showKey
+showKey:SetKeyboardInput(keys:F1)
+showKey:AddModifier(showKey:SHIFT)
+
+TooltipKeyBehavior behavior
+behavior:Setup(behavior:SHOW_OR_HIDE)
+
+InputTable table
+table:SetIdentifier("MyTooltipKeys")
+table:Add(showKey, behavior)
+*/
+class TooltipKeyBehavior is Behavior
+    // Shows the focused control's tooltip, or hides the one showing.
+    public constant integer SHOW_OR_HIDE = 0
+    // Hides the tooltip, if one shows.
+    public constant integer CLOSE = 1
+    // Moves the focus to the next button in the tooltip.
+    public constant integer NEXT = 2
+    // Moves the focus to the previous button in the tooltip.
+    public constant integer PREVIOUS = 3
+
+    integer move = SHOW_OR_HIDE
+    GameStateManager manager
+
+    /*
+        This action chooses what the key does: SHOW_OR_HIDE, CLOSE, NEXT or
+        PREVIOUS.
+
+        Attribute: Parameter value What the key does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.TooltipKeyBehavior
+
+        TooltipKeyBehavior behavior
+        behavior:Setup(behavior:CLOSE)
+    */
+    action Setup(integer value)
+        move = value
+    end
+
+    /*
+        This action returns what the key does: SHOW_OR_HIDE, CLOSE, NEXT or
+        PREVIOUS.
+
+        Attribute: Returns What the key does.
+
+        Attribute: Example
+        use Libraries.Interface.Behaviors.Controls.TooltipKeyBehavior
+
+        TooltipKeyBehavior behavior
+        integer value = behavior:GetMove()
+    */
+    action GetMove returns integer
+        return move
+    end
+
+    /*
+        This action carries out the key on the game's TooltipManager. The input
+        tables call it, so most users won't need to.
+
+        Attribute: Parameter event The key event, whose item has the focus.
+    */
+    action Run(BehaviorEvent event)
+        TooltipManager tooltips = manager:GetTooltipManager()
+        if tooltips = undefined
+            return now
+        end
+
+        if move = SHOW_OR_HIDE
+            tooltips:ToggleFromKeyboard(manager:GetFocus())
+        elseif move = CLOSE
+            tooltips:Escape()
+        elseif move = NEXT or move = PREVIOUS
+            if tooltips:IsShowing()
+                Tooltip tooltip = tooltips:GetTooltip()
+                if move = NEXT
+                    tooltip:MoveFocus(1)
+                else
+                    tooltip:MoveFocus(-1)
+                end
+            end
+        end
+    end
+
+    /*
+        This action returns true: the key's work is done at once.
+
+        Attribute: Returns true.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

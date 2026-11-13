@@ -152,6 +152,18 @@ class DarkModeOptions is InterfaceOptions
         SetFocusBorderColor("Slider", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
         SetFocusColor("Slider", color:White())
 
+        // Tooltip: a dark panel a little darker than the window, with
+        // light text and a lighter edge, so it stands apart from what is
+        // under it. A focused button inside gets the accent.
+        SetBackgroundColor("Tooltip", color:CustomColor(43.0 / MAX, 45.0 / MAX, 48.0 / MAX, 1))
+        SetFontColor("Tooltip", color:CustomColor(236.0 / MAX, 238.0 / MAX, 241.0 / MAX, 1))
+        SetBorderColor("Tooltip", color:CustomColor(150.0 / MAX, 157.0 / MAX, 166.0 / MAX, 1))
+        SetFocusBorderColor("Tooltip", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
+        SetTopLeftPixelRounding("Tooltip", 6)
+        SetTopRightPixelRounding("Tooltip", 6)
+        SetBottomLeftPixelRounding("Tooltip", 6)
+        SetBottomRightPixelRounding("Tooltip", 6)
+
         // ScrollPane specific colors.
         SetScrollPaneBackgroundColor(darkGray)
         SetScrollPaneForegroundColor(color:CustomColor(53.0 / MAX, 54.0 / MAX, 59.0 / MAX, 1))

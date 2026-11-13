@@ -1,0 +1,823 @@
+package Libraries.Interface
+
+use Libraries.Game.Game
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputMonitor
+use Libraries.Game.Graphics.Font
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Tooltip
+use Libraries.Interface.Controls.Button
+
+/*
+The TooltipManager class shows, places and hides the tooltips of a game's
+controls. A game has one, which it updates every frame; get it with
+GetTooltipManager on the game or on a GameStateManager. At most one tooltip
+shows at a time.
+
+A tooltip shows when the mouse rests on a control with tooltips turned on
+(SetTooltipEnabled) for the show delay, half a second by default. Moving to
+another such control while one shows switches at once. Leaving the control
+hides it after a short grace time (0.3 seconds), unless the mouse has moved
+onto the tooltip itself, and pressing the mouse on the control hides it.
+
+From the keyboard, Shift+F1 shows the focused control's tooltip at once,
+and pressing it again, Escape, or moving the focus hides it. A tooltip with
+buttons (IsTooltipInteractive) takes the focus on its first button; Tab
+and Shift+Tab move among its buttons, and Escape closes it and returns the
+focus to the control.
+
+Controls never show their own tooltip; they ask the manager, with
+ShowTooltip and HideTooltip on Control.
+
+Attribute: Author William Allee
+
+Attribute: Example
+
+use Libraries.Interface.Forms.Form
+use Libraries.Interface.Forms.Page
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.TooltipManager
+use Libraries.Game.GameStateManager
+
+Form form
+Page page = form:GetMainPage()
+
+Button button = page:AddButton("Save")
+button:SetDescription("Saves the file to the disk")
+button:SetTooltipEnabled(true)
+
+// Show tooltips sooner, after a quarter of a second.
+GameStateManager manager
+TooltipManager tooltips = manager:GetTooltipManager()
+tooltips:SetShowDelay(0.25)
+
+form:Display()
+*/
+class TooltipManager
+    GameStateManager manager
+    // Made the first time a tooltip shows.
+    Tooltip tooltip = undefined
+    // The font of tooltips' titles, or undefined for the text's font.
+    Font titleFont = undefined
+
+    // The control the tooltip is showing for, or undefined.
+    Control owner = undefined
+    // True if the keyboard opened the tooltip.
+    boolean shownByKeyboard = false
+    // True if a long press opened the tooltip.
+    boolean shownByTouch = false
+    // Seconds left before a long press's tooltip hides, or -1.
+    number touchHideTime = -1
+    // How long a long press's tooltip stays after the finger lifts.
+    constant number TOUCH_HIDE_DELAY = 1.5
+
+    // The control with tooltips under the mouse, or undefined.
+    Control hoverControl = undefined
+    // How long the mouse has rested on hoverControl, in seconds.
+    number hoverTime = 0
+    // True while the mouse is on the tooltip itself.
+    boolean pointerOnTooltip = false
+    // How long since the mouse left the control and its tooltip, or -1.
+    number graceTime = -1
+
+    number showDelay = 0.5
+    number hideDelay = 0.3
+    boolean showOnKeyboardFocus = false
+    // The focus at the last update, to notice when it moves.
+    Item lastFocus = undefined
+
+    /*
+        This action is called by the game once per frame. It counts down the
+        show delay and the grace time, and hides the tooltip when its control
+        goes away or the focus leaves it. Most users won't need to call it.
+
+        Attribute: Parameter seconds The time since the last frame, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:Update(0.016)
+    */
+    action Update(number seconds)
+        Item focus = manager:GetFocus()
+        boolean focusMoved = focus not= lastFocus
+        lastFocus = focus
+
+        if IsShowing()
+            if owner:IsShowing() = false or owner:GetLayer() = undefined
+                HideTooltip()
+            elseif shownByKeyboard and focusMoved
+                if tooltip:Contains(focus) = false and IsOwner(focus) = false
+                    HideTooltip()
+                end
+            end
+        end
+
+        if focusMoved and showOnKeyboardFocus and focus is Control and IsKeyboardInUse()
+            Control focusedControl = cast(Control, focus)
+            if focusedControl:IsTooltipEnabled() and focusedControl:IsTooltipInteractive() = false
+                Show(focusedControl, true)
+            end
+        end
+
+        // The mouse moved to another place on the same control, such as
+        // another line: a tooltip showing for it is filled again at once,
+        // and one waiting starts its delay again.
+        if hoverControl not= undefined
+            if hoverControl:IsTooltipTargetChanged()
+                hoverTime = 0
+                if IsShowingFor(hoverControl) and shownByKeyboard = false
+                    Control moved = hoverControl
+                    HideTooltip()
+                    Show(moved, false)
+                end
+            end
+        end
+
+        if hoverControl not= undefined and (IsShowing() = false or owner not= hoverControl)
+            hoverTime = hoverTime + seconds
+            if hoverTime >= hoverControl:GetTooltipShowDelay() and IsHoldingFocus() = false
+                Show(hoverControl, false)
+            end
+        end
+
+        if touchHideTime >= 0
+            touchHideTime = touchHideTime - seconds
+            if touchHideTime < 0
+                touchHideTime = -1
+                if IsShowing() and shownByTouch
+                    HideTooltip()
+                end
+            end
+        end
+
+        if graceTime >= 0
+            graceTime = graceTime + seconds
+            if graceTime >= hideDelay
+                graceTime = -1
+                if IsShowing() and pointerOnTooltip = false and hoverControl not= owner and shownByKeyboard = false
+                    HideTooltip()
+                end
+            end
+        end
+    end
+
+    /*
+        True if the item is the control whose tooltip shows. An Item can't be
+        compared with a Control by =, so this asks the item.
+    */
+    private action IsOwner(Item item) returns boolean
+        if item = undefined or owner = undefined
+            return false
+        end
+        return item:Equals(owner)
+    end
+
+    /*
+        True if the keyboard opened a tooltip with buttons, which has the
+        focus: the mouse doesn't replace it, so the focus isn't lost.
+    */
+    private action IsHoldingFocus returns boolean
+        if IsShowing() = false or shownByKeyboard = false
+            return false
+        end
+        return owner:IsTooltipInteractive()
+    end
+
+    /*
+        True if the focus most likely moved from the keyboard: no mouse button
+        is down (a click moves the focus while the button is down), and the
+        game isn't hiding the focus outline after a touch.
+    */
+    private action IsKeyboardInUse returns boolean
+        Game game = manager:GetGame()
+        if game = undefined
+            return false
+        end
+        if game:IsFocusOutlineHidden()
+            return false
+        end
+        InputMonitor monitor
+        MouseEvent mouse
+        if monitor:IsMouseButtonPressed(mouse:LEFT) or monitor:IsMouseButtonPressed(mouse:RIGHT)
+            return false
+        end
+        return true
+    end
+
+    /*
+        This action shows a control's tooltip at once, closing any other. It does
+        nothing if the control's tooltips are off or it has nothing to show. When
+        the keyboard shows a tooltip with buttons, the focus moves to its first
+        button.
+
+        Attribute: Parameter control The control whose tooltip to show.
+        Attribute: Parameter fromKeyboard true if a key asked for it, false for the mouse or a program.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+
+        Button button
+        button:SetDescription("Saves the file to the disk")
+        button:SetTooltipEnabled(true)
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        tooltips:Show(button, true)
+    */
+    action Show(Control control, boolean fromKeyboard)
+        if control = undefined
+            return now
+        end
+        if control:IsTooltipEnabled() = false or control:HasTooltipContent() = false
+            return now
+        end
+        if IsShowing() and owner = control
+            return now
+        end
+        if IsShowing()
+            HideTooltip()
+        end
+
+        owner = control
+        shownByKeyboard = fromKeyboard
+        shownByTouch = false
+        touchHideTime = -1
+        pointerOnTooltip = false
+        graceTime = -1
+        if hoverControl = control
+            hoverTime = 0
+        end
+
+        Tooltip shown = GetTooltip()
+        shown:Fill(control, control:CreateTooltipContent(), control:GetTooltipTitle(), control:GetTooltipText())
+        shown:Open()
+        control:TooltipShown()
+
+        Accessibility accessibility = manager:GetAccessibility()
+        if accessibility not= undefined
+            accessibility:TooltipShown(shown)
+        end
+
+        if fromKeyboard and control:IsTooltipInteractive()
+            shown:MoveFocus(1)
+        end
+    end
+
+    /*
+        This action hides the tooltip, if one shows. If the focus was inside it,
+        the focus goes back to its control.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        tooltips:HideTooltip()
+    */
+    action HideTooltip
+        if IsShowing() = false
+            return now
+        end
+        Control closed = owner
+
+        Accessibility accessibility = manager:GetAccessibility()
+        if accessibility not= undefined
+            accessibility:TooltipHidden(tooltip)
+        end
+
+        tooltip:Close()
+        owner = undefined
+        shownByKeyboard = false
+        shownByTouch = false
+        touchHideTime = -1
+        pointerOnTooltip = false
+        graceTime = -1
+        closed:TooltipHidden()
+    end
+
+    /*
+        This action is what Shift+F1 does: it shows the tooltip of the focused
+        control, or of the nearest control around it with tooltips turned on, or
+        hides the tooltip if one already shows for it or the focus is inside
+        the tooltip.
+
+        Attribute: Parameter focus The item with the focus.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+
+        Button button
+        button:SetDescription("Saves the file to the disk")
+        button:SetTooltipEnabled(true)
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        tooltips:ToggleFromKeyboard(button)
+    */
+    action ToggleFromKeyboard(Item focus)
+        if IsShowing()
+            if tooltip:Contains(focus) or IsOwner(focus)
+                // Not shown again by the mouse resting on the control.
+                hoverControl = undefined
+                HideTooltip()
+                return now
+            end
+        end
+
+        Control control = FindTooltipControl(focus)
+        if control not= undefined
+            Show(control, true)
+        end
+    end
+
+    /*
+        The focused item, if it is a control with a tooltip to show, or the
+        nearest such control around it.
+    */
+    private action FindTooltipControl(Item focus) returns Control
+        if focus is Item2D
+            Item2D current = cast(Item2D, focus)
+            repeat while current not= undefined
+                if current is Control
+                    Control control = cast(Control, current)
+                    if control:IsTooltipEnabled() and control:HasTooltipContent()
+                        return control
+                    end
+                end
+                current = current:GetParent()
+            end
+        end
+        return undefined
+    end
+
+    /*
+        This action is called when a finger is held on the screen, as a long
+        press. If the item under it is, or is inside, a control with a tooltip,
+        the tooltip shows. A button under the finger is let go of, so lifting
+        the finger doesn't also press it. TooltipLongPressBehavior calls this.
+
+        Attribute: Parameter item The item under the finger.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        button:SetDescription("Saves the file to the disk")
+        button:SetTooltipEnabled(true)
+        TooltipManager tooltips
+        tooltips:LongPressBegan(button)
+    */
+    action LongPressBegan(Item item)
+        Control control = FindTooltipControl(item)
+        if control = undefined
+            return now
+        end
+
+        if control is Button
+            Button button = cast(Button, control)
+            if button:IsDepressed()
+                button:SetDepression(false)
+                button:ReleasedMouse()
+            end
+        end
+
+        Show(control, false)
+        if IsShowingFor(control)
+            shownByTouch = true
+            touchHideTime = -1
+        end
+    end
+
+    /*
+        This action is called when the finger of a long press lifts. A tooltip the
+        long press showed hides a moment later. TooltipLongPressBehavior calls this.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:LongPressEnded()
+    */
+    action LongPressEnded
+        if IsShowing() and shownByTouch
+            touchHideTime = TOUCH_HIDE_DELAY
+        end
+    end
+
+    /*
+        This action is what Escape does: it hides the tooltip if one shows, and
+        returns whether it did.
+
+        Attribute: Returns true if a tooltip was hidden.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        boolean closed = tooltips:Escape()
+    */
+    action Escape returns boolean
+        if IsShowing()
+            // Not shown again by the mouse resting on the control.
+            hoverControl = undefined
+            HideTooltip()
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action is called when the mouse moves onto a control with tooltips
+        turned on. The tooltip shows after the show delay, or at once if another
+        control's tooltip is already showing. Control:BeginMouseOver calls this.
+
+        Attribute: Parameter control The control under the mouse.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        tooltips:PointerEntered(button)
+    */
+    action PointerEntered(Control control)
+        if control:IsTooltipShownOnHover() = false
+            return now
+        end
+        if control = owner
+            hoverControl = control
+            graceTime = -1
+            return now
+        end
+
+        hoverControl = control
+        hoverTime = 0
+        if IsShowing()
+            if IsHoldingFocus() = false
+                Show(control, false)
+            end
+        end
+    end
+
+    /*
+        This action is called when the mouse moves off a control with tooltips
+        turned on. A tooltip showing for it hides after the grace time, unless
+        the mouse moves onto the tooltip. Control:EndMouseOver calls this.
+
+        Attribute: Parameter control The control the mouse left.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        tooltips:PointerLeft(button)
+    */
+    action PointerLeft(Control control)
+        if hoverControl = control
+            hoverControl = undefined
+            hoverTime = 0
+        end
+        if IsShowing() and control = owner and shownByKeyboard = false
+            graceTime = 0
+        end
+    end
+
+    /*
+        This action is called when the mouse is pressed on a control with
+        tooltips turned on. Its tooltip hides, and doesn't come back until the
+        mouse leaves the control and returns. Control:ClickedMouse calls this.
+
+        Attribute: Parameter control The control pressed.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        tooltips:PointerPressed(button)
+    */
+    action PointerPressed(Control control)
+        if hoverControl = control
+            hoverControl = undefined
+            hoverTime = 0
+        end
+        if IsShowing() and control = owner
+            HideTooltip()
+        end
+    end
+
+    /*
+        This action is called when the mouse moves onto the tooltip, which then
+        stays open. Tooltip:BeginMouseOver calls this.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:PointerEnteredTooltip()
+    */
+    action PointerEnteredTooltip
+        pointerOnTooltip = true
+        graceTime = -1
+    end
+
+    /*
+        This action is called when the mouse moves onto a control without a
+        tooltip of its own. If the control is inside the open tooltip, such as
+        one of its buttons, the mouse counts as being on the tooltip, which
+        stays open. A button takes the mouse from the tooltip around it, so
+        without this the tooltip would close as the mouse reached the button.
+        Control:BeginMouseOver calls this.
+
+        Attribute: Parameter control The control under the mouse.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        tooltips:PointerEnteredItem(button)
+    */
+    action PointerEnteredItem(Control control)
+        if IsShowing()
+            if tooltip:Contains(control)
+                PointerEnteredTooltip()
+            end
+        end
+    end
+
+    /*
+        This action is called when the mouse moves off a control without a
+        tooltip of its own. If the control is inside the open tooltip, the mouse
+        counts as leaving the tooltip; moving onto another part of it right away
+        keeps it open. Control:EndMouseOver calls this.
+
+        Attribute: Parameter control The control the mouse left.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        tooltips:PointerLeftItem(button)
+    */
+    action PointerLeftItem(Control control)
+        if IsShowing()
+            if tooltip:Contains(control)
+                PointerLeftTooltip()
+            end
+        end
+    end
+
+    /*
+        This action is called when the mouse moves off the tooltip, which then
+        hides after the grace time unless the mouse goes back onto it or its
+        control. Tooltip:EndMouseOver calls this.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:PointerLeftTooltip()
+    */
+    action PointerLeftTooltip
+        pointerOnTooltip = false
+        if IsShowing() and shownByKeyboard = false
+            graceTime = 0
+        end
+    end
+
+    /*
+        This action returns whether a tooltip is showing.
+
+        Attribute: Returns true if a tooltip shows.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        boolean open = tooltips:IsShowing()
+    */
+    action IsShowing returns boolean
+        if owner = undefined or tooltip = undefined
+            return false
+        end
+        return tooltip:IsOpen()
+    end
+
+    /*
+        This action returns whether the tooltip showing is for this control.
+
+        Attribute: Parameter control The control to check.
+        Attribute: Returns true if the control's tooltip shows.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Button
+        use Libraries.Interface.TooltipManager
+
+        Button button
+        TooltipManager tooltips
+        boolean open = tooltips:IsShowingFor(button)
+    */
+    action IsShowingFor(Control control) returns boolean
+        return IsShowing() and owner = control
+    end
+
+    /*
+        This action returns the control whose tooltip shows, or undefined.
+
+        Attribute: Returns The control whose tooltip shows.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Control
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        Control control = tooltips:GetOwner()
+    */
+    action GetOwner returns Control
+        if IsShowing()
+            return owner
+        end
+        return undefined
+    end
+
+    /*
+        This action returns the tooltip the manager shows. There is one for the
+        whole game, filled for each control in turn.
+
+        Attribute: Returns The tooltip.
+
+        Attribute: Example
+        use Libraries.Interface.Controls.Tooltip
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        Tooltip tooltip = tooltips:GetTooltip()
+    */
+    action GetTooltip returns Tooltip
+        if tooltip = undefined
+            Tooltip newTooltip
+            newTooltip:SetTitleFont(titleFont)
+            tooltip = newTooltip
+        end
+        return tooltip
+    end
+
+    /*
+        This action sets the font of every tooltip's first line, its title, such
+        as a bold font. With undefined, titles use the same font as the text.
+
+        Attribute: Parameter font The titles' font.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+        use Libraries.Game.Graphics.Font
+
+        Font bold
+        bold:LoadFont("Arial Bold")
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        tooltips:SetTitleFont(bold)
+    */
+    action SetTitleFont(Font font)
+        titleFont = font
+        if tooltip not= undefined
+            tooltip:SetTitleFont(font)
+        end
+    end
+
+    /*
+        This action returns the font of tooltips' titles, or undefined when they
+        use the text's font.
+
+        Attribute: Returns The titles' font.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.Graphics.Font
+
+        TooltipManager tooltips
+        Font font = tooltips:GetTitleFont()
+    */
+    action GetTitleFont returns Font
+        return titleFont
+    end
+
+    /*
+        This action sets how long the mouse rests on a control before its tooltip
+        shows, in seconds. The default is 0.5. A control can choose its own with
+        GetTooltipShowDelay.
+
+        Attribute: Parameter seconds The delay, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:SetShowDelay(0.25)
+    */
+    action SetShowDelay(number seconds)
+        showDelay = seconds
+    end
+
+    /*
+        This action returns how long the mouse rests on a control before its
+        tooltip shows, in seconds.
+
+        Attribute: Returns The delay, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        number delay = tooltips:GetShowDelay()
+    */
+    action GetShowDelay returns number
+        return showDelay
+    end
+
+    /*
+        This action sets how long a tooltip stays after the mouse leaves its
+        control and the tooltip, in seconds. The default is 0.3.
+
+        Attribute: Parameter seconds The grace time, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        tooltips:SetHideDelay(0.5)
+    */
+    action SetHideDelay(number seconds)
+        hideDelay = seconds
+    end
+
+    /*
+        This action returns how long a tooltip stays after the mouse leaves its
+        control and the tooltip, in seconds.
+
+        Attribute: Returns The grace time, in seconds.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        number delay = tooltips:GetHideDelay()
+    */
+    action GetHideDelay returns number
+        return hideDelay
+    end
+
+    /*
+        This action sets whether plain tooltips show by themselves when a control
+        gets the focus from the keyboard, as many web pages do. It is off by
+        default. It helps people who see the screen and use the keyboard; screen
+        reader users hear the control's description either way.
+
+        Attribute: Parameter show true to show tooltips on keyboard focus.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+        use Libraries.Game.GameStateManager
+
+        GameStateManager manager
+        TooltipManager tooltips = manager:GetTooltipManager()
+        tooltips:SetShowOnKeyboardFocus(true)
+    */
+    action SetShowOnKeyboardFocus(boolean show)
+        showOnKeyboardFocus = show
+    end
+
+    /*
+        This action returns whether plain tooltips show by themselves when a
+        control gets the focus from the keyboard.
+
+        Attribute: Returns true if tooltips show on keyboard focus.
+
+        Attribute: Example
+        use Libraries.Interface.TooltipManager
+
+        TooltipManager tooltips
+        boolean automatic = tooltips:IsShowingOnKeyboardFocus()
+    */
+    action IsShowingOnKeyboardFocus returns boolean
+        return showOnKeyboardFocus
+    end
+end

@@ -13,6 +13,7 @@ use Libraries.Interface.Events.WindowFocusEvent
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -50,6 +51,29 @@ class AndroidAccessibility is Accessibility
             NameChanged(event:GetSlider())
         end
     end
+
+    /*
+        A tooltip opened. While an interactive one shows, its buttons are actions on its control's
+        node: the snapshot is made again.
+    */
+    action TooltipShown(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipShown(tooltip)
+        end
+    end
+
+    /*
+        A tooltip is closing: the snapshot is made again without its buttons.
+    */
+    action TooltipHidden(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipHidden(tooltip)
+        end
+    end
+
+    private system action NativeTooltipShown(Tooltip tooltip)
+
+    private system action NativeTooltipHidden(Tooltip tooltip)
 
     system action ButtonActivated(Button button)
 

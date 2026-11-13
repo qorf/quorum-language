@@ -1,5 +1,6 @@
 package plugins.quorum.Libraries.Interface.Accessibility;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -29,6 +30,10 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
     // Chart parts that move by value (TalkBack's Actions menu).
     public static final int ACTION_CHART_UP = 0x7f0b0002;
     public static final int ACTION_CHART_DOWN = 0x7f0b0003;
+    // An interactive tooltip's buttons, on its control: the first button's
+    // action, then one more for each next button.
+    public static final int ACTION_TOOLTIP_BUTTON = 0x7f0b0100;
+    public static final int MAXIMUM_TOOLTIP_BUTTONS = 64;
 
     private final View view;
     // The snapshot, by id, and the top-level ids in reading order.
@@ -198,6 +203,23 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             }
             info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS);
         }
+        // A control with a tooltip: its words as the tooltip text, and an
+        // action to show or hide it, as a View with a tooltip has (Android 9
+        // and later). The labels put the actions in TalkBack's Actions menu.
+        if (node.hasTooltip && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.setTooltipText(node.tooltipText);
+            if (node.tooltipShowing) {
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                    android.R.id.accessibilityActionHideTooltip, "Hide tooltip"));
+            } else {
+                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                    android.R.id.accessibilityActionShowTooltip, "Show tooltip"));
+            }
+        }
+        // While an interactive tooltip shows: its buttons, by name.
+        for (int i = 0; i < node.tooltipButtons.length && i < MAXIMUM_TOOLTIP_BUTTONS; i++) {
+            info.addAction(new AccessibilityNodeInfo.AccessibilityAction(ACTION_TOOLTIP_BUTTON + i, node.tooltipButtons[i]));
+        }
         return info;
     }
 
@@ -273,6 +295,23 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 AndroidAccessibility.ActivateFromTalkBack(id);
                 Send(new AccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED), id);
                 return true;
+            case android.R.id.accessibilityActionShowTooltip:
+                if (!node.hasTooltip) {
+                    return false;
+                }
+                AndroidAccessibility.TooltipFromTalkBack(id, true);
+                return true;
+            case android.R.id.accessibilityActionHideTooltip:
+                if (!node.hasTooltip) {
+                    return false;
+                }
+                AndroidAccessibility.TooltipFromTalkBack(id, false);
+                return true;
+        }
+        int button = action - ACTION_TOOLTIP_BUTTON;
+        if (button >= 0 && button < node.tooltipButtons.length && button < MAXIMUM_TOOLTIP_BUTTONS) {
+            AndroidAccessibility.TooltipButtonFromTalkBack(id, button, node.tooltipButtons[button]);
+            return true;
         }
         return false;
     }
@@ -394,6 +433,11 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD: return "scroll forward (slider up)";
             case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD: return "scroll backward (slider down)";
             case android.R.id.accessibilityActionSetProgress: return "set progress";
+            case android.R.id.accessibilityActionShowTooltip: return "show tooltip";
+            case android.R.id.accessibilityActionHideTooltip: return "hide tooltip";
+        }
+        if (action >= ACTION_TOOLTIP_BUTTON && action < ACTION_TOOLTIP_BUTTON + MAXIMUM_TOOLTIP_BUTTONS) {
+            return "tooltip button " + (action - ACTION_TOOLTIP_BUTTON + 1);
         }
         return "" + action;
     }

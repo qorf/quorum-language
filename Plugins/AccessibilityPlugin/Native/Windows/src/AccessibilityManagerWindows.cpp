@@ -19,6 +19,7 @@
 #include "PopupMenuItemControl.h"
 #include "ProgressBarControl.h"
 #include "SliderControl.h"
+#include "TooltipControl.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -274,6 +275,22 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 
 	const auto parentItem = GetItemFromLong(parent);
 	const auto pControl = Create<SliderControl>(env, parentItem, wName, wDescription, jItem);
+
+	env->ReleaseStringUTFChars(name, nativeName);
+	env->ReleaseStringUTFChars(description, nativeDescription);
+
+	return GetItemAsLong(pControl);
+}
+
+// A tooltip: a tooltip element of plain text, or a pane holding its content.
+JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTooltipNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jstring description, jboolean hasContent, jobject jItem) {
+	const char* nativeName = env->GetStringUTFChars(name, 0);
+	const char* nativeDescription = env->GetStringUTFChars(description, 0);
+	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
+	WCHAR* wDescription = CreateWideStringFromUTF8Win32(nativeDescription);
+
+	const auto parentItem = GetItemFromLong(parent);
+	const auto pControl = Create<TooltipControl>(env, parentItem, wName, wDescription, hasContent == JNI_TRUE, jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 	env->ReleaseStringUTFChars(description, nativeDescription);
@@ -641,6 +658,32 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		return false;
 	}
 	slider->NotifyValueChanged(value);
+
+	return true;
+}
+
+// A tooltip opened in Quorum: raise UI Automation's tooltip opened event.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TooltipOpenedNative(JNIEnv*, jobject, jlong pointer)
+{
+	TooltipControl* tooltip = static_cast<TooltipControl*>(GetItemFromLong(pointer));
+	if (tooltip == nullptr)
+	{
+		return false;
+	}
+	tooltip->NotifyOpened();
+
+	return true;
+}
+
+// A tooltip is about to close in Quorum: raise UI Automation's tooltip closed event.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_TooltipClosedNative(JNIEnv*, jobject, jlong pointer)
+{
+	TooltipControl* tooltip = static_cast<TooltipControl*>(GetItemFromLong(pointer));
+	if (tooltip == nullptr)
+	{
+		return false;
+	}
+	tooltip->NotifyClosed();
 
 	return true;
 }

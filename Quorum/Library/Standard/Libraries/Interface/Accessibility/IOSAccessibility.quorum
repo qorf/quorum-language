@@ -13,6 +13,8 @@ use Libraries.Interface.Events.WindowFocusEvent
 use Libraries.Interface.Controls.Button
 use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -50,6 +52,38 @@ class IOSAccessibility is Accessibility
             NameChanged(event:GetSlider())
         end
     end
+
+    /*
+        A tooltip opened. A tooltip with buttons offers them as actions on its
+        control, which VoiceOver's rotor lists there; the control is refreshed
+        and a frame drawn, as for a name change.
+    */
+    action TooltipShown(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipShown(tooltip)
+            Control owner = tooltip:GetOwner()
+            if owner not= undefined
+                NameChanged(owner)
+            end
+        end
+    end
+
+    /*
+        A tooltip is closing: its control no longer offers its buttons.
+    */
+    action TooltipHidden(Tooltip tooltip)
+        if tooltip not= undefined
+            NativeTooltipHidden(tooltip)
+            Control owner = tooltip:GetOwner()
+            if owner not= undefined
+                NameChanged(owner)
+            end
+        end
+    end
+
+    private system action NativeTooltipShown(Tooltip tooltip)
+
+    private system action NativeTooltipHidden(Tooltip tooltip)
 
     system action ButtonActivated(Button button)
 

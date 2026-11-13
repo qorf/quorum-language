@@ -24,6 +24,8 @@ import quorum.Libraries.Interface.Controls.MenuItem_;
 import quorum.Libraries.Interface.Controls.MenuRoot_;
 import quorum.Libraries.Interface.Controls.ProgressBar_;
 import quorum.Libraries.Interface.Controls.Slider_;
+import quorum.Libraries.Interface.Controls.Tooltip_;
+import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Spreadsheet_;
 import quorum.Libraries.Interface.Controls.TabPane_;
@@ -92,7 +94,8 @@ public class AccessibilityManager
         CHART_SECTION,
 
         LABEL,
-        SLIDER
+        SLIDER,
+        TOOLTIP
     }
             
     enum MenuChanges {
@@ -154,6 +157,7 @@ public class AccessibilityManager
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__CHART_SECTION_(), AccessibilityCodes.CHART_SECTION);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__LABEL_(), AccessibilityCodes.LABEL);
         ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__SLIDER_(), AccessibilityCodes.SLIDER);
+        ACCESSIBILITYCODES_MAP.put(ACCESSIBILITYCODES.Get_Libraries_Interface_Item__TOOLTIP_(), AccessibilityCodes.TOOLTIP);
 
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__OPENED_(), MenuChanges.EXPANDED);
         MENUCHANGES_MAP.put(MENUCHANGECODES.Get_Libraries_Interface_Events_MenuChangeEvent__CLOSED_(), MenuChanges.COLLAPSED);
@@ -205,6 +209,7 @@ public class AccessibilityManager
     private native long CreateMenuNative(long parent, String name, Item_ item); //popup menus are called Menus in UIA
     private native long CreateProgressBarNative(long parent, String name, String description, Item_ item);
     private native long CreateSliderNative(long parent, String name, String description, Item_ item);
+    private native long CreateTooltipNative(long parent, String name, String description, boolean hasContent, Item_ item);
     private native long CreateTreeNative(long parent, String name, Item_ item);
     private native long CreateTabPaneNative(long parent, String name, Item_ item);
     private native long CreateTabNative(long parent, String name, Item_ item);
@@ -230,6 +235,8 @@ public class AccessibilityManager
     private native boolean ButtonInvoked(long nativePointer);
     private native boolean ProgressBarValueChanged(long nativePointer, double value);
     private native boolean SliderValueChangedNative(long nativePointer, double value);
+    private native boolean TooltipOpenedNative(long nativePointer);
+    private native boolean TooltipClosedNative(long nativePointer);
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
@@ -281,32 +288,32 @@ public class AccessibilityManager
         switch(code)
         {
             case ITEM:
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case CUSTOM:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case CHART:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case CHART_ITEM:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case CHART_SECTION:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case LABEL:
                 // Not implemented yet. Create as Item for now.
-                nativePointer = CreateItemNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateItemNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             // For now, consider TOGGLE_BUTTON and CHECKBOX to be identical cases.
             case TOGGLE_BUTTON:
             case CHECKBOX:
-                nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateCheckBoxNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case RADIO_BUTTON:
                 RadioButton_ button = (RadioButton_)item;
@@ -314,7 +321,7 @@ public class AccessibilityManager
                 long groupPointer = GetItemPointer(group);
                 if (groupPointer < 0)
                     groupPointer = 0;
-                nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), item.GetDescription(), groupPointer, item);
+                nativePointer = CreateRadioButtonNative(parentLong, item.GetName(), GetHelpText(item), groupPointer, item);
                 break;
             case TABLE:
                 nativePointer = CreateSpreadsheetNative(parentLong, item.GetName(), item);
@@ -338,14 +345,14 @@ public class AccessibilityManager
                 nativePointer = CreateListItemNative(listItemLong, item.GetName(), item);
                 break;
             case BUTTON:
-                nativePointer = CreateButtonNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateButtonNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case GROUP:
-                nativePointer = CreateGroupNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateGroupNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case TEXTBOX:
                 TextBox_ textbox = (TextBox_)item;
-                nativePointer = CreateTextBoxNative(parentLong, textbox.GetName(), textbox.GetDescription(), textbox);
+                nativePointer = CreateTextBoxNative(parentLong, textbox.GetName(), GetHelpText(textbox), textbox);
                 if (nativePointer != 0 && textbox.IsEmpty() == false)
                 {
                     // Push down the textbox's starting text.
@@ -355,7 +362,7 @@ public class AccessibilityManager
                 break;
             case TEXT_FIELD:
                 TextField_ textField = (TextField_)item;
-                nativePointer = CreateTextFieldNative(parentLong, textField.GetName(), textField.GetDescription(), textField);
+                nativePointer = CreateTextFieldNative(parentLong, textField.GetName(), GetHelpText(textField), textField);
                 if (nativePointer != 0 && textField.IsEmpty() == false)
                 {
                     // Push down the textbox's starting text.
@@ -369,10 +376,20 @@ public class AccessibilityManager
                 nativePointer = CreateMenuNative(parentLong, item.GetName(), item);
                 break;
             case PROGRESS_BAR:
-                nativePointer = CreateProgressBarNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateProgressBarNative(parentLong, item.GetName(), GetHelpText(item), item);
                 break;
             case SLIDER:
-                nativePointer = CreateSliderNative(parentLong, item.GetName(), item.GetDescription(), item);
+                nativePointer = CreateSliderNative(parentLong, item.GetName(), GetHelpText(item), item);
+                break;
+            case TOOLTIP:
+            {
+                // A tooltip of plain text is one element named with its words;
+                // one with content, such as buttons, is a pane holding them.
+                boolean hasContent = false;
+                if (item instanceof Tooltip_ && ((Tooltip_) item).GetContent() != null)
+                    hasContent = true;
+                nativePointer = CreateTooltipNative(parentLong, item.GetName(), item.GetDescription(), hasContent, item);
+            }
                 break;
             case MENU_ITEM:
                 MenuItem_ menuItem = (MenuItem_)item;
@@ -420,7 +437,7 @@ public class AccessibilityManager
                     return false;
                     
                 nativePointer = CreateTreeItemNative(parentLong, treeItem.GetName(), 
-                        treeItem.GetDescription(), treeItem.IsSubtree(), 
+                        GetHelpText(treeItem), treeItem.IsSubtree(), 
                         treeItem.IsOpen(), parentSubtree, parentTree, treeItem);
             }
                 break;
@@ -790,6 +807,47 @@ public class AccessibilityManager
         SliderValueChangedNative(nativePointer, item.GetValue());
     }
     
+    /*
+        A tooltip opened: UI Automation's tooltip opened event is raised on
+        it, so Narrator reads it, as for a native Windows tooltip.
+    */
+    public void TooltipOpened(Tooltip_ tooltip) {
+        Long nativePointer = ITEM_MAP.get((Item_) tooltip);
+        if (nativePointer == null)
+            return;
+
+        TooltipOpenedNative(nativePointer);
+    }
+
+    /*
+        A tooltip is about to close: UI Automation's tooltip closed event is
+        raised on it before it leaves the tree.
+    */
+    public void TooltipClosed(Tooltip_ tooltip) {
+        Long nativePointer = ITEM_MAP.get((Item_) tooltip);
+        if (nativePointer == null)
+            return;
+
+        TooltipClosedNative(nativePointer);
+    }
+
+    /*
+        The words UI Automation gives as an item's help text. A control's
+        tooltip words, when its tooltip is on, replace its description, as a
+        native Windows control's tooltip is its help text.
+    */
+    private String GetHelpText(Item_ item) {
+        if (item instanceof Control_) {
+            Control_ control = (Control_) item;
+            if (control.IsTooltipEnabled() && control.HasTooltipContent()) {
+                String words = control.GetTooltipWords();
+                if (words != null && !words.isEmpty())
+                    return words;
+            }
+        }
+        return item.GetDescription();
+    }
+
     public void NameChanged(Item_ item)
     {
         if (ITEM_MAP.containsKey(item) == false)
@@ -807,7 +865,7 @@ public class AccessibilityManager
         
         long nativePointer = ITEM_MAP.get(item);
         
-        DescriptionChangedNative(nativePointer, item.GetDescription());
+        DescriptionChangedNative(nativePointer, GetHelpText(item));
     }
     
     public void BoundsChanged(Item_ item) {}

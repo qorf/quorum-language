@@ -46,6 +46,14 @@ public class AndroidNode {
     public float rangeMinimum = 0;
     public float rangeMaximum = 0;
     public float rangeValue = 0;
+    // A control whose tooltip is on: TalkBack can show or hide it (its
+    // Actions menu). The tooltip's words, or null when they would repeat
+    // the text or hint. While an interactive tooltip shows, the names of its
+    // buttons, each one an action on this node.
+    public boolean hasTooltip = false;
+    public boolean tooltipShowing = false;
+    public String tooltipText = null;
+    public String[] tooltipButtons = new String[0];
 
     public static final int HOST = android.view.View.NO_ID;
 }
