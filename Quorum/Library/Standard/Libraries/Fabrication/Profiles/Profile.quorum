@@ -1,6 +1,7 @@
 package Libraries.Fabrication.Profiles
 
 use Libraries.Containers.Array
+use Libraries.System.File
 use Libraries.Data.Formats.NumberFormatter
 
 /*
@@ -585,7 +586,7 @@ class Profile
             if not GetBoolean("bambuExtras")
                 problems:Add("write3mf needs bambuExtras: the 3MF packer reads Bambu's header block")
             end
-            if GetText("bambuSettingsTemplate") = ""
+            if GetBambuSettingsFile() = undefined
                 problems:Add("write3mf needs bambuSettingsTemplate")
             end
         end
@@ -620,6 +621,84 @@ class Profile
             + " mm, " + GetText("nozzleDiameter") + " mm nozzle, "
             + GetText("filamentType") + " at " + GetText("nozzleTemperature") + " C, "
             + GetText("layerHeight") + " mm layers"
+    end
+
+    /*
+    The printer's own start G-code, as text, run before the first layer.
+    Placeholders such as {BED_TEMP} and {NOZZLE_TEMP} are filled in when
+    the G-code is written. An empty text (the default) means the
+    startGcodeFile setting is used instead. A profile with a parent returns
+    its parent's. Printer classes override this.
+
+    Attribute: Returns The start G-code, or "" to use startGcodeFile.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printers.CrealityEnder3
+
+        CrealityEnder3 printer
+        output printer:GetStartGcode()
+    */
+    action GetStartGcode returns text
+        if parentProfile not= undefined
+            return parentProfile:GetStartGcode()
+        end
+        return ""
+    end
+
+    /*
+    The printer's own end G-code, as text, run after the last layer. An
+    empty text (the default) means the endGcodeFile setting is used
+    instead. A profile with a parent returns its parent's.
+
+    Attribute: Returns The end G-code, or "" to use endGcodeFile.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Printers.CrealityEnder3
+
+        CrealityEnder3 printer
+        output printer:GetEndGcode()
+    */
+    action GetEndGcode returns text
+        if parentProfile not= undefined
+            return parentProfile:GetEndGcode()
+        end
+        return ""
+    end
+
+    /*
+    The Bambu settings template to package the print with (a
+    project_settings JSON, or a .gcode.3mf exported by Bambu Studio), or
+    undefined if there is none. By default it is the file the
+    bambuSettingsTemplate setting names, relative to the folder the
+    program runs in; a profile that doesn't set it returns its parent's.
+    BambuPrinter overrides this with the file given to SetBambuFiles.
+
+    Attribute: Returns The settings template, or undefined.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Profiles.Profile
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        Profile profile = profiles:Require("bambu-p2s")
+        File template = profile:GetBambuSettingsFile()
+    */
+    action GetBambuSettingsFile returns File
+        if parentProfile not= undefined and not SetsOwn("bambuSettingsTemplate")
+            return parentProfile:GetBambuSettingsFile()
+        end
+        text path = GetText("bambuSettingsTemplate")
+        if path = ""
+            return undefined
+        end
+        File file
+        file:SetPath(path)
+        return file
     end
 
     private action IndexOf(text key) returns integer

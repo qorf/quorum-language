@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The AnycubicKobra2 class is the Anycubic Kobra 2: a Marlin printer with a
+direct-drive extruder and a 220 by 220 millimeter bed, 250 millimeters
+tall. It can level its bed (LeviQ, G29); like its maker's own start, this
+class only homes, and a program can add G29 by changing GetHomeGcode.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.AnycubicKobra2
+
+AnycubicKobra2 printer
+output printer:Describe()
+*/
+class AnycubicKobra2 is DirectDrivePrinter
+    // Specs: https://store.anycubic.com/products/kobra-2
+    //        https://github.com/ANYCUBIC-3D/Kobra2
+    on create
+        SetName("Anycubic Kobra 2")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 110)
+    end
+end

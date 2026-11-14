@@ -1,0 +1,22 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityEnder5 class is the Creality Ender-5: a Marlin printer with a
+Bowden extruder and a 220 by 220 millimeter bed, 300 millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityEnder5
+
+CrealityEnder5 printer
+output printer:Describe()
+*/
+class CrealityEnder5 is BowdenPrinter
+    // Specs: https://store.creality.com/blogs/all/ender-series-3d-printers-parameter-comparison
+    // Check before release: the highest nozzle and bed temperatures
+    //   aren't stated, so the family's are kept.
+    on create
+        SetName("Creality Ender-5")
+        SetBed(220, 220, 300)
+    end
+end

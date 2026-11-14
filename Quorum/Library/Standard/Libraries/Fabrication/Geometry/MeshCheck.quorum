@@ -1,0 +1,265 @@
+package Libraries.Fabrication.Geometry
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+
+/*
+The MeshCheck class looks at each part (mesh) of a loaded model and says
+whether it is a closed solid, which a 3D printer needs. A part is closed
+when every edge of every triangle is shared by exactly two triangles. An
+edge with only one triangle is open: it borders a hole, or the part is a
+single surface, such as a window pane or a sheet of cloth. The slicer
+can't tell the inside of an open part from the outside, so it may print
+with gaps or missing walls.
+
+Corners at the same spot count as one, so a part whose triangles were
+split apart only for their textures or normals is still closed. Parts
+that pass through each other aren't checked, and nothing is repaired.
+
+Attribute: Example
+
+use Libraries.Game.Graphics.Models.Data.ModelLoader
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Fabrication.Geometry.MeshCheck
+
+ModelLoader loader
+ModelData model = loader:Load("Car/ToyCarCentered.gltf")
+MeshCheck meshCheck
+meshCheck:Check(model)
+integer i = 0
+repeat while i < meshCheck:GetPartCount()
+    if meshCheck:IsClosed(i)
+        output meshCheck:GetPartName(i) + " is a closed solid."
+    else
+        output meshCheck:GetPartName(i) + " has " + meshCheck:GetOpenEdgeCount(i) + " open edges."
+    end
+    i = i + 1
+end
+*/
+class MeshCheck
+    Array<text> names
+    Array<integer> triangleCounts
+    Array<integer> openEdgeCounts
+
+    /*
+    This action checks every part of the model, replacing what an earlier
+    Check found.
+
+    Attribute: Parameter data The loaded model.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Models.Data.ModelLoader
+    use Libraries.Game.Graphics.Models.Data.ModelData
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    ModelLoader loader
+    ModelData model = loader:Load("Car/ToyCarCentered.gltf")
+    MeshCheck meshCheck
+    meshCheck:Check(model)
+    */
+    action Check(ModelData data)
+        names:Empty()
+        triangleCounts:Empty()
+        openEdgeCounts:Empty()
+        if data = undefined
+            return now
+        end
+        Array<MeshData> meshes = data:GetMeshes()
+        integer i = 0
+        repeat while i < meshes:GetSize()
+            MeshData mesh = meshes:Get(i)
+            names:Add(PartName(data, mesh, i))
+            Integer32BitArray indices = mesh:GetIndices()
+            if indices = undefined or mesh:GetVertices() = undefined
+                triangleCounts:Add(0)
+                openEdgeCounts:Add(0)
+            else
+                triangleCounts:Add(indices:GetSize() / 3)
+                openEdgeCounts:Add(CountOpenEdges(mesh))
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns how many parts the last Check looked at.
+
+    Attribute: Returns The number of parts.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    MeshCheck meshCheck
+    // meshCheck:Check(model)
+    output meshCheck:GetPartCount() + " parts"
+    */
+    action GetPartCount returns integer
+        return names:GetSize()
+    end
+
+    /*
+    This action returns a part's name: the name the model file gives it,
+    else its material's name, else "Part" and its number, counting from 1.
+
+    Attribute: Parameter index Which part, counting from 0.
+    Attribute: Returns The part's name.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    MeshCheck meshCheck
+    // meshCheck:Check(model)
+    output meshCheck:GetPartName(0)
+    */
+    action GetPartName(integer index) returns text
+        return names:Get(index)
+    end
+
+    /*
+    This action returns how many triangles a part has.
+
+    Attribute: Parameter index Which part, counting from 0.
+    Attribute: Returns The number of triangles.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    MeshCheck meshCheck
+    // meshCheck:Check(model)
+    output meshCheck:GetTriangleCount(0) + " triangles"
+    */
+    action GetTriangleCount(integer index) returns integer
+        return triangleCounts:Get(index)
+    end
+
+    /*
+    This action returns how many of a part's edges belong to only one
+    triangle. A closed solid has none.
+
+    Attribute: Parameter index Which part, counting from 0.
+    Attribute: Returns The number of open edges.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    MeshCheck meshCheck
+    // meshCheck:Check(model)
+    output meshCheck:GetOpenEdgeCount(0) + " open edges"
+    */
+    action GetOpenEdgeCount(integer index) returns integer
+        return openEdgeCounts:Get(index)
+    end
+
+    /*
+    This action returns true if a part is a closed solid: it has
+    triangles, and none of its edges are open.
+
+    Attribute: Parameter index Which part, counting from 0.
+    Attribute: Returns True if the part is closed.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    MeshCheck meshCheck
+    // meshCheck:Check(model)
+    if not meshCheck:IsClosed(0)
+        output "The first part has holes."
+    end
+    */
+    action IsClosed(integer index) returns boolean
+        return triangleCounts:Get(index) > 0 and openEdgeCounts:Get(index) = 0
+    end
+
+    // The name the file gives the part, else its material's, else "Part n".
+    private action PartName(ModelData data, MeshData mesh, integer index) returns text
+        text name = mesh:GetName()
+        if name not= undefined and name not= ""
+            return name
+        end
+        Array<Material> materials = data:GetMaterials()
+        integer materialIndex = mesh:GetMaterialIndex()
+        if materials not= undefined and materialIndex >= 0 and materialIndex < materials:GetSize()
+            Material material = materials:Get(materialIndex)
+            text materialName = material:GetName()
+            if materialName not= undefined and materialName not= ""
+                return materialName
+            end
+        end
+        return "Part " + (index + 1)
+    end
+
+    // Counts the edges used by exactly one triangle, with corners at the
+    // same spot counted as one.
+    private action CountOpenEdges(MeshData mesh) returns integer
+        Number32BitArray vertices = mesh:GetVertices()
+        Integer32BitArray indices = mesh:GetIndices()
+        integer vertexCount = vertices:GetSize() / 3
+
+        // one number per spot: corners at the same position share it
+        HashTable<text, integer> spots
+        Array<integer> spotOf
+        integer v = 0
+        repeat while v < vertexCount
+            text key = "" + vertices:Get(v * 3) + "_" + vertices:Get(v * 3 + 1) + "_" + vertices:Get(v * 3 + 2)
+            if spots:HasKey(key)
+                spotOf:Add(spots:GetValue(key))
+            else
+                integer spot = spots:GetSize()
+                spots:Add(key, spot)
+                spotOf:Add(spot)
+            end
+            v = v + 1
+        end
+
+        // how many triangles use each edge
+        HashTable<text, integer> edges
+        integer t = 0
+        repeat while t + 2 < indices:GetSize()
+            integer a = spotOf:Get(indices:Get(t))
+            integer b = spotOf:Get(indices:Get(t + 1))
+            integer c = spotOf:Get(indices:Get(t + 2))
+            CountEdge(edges, a, b)
+            CountEdge(edges, b, c)
+            CountEdge(edges, c, a)
+            t = t + 3
+        end
+
+        integer open = 0
+        Iterator<integer> uses = edges:GetValueIterator()
+        repeat while uses:HasNext()
+            if uses:Next() = 1
+                open = open + 1
+            end
+        end
+        return open
+    end
+
+    private action CountEdge(HashTable<text, integer> edges, integer a, integer b)
+        if a = b
+            return now
+        end
+        text key = ""
+        if a < b
+            key = "" + a + "_" + b
+        else
+            key = "" + b + "_" + a
+        end
+        if edges:HasKey(key)
+            edges:Add(key, edges:GetValue(key) + 1)
+        else
+            edges:Add(key, 1)
+        end
+    end
+end

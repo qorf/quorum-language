@@ -188,6 +188,18 @@ shared class SceneProperties
     public constant text STREAMING = "Streaming"
     public constant text DRAW_RADIUS = "Draw Radius"
 
+    // How a terrain prints (TerrainItem:GetPrintChoices): an object under
+    // "Print", written only when a choice differs from the defaults. "Size"
+    // is "Fit to bed" or "Longest side"; "Longest Side" and "Base" are in
+    // millimeters; "Hills" is how many times their true height.
+    public constant text PRINT = "Print"
+    public constant text PRINT_SIZE = "Size"
+    public constant text PRINT_FIT_TO_BED_VALUE = "Fit to bed"
+    public constant text PRINT_LONGEST_SIDE_VALUE = "Longest side"
+    public constant text PRINT_LONGEST_SIDE = "Longest Side"
+    public constant text PRINT_HILLS = "Hills"
+    public constant text PRINT_BASE = "Base"
+
     /*
     The folders a scene's own files go in, inside the project. The project's
     Scenes folder holds the scenes, and under it, one folder for each kind of

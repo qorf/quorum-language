@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The ElegooNeptune4Pro class is the Elegoo Neptune 4 Pro: a fast Klipper
+printer with a 225 by 225 millimeter bed, 265 millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.ElegooNeptune4Pro
+
+ElegooNeptune4Pro printer
+output printer:Describe()
+*/
+class ElegooNeptune4Pro is KlipperPrinter
+    // Specs: https://us.elegoo.com/products/elegoo-neptune-4-pro-fdm-3d-printer
+    // Check before release: that its Klipper configuration has
+    //   PRINT_START and PRINT_END macros; Klipper stops at a command
+    //   it doesn't know.
+    on create
+        SetName("Elegoo Neptune 4 Pro")
+        SetBed(225, 225, 265)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 110)
+    end
+end

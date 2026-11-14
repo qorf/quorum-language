@@ -45,21 +45,40 @@ class BambuProjectSettings is JavaScriptObjectNotationTemplate
         output settings:GetText("layer_height", "")
     */
     action LoadFile(text path)
+        File file
+        file:SetPath(path)
+        LoadFile(file)
+    end
+
+    /*
+    Reads the settings from a project_settings JSON file, or from the
+    project_settings inside a .gcode.3mf exported by Bambu Studio.
+
+    Attribute: Parameter file The project_settings JSON or .gcode.3mf.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Printing.Bambu.BambuProjectSettings
+
+        File file
+        file:SetPath("Templates/bambu-p2s/p2s_project_settings.json")
+        BambuProjectSettings settings
+        settings:LoadFile(file)
+    */
+    action LoadFile(File file)
         ArgumentChecker checker
-        checker:RequireFile("Bambu settings template", path)
+        checker:RequireFile("Bambu settings template", file)
         text entry = "Metadata/project_settings.config"
+        text path = file:GetPath()
         text lowerPath = path:ToLowerCase()
         if lowerPath:EndsWith(".3mf")
-            File archive
-            archive:SetPath(path)
             Decompresser zip
-            if not zip:HasZipEntry(archive, entry)
+            if not zip:HasZipEntry(file, entry)
                 alert(path + " has no " + entry + ". Use a .gcode.3mf from Bambu Studio's 'Export plate sliced file', or a project_settings JSON.")
             end
-            Load(zip:ReadZipEntry(archive, entry))
+            Load(zip:ReadZipEntry(file, entry))
         else
-            File file
-            file:SetPath(path)
             Load(file:Read())
         end
     end

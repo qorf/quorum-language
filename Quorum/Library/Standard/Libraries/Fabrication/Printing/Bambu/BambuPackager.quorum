@@ -352,11 +352,65 @@ class BambuPackager
         text archive = packer:Pack("Outputs/cube.gcode", "Outputs/plates/cube.gcode.3mf")
     */
     action Pack(text gcodePath, text outputPath) returns text
+        File gcodeFile
+        gcodeFile:SetPath(gcodePath)
+        File outputFile
+        outputFile:SetPath(outputPath)
+        Pack(gcodeFile, outputFile)
+        return outputPath
+    end
+
+    /*
+    Packages a G-code file as a .gcode.3mf beside it, with the same name.
+    Returns the archive.
+
+    Attribute: Parameter gcodeFile The G-code file, written with Bambu extras on.
+    Attribute: Returns The archive written.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        File gcode
+        gcode:SetPath("Outputs/cube.gcode")
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        File archive = packer:Pack(gcode)
+    */
+    action Pack(File gcodeFile) returns File
+        File archive
+        archive:SetWorkingDirectory(gcodeFile:GetWorkingDirectory())
+        archive:SetPath(WithoutGcodeExtension(gcodeFile:GetPath()) + ".gcode.3mf")
+        return Pack(gcodeFile, archive)
+    end
+
+    /*
+    Packages a G-code file as the output file. Returns the output file.
+
+    Attribute: Parameter gcodeFile The G-code file, written with Bambu extras on.
+    Attribute: Parameter outputFile Where to write the archive.
+    Attribute: Returns outputFile.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Printing.Bambu.BambuPackager
+
+        File gcode
+        gcode:SetPath("Outputs/cube.gcode")
+        File archive
+        archive:SetPath("Outputs/plates/cube.gcode.3mf")
+        BambuPackager packer
+        packer:SetSettingsTemplate("Templates/bambu-p2s/p2s_project_settings.json")
+        packer:Pack(gcode, archive)
+    */
+    action Pack(File gcodeFile, File outputFile) returns File
         warnings:Empty()
         packStartTime = timer:Now()
         lastStepTime = packStartTime
         if reportProgress
-            output "Packing " + gcodePath + " as " + outputPath
+            output "Packing " + gcodeFile:GetPath() + " as " + outputFile:GetPath()
         end
         text type = filamentType:ToUpperCase()
         text trayId = filamentId
@@ -373,20 +427,18 @@ class BambuPackager
         end
         text temperatureKey = bedType + "_temp"
 
-        checker:RequireFile("G-code", gcodePath)
+        checker:RequireFile("G-code", gcodeFile)
         if settingsText = ""
             if settingsPath = ""
                 alert("BambuPackager:Pack has no settings: call SetSettingsTemplate (a project_settings JSON or a Bambu-exported .gcode.3mf) or SetSettingsText first.")
             end
             checker:RequireFile("Bambu settings template", settingsPath)
         end
-        File gcodeFile
-        gcodeFile:SetPath(gcodePath)
         text gcode = gcodeFile:Read()
         Report("read the G-code (" + gcode:GetSize() + " characters)")
         text top = Beginning(gcode, 2000)
         if not top:Contains("; HEADER_BLOCK_START")
-            alert(gcodePath + " has no '; HEADER_BLOCK_START' at the top, so it can't be packed for a Bambu printer. Write it with bambuExtras on (GcodeWriter:SetBambuExtras(true)).")
+            alert(gcodeFile:GetPath() + " has no '; HEADER_BLOCK_START' at the top, so it can't be packed for a Bambu printer. Write it with bambuExtras on (GcodeWriter:SetBambuExtras(true)).")
         end
         if not SelectsToolZero(gcode)
             warnings:Add("The G-code never selects T0, so the printer's filament mapping won't load anything. Put Bambu's M620 S0A / T0 / M621 S0A blocks back in the start G-code.")
@@ -442,7 +494,7 @@ class BambuPackager
         Report("filled in the settings template (Bambu Studio " + version + ")")
 
         text newGcode = RewriteHeader(gcode, filamentGrams, volumeCm3, density)
-        text fileName = FileName(outputPath)
+        text fileName = FileName(outputFile:GetPath())
         text name = fileName:Replace(".gcode.3mf", "")
         DateTime clock
         text today = "" + clock:GetYear() + "-" + TwoDigits(clock:GetMonth()) + "-" + TwoDigits(clock:GetDayOfMonth())
@@ -451,7 +503,7 @@ class BambuPackager
 
         // same entries, same order as Bambu Studio's own export
         ZipWriter zip
-        zip:Open(outputPath)
+        zip:Open(outputFile:GetAbsolutePath())
         zip:AddText("[Content_Types].xml", ContentTypes())
         RenderThumbnail(zip, 512, colour)
         zip:AddImage("Metadata/plate_1.png")
@@ -481,7 +533,7 @@ class BambuPackager
         if reportProgress
             output "  packing took " + Fixed((timer:Now() - packStartTime) / 1000.0, 2) + " s in all"
         end
-        return outputPath
+        return outputFile
     end
 
     /*

@@ -1,0 +1,24 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityK1Max class is the Creality K1 Max: the larger K1, a fast
+Klipper printer with a 300 by 300 millimeter bed, 300 millimeters tall,
+with the K1's start and end macros.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityK1Max
+
+CrealityK1Max printer
+output printer:Describe()
+*/
+class CrealityK1Max is CrealityK1
+    // Specs: https://www.creality.com/products/creality-k1-max-3d-printer
+    // Check before release: the macro names, as for the K1.
+    on create
+        SetName("Creality K1 Max")
+        SetBed(300, 300, 300)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

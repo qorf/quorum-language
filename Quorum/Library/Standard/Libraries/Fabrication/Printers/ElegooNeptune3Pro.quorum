@@ -1,0 +1,23 @@
+package Libraries.Fabrication.Printers
+
+/*
+The ElegooNeptune3Pro class is the Elegoo Neptune 3 Pro: a Marlin printer
+with a direct-drive extruder and a 225 by 225 millimeter bed, 280
+millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.ElegooNeptune3Pro
+
+ElegooNeptune3Pro printer
+output printer:Describe()
+*/
+class ElegooNeptune3Pro is DirectDrivePrinter
+    // Specs: https://us.elegoo.com/products/elegoo-neptune-3-pro-fdm-3d-printer-225x225x280mm
+    on create
+        SetName("Elegoo Neptune 3 Pro")
+        SetBed(225, 225, 280)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

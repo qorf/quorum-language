@@ -1,0 +1,38 @@
+package Libraries.Fabrication.Printers
+
+/*
+The BowdenPrinter class is a Marlin printer whose extruder motor pushes
+the filament through a long tube to the nozzle (a Bowden extruder), like
+the Creality Ender-3. The tube makes the plastic slower to stop, so it
+pulls the filament back further between moves (6 millimeters) and prints
+slowly. Its bed is 220 by 220 millimeters until SetBed changes it.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.BowdenPrinter
+
+BowdenPrinter printer
+printer:SetName("My Bowden printer")
+printer:SetBed(235, 235, 250)
+output printer:Describe()
+*/
+class BowdenPrinter is Printer
+    // Values from Quorum's own ender3-v2 test profile, tested on an
+    // Ender-3 V2 (Library/Tests/Fabrication/Resources/Profiles/profiles.json).
+    on create
+        SetName("Bowden printer")
+        SetNumber("retractLength", 6.0)
+        SetNumber("retractSpeed", 40)
+        SetNumber("retractLimitWindow", 6.0)
+        SetInteger("retractLimitCount", 90)
+        SetNumber("zHopMinTravel", 0.8)
+        SetNumber("maxFlow", 10)
+        SetNumber("outerWallSpeed", 25)
+        SetNumber("innerWallSpeed", 45)
+        SetNumber("skinSpeed", 40)
+        SetNumber("infillSpeed", 60)
+        SetNumber("supportSpeed", 40)
+        SetNumber("firstLayerSpeed", 15)
+        SetNumber("travelSpeed", 150)
+    end
+end

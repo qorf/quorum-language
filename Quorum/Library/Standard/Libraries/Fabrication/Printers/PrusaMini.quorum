@@ -1,0 +1,34 @@
+package Libraries.Fabrication.Printers
+
+/*
+The PrusaMini class is the Original Prusa MINI+: the MINI and MINI+: a
+Bowden printer with a 180 by 180 millimeter bed, 180 millimeters tall,
+that measures its bed before each print.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.PrusaMini
+
+PrusaMini printer
+output printer:Describe()
+*/
+class PrusaMini is BowdenPrinter
+    // Specs: https://www.prusa3d.com/product/original-prusa-mini-semi-assembled-3d-printer-9/
+    //        https://help.prusa3d.com/article/buddy-firmware-specific-g-code-commands_633112
+    on create
+        SetName("Original Prusa MINI+")
+        SetBed(180, 180, 180)
+        SetInteger("maxNozzleTemperature", 280)
+        SetInteger("maxBedTemperature", 100)
+    end
+
+    /*
+    This action returns the G-code that homes the printer, then measures the
+    bed (G29), as Prusa's Buddy firmware does.
+
+    Attribute: Returns The homing G-code.
+    */
+    action GetHomeGcode returns text
+        return Lines("G28 ;home all axes", "G29 ;measure the bed")
+    end
+end

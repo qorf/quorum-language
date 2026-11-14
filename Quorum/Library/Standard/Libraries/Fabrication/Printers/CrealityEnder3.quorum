@@ -1,0 +1,26 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityEnder3 class is the Creality Ender-3: a Marlin printer with a
+Bowden extruder and a 220 by 220 millimeter bed, 250 millimeters tall. It
+has no automatic bed leveling.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityEnder3
+
+CrealityEnder3 printer
+output printer:Describe()
+*/
+class CrealityEnder3 is BowdenPrinter
+    // Specs: https://store.creality.com/blogs/all/ender-series-3d-printers-parameter-comparison
+    //        https://www.matterhackers.com/articles/Creality%20Comparison%20Guide
+    // Check before release: the temperatures are from a retailer;
+    //   Creality's page for the Ender-3 is gone.
+    on create
+        SetName("Creality Ender-3")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 110)
+    end
+end

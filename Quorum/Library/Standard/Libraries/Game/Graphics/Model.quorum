@@ -36,6 +36,11 @@ use Libraries.Interface.Events.FocusEvent
 use Libraries.Interface.AccessibilityManager
 use Libraries.Game.Layer3D
 use Libraries.Game.Graphics.Models.Data.ModelLightData
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Integer32BitArray
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.Profile
 
 /*
 The Model class represents a 3D model to be drawn on the screen by the Game
@@ -1518,7 +1523,100 @@ a spot light's range and a point light's culling
 
     */
     action LoadPlane(number width, number depth, Texture texture, Vector4 textureCoordinates, boolean doubleSided)
-        ModelBlueprint schematic = GetCachedPlane(width, depth, texture, textureCoordinates, doubleSided)
+        LoadPlane(width, depth, texture, textureCoordinates, doubleSided, false, false)
+    end
+
+    /*
+    This action loads the Model as a plane showing part of a texture, as
+    the action above does, and can make it unlit: lights and shadows don't
+    change it, so it shows the texture's colors (times the Model's color)
+    as they are. Unlit suits text and signs in a scene. Under OpenGL the
+    plane is lit either way.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter texture A texture to be used on the surface of the plane.
+    Attribute: Parameter textureCoordinates Coordinates to sample on the texture, with the format X1, Y1, X2, Y2.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+    Attribute: Parameter unlit True to make the plane unlit.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Compute.Vector4
+
+    class Main is Game
+        Model sign
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+            Vector4 textureCoordinates
+            textureCoordinates:Set(0, 0, 1, 1)
+            sign:LoadPlane(2, 2, texture, textureCoordinates, true, true)
+            Add(sign)
+        end
+    end
+    */
+    action LoadPlane(number width, number depth, Texture texture, Vector4 textureCoordinates, boolean doubleSided, boolean unlit)
+        LoadPlane(width, depth, texture, textureCoordinates, doubleSided, unlit, false)
+    end
+
+    /*
+    This action loads the Model as a plane showing part of a texture, as
+    the actions above do, and can make it unlit and blended. A blended
+    plane is drawn in the see-through pass: the texture's alpha is blended
+    with what is behind (smooth edges, such as a letter's), and solid
+    models in front still hide it. Without blending, pixels with alpha
+    below a half are cut out and the rest are solid. Under OpenGL the
+    plane is lit and not blended either way.
+
+    Attribute: Parameter width How long the plane should be along the x-axis.
+    Attribute: Parameter depth How long the plane should be along the z-axis.
+    Attribute: Parameter texture A texture to be used on the surface of the plane.
+    Attribute: Parameter textureCoordinates Coordinates to sample on the texture, with the format X1, Y1, X2, Y2.
+    Attribute: Parameter doubleSided True to make the plane double-sided, false otherwise.
+    Attribute: Parameter unlit True to make the plane unlit.
+    Attribute: Parameter blended True to blend the texture's alpha.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Texture
+    use Libraries.Compute.Vector4
+
+    class Main is Game
+        Model sign
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Texture texture
+            texture:LoadFilledCircle(150)
+            Vector4 textureCoordinates
+            textureCoordinates:Set(0, 0, 1, 1)
+            sign:LoadPlane(2, 2, texture, textureCoordinates, true, true, true)
+            Add(sign)
+        end
+    end
+    */
+    action LoadPlane(number width, number depth, Texture texture, Vector4 textureCoordinates, boolean doubleSided, boolean unlit, boolean blended)
+        ModelBlueprint schematic = undefined
+        if UsingOpenGL()
+            schematic = GetCachedPlaneOpenGL(width, depth, texture, doubleSided)
+        else
+            ModelManagerVulkan modelManager = GetModelManager()
+            schematic = modelManager:GetPlaneBlueprint(width, depth, textureCoordinates, doubleSided, unlit, blended)
+        end
         Load(schematic)
         SetTexture(texture)
         Box box
@@ -2842,6 +2940,212 @@ end
     */
     action GetAssetFile returns File
         return assetFile
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the model, for a
+    generic printer: a 220 by 220 millimeter bed, a 0.4 millimeter nozzle,
+    and PLA plastic. The model is printed at its size in the scene, with
+    one unit as one millimeter. To print for a particular printer, pass a
+    Profile too.
+
+    Attribute: Parameter file Where to write the G-code.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+    use Libraries.System.File
+
+    class Main is Game
+        Model box
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            box:LoadBox(20, 20, 20, color:Orange())
+            Add(box)
+            File file
+            file:SetPath("Prints/box.gcode")
+            box:Print(file)
+        end
+    end
+    */
+    action Print(File file)
+        Profile generic
+        generic:SetName("generic")
+        generic:Set("startGcodeFile", "")
+        generic:Set("endGcodeFile", "")
+        Print(file, generic)
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the model, for a
+    generic printer, at a path relative to the folder the program runs in.
+    See Print(File) for the printer it uses.
+
+    Attribute: Parameter path Where to write the G-code.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Game.Graphics.Color
+
+    class Main is Game
+        Model box
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            Color color
+            box:LoadBox(20, 20, 20, color:Orange())
+            Add(box)
+            box:Print("Prints/box.gcode")
+        end
+    end
+    */
+    action Print(text path)
+        File file
+        file:SetPath(path)
+        Print(file)
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the model, with the
+    printer, filament and settings in the profile. Load profiles with a
+    ProfileManager. The model is printed at its size in the scene, with one
+    unit as one millimeter, unless the profile's unitScale says otherwise.
+    If the profile packages for Bambu printers (write3mf), a .gcode.3mf file
+    is also written beside the G-code, with the same name.
+
+    Attribute: Parameter file Where to write the G-code.
+    Attribute: Parameter profile The printer settings to slice with.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.System.File
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main is Game
+        Model cup
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            cup:Load("Models/cup.obj")
+            Add(cup)
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            File file
+            file:SetPath("Prints/cup.gcode")
+            cup:Print(file, profiles:Require("ender3-v2"))
+        end
+    end
+    */
+    action Print(File file, Profile profile)
+        if file = undefined
+            alert("Model:Print was given no file (undefined).")
+        end
+        if profile = undefined
+            alert("Model:Print was given no profile (undefined). To print for a generic printer, leave the profile out.")
+        end
+        ModelData data = GetPrintData()
+        SliceJob job
+        job:SetQuiet(true)
+        job:Run(data, profile, file)
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the model, with the
+    settings in the profile, at a path relative to the folder the program
+    runs in. See Print(File, Profile).
+
+    Attribute: Parameter path Where to write the G-code.
+    Attribute: Parameter profile The printer settings to slice with.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Model
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main is Game
+        Model cup
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            cup:Load("Models/cup.obj")
+            Add(cup)
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            cup:Print("Prints/cup.gcode", profiles:Require("ender3-v2"))
+        end
+    end
+    */
+    action Print(text path, Profile profile)
+        File file
+        file:SetPath(path)
+        Print(file, profile)
+    end
+
+    /*
+    This action returns a copy of the model's meshes for printing, with the
+    model's scale applied. The blueprint's own data is shared by every model
+    loaded from the same file, so it isn't changed.
+    */
+    private action GetPrintData returns ModelData
+        if not (modelBlueprint is ModelBlueprintVulkan)
+            alert("This model has nothing to print. Load it from a file, or with LoadBox, LoadSphere and the like, first. Printing needs the Vulkan renderer.")
+        end
+        ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+        ModelData source = vulkanBlueprint:GetData()
+        if vulkanBlueprint:IsReleased() or source = undefined
+            alert("This model's mesh data has been released, so it can't be printed.")
+        end
+
+        number scaleX = GetScaleX()
+        number scaleY = GetScaleY()
+        number scaleZ = GetScaleZ()
+        Array<MeshData> sourceMeshes = source:GetMeshes()
+        Array<MeshData> meshes
+        integer i = 0
+        repeat while i < sourceMeshes:GetSize()
+            MeshData mesh = sourceMeshes:Get(i)
+            Number32BitArray vertices = mesh:GetVertices()
+            MeshData copy
+            if vertices not= undefined
+                Number32BitArray scaled
+                scaled:SetSize(vertices:GetSize())
+                integer j = 0
+                repeat while j + 2 < vertices:GetSize()
+                    scaled:Set(j, vertices:Get(j) * scaleX)
+                    scaled:Set(j + 1, vertices:Get(j + 1) * scaleY)
+                    scaled:Set(j + 2, vertices:Get(j + 2) * scaleZ)
+                    j = j + 3
+                end
+                copy:SetVertices(scaled)
+            end
+            copy:SetIndices(mesh:GetIndices())
+            meshes:Add(copy)
+            i = i + 1
+        end
+        ModelData result
+        result:SetMeshes(meshes)
+        return result
     end
 
     action GetShaderProgram returns ShaderProgram

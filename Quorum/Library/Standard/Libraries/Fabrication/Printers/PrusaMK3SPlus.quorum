@@ -1,0 +1,34 @@
+package Libraries.Fabrication.Printers
+
+/*
+The PrusaMK3SPlus class is the Original Prusa i3 MK3S+: a direct-drive
+printer with a 250 by 210 millimeter bed, 210 millimeters tall, that
+measures its bed before each print.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.PrusaMK3SPlus
+
+PrusaMK3SPlus printer
+output printer:Describe()
+*/
+class PrusaMK3SPlus is DirectDrivePrinter
+    // Specs: https://www.prusa3d.com/product/original-prusa-i3-mk3s-10th-anniversary-edition-3d-printer/
+    //        https://help.prusa3d.com/article/prusa-firmware-specific-g-code-commands_112173
+    on create
+        SetName("Original Prusa i3 MK3S+")
+        SetBed(250, 210, 210)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 120)
+    end
+
+    /*
+    This action returns the G-code that homes the printer without measuring
+    the bed (G28 W), then measures it (G80), as Prusa's 8-bit firmware does.
+
+    Attribute: Returns The homing G-code.
+    */
+    action GetHomeGcode returns text
+        return Lines("G28 W ;home without measuring the bed", "G80 ;measure the bed")
+    end
+end

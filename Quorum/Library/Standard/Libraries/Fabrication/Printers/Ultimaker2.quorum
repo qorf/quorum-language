@@ -1,0 +1,26 @@
+package Libraries.Fabrication.Printers
+
+/*
+The Ultimaker2 class is the Ultimaker 2: a Bowden printer for 2.85
+millimeter filament, with a 223 by 223 millimeter bed, 205 millimeters
+tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.Ultimaker2
+
+Ultimaker2 printer
+output printer:Describe()
+*/
+class Ultimaker2 is BowdenPrinter
+    // Specs: https://um-support-files.ultimaker.com/manuals/user-manual/UM2/Ultimaker%202%20-%20User%20manual%20EN%20v2.1.pdf
+    // Check before release: the printer's G-code setting: by default
+    //   it expects "UltiGCode" and sets the temperatures itself.
+    on create
+        SetName("Ultimaker 2")
+        SetBed(223, 223, 205)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 100)
+        SetNumber("filamentDiameter", 2.85)
+    end
+end

@@ -70,6 +70,12 @@ class PathGenerator
     integer rebuiltIslands = 0
     // plane being worked on (PolygonOperations calls take it)
     integer plane = 0
+    // planes finished by Generate, counting each of its two passes, so
+    // another thread can show how far it is (GetProgress)
+    integer planesDone = 0
+    // How much of Generate's progress the first pass (walls) is. Profiling a
+    // terrain print found the walls pass about 95% of Generate's time.
+    constant number WALL_PASS_SHARE = 0.9
 
     Math math
     PolygonOffsetter offsetter
@@ -362,6 +368,7 @@ class PathGenerator
         droppedLoops = 0
         rebuiltIslands = 0
         planeTotal = planeCount
+        planesDone = 0
         modelLayers:Index(contours, planeCount, true)
 
         // pass 1: walls and inner areas for every plane
@@ -408,6 +415,7 @@ class PathGenerator
                 end
             end
             p = p + 1
+            planesDone = planesDone + 1
         end
         innerStart:Add(inner:GetSize())
 
@@ -445,7 +453,35 @@ class PathGenerator
                 end
             end
             p = p + 1
+            planesDone = planesDone + 1
         end
+    end
+
+    /*
+    How far the current or last Generate is, from 0 to 1, from the planes
+    it has finished. The first pass (walls) takes most of the time, so it
+    is 90% of the progress; the second (skin and infill) the last 10%.
+    Another thread can read it while Generate works.
+
+    Attribute: Returns The progress, from 0 to 1.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Slicing.PathGenerator
+
+        PathGenerator paths
+        // another thread runs paths:Generate(contours, planeCount)
+        output (paths:GetProgress() * 100) + "% of the walls and fill planned"
+    */
+    action GetProgress returns number
+        if planeTotal <= 0
+            return 0
+        end
+        number total = cast(number, planeTotal)
+        if planesDone <= planeTotal
+            return WALL_PASS_SHARE * planesDone / total
+        end
+        return WALL_PASS_SHARE + (1 - WALL_PASS_SHARE) * (planesDone - planeTotal) / total
     end
 
     // ------------------------------------------------------------ insets

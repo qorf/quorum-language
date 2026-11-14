@@ -1,0 +1,45 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityK1 class is the Creality K1: a fast Klipper printer with a 220
+by 220 millimeter bed, 250 millimeters tall. Its firmware's start and end
+macros are START_PRINT and END_PRINT.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityK1
+
+CrealityK1 printer
+output printer:Describe()
+*/
+class CrealityK1 is KlipperPrinter
+    // Specs: https://www.creality.com/support/creality-k1-3d-printer
+    //        https://www.creality.com/compare/compare-k1-flagship-series
+    // Check before release: the macro names come from Kiri:Moto, not
+    //   from Creality.
+    on create
+        SetName("Creality K1")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 100)
+    end
+
+    /*
+    This action returns the start G-code: the K1 firmware's START_PRINT
+    macro, given the nozzle and bed temperatures.
+
+    Attribute: Returns The start G-code.
+    */
+    action GetStartGcode returns text
+        return "START_PRINT EXTRUDER_TEMP={NOZZLE_TEMP} BED_TEMP={BED_TEMP}"
+    end
+
+    /*
+    This action returns the end G-code: the K1 firmware's END_PRINT macro.
+
+    Attribute: Returns The end G-code.
+    */
+    action GetEndGcode returns text
+        return "END_PRINT"
+    end
+end

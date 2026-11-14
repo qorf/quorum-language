@@ -4479,6 +4479,18 @@ the foliage there is drawn again, the terrain is
     end
 
     /*
+    This action returns true if the editor's 3D layers have skies to edit,
+    so the Properties panel shows the Sky section. A scene editor does; a
+    view built on it that shows no sky, such as Quorum Studio's model
+    preview, returns false.
+
+    Attribute: Returns True if the Sky section shows for a 3D layer
+    */
+    action HasSky returns boolean
+        return true
+    end
+
+    /*
     This action gives a 3D layer the sky found in a folder (QuincyWorld demo
     D3): six pictures named as Skybox:LoadFolder says. A folder inside the
     project is kept relative to it, so the scene can be moved and games find

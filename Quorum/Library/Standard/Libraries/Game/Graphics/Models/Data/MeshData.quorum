@@ -4,6 +4,8 @@ use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 
 class MeshData
+    // The mesh's name in the model file, or "" if it has none.
+    text name = ""
     integer materialIndex = -1
     Number32BitArray vertices = undefined
     Number32BitArray normals = undefined
@@ -41,6 +43,25 @@ class MeshData
 
     action SetMaterialIndex(integer materialIndex)
         me:materialIndex = materialIndex
+    end
+
+    /*
+    This action returns the mesh's name in the model file, or an empty
+    text if the file gives none.
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        return name
+    end
+
+    /*
+    This action sets the mesh's name.
+
+    Attribute: Parameter value The name.
+    */
+    action SetName(text value)
+        name = value
     end
 
     action GetVertices returns Number32BitArray

@@ -144,9 +144,13 @@ class PropertiesDialog is Dialog, SelectionListener, TextChangeListener
             Add(panel)
         end
 
-        // Set up focus targets.
+        // Set up focus targets. A section with one control leads back to it.
         focusArray:Get(0):SetPreviousFocus(focusArray:Get(focusArray:GetSize() - 1))
-        focusArray:Get(0):SetNextFocus(focusArray:Get(1))
+        if focusArray:GetSize() > 1
+            focusArray:Get(0):SetNextFocus(focusArray:Get(1))
+        else
+            focusArray:Get(0):SetNextFocus(focusArray:Get(0))
+        end
 
         integer i = 1
         repeat while i < focusArray:GetSize()

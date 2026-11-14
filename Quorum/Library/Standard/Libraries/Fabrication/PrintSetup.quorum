@@ -1,0 +1,789 @@
+package Libraries.Fabrication
+
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Number32BitArray
+use Libraries.Fabrication.Geometry.MeshCheck
+use Libraries.Fabrication.Profiles.Profile
+
+/*
+The PrintSetup class gets a loaded model ready for a 3D printer: which
+printer, how large, which side goes down, which parts print, and whether
+to add supports and a brim. It says how large the print will be and
+whether it fits on the printer's bed before anything is sliced, checks
+whether each part is a closed solid (see MeshCheck), and then writes the
+G-code with Print.
+
+Sizes:
+1. Real size: the model's units times SetUnits (1000 for glTF files,
+   whose units are meters; 1 for files in millimeters).
+2. Fit to the bed: the longer side across the bed becomes 80% of the
+   bed's shorter side, made smaller if needed to fit under its height.
+3. Longest side: the model's longest side becomes this many millimeters.
+
+Attribute: Example
+
+use Libraries.System.File
+use Libraries.Game.Graphics.Models.Data.ModelLoader
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Fabrication.PrintSetup
+use Libraries.Fabrication.Printers.CrealityEnder3
+
+ModelLoader loader
+ModelData model = loader:Load("Car/ToyCarCentered.gltf")
+CrealityEnder3 printer
+
+PrintSetup setup
+setup:SetModel(model)
+setup:SetPrinter(printer)
+setup:SetUnits(1000)
+setup:SetLongestSide(100)
+output "Prints " + setup:GetPrintWidth() + " by " + setup:GetPrintDepth() + " by " + setup:GetPrintHeight() + " mm"
+if setup:Fits()
+    File file
+    file:SetPath("Prints/ToyCar.gcode")
+    setup:Print(file)
+end
+*/
+class PrintSetup
+    public constant integer REAL_SIZE = 0
+    public constant integer FIT_TO_BED = 1
+    public constant integer LONGEST_SIDE = 2
+
+    // How much of the bed's shorter side the model's longer side covers, for FIT_TO_BED.
+    constant number BED_FRACTION = 0.8
+
+    ModelData model = undefined
+    Profile printer = undefined
+    MeshCheck meshCheck
+    Array<boolean> included
+    number millimetersPerUnit = 1
+    text upAxis = "Y"
+    integer sizeMode = 0
+    number longestSide = 100
+    boolean supports = false
+    boolean brim = false
+    Array<text> warnings
+    integer droppedPaths = 0
+    // The slicing of the current or last Print, for its progress.
+    SliceJob job
+    // The included parts' size in model units, kept until the model, the
+    // parts or the up axis change.
+    Array<number> modelSize = undefined
+
+    /*
+    This action sets the model to print. Every part starts out included,
+    and every part is checked (see GetCheck).
+
+    Attribute: Parameter data The loaded model.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Models.Data.ModelLoader
+    use Libraries.Fabrication.PrintSetup
+
+    ModelLoader loader
+    PrintSetup setup
+    setup:SetModel(loader:Load("Car/ToyCarCentered.gltf"))
+    */
+    action SetModel(ModelData data)
+        model = data
+        modelSize = undefined
+        meshCheck:Check(data)
+        included:Empty()
+        integer i = 0
+        repeat while i < meshCheck:GetPartCount()
+            included:Add(true)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets the printer, which gives the bed size and everything
+    else the print uses. Load one with a printer class, such as
+    CrealityEnder3, or from a ProfileManager.
+
+    Attribute: Parameter profile The printer.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+    use Libraries.Fabrication.Printers.CrealityEnder3
+
+    CrealityEnder3 printer
+    PrintSetup setup
+    setup:SetPrinter(printer)
+    */
+    action SetPrinter(Profile profile)
+        printer = profile
+    end
+
+    /*
+    This action returns the printer, or undefined if none is set.
+
+    Attribute: Returns The printer.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+    use Libraries.Fabrication.Profiles.Profile
+
+    PrintSetup setup
+    Profile printer = setup:GetPrinter()
+    */
+    action GetPrinter returns Profile
+        return printer
+    end
+
+    /*
+    This action returns which way is up in the model file: "Y", "Z" or
+    "auto" (see SetUpAxis).
+
+    Attribute: Returns The up axis.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetUpAxis()
+    */
+    action GetUpAxis returns text
+        return upAxis
+    end
+
+    /*
+    This action returns true if supports are on (see SetSupports).
+
+    Attribute: Returns True for supports.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:HasSupports()
+    */
+    action HasSupports returns boolean
+        return supports
+    end
+
+    /*
+    This action returns true if a brim is on (see SetBrim).
+
+    Attribute: Returns True for a brim.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:HasBrim()
+    */
+    action HasBrim returns boolean
+        return brim
+    end
+
+    /*
+    This action returns the longest side used by SetLongestSide, in
+    millimeters (100 until it is set).
+
+    Attribute: Returns The longest side.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetLongestSide() + " mm"
+    */
+    action GetLongestSide returns number
+        return longestSide
+    end
+
+    /*
+    This action says how many millimeters one unit of the model file is,
+    for its real size: 1000 for glTF files (meters), 1 for files in
+    millimeters, 25.4 for files in inches.
+
+    Attribute: Parameter millimeters Millimeters per unit of the file.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:SetUnits(1000)
+    */
+    action SetUnits(number millimeters)
+        if millimeters > 0
+            millimetersPerUnit = millimeters
+        end
+    end
+
+    /*
+    This action says which way is up in the model file. "Y" (the default)
+    keeps a model as it was made in most 3D tools and games, its bottom
+    down. "Z" is for files made Z-up, such as most STL files. "auto" lets
+    the slicer put the side with the most flat area down.
+
+    Attribute: Parameter axis "Y", "Z" or "auto".
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:SetUpAxis("auto")
+    */
+    action SetUpAxis(text axis)
+        if axis = "Y" or axis = "Z" or axis = "auto"
+            upAxis = axis
+            modelSize = undefined
+        end
+    end
+
+    /*
+    This action prints the model at its real size (see SetUnits).
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:UseRealSize()
+    */
+    action UseRealSize
+        sizeMode = REAL_SIZE
+    end
+
+    /*
+    This action prints the model as large as fits: its longer side across
+    the bed becomes 80% of the bed's shorter side, smaller if needed to fit
+    under the printer's height.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:UseFitToBed()
+    */
+    action UseFitToBed
+        sizeMode = FIT_TO_BED
+    end
+
+    /*
+    This action prints the model so its longest side is this many
+    millimeters.
+
+    Attribute: Parameter millimeters The longest side, in millimeters.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:SetLongestSide(100)
+    */
+    action SetLongestSide(number millimeters)
+        if millimeters > 0
+            longestSide = millimeters
+            sizeMode = LONGEST_SIDE
+        end
+    end
+
+    /*
+    This action returns which size is used: REAL_SIZE, FIT_TO_BED or
+    LONGEST_SIDE.
+
+    Attribute: Returns The size mode.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    if setup:GetSizeMode() = setup:REAL_SIZE
+        output "Real size"
+    end
+    */
+    action GetSizeMode returns integer
+        return sizeMode
+    end
+
+    /*
+    This action sets whether a part prints. Parts are numbered as in
+    GetCheck, counting from 0.
+
+    Attribute: Parameter index Which part.
+    Attribute: Parameter include True to print it.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    // setup:SetModel(model)
+    setup:SetPartIncluded(1, false)
+    */
+    action SetPartIncluded(integer index, boolean include)
+        if index >= 0 and index < included:GetSize()
+            included:Set(index, include)
+            modelSize = undefined
+        end
+    end
+
+    /*
+    This action returns true if a part prints.
+
+    Attribute: Parameter index Which part, counting from 0.
+    Attribute: Returns True if it prints.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    // setup:SetModel(model)
+    output setup:IsPartIncluded(0)
+    */
+    action IsPartIncluded(integer index) returns boolean
+        if index >= 0 and index < included:GetSize()
+            return included:Get(index)
+        end
+        return false
+    end
+
+    /*
+    This action sets whether supports are added under parts that hang out
+    more than the printer's overhang angle.
+
+    Attribute: Parameter toggle True for supports.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:SetSupports(true)
+    */
+    action SetSupports(boolean toggle)
+        supports = toggle
+    end
+
+    /*
+    This action sets whether a brim is printed around the first layer, to
+    help small contact areas stay on the bed.
+
+    Attribute: Parameter toggle True for a brim.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    setup:SetBrim(true)
+    */
+    action SetBrim(boolean toggle)
+        brim = toggle
+    end
+
+    /*
+    This action returns the check of the model's parts: their names,
+    triangle counts, and whether each is a closed solid.
+
+    Attribute: Returns The check.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+    use Libraries.Fabrication.Geometry.MeshCheck
+
+    PrintSetup setup
+    // setup:SetModel(model)
+    MeshCheck meshCheck = setup:GetCheck()
+    output meshCheck:GetPartCount() + " parts"
+    */
+    action GetCheck returns MeshCheck
+        return meshCheck
+    end
+
+    /*
+    This action returns how many millimeters one unit of the model
+    becomes, for the size chosen. It is 0 until a model with included parts
+    and a printer are set.
+
+    Attribute: Returns Millimeters per model unit.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    // setup:SetModel(model), setup:SetPrinter(printer)
+    output setup:GetScale() + " mm per unit"
+    */
+    action GetScale returns number
+        Array<number> size = GetModelSize()
+        number across = size:Get(0)
+        if size:Get(1) > across
+            across = size:Get(1)
+        end
+        number longest = across
+        if size:Get(2) > longest
+            longest = size:Get(2)
+        end
+        if longest <= 0
+            return 0
+        end
+        if sizeMode = LONGEST_SIDE
+            return longestSide / longest
+        end
+        if sizeMode = FIT_TO_BED
+            if printer = undefined
+                return 0
+            end
+            number bedSide = printer:GetNumber("bedWidth")
+            if printer:GetNumber("bedDepth") < bedSide
+                bedSide = printer:GetNumber("bedDepth")
+            end
+            // a model with no size across (a vertical sheet) uses its height
+            number footprint = across
+            if footprint <= 0
+                footprint = longest
+            end
+            number scale = BED_FRACTION * bedSide / footprint
+            number bedHeight = printer:GetNumber("bedHeight")
+            if size:Get(2) * scale > bedHeight
+                scale = bedHeight / size:Get(2)
+            end
+            return scale
+        end
+        return millimetersPerUnit
+    end
+
+    /*
+    This action returns how wide the print will be, left to right on the
+    bed, in millimeters.
+
+    Attribute: Returns The width.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetPrintWidth() + " mm wide"
+    */
+    action GetPrintWidth returns number
+        Array<number> size = GetModelSize()
+        return size:Get(0) * GetScale()
+    end
+
+    /*
+    This action returns how deep the print will be, front to back on the
+    bed, in millimeters.
+
+    Attribute: Returns The depth.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetPrintDepth() + " mm deep"
+    */
+    action GetPrintDepth returns number
+        Array<number> size = GetModelSize()
+        return size:Get(1) * GetScale()
+    end
+
+    /*
+    This action returns how tall the print will be, in millimeters.
+
+    Attribute: Returns The height.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetPrintHeight() + " mm tall"
+    */
+    action GetPrintHeight returns number
+        Array<number> size = GetModelSize()
+        return size:Get(2) * GetScale()
+    end
+
+    /*
+    This action returns the size as a percent of the model's real size.
+
+    Attribute: Returns The percent; 100 is real size.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetPercentOfRealSize() + "%"
+    */
+    action GetPercentOfRealSize returns number
+        return GetScale() / millimetersPerUnit * 100
+    end
+
+    /*
+    This action returns true if the print fits on the printer's bed and
+    under its height, as the model sits (it isn't turned on the bed).
+
+    Attribute: Returns True if it fits.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    if not setup:Fits()
+        output "Too large for this printer."
+    end
+    */
+    action Fits returns boolean
+        if printer = undefined or GetScale() <= 0
+            return false
+        end
+        return GetPrintWidth() <= printer:GetNumber("bedWidth") and GetPrintDepth() <= printer:GetNumber("bedDepth")
+            and GetPrintHeight() <= printer:GetNumber("bedHeight")
+    end
+
+    /*
+    This action slices the included parts with the printer and the choices
+    made, and writes the G-code to the file. With a Bambu printer that
+    packages for Bambu (write3mf), a .gcode.3mf is written beside it.
+
+    Attribute: Parameter file Where to write the G-code.
+    Attribute: Returns The last file written (the .gcode.3mf, or the G-code file).
+
+    Attribute: Example
+
+    use Libraries.System.File
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    // setup:SetModel(model), setup:SetPrinter(printer)
+    File file
+    file:SetPath("Prints/ToyCar.gcode")
+    File written = setup:Print(file)
+    */
+    action Print(File file) returns File
+        if model = undefined
+            alert("PrintSetup:Print has no model. Call SetModel first.")
+        end
+        if printer = undefined
+            alert("PrintSetup:Print has no printer. Call SetPrinter first.")
+        end
+        ModelData parts
+        Array<MeshData> meshes = parts:GetMeshes()
+        Array<MeshData> all = model:GetMeshes()
+        integer i = 0
+        repeat while i < all:GetSize()
+            if IsPartIncluded(i)
+                meshes:Add(all:Get(i))
+            end
+            i = i + 1
+        end
+        if meshes:IsEmpty()
+            alert("No parts of the model are chosen to print.")
+        end
+
+        Profile settings
+        settings:SetName(printer:GetName())
+        settings:SetParent(printer)
+        settings:SetNumber("unitScale", GetScale())
+        settings:Set("upAxis", upAxis)
+        settings:SetBoolean("supportsEnabled", supports)
+        if brim
+            settings:Set("adhesionType", "brim")
+        end
+
+        job:SetQuiet(true)
+        File written = job:Run(parts, settings, file)
+        warnings = job:GetWarnings()
+        droppedPaths = job:GetDroppedPathCount()
+        return written
+    end
+
+    /*
+    This action returns how far the current or last Print is, from 0 to 1,
+    so another thread can show it on a progress bar (see
+    SliceJob:GetProgress).
+
+    Attribute: Returns The progress, from 0 to 1.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output (setup:GetProgress() * 100) + "% done"
+    */
+    action GetProgress returns number
+        return job:GetProgress()
+    end
+
+    /*
+    This action returns what the current or last Print is doing, such as
+    "Writing G-code" (see SliceJob:GetStage).
+
+    Attribute: Returns The stage.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    output setup:GetStage()
+    */
+    action GetStage returns text
+        return job:GetStage()
+    end
+
+    /*
+    This action returns the warnings from the last Print.
+
+    Attribute: Returns The warnings.
+
+    Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    Array<text> warnings = setup:GetWarnings()
+    */
+    action GetWarnings returns Array<text>
+        return warnings:CopyToArray()
+    end
+
+    /*
+    This action returns how many paths the last Print left out because
+    they were too short to print: details smaller than the printer's line.
+
+    Attribute: Returns The number of paths left out.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    if setup:GetDroppedPathCount() > 0
+        output "Some details were too small to print."
+    end
+    */
+    action GetDroppedPathCount returns integer
+        return droppedPaths
+    end
+
+    /*
+    This action returns the box around the included parts, in the model
+    file's own units and directions (before any scale or turn): the
+    lowest and highest x, then y, then z, six numbers. With no parts
+    included, all six are 0.
+
+    Attribute: Returns The lowest and highest x, y and z.
+
+    Attribute: Example
+
+    use Libraries.Containers.Array
+    use Libraries.Fabrication.PrintSetup
+
+    PrintSetup setup
+    // setup:SetModel(model)
+    Array<number> bounds = setup:GetModelBounds()
+    output "The model is " + (bounds:Get(1) - bounds:Get(0)) + " units wide"
+    */
+    action GetModelBounds returns Array<number>
+        Array<number> bounds
+        boolean found = false
+        number lowX = 0
+        number highX = 0
+        number lowY = 0
+        number highY = 0
+        number lowZ = 0
+        number highZ = 0
+        if model not= undefined
+            Array<MeshData> all = model:GetMeshes()
+            integer i = 0
+            repeat while i < all:GetSize()
+                MeshData mesh = all:Get(i)
+                Number32BitArray vertices = mesh:GetVertices()
+                if IsPartIncluded(i) and vertices not= undefined
+                    integer v = 0
+                    repeat while v + 2 < vertices:GetSize()
+                        number x = vertices:Get(v)
+                        number y = vertices:Get(v + 1)
+                        number z = vertices:Get(v + 2)
+                        if not found
+                            lowX = x
+                            highX = x
+                            lowY = y
+                            highY = y
+                            lowZ = z
+                            highZ = z
+                            found = true
+                        end
+                        if x < lowX
+                            lowX = x
+                        end
+                        if x > highX
+                            highX = x
+                        end
+                        if y < lowY
+                            lowY = y
+                        end
+                        if y > highY
+                            highY = y
+                        end
+                        if z < lowZ
+                            lowZ = z
+                        end
+                        if z > highZ
+                            highZ = z
+                        end
+                        v = v + 3
+                    end
+                end
+                i = i + 1
+            end
+        end
+        bounds:Add(lowX)
+        bounds:Add(highX)
+        bounds:Add(lowY)
+        bounds:Add(highY)
+        bounds:Add(lowZ)
+        bounds:Add(highZ)
+        return bounds
+    end
+
+    // The included parts' size in model units, in printer directions:
+    // across (x), front to back, and up, for the up axis chosen. With
+    // "auto" the slicer chooses the side down, so this is the Z-up size.
+    private action GetModelSize returns Array<number>
+        if modelSize not= undefined
+            return modelSize
+        end
+        Array<number> bounds = GetModelBounds()
+        Array<number> size
+        size:Add(bounds:Get(1) - bounds:Get(0))
+        if upAxis = "Y"
+            size:Add(bounds:Get(5) - bounds:Get(4))
+            size:Add(bounds:Get(3) - bounds:Get(2))
+        else
+            size:Add(bounds:Get(3) - bounds:Get(2))
+            size:Add(bounds:Get(5) - bounds:Get(4))
+        end
+        modelSize = size
+        return size
+    end
+end

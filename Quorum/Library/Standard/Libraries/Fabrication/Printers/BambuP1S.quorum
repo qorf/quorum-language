@@ -1,0 +1,27 @@
+package Libraries.Fabrication.Printers
+
+/*
+The BambuP1S class is the Bambu Lab P1S: a Bambu Lab printer with a 256 by
+256 millimeter bed, 250 millimeters tall. Before printing, give it Bambu's
+own files with SetBambuFiles.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.BambuP1S
+
+BambuP1S printer
+printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+output printer:Describe()
+*/
+class BambuP1S is BambuPrinter
+    // Specs: https://bambulab.com/en/p1
+    on create
+        SetName("Bambu Lab P1S")
+        SetBed(256, 256, 250)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 100)
+        // Rated 256 tall; Bambu's own default usable height is 250, to
+        // protect the heatbed.
+        Set("printerModelId", "C12")
+    end
+end

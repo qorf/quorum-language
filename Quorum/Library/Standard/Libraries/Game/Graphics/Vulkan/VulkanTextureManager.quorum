@@ -11,6 +11,7 @@ use Libraries.Game.Graphics.Vulkan.Commands.CopyBufferToImageCommand
 use Libraries.Containers.HashTable
 use Libraries.Containers.Queue
 use Libraries.Game.Graphics.SharedTextureManager
+use Libraries.System.Logging.SharedLogger
 
 class VulkanTextureManager
 
@@ -209,6 +210,21 @@ class VulkanTextureManager
     */
     private action LoadNewTexture(Texture texture, PixelMap pixelMap, VulkanCommandBuffer commandBuffer, VulkanGraphics graphics)
         VulkanDevice device = graphics:GetDevice()
+        VulkanConstants constants
+        BitwiseOperations bits
+
+        integer width = pixelMap:GetWidth()
+        integer height = pixelMap:GetHeight()
+
+        integer pixelSize = 4
+        integer levels = GetMipLevelCount(texture, width, height)
+
+        // The staging buffer is made first: if it can't be, the texture is
+        // skipped and keeps any image it already has.
+        VulkanBuffer buffer = MakeStagingBuffer(device, GetMipChainByteSize(width, height, levels), width, height)
+        if buffer = undefined
+            return now
+        end
 
         // A texture loaded again at a new size keeps its place, so
         // materials that hold it still show it. Frames in flight may be
@@ -222,18 +238,7 @@ class VulkanTextureManager
             oldView:Dispose()
             oldImage:Dispose()
         end
-        VulkanConstants constants
-        BitwiseOperations bits
 
-        integer width = pixelMap:GetWidth()
-        integer height = pixelMap:GetHeight()
-
-        integer pixelSize = 4
-        integer levels = GetMipLevelCount(texture, width, height)
-
-        VulkanBuffer buffer
-        buffer:CreateTransferSourceBuffer(device, GetMipChainByteSize(width, height, levels))
-        buffer:BeginMapping()
         WritePixels(texture, pixelMap, buffer, levels)
         //buffer:StopMapping()
 
@@ -390,10 +395,12 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
             // A buffer of another size from before is freed once its last
             // copy has run.
             graphics:Retire(staging)
-            VulkanBuffer newStaging
-            newStaging:CreateTransferSourceBuffer(device, byteSize)
-            newStaging:BeginMapping()
+            VulkanBuffer newStaging = MakeStagingBuffer(device, byteSize, width, height)
             buffers:Set(slot, newStaging)
+            if newStaging = undefined
+                // Not updated this time; the texture keeps its old pixels.
+                return now
+            end
             staging = newStaging
         end
         WritePixels(texture, pixelMap, staging, levels)
@@ -489,6 +496,37 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
     Attribute: Parameter levels How many levels.
     Attribute: Returns The size in bytes.
     */
+    /*
+    This action makes a staging buffer for a texture's pixels, mapped for
+    writing. Making one can fail, such as for a texture with no pixels or
+    when the graphics memory is full; the texture is then skipped, with a
+    line in the log saying which size failed, instead of a crash.
+
+    Attribute: Parameter device The Vulkan device.
+    Attribute: Parameter byteSize The buffer's size, in bytes.
+    Attribute: Parameter width The texture's width, for the log.
+    Attribute: Parameter height The texture's height, for the log.
+    Attribute: Returns The mapped buffer, or undefined if it couldn't be made.
+    */
+    private action MakeStagingBuffer(VulkanDevice device, integer byteSize, integer width, integer height) returns VulkanBuffer
+        SharedLogger logger
+        if width <= 0 or height <= 0 or byteSize <= 0
+            logger:Log("A texture of " + width + " by " + height + " pixels has nothing to load, so it was skipped.")
+            return undefined
+        end
+        VulkanBuffer buffer
+        if not buffer:CreateTransferSourceBuffer(device, byteSize)
+            logger:Log("A texture of " + width + " by " + height + " pixels (" + byteSize + " bytes) couldn't be loaded: its staging buffer couldn't be made, usually because the graphics memory is full.")
+            return undefined
+        end
+        if not buffer:BeginMapping()
+            logger:Log("A texture of " + width + " by " + height + " pixels (" + byteSize + " bytes) couldn't be loaded: its staging buffer couldn't be mapped.")
+            buffer:Dispose()
+            return undefined
+        end
+        return buffer
+    end
+
     private action GetMipChainByteSize(integer width, integer height, integer levels) returns integer
         integer total = 0
         integer level = 0
@@ -615,26 +653,29 @@ viewInfo:SetFormat(constants:FORMAT_R8G8B8A8_UNORM)
         repeat while i < pixelMaps:GetSize()
             PixelMap pixelMap = pixelMaps:Get(i)
             
-            VulkanBuffer buffer
-            buffer:CreateTransferSourceBuffer(device, width * height * 4)
-            buffer:BeginMapping()
-            TransferPixelData(pixelMap, buffer)
-            graphics:Retire(buffer)
+            // A side whose staging buffer can't be made is left blank.
+            VulkanBuffer buffer = MakeStagingBuffer(device, width * height * 4, width, height)
+            if buffer not= undefined
+                TransferPixelData(pixelMap, buffer)
+                graphics:Retire(buffer)
+            end
             
             // If the pixel map is marked for disposal after loading, dispose them now.
             if pixelMap:DisposeAfterTextureLoad()
                 pixelMap:Dispose()
             end
 
-            CopyBufferToImageCommand copyCommand
-            copyCommand:SetImageWidth(width)
-            copyCommand:SetImageHeight(height)
-            copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
-            copyCommand:SetBaseArrayLayer(i)
-            copyCommand:SetLayerCount(1)
-            copyCommand:SetSourceBuffer(buffer)
-            copyCommand:SetDestinationImage(image)
-            commandBuffer:Record(copyCommand)
+            if buffer not= undefined
+                CopyBufferToImageCommand copyCommand
+                copyCommand:SetImageWidth(width)
+                copyCommand:SetImageHeight(height)
+                copyCommand:SetAspectMask(constants:IMAGE_ASPECT_COLOR_BIT)
+                copyCommand:SetBaseArrayLayer(i)
+                copyCommand:SetLayerCount(1)
+                copyCommand:SetSourceBuffer(buffer)
+                copyCommand:SetDestinationImage(image)
+                commandBuffer:Record(copyCommand)
+            end
             i = i + 1
         end
 

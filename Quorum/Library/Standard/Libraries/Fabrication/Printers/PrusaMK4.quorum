@@ -1,0 +1,49 @@
+package Libraries.Fabrication.Printers
+
+/*
+The PrusaMK4 class is the Original Prusa MK4: a direct-drive printer with
+a 250 by 210 millimeter bed, 220 millimeters tall, that measures its bed
+with its nozzle before each print.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.PrusaMK4
+
+PrusaMK4 printer
+output printer:Describe()
+*/
+class PrusaMK4 is DirectDrivePrinter
+    // Specs: https://blog.prusa3d.com/announcing-original-prusa-mk4_76585/
+    //        https://help.prusa3d.com/article/buddy-firmware-specific-g-code-commands_633112
+    // Check before release: the 170 degree measuring heat against
+    //   Prusa's documentation, and that the printer takes plain
+    //   .gcode (it prefers .bgcode).
+    on create
+        SetName("Original Prusa MK4")
+        SetBed(250, 210, 220)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 120)
+    end
+
+    /*
+    This action returns the G-code that heats the bed, and warms the nozzle
+    only to 170 degrees: the MK4 measures the bed by touching it with the
+    nozzle, which shouldn't ooze. The priming step then heats the nozzle
+    to printing heat.
+
+    Attribute: Returns The heating G-code.
+    */
+    action GetHeatGcode returns text
+        return Lines("M140 S{BED_TEMP} ;start heating the bed", "M104 S170 ;warm the nozzle for measuring, not to printing heat")
+    end
+
+    /*
+    This action returns the G-code that homes the printer, then measures the
+    bed (G29), as Prusa's Buddy firmware does.
+
+    Attribute: Returns The homing G-code.
+    */
+    action GetHomeGcode returns text
+        return Lines("G28 ;home all axes", "G29 ;measure the bed")
+    end
+end

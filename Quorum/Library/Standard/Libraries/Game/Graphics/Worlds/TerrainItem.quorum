@@ -15,6 +15,9 @@ use Libraries.Game.Graphics.Texture
 use Libraries.Containers.Array
 use Libraries.Containers.HashTable
 use Libraries.Containers.Iterator
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.Profile
 
 /*
 A TerrainItem is a terrain as an item: it holds a WorldTerrain loaded from a
@@ -103,6 +106,8 @@ class TerrainItem is Item3D
     // Cells are shown or hidden by their asset's draw distance a few times a
     // second, not every frame.
     number foliageCheckTime = 0
+    // How the terrain prints (GetPrintChoices); saved in the scene.
+    TerrainPrintMesh printChoices
     constant number FOLIAGE_CHECK_SECONDS = 0.25
     // For the cells' distances from the camera.
     Math foliageMath
@@ -833,6 +838,195 @@ without mipmaps, distant cards are read from the
     */
     action GetWorldTerrain returns WorldTerrain
         return terrain
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the terrain's ground,
+    for a generic printer: a 220 by 220 millimeter bed, a 0.4 millimeter
+    nozzle, and PLA plastic. The ground is made into a solid block with
+    straight sides and a flat 2 millimeter base, as large as fits on the
+    bed (its longer side is 80% of the bed), with hills in true proportion.
+    To print for a particular printer, pass a Profile too.
+
+    Attribute: Parameter file Where to write the G-code.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.System.File
+
+    class Main is Game
+        TerrainItem ground
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ground:Load("Terrains/Terrain1/terrain.json")
+            Add(ground)
+            File file
+            file:SetPath("Prints/ground.gcode")
+            ground:Print(file)
+        end
+    end
+    */
+    action Print(File file)
+        Profile generic
+        generic:SetName("generic")
+        generic:Set("startGcodeFile", "")
+        generic:Set("endGcodeFile", "")
+        Print(file, generic)
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the terrain's ground,
+    for a generic printer, at a path relative to the folder the program
+    runs in. See Print(File) for the printer and the size.
+
+    Attribute: Parameter path Where to write the G-code.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+
+    class Main is Game
+        TerrainItem ground
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ground:Load("Terrains/Terrain1/terrain.json")
+            Add(ground)
+            ground:Print("Prints/ground.gcode")
+        end
+    end
+    */
+    action Print(text path)
+        File file
+        file:SetPath(path)
+        Print(file)
+    end
+
+    /*
+    This action returns how the terrain prints: its size (as large as fits
+    on the bed, or a longest side in millimeters), how many times their
+    true height the hills print, and the base under them. Change them on
+    the object returned; Print uses them, and a scene saves them with the
+    terrain.
+
+    Attribute: Returns The terrain's print choices.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainItem ground
+    TerrainPrintMesh choices = ground:GetPrintChoices()
+    choices:SetLongestSide(150)
+    choices:SetHillScale(2)
+    */
+    action GetPrintChoices returns TerrainPrintMesh
+        return printChoices
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the terrain's ground,
+    with the printer, filament and settings in the profile. Load profiles
+    with a ProfileManager. The ground is made into a solid block with
+    straight sides and a flat base, sized by the terrain's print choices
+    (GetPrintChoices): unless they are changed, as large as fits on the
+    profile's bed (its longer side is 80% of the bed), with hills in true
+    proportion, on a 2 millimeter base. If the profile packages for Bambu printers (write3mf), a
+    .gcode.3mf file is also written beside the G-code, with the same name.
+
+    Attribute: Parameter file Where to write the G-code.
+    Attribute: Parameter profile The printer settings to slice with.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.System.File
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main is Game
+        TerrainItem ground
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ground:Load("Terrains/Terrain1/terrain.json")
+            Add(ground)
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            File file
+            file:SetPath("Prints/ground.gcode")
+            ground:Print(file, profiles:Require("ender3-v2"))
+        end
+    end
+    */
+    action Print(File file, Profile profile)
+        if file = undefined
+            alert("TerrainItem:Print was given no file (undefined).")
+        end
+        if profile = undefined
+            alert("TerrainItem:Print was given no profile (undefined). To print for a generic printer, leave the profile out.")
+        end
+        if IsMissing()
+            alert("This terrain's files weren't found, so it has no ground to print.")
+        end
+        ModelData solid = printChoices:Build(terrain:GetData(), profile)
+        Profile settings
+        settings:SetName(profile:GetName())
+        settings:SetParent(profile)
+        settings:SetNumber("unitScale", 1)
+        SliceJob job
+        job:SetQuiet(true)
+        job:Run(solid, settings, file)
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the terrain's ground,
+    with the settings in the profile, at a path relative to the folder the
+    program runs in. See Print(File, Profile).
+
+    Attribute: Parameter path Where to write the G-code.
+    Attribute: Parameter profile The printer settings to slice with.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Worlds.TerrainItem
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main is Game
+        TerrainItem ground
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            ground:Load("Terrains/Terrain1/terrain.json")
+            Add(ground)
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            ground:Print("Prints/ground.gcode", profiles:Require("ender3-v2"))
+        end
+    end
+    */
+    action Print(text path, Profile profile)
+        File file
+        file:SetPath(path)
+        Print(file, profile)
     end
 
     /*

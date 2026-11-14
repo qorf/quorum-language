@@ -1,0 +1,232 @@
+package Libraries.Fabrication.Printers
+
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+
+/*
+The PrinterList class holds one of every printer class in this package:
+the families, such as BowdenPrinter, and each maker's printers, such as
+CrealityEnder3. A program, or Quorum Studio's Print window, can go through
+them as choices, or find one by the name a person would know it by, such
+as "Bambu Lab A1 mini". The printers are kept by name, so finding one
+takes the same time however many there are.
+
+Attribute: Example
+
+use Libraries.Containers.Iterator
+use Libraries.Fabrication.Printers.PrinterList
+use Libraries.Fabrication.Printers.Printer
+
+PrinterList list
+Iterator<Printer> printers = list:GetIterator()
+repeat while printers:HasNext()
+    Printer printer = printers:Next()
+    output printer:GetName()
+end
+*/
+class PrinterList
+    // Keyed by each printer's name in lower case, so Find ignores case.
+    HashTable<text, Printer> printers
+
+    on create
+        AddPrinters()
+    end
+
+    /*
+    This action returns the printer with this name, as GetName gives it
+    (for example "Creality Ender-3" or "Bambu Lab A1 mini"), ignoring upper
+    and lower case, or undefined if no printer has the name.
+
+    Attribute: Parameter name The printer's name.
+    Attribute: Returns The printer, or undefined.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.PrinterList
+    use Libraries.Fabrication.Printers.Printer
+
+    PrinterList list
+    Printer printer = list:Find("Bambu Lab A1 mini")
+    if printer = undefined
+        output "No such printer."
+    end
+    */
+    action Find(text name) returns Printer
+        if name = undefined
+            return undefined
+        end
+        return printers:GetValue(name:ToLowerCase())
+    end
+
+    /*
+    This action takes the printer with this name out of the list, ignoring
+    upper and lower case, and returns it, or returns undefined if no
+    printer has the name.
+
+    Attribute: Parameter name The printer's name.
+    Attribute: Returns The printer taken out, or undefined.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.PrinterList
+    use Libraries.Fabrication.Printers.Printer
+
+    PrinterList list
+    Printer removed = list:Remove("Creality Ender-3")
+    output list:GetSize() + " printers left"
+    */
+    action Remove(text name) returns Printer
+        if name = undefined
+            return undefined
+        end
+        return printers:RemoveKey(name:ToLowerCase())
+    end
+
+    /*
+    This action returns an iterator over every printer in the list, in no
+    particular order.
+
+    Attribute: Returns An iterator over the printers.
+
+    Attribute: Example
+
+    use Libraries.Containers.Iterator
+    use Libraries.Fabrication.Printers.PrinterList
+    use Libraries.Fabrication.Printers.Printer
+
+    PrinterList list
+    Iterator<Printer> printers = list:GetIterator()
+    repeat while printers:HasNext()
+        Printer printer = printers:Next()
+        output printer:GetName()
+    end
+    */
+    action GetIterator returns Iterator<Printer>
+        return printers:GetValueIterator()
+    end
+
+    /*
+    This action returns how many printers are in the list.
+
+    Attribute: Returns The number of printers.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.PrinterList
+
+    PrinterList list
+    output list:GetSize() + " printers"
+    */
+    action GetSize returns integer
+        return printers:GetSize()
+    end
+
+    /*
+    This action adds a printer to the list, under its name (GetName),
+    ignoring upper and lower case. A printer already in the list with the
+    same name is replaced. An undefined printer is ignored.
+
+    Attribute: Parameter printer The printer to add.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.PrinterList
+    use Libraries.Fabrication.Printers.BowdenPrinter
+
+    PrinterList list
+    BowdenPrinter mine
+    mine:SetName("My Tronxy")
+    mine:SetBed(235, 235, 250)
+    list:Add(mine)
+    */
+    action Add(Printer printer)
+        if printer = undefined
+            return now
+        end
+        text name = printer:GetName()
+        printers:Add(name:ToLowerCase(), printer)
+    end
+
+    // Adds one of every printer class: the families, then each maker's printers.
+    private action AddPrinters
+        // Families, for printers that aren't listed
+        Printer generic
+        Add(generic)
+        BowdenPrinter bowden
+        Add(bowden)
+        DirectDrivePrinter directDrive
+        Add(directDrive)
+        KlipperPrinter klipper
+        Add(klipper)
+        BambuPrinter bambu
+        Add(bambu)
+
+        // Anycubic
+        AnycubicChiron anycubicChiron
+        Add(anycubicChiron)
+        AnycubicI3Mega anycubicI3Mega
+        Add(anycubicI3Mega)
+        AnycubicKobra anycubicKobra
+        Add(anycubicKobra)
+        AnycubicKobra2 anycubicKobra2
+        Add(anycubicKobra2)
+        AnycubicKobra2Neo anycubicKobra2Neo
+        Add(anycubicKobra2Neo)
+
+        // Bambu Lab
+        BambuA1 bambuA1
+        Add(bambuA1)
+        BambuA1Mini bambuA1Mini
+        Add(bambuA1Mini)
+        BambuP1S bambuP1S
+        Add(bambuP1S)
+        BambuP2S bambuP2S
+        Add(bambuP2S)
+
+        // Creality
+        CrealityCR10S crealityCR10S
+        Add(crealityCR10S)
+        CrealityEnder3 crealityEnder3
+        Add(crealityEnder3)
+        CrealityEnder3S1 crealityEnder3S1
+        Add(crealityEnder3S1)
+        CrealityEnder3V2 crealityEnder3V2
+        Add(crealityEnder3V2)
+        CrealityEnder3V3SE crealityEnder3V3SE
+        Add(crealityEnder3V3SE)
+        CrealityEnder5 crealityEnder5
+        Add(crealityEnder5)
+        CrealityK1 crealityK1
+        Add(crealityK1)
+        CrealityK1Max crealityK1Max
+        Add(crealityK1Max)
+        CrealitySermoonD1 crealitySermoonD1
+        Add(crealitySermoonD1)
+
+        // Elegoo
+        ElegooNeptune3Pro elegooNeptune3Pro
+        Add(elegooNeptune3Pro)
+        ElegooNeptune4Pro elegooNeptune4Pro
+        Add(elegooNeptune4Pro)
+
+        // Prusa
+        PrusaMini prusaMini
+        Add(prusaMini)
+        PrusaMK2S prusaMK2S
+        Add(prusaMK2S)
+        PrusaMK3SPlus prusaMK3SPlus
+        Add(prusaMK3SPlus)
+        PrusaMK4 prusaMK4
+        Add(prusaMK4)
+        PrusaMK4S prusaMK4S
+        Add(prusaMK4S)
+
+        // Sovol
+        SovolSV06 sovolSV06
+        Add(sovolSV06)
+
+        // Ultimaker
+        Ultimaker2 ultimaker2
+        Add(ultimaker2)
+    end
+end

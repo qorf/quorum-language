@@ -1,0 +1,26 @@
+package Libraries.Fabrication.Printers
+
+/*
+The AnycubicI3Mega class is the Anycubic i3 Mega: a Marlin printer with a
+Bowden extruder and a 210 by 210 millimeter bed, 205 millimeters tall. It
+has no automatic bed leveling.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.AnycubicI3Mega
+
+AnycubicI3Mega printer
+output printer:Describe()
+*/
+class AnycubicI3Mega is BowdenPrinter
+    // Specs: https://store.anycubic.com/products/anycubic-i3-mega
+    //        https://github.com/ANYCUBIC-3D/I3-MEGA
+    // Check before release: Anycubic's page doesn't say the extruder
+    //   is Bowden.
+    on create
+        SetName("Anycubic i3 Mega")
+        SetBed(210, 210, 205)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 110)
+    end
+end

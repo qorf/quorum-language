@@ -34,6 +34,7 @@ use Libraries.System.File
 use Libraries.Containers.HashTable
 use Libraries.Game.Audio3D
 use Libraries.Game.Graphics.Worlds.TerrainItem
+use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
 use Libraries.Game.Graphics.Worlds.FoliageList
 use Libraries.Game.Graphics.Worlds.TerrainMaterial
 use Libraries.Game.Graphics.Models.Data.Material
@@ -1013,6 +1014,9 @@ number restitution = 0
             end
             terrain:SetStreaming(true, radius)
         end
+        if json:HasValue(properties:PRINT)
+            LoadTerrainPrint(json:GetObject(properties:PRINT), terrain:GetPrintChoices())
+        end
         text path = json:GetValue(properties:FILE)
         File terrainFile = ConvertToProjectFile(path)
         // Terrains made before they went under the Scenes folder were at the
@@ -1098,11 +1102,51 @@ number restitution = 0
         return defaultValue
     end
 
+    // Reads a terrain's print choices from its "Print" object. A value
+    // left out, or out of range, keeps its default.
+    private action LoadTerrainPrint(JavaScriptObjectNotation json, TerrainPrintMesh choices)
+        SceneProperties properties
+        number longest = GetTerrainNumber(json, properties:PRINT_LONGEST_SIDE, choices:GetLongestSide())
+        if json:HasValue(properties:PRINT_SIZE) and json:GetValue(properties:PRINT_SIZE) = properties:PRINT_LONGEST_SIDE_VALUE and longest > 0
+            choices:SetLongestSide(longest)
+        end
+        number hills = GetTerrainNumber(json, properties:PRINT_HILLS, choices:GetHillScale())
+        if hills > 0
+            choices:SetHillScale(hills)
+        end
+        number base = GetTerrainNumber(json, properties:PRINT_BASE, choices:GetBaseHeight())
+        if base > 0
+            choices:SetBaseHeight(base)
+        end
+    end
+
+    // A terrain's print choices as a "Print" object, or undefined when every
+    // choice is the default, so scenes that never print are unchanged.
+    private action SaveTerrainPrint(TerrainPrintMesh choices) returns JavaScriptObjectNotation
+        TerrainPrintMesh defaults
+        if choices:GetSizeMode() = defaults:GetSizeMode() and choices:GetLongestSide() = defaults:GetLongestSide()
+                and choices:GetHillScale() = defaults:GetHillScale() and choices:GetBaseHeight() = defaults:GetBaseHeight()
+            return undefined
+        end
+        SceneProperties properties
+        JavaScriptObjectNotation json
+        if choices:GetSizeMode() = choices:LONGEST_SIDE
+            json:Add(properties:PRINT_SIZE, properties:PRINT_LONGEST_SIDE_VALUE)
+        else
+            json:Add(properties:PRINT_SIZE, properties:PRINT_FIT_TO_BED_VALUE)
+        end
+        json:Add(properties:PRINT_LONGEST_SIDE, choices:GetLongestSide())
+        json:Add(properties:PRINT_HILLS, choices:GetHillScale())
+        json:Add(properties:PRINT_BASE, choices:GetBaseHeight())
+        return json
+    end
+
     /*
     This action saves a terrain into a scene: its name, its description,
     its terrain.json file, its terrain material file if it has one, its
-    collision (as "Physics Enabled" and "Collision"), its friction, and its
-    streaming if it streams.
+    collision (as "Physics Enabled" and "Collision"), its friction, its
+    streaming if it streams, and its print choices if any differ from the
+    defaults.
 
     Attribute: Parameter terrain The terrain.
     Attribute: Returns The terrain's entry for the scene.
@@ -1133,6 +1177,10 @@ number restitution = 0
         if terrain:IsStreaming()
             json:Add(properties:STREAMING, true)
             json:Add(properties:DRAW_RADIUS, terrain:GetDrawRadius())
+        end
+        JavaScriptObjectNotation print = SaveTerrainPrint(terrain:GetPrintChoices())
+        if print not= undefined
+            json:Add(properties:PRINT, print)
         end
         return json
     end

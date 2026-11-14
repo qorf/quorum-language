@@ -1,0 +1,78 @@
+package Libraries.Fabrication.Printers
+
+/*
+The KlipperPrinter class is a fast printer running Klipper firmware, like
+a Voron. Klipper printers keep their start and end steps in their own
+configuration, as macros, so the start G-code is one line that runs the
+PRINT_START macro with the temperatures, and the end G-code runs
+PRINT_END. Klipper stops a print at a command it doesn't know, so a
+printer whose macros have other names (such as CrealityK1) changes
+GetStartGcode and GetEndGcode. Its bed is 300 by 300 millimeters until
+SetBed changes it.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.KlipperPrinter
+
+KlipperPrinter printer
+printer:SetName("My Voron 2.4")
+printer:SetBed(350, 350, 340)
+output printer:Describe()
+*/
+class KlipperPrinter is DirectDrivePrinter
+    // Starting values: confirm with test prints on a Klipper printer
+    // before release. Klipper accepts M204 S for acceleration, which is
+    // what GcodeWriter writes.
+    on create
+        SetName("Klipper printer")
+        SetBed(300, 300, 300)
+        SetNumber("outerWallSpeed", 120)
+        SetNumber("innerWallSpeed", 200)
+        SetNumber("skinSpeed", 150)
+        SetNumber("infillSpeed", 200)
+        SetNumber("supportSpeed", 150)
+        SetNumber("firstLayerSpeed", 30)
+        SetNumber("travelSpeed", 350)
+        SetNumber("accelOuterWall", 3000)
+        SetNumber("accelInnerWall", 5000)
+        SetNumber("accelSkin", 2000)
+        SetNumber("accelInfill", 5000)
+        SetNumber("accelSupport", 5000)
+        SetNumber("accelFirstLayer", 500)
+        SetNumber("accelTravel", 7000)
+        SetNumber("maxFlow", 15)
+    end
+
+    /*
+    This action returns the start G-code: the PRINT_START macro, given the
+    bed and nozzle temperatures.
+
+    Attribute: Returns The start G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.KlipperPrinter
+
+    KlipperPrinter printer
+    output printer:GetStartGcode()
+    */
+    action GetStartGcode returns text
+        return "PRINT_START BED={BED_TEMP} EXTRUDER={NOZZLE_TEMP}"
+    end
+
+    /*
+    This action returns the end G-code: the PRINT_END macro.
+
+    Attribute: Returns The end G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.KlipperPrinter
+
+    KlipperPrinter printer
+    output printer:GetEndGcode()
+    */
+    action GetEndGcode returns text
+        return "PRINT_END"
+    end
+end

@@ -1,6 +1,7 @@
 package Libraries.Fabrication
 
 use Libraries.Containers.Array
+use Libraries.System.File
 use Libraries.Game.Graphics.Models.Data.ModelData
 
 use Libraries.Data.Formats.NumberFormatter
@@ -60,6 +61,18 @@ class SliceJob
     boolean quiet = false
     Array<text> warnings
     NumberFormatter format
+    // From the last Run: paths too short to print, and specks dropped.
+    integer droppedPaths = 0
+    integer droppedSpecks = 0
+    // How far the current Run is, from 0 to 1, and what it is doing, for a
+    // progress bar on another thread (GetProgress, GetStage).
+    number progress = 0
+    text stage = ""
+    // the path planning under way, read by GetProgress, or undefined
+    PathGenerator activePaths = undefined
+    // the share of the progress bar that planning walls and fill takes
+    // (0.25 to 0.5)
+    constant number PLANNING_SHARE = 0.25
 
     /*
     The program named in the G-code it writes (see GcodeWriter:SetGeneratorName).
@@ -142,6 +155,42 @@ class SliceJob
     end
 
     /*
+    How many paths the last Run left out because they were too short to
+    print: details smaller than the printer's line.
+
+    Attribute: Returns The number of paths left out.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        // ... job:Run(model, profile, "Outputs/part.gcode") ...
+        output job:GetDroppedPathCount() + " paths too short to print"
+    */
+    action GetDroppedPathCount returns integer
+        return droppedPaths
+    end
+
+    /*
+    How many tiny outlines the last Run dropped (smaller than the
+    profile's minContourArea).
+
+    Attribute: Returns The number of outlines dropped.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        // ... job:Run(model, profile, "Outputs/part.gcode") ...
+        output job:GetDroppedSpeckCount() + " specks dropped"
+    */
+    action GetDroppedSpeckCount returns integer
+        return droppedSpecks
+    end
+
+    /*
     Slices the model with the profile and writes the G-code to gcodePath. If
     the profile has write3mf on, also packages it as a Bambu .gcode.3mf next
     to it.
@@ -170,16 +219,55 @@ class SliceJob
         output "Wrote " + written
     */
     action Run(ModelData data, Profile profile, text gcodePath) returns text
+        if gcodePath = ""
+            alert("SliceJob:Run needs a path for the G-code file.")
+        end
+        File file
+        file:SetPath(gcodePath)
+        File written = Run(data, profile, file)
+        return written:GetPath()
+    end
+
+    /*
+    Slices the model with the profile and writes the G-code to the file. If
+    the profile has write3mf on, also packages it as a Bambu .gcode.3mf
+    beside it, with the same name.
+
+    Attribute: Parameter data The loaded model.
+    Attribute: Parameter profile The settings to slice with.
+    Attribute: Parameter gcodeFile Where to write the G-code.
+    Attribute: Returns The last file written (the .gcode.3mf, or the G-code file).
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Game.Graphics.Models.Data.ModelLoader
+        use Libraries.Game.Graphics.Models.Data.ModelData
+        use Libraries.Fabrication.SliceJob
+        use Libraries.Fabrication.Profiles.ProfileManager
+
+        ModelLoader loader
+        ModelData model = loader:Load("assets/3dbenchy.stl")
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        File gcode
+        gcode:SetPath("Outputs/benchy.gcode")
+        SliceJob job
+        File written = job:Run(model, profiles:Require("ender3-v2"), gcode)
+    */
+    action Run(ModelData data, Profile profile, File gcodeFile) returns File
         if data = undefined
             alert("SliceJob:Run was given no model (undefined).")
         end
         if profile = undefined
             alert("SliceJob:Run was given no profile (undefined).")
         end
-        if gcodePath = ""
-            alert("SliceJob:Run needs a path for the G-code file.")
+        if gcodeFile = undefined
+            alert("SliceJob:Run was given no file for the G-code (undefined).")
         end
         warnings:Empty()
+        activePaths = undefined
+        SetStage("Reading the model", 0)
         Warn(profile:Validate(), "profile '" + profile:GetName() + "': ")
         Log("Slicing with " + profile:Describe())
 
@@ -187,6 +275,7 @@ class SliceJob
         mesh:Load(data)
         Log("model: " + mesh:GetTriangleCount() + " triangles, " + mesh:GetVertexCount() + " vertices")
 
+        SetStage("Cutting it into layers", 0.05)
         MeshSlicer slicer
         ConfigureSlicer(profile, slicer)
         slicer:SetTriangles(mesh)
@@ -203,6 +292,7 @@ class SliceJob
         Warn(slicer:GetWarnings(), "")
         Log("segments: " + segments:GetSize() + " (at most " + slicer:GetMaxCrossingsPerFace() + " crossings per triangle)")
 
+        SetStage("Finding outlines", 0.15)
         ContourGenerator conGen
         ConfigureContours(profile, conGen)
         Array<Contour> contours = conGen:Build(segments, planeCount, profile:GetNumber("contourMaxGap"))
@@ -213,12 +303,17 @@ class SliceJob
             Report(conGen:GetOpenCount() + " outlines stayed open even after bridging gaps up to " + profile:GetText("contourMaxGap")
                 + " mm: the mesh has holes. Open outlines get no walls or fill; repairing the model usually fixes this.")
         end
+        droppedSpecks = conGen:GetDroppedCount()
         Log("outlines: " + contours:GetSize() + " (" + conGen:GetFlippedCount() + " reoriented, " + conGen:GetDroppedCount()
             + " specks dropped, points " + conGen:GetPointsBefore() + " -> " + conGen:GetPointsAfter() + ")")
 
+        SetStage("Planning walls and fill", 0.25)
         PathGenerator paths
         ConfigurePaths(profile, paths)
+        // GetProgress follows the planes while this, the longest stage, runs
+        activePaths = paths
         paths:Generate(contours, planeCount)
+        activePaths = undefined
         Array<Contour> walls = paths:GetWalls()
         Array<Contour> skin = paths:GetSkin()
         Array<Contour> infill = paths:GetInfill()
@@ -233,6 +328,7 @@ class SliceJob
         ConfigureOrderer(profile, orderer)
 
         if profile:GetBoolean("supportsEnabled")
+            SetStage("Growing supports", 0.5)
             TreeSupport trees
             ConfigureSupports(profile, trees)
             trees:Generate(contours, planeCount)
@@ -249,23 +345,27 @@ class SliceJob
         end
 
         if profile:GetText("adhesionType") not= "none"
+            SetStage("Adding the brim or skirt", 0.65)
             SkirtGenerator skirtGen
             ConfigureAdhesion(profile, skirtGen)
             orderer:SetSkirt(skirtGen:Generate(base))
             Warn(skirtGen:GetWarnings(), "")
         end
 
+        SetStage("Ordering the paths", 0.7)
         Array<Contour> ordered = orderer:Order(contours, walls, skin, infill, planeCount)
+        droppedPaths = orderer:GetDroppedCount()
         Log("ordered: " + ordered:GetSize() + " paths (" + orderer:GetDroppedCount() + " too short to print)")
         if ordered:GetSize() = 0
             alert("Nothing is left to print: every path was too short. Check lineWidth, wallCount and the minLoopLength / minLineLength settings against the model's size.")
         end
 
+        SetStage("Writing G-code", 0.8)
         GcodeWriter gcode
         ConfigureGcode(profile, gcode)
-        gcode:Write(ordered, gcodePath)
+        gcode:Write(ordered, gcodeFile)
         Warn(gcode:GetWarnings(), "")
-        Log("Wrote " + gcodePath + ": " + format:Fixed(gcode:GetFilamentLength() / 1000.0, 2) + " m of filament, about "
+        Log("Wrote " + gcodeFile:GetPath() + ": " + format:Fixed(gcode:GetFilamentLength() / 1000.0, 2) + " m of filament, about "
             + format:Fixed(gcode:GetMoveSeconds() / 60.0, 0) + " min of moves (real prints run slower: acceleration isn't counted)")
         if gcode:GetSlowedLayerCount() > 0
             Log("  " + gcode:GetSlowedLayerCount() + " small layers slowed down to get at least " + profile:GetText("minLayerTime") + " s to cool")
@@ -279,20 +379,70 @@ class SliceJob
         end
 
         if profile:GetBoolean("write3mf")
+            SetStage("Packing for Bambu", 0.95)
             BambuPackager packer
             packer:SetGeneratorName(generatorName)
             ConfigurePacker(profile, packer)
-            text archive = packer:Pack(gcodePath)
+            File archive = packer:Pack(gcodeFile)
             Warn(packer:GetWarnings(), "")
-            Log("Wrote " + archive + ": " + packer:GetPrintTime() + ", " + format:Fixed(packer:GetFilamentGrams(), 1) + " g "
+            Log("Wrote " + archive:GetPath() + ": " + packer:GetPrintTime() + ", " + format:Fixed(packer:GetFilamentGrams(), 1) + " g "
                 + profile:GetText("filamentType") + ", " + packer:GetLayerCount() + " layers, settings from Bambu Studio " + packer:GetSettingsVersion())
+            SetStage("Done", 1)
             return archive
         end
-        return gcodePath
+        SetStage("Done", 1)
+        return gcodeFile
+    end
+
+    /*
+    How far the current or last Run is, from 0 (starting) to 1 (done). It
+    moves in steps, one for each stage of slicing, and plane by plane while
+    the walls and fill are planned, so another thread can show it on a
+    progress bar while Run works.
+
+    Attribute: Returns The progress, from 0 to 1.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        // another thread runs job:Run(model, profile, "Outputs/part.gcode")
+        output (job:GetProgress() * 100) + "% done: " + job:GetStage()
+    */
+    action GetProgress returns number
+        PathGenerator paths = activePaths
+        if paths not= undefined
+            return progress + PLANNING_SHARE * paths:GetProgress()
+        end
+        return progress
+    end
+
+    /*
+    What the current or last Run is doing, in a few words, such as
+    "Writing G-code", or "Done" when it has finished.
+
+    Attribute: Returns The stage.
+
+    Attribute: Example
+
+        use Libraries.Fabrication.SliceJob
+
+        SliceJob job
+        output job:GetStage()
+    */
+    action GetStage returns text
+        return stage
+    end
+
+    private action SetStage(text name, number amount)
+        stage = name
+        progress = amount
     end
 
     private action ConfigureSlicer(Profile profile, MeshSlicer slicer)
         slicer:SetUnitScale(profile:GetNumber("unitScale"))
+        slicer:SetUpAxis(profile:GetText("upAxis"))
         number width = profile:GetNumber("bedWidth")
         number depth = profile:GetNumber("bedDepth")
         if depth > width
@@ -393,6 +543,9 @@ class SliceJob
         gcode:SetBambuExtras(profile:GetBoolean("bambuExtras"))
         gcode:SetStartGCodeFile(profile:GetText("startGcodeFile"))
         gcode:SetEndGCodeFile(profile:GetText("endGcodeFile"))
+        // A printer class's own G-code text wins over the files.
+        gcode:SetStartGCode(profile:GetStartGcode())
+        gcode:SetEndGCode(profile:GetEndGcode())
         gcode:SetDryRun(profile:GetBoolean("dryRun"), profile:GetNumber("dryRunLift"))
     end
 
@@ -413,7 +566,7 @@ class SliceJob
         packer:SetLayerHeight(profile:GetNumber("layerHeight"))
 
         BambuSettingsMap map
-        packer:SetSettingsText(map:FilledTemplate(profile, templatePath))
+        packer:SetSettingsText(map:FilledTemplate(profile, profile:GetBambuSettingsFile()))
         Warn(map:GetWarnings(), "")
     end
 

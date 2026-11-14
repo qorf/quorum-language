@@ -1,0 +1,27 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityEnder3S1 class is the Creality Ender-3 S1: a Marlin printer
+with a direct-drive extruder and a 220 by 220 millimeter bed, 270
+millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityEnder3S1
+
+CrealityEnder3S1 printer
+output printer:Describe()
+*/
+class CrealityEnder3S1 is DirectDrivePrinter
+    // Specs: https://store.creality.com/blogs/all/ender-series-3d-printers-parameter-comparison
+    //        https://www.creality.com/download/creality-ender-3-s1-3d-printer
+    // Check before release: the temperatures are from a retailer, and
+    //   the leveling command (CR Touch) isn't stated, so this class
+    //   only homes.
+    on create
+        SetName("Creality Ender-3 S1")
+        SetBed(220, 220, 270)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

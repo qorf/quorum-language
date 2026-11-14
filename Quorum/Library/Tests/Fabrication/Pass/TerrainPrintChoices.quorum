@@ -1,0 +1,117 @@
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Worlds.TerrainData
+use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+use Libraries.Fabrication.Printers.CrealityEnder3
+
+/*
+Tests for TerrainPrintMesh's print choices: the size (fit to bed or a
+longest side), the hills (times their true height), the base, hills
+lowered when too tall, and Measure agreeing with Build. The printer is a
+Creality Ender-3 (220 by 220 by 250 mm). Each output line should end in
+"true".
+
+The grid is 3 by 3 heights, 10 units apart (20 units across), all 0
+but a 1 unit bump in the middle. Fit to bed makes the 20 units 80% of
+220 mm, 176 mm, so 8.8 mm per unit.
+*/
+class Main
+    CrealityEnder3 printer
+
+    action Main
+        Defaults()
+        LongestSide()
+        TallerHills()
+        Base()
+        HillsLowered()
+        MeasureMatchesBuild()
+    end
+
+    action Bump returns Number32BitArray
+        Number32BitArray heights
+        heights:SetSize(9)
+        integer i = 0
+        repeat while i < 9
+            heights:Set(i, 0)
+            i = i + 1
+        end
+        heights:Set(4, 1)
+        return heights
+    end
+
+    action Near(number value, number expected) returns boolean
+        number difference = value - expected
+        return difference < 0.001 and difference > -0.001
+    end
+
+    /* As before step 8: fit to bed, true height, a 2 mm base. */
+    action Defaults
+        TerrainPrintMesh builder
+        ModelData solid = builder:Build(Bump(), 3, 3, 10, printer)
+        output "defaults fit to bed: " + (builder:GetSizeMode() = builder:FIT_TO_BED)
+        output "defaults width 176: " + Near(builder:GetWidth(), 176)
+        output "defaults height 2 + 8.8: " + Near(builder:GetHeight(), 10.8)
+        output "defaults not lowered: " + (not builder:AreHillsLowered())
+        output "defaults fit: " + builder:Fits(printer)
+    end
+
+    action LongestSide
+        TerrainPrintMesh builder
+        builder:SetLongestSide(100)
+        ModelData solid = builder:Build(Bump(), 3, 3, 10, printer)
+        output "longest side mode: " + (builder:GetSizeMode() = builder:LONGEST_SIDE)
+        output "longest side width 100: " + Near(builder:GetWidth(), 100)
+        output "longest side 5 mm per unit: " + Near(builder:GetMillimetersPerUnit(), 5)
+
+        TerrainPrintMesh large
+        large:SetLongestSide(300)
+        ModelData bigSolid = large:Build(Bump(), 3, 3, 10, printer)
+        output "300 mm doesn't fit: " + (not large:Fits(printer))
+    end
+
+    action TallerHills
+        TerrainPrintMesh builder
+        builder:SetHillScale(2)
+        ModelData solid = builder:Build(Bump(), 3, 3, 10, printer)
+        output "hills twice as tall: " + Near(builder:GetHeight(), 2 + 2 * 8.8)
+        output "width unchanged: " + Near(builder:GetWidth(), 176)
+        output "hill scale used 2: " + Near(builder:GetHillScaleUsed(), 2)
+    end
+
+    action Base
+        TerrainPrintMesh builder
+        builder:SetBaseHeight(5)
+        ModelData solid = builder:Build(Bump(), 3, 3, 10, printer)
+        output "base 5: " + Near(builder:GetHeight(), 5 + 8.8)
+    end
+
+    /* 100 times true height is 882 mm: the hills are lowered to 250 mm. */
+    action HillsLowered
+        TerrainPrintMesh builder
+        builder:SetHillScale(100)
+        ModelData solid = builder:Build(Bump(), 3, 3, 10, printer)
+        output "lowered: " + builder:AreHillsLowered()
+        output "lowered height 250: " + Near(builder:GetHeight(), 250)
+        output "lowered width still 176: " + Near(builder:GetWidth(), 176)
+        output "lowered scale (250 - 2) / 8.8: " + Near(builder:GetHillScaleUsed(), 248 / 8.8)
+    end
+
+    action MeasureMatchesBuild
+        TerrainData data
+        data:SetRegionSize(64)
+        data:AddRegion(0, 0)
+        data:RaiseArea(32, 32, 10, 5)
+
+        TerrainPrintMesh measured
+        measured:SetHillScale(3)
+        measured:Measure(data, printer)
+
+        TerrainPrintMesh built
+        built:SetHillScale(3)
+        ModelData solid = built:Build(data, printer)
+
+        output "measure width matches: " + Near(measured:GetWidth(), built:GetWidth())
+        output "measure depth matches: " + Near(measured:GetDepth(), built:GetDepth())
+        output "measure height matches: " + Near(measured:GetHeight(), built:GetHeight())
+    end
+end

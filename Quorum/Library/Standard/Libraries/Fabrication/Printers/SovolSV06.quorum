@@ -1,0 +1,24 @@
+package Libraries.Fabrication.Printers
+
+/*
+The SovolSV06 class is the Sovol SV06: a Marlin printer with a direct-
+drive extruder and a 220 by 220 millimeter bed, 250 millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.SovolSV06
+
+SovolSV06 printer
+output printer:Describe()
+*/
+class SovolSV06 is DirectDrivePrinter
+    // Specs: https://www.sovol3d.com/blogs/featured-blog-posts/sovol-sv06-review
+    //        https://github.com/Sovol3d/Sv06-Source-Code
+    // Check before release: the bed's highest temperature isn't
+    //   stated, so the family's 100 is kept.
+    on create
+        SetName("Sovol SV06")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 300)
+    end
+end

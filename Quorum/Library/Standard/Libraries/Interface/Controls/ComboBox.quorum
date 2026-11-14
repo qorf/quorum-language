@@ -228,6 +228,13 @@ class ComboBox is TextField, TextChangeListener, SelectionListener
 
         parent:TextField:LoadGraphics(properties)
 
+        // A choice made before the box had its width put the caret at the
+        // end of a text 0 pixels wide, which scrolls the text to its end.
+        // Now that the width is known, show the choice from its start.
+        if not IsFocused()
+            FitViewToCharacter(0)
+        end
+
         number scale = GetInterfaceScale()
         if scale <= 0
             scale = 1

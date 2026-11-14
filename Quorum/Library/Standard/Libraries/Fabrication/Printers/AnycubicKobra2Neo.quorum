@@ -1,0 +1,26 @@
+package Libraries.Fabrication.Printers
+
+/*
+The AnycubicKobra2Neo class is the Anycubic Kobra 2 Neo: a Marlin printer
+with a direct-drive extruder and a 220 by 220 millimeter bed, 250
+millimeters tall. It can level its bed (LeviQ, G29); like its maker's own
+start, this class only homes, and a program can add G29 by changing
+GetHomeGcode.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.AnycubicKobra2Neo
+
+AnycubicKobra2Neo printer
+output printer:Describe()
+*/
+class AnycubicKobra2Neo is DirectDrivePrinter
+    // Specs: https://store.anycubic.com/products/kobra-2-neo
+    //        https://github.com/ANYCUBIC-3D/Kobra2_Neo
+    on create
+        SetName("Anycubic Kobra 2 Neo")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 110)
+    end
+end

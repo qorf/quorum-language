@@ -151,7 +151,8 @@ class SkyPropertiesDialog is PropertiesDialog
         if selection:IsLayerSelected() and not selection:IsItemSelected()
             selected = selection:GetSelectedLayer()
         end
-        if selected is EditorLayer3D
+        SceneEditor sceneEditor = GetSceneEditor()
+        if selected is EditorLayer3D and sceneEditor:HasSky()
             SetLayer(cast(EditorLayer3D, selected))
             if not IsShowing()
                 Show()

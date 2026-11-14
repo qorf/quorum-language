@@ -58,6 +58,8 @@ class MeshSlicer
     number forcedUnitScale = 0.0
     number bedSize = 220.0
     integer baseDirection = 4
+    // "auto" finds the base; "Z" or "Y" keeps the model as modeled.
+    text upAxis = "auto"
     Array<text> warnings
 
     number minX = 0.0
@@ -115,6 +117,31 @@ class MeshSlicer
     end
 
     /*
+    Which way is up in the model. "auto" (the default) turns the side with
+    the most flat area down. "Z" keeps the model as it is, its z up; "Y"
+    keeps it as modeled in most 3D tools and games, its y up.
+
+    Attribute: Parameter axis "auto", "Z" or "Y".
+
+    Attribute: Example
+
+        use Libraries.Fabrication.Geometry.TriangleMesh
+        use Libraries.Fabrication.Slicing.MeshSlicer
+
+        TriangleMesh mesh       // filled with mesh:Load(modelData)
+        MeshSlicer slicer
+        slicer:SetUpAxis("Y")      // a glTF model, wheels down
+        slicer:SetTriangles(mesh)
+    */
+    action SetUpAxis(text axis)
+        if axis = "auto" or axis = "Z" or axis = "Y"
+            upAxis = axis
+        else
+            checker:Fail("MeshSlicer:SetUpAxis needs auto, Z or Y, not " + axis)
+        end
+    end
+
+    /*
     Takes the triangles to slice: copies them turned so the base faces down,
     scaled to millimetres and resting on Z = 0, and merges vertices that sit
     at exactly the same spot (so neighbouring triangles share edges).
@@ -143,7 +170,13 @@ class MeshSlicer
         warnings:Empty()
 
         ComputeBounds(srcX, srcY, srcZ)
-        baseDirection = FindBaseDirection(srcX, srcY, srcZ)
+        if upAxis = "Z"
+            baseDirection = 4
+        elseif upAxis = "Y"
+            baseDirection = 2
+        else
+            baseDirection = FindBaseDirection(srcX, srcY, srcZ)
+        end
         unitScale = DetectUnitScale()
 
         // copy into our own arrays, rotated so the base faces -Z

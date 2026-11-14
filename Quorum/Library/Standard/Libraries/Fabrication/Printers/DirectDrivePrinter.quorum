@@ -1,0 +1,34 @@
+package Libraries.Fabrication.Printers
+
+/*
+The DirectDrivePrinter class is a Marlin printer whose extruder motor sits
+right above the nozzle (a direct-drive extruder), like the Prusa MK3S+ or
+the Creality Ender-3 S1. It needs only a short pull-back between moves
+(0.8 millimeters) and prints at moderate speeds. Its bed is 220 by 220
+millimeters until SetBed changes it.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.DirectDrivePrinter
+
+DirectDrivePrinter printer
+printer:SetName("My direct-drive printer")
+printer:SetBed(250, 250, 250)
+output printer:Describe()
+*/
+class DirectDrivePrinter is Printer
+    // Starting values, between the Bowden family and the fast families:
+    // confirm with test prints on a direct-drive printer before release.
+    on create
+        SetName("Direct-drive printer")
+        SetNumber("retractLength", 0.8)
+        SetNumber("retractSpeed", 30)
+        SetNumber("outerWallSpeed", 40)
+        SetNumber("innerWallSpeed", 60)
+        SetNumber("skinSpeed", 50)
+        SetNumber("infillSpeed", 80)
+        SetNumber("supportSpeed", 60)
+        SetNumber("firstLayerSpeed", 20)
+        SetNumber("travelSpeed", 150)
+    end
+end

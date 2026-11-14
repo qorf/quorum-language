@@ -1,0 +1,240 @@
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.System.File
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.Profile
+use Libraries.Fabrication.Printers.Printer
+use Libraries.Fabrication.Printers.BambuPrinter
+use Libraries.Fabrication.Printers.KlipperPrinter
+use Libraries.Fabrication.Printers.PrinterList
+use Libraries.Fabrication.Printers.CrealityEnder3
+use Libraries.Fabrication.Printers.CrealityK1
+use Libraries.Fabrication.Printers.CrealityK1Max
+use Libraries.Fabrication.Printers.PrusaMK3SPlus
+use Libraries.Fabrication.Printers.BambuP1S
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestFiles
+use Tests.Fabrication.GcodeReader
+
+/*
+Tests for the printer classes in Libraries.Fabrication.Printers:
+every printer is a valid profile and slices a cube; each family and model
+writes its own start and end G-code; no start.gcode or end.gcode files are
+written; a child profile keeps its printer's G-code; and a Bambu printer
+without Bambu's files stops with a message. Each output line should end
+in "true".
+*/
+class Main
+    TestModels models
+    TestFiles files
+
+    action Main
+        EveryPrinterIsValid()
+        EveryPrinterSlicesACube()
+        StartAndEndGcode()
+        BedsFromModels()
+        NoTemplateFiles()
+        ChildKeepsGcode()
+        BambuWithoutFiles()
+        FindByName()
+    end
+
+    /* Slices a cube quietly with the printer and reads the G-code back. */
+    action Slice(Profile printer, text name) returns GcodeReader
+        SliceJob job
+        job:SetQuiet(true)
+        text path = files:Path("printers/" + name + ".gcode")
+        text written = job:Run(models:Cube(), printer, path)
+        GcodeReader reader
+        reader:Read(path)
+        return reader
+    end
+
+    action EveryPrinterIsValid
+        // every printer passes Validate; a Bambu printer only lacks its
+        // settings template until SetBambuFiles is called
+        PrinterList list
+        Iterator<Printer> printers = list:GetIterator()
+        repeat while printers:HasNext()
+            Printer printer = printers:Next()
+            Array<text> problems = printer:Validate()
+            if printer is BambuPrinter
+                boolean onlyTemplate = problems:GetSize() = 1
+                if onlyTemplate
+                    text problem = problems:Get(0)
+                    onlyTemplate = problem:Contains("bambuSettingsTemplate")
+                end
+                output printer:GetName() + ": valid but for Bambu's files: " + onlyTemplate
+            else
+                output printer:GetName() + ": valid: " + (problems:GetSize() = 0)
+            end
+        end
+    end
+
+    action EveryPrinterSlicesACube
+        // every printer that needs no outside files slices the 20 mm cube
+        PrinterList list
+        Iterator<Printer> printers = list:GetIterator()
+        integer i = 0
+        repeat while printers:HasNext()
+            Printer printer = printers:Next()
+            if not (printer is BambuPrinter)
+                GcodeReader reader = Slice(printer, "cube-" + i)
+                number layerHeight = printer:GetNumber("layerHeight")
+                text gcodeText = reader:GetText()
+                output printer:GetName() + ": the cube is 20 mm tall: " + Near(reader:GetLayerCount() * layerHeight, 20, layerHeight)
+                output printer:GetName() + ": every placeholder is filled in: "
+                    + (not gcodeText:Contains("{NOZZLE_TEMP}") and not gcodeText:Contains("{BED_TEMP}") and not gcodeText:Contains("{PARK_Y}"))
+                output printer:GetName() + ": the cube is printed: " + (reader:GetPrintMoveCount() > 100)
+            end
+            i = i + 1
+        end
+    end
+
+    action StartAndEndGcode
+        // each family and model writes its own start and end G-code
+        CrealityEnder3 ender3
+        text enderText = Slice(ender3, "ender3-start"):GetText()
+        output "Ender-3 homes: " + enderText:Contains("G28 ;home all axes")
+        output "Ender-3 primes: " + enderText:Contains(";prime line")
+        output "Ender-3 starts from the printer profile: " + enderText:Contains("START G-CODE (from the printer profile)")
+        output "Ender-3 turns its motors off at the end: " + enderText:Contains("M84 ;motors off")
+
+        PrusaMK3SPlus mk3s
+        text prusaText = Slice(mk3s, "mk3s-start"):GetText()
+        output "MK3S+ homes without measuring: " + prusaText:Contains("G28 W ;home without measuring the bed")
+        output "MK3S+ measures its bed: " + prusaText:Contains("G80 ;measure the bed")
+
+        KlipperPrinter klipper
+        text klipperText = Slice(klipper, "klipper-start"):GetText()
+        output "a Klipper printer runs PRINT_START with the temperatures: " + klipperText:Contains("PRINT_START BED=60 EXTRUDER=215")
+        output "a Klipper printer runs PRINT_END: " + klipperText:Contains("PRINT_END")
+
+        CrealityK1 k1
+        text k1Text = Slice(k1, "k1-start"):GetText()
+        output "K1 runs START_PRINT with the temperatures: " + k1Text:Contains("START_PRINT EXTRUDER_TEMP=215 BED_TEMP=60")
+        output "K1 runs END_PRINT: " + k1Text:Contains("END_PRINT")
+        output "K1 doesn't run PRINT_START: " + (not k1Text:Contains("PRINT_START"))
+    end
+
+    action BedsFromModels
+        // a model's bed wins over its family's, and a child class keeps its
+        // parent's G-code
+        CrealityK1 k1
+        output "K1's bed, not the Klipper family's: " + (k1:GetNumber("bedWidth") = 220)
+        CrealityK1Max k1Max
+        output "K1 Max's bed, not the K1's: " + (k1Max:GetNumber("bedWidth") = 300)
+        output "K1 Max keeps the K1's macros: " + (k1Max:GetStartGcode() = k1:GetStartGcode())
+        BambuP1S p1s
+        output "P1S's usable height: " + (p1s:GetNumber("bedHeight") = 250)
+    end
+
+    action NoTemplateFiles
+        // slicing with a printer class never writes start.gcode or end.gcode
+        // (the tests run in Output/Run, which is where they would appear)
+        File start
+        start:SetPath("start.gcode")
+        File finish
+        finish:SetPath("end.gcode")
+        boolean startBefore = start:Exists()
+        boolean finishBefore = finish:Exists()
+        CrealityEnder3 ender3
+        GcodeReader reader = Slice(ender3, "no-templates")
+        output "no start.gcode is made: " + (start:Exists() = startBefore)
+        output "no end.gcode is made: " + (finish:Exists() = finishBefore)
+    end
+
+    action ChildKeepsGcode
+        // a profile whose parent is a printer (as TerrainItem:Print makes)
+        // keeps the printer's start and end G-code
+        CrealityEnder3 ender3
+        Profile child
+        child:SetName(ender3:GetName())
+        child:SetParent(ender3)
+        child:SetNumber("unitScale", 1)
+        output "a child profile keeps the start G-code: " + (child:GetStartGcode() = ender3:GetStartGcode())
+        output "a child profile keeps the end G-code: " + (child:GetEndGcode() = ender3:GetEndGcode())
+        text childText = Slice(child, "child"):GetText()
+        output "slicing with the child uses the printer's start: " + childText:Contains("START G-CODE (from the printer profile)")
+    end
+
+    action BambuWithoutFiles
+        // a Bambu printer without Bambu's files stops instead of using the
+        // generic start G-code
+        BambuP1S p1s
+        boolean stopped = false
+        check
+            SliceJob job
+            job:SetQuiet(true)
+            text result = job:Run(models:Cube(), p1s, files:Path("printers/bambu-no-files.gcode"))
+        detect e
+            stopped = true
+        end
+        output "a Bambu printer without its files stops: " + stopped
+    end
+
+    action FindByName
+        // a printer can be found by the name a person knows it by
+        PrinterList list
+        Printer found = list:Find("bambu lab a1 MINI")
+        boolean foundIt = false
+        if found not= undefined
+            foundIt = found:GetName() = "Bambu Lab A1 mini"
+        end
+        output "Find ignores case: " + foundIt
+        output "Find gives undefined for an unknown name: " + (list:Find("Not a printer") = undefined)
+        output "Find gives undefined for no name: " + (list:Find(undefined) = undefined)
+
+        // 5 families and 27 models; a repeated name would replace a
+        // printer in the hash table, and the count would fall short
+        output "every printer has its own name: " + (list:GetSize() = 32)
+        Iterator<Printer> printers = list:GetIterator()
+        integer count = 0
+        repeat while printers:HasNext()
+            Printer printer = printers:Next()
+            count = count + 1
+        end
+        output "the iterator gives every printer: " + (count = 32)
+
+        // Remove takes a printer out by name, ignoring case
+        Printer removed = list:Remove("creality ENDER-3")
+        boolean removedIt = false
+        if removed not= undefined
+            removedIt = removed:GetName() = "Creality Ender-3"
+        end
+        output "Remove gives the printer taken out: " + removedIt
+        output "Remove leaves one fewer: " + (list:GetSize() = 31)
+        output "a removed printer can't be found: " + (list:Find("Creality Ender-3") = undefined)
+        output "Remove gives undefined for an unknown name: " + (list:Remove("Not a printer") = undefined)
+        output "Remove gives undefined for no name: " + (list:Remove(undefined) = undefined)
+        output "a failed Remove changes nothing: " + (list:GetSize() = 31)
+
+        // Add puts a program's own printer in, and can put a removed one back
+        KlipperPrinter mine
+        mine:SetName("My Voron")
+        list:Add(mine)
+        output "Add puts a new printer in: " + (list:GetSize() = 32)
+        output "an added printer can be found: " + (list:Find("my voron") = mine)
+        list:Add(removed)
+        output "a removed printer can be added back: " + (list:Find("Creality Ender-3") = removed)
+        KlipperPrinter replacement
+        replacement:SetName("My Voron")
+        replacement:SetBed(350, 350, 340)
+        list:Add(replacement)
+        output "a printer with the same name replaces the old one: " + (list:Find("My Voron") = replacement)
+        output "replacing doesn't change the count: " + (list:GetSize() = 33)
+        list:Add(undefined)
+        output "an undefined printer is ignored: " + (list:GetSize() = 33)
+    end
+
+    action Near(number actual, number expected, number tolerance) returns text
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        if difference <= tolerance
+            return "true"
+        end
+        return "" + actual
+    end
+end

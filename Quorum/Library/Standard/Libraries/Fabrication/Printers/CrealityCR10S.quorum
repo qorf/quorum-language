@@ -1,0 +1,24 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityCR10S class is the Creality CR-10S: a large Marlin printer
+with a Bowden extruder and a 300 by 300 millimeter bed, 400 millimeters
+tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityCR10S
+
+CrealityCR10S printer
+output printer:Describe()
+*/
+class CrealityCR10S is BowdenPrinter
+    // Specs: https://www.3djake.com/creality-3d-printers-spare-parts/cr-10s
+    // Check before release: every value is from a retailer, and the
+    //   extruder type isn't confirmed by Creality.
+    on create
+        SetName("Creality CR-10S")
+        SetBed(300, 300, 400)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

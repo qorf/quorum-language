@@ -122,6 +122,17 @@ class TooltipManager
             end
         end
 
+        // A control taken off the screen while the mouse was on it never
+        // hears the mouse leave, so it stops waiting for its tooltip here.
+        // Shown, its tooltip would sit at the window's bottom left for a
+        // frame, until the check above hid it.
+        if hoverControl not= undefined
+            if IsOnScreen(hoverControl) = false
+                hoverControl = undefined
+                hoverTime = 0
+            end
+        end
+
         // The mouse moved to another place on the same control, such as
         // another line: a tooltip showing for it is filled again at once,
         // and one waiting starts its delay again.
@@ -162,6 +173,17 @@ class TooltipManager
                 end
             end
         end
+    end
+
+    /*
+        True if the control is showing on a layer. A control that isn't has no
+        place on the screen, so its tooltip isn't shown.
+    */
+    private action IsOnScreen(Control control) returns boolean
+        if control:IsShowing() = false
+            return false
+        end
+        return control:GetLayer() not= undefined
     end
 
     /*
@@ -209,7 +231,8 @@ class TooltipManager
 
     /*
         This action shows a control's tooltip at once, closing any other. It does
-        nothing if the control's tooltips are off or it has nothing to show. When
+        nothing if the control's tooltips are off, it has nothing to show, or
+        it isn't showing on a layer, which gives it no place on the screen. When
         the keyboard shows a tooltip with buttons, the focus moves to its first
         button.
 
@@ -233,6 +256,9 @@ class TooltipManager
             return now
         end
         if control:IsTooltipEnabled() = false or control:HasTooltipContent() = false
+            return now
+        end
+        if IsOnScreen(control) = false
             return now
         end
         if IsShowing() and owner = control

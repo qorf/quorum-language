@@ -47,6 +47,7 @@ class ProfileSchema
 
         // ---- slicing ----
         AddNumber("slicing", "unitScale", "0", 0, 10000, "Model unit scale; 0 = detect from the model size, 25.4 for inch files")
+        AddChoice("slicing", "upAxis", "auto", "auto|Z|Y", "Which way is up in the model: auto = turn the side with the most flat area down; Z or Y = keep it as modeled, that axis up")
         AddNumber("slicing", "layerHeight", "0.2", 0.04, 1.0, "Layer height (mm)")
         AddNumber("slicing", "cutAmount", "0", 0, 1000, "Height cut off the bottom of the model (mm)")
         AddNumber("slicing", "contourMaxGap", "0.2", 0, 5, "Largest gap closed when joining slice segments into loops (mm)")

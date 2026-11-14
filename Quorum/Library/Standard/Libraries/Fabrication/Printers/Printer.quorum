@@ -1,0 +1,190 @@
+package Libraries.Fabrication.Printers
+
+use Libraries.Fabrication.Profiles.Profile
+
+/*
+The Printer class is a printer profile that a program can make with one
+line, and the parent of every printer class in this package. On its own it
+is a generic Marlin printer with a 220 by 220 millimeter bed, printing PLA
+at safe, slow speeds. The families (BowdenPrinter, DirectDrivePrinter,
+KlipperPrinter and BambuPrinter) and the models (such as CrealityEnder3)
+change what their printers need.
+
+Its start G-code is written in three parts (GetHeatGcode, GetHomeGcode and
+GetPrimeGcode), so a printer class changes only the part that differs,
+such as how it levels its bed.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.Printer
+
+Printer printer
+printer:SetName("My printer")
+printer:SetBed(235, 235, 250)
+output printer:Describe()
+*/
+class Printer is Profile
+    on create
+        SetName("Generic printer")
+        // No files: the G-code comes from GetStartGcode and GetEndGcode.
+        Set("startGcodeFile", "")
+        Set("endGcodeFile", "")
+        // Common to nearly every printer (see ProfileIdeas.md). Starting
+        // values: confirm with test prints before release.
+        SetNumber("lineWidth", 0.45)
+        SetNumber("infillDensity", 0.15)
+        SetInteger("topLayers", 5)
+        SetInteger("bottomLayers", 3)
+        SetNumber("firstLayerFlow", 1.0)
+        SetInteger("nozzleTemperature", 215)
+        SetInteger("bedTemperature", 60)
+        SetNumber("minLayerTime", 8)
+        SetNumber("maxFlow", 12)
+        SetNumber("zHop", 0.4)
+        SetNumber("supportOverhangAngle", 60)
+        SetNumber("retractLength", 0.8)
+        SetNumber("retractSpeed", 30)
+    end
+
+    /*
+    This action sets the printer's bed size and the tallest print it can
+    make, in millimeters.
+
+    Attribute: Parameter width The bed's size from left to right (X).
+    Attribute: Parameter depth The bed's size from front to back (Y).
+    Attribute: Parameter height The tallest print (Z).
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.BowdenPrinter
+
+    BowdenPrinter printer
+    printer:SetBed(235, 235, 250)
+    */
+    action SetBed(number width, number depth, number height)
+        SetNumber("bedWidth", width)
+        SetNumber("bedDepth", depth)
+        SetNumber("bedHeight", height)
+    end
+
+    /*
+    This action returns the start G-code: GetHeatGcode, GetHomeGcode and
+    GetPrimeGcode, one after another. Placeholders such as {BED_TEMP} are
+    filled in when the G-code is written.
+
+    Attribute: Returns The start G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:GetStartGcode()
+    */
+    action GetStartGcode returns text
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        return GetHeatGcode() + lineFeed + GetHomeGcode() + lineFeed + GetPrimeGcode()
+    end
+
+    /*
+    This action returns the G-code that starts heating the bed and the
+    nozzle. They heat together, so homing can run while they warm.
+
+    Attribute: Returns The heating G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:GetHeatGcode()
+    */
+    action GetHeatGcode returns text
+        return Lines("M140 S{BED_TEMP} ;start heating the bed", "M104 S{NOZZLE_TEMP} ;start heating the nozzle")
+    end
+
+    /*
+    This action returns the G-code that homes the printer, and levels the
+    bed on printers whose classes add it. By default it only homes.
+
+    Attribute: Returns The homing G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:GetHomeGcode()
+    */
+    action GetHomeGcode returns text
+        return "G28 ;home all axes"
+    end
+
+    /*
+    This action returns the G-code that waits for the heat, then draws two
+    priming lines near the left edge of the bed, so the nozzle is full of
+    plastic when the print starts.
+
+    Attribute: Returns The priming G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:GetPrimeGcode()
+    */
+    action GetPrimeGcode returns text
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        return Lines("M190 S{BED_TEMP} ;wait for the bed", "M109 S{NOZZLE_TEMP} ;wait for the nozzle") + lineFeed
+            + Lines("G90", "M83") + lineFeed
+            + Lines("G1 Z2.0 F3000", "G1 X5 Y20 Z0.3 F5000") + lineFeed
+            + Lines("G1 X5 Y120 E12 F1500 ;prime line", "G1 X5.4 Y120 F5000") + lineFeed
+            + Lines("G1 X5.4 Y20 E12 F1500 ;prime line", "G1 Z2.0 F3000")
+    end
+
+    /*
+    This action returns the end G-code: lift away from the print, bring it
+    to the front, and turn the heaters, fan and motors off.
+
+    Attribute: Returns The end G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:GetEndGcode()
+    */
+    action GetEndGcode returns text
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        return Lines("G91 ;relative positioning", "G1 Z10 F600 ;lift away from the print") + lineFeed
+            + Lines("G90", "G1 X0 Y{PARK_Y} F6000 ;present the print") + lineFeed
+            + Lines("M104 S0 ;nozzle heater off", "M140 S0 ;bed heater off") + lineFeed
+            + Lines("M107 ;fan off", "M84 ;motors off")
+    end
+
+    /*
+    This action joins two lines of G-code, for printer classes that build
+    their G-code a few lines at a time.
+
+    Attribute: Parameter first The first line.
+    Attribute: Parameter second The second line.
+    Attribute: Returns The two lines, one after the other.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.Printer
+
+    Printer printer
+    output printer:Lines("G28 ;home all axes", "G29 ;measure the bed")
+    */
+    action Lines(text first, text second) returns text
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        return first + lineFeed + second
+    end
+end

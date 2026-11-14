@@ -118,10 +118,36 @@ class ArgumentChecker
         end
         File file
         file:SetPath(path)
+        RequireFile(name, file)
+    end
+
+    /*
+    Stops with a FileNotFoundError unless the file exists. The message gives
+    the absolute path.
+
+    Attribute: Parameter name What the file is for, such as "G-code".
+    Attribute: Parameter file The file to check.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.ArgumentChecker
+
+        File file
+        file:SetPath("Outputs/part.gcode")
+        ArgumentChecker checker
+        checker:RequireFile("G-code", file)
+    */
+    action RequireFile(text name, File file)
+        if file = undefined
+            FileNotFoundError error
+            error:SetErrorMessage(name + " file not found: no file was given.")
+            alert(error)
+        end
         if not file:IsFile()
             FileNotFoundError missing
-            missing:SetPath(path)
-            missing:SetErrorMessage(name + " file not found: '" + path + "' (looked for " + file:GetAbsolutePath() + ")")
+            missing:SetPath(file:GetPath())
+            missing:SetErrorMessage(name + " file not found: '" + file:GetPath() + "' (looked for " + file:GetAbsolutePath() + ")")
             alert(missing)
         end
     end

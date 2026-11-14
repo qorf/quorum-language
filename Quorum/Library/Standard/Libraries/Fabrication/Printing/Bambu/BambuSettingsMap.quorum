@@ -93,7 +93,36 @@ class BambuSettingsMap
         if templatePath = ""
             alert("Profile '" + profile:GetName() + "' has no bambuSettingsTemplate. Set it to a project_settings JSON, or a .gcode.3mf exported by Bambu Studio for this printer.")
         end
-        template:LoadFile(templatePath)
+        File file
+        file:SetPath(templatePath)
+        return FilledTemplate(profile, file)
+    end
+
+    /*
+    Like FilledTemplate(Profile, text), from a File.
+
+    Attribute: Parameter profile The profile to copy the settings from.
+    Attribute: Parameter templateFile The template exported by Bambu Studio.
+    Attribute: Returns The filled project_settings JSON.
+
+    Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.Fabrication.Profiles.ProfileManager
+        use Libraries.Fabrication.Printing.Bambu.BambuSettingsMap
+
+        ProfileManager profiles
+        profiles:Load("Profiles/profiles.json")
+        File file
+        file:SetPath("Templates/bambu-p2s/p2s_project_settings.json")
+        BambuSettingsMap map
+        text json = map:FilledTemplate(profiles:Require("bambu-p2s"), file)
+    */
+    action FilledTemplate(Profile profile, File templateFile) returns text
+        if templateFile = undefined
+            alert("Profile '" + profile:GetName() + "' has no Bambu settings template. Set bambuSettingsTemplate to a project_settings JSON, or a .gcode.3mf exported by Bambu Studio for this printer.")
+        end
+        template:LoadFile(templateFile)
         Apply(profile)
         template:Check()
         return template:ToText()

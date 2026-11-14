@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The BambuA1 class is the Bambu Lab A1: a Bambu Lab printer with a 256 by
+256 millimeter bed, 256 millimeters tall. Before printing, give it Bambu's
+own files with SetBambuFiles.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.BambuA1
+
+BambuA1 printer
+printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+output printer:Describe()
+*/
+class BambuA1 is BambuPrinter
+    // Specs: https://bambulab.com/en/a1/tech-specs
+    on create
+        SetName("Bambu Lab A1")
+        SetBed(256, 256, 256)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 100)
+        Set("printerModelId", "N2S")
+    end
+end

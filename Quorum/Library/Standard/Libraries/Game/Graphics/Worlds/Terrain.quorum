@@ -17,6 +17,8 @@ use Libraries.Game.Collision.Shapes.Box
 use Libraries.Game.Collision.Shapes.HeightmapTerrainShape
 use Libraries.Game.BoundingBox
 use Libraries.Compute.Math
+use Libraries.Fabrication.SliceJob
+use Libraries.Fabrication.Profiles.Profile
 
 /*This is a default and very primitive Terrain class that can be used 
 to store data from a height map image. 
@@ -479,6 +481,71 @@ which is itself scaled from 0 to 1. Thus, we have 0 to 30 by default. */
 
     action GetPixelHeight returns integer
         return pixelHeight
+    end
+
+    /*
+    This action makes a 3D printer file (G-code) of the height map, with
+    the printer, filament and settings in the profile. The ground is made
+    into a solid block with straight sides and a flat 2 millimeter base, as
+    large as fits on the profile's bed (its longer side is 80% of the bed),
+    with hills in true proportion. Print(file) and Print(path), with no
+    profile, print for a generic printer the same way.
+
+    Attribute: Parameter file Where to write the G-code.
+    Attribute: Parameter profile The printer settings to slice with.
+
+    Attribute: Example
+
+    use Libraries.Game.Game
+    use Libraries.Game.Graphics.Worlds.Terrain
+    use Libraries.System.File
+    use Libraries.Fabrication.Profiles.ProfileManager
+
+    class Main is Game
+        Terrain terrain
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            terrain:LoadHeightMap("heightmap.png")
+            Add(terrain)
+            ProfileManager profiles
+            profiles:Load("Profiles/profiles.json")
+            File file
+            file:SetPath("Prints/heightmap.gcode")
+            terrain:Print(file, profiles:Require("ender3-v2"))
+        end
+    end
+    */
+    action Print(File file, Profile profile)
+        if file = undefined
+            alert("Terrain:Print was given no file (undefined).")
+        end
+        if profile = undefined
+            alert("Terrain:Print was given no profile (undefined). To print for a generic printer, leave the profile out.")
+        end
+        if pixelWidth < 2 or pixelHeight < 2
+            alert("This terrain has no height map to print. Load one with LoadHeightMap first.")
+        end
+        Number32BitArray vertices = meshData:GetVertices()
+        Number32BitArray heights
+        heights:SetSize(pixelWidth * pixelHeight)
+        integer i = 0
+        repeat while i < heights:GetSize()
+            heights:Set(i, vertices:Get(i * 3 + 1))
+            i = i + 1
+        end
+        TerrainPrintMesh builder
+        ModelData solid = builder:Build(heights, pixelWidth, pixelHeight, 1, profile)
+        Profile settings
+        settings:SetName(profile:GetName())
+        settings:SetParent(profile)
+        settings:SetNumber("unitScale", 1)
+        SliceJob job
+        job:SetQuiet(true)
+        job:Run(solid, settings, file)
     end
 
     /*

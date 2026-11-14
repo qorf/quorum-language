@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The BambuA1Mini class is the Bambu Lab A1 mini: a Bambu Lab printer with a
+180 by 180 millimeter bed, 180 millimeters tall. Before printing, give it
+Bambu's own files with SetBambuFiles.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.BambuA1Mini
+
+BambuA1Mini printer
+printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+output printer:Describe()
+*/
+class BambuA1Mini is BambuPrinter
+    // Specs: https://bambulab.com/en-gb/a1-mini/tech-specs
+    on create
+        SetName("Bambu Lab A1 mini")
+        SetBed(180, 180, 180)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 80)
+        Set("printerModelId", "N1")
+    end
+end

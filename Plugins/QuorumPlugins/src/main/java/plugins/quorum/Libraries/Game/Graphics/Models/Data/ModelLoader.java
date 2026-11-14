@@ -750,6 +750,8 @@ public class ModelLoader {
         int materialIndex = aiMesh.mMaterialIndex();
         MeshData_ mesh = new MeshData();
         mesh.SetMaterialIndex(materialIndex);
+        // The mesh's name in the file, for lists of a model's parts.
+        mesh.SetName(aiMesh.mName().dataString());
         mesh.SetVertices(vertices);
         mesh.SetIndices(indices);
         mesh.SetTextureCoordinates(coordinates);

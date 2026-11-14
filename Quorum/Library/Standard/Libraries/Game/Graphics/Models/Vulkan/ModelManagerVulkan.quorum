@@ -321,6 +321,17 @@ end
     end
     
     action GetPlaneBlueprint(number width, number depth, Vector4 textureCoordinates, boolean doubleSided) returns ModelBlueprintVulkan
+        return GetPlaneBlueprint(width, depth, textureCoordinates, doubleSided, false, false)
+    end
+
+    /*
+    This action returns a plane's blueprint, as the action above does. An
+    unlit or blended plane gets its own copy of the material, set unlit
+    and or blended (alpha mode "BLEND", drawn in the see-through pass,
+    its texture's alpha blended), and its own cache key, so other planes
+    are unchanged.
+    */
+    action GetPlaneBlueprint(number width, number depth, Vector4 textureCoordinates, boolean doubleSided, boolean unlit, boolean blended) returns ModelBlueprintVulkan
         number left = 0
         number right = 1
         number bottom = 0
@@ -337,10 +348,29 @@ end
         end
         text key = PRIMITIVE_KEY + PLANE_KEY + width + DELIMITER + depth + DELIMITER +
 left + DELIMITER + bottom + DELIMITER + right + DELIMITER + top + DELIMITER + doubleSided
+        if unlit
+            key = key + DELIMITER + "unlit"
+        end
+        if blended
+            key = key + DELIMITER + "blend"
+        end
         if cachedBlueprints:HasKey(key)
             return cachedBlueprints:GetValue(key)
         else
             ModelData data = modelBuilder:CreatePlane(width, depth, textureCoordinates, doubleSided)
+            if unlit or blended
+                // a copy: the builder's default material is shared
+                Array<Material> materials = data:GetMaterials()
+                Material own
+                own:CopyFrom(materials:Get(0))
+                if unlit
+                    own:SetUnlit(true)
+                end
+                if blended
+                    own:SetAlphaMode("BLEND")
+                end
+                materials:Set(0, own)
+            end
             data:SetID(key)
             ModelBlueprintVulkan result = ConvertToBlueprint(data)
             cachedBlueprints:Add(key, result)

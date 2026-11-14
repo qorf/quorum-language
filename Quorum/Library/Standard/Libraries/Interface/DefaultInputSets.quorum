@@ -1868,6 +1868,10 @@ InputSet shiftF10SetTextBox
         cameraItemTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
 
         InputSet focusPropertiesSet = sceneKeys:GetFocusPropertiesKey()
+        // The scene view itself, with nothing selected, goes to the
+        // properties too: in a view where nothing can be selected, such as
+        // Quorum Studio's 3D print preview, the focus is always there.
+        table:Add(focusPropertiesSet, focusPropertiesBehavior)
 
         cameraItemTable2D:Add(focusPropertiesSet, focusPropertiesBehavior)
 

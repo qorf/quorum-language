@@ -1,0 +1,171 @@
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.System.File
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Fabrication.PrintSetup
+use Libraries.Fabrication.Geometry.MeshCheck
+use Libraries.Fabrication.Printers.CrealityEnder3
+use Tests.Fabrication.TestModels
+use Tests.Fabrication.TestFiles
+use Tests.Fabrication.GcodeReader
+
+/*
+Tests for MeshCheck (is each part a closed solid?), PrintSetup (size,
+fit, up axis, parts) and MeshData names. The models are boxes from
+TestModels (closed, in millimeters) and a flat square (open). Each output
+line should end in "true".
+*/
+class Main
+    TestModels models
+    TestFiles files
+
+    action Main
+        ClosedAndOpenParts()
+        Sizes()
+        UpAxis()
+        PartsLeftOut()
+        PrintsAtTheChosenSize()
+    end
+
+    /* A model with a closed box (part 1) and an open flat square (part 2). */
+    action BoxAndSheet returns ModelData
+        ModelData model
+        Array<MeshData> meshes = model:GetMeshes()
+        MeshData box = models:BoxMesh(0, 0, 0, 10, 20, 30)
+        box:SetName("Box")
+        meshes:Add(box)
+
+        MeshData sheet
+        Number32BitArray corners
+        corners:SetSize(12)
+        corners:Set(0, 0)
+        corners:Set(1, 0)
+        corners:Set(2, 40)
+        corners:Set(3, 10)
+        corners:Set(4, 0)
+        corners:Set(5, 40)
+        corners:Set(6, 10)
+        corners:Set(7, 20)
+        corners:Set(8, 40)
+        corners:Set(9, 0)
+        corners:Set(10, 20)
+        corners:Set(11, 40)
+        Integer32BitArray triangles
+        triangles:SetSize(6)
+        triangles:Set(0, 0)
+        triangles:Set(1, 1)
+        triangles:Set(2, 2)
+        triangles:Set(3, 0)
+        triangles:Set(4, 2)
+        triangles:Set(5, 3)
+        sheet:SetVertices(corners)
+        sheet:SetIndices(triangles)
+        meshes:Add(sheet)
+        return model
+    end
+
+    action ClosedAndOpenParts
+        // a box is closed; a flat square has 4 open edges
+        MeshCheck meshCheck
+        meshCheck:Check(BoxAndSheet())
+        output "two parts: " + (meshCheck:GetPartCount() = 2)
+        output "the box keeps its name: " + (meshCheck:GetPartName(0) = "Box")
+        output "an unnamed part is numbered: " + (meshCheck:GetPartName(1) = "Part 2")
+        output "the box has 12 triangles: " + (meshCheck:GetTriangleCount(0) = 12)
+        output "the box is closed: " + meshCheck:IsClosed(0)
+        output "the square has 4 open edges: " + (meshCheck:GetOpenEdgeCount(1) = 4)
+        output "the square isn't closed: " + (not meshCheck:IsClosed(1))
+    end
+
+    action Sizes
+        // the box alone is 10 x 20 x 30 mm, Z up
+        CrealityEnder3 printer
+        PrintSetup setup
+        setup:SetModel(models:Box(0, 0, 0, 10, 20, 30))
+        setup:SetPrinter(printer)
+        setup:SetUpAxis("Z")
+        setup:SetUnits(1)
+
+        setup:UseRealSize()
+        output "real size: " + (Near(setup:GetPrintWidth(), 10) and Near(setup:GetPrintDepth(), 20) and Near(setup:GetPrintHeight(), 30))
+        output "real size is 100%: " + Near(setup:GetPercentOfRealSize(), 100)
+        output "real size fits: " + setup:Fits()
+
+        setup:SetLongestSide(60)
+        output "longest side 60 mm: " + (Near(setup:GetPrintHeight(), 60) and Near(setup:GetPrintWidth(), 20))
+        output "longest side is 200%: " + Near(setup:GetPercentOfRealSize(), 200)
+
+        // fit: the longer side across (depth, 20) becomes 80% of 220 = 176,
+        // but then the height (264) is over 250, so it shrinks to 250 tall
+        setup:UseFitToBed()
+        output "fit stays under the printer's height: " + Near(setup:GetPrintHeight(), 250)
+        output "fit fits: " + setup:Fits()
+
+        setup:SetLongestSide(400)
+        output "400 mm doesn't fit: " + (not setup:Fits())
+
+        // glTF units are meters: a 0.1 unit model is 100 mm
+        setup:SetUnits(1000)
+        setup:UseRealSize()
+        output "meters: 10 units are 10,000 mm: " + Near(setup:GetPrintWidth(), 10000)
+    end
+
+    action UpAxis
+        // Y up: the file's y is the print's height and its z the depth
+        CrealityEnder3 printer
+        PrintSetup setup
+        setup:SetModel(models:Box(0, 0, 0, 10, 20, 30))
+        setup:SetPrinter(printer)
+        setup:SetUnits(1)
+        setup:SetUpAxis("Y")
+        output "Y up: depth is the file's z: " + Near(setup:GetPrintDepth(), 30)
+        output "Y up: height is the file's y: " + Near(setup:GetPrintHeight(), 20)
+        setup:SetUpAxis("Z")
+        output "Z up: height is the file's z: " + Near(setup:GetPrintHeight(), 30)
+    end
+
+    action PartsLeftOut
+        // leaving the square out changes the size and leaves only the box
+        CrealityEnder3 printer
+        PrintSetup setup
+        setup:SetModel(BoxAndSheet())
+        setup:SetPrinter(printer)
+        setup:SetUnits(1)
+        setup:SetUpAxis("Z")
+        output "with the square, 40 mm tall: " + Near(setup:GetPrintHeight(), 40)
+        setup:SetPartIncluded(1, false)
+        output "without it, 30 mm tall: " + Near(setup:GetPrintHeight(), 30)
+        output "the square is left out: " + (not setup:IsPartIncluded(1))
+    end
+
+    action PrintsAtTheChosenSize
+        // a 10 x 20 x 30 box printed with its longest side at 50 mm is
+        // 50 mm tall in the G-code
+        CrealityEnder3 printer
+        PrintSetup setup
+        setup:SetModel(models:Box(0, 0, 0, 10, 20, 30))
+        setup:SetPrinter(printer)
+        setup:SetUnits(1)
+        setup:SetUpAxis("Z")
+        setup:SetLongestSide(50)
+        File file
+        file:SetPath(files:Path("printsetup/box-50.gcode"))
+        File written = setup:Print(file)
+        GcodeReader reader
+        reader:Read(files:Path("printsetup/box-50.gcode"))
+        number layerHeight = printer:GetNumber("layerHeight")
+        output "printed 50 mm tall: " + Near(reader:GetLayerCount() * layerHeight, 50)
+        // 10 wide becomes 16.7; turned onto a side it would be 33.3 or 50
+        output "kept as modeled (not turned): " + (reader:GetMaxX() - reader:GetMinX() < 20)
+    end
+
+    action Near(number actual, number expected) returns boolean
+        number difference = actual - expected
+        if difference < 0
+            difference = -difference
+        end
+        return difference <= 0.5
+    end
+end

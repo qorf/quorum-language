@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The PrusaMK4S class is the Original Prusa MK4S: like the MK4, with a 250
+by 210 millimeter bed, 220 millimeters tall, measured with its nozzle
+before each print.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.PrusaMK4S
+
+PrusaMK4S printer
+output printer:Describe()
+*/
+class PrusaMK4S is PrusaMK4
+    // Specs: https://www.prusa3d.com/product/original-prusa-mk4s-3d-printer/
+    //        https://help.prusa3d.com/article/buddy-firmware-specific-g-code-commands_633112
+    // Check before release: as for the MK4.
+    on create
+        SetName("Original Prusa MK4S")
+        SetBed(250, 210, 220)
+        SetInteger("maxNozzleTemperature", 290)
+        SetInteger("maxBedTemperature", 120)
+    end
+end

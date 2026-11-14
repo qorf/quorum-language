@@ -1,0 +1,24 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealityEnder3V3SE class is the Creality Ender-3 V3 SE: a Marlin
+printer with a direct-drive extruder and a 220 by 220 millimeter bed, 250
+millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealityEnder3V3SE
+
+CrealityEnder3V3SE printer
+output printer:Describe()
+*/
+class CrealityEnder3V3SE is DirectDrivePrinter
+    // Specs: https://www.creality.com/support/creality-ender-3-v3-se
+    //        https://www.creality.com/compare/compare-ender-3-v3-series
+    on create
+        SetName("Creality Ender-3 V3 SE")
+        SetBed(220, 220, 250)
+        SetInteger("maxNozzleTemperature", 260)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

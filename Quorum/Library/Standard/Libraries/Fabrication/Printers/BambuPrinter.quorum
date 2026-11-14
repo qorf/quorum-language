@@ -1,0 +1,199 @@
+package Libraries.Fabrication.Printers
+
+use Libraries.System.File
+
+/*
+The BambuPrinter class is a Bambu Lab printer. Bambu printers start with
+their own G-code (for their bed leveling, nozzle cleaning and
+calibration), and print from a .gcode.3mf file that also holds Bambu
+Studio's settings. Quorum doesn't include these, so before printing, give
+the printer three files with SetBambuFiles: the start G-code, the end
+G-code, and a settings template (a .gcode.3mf exported by Bambu Studio for
+this printer, or its project_settings file). Its bed is 256 by 256
+millimeters until SetBed changes it.
+
+Attribute: Example
+
+use Libraries.System.File
+use Libraries.Fabrication.Printers.BambuPrinter
+
+File start
+start:SetPath("Bambu/start.gcode")
+File finish
+finish:SetPath("Bambu/end.gcode")
+File settings
+settings:SetPath("Bambu/plate.gcode.3mf")
+BambuPrinter printer
+printer:SetBambuFiles(start, finish, settings)
+output printer:Describe()
+*/
+class BambuPrinter is DirectDrivePrinter
+    // Bambu's own files, given with SetBambuFiles.
+    File startFile = undefined
+    File endFile = undefined
+    File settingsFile = undefined
+
+    // Values from Quorum's own bambu-p2s and bambu-a1 test profiles
+    // (Library/Tests/Fabrication/Resources/Profiles/profiles.json).
+    on create
+        SetName("Bambu Lab printer")
+        SetBed(256, 256, 256)
+        SetBoolean("bambuExtras", true)
+        SetBoolean("write3mf", true)
+        SetNumber("maxFlow", 21)
+        SetNumber("outerWallSpeed", 200)
+        SetNumber("innerWallSpeed", 300)
+        SetNumber("skinSpeed", 200)
+        SetNumber("infillSpeed", 270)
+        SetNumber("supportSpeed", 150)
+        SetNumber("firstLayerSpeed", 50)
+        SetNumber("travelSpeed", 500)
+        SetNumber("accelOuterWall", 5000)
+        SetNumber("accelInnerWall", 10000)
+        SetNumber("accelSkin", 2000)
+        SetNumber("accelInfill", 10000)
+        SetNumber("accelSupport", 10000)
+        SetNumber("accelFirstLayer", 500)
+        SetNumber("accelTravel", 10000)
+        SetInteger("retractLimitCount", 90)
+        SetNumber("retractLimitWindow", 0.9)
+        SetNumber("minLayerTime", 4)
+        SetNumber("minPrintSpeed", 20)
+        SetInteger("nozzleTemperature", 220)
+    end
+
+    /*
+    This action gives the printer Bambu's own files, exported from Bambu
+    Studio for this printer: the start G-code, the end G-code, and a
+    settings template (a .gcode.3mf or a project_settings file).
+
+    Attribute: Parameter startGcode The start G-code file.
+    Attribute: Parameter endGcode The end G-code file.
+    Attribute: Parameter settingsTemplate The settings template.
+
+    Attribute: Example
+
+    use Libraries.System.File
+    use Libraries.Fabrication.Printers.BambuA1
+
+    File start
+    start:SetPath("Bambu/start.gcode")
+    File finish
+    finish:SetPath("Bambu/end.gcode")
+    File settings
+    settings:SetPath("Bambu/plate.gcode.3mf")
+    BambuA1 printer
+    printer:SetBambuFiles(start, finish, settings)
+    */
+    action SetBambuFiles(File startGcode, File endGcode, File settingsTemplate)
+        startFile = startGcode
+        endFile = endGcode
+        settingsFile = settingsTemplate
+    end
+
+    /*
+    This action gives the printer Bambu's own files, as paths relative to
+    the folder the program runs in (see SetBambuFiles(File, File, File)).
+
+    Attribute: Parameter startGcode The start G-code file's path.
+    Attribute: Parameter endGcode The end G-code file's path.
+    Attribute: Parameter settingsTemplate The settings template's path.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.BambuA1
+
+    BambuA1 printer
+    printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+    */
+    action SetBambuFiles(text startGcode, text endGcode, text settingsTemplate)
+        File start
+        start:SetPath(startGcode)
+        File finish
+        finish:SetPath(endGcode)
+        File settings
+        settings:SetPath(settingsTemplate)
+        SetBambuFiles(start, finish, settings)
+    end
+
+    /*
+    This action returns true once SetBambuFiles has given the printer all
+    three of Bambu's files.
+
+    Attribute: Returns True if the printer has Bambu's files.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.BambuP1S
+
+    BambuP1S printer
+    if not printer:HasBambuFiles()
+        output "Export Bambu's files from Bambu Studio first."
+    end
+    */
+    action HasBambuFiles returns boolean
+        return startFile not= undefined and endFile not= undefined and settingsFile not= undefined
+    end
+
+    /*
+    This action returns Bambu's start G-code, read from the file given with
+    SetBambuFiles. It stops with a message if SetBambuFiles wasn't called
+    first: the generic start G-code would be wrong on a Bambu printer.
+
+    Attribute: Returns The start G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.BambuA1
+
+    BambuA1 printer
+    printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+    text code = printer:GetStartGcode()
+    */
+    action GetStartGcode returns text
+        if startFile = undefined
+            alert(GetName() + " needs Bambu's own start G-code. Export it from Bambu Studio for this printer, and give it to the printer with SetBambuFiles.")
+        end
+        return startFile:Read()
+    end
+
+    /*
+    This action returns Bambu's end G-code, read from the file given with
+    SetBambuFiles.
+
+    Attribute: Returns The end G-code.
+
+    Attribute: Example
+
+    use Libraries.Fabrication.Printers.BambuA1
+
+    BambuA1 printer
+    printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+    text code = printer:GetEndGcode()
+    */
+    action GetEndGcode returns text
+        if endFile = undefined
+            alert(GetName() + " needs Bambu's own end G-code. Export it from Bambu Studio for this printer, and give it to the printer with SetBambuFiles.")
+        end
+        return endFile:Read()
+    end
+
+    /*
+    This action returns the settings template given with SetBambuFiles, or
+    undefined before it is given.
+
+    Attribute: Returns The settings template, or undefined.
+
+    Attribute: Example
+
+    use Libraries.System.File
+    use Libraries.Fabrication.Printers.BambuA1
+
+    BambuA1 printer
+    printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+    File template = printer:GetBambuSettingsFile()
+    */
+    action GetBambuSettingsFile returns File
+        return settingsFile
+    end
+end

@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The BambuP2S class is the Bambu Lab P2S: a Bambu Lab printer with a 256 by
+256 millimeter bed, 256 millimeters tall. Before printing, give it Bambu's
+own files with SetBambuFiles.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.BambuP2S
+
+BambuP2S printer
+printer:SetBambuFiles("Bambu/start.gcode", "Bambu/end.gcode", "Bambu/plate.gcode.3mf")
+output printer:Describe()
+*/
+class BambuP2S is BambuPrinter
+    // Specs: https://bambulab.com/en/p2s/specs
+    on create
+        SetName("Bambu Lab P2S")
+        SetBed(256, 256, 256)
+        SetInteger("maxNozzleTemperature", 300)
+        SetInteger("maxBedTemperature", 110)
+        Set("printerModelId", "N7")
+    end
+end

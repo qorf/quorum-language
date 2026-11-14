@@ -1,0 +1,24 @@
+package Libraries.Fabrication.Printers
+
+/*
+The CrealitySermoonD1 class is the Creality Sermoon D1: an enclosed
+printer with a 280 by 260 millimeter bed, 310 millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.CrealitySermoonD1
+
+CrealitySermoonD1 printer
+output printer:Describe()
+*/
+class CrealitySermoonD1 is DirectDrivePrinter
+    // Specs: https://www.creality.com/products/sermoon-d1-3d-printer
+    //        https://www.microcenter.com/support/637057/creality-sermoon-d1-3d-printer
+    // Check before release: the direct-drive extruder is from a
+    //   retailer, and the highest nozzle temperature isn't stated.
+    on create
+        SetName("Creality Sermoon D1")
+        SetBed(280, 260, 310)
+        SetInteger("maxBedTemperature", 100)
+    end
+end

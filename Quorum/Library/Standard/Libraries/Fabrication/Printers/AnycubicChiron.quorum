@@ -1,0 +1,25 @@
+package Libraries.Fabrication.Printers
+
+/*
+The AnycubicChiron class is the Anycubic Chiron: a large Marlin printer
+with a short Bowden extruder and a 400 by 400 millimeter bed, 450
+millimeters tall.
+
+Attribute: Example
+
+use Libraries.Fabrication.Printers.AnycubicChiron
+
+AnycubicChiron printer
+output printer:Describe()
+*/
+class AnycubicChiron is BowdenPrinter
+    // Specs: https://store.anycubic.com/products/anycubic-c-3d-printer
+    //        https://github.com/ANYCUBIC-3D/ANYCUBIC_CHIRON
+    // Check before release: the bed's highest temperature isn't
+    //   stated, so the family's 100 is kept.
+    on create
+        SetName("Anycubic Chiron")
+        SetBed(400, 400, 450)
+        SetInteger("maxNozzleTemperature", 260)
+    end
+end

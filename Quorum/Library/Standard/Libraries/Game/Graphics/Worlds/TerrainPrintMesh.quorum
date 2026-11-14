@@ -1,0 +1,725 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Fabrication.Profiles.Profile
+
+/*
+The TerrainPrintMesh class makes a terrain's ground into a solid that a 3D
+printer can print: the ground on top, four straight sides, and a flat
+bottom. Detail finer than the printer's line width is left out.
+
+How large it prints is chosen before Build:
+
+- the size: as large as fits on the bed (UseFitToBed, the default: its
+  longer side is 80% of the bed's shorter side), or a longer side of a
+  number of millimeters (SetLongestSide);
+- the hills: how many times their true height they print
+  (SetHillScale; 1, the default, is the same proportion as across);
+- the base: the solid under the lowest ground (SetBaseHeight, 2
+  millimeters by default).
+
+Hills too tall for the printer are lowered until they fit; the terrain
+keeps its size across (AreHillsLowered, GetHillScaleUsed).
+
+TerrainItem and Terrain use it in their Print actions. After Build, or
+after Measure (which works the size out without making the solid), the
+Get actions say how large the print is.
+
+Attribute: Example
+
+use Libraries.Containers.Number32BitArray
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+use Libraries.Fabrication.Profiles.Profile
+
+// A 3 by 3 grid of heights with a bump in the middle, 1 unit apart.
+Number32BitArray heights
+heights:SetSize(9)
+integer i = 0
+repeat while i < 9
+    heights:Set(i, 0)
+    i = i + 1
+end
+heights:Set(4, 1)
+
+Profile generic
+TerrainPrintMesh builder
+ModelData solid = builder:Build(heights, 3, 3, 1, generic)
+output "The print is " + builder:GetWidth() + " mm across."
+*/
+class TerrainPrintMesh
+    // How much of the bed's shorter side the terrain's longer side covers.
+    constant number BED_FRACTION = 0.8
+
+    // The size choices (GetSizeMode).
+    public constant integer FIT_TO_BED = 0
+    public constant integer LONGEST_SIDE = 1
+
+    integer sizeMode = FIT_TO_BED
+    // The longer side, in millimeters, for LONGEST_SIDE.
+    number longestSide = 150
+    // How many times their true height the hills print.
+    number hillScale = 1
+    // The solid base under the lowest ground (mm).
+    number baseHeight = 2.0
+
+    // What the last Measure or Build worked out: the hill scale used (lower
+    // than hillScale if the hills had to be lowered to fit), millimeters
+    // up per unit of height, the lowest ground, and the samples stepped.
+    number hillScaleUsed = 1
+    boolean hillsLowered = false
+    number upScale = 0
+    number lowestGround = 0
+    integer sizeStep = 1
+
+    // The last grid of heights read from a TerrainData (Sample).
+    Number32BitArray sampled = undefined
+    integer sampledColumns = 0
+    integer sampledRows = 0
+    number sampledSpacing = 0
+
+    number width = 0
+    number depth = 0
+    number height = 0
+    number millimetersPerUnit = 0
+    boolean flat = true
+
+    /*
+    This action makes a solid from a TerrainData's regions. Samples in gaps
+    between regions are given the lowest ground, so the print is one piece.
+    On a large world only every few samples are read, as many as the
+    printer can show.
+
+    Attribute: Parameter data The terrain's heights.
+    Attribute: Parameter profile The printer, for its bed size and line width.
+    Attribute: Returns The solid, in millimeters, ready for SliceJob.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Models.Data.ModelData
+    use Libraries.Game.Graphics.Worlds.TerrainData
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+    use Libraries.Fabrication.Profiles.Profile
+
+    TerrainData data
+    data:SetRegionSize(64)
+    data:AddRegion(0, 0)
+    data:RaiseArea(32, 32, 10, 5)
+    Profile generic
+    TerrainPrintMesh builder
+    ModelData solid = builder:Build(data, generic)
+    */
+    action Build(TerrainData data, Profile profile) returns ModelData
+        Sample(data, profile)
+        return Build(sampled, sampledColumns, sampledRows, sampledSpacing, profile)
+    end
+
+    /*
+    This action works out how large a TerrainData would print with the
+    current choices, without making the solid: afterwards GetWidth,
+    GetDepth, GetHeight, GetMillimetersPerUnit, AreHillsLowered and Fits
+    answer for it. It reads the heights as Build does, so on a large world
+    it takes a moment, but far less than Build and slicing.
+
+    Attribute: Parameter data The terrain's heights.
+    Attribute: Parameter profile The printer, for its bed size and line width.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainData
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+    use Libraries.Fabrication.Printers.CrealityEnder3
+
+    TerrainData data
+    data:SetRegionSize(64)
+    data:AddRegion(0, 0)
+    data:RaiseArea(32, 32, 10, 5)
+    CrealityEnder3 printer
+    TerrainPrintMesh builder
+    builder:SetHillScale(2)
+    builder:Measure(data, printer)
+    output "Prints " + builder:GetWidth() + " by " + builder:GetDepth() + " by " + builder:GetHeight() + " mm"
+    */
+    action Measure(TerrainData data, Profile profile)
+        Sample(data, profile)
+        Size(sampled, sampledColumns, sampledRows, sampledSpacing, profile)
+    end
+
+    // Reads the TerrainData's heights into sampled: only as many samples as
+    // the printer can show, gaps between regions given the lowest ground.
+    private action Sample(TerrainData data, Profile profile)
+        if data = undefined or data:GetRegionCount() = 0
+            alert("The terrain has no ground to print.")
+        end
+        if profile = undefined
+            alert("TerrainPrintMesh was given no profile (undefined).")
+        end
+
+        // The rectangle of regions that holds every region.
+        TerrainRegion first = data:GetRegionAtIndex(0)
+        integer lowX = first:GetLocationX()
+        integer highX = lowX
+        integer lowZ = first:GetLocationZ()
+        integer highZ = lowZ
+        integer i = 1
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            if region:GetLocationX() < lowX
+                lowX = region:GetLocationX()
+            end
+            if region:GetLocationX() > highX
+                highX = region:GetLocationX()
+            end
+            if region:GetLocationZ() < lowZ
+                lowZ = region:GetLocationZ()
+            end
+            if region:GetLocationZ() > highZ
+                highZ = region:GetLocationZ()
+            end
+            i = i + 1
+        end
+        integer size = data:GetRegionSize()
+        integer startX = lowX * size
+        integer startZ = lowZ * size
+        integer samplesX = (highX - lowX + 1) * size
+        integer samplesZ = (highZ - lowZ + 1) * size
+        number spacing = data:GetVertexSpacing()
+
+        // Read only as many samples as the printer can show.
+        integer step = GetStep(spacing * GetAcrossScale(samplesX, samplesZ, spacing, profile), profile, samplesX, samplesZ)
+        integer columns = (samplesX - 1) / step + 1
+        integer rows = (samplesZ - 1) / step + 1
+        Number32BitArray heights
+        heights:SetSize(columns * rows)
+
+        boolean found = false
+        number lowest = 0
+        integer row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                integer sampleX = startX + column * step
+                integer sampleZ = startZ + row * step
+                if data:HasSample(sampleX, sampleZ)
+                    number value = data:GetSampleHeight(sampleX, sampleZ)
+                    heights:Set(row * columns + column, value)
+                    if not found or value < lowest
+                        lowest = value
+                        found = true
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        // Gaps between regions get the lowest ground.
+        row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                if not data:HasSample(startX + column * step, startZ + row * step)
+                    heights:Set(row * columns + column, lowest)
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        sampled = heights
+        sampledColumns = columns
+        sampledRows = rows
+        sampledSpacing = spacing * step
+    end
+
+    /*
+    This action makes a solid from a grid of heights, row by row: the first
+    row's heights from left to right, then the next row, and so on. Rows
+    run along z, columns along x, and neighbouring samples are spacing
+    units apart.
+
+    Attribute: Parameter heights One height per sample, columns times rows of them.
+    Attribute: Parameter columns How many samples across (along x), at least 2.
+    Attribute: Parameter rows How many samples deep (along z), at least 2.
+    Attribute: Parameter spacing How far apart the samples are, in world units.
+    Attribute: Parameter profile The printer, for its bed size, height and line width.
+    Attribute: Returns The solid, in millimeters, ready for SliceJob.
+
+    Attribute: Example
+
+    use Libraries.Containers.Number32BitArray
+    use Libraries.Game.Graphics.Models.Data.ModelData
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+    use Libraries.Fabrication.Profiles.Profile
+
+    Number32BitArray heights
+    heights:SetSize(4)
+    heights:Set(0, 0)
+    heights:Set(1, 1)
+    heights:Set(2, 0)
+    heights:Set(3, 2)
+    Profile generic
+    TerrainPrintMesh builder
+    ModelData solid = builder:Build(heights, 2, 2, 10, generic)
+    */
+    action Build(Number32BitArray heights, integer columns, integer rows, number spacing, Profile profile) returns ModelData
+        if heights = undefined or columns < 2 or rows < 2 or heights:GetSize() not= columns * rows
+            alert("TerrainPrintMesh:Build needs at least 2 by 2 heights, and exactly columns times rows of them.")
+        end
+        if spacing <= 0
+            alert("TerrainPrintMesh:Build needs a spacing above 0.")
+        end
+        if profile = undefined
+            alert("TerrainPrintMesh:Build was given no profile (undefined).")
+        end
+
+        Size(heights, columns, rows, spacing, profile)
+        number lowest = lowestGround
+        integer step = sizeStep
+        integer gridColumns = (columns - 1) / step + 1
+        integer gridRows = (rows - 1) / step + 1
+        number cell = spacing * step * millimetersPerUnit
+
+        integer topCount = gridColumns * gridRows
+        Array<integer> ring = GetRing(gridColumns, gridRows)
+        integer ringCount = ring:GetSize()
+        integer center = topCount + ringCount
+        Number32BitArray vertices
+        vertices:SetSize((center + 1) * 3)
+
+        // The ground: row 0 at the back, the last row at the front.
+        integer row = 0
+        repeat while row < gridRows
+            integer column = 0
+            repeat while column < gridColumns
+                number value = heights:Get(row * step * columns + column * step)
+                SetVertex(vertices, row * gridColumns + column, column * cell - width / 2,
+                    depth / 2 - row * cell, baseHeight + (value - lowest) * upScale)
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        // A point at the bottom under each edge point, and the bottom's centre.
+        integer k = 0
+        repeat while k < ringCount
+            integer top = ring:Get(k)
+            SetVertex(vertices, topCount + k, vertices:Get(top * 3), vertices:Get(top * 3 + 1), 0)
+            k = k + 1
+        end
+        SetVertex(vertices, center, 0, 0, 0)
+
+        Integer32BitArray indices
+        indices:SetSize((gridColumns - 1) * (gridRows - 1) * 6 + ringCount * 9)
+        integer next = 0
+        row = 0
+        repeat while row < gridRows - 1
+            integer column = 0
+            repeat while column < gridColumns - 1
+                integer backLeft = row * gridColumns + column
+                integer backRight = backLeft + 1
+                integer frontLeft = backLeft + gridColumns
+                integer frontRight = frontLeft + 1
+                next = AddTriangle(indices, next, frontLeft, frontRight, backRight)
+                next = AddTriangle(indices, next, frontLeft, backRight, backLeft)
+                column = column + 1
+            end
+            row = row + 1
+        end
+        k = 0
+        repeat while k < ringCount
+            integer following = (k + 1) mod ringCount
+            integer a = ring:Get(k)
+            integer b = ring:Get(following)
+            integer aBottom = topCount + k
+            integer bBottom = topCount + following
+            next = AddTriangle(indices, next, aBottom, bBottom, b)
+            next = AddTriangle(indices, next, aBottom, b, a)
+            next = AddTriangle(indices, next, center, bBottom, aBottom)
+            k = k + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        ModelData solid
+        solid:SetMeshes(meshes)
+        return solid
+    end
+
+    /*
+    This action returns how wide the last solid built is, along the
+    printer's x axis.
+
+    Attribute: Returns The width in millimeters.
+    */
+    action GetWidth returns number
+        return width
+    end
+
+    /*
+    This action returns how deep the last solid built is, along the
+    printer's y axis.
+
+    Attribute: Returns The depth in millimeters.
+    */
+    action GetDepth returns number
+        return depth
+    end
+
+    /*
+    This action returns how tall the last solid built is, base included.
+
+    Attribute: Returns The height in millimeters.
+    */
+    action GetHeight returns number
+        return height
+    end
+
+    /*
+    This action returns how many millimeters one world unit became in the
+    last solid built.
+
+    Attribute: Returns Millimeters per world unit.
+    */
+    action GetMillimetersPerUnit returns number
+        return millimetersPerUnit
+    end
+
+    /*
+    This action returns true if the last terrain built had no hills or
+    valleys, so the print is only the base.
+
+    Attribute: Returns True if the ground was flat.
+    */
+    action IsFlat returns boolean
+        return flat
+    end
+
+    // Works out the print's size from a grid of heights and the choices:
+    // millimeters per unit across and up, the step between samples, and
+    // the width, depth and height. Hills too tall for the printer are
+    // lowered, not the whole terrain shrunk.
+    private action Size(Number32BitArray heights, integer columns, integer rows, number spacing, Profile profile)
+        number lowest = heights:Get(0)
+        number highest = lowest
+        integer i = 1
+        repeat while i < heights:GetSize()
+            number value = heights:Get(i)
+            if value < lowest
+                lowest = value
+            end
+            if value > highest
+                highest = value
+            end
+            i = i + 1
+        end
+        number rise = highest - lowest
+
+        number scale = GetAcrossScale(columns, rows, spacing, profile)
+        number up = scale * hillScale
+        hillScaleUsed = hillScale
+        hillsLowered = false
+        number bedHeight = profile:GetNumber("bedHeight")
+        if rise > 0 and baseHeight + rise * up > bedHeight
+            up = (bedHeight - baseHeight) / rise
+            hillScaleUsed = up / scale
+            hillsLowered = true
+        end
+        integer step = GetStep(spacing * scale, profile, columns, rows)
+        integer gridColumns = (columns - 1) / step + 1
+        integer gridRows = (rows - 1) / step + 1
+        number cell = spacing * step * scale
+
+        width = (gridColumns - 1) * cell
+        depth = (gridRows - 1) * cell
+        height = baseHeight + rise * up
+        millimetersPerUnit = scale
+        upScale = up
+        lowestGround = lowest
+        sizeStep = step
+        flat = not (rise > 0)
+    end
+
+    /*
+    This action prints the terrain as large as fits on the bed: its longer
+    side is 80% of the bed's shorter side. It is the default.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    builder:UseFitToBed()
+    */
+    action UseFitToBed
+        sizeMode = FIT_TO_BED
+    end
+
+    /*
+    This action prints the terrain with its longer side a number of
+    millimeters, whatever the bed's size (Fits says if it fits).
+
+    Attribute: Parameter millimeters The longer side, above 0.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    builder:SetLongestSide(150)
+    */
+    action SetLongestSide(number millimeters)
+        if millimeters <= 0
+            alert("TerrainPrintMesh:SetLongestSide needs a size above 0 millimeters.")
+        end
+        longestSide = millimeters
+        sizeMode = LONGEST_SIDE
+    end
+
+    /*
+    This action returns the size choice: FIT_TO_BED or LONGEST_SIDE.
+
+    Attribute: Returns The size choice.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    if builder:GetSizeMode() = builder:FIT_TO_BED
+        output "As large as fits"
+    end
+    */
+    action GetSizeMode returns integer
+        return sizeMode
+    end
+
+    /*
+    This action returns the longer side used by SetLongestSide, in
+    millimeters (150 until it is set).
+
+    Attribute: Returns The longer side in millimeters.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    output builder:GetLongestSide()
+    */
+    action GetLongestSide returns number
+        return longestSide
+    end
+
+    /*
+    This action sets how many times their true height the hills print: 1
+    is the same proportion as across; 2 makes them twice as tall, which
+    helps gentle hills show.
+
+    Attribute: Parameter scale The hill scale, above 0.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    builder:SetHillScale(2)
+    */
+    action SetHillScale(number scale)
+        if scale <= 0
+            alert("TerrainPrintMesh:SetHillScale needs a scale above 0.")
+        end
+        hillScale = scale
+    end
+
+    /*
+    This action returns the hill scale chosen (SetHillScale).
+
+    Attribute: Returns The hill scale.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    output builder:GetHillScale()
+    */
+    action GetHillScale returns number
+        return hillScale
+    end
+
+    /*
+    This action sets how thick the solid under the lowest ground is, in
+    millimeters.
+
+    Attribute: Parameter millimeters The base, above 0.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    builder:SetBaseHeight(3)
+    */
+    action SetBaseHeight(number millimeters)
+        if millimeters <= 0
+            alert("TerrainPrintMesh:SetBaseHeight needs a base above 0 millimeters.")
+        end
+        baseHeight = millimeters
+    end
+
+    /*
+    This action returns the base under the lowest ground, in millimeters.
+
+    Attribute: Returns The base in millimeters.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    output builder:GetBaseHeight()
+    */
+    action GetBaseHeight returns number
+        return baseHeight
+    end
+
+    /*
+    This action returns true if the last Measure or Build lowered the hills
+    to fit the printer's height.
+
+    Attribute: Returns True if the hills were lowered.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    // builder:Measure(data, printer)
+    if builder:AreHillsLowered()
+        output "Lowered to " + builder:GetHillScaleUsed() + " times their true height"
+    end
+    */
+    action AreHillsLowered returns boolean
+        return hillsLowered
+    end
+
+    /*
+    This action returns the hill scale the last Measure or Build used: the
+    one chosen, or less if the hills were lowered to fit.
+
+    Attribute: Returns The hill scale used.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+
+    TerrainPrintMesh builder
+    output builder:GetHillScaleUsed()
+    */
+    action GetHillScaleUsed returns number
+        return hillScaleUsed
+    end
+
+    /*
+    This action returns true if the last Measure or Build fits on the
+    printer's bed.
+
+    Attribute: Parameter profile The printer.
+    Attribute: Returns True if it fits.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Worlds.TerrainPrintMesh
+    use Libraries.Fabrication.Printers.CrealityEnder3
+
+    CrealityEnder3 printer
+    TerrainPrintMesh builder
+    // builder:Measure(data, printer)
+    output builder:Fits(printer)
+    */
+    action Fits(Profile profile) returns boolean
+        return width <= profile:GetNumber("bedWidth") and depth <= profile:GetNumber("bedDepth")
+            and height <= profile:GetNumber("bedHeight")
+    end
+
+    // Millimeters per world unit: the longer side covers BED_FRACTION of
+    // the bed's shorter side, or is longestSide millimeters.
+    private action GetAcrossScale(integer columns, integer rows, number spacing, Profile profile) returns number
+        number extent = (columns - 1) * spacing
+        if (rows - 1) * spacing > extent
+            extent = (rows - 1) * spacing
+        end
+        if sizeMode = LONGEST_SIDE
+            return longestSide / extent
+        end
+        number bedSide = profile:GetNumber("bedWidth")
+        if profile:GetNumber("bedDepth") < bedSide
+            bedSide = profile:GetNumber("bedDepth")
+        end
+        return BED_FRACTION * bedSide / extent
+    end
+
+    // How many samples to step, so a cell is at least one line wide, but
+    // never so many that fewer than 2 points are left along a side.
+    private action GetStep(number cellMillimeters, Profile profile, integer columns, integer rows) returns integer
+        integer most = columns - 1
+        if rows - 1 < most
+            most = rows - 1
+        end
+        number lineWidth = profile:GetNumber("lineWidth")
+        integer step = 1
+        repeat while cellMillimeters * step < lineWidth and step < most
+            step = step + 1
+        end
+        return step
+    end
+
+    // The edge points of the top grid, counter-clockwise seen from above:
+    // along the front row to the right, up the right side to the back,
+    // along the back row to the left, and down the left side.
+    private action GetRing(integer columns, integer rows) returns Array<integer>
+        Array<integer> ring
+        integer column = 0
+        repeat while column < columns
+            ring:Add((rows - 1) * columns + column)
+            column = column + 1
+        end
+        integer row = rows - 2
+        repeat while row >= 0
+            ring:Add(row * columns + columns - 1)
+            row = row - 1
+        end
+        column = columns - 2
+        repeat while column >= 0
+            ring:Add(column)
+            column = column - 1
+        end
+        row = 1
+        repeat while row <= rows - 2
+            ring:Add(row * columns)
+            row = row + 1
+        end
+        return ring
+    end
+
+    private action SetVertex(Number32BitArray vertices, integer index, number x, number y, number z)
+        vertices:Set(index * 3, x)
+        vertices:Set(index * 3 + 1, y)
+        vertices:Set(index * 3 + 2, z)
+    end
+
+    private action AddTriangle(Integer32BitArray indices, integer next, integer a, integer b, integer c) returns integer
+        indices:Set(next, a)
+        indices:Set(next + 1, b)
+        indices:Set(next + 2, c)
+        return next + 3
+    end
+end

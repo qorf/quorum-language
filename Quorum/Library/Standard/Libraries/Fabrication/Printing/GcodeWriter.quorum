@@ -150,6 +150,9 @@ class GcodeWriter
 
     text startFile = "start.gcode"
     text endFile = "end.gcode"
+    // Start and end G-code given as text; when set, used instead of the files.
+    text startCode = ""
+    text endCode = ""
 
     // Dry run: no heating, no filament, every move lifted dryRunLift mm.
     boolean dryRun = false
@@ -821,9 +824,10 @@ class GcodeWriter
 
     /*
     The file holding the printer's own start G-code, copied in before the
-    first layer. A missing file is created from a generic template.
+    first layer. A missing file is created from a generic template. An
+    empty path uses the generic template without writing a file.
 
-    Attribute: Parameter path The start G-code file.
+    Attribute: Parameter path The start G-code file, or "" for the generic template.
 
     Attribute: Example
 
@@ -837,16 +841,14 @@ class GcodeWriter
         gcode:Write(ordered, "Outputs/part.gcode")
     */
     action SetStartGCodeFile(text path)
-        if path = ""
-            checker:Fail("GcodeWriter:SetStartGCodeFile needs a file path")
-        end
         startFile = path
     end
 
     /*
-    The file holding the printer's own end G-code, copied in after the last layer.
+    The file holding the printer's own end G-code, copied in after the last
+    layer. An empty path uses the generic template without writing a file.
 
-    Attribute: Parameter path The end G-code file.
+    Attribute: Parameter path The end G-code file, or "" for the generic template.
 
     Attribute: Example
 
@@ -860,10 +862,50 @@ class GcodeWriter
         gcode:Write(ordered, "Outputs/part.gcode")
     */
     action SetEndGCodeFile(text path)
-        if path = ""
-            checker:Fail("GcodeWriter:SetEndGCodeFile needs a file path")
-        end
         endFile = path
+    end
+
+    /*
+    The printer's own start G-code, as text, copied in before the first
+    layer with its placeholders filled in. When set (not empty), it is used
+    instead of the start G-code file.
+
+    Attribute: Parameter code The start G-code, or "" to use the file.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetStartGCode("PRINT_START BED={BED_TEMP} EXTRUDER={NOZZLE_TEMP}")
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetStartGCode(text code)
+        startCode = code
+    end
+
+    /*
+    The printer's own end G-code, as text, copied in after the last layer.
+    When set (not empty), it is used instead of the end G-code file.
+
+    Attribute: Parameter code The end G-code, or "" to use the file.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        GcodeWriter gcode
+        gcode:SetEndGCode("PRINT_END")
+        gcode:Write(ordered, "Outputs/part.gcode")
+    */
+    action SetEndGCode(text code)
+        endCode = code
     end
 
     /*
@@ -893,7 +935,8 @@ class GcodeWriter
     end
 
     /*
-    Writes the G-code file, creating its folder if needed.
+    Writes the G-code file, creating its folder if needed. The path is
+    relative to the working directory.
 
     Attribute: Parameter paths The paths in printing order, with roles set (PathOrderer:Order).
     Attribute: Parameter filePath Where to write the G-code.
@@ -911,9 +954,34 @@ class GcodeWriter
         output gcode:GetFilamentLength() + " mm of filament"
     */
     action Write(Array<Contour> paths, text filePath)
+        File file
+        file:SetPath(filePath)
+        Write(paths, file)
+    end
+
+    /*
+    Writes the G-code file, creating its folder if needed.
+
+    Attribute: Parameter paths The paths in printing order, with roles set (PathOrderer:Order).
+    Attribute: Parameter file Where to write the G-code.
+
+    Attribute: Example
+
+        use Libraries.Containers.Array
+        use Libraries.System.File
+        use Libraries.Fabrication.Geometry.Contour
+        use Libraries.Fabrication.Printing.GcodeWriter
+
+        Array<Contour> ordered      // from PathOrderer:Order
+        File file
+        file:SetPath("Outputs/part.gcode")
+        GcodeWriter gcode
+        gcode:Write(ordered, file)
+    */
+    action Write(Array<Contour> paths, File file)
         warnings:Empty()
         if paths:GetSize() = 0
-            warnings:Add("There are no paths to print, so " + filePath + " only holds the start and end G-code.")
+            warnings:Add("There are no paths to print, so " + file:GetPath() + " only holds the start and end G-code.")
         end
         filamentArea = 3.141592653589793 * (filamentDiameter / 2.0) * (filamentDiameter / 2.0)
         totalFilament = 0.0
@@ -928,12 +996,15 @@ class GcodeWriter
         FindTopZ(paths)
         FindFirstLayerBox(paths)
         if not dryRun
-            EnsureTemplate(startFile, true)
-            EnsureTemplate(endFile, false)
+            // no template file is made when the G-code is given as text
+            if startCode = ""
+                EnsureTemplate(startFile, true)
+            end
+            if endCode = ""
+                EnsureTemplate(endFile, false)
+            end
         end
 
-        File file
-        file:SetPath(filePath)
         File folder = file:GetParentDirectory()
         if folder not= undefined
             if not folder:Exists()
@@ -1129,8 +1200,13 @@ class GcodeWriter
         end
         Line(";Generated by " + generatorName)
         Line(";Layer height: " + Fixed(layerHeight, 3) + " mm, line width: " + Fixed(lineWidth, 3) + " mm")
-        Line(";========== START G-CODE (from " + startFile + ") ==========")
-        CopyCustom(startFile)
+        if startCode not= ""
+            Line(";========== START G-CODE (from the printer profile) ==========")
+            CopyLines(SplitLines(startCode), "the printer profile's start G-code")
+        else
+            Line(";========== START G-CODE (from " + CustomName(startFile) + ") ==========")
+            CopyCustom(startFile, true)
+        end
         Line(";========== END OF START G-CODE ==========")
         // whatever the custom code did, the moves below need these modes
         Line("G90 ;absolute XYZ")
@@ -1158,33 +1234,61 @@ class GcodeWriter
             return now
         end
         Retract()
-        Line(";========== END G-CODE (from " + endFile + ") ==========")
-        CopyCustom(endFile)
+        if endCode not= ""
+            Line(";========== END G-CODE (from the printer profile) ==========")
+            CopyLines(SplitLines(endCode), "the printer profile's end G-code")
+        else
+            Line(";========== END G-CODE (from " + CustomName(endFile) + ") ==========")
+            CopyCustom(endFile, false)
+        end
     end
 
     // Copies a custom G-code file into the output, filling in placeholders.
-    private action CopyCustom(text path)
-        File file
-        file:SetPath(path)
-        text contents = file:Read()
-        text lineFeed = ""
-        lineFeed = lineFeed:GetLineFeed()
+    // An empty path copies the generic template instead.
+    private action CopyCustom(text path, boolean isStart)
+        Array<text> lines = undefined
+        if path = ""
+            lines = GenericTemplateLines(isStart)
+        else
+            File file
+            file:SetPath(path)
+            lines = SplitLines(file:Read())
+        end
+        CopyLines(lines, CustomName(path))
+    end
+
+    // Copies G-code lines into the output, filling in placeholders. The
+    // name says where they came from, in warnings.
+    private action CopyLines(Array<text> lines, text name)
         text carriageReturn = ""
         carriageReturn = carriageReturn:GetCarriageReturn()
-        Array<text> lines = contents:Split(lineFeed)
         integer i = 0
         repeat while i < lines:GetSize()
             text raw = lines:Get(i)
             text value = Substitute(raw:Replace(carriageReturn, ""))
             if not value:StartsWith(";")
                 if value:Contains("{") or value:Contains("[")
-                    warnings:Add(path + " line " + (i + 1) + " still has a placeholder the slicer doesn't know: '"
+                    warnings:Add(name + " line " + (i + 1) + " still has a placeholder the slicer doesn't know: '"
                         + value + "'. The printer can't read it; replace it with a number or one of the {...} names listed at the top of the file.")
                 end
             end
             Line(value)
             i = i + 1
         end
+    end
+
+    private action SplitLines(text contents) returns Array<text>
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        return contents:Split(lineFeed)
+    end
+
+    // The name used for a start or end G-code file in comments and warnings.
+    private action CustomName(text path) returns text
+        if path = ""
+            return "the generic template"
+        end
+        return path
     end
 
     // Bounding box of everything printed on layer 0 (skirt, brim, supports
@@ -1341,7 +1445,12 @@ class GcodeWriter
     end
 
     // Creates the start or end template if the file doesn't exist yet.
+    // An empty path means the generic template is used from memory, so
+    // there is no file to create.
     private action EnsureTemplate(text path, boolean isStart)
+        if path = ""
+            return now
+        end
         File file
         file:SetPath(path)
         if file:Exists()
@@ -1386,33 +1495,45 @@ class GcodeWriter
         template:WriteLine("; Lines starting with ; are comments; the printer ignores them.")
         template:WriteLine("; ================================================================")
         template:WriteLine("; ---------- PASTE BELOW THIS LINE ----------")
-        if isStart
-            template:WriteLine("M140 S{BED_TEMP} ;start heating the bed")
-            template:WriteLine("M104 S{NOZZLE_TEMP} ;start heating the nozzle")
-            template:WriteLine("G28 ;home all axes")
-            template:WriteLine("M190 S{BED_TEMP} ;wait for the bed")
-            template:WriteLine("M109 S{NOZZLE_TEMP} ;wait for the nozzle")
-            template:WriteLine("G90")
-            template:WriteLine("M83")
-            template:WriteLine("G1 Z2.0 F3000")
-            template:WriteLine("G1 X5 Y20 Z0.3 F5000")
-            template:WriteLine("G1 X5 Y120 E12 F1500 ;prime line")
-            template:WriteLine("G1 X5.4 Y120 F5000")
-            template:WriteLine("G1 X5.4 Y20 E12 F1500 ;prime line")
-            template:WriteLine("G1 Z2.0 F3000")
-        else
-            template:WriteLine("G91 ;relative positioning")
-            template:WriteLine("G1 Z10 F600 ;lift away from the print")
-            template:WriteLine("G90")
-            template:WriteLine("G1 X0 Y{PARK_Y} F6000 ;present the print")
-            template:WriteLine("M104 S0 ;nozzle heater off")
-            template:WriteLine("M140 S0 ;bed heater off")
-            template:WriteLine("M107 ;fan off")
-            template:WriteLine("M84 ;motors off")
+        Array<text> lines = GenericTemplateLines(isStart)
+        integer i = 0
+        repeat while i < lines:GetSize()
+            template:WriteLine(lines:Get(i))
+            i = i + 1
         end
         template:Close()
         warnings:Add("Created " + path + " with a generic Marlin template. Open it and paste your printer's own "
             + which + " G-code below the 'PASTE BELOW' line before printing.")
+    end
+
+    // The generic Marlin start or end G-code (Ender-3 style, 220 x 220 bed).
+    private action GenericTemplateLines(boolean isStart) returns Array<text>
+        Array<text> lines
+        if isStart
+            lines:Add("M140 S{BED_TEMP} ;start heating the bed")
+            lines:Add("M104 S{NOZZLE_TEMP} ;start heating the nozzle")
+            lines:Add("G28 ;home all axes")
+            lines:Add("M190 S{BED_TEMP} ;wait for the bed")
+            lines:Add("M109 S{NOZZLE_TEMP} ;wait for the nozzle")
+            lines:Add("G90")
+            lines:Add("M83")
+            lines:Add("G1 Z2.0 F3000")
+            lines:Add("G1 X5 Y20 Z0.3 F5000")
+            lines:Add("G1 X5 Y120 E12 F1500 ;prime line")
+            lines:Add("G1 X5.4 Y120 F5000")
+            lines:Add("G1 X5.4 Y20 E12 F1500 ;prime line")
+            lines:Add("G1 Z2.0 F3000")
+        else
+            lines:Add("G91 ;relative positioning")
+            lines:Add("G1 Z10 F600 ;lift away from the print")
+            lines:Add("G90")
+            lines:Add("G1 X0 Y{PARK_Y} F6000 ;present the print")
+            lines:Add("M104 S0 ;nozzle heater off")
+            lines:Add("M140 S0 ;bed heater off")
+            lines:Add("M107 ;fan off")
+            lines:Add("M84 ;motors off")
+        end
+        return lines
     end
 
     private action ChangeLayer(integer layer)
