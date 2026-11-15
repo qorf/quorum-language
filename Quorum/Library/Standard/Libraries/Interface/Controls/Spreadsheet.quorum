@@ -139,6 +139,8 @@ class Spreadsheet is ScrollableControl
         properties:SetPercentageHeight(0)
         properties:SetPixelWidth(480)
         properties:SetPixelHeight(320)
+        // Before the game exists, this keeps the size but lays out nothing
+        // (Resize).
         SetSize(480, 320)
 
         SetInterfaceOptionsKey("Spreadsheet")
@@ -2514,6 +2516,51 @@ Grace,1906")
         selection:Changed()
         Refresh()
         NotifyAccessibility()
+    end
+
+    /*
+    This action lays out the scroll bars and the cells. Before the game
+    exists, such as for a spreadsheet made and loaded in a program's Main
+    before StartGame, there are no interface options or graphics to lay out
+    with, so it does nothing; the first layout after the game starts does
+    it.
+    */
+    action Resize
+        if not CanLayOut()
+            return now
+        end
+        parent:ScrollableControl:Resize()
+    end
+
+    /*
+    This action scrolls the cells sideways, from 0 (the left edge) to 1.
+    Before the game exists it does nothing (see Resize).
+
+    Attribute: Parameter value How far to scroll, from 0 to 1.
+    */
+    action SetScrollPercentageX(number value)
+        if not CanLayOut()
+            return now
+        end
+        parent:ScrollableControl:SetScrollPercentageX(value)
+    end
+
+    /*
+    This action scrolls the cells up and down, from 0 (the top) to 1.
+    Before the game exists it does nothing (see Resize).
+
+    Attribute: Parameter value How far to scroll, from 0 to 1.
+    */
+    action SetScrollPercentageY(number value)
+        if not CanLayOut()
+            return now
+        end
+        parent:ScrollableControl:SetScrollPercentageY(value)
+    end
+
+    // True once the game exists, with the interface options laying out needs.
+    private action CanLayOut returns boolean
+        return manager:GetInterfaceOptions() not= undefined
     end
 
     /*
