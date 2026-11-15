@@ -1,0 +1,138 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.Spreadsheet
+
+/*
+The SpreadsheetChangedEvent class says how a Spreadsheet's values changed:
+what kind of change it was, which rows and columns it touched, and a short
+description, such as "Changed C2" or "Removed rows 4 to 6". A
+SpreadsheetListener gets one for each change, whether the user made it or a
+program did. Rows and columns are counted from 0.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Events.SpreadsheetChangedEvent
+use Libraries.Interface.Events.SpreadsheetListener
+class ChangeLogger is SpreadsheetListener
+    action SpreadsheetChanged(SpreadsheetChangedEvent event)
+        output event:GetDescription()
+    end
+end
+*/
+class SpreadsheetChangedEvent
+    // Values changed in place.
+    public constant integer VALUES = 0
+    // Rows were added; first and last are the new rows.
+    public constant integer ROWS_ADDED = 1
+    // Rows were removed; first and last are where they were.
+    public constant integer ROWS_REMOVED = 2
+    // Columns were added; first and last are the new columns.
+    public constant integer COLUMNS_ADDED = 3
+    // Columns were removed; first and last are where they were.
+    public constant integer COLUMNS_REMOVED = 4
+    // Everything changed: a file was loaded, or the spreadsheet was emptied.
+    public constant integer EVERYTHING = 5
+    // An edit was undone or redone.
+    public constant integer UNDO = 6
+
+    Spreadsheet spreadsheet = undefined
+    integer kind = VALUES
+    integer firstRow = 0
+    integer lastRow = 0
+    integer firstColumn = 0
+    integer lastColumn = 0
+    text description = ""
+
+    /*
+    This action sets everything the event says. The Spreadsheet calls it.
+
+    Attribute: Parameter sheet The spreadsheet that changed.
+
+    Attribute: Parameter kind What kind of change it was, such as VALUES.
+
+    Attribute: Parameter firstRow The first row touched.
+
+    Attribute: Parameter lastRow The last row touched.
+
+    Attribute: Parameter firstColumn The first column touched.
+
+    Attribute: Parameter lastColumn The last column touched.
+
+    Attribute: Parameter description A short description of the change.
+    */
+    action Set(Spreadsheet sheet, integer kind, integer firstRow, integer lastRow, integer firstColumn, integer lastColumn, text description)
+        spreadsheet = sheet
+        me:kind = kind
+        me:firstRow = firstRow
+        me:lastRow = lastRow
+        me:firstColumn = firstColumn
+        me:lastColumn = lastColumn
+        me:description = description
+    end
+
+    /*
+    This action returns the spreadsheet that changed.
+
+    Attribute: Returns The spreadsheet.
+    */
+    action GetSpreadsheet returns Spreadsheet
+        return spreadsheet
+    end
+
+    /*
+    This action returns what kind of change it was: VALUES, ROWS_ADDED,
+    ROWS_REMOVED, COLUMNS_ADDED, COLUMNS_REMOVED, EVERYTHING or UNDO.
+
+    Attribute: Returns The kind of change.
+    */
+    action GetKind returns integer
+        return kind
+    end
+
+    /*
+    This action returns the first row the change touched, from 0.
+
+    Attribute: Returns The first row.
+    */
+    action GetFirstRow returns integer
+        return firstRow
+    end
+
+    /*
+    This action returns the last row the change touched, from 0.
+
+    Attribute: Returns The last row.
+    */
+    action GetLastRow returns integer
+        return lastRow
+    end
+
+    /*
+    This action returns the first column the change touched, from 0.
+
+    Attribute: Returns The first column.
+    */
+    action GetFirstColumn returns integer
+        return firstColumn
+    end
+
+    /*
+    This action returns the last column the change touched, from 0.
+
+    Attribute: Returns The last column.
+    */
+    action GetLastColumn returns integer
+        return lastColumn
+    end
+
+    /*
+    This action returns a short description of the change, such as "Changed
+    C2" or "Removed rows 4 to 6".
+
+    Attribute: Returns The description.
+    */
+    action GetDescription returns text
+        return description
+    end
+end

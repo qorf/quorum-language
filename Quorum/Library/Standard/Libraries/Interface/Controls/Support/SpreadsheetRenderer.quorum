@@ -1,0 +1,497 @@
+package Libraries.Interface.Controls.Support
+
+use Libraries.Containers.Array
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Label
+use Libraries.Interface.Item2D
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Selections.SpreadsheetSelection
+
+/*
+The SpreadsheetRenderer class draws a Spreadsheet's cells: only those on
+screen, from a few reused labels and rectangles, so a large file draws as
+fast as a small one. It draws the cells' text, the grid lines, the selected
+range, the current cell's outline, and, over the cells, the column letters
+across the top and the row numbers down the left, which stay in place while
+the cells scroll. It also says what is at a place on the screen: a cell, a
+column letter, the edge of one, a row number, or the corner. Each
+Spreadsheet makes its own, so most users won't need this class directly.
+
+Screen readers don't see what it draws; they learn about the cells from the
+Spreadsheet.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Support.SpreadsheetRenderer
+Spreadsheet sheet
+SpreadsheetRenderer renderer = cast(SpreadsheetRenderer, sheet:GetScrollableRegion())
+*/
+class SpreadsheetRenderer is Control
+    public constant integer HIT_NONE = 0
+    public constant integer HIT_CELL = 1
+    public constant integer HIT_COLUMN = 2
+    public constant integer HIT_COLUMN_EDGE = 3
+    public constant integer HIT_ROW = 4
+    public constant integer HIT_CORNER = 5
+
+    // How near the right edge of a column letter, in points, starts a width drag.
+    constant number EDGE_GRAB = 4
+    constant number CELL_PADDING = 6
+    constant number OUTLINE_THICKNESS = 2
+
+    Spreadsheet sheet = undefined
+    Array<Drawable> rectangles
+    Array<Item2D> boxes
+    Array<Label> labels
+    integer rectanglesUsed = 0
+    integer boxesUsed = 0
+    integer labelsUsed = 0
+    Label measure
+
+    integer hitRow = -1
+    integer hitColumn = -1
+
+    on create
+        ManualLayout manual
+        SetLayout(manual)
+        SetName("Spreadsheet Cells")
+        SetAccessibilityCode(parent:Item:NOT_ACCESSIBLE)
+        SetAcceptsMouseInput(false)
+        SetFocusable(false)
+        measure:SetAccessibilityCode(measure:parent:Item:NOT_ACCESSIBLE)
+    end
+
+    /*
+    This action connects the renderer to its spreadsheet. The Spreadsheet
+    calls it.
+
+    Attribute: Parameter sheet The spreadsheet to draw.
+    */
+    action SetSpreadsheet(Spreadsheet sheet)
+        me:sheet = sheet
+    end
+
+    /*
+    This action returns the spreadsheet the renderer draws.
+
+    Attribute: Returns The spreadsheet.
+    */
+    action GetSpreadsheet returns Spreadsheet
+        return sheet
+    end
+
+    /*
+    This action draws the cells on screen again. The Spreadsheet calls it when
+    it scrolls, changes size, or its values or selection change.
+    */
+    action Refresh
+        Empty()
+        rectanglesUsed = 0
+        boxesUsed = 0
+        labelsUsed = 0
+        if sheet = undefined
+            return now
+        end
+        number width = GetWidth()
+        number height = GetHeight()
+        if width <= 0 or height <= 0
+            return now
+        end
+
+        number scale = sheet:GetInterfaceScale()
+        number headerHeight = sheet:GetHeaderHeightInPixels()
+        number rowHeight = sheet:GetRowHeightInPixels()
+        number labelWidth = sheet:GetRowLabelWidthInPixels()
+        integer firstRow = sheet:GetFirstVisibleRow()
+        integer lastRow = sheet:GetLastVisibleRow()
+        integer firstColumn = sheet:GetFirstVisibleColumn()
+        integer lastColumn = sheet:GetLastVisibleColumn()
+        SpreadsheetSelection selection = sheet:GetSelection()
+
+        Color color
+        ColorGroup background = Pick(sheet:GetBackgroundColor(), color:White())
+        ColorGroup gridColor = Pick(sheet:GetBorderColor(), color:CustomColor(0.82, 0.83, 0.85, 1))
+        ColorGroup textColor = Pick(sheet:GetFontColor(), color:Black())
+        ColorGroup headerColor = Pick(sheet:GetForegroundColor(), color:CustomColor(0.93, 0.94, 0.95, 1))
+        ColorGroup headerTextColor = Pick(sheet:GetIconColor(), color:CustomColor(0.35, 0.38, 0.42, 1))
+        ColorGroup rangeColor = Pick(sheet:GetSelectionColor(), color:CustomColor(0.86, 0.91, 0.98, 1))
+        ColorGroup selectedLabelColor = Pick(sheet:GetAccentColor(), color:CustomColor(0.15, 0.46, 0.75, 1))
+        ColorGroup selectedLabelText = Pick(sheet:GetSelectionFontColor(), color:White())
+        ColorGroup outlineColor = Pick(sheet:GetFocusBorderColor(), color:CustomColor(0.15, 0.46, 0.75, 1))
+        if not sheet:IsFocused() and not sheet:IsEditing()
+            outlineColor = Pick(sheet:GetUnfocusedSelectionBorderColor(), color:CustomColor(0.55, 0.57, 0.6, 1))
+        end
+
+        Font font = sheet:GetFont()
+        if font = undefined
+            font = sheet:GetDefaultFont()
+        end
+        integer fontSize = sheet:GetFontSize()
+        if fontSize <= 0
+            fontSize = 14
+        end
+
+        // The cells.
+        AddRectangle(0, 0, width, height, background)
+
+        // The selected range, under the text.
+        if not selection:IsEmpty() and selection:IsRange()
+            integer rangeTop = selection:GetFirstRow()
+            integer rangeBottom = selection:GetLastRow()
+            integer rangeLeft = selection:GetFirstColumn()
+            integer rangeRight = selection:GetLastColumn()
+            if selection:GetKind() = selection:COLUMNS or selection:GetKind() = selection:EVERYTHING
+                rangeTop = firstRow
+                rangeBottom = lastRow
+            end
+            if selection:GetKind() = selection:ROWS or selection:GetKind() = selection:EVERYTHING
+                rangeLeft = firstColumn
+                rangeRight = lastColumn
+            end
+            if rangeTop < firstRow
+                rangeTop = firstRow
+            end
+            if rangeBottom > lastRow
+                rangeBottom = lastRow
+            end
+            if rangeLeft < firstColumn
+                rangeLeft = firstColumn
+            end
+            if rangeRight > lastColumn
+                rangeRight = lastColumn
+            end
+            if rangeTop <= rangeBottom and rangeLeft <= rangeRight
+                number rangeX = sheet:GetCellLeft(rangeLeft)
+                number rangeRightX = sheet:GetCellLeft(rangeRight) + sheet:GetColumnWidthInPixels(rangeRight)
+                number rangeTopY = sheet:GetCellTop(rangeTop)
+                number rangeBottomY = sheet:GetCellTop(rangeBottom) + rowHeight
+                AddRectangle(rangeX, height - rangeBottomY, rangeRightX - rangeX, rangeBottomY - rangeTopY, rangeColor)
+            end
+        end
+
+        // The text of each cell on screen.
+        integer row = firstRow
+        integer column = firstColumn
+        repeat while row <= lastRow
+            number cellTop = sheet:GetCellTop(row)
+            column = firstColumn
+            repeat while column <= lastColumn
+                text value = sheet:GetText(row, column)
+                if value not= ""
+                    number cellLeft = sheet:GetCellLeft(column)
+                    number cellWidth = sheet:GetColumnWidthInPixels(column)
+                    Item2D box = NextBox()
+                    box:SetPosition(cellLeft, height - cellTop - rowHeight)
+                    box:SetSize(cellWidth - 1, rowHeight - 1)
+                    Label label = NextLabel(font, fontSize, scale, textColor, value)
+                    label:SetPosition(CELL_PADDING * scale, (rowHeight - label:GetHeight()) / 2.0)
+                    box:Add(label)
+                    Add(box)
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+
+        // The grid lines.
+        column = firstColumn
+        repeat while column <= lastColumn
+            number lineX = sheet:GetCellLeft(column) + sheet:GetColumnWidthInPixels(column) - 1
+            AddRectangle(lineX, 0, 1, height - headerHeight, gridColor)
+            column = column + 1
+        end
+        row = firstRow
+        repeat while row <= lastRow
+            number lineTop = sheet:GetCellTop(row) + rowHeight - 1
+            AddRectangle(labelWidth, height - lineTop - 1, width - labelWidth, 1, gridColor)
+            row = row + 1
+        end
+
+        // The current cell's outline.
+        if not selection:IsEmpty()
+            integer currentRow = selection:GetRow()
+            integer currentColumn = selection:GetColumn()
+            if currentRow >= firstRow and currentRow <= lastRow and currentColumn >= firstColumn and currentColumn <= lastColumn
+                number outlineLeft = sheet:GetCellLeft(currentColumn) - 1
+                number outlineWidth = sheet:GetColumnWidthInPixels(currentColumn) + 1
+                number outlineBottom = height - sheet:GetCellTop(currentRow) - rowHeight
+                number thickness = OUTLINE_THICKNESS * scale
+                AddRectangle(outlineLeft, outlineBottom, outlineWidth, thickness, outlineColor)
+                AddRectangle(outlineLeft, outlineBottom + rowHeight - thickness, outlineWidth, thickness, outlineColor)
+                AddRectangle(outlineLeft, outlineBottom, thickness, rowHeight, outlineColor)
+                AddRectangle(outlineLeft + outlineWidth - thickness, outlineBottom, thickness, rowHeight, outlineColor)
+            end
+        end
+
+        // The column letters, over the cells.
+        AddRectangle(0, height - headerHeight, width, headerHeight, headerColor)
+        column = firstColumn
+        repeat while column <= lastColumn
+            number letterLeft = sheet:GetCellLeft(column)
+            number letterWidth = sheet:GetColumnWidthInPixels(column)
+            ColorGroup letterColor = headerTextColor
+            if IsWholeColumnSelected(selection, column)
+                AddRectangle(letterLeft, height - headerHeight, letterWidth, headerHeight, selectedLabelColor)
+                letterColor = selectedLabelText
+            elseif not selection:IsEmpty() and column >= selection:GetFirstColumn() and column <= selection:GetLastColumn() and selection:GetKind() not= selection:ROWS
+                AddRectangle(letterLeft, height - headerHeight, letterWidth, headerHeight, rangeColor)
+            end
+            Label letters = NextLabel(font, fontSize, scale, letterColor, sheet:GetColumnLabel(column))
+            letters:SetPosition(letterLeft + (letterWidth - letters:GetWidth()) / 2.0, height - headerHeight + (headerHeight - letters:GetHeight()) / 2.0)
+            Add(letters)
+            AddRectangle(letterLeft + letterWidth - 1, height - headerHeight, 1, headerHeight, gridColor)
+            column = column + 1
+        end
+        AddRectangle(0, height - headerHeight, width, 1, gridColor)
+
+        // The row numbers, over the cells.
+        AddRectangle(0, 0, labelWidth, height - headerHeight, headerColor)
+        row = firstRow
+        repeat while row <= lastRow
+            number labelBottom = height - sheet:GetCellTop(row) - rowHeight
+            ColorGroup numberColor = headerTextColor
+            if IsWholeRowSelected(selection, row)
+                AddRectangle(0, labelBottom, labelWidth, rowHeight, selectedLabelColor)
+                numberColor = selectedLabelText
+            elseif not selection:IsEmpty() and row >= selection:GetFirstRow() and row <= selection:GetLastRow() and selection:GetKind() not= selection:COLUMNS
+                AddRectangle(0, labelBottom, labelWidth, rowHeight, rangeColor)
+            end
+            Label rowNumber = NextLabel(font, fontSize, scale, numberColor, "" + (row + 1))
+            rowNumber:SetPosition(labelWidth - rowNumber:GetWidth() - CELL_PADDING * scale, labelBottom + (rowHeight - rowNumber:GetHeight()) / 2.0)
+            Add(rowNumber)
+            AddRectangle(0, labelBottom, labelWidth, 1, gridColor)
+            row = row + 1
+        end
+        AddRectangle(labelWidth - 1, 0, 1, height, gridColor)
+
+        // The corner, over both.
+        ColorGroup cornerColor = headerColor
+        if not selection:IsEmpty() and selection:GetKind() = selection:EVERYTHING
+            cornerColor = selectedLabelColor
+        end
+        AddRectangle(0, height - headerHeight, labelWidth, headerHeight, cornerColor)
+        AddRectangle(labelWidth - 1, height - headerHeight, 1, headerHeight, gridColor)
+        AddRectangle(0, height - headerHeight, labelWidth, 1, gridColor)
+    end
+
+    private action IsWholeColumnSelected(SpreadsheetSelection selection, integer column) returns boolean
+        if selection:IsEmpty()
+            return false
+        end
+        if selection:GetKind() = selection:EVERYTHING
+            return true
+        end
+        return selection:GetKind() = selection:COLUMNS and column >= selection:GetFirstColumn() and column <= selection:GetLastColumn()
+    end
+
+    private action IsWholeRowSelected(SpreadsheetSelection selection, integer row) returns boolean
+        if selection:IsEmpty()
+            return false
+        end
+        if selection:GetKind() = selection:EVERYTHING
+            return true
+        end
+        return selection:GetKind() = selection:ROWS and row >= selection:GetFirstRow() and row <= selection:GetLastRow()
+    end
+
+    private action Pick(ColorGroup chosen, ColorGroup fallback) returns ColorGroup
+        if chosen = undefined
+            return fallback
+        end
+        return chosen
+    end
+
+    // A filled rectangle, from its bottom left corner, added to the renderer.
+    private action AddRectangle(number x, number y, number width, number height, ColorGroup color)
+        if width <= 0 or height <= 0
+            return now
+        end
+        Drawable rectangle = undefined
+        if rectanglesUsed < rectangles:GetSize()
+            rectangle = rectangles:Get(rectanglesUsed)
+        else
+            Drawable made
+            Color white
+            made:LoadFilledRectangle(1, 1, white:White())
+            made:SetAccessibilityCode(made:parent:Item:NOT_ACCESSIBLE)
+            rectangles:Add(made)
+            rectangle = made
+        end
+        rectanglesUsed = rectanglesUsed + 1
+        rectangle:SetPosition(x, y)
+        rectangle:SetSize(width, height)
+        rectangle:SetColor(color)
+        Add(rectangle)
+    end
+
+    // A box that cuts off a cell's text at the cell's edges.
+    private action NextBox returns Item2D
+        Item2D box = undefined
+        if boxesUsed < boxes:GetSize()
+            box = boxes:Get(boxesUsed)
+            box:Empty()
+        else
+            Item2D made
+            made:SetClipping(true)
+            made:SetAccessibilityCode(made:parent:Item:NOT_ACCESSIBLE)
+            boxes:Add(made)
+            box = made
+        end
+        boxesUsed = boxesUsed + 1
+        return box
+    end
+
+    private action NextLabel(Font font, integer fontSize, number scale, ColorGroup color, text value) returns Label
+        Label label = undefined
+        if labelsUsed < labels:GetSize()
+            label = labels:Get(labelsUsed)
+        else
+            Label made
+            made:SetAccessibilityCode(made:parent:Item:NOT_ACCESSIBLE)
+            made:SetPositionOnBaseLine(false)
+            made:SetAcceptsMouseInput(false)
+            labels:Add(made)
+            label = made
+        end
+        labelsUsed = labelsUsed + 1
+        // A label from the pool may still be in a cell's box from the last
+        // drawing; it leaves that box before it goes anywhere else.
+        Item2D owner = label:GetParent()
+        if owner not= undefined
+            boolean removed = owner:Remove(label)
+        end
+        if font not= undefined
+            label:SetFont(font)
+        end
+        label:SetFontSize(fontSize)
+        label:SetInterfaceScale(scale)
+        label:SetColor(color)
+        label:SetText(value)
+        return label
+    end
+
+    /*
+    This action returns how wide a text is in the spreadsheet's font, in
+    points before the interface scale. FitColumnWidth uses it.
+
+    Attribute: Parameter value The text.
+
+    Attribute: Returns The width.
+    */
+    action MeasureText(text value) returns number
+        if sheet = undefined
+            return 0
+        end
+        Font font = sheet:GetFont()
+        if font = undefined
+            font = sheet:GetDefaultFont()
+        end
+        if font not= undefined
+            measure:SetFont(font)
+        end
+        integer fontSize = sheet:GetFontSize()
+        if fontSize <= 0
+            fontSize = 14
+        end
+        measure:SetFontSize(fontSize)
+        measure:SetInterfaceScale(1)
+        measure:SetText(value)
+        return measure:GetWidth()
+    end
+
+    /*
+    This action says what is at a place on the screen: HIT_CELL, HIT_COLUMN,
+    HIT_COLUMN_EDGE, HIT_ROW, HIT_CORNER or HIT_NONE. GetHitRow and
+    GetHitColumn then give the row and column, or -1.
+
+    Attribute: Parameter x The place across the screen.
+
+    Attribute: Parameter y The place up the screen.
+
+    Attribute: Returns What is there.
+    */
+    action HitTest(number x, number y) returns integer
+        hitRow = -1
+        hitColumn = -1
+        if sheet = undefined
+            return HIT_NONE
+        end
+        number localX = x - GetGlobalX()
+        number fromTop = GetGlobalY() + GetHeight() - y
+        if localX < 0 or localX >= GetWidth() or fromTop < 0 or fromTop >= GetHeight()
+            return HIT_NONE
+        end
+        number headerHeight = sheet:GetHeaderHeightInPixels()
+        number labelWidth = sheet:GetRowLabelWidthInPixels()
+        if fromTop < headerHeight and localX < labelWidth
+            return HIT_CORNER
+        end
+        if fromTop >= headerHeight
+            hitRow = cast(integer, (fromTop + sheet:GetScrollOffsetY() - headerHeight) / sheet:GetRowHeightInPixels())
+            if hitRow > sheet:GetDisplayedRowSize() - 1
+                hitRow = sheet:GetDisplayedRowSize() - 1
+            end
+            if hitRow < 0
+                hitRow = 0
+            end
+        end
+        if localX >= labelWidth
+            hitColumn = ColumnAt(localX)
+        end
+        if fromTop < headerHeight
+            // Near the right edge of a letter, or the left edge of the next.
+            number grab = EDGE_GRAB * sheet:GetInterfaceScale()
+            number right = sheet:GetCellLeft(hitColumn) + sheet:GetColumnWidthInPixels(hitColumn)
+            if right - localX <= grab
+                return HIT_COLUMN_EDGE
+            end
+            if hitColumn > 0 and localX - sheet:GetCellLeft(hitColumn) <= grab
+                hitColumn = hitColumn - 1
+                return HIT_COLUMN_EDGE
+            end
+            return HIT_COLUMN
+        end
+        if localX < labelWidth
+            return HIT_ROW
+        end
+        return HIT_CELL
+    end
+
+    // The column under a place across the renderer.
+    private action ColumnAt(number localX) returns integer
+        integer column = sheet:GetFirstVisibleColumn()
+        integer last = sheet:GetLastVisibleColumn()
+        repeat while column < last
+            if sheet:GetCellLeft(column) + sheet:GetColumnWidthInPixels(column) > localX
+                return column
+            end
+            column = column + 1
+        end
+        return last
+    end
+
+    /*
+    This action returns the row found by the last HitTest, or -1.
+
+    Attribute: Returns The row.
+    */
+    action GetHitRow returns integer
+        return hitRow
+    end
+
+    /*
+    This action returns the column found by the last HitTest, or -1.
+
+    Attribute: Returns The column.
+    */
+    action GetHitColumn returns integer
+        return hitColumn
+    end
+end

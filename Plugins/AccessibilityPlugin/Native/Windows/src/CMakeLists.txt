@@ -42,6 +42,9 @@ add_library(AccessibilityManagerWindows MODULE
 	ProgressBarProvider.cpp
 	SliderControl.cpp
 	SliderProvider.cpp
+    SpreadsheetControl.cpp
+    SpreadsheetPartProvider.cpp
+    SpreadsheetProvider.cpp
     RadioButtonControl.cpp
     RadioButtonProvider.cpp
     Resources.cpp

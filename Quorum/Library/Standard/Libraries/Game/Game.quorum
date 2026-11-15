@@ -653,9 +653,6 @@ class Game
         // Adding Tree Input
         sets:SetupTreeInput(gameInput)
 
-        // Adding Spreadsheet Input
-        sets:SetupSpreadsheetInput(gameInput)
-
         // Adding TreeTable Input
         sets:SetupTreeTableInput(gameInput)
 
@@ -696,6 +693,9 @@ class Game
         sets:SetupComboBoxInput(gameInput)
         sets:SetupColorPickerInput(gameInput)
         sets:SetupCalendarInput(gameInput)
+        // Spreadsheets, after text fields: the field a cell is edited in
+        // starts from the "TextField" table.
+        sets:SetupSpreadsheetInput(gameInput)
     end
 
     /*

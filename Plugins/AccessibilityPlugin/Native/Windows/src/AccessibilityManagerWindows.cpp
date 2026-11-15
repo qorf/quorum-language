@@ -23,12 +23,14 @@
 #include "ComboBoxControl.h"
 #include "ColorWellControl.h"
 #include "CalendarControl.h"
+#include "SpreadsheetControl.h"
 // The providers of the controls made in this file, so the controls' members
 // are complete wherever their destructors are generated.
 #include "TextFieldProvider.h"
 #include "ComboBoxProvider.h"
 #include "ColorWellProvider.h"
 #include "CalendarProvider.h"
+#include "SpreadsheetProvider.h"
 #include "TreeControl.h"
 #include "TreeItemControl.h"
 #include "TextFieldControl.h"
@@ -430,12 +432,13 @@ JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMan
 	WCHAR* wName = CreateWideStringFromUTF8Win32(nativeName);
 
 	const auto parentItem = GetItemFromLong(parent);
-	// Currently we pass the empty string for the description -- this needs to be instead retrieved from Quorum.
-	const auto table = Create<TableControl>(env, parentItem, wName, L"", jItem);
+	// A spreadsheet's cells aren't Quorum items: SpreadsheetControl makes them
+	// from their rows and columns. The description is empty for now.
+	const auto sheet = Create<SpreadsheetControl>(env, parentItem, wName, L"", jItem);
 
 	env->ReleaseStringUTFChars(name, nativeName);
 
-	return GetItemAsLong(table);
+	return GetItemAsLong(sheet);
 }
 
 JNIEXPORT jlong JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_CreateTreeTableNative(JNIEnv* env, jobject obj, jlong parent, jstring name, jobject jItem)
@@ -794,6 +797,19 @@ JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityMana
 		return false;
 	}
 	calendar->NotifyChanged();
+
+	return true;
+}
+
+// A spreadsheet changed in Quorum: refresh its cells and follow the current cell.
+JNIEXPORT bool JNICALL Java_plugins_quorum_Libraries_Interface_AccessibilityManager_SpreadsheetChangedNative(JNIEnv*, jobject, jlong pointer)
+{
+	SpreadsheetControl* sheet = static_cast<SpreadsheetControl*>(GetItemFromLong(pointer));
+	if (sheet == nullptr)
+	{
+		return false;
+	}
+	sheet->NotifyChanged();
 
 	return true;
 }

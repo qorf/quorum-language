@@ -1,0 +1,63 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.TextInputEvent
+use Libraries.Interface.Controls.Spreadsheet
+
+/*
+The SpreadsheetTypingBehavior class starts editing a Spreadsheet's current
+cell when the user types, as in Excel: the typed text replaces the cell's
+text, in the edit field over the cell. The space typed with Shift-Space,
+which selects the row, is dropped. SpreadsheetInputSetup gives it the
+typing input, so most users won't need it.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Behaviors.Controls.SpreadsheetTypingBehavior
+SpreadsheetTypingBehavior behavior
+*/
+class SpreadsheetTypingBehavior is Behavior
+    /*
+    This action starts editing with the typed text. The input tables call
+    it, so most users won't need to.
+
+    Attribute: Parameter event The typing event, whose item is the spreadsheet.
+    */
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Spreadsheet)
+            return now
+        end
+        Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
+        if sheet:IsEditing()
+            return now
+        end
+        TextInputEvent textEvent = event:GetTextInputEvent()
+        if textEvent = undefined
+            return now
+        end
+        text typed = textEvent:GetText()
+        if typed = undefined or typed = ""
+            return now
+        end
+        // Enter, Tab and other control characters have their own keys.
+        if typed:Contains(typed:GetTab()) or typed:Contains(typed:GetLineFeed()) or typed:Contains(typed:GetCarriageReturn())
+            return now
+        end
+        if typed = " " and sheet:TakeIgnoredSpace()
+            return now
+        end
+        sheet:ForgetIgnoredSpace()
+        sheet:BeginEditing(typed)
+    end
+
+    /*
+    This action returns true: the typing's work is done at once.
+
+    Attribute: Returns True.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

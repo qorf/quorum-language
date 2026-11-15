@@ -1,0 +1,125 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Selections.SpreadsheetSelection
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+
+/*
+The SpreadsheetMenuBehavior class carries out an item of a Spreadsheet's
+menu: adding or removing rows and columns, fitting a column's width, and
+cut, copy, paste and clear. The Spreadsheet makes one for each item when it
+opens its menu, so most users won't need this class directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Behaviors.Controls.SpreadsheetMenuBehavior
+Spreadsheet sheet
+SpreadsheetMenuBehavior behavior
+behavior:Setup(sheet, behavior:INSERT_ROWS_ABOVE)
+*/
+class SpreadsheetMenuBehavior is Behavior
+    public constant integer INSERT_ROWS_ABOVE = 0
+    public constant integer INSERT_ROWS_BELOW = 1
+    public constant integer DELETE_ROWS = 2
+    public constant integer INSERT_COLUMNS_LEFT = 3
+    public constant integer INSERT_COLUMNS_RIGHT = 4
+    public constant integer DELETE_COLUMNS = 5
+    public constant integer FIT_WIDTH = 6
+    public constant integer CUT = 7
+    public constant integer COPY = 8
+    public constant integer PASTE = 9
+    public constant integer CLEAR = 10
+
+    Spreadsheet sheet = undefined
+    integer command = INSERT_ROWS_ABOVE
+    GameStateManager manager
+
+    /*
+    This action sets the spreadsheet and what the item does.
+
+    Attribute: Parameter sheet The spreadsheet.
+
+    Attribute: Parameter command What the item does, such as INSERT_ROWS_ABOVE.
+    */
+    action Setup(Spreadsheet sheet, integer command)
+        me:sheet = sheet
+        me:command = command
+    end
+
+    /*
+    This action carries out the menu item.
+
+    Attribute: Parameter event The event.
+    */
+    action Run(BehaviorEvent event)
+        if sheet = undefined
+            return now
+        end
+        SpreadsheetSelection selection = sheet:GetSelection()
+        if selection:IsEmpty()
+            sheet:Select(0, 0)
+        end
+        integer firstRow = selection:GetFirstRow()
+        integer lastRow = selection:GetLastRow()
+        integer firstColumn = selection:GetFirstColumn()
+        integer lastColumn = selection:GetLastColumn()
+        integer rowCount = lastRow - firstRow + 1
+        integer columnCount = lastColumn - firstColumn + 1
+        if selection:GetKind() not= selection:ROWS
+            rowCount = 1
+            firstRow = selection:GetRow()
+            lastRow = selection:GetRow()
+        end
+        if selection:GetKind() not= selection:COLUMNS
+            columnCount = 1
+            firstColumn = selection:GetColumn()
+            lastColumn = selection:GetColumn()
+        end
+
+        if command = INSERT_ROWS_ABOVE
+            sheet:AddRowsAsUser(firstRow, rowCount)
+        elseif command = INSERT_ROWS_BELOW
+            sheet:AddRowsAsUser(lastRow + 1, rowCount)
+        elseif command = DELETE_ROWS
+            sheet:RemoveRowsAsUser(firstRow, lastRow)
+        elseif command = INSERT_COLUMNS_LEFT
+            sheet:AddColumnsAsUser(firstColumn, columnCount)
+        elseif command = INSERT_COLUMNS_RIGHT
+            sheet:AddColumnsAsUser(lastColumn + 1, columnCount)
+        elseif command = DELETE_COLUMNS
+            sheet:RemoveColumnsAsUser(firstColumn, lastColumn)
+        elseif command = FIT_WIDTH
+            integer column = firstColumn
+            repeat while column <= lastColumn
+                sheet:FitColumnWidth(column)
+                column = column + 1
+            end
+        elseif command = CUT
+            Game game = manager:GetGame()
+            game:SetClipboard(sheet:CutSelectionAsUser())
+        elseif command = COPY
+            Game copyGame = manager:GetGame()
+            copyGame:SetClipboard(sheet:CopySelection())
+        elseif command = PASTE
+            Game pasteGame = manager:GetGame()
+            sheet:PasteAsUser(pasteGame:GetClipboard())
+        elseif command = CLEAR
+            sheet:ClearSelectionAsUser()
+        end
+        sheet:Focus()
+    end
+
+    /*
+    This action returns true: the item's work is done at once.
+
+    Attribute: Returns True.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

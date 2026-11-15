@@ -27,7 +27,7 @@ use Libraries.Interface.Controls.TreeTableCell
 use Libraries.Interface.Controls.ListItem
 use Libraries.Interface.Selections.ListSelection
 use Libraries.Interface.Selections.SpreadsheetSelection
-use Libraries.Interface.Controls.Cell
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Interface.Controls.MenuItem
@@ -238,6 +238,17 @@ class Accessibility
     action CalendarChanged(Calendar calendar)
     end
 
+    /*
+        This action indicates that a spreadsheet changed: its values, its
+        size, what is on screen, or the selection. It does nothing here; a
+        platform that supports spreadsheets overrides it to read the cells
+        on screen again and move its focus to the current cell.
+
+        Attribute: Parameter sheet The spreadsheet that changed.
+    */
+    action SpreadsheetChanged(Spreadsheet sheet)
+    end
+
     blueprint action TextSelectionChanged(TextBoxSelection selection)
 
     blueprint action TextSelectionChanged(TextFieldSelection selection)
@@ -289,11 +300,12 @@ class Accessibility
             end
 
         elseif selection is SpreadsheetSelection
+            // A spreadsheet's cells aren't items: its platform kit or
+            // provider reads them, and is told the selection moved.
             SpreadsheetSelection tableSelection = cast(SpreadsheetSelection, selection)
-            if not tableSelection:IsEmpty()
-                Cell cell = tableSelection:Get()
-
-                Select(cell)
+            Spreadsheet sheet = tableSelection:GetSpreadsheet()
+            if sheet not= undefined
+                SpreadsheetChanged(sheet)
             end
         elseif selection is ListSelection
             ListSelection listSelection = cast(ListSelection, selection)

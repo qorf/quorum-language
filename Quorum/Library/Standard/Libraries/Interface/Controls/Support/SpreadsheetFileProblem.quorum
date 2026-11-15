@@ -1,0 +1,74 @@
+package Libraries.Interface.Controls.Support
+
+/*
+The SpreadsheetFileProblem class says what wasn't valid in a comma separated
+value (CSV) file, and where: the row and column of the value, counted from 0.
+SpreadsheetFile makes one for each problem it finds while reading, such as a
+quoted value whose closing quote never comes. The file is still read; the
+value takes the rest of the file, and saving writes it as valid CSV.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Support.SpreadsheetFile
+use Libraries.Interface.Controls.Support.SpreadsheetFileProblem
+use Libraries.Interface.Controls.Support.SpreadsheetRow
+use Libraries.Containers.Array
+SpreadsheetFile reader
+text quote = ""
+quote = quote:GetDoubleQuote()
+Array<SpreadsheetRow> rows = reader:Read("Name,Note" + quote + "never closed")
+Array<SpreadsheetFileProblem> problems = reader:GetProblems()
+if not problems:IsEmpty()
+    output problems:Get(0):GetDescription()
+end
+*/
+class SpreadsheetFileProblem
+    integer row = 0
+    integer column = 0
+    text description = ""
+
+    /*
+    This action sets where the problem is and what it is. SpreadsheetFile
+    calls it.
+
+    Attribute: Parameter row The row of the value, from 0.
+
+    Attribute: Parameter column The column of the value, from 0.
+
+    Attribute: Parameter description What is wrong, in a sentence.
+    */
+    action Set(integer row, integer column, text description)
+        me:row = row
+        me:column = column
+        me:description = description
+    end
+
+    /*
+    This action returns the row of the value with the problem, from 0.
+
+    Attribute: Returns The row.
+    */
+    action GetRow returns integer
+        return row
+    end
+
+    /*
+    This action returns the column of the value with the problem, from 0.
+
+    Attribute: Returns The column.
+    */
+    action GetColumn returns integer
+        return column
+    end
+
+    /*
+    This action returns what is wrong, in a sentence, such as "A quoted value
+    never closes."
+
+    Attribute: Returns The description.
+    */
+    action GetDescription returns text
+        return description
+    end
+end

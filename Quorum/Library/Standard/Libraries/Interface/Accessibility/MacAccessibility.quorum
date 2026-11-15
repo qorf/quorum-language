@@ -19,6 +19,7 @@ use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Selections.TextBoxSelection
@@ -128,6 +129,19 @@ class MacAccessibility is Accessibility
     end
 
     private system action NativeCalendarChanged(Calendar calendar)
+
+    /*
+        A spreadsheet changed: its values, its size, what is on screen, or the
+        selection. Its grid, rows and cells are built again on the next
+        update, and the focus moves to the current cell (SpreadsheetKit).
+    */
+    action SpreadsheetChanged(Spreadsheet sheet)
+        if sheet not= undefined
+            NativeSpreadsheetChanged(sheet)
+        end
+    end
+
+    private system action NativeSpreadsheetChanged(Spreadsheet sheet)
 
     system action ButtonActivated(Button button)
 

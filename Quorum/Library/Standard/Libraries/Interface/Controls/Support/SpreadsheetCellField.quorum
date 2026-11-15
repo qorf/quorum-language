@@ -1,0 +1,75 @@
+package Libraries.Interface.Controls.Support
+
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Events.FocusEvent
+
+/*
+The SpreadsheetCellField class is the text field a Spreadsheet places over a
+cell while the user edits it in place. Typing, the caret and the selection
+work as in any text field. Enter keeps the edit and moves down, Shift-Enter
+up, Tab right and Shift-Tab left; Escape cancels. Leaving the field another
+way, such as by clicking elsewhere, keeps the edit. Its name for screen
+readers is the cell's, such as "Cell C2". Each Spreadsheet makes its own, so
+most users won't need this class directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Support.SpreadsheetCellField
+Spreadsheet sheet
+SpreadsheetCellField field = sheet:GetEditField()
+*/
+class SpreadsheetCellField is TextField
+    Spreadsheet sheet = undefined
+
+    on create
+        SetInputGroup("SpreadsheetCellField")
+        SetName("Cell")
+    end
+
+    /*
+    This action connects the field to its spreadsheet. The Spreadsheet calls
+    it.
+
+    Attribute: Parameter sheet The spreadsheet.
+    */
+    action SetSpreadsheet(Spreadsheet sheet)
+        me:sheet = sheet
+    end
+
+    /*
+    This action returns the field's spreadsheet.
+
+    Attribute: Returns The spreadsheet.
+    */
+    action GetSpreadsheet returns Spreadsheet
+        return sheet
+    end
+
+    /*
+    This action is called when the field gets the focus. It does what a text
+    field does; it is here because the field also overrides LostFocus, and
+    TextField's focus actions come from more than one parent.
+
+    Attribute: Parameter event The focus event.
+    */
+    action GainedFocus(FocusEvent event)
+        parent:TextField:GainedFocus(event)
+    end
+
+    /*
+    This action is called when the field loses the focus. If the spreadsheet
+    is still editing, as when the user clicked somewhere else, the edit is
+    kept.
+
+    Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        parent:TextField:LostFocus(event)
+        if sheet not= undefined and sheet:IsEditing()
+            sheet:CommitEditingWithoutFocus()
+        end
+    end
+end

@@ -1,0 +1,98 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.MouseEvent
+use Libraries.Interface.Events.TouchEvent
+use Libraries.Interface.Events.DragAndDropEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Game.InputMonitor
+
+/*
+The SpreadsheetPointerBehavior class answers the mouse and fingers on a
+Spreadsheet: a press selects (a double click edits a cell), dragging extends
+the selection or changes a column's width, and letting go ends it. Set up
+for the menu, a press opens the spreadsheet's menu instead, as a right click
+does. SpreadsheetInputSetup gives it its inputs, so most users won't need it.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Behaviors.Controls.SpreadsheetPointerBehavior
+SpreadsheetPointerBehavior behavior
+behavior:SetOpensMenu(true)
+*/
+class SpreadsheetPointerBehavior is Behavior
+    boolean opensMenu = false
+    InputMonitor monitor
+    KeyboardEvent keys
+
+    /*
+    This action sets whether a press opens the menu, as a right click does,
+    instead of selecting.
+
+    Attribute: Parameter value True to open the menu.
+    */
+    action SetOpensMenu(boolean value)
+        opensMenu = value
+    end
+
+    /*
+    This action passes the mouse or finger to the spreadsheet. The input
+    tables call it, so most users won't need to.
+
+    Attribute: Parameter event The event, whose item is the spreadsheet.
+    */
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is Spreadsheet)
+            return now
+        end
+        Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
+
+        DragAndDropEvent dragEvent = event:GetDragAndDropEvent()
+        if dragEvent not= undefined
+            if dragEvent:eventType = dragEvent:DRAGGING_BEGAN or dragEvent:eventType = dragEvent:DRAGGING_CONTINUED
+                sheet:DragTo(dragEvent:GetX(), dragEvent:GetY())
+            elseif dragEvent:eventType = dragEvent:DROPPED
+                sheet:Release()
+            end
+            return now
+        end
+
+        TouchEvent touchEvent = event:GetTouchEvent()
+        if touchEvent not= undefined
+            if touchEvent:eventType = touchEvent:BEGAN
+                sheet:PressAt(touchEvent:x, touchEvent:y, 1, false)
+            elseif touchEvent:eventType = touchEvent:MOVED
+                sheet:DragTo(touchEvent:x, touchEvent:y)
+            elseif touchEvent:eventType = touchEvent:ENDED or touchEvent:eventType = touchEvent:CANCELLED
+                sheet:Release()
+            end
+            return now
+        end
+
+        MouseEvent mouseEvent = event:GetMouseEvent()
+        if mouseEvent not= undefined
+            if mouseEvent:eventType = mouseEvent:CLICKED_MOUSE
+                if opensMenu
+                    sheet:OpenContextMenuAt(mouseEvent:GetX(), mouseEvent:GetY())
+                else
+                    boolean shift = monitor:IsKeyPressed(keys:SHIFT_LEFT) or monitor:IsKeyPressed(keys:SHIFT_RIGHT)
+                    sheet:PressAt(mouseEvent:GetX(), mouseEvent:GetY(), mouseEvent:GetClickCount(), shift)
+                end
+            elseif mouseEvent:eventType = mouseEvent:RELEASED_MOUSE
+                sheet:Release()
+            end
+        end
+    end
+
+    /*
+    This action returns true: each event's work is done at once.
+
+    Attribute: Returns True.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end

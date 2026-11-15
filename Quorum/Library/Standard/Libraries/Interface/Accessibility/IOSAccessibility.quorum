@@ -18,6 +18,7 @@ use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -125,6 +126,18 @@ class IOSAccessibility is Accessibility
     end
 
     /*
+        A spreadsheet changed: its values, its size, what is on screen, or the
+        selection. Its cell and header elements are made again for the cells
+        on screen, and when VoiceOver is on one of its cells, it goes to the
+        current cell.
+    */
+    action SpreadsheetChanged(Spreadsheet sheet)
+        if sheet not= undefined
+            NativeSpreadsheetChanged(sheet)
+        end
+    end
+
+    /*
         This action moves VoiceOver to the focused item's new active part,
         such as a combo box's highlighted row, so it reads the part as the
         keys move it, while the focus stays on the item. When the active part
@@ -151,6 +164,8 @@ class IOSAccessibility is Accessibility
     private system action NativeActiveDescendantChanged(Item focus, Item active)
 
     private system action NativeCalendarChanged(Calendar calendar)
+
+    private system action NativeSpreadsheetChanged(Spreadsheet sheet)
 
     private system action NativeTooltipShown(Tooltip tooltip)
 

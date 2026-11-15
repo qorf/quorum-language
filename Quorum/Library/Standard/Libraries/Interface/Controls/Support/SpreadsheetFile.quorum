@@ -1,0 +1,313 @@
+package Libraries.Interface.Controls.Support
+
+use Libraries.Containers.Array
+use Libraries.System.File
+use Libraries.Language.Support.TextBuilder
+
+/*
+The SpreadsheetFile class reads the text of a comma separated value (CSV)
+file into rows, and writes rows back as text, so that a file opened and saved
+without changes is the same as it was. It reads the whole text, not line by
+line, so a quoted value can hold a line break. It remembers how each value
+was written (quoted or not), how each line ended (a line feed, a carriage
+return and line feed, or a carriage return), whether the last line ended
+with a line break, and whether the file started with a byte order mark.
+
+Every value is text: nothing is turned into numbers or dates, and a value
+starting with = is text like any other.
+
+When writing, a value read from the file and not changed is written exactly
+as it was. A changed value is written plain, or in quotes when it holds a
+comma, a quote, or a line break, with each quote inside doubled.
+
+A file that isn't valid CSV, such as one with a quoted value that never
+closes, is still read: the problem is listed in GetProblems, the value takes
+the rest of the file, and writing gives valid CSV.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Support.SpreadsheetFile
+use Libraries.Interface.Controls.Support.SpreadsheetRow
+use Libraries.Containers.Array
+SpreadsheetFile csv
+Array<SpreadsheetRow> rows = csv:Read("Name,Year
+Ada,1815")
+output rows:Get(1):GetValue(0)
+output csv:Write(rows)
+*/
+class SpreadsheetFile
+    boolean byteOrderMark = false
+    Array<SpreadsheetFileProblem> problems
+    // The Unicode value of the byte order mark.
+    constant integer BYTE_ORDER_MARK = 65279
+
+    /*
+    This action reads CSV text into rows, one for each line of the file. An
+    empty text gives no rows. A file ending with a line break gives no empty
+    row after it.
+
+    Attribute: Parameter contents The text of a CSV file.
+
+    Attribute: Returns The rows, in order.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetFile
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    use Libraries.Containers.Array
+    SpreadsheetFile csv
+    Array<SpreadsheetRow> rows = csv:Read("a,b,c")
+    output rows:Get(0):GetSize()
+    */
+    action Read(text contents) returns Array<SpreadsheetRow>
+        Array<SpreadsheetRow> rows
+        problems:Empty()
+        byteOrderMark = false
+        if contents = undefined
+            return rows
+        end
+
+        integer size = contents:GetSize()
+        integer index = 0
+        if size > 0
+            if contents:GetUnicodeInteger(0) = BYTE_ORDER_MARK
+                byteOrderMark = true
+                index = 1
+            end
+        end
+
+        text quote = contents:GetDoubleQuote()
+        text lineFeed = contents:GetLineFeed()
+        text carriageReturn = contents:GetCarriageReturn()
+
+        SpreadsheetRow row
+        TextBuilder value
+        integer fieldStart = index
+        boolean inQuotes = false
+        // The field has had characters, so a quote is a plain character.
+        boolean fieldStarted = false
+        // The row has a field, or the current field has text.
+        boolean rowStarted = false
+        integer quoteRow = 0
+        integer quoteColumn = 0
+
+        repeat while index < size
+            text character = contents:GetCharacter(index)
+            if inQuotes
+                if character = quote
+                    if index + 1 < size and contents:GetCharacter(index + 1) = quote
+                        value:Append(quote)
+                        index = index + 2
+                    else
+                        inQuotes = false
+                        index = index + 1
+                    end
+                else
+                    value:Append(character)
+                    index = index + 1
+                end
+            elseif character = quote and not fieldStarted
+                inQuotes = true
+                fieldStarted = true
+                rowStarted = true
+                quoteRow = rows:GetSize()
+                quoteColumn = row:GetSize()
+                index = index + 1
+            elseif character = ","
+                row:AddReadValue(value:ToText(), contents:GetSubtext(fieldStart, index))
+                TextBuilder nextValue
+                value = nextValue
+                fieldStarted = false
+                rowStarted = true
+                index = index + 1
+                fieldStart = index
+            elseif character = carriageReturn or character = lineFeed
+                text ending = character
+                integer endingSize = 1
+                if character = carriageReturn and index + 1 < size
+                    if contents:GetCharacter(index + 1) = lineFeed
+                        ending = carriageReturn + lineFeed
+                        endingSize = 2
+                    end
+                end
+                row:AddReadValue(value:ToText(), contents:GetSubtext(fieldStart, index))
+                row:SetLineEnding(ending)
+                rows:Add(row)
+                SpreadsheetRow nextRow
+                row = nextRow
+                TextBuilder lineValue
+                value = lineValue
+                fieldStarted = false
+                rowStarted = false
+                index = index + endingSize
+                fieldStart = index
+            else
+                value:Append(character)
+                fieldStarted = true
+                rowStarted = true
+                index = index + 1
+            end
+        end
+
+        if inQuotes
+            SpreadsheetFileProblem problem
+            problem:Set(quoteRow, quoteColumn, "A quoted value never closes, so it takes the rest of the file.")
+            problems:Add(problem)
+        end
+
+        if rowStarted
+            row:AddReadValue(value:ToText(), contents:GetSubtext(fieldStart, size))
+            if inQuotes
+                // Written fresh, so saving gives valid CSV.
+                row:ForgetWritten(row:GetSize() - 1)
+            end
+            row:SetLineEnding("")
+            rows:Add(row)
+        end
+        return rows
+    end
+
+    /*
+    This action reads a CSV file into rows, as Read(text) does with the file's
+    text.
+
+    Attribute: Parameter file The file to read.
+
+    Attribute: Returns The rows, in order.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetFile
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    use Libraries.Containers.Array
+    use Libraries.System.File
+    File file
+    file:SetPath("Data.csv")
+    SpreadsheetFile csv
+    Array<SpreadsheetRow> rows = csv:Read(file)
+    */
+    action Read(File file) returns Array<SpreadsheetRow>
+        return Read(file:Read())
+    end
+
+    /*
+    This action writes rows as CSV text. Values read from a file and not
+    changed are written exactly as they were; changed values are quoted only
+    when they need to be. Each row ends as it did in the file.
+
+    Attribute: Parameter rows The rows to write.
+
+    Attribute: Returns The CSV text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetFile
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    use Libraries.Containers.Array
+    SpreadsheetFile csv
+    Array<SpreadsheetRow> rows = csv:Read("a,b")
+    rows:Get(0):SetValue(1, "c, d")
+    output csv:Write(rows)
+    */
+    action Write(Array<SpreadsheetRow> rows) returns text
+        TextBuilder result
+        text empty = ""
+        if byteOrderMark
+            result:Append(empty:GetUnicodeValue(BYTE_ORDER_MARK))
+        end
+        integer rowIndex = 0
+        repeat while rowIndex < rows:GetSize()
+            SpreadsheetRow row = rows:Get(rowIndex)
+            integer column = 0
+            repeat while column < row:GetSize()
+                if column > 0
+                    result:Append(",")
+                end
+                text writtenText = row:GetWritten(column)
+                if writtenText not= undefined
+                    result:Append(writtenText)
+                else
+                    result:Append(Encode(row:GetValue(column)))
+                end
+                column = column + 1
+            end
+            result:Append(row:GetLineEnding())
+            rowIndex = rowIndex + 1
+        end
+        return result:ToText()
+    end
+
+    /*
+    This action writes rows to a CSV file, replacing what was in it.
+
+    Attribute: Parameter rows The rows to write.
+
+    Attribute: Parameter file The file to write.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetFile
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    use Libraries.Containers.Array
+    use Libraries.System.File
+    File file
+    file:SetPath("Data.csv")
+    SpreadsheetFile csv
+    Array<SpreadsheetRow> rows = csv:Read(file)
+    csv:Write(rows, file)
+    */
+    action Write(Array<SpreadsheetRow> rows, File file)
+        file:Write(Write(rows))
+    end
+
+    /*
+    This action returns one value as CSV writes it: plain, or in quotes with
+    each quote doubled when it holds a comma, a quote, a carriage return or a
+    line feed.
+
+    Attribute: Parameter value The value.
+
+    Attribute: Returns The value as written in a CSV file.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetFile
+    SpreadsheetFile csv
+    output csv:Encode("Las Vegas, NV")
+    */
+    action Encode(text value) returns text
+        if value = undefined
+            return ""
+        end
+        text quote = value:GetDoubleQuote()
+        if value:Contains(",") or value:Contains(quote) or value:Contains(value:GetLineFeed()) or value:Contains(value:GetCarriageReturn())
+            return quote + value:Replace(quote, quote + quote) + quote
+        end
+        return value
+    end
+
+    /*
+    This action returns true if the text last read started with a byte order
+    mark. Writing puts it back.
+
+    Attribute: Returns True if there was a byte order mark.
+    */
+    action HasByteOrderMark returns boolean
+        return byteOrderMark
+    end
+
+    /*
+    This action sets whether writing starts with a byte order mark.
+
+    Attribute: Parameter mark True to write a byte order mark.
+    */
+    action SetByteOrderMark(boolean mark)
+        byteOrderMark = mark
+    end
+
+    /*
+    This action returns the problems found in the text last read, or an empty
+    array when it was valid CSV.
+
+    Attribute: Returns The problems, in the order they were found.
+    */
+    action GetProblems returns Array<SpreadsheetFileProblem>
+        return problems
+    end
+end

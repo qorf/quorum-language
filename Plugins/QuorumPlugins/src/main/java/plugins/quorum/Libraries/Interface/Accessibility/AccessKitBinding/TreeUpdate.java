@@ -27,6 +27,15 @@ public final class TreeUpdate {
     */
     static volatile long lastGivenFocus = 0;
 
+    // What the update holds, kept on the Java side so it can be checked
+    // before it is sent (MacAccessibility's UpdateCheck): each node's id and
+    // the children it names, and the tree's root if setTree was called.
+    private long[] nodeIds = new long[0];
+    private long[][] nodeChildren = new long[0][];
+    private int nodeCount = 0;
+    private boolean hasTree = false;
+    private long treeRoot = 0;
+
     private TreeUpdate(long ptr, long focus) {
         this.ptr = ptr;
         this.focus = focus;
@@ -47,18 +56,54 @@ public final class TreeUpdate {
     public void add(NodeId id, Node node) {
         checkActive();
         node.checkActive();
+        long[] children = node.getChildIds();
         nativeAddNode(ptr, id.value, node.ptr);
         node.ptr = 0;
+        if (nodeCount == nodeIds.length) {
+            int size = Math.max(16, nodeCount * 2);
+            nodeIds = java.util.Arrays.copyOf(nodeIds, size);
+            nodeChildren = java.util.Arrays.copyOf(nodeChildren, size);
+        }
+        nodeIds[nodeCount] = id.value;
+        nodeChildren[nodeCount] = children;
+        nodeCount = nodeCount + 1;
+    }
+
+    public int getNodeCount() {
+        return nodeCount;
+    }
+
+    public long getNodeId(int index) {
+        return nodeIds[index];
+    }
+
+    public long[] getNodeChildren(int index) {
+        return nodeChildren[index];
+    }
+
+    public long getFocus() {
+        return focus;
+    }
+
+    public boolean hasTree() {
+        return hasTree;
+    }
+
+    public long getTreeRoot() {
+        return treeRoot;
     }
 
     public void setTree(Tree tree) {
         checkActive();
         nativeSetTree(ptr, tree.root.value);
+        hasTree = true;
+        treeRoot = tree.root.value;
     }
 
     public void clearTree() {
         checkActive();
         nativeClearTree(ptr);
+        hasTree = false;
     }
 
     public void setFocus(NodeId focus) {

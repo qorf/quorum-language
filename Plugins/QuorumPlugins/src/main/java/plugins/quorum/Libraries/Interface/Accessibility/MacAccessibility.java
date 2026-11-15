@@ -68,6 +68,21 @@ public class MacAccessibility {
     // The node AccessKit's focus was last set to: focus's kit's
     // GetFocusTarget, which is focus itself unless a kit moves it inside.
     private NodeId sentFocus = null;
+
+    // Checks each update against AccessKit's rules and logs one that breaks
+    // them, before AccessKit stops the app over it (UpdateCheck).
+    private final UpdateCheck updateCheck = new UpdateCheck();
+    private final UpdateCheck.Describer describer = new UpdateCheck.Describer() {
+        @Override
+        public String Describe(long id) {
+            return DescribeNode(id);
+        }
+
+        @Override
+        public String DescribeFocus() {
+            return MacAccessibility.this.DescribeFocus();
+        }
+    };
     private boolean isFocusDirty = false;
 
     // Kits whose children all need rebuilding (a tab's siblings, when it is selected).
@@ -116,6 +131,9 @@ public class MacAccessibility {
             public TreeUpdate requestInitialTree() {
                 TreeUpdate update = BuildFullTree();
                 needsFullTree = false;
+                // AccessKit starts a new tree from this update.
+                updateCheck.Reset();
+                updateCheck.Check(update, true, describer);
                 return update;
             }
         }, new ActionHandler() {
@@ -216,7 +234,10 @@ public class MacAccessibility {
     }
 
     private TreeUpdate BuildFullTree() {
-        NodeId target = items.containsKey(focus) ? FocusTarget() : root.GetNodeID();
+        // VoiceOver can ask for the tree outside NativeUpdate, so a focus
+        // left under a removed item (DropDetachedFocus) is checked here too.
+        ItemKit focusedKit = items.get(focus);
+        NodeId target = focusedKit != null && IsAttached(focusedKit) ? FocusTarget() : root.GetNodeID();
         TreeUpdate update = TreeUpdate.withFocus(target);
         sentFocus = target;
         Traverse(root, update);
@@ -436,10 +457,100 @@ public class MacAccessibility {
             + ". Further ones are not logged.");
     }
 
+    /*
+        NativeRemove takes only the removed item's own kit out of items: the
+        kits under it stay, but their nodes leave AccessKit's tree with it.
+        If Quorum's focus was on one of them, such as a row of a Projects
+        tree folder that Studio rebuilds while a build writes files, the
+        focus would name a node AccessKit no longer has, which stops the
+        app (accesskit_consumer: "Focused ID ... is not in the node list").
+        So the focus falls back to the root, as NativeRemove does for the
+        removed item itself, and RestoreFocus moves it back once Quorum's
+        focus has a node again.
+    */
+    private void DropDetachedFocus() {
+        ItemKit kit = items.get(focus);
+        if (kit == null || IsAttached(kit)) {
+            return;
+        }
+        updateCheck.NoteDetachedFocus(DescribeNode(focus.value));
+        updateCheck.Remember("focus to the root: the focused node was cut off, " + DescribeKit(kit));
+        focus = root.GetNodeID();
+        // Only a focus AccessKit doesn't have yet needs sending; the check
+        // in NativeUpdate against sentFocus decides that.
+        isFocusDirty = false;
+    }
+
+    // A kit for the log: its class, and its item's class and name.
+    private static String DescribeKit(ItemKit kit) {
+        String text = kit.getClass().getSimpleName();
+        try {
+            Item_ item = kit.GetItem();
+            if (item != null) {
+                text = text + " for " + item.getClass().getSimpleName() + " \"" + item.GetName() + "\"";
+            }
+        } catch (RuntimeException error) {
+            text = text + " (its item couldn't be read)";
+        }
+        return text;
+    }
+
+    /*
+        A node for the log: its kit, whether it hangs from the root, and the
+        kits above it. A node with no kit may be a part a control builds
+        (GetInternalChildren); finding its owner looks at every kit, which is
+        fine as this runs only when an entry is written.
+    */
+    private String DescribeNode(long value) {
+        NodeId id = new NodeId(value);
+        ItemKit kit = items.get(id);
+        if (kit == null) {
+            for (ItemKit owner : items.values()) {
+                for (NodeId part : owner.GetInternalChildren()) {
+                    if (part.equals(id)) {
+                        return "a part built by " + DescribeKit(owner) + " (node " + owner.GetNodeID().value + ")";
+                    }
+                }
+            }
+            return "no kit (a removed item, or a part no control builds now)";
+        }
+        StringBuilder text = new StringBuilder(DescribeKit(kit));
+        if (kit != root && !IsAttached(kit)) {
+            text.append(", cut off from the root");
+        }
+        ItemKit above = kit.GetParent();
+        int levels = 0;
+        while (above != null && levels < 10) {
+            text.append(levels == 0 ? "; under " : " < ").append(above.GetNodeID().value)
+                .append(' ').append(DescribeKit(above));
+            above = above.GetParent();
+            levels = levels + 1;
+        }
+        return text.toString();
+    }
+
+    // The focus for the log: Quorum's, the node AccessKit is given, and the last one sent.
+    private String DescribeFocus() {
+        StringBuilder text = new StringBuilder();
+        Item_ keyboard = GetKeyboardFocus();
+        text.append("Quorum's focus is ");
+        if (keyboard == null) {
+            text.append("nothing");
+        } else {
+            ItemKit kit = GetKit(keyboard);
+            text.append(kit == null ? keyboard.getClass().getSimpleName() + " with no kit"
+                : kit.GetNodeID().value + " " + DescribeKit(kit));
+        }
+        text.append("; the focus node is ").append(focus.value)
+            .append("; the last focus sent is ").append(sentFocus == null ? "none" : Long.toString(sentFocus.value));
+        return text.toString();
+    }
+
     public void  NativeUpdate() {
         RunPendingActions();
         CheckWindowFocus();
         RestoreFocus();
+        DropDetachedFocus();
         Check3DItems();
         for (NodeId id : refreshChildren) {
             ItemKit parent = items.get(id);
@@ -465,17 +576,22 @@ public class MacAccessibility {
                 @Override
                 public TreeUpdate get() {
                     updateSupplied = true;
+                    updateCheck.NoteStillRunning();
+                    TreeUpdate update;
+                    boolean fullTree = needsFullTree;
                     if (needsFullTree) {
                         // The whole tree covers every mark made so far. Marks
                         // made while it is built (a control adding a child as
                         // it is measured) stay for the next update, so a kit
                         // its parent's node missed still reaches AccessKit.
                         dirtyNodes.clear();
-                        TreeUpdate update = BuildFullTree();
+                        update = BuildFullTree();
                         needsFullTree = false;
-                        return update;
+                    } else {
+                        update = BuildDirtyNodes(target);
                     }
-                    return BuildDirtyNodes(target);
+                    updateCheck.Check(update, fullTree, describer);
+                    return update;
                 }
             });
             if (!updateSupplied) {
@@ -676,6 +792,7 @@ public class MacAccessibility {
         if(kit != null && !kit.GetNodeID().equals(focus)) {
             focus = kit.GetNodeID();
             isFocusDirty = true;
+            updateCheck.Remember("focus " + focus.value + ": " + DescribeKit(kit));
         }
     }
 
@@ -700,6 +817,24 @@ public class MacAccessibility {
         its rows and days are built again on the next update, with the
         focus on the current day's node while the calendar has the focus.
     */
+    /*
+        A spreadsheet changed: its values, its size, what is on screen, or the
+        selection. Its grid, rows and cells are built again on the next
+        update (SpreadsheetKit), with the focus on the current cell's node
+        while the spreadsheet has the focus.
+    */
+    public void NativeSpreadsheetChanged(Spreadsheet_ sheet) {
+        ItemKit kit = GetKit(sheet);
+        if (kit == null) {
+            return;
+        }
+        if (kit instanceof SpreadsheetKit) {
+            ((SpreadsheetKit) kit).SyncVisible();
+        }
+        dirtyNodes.add(kit.GetNodeID());
+        isFocusDirty = true;
+    }
+
     public void NativeCalendarChanged(Calendar_ calendar) {
         ItemKit kit = GetKit(calendar);
         if (kit == null) {
@@ -876,11 +1011,13 @@ public class MacAccessibility {
             TabPaneKit kit = new TabPaneKit();
             itemKit = kit;
         } else if (code == item.Get_Libraries_Interface_Item__TABLE_()) {
-            TableKit kit = new TableKit();
-            itemKit = kit;
-        } else if (code == item.Get_Libraries_Interface_Item__CELL_()) {
-            CellKit kit = new CellKit();
-            itemKit = kit;
+            if (item instanceof Spreadsheet_) {
+                SpreadsheetKit kit = new SpreadsheetKit();
+                itemKit = kit;
+            } else {
+                TableKit kit = new TableKit();
+                itemKit = kit;
+            }
         } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
             TextFieldKit kit = new TextFieldKit();
             itemKit = kit;
@@ -990,6 +1127,8 @@ public class MacAccessibility {
         dirtyNodes.add(id);
         parentKit.AddChild(itemKit);
         dirtyNodes.add(parentKit.GetNodeID());
+        updateCheck.Remember("added " + id.value + ": " + DescribeKit(itemKit)
+            + ", under " + parentKit.GetNodeID().value);
         return true;
     }
 
@@ -1021,6 +1160,8 @@ public class MacAccessibility {
         ItemKit kit = GetKit(item);
         if(kit != null) {
             NodeId id = kit.GetNodeID();
+            updateCheck.Remember("removed " + id.value + ": " + DescribeKit(kit)
+                + (kit.GetChildrenCopy().isEmpty() ? "" : ", with kits under it"));
             items.remove(id);
             kitsByItem.remove(item);
             MacAccessibilityExtras.remove(id);
@@ -1057,6 +1198,7 @@ public class MacAccessibility {
                 // RestoreFocus moves it back once Quorum's focus has a node.
                 focus = root.GetNodeID();
                 isFocusDirty = true;
+                updateCheck.Remember("focus to the root: the focused item was removed");
             }
             if (item == lastSelected) {
                 lastSelected = null;
@@ -1231,17 +1373,8 @@ public class MacAccessibility {
 
     public static int GetCellRowIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-
-            if (column != null)
-            {
-                return column.GetCellIndex(cell);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        // A spreadsheet's cells aren't items (SpreadsheetKit makes their nodes).
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1258,19 +1391,7 @@ public class MacAccessibility {
 
     public static int GetCellColumnIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-
-            if (column != null)
-            {
-                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
-                if (spreadsheet != null)
-                    return spreadsheet.GetColumnIndex(column);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1346,10 +1467,6 @@ public class MacAccessibility {
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1357,7 +1474,7 @@ public class MacAccessibility {
 
         if (spreadsheet != null)
         {
-            return spreadsheet.GetColumnsSize();
+            return spreadsheet.GetDisplayedColumnSize();
         }
         else if (treeTable != null)
         {
@@ -1387,10 +1504,6 @@ public class MacAccessibility {
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1398,7 +1511,7 @@ public class MacAccessibility {
 
         if (spreadsheet != null)
         {
-            return spreadsheet.GetRowsSize();
+            return spreadsheet.GetDisplayedRowSize();
         }
         else if (treeTable != null)
         {

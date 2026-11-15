@@ -4,6 +4,7 @@ use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
 use Libraries.Interface.Controls.DateField
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
 use Libraries.Interface.Item2D
@@ -1189,6 +1190,64 @@ class FormContainerControl is Control
         field:SetBottomPadding(3)
         Add(field)
         return field
+    end
+
+    /*
+        This action adds an empty spreadsheet: a grid of cells with column
+        letters along the top and row numbers down the side. It is as wide as
+        the page's rows and 320 points high. Its name is what screen readers
+        call it.
+
+        Attribute: Parameter name The spreadsheet's name.
+        Attribute: Returns The spreadsheet that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Spreadsheet
+
+        Form form
+        Page page = form:GetMainPage()
+        Spreadsheet sheet = page:AddSpreadsheet("Readings")
+        sheet:SetText(0, 0, "Day")
+        form:Display()
+    */
+    action AddSpreadsheet(text name) returns Spreadsheet
+        Spreadsheet sheet
+        sheet:SetName(name)
+        // No width of its own, so the page gives it a row's full width.
+        sheet:SetPixelWidth(0)
+        sheet:SetPercentageWidth(0)
+        Add(sheet)
+        return sheet
+    end
+
+    /*
+        This action adds a spreadsheet showing a CSV file. The file is read
+        as it is, and saving it with the spreadsheet's Save action writes it
+        back the same way, with only the edited cells changed.
+
+        Attribute: Parameter name The spreadsheet's name.
+        Attribute: Parameter file The CSV file to show.
+        Attribute: Returns The spreadsheet that was added.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Spreadsheet
+        use Libraries.System.File
+
+        Form form
+        Page page = form:GetMainPage()
+        File file
+        file:SetPath("media/readings.csv")
+        Spreadsheet sheet = page:AddSpreadsheet("Readings", file)
+        form:Display()
+    */
+    action AddSpreadsheet(text name, File file) returns Spreadsheet
+        Spreadsheet sheet = AddSpreadsheet(name)
+        sheet:Load(file)
+        return sheet
     end
 
     /*

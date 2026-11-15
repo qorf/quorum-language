@@ -17,6 +17,7 @@ use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Events.ProgressBarValueChangedEvent
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Accessibility
@@ -116,6 +117,17 @@ class AndroidAccessibility is Accessibility
     end
 
     /*
+        A spreadsheet changed: its values, its size, what is on screen, or the
+        selection. Its cells on screen are made again, and TalkBack follows
+        the current cell while the spreadsheet has the focus.
+    */
+    action SpreadsheetChanged(Spreadsheet sheet)
+        if sheet not= undefined
+            NativeSpreadsheetChanged(sheet)
+        end
+    end
+
+    /*
         This action indicates that the active part of the focused item
         changed, such as the row a combo box highlights as the arrow keys
         move. The part's node takes the input focus and TalkBack moves to it,
@@ -145,6 +157,8 @@ class AndroidAccessibility is Accessibility
     private system action NativeActiveDescendantChanged(Item focus, Item active)
 
     private system action NativeCalendarChanged(Calendar calendar)
+
+    private system action NativeSpreadsheetChanged(Spreadsheet sheet)
 
     private system action NativeTooltipShown(Tooltip tooltip)
 

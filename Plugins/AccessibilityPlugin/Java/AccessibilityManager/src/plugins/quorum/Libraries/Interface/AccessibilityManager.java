@@ -13,8 +13,6 @@ import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.ButtonGroup_;
 import quorum.Libraries.Interface.Controls.Button_;
-import quorum.Libraries.Interface.Controls.Cell_;
-import quorum.Libraries.Interface.Controls.Column_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.List_;
 import quorum.Libraries.Interface.Item_;
@@ -959,26 +957,6 @@ public class AccessibilityManager
         return 1;
     }
     
-    /*
-    Used by the native layer. Given a Spreadsheet_ object, returns a pointer for
-    the selected TreeItem, or 0 if there's no selection.
-    */
-    public static long GetSpreadsheetSelectionPointer(Spreadsheet_ sheet)
-    {
-        SpreadsheetSelection_ selection = sheet.GetSelection();
-        Item_ item = selection.Get();
-        if (item == null)
-            return 0;
-        
-        Long itemPointer = ITEM_MAP.get(item);
-        
-        if (itemPointer == null)
-            return 0;
-        else
-            return itemPointer;
-    }
-    
-    
     public static void SetTabSelection(TabPane_ tabs, Tab_ tab) {
         tabs.Select(tab);
     }
@@ -1004,24 +982,13 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the index of the column containing the
-    provided cell. The cell given might be a Cell object or a TreeTableCell. If
-    the value couldn't be retrieved for some reason, this returns -1.
+    provided TreeTableCell. A Spreadsheet's cells aren't items: the native
+    layer knows their rows and columns. If the value couldn't be retrieved
+    for some reason, this returns -1.
     */
     public static int GetCellColumnIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
-                if (spreadsheet != null)
-                    return spreadsheet.GetColumnIndex(column);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1040,22 +1007,12 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the index of the row containing a cell
-    (its y-index, essentially). The cell given might be a Cell object or a
-    TreeTableCell. If the value can't be retrieved, this returns -1.
+    (its y-index, essentially). The cell given is a TreeTableCell. If the
+    value can't be retrieved, this returns -1.
     */
     public static int GetCellRowIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                return column.GetCellIndex(cell);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1070,26 +1027,22 @@ public class AccessibilityManager
         return -1;
     }
     
+    /*
+    Used by the native layer. Returns the pointer of a TreeTable's cell, or 0.
+    A Spreadsheet's cells aren't items (the native layer makes them from
+    their rows and columns), so a Spreadsheet gives 0.
+    */
     public static long GetTableItem(Object_ object, int row, int column)
     {
-        Spreadsheet_ spreadsheet = null;
         TreeTable_ treeTable = null;
         
-        if (object instanceof Spreadsheet_)
-        {
-            spreadsheet = (Spreadsheet_)object;
-        }
-        else if (object instanceof TreeTable_)
+        if (object instanceof TreeTable_)
         {
             treeTable = (TreeTable_)object;
         }
         
         Item_ item = null;
-        if (spreadsheet != null)
-        {
-            item = spreadsheet.GetCell(row, column);
-        }
-        else if (treeTable != null)
+        if (treeTable != null)
         {
             item = treeTable.GetCell(row, column);
         }
@@ -1111,7 +1064,8 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the total number of columns in a TreeTable
-    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    or Spreadsheet: for a Spreadsheet, the columns shown, its values and the
+    blank columns after them. If a TreeTableCell is given, gives information about
     the table structure that contains that cell. If the value can't be retrieved,
     this returns -1.
     */
@@ -1128,10 +1082,6 @@ public class AccessibilityManager
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1139,7 +1089,7 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetColumnsSize();
+            return spreadsheet.GetDisplayedColumnSize();
         }
         else if (treeTable != null)
         {
@@ -1152,7 +1102,8 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the total number of rows in a TreeTable
-    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    or Spreadsheet: for a Spreadsheet, the rows shown, its values and the
+    blank rows after them. If a TreeTableCell is given, gives information about
     the table structure that contains that cell. If the value can't be retrieved,
     this returns -1.
     */
@@ -1169,10 +1120,6 @@ public class AccessibilityManager
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1180,7 +1127,7 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetRowsSize();
+            return spreadsheet.GetDisplayedRowSize();
         }
         else if (treeTable != null)
         {
@@ -1197,17 +1144,12 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the text value of a given cell.
-    The cell given might be a Cell object or a TreeTableCell. 
+    The cell given is a TreeTableCell.
     If the value can't be retrieved, this returns the empty string.
     */
     public static String GetCellText(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            return cell.GetText();
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             return cell.GetText();

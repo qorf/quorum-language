@@ -1,0 +1,39 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Events.SpreadsheetChangedEvent
+
+/*
+A SpreadsheetListener is told each time a Spreadsheet's values change: a
+cell edited, cleared or pasted, rows or columns added or removed, a file
+loaded, or an edit undone. Add one with the spreadsheet's
+AddSpreadsheetListener action, and override SpreadsheetChanged.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Events.SpreadsheetChangedEvent
+use Libraries.Interface.Events.SpreadsheetListener
+class ChangeLogger is SpreadsheetListener
+    action SpreadsheetChanged(SpreadsheetChangedEvent event)
+        output event:GetDescription()
+    end
+end
+*/
+class SpreadsheetListener
+    /*
+    This action is called after a spreadsheet's values change.
+
+    Attribute: Parameter event What changed.
+
+    Attribute: Example
+    use Libraries.Interface.Events.SpreadsheetChangedEvent
+    use Libraries.Interface.Events.SpreadsheetListener
+    class ChangeLogger is SpreadsheetListener
+        action SpreadsheetChanged(SpreadsheetChangedEvent event)
+            output event:GetDescription()
+        end
+    end
+    */
+    action SpreadsheetChanged(SpreadsheetChangedEvent event)
+    end
+end

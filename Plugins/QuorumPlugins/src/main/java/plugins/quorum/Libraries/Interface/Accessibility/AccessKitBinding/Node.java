@@ -13,6 +13,13 @@ package plugins.quorum.Libraries.Interface.Accessibility.AccessKitBinding;
 public final class Node {
     long ptr;
 
+    // The children named so far, kept on the Java side as well, so a
+    // TreeUpdate can be checked against AccessKit's rules before it is sent
+    // (MacAccessibility's UpdateCheck). The native node has no way to read
+    // them back.
+    private long[] childIds = new long[0];
+    private int childCount = 0;
+
     public Node(Role role) {
         ptr = nativeNew(role.value);
     }
@@ -81,11 +88,22 @@ public final class Node {
     public void addChild(NodeId id) {
         checkActive();
         nativeAddChild(ptr, id.value);
+        if (childCount == childIds.length) {
+            childIds = java.util.Arrays.copyOf(childIds, Math.max(4, childCount * 2));
+        }
+        childIds[childCount] = id.value;
+        childCount = childCount + 1;
+    }
+
+    /* The ids of the children named so far, in order. */
+    public long[] getChildIds() {
+        return java.util.Arrays.copyOf(childIds, childCount);
     }
 
     public void clearChildren() {
         checkActive();
         nativeClearChildren(ptr);
+        childCount = 0;
     }
 
     public void setChildren(Iterable<NodeId> ids) {

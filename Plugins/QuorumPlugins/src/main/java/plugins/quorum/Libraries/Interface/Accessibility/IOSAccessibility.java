@@ -162,7 +162,8 @@ public class IOSAccessibility {
 
     /*
         Whether an element is still in VoiceOver's structure: one of an
-        item's, or a calendar's title or day while its calendar is.
+        item's, a calendar's title or day while its calendar is, or a
+        spreadsheet's cell or header while it is on screen.
      */
     private boolean IsStillThere(ItemIOS element) {
         if (mapAccessibilityElements.containsValue(element)) {
@@ -171,6 +172,12 @@ public class IOSAccessibility {
         if (element instanceof CalendarDayIOS || element instanceof CalendarTitleIOS) {
             Item_ calendar = element.GetItem();
             return calendar != null && mapAccessibilityElements.get(calendar.GetHashCode()) instanceof CalendarIOS;
+        }
+        if (element instanceof SpreadsheetIOS.Cell || element instanceof SpreadsheetIOS.ColumnHeader
+                || element instanceof SpreadsheetIOS.RowHeader) {
+            Item_ sheet = element.GetItem();
+            Object table = sheet == null ? null : mapAccessibilityElements.get(sheet.GetHashCode());
+            return table instanceof SpreadsheetIOS && ((SpreadsheetIOS) table).HasPart(element);
         }
         return false;
     }
@@ -273,6 +280,46 @@ public class IOSAccessibility {
             if (target != null && target != current) {
                 Post(UIAccessibilityNotification.LayoutChangedNotification, target);
             }
+        }
+    }
+
+    /*
+        A spreadsheet changed: its values, its size, what is on screen (it
+        scrolled), or the selection. Its elements are made again for the
+        cells on screen (SpreadsheetIOS.Rebuild); each reads the spreadsheet
+        whenever VoiceOver asks, so values and selection need nothing more.
+        When VoiceOver was on one of its cells or headers and the current
+        part moved (the keys, a three-finger swipe, Enter after an edit, or
+        selecting whole rows or columns), VoiceOver goes to the current part
+        (SpreadsheetIOS.GetCurrentCellElement: the current cell, or the
+        current row's number or column's letters while whole rows or
+        columns are selected), as it does for a calendar's day. When the
+        cells on screen changed and VoiceOver
+        stays, it is told the layout changed, without moving.
+     */
+    public void NativeSpreadsheetChanged(Spreadsheet_ sheet) {
+        IOSDisplay.RequestFrame();
+        if (sheet == null) {
+            return;
+        }
+        Object element = mapAccessibilityElements.get(sheet.GetHashCode());
+        if (!(element instanceof SpreadsheetIOS)) {
+            return;
+        }
+        SpreadsheetIOS table = (SpreadsheetIOS) element;
+        ItemIOS current = ItemIOS.GetVoiceOverFocus();
+        boolean onCell = current != null && table.HasPart(current);
+        boolean changed = table.Rebuild();
+        if (onCell && !sheet.IsEditing()) {
+            UIAccessibilityElement target = table.GetCurrentCellElement();
+            if (target != null && target != current) {
+                Post(UIAccessibilityNotification.LayoutChangedNotification, target);
+                return;
+            }
+        }
+        // With no element, VoiceOver stays where it is and reads nothing.
+        if (changed) {
+            Post(UIAccessibilityNotification.LayoutChangedNotification, null);
         }
     }
 
@@ -471,6 +518,9 @@ public class IOSAccessibility {
         if (element instanceof CalendarIOS) {
             return ((CalendarIOS) element).GetCurrentDayElement();
         }
+        if (element instanceof SpreadsheetIOS) {
+            return ((SpreadsheetIOS) element).GetCurrentCellElement();
+        }
         if (element instanceof GroupIOS) {
             GroupIOS group = (GroupIOS) element;
             if (group.getAccessibilityElementCount() == 0) {
@@ -628,6 +678,12 @@ public class IOSAccessibility {
             CalendarIOS calendar = new CalendarIOS(container);
             calendar.Initialize(item);
             return calendar;
+        } else if (code == item.Get_Libraries_Interface_Item__TABLE_() && item instanceof Spreadsheet_) {
+            // A data table of the cells on screen, made from the
+            // spreadsheet's values (it has no cell items).
+            SpreadsheetIOS sheet = new SpreadsheetIOS(container);
+            sheet.Initialize(item);
+            return sheet;
         } else if (code == item.Get_Libraries_Interface_Item__TEXT_FIELD_()) {
             TextFieldIOS textField = new TextFieldIOS(container);
             textField.Initialize((TextField_) item);
@@ -1011,6 +1067,11 @@ public class IOSAccessibility {
             ItemIOS.ClearVoiceOverFocus(calendar.GetTitle());
             for (CalendarDayIOS day : calendar.GetDays()) {
                 ItemIOS.ClearVoiceOverFocus(day);
+            }
+        }
+        if (element instanceof SpreadsheetIOS) {
+            for (ItemIOS part : ((SpreadsheetIOS) element).GetParts()) {
+                ItemIOS.ClearVoiceOverFocus(part);
             }
         }
         if (focus == element) {

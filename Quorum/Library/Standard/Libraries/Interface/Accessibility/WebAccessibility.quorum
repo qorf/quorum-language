@@ -34,7 +34,7 @@ use Libraries.Interface.Controls.MenuItem
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Selections.SpreadsheetSelection
-use Libraries.Interface.Controls.Cell
+use Libraries.Interface.Controls.Spreadsheet
 use Libraries.Interface.Selections.ListSelection
 use Libraries.Interface.Controls.ListItem
 use Libraries.Interface.Selections.TreeTableSelection
@@ -147,6 +147,19 @@ class WebAccessibility is Accessibility
     end
 
     system action CalendarUpdated(Calendar calendar)
+
+    /*
+        A spreadsheet changed: its values, its size, what is on screen, or
+        the selection. Its grid's cells are filled in again, and the focus
+        follows the current cell.
+    */
+    action SpreadsheetChanged(Spreadsheet sheet)
+        if sheet not= undefined
+            SpreadsheetUpdated(sheet)
+        end
+    end
+
+    system action SpreadsheetUpdated(Spreadsheet sheet)
 
     /*
         This action indicates that the active part of the focused item changed,

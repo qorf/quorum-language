@@ -1,0 +1,261 @@
+package Libraries.Interface.Controls.Support
+
+use Libraries.Containers.Array
+
+/*
+The SpreadsheetRow class is one line of a comma separated value (CSV) file
+as a Spreadsheet holds it: its values, how each value was written in the
+file, and how the line ended. A value read from a file keeps the exact text
+it had there, quotes and all, so the file can be written back unchanged. A
+value changed since reading forgets that text, and is written fresh. Rows can
+have different numbers of values, as lines of a file can; nothing is padded.
+SpreadsheetFile makes these rows, so most users won't need this class
+directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Support.SpreadsheetRow
+SpreadsheetRow row
+row:AddValue(0, "Ada")
+row:AddValue(1, "1815")
+output row:GetValue(1)
+*/
+class SpreadsheetRow
+    Array<text> values
+    // Each value as it was in the file, or undefined for a value that was
+    // changed, or never read from a file.
+    Array<text> written
+    // "\n", "\r\n", "\r", or "" for a last line with no line break.
+    text lineEnding = ""
+
+    /*
+    This action returns how many values the row has. Rows can differ in
+    length.
+
+    Attribute: Returns The number of values in the row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddValue(0, "Ada")
+    output row:GetSize()
+    */
+    action GetSize returns integer
+        return values:GetSize()
+    end
+
+    /*
+    This action returns the value at the given index, or "" if the row has no
+    value there.
+
+    Attribute: Parameter index The index of the value, from 0.
+
+    Attribute: Returns The value, or "" past the end of the row.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddValue(0, "Ada")
+    output row:GetValue(0)
+    */
+    action GetValue(integer index) returns text
+        if index < 0 or index >= values:GetSize()
+            return ""
+        end
+        text value = values:Get(index)
+        if value = undefined
+            return ""
+        end
+        return value
+    end
+
+    /*
+    This action sets the value at the given index. If the row is shorter, it
+    is first padded with empty values. The value's text from the file is
+    forgotten, so it is written fresh.
+
+    Attribute: Parameter index The index of the value, from 0.
+
+    Attribute: Parameter value The new value.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:SetValue(2, "1815")
+    output row:GetSize()
+    */
+    action SetValue(integer index, text value)
+        if index < 0
+            return now
+        end
+        if value = undefined
+            value = ""
+        end
+        repeat while values:GetSize() <= index
+            values:Add("")
+            written:Add(undefined)
+        end
+        values:Set(index, value)
+        written:Set(index, undefined)
+    end
+
+    /*
+    This action puts a value in at the given index, moving the values after
+    it along by one. Past the end of the row, the row is padded first.
+
+    Attribute: Parameter index Where the value goes, from 0.
+
+    Attribute: Parameter value The value.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddValue(0, "1815")
+    row:AddValue(0, "Ada")
+    output row:GetValue(0)
+    */
+    action AddValue(integer index, text value)
+        if index < 0
+            return now
+        end
+        if value = undefined
+            value = ""
+        end
+        repeat while values:GetSize() < index
+            values:Add("")
+            written:Add(undefined)
+        end
+        values:Add(index, value)
+        written:Add(index, undefined)
+    end
+
+    /*
+    This action puts a value in at the given index with the exact text it had
+    in a file. SpreadsheetFile uses it while reading.
+
+    Attribute: Parameter value The value.
+
+    Attribute: Parameter writtenText The value's text in the file, quotes and all.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddReadValue("Ada", "Ada")
+    */
+    action AddReadValue(text value, text writtenText)
+        values:Add(value)
+        written:Add(writtenText)
+    end
+
+    /*
+    This action removes the value at the given index, moving the values after
+    it back by one. An index past the end of the row does nothing.
+
+    Attribute: Parameter index The index of the value, from 0.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddValue(0, "Ada")
+    row:RemoveValueAt(0)
+    */
+    action RemoveValueAt(integer index)
+        if index < 0 or index >= values:GetSize()
+            return now
+        end
+        values:RemoveAt(index)
+        written:RemoveAt(index)
+    end
+
+    /*
+    This action returns the value's text as it was in the file, or undefined
+    if the value was changed since it was read.
+
+    Attribute: Parameter index The index of the value, from 0.
+
+    Attribute: Returns The text from the file, or undefined.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddReadValue("Ada", "Ada")
+    output row:GetWritten(0)
+    */
+    action GetWritten(integer index) returns text
+        if index < 0 or index >= written:GetSize()
+            return undefined
+        end
+        return written:Get(index)
+    end
+
+    /*
+    This action forgets the file's text for one value, so it is written fresh
+    the next time the row is saved. SpreadsheetFile uses it for a value that
+    wasn't valid in the file.
+
+    Attribute: Parameter index The index of the value, from 0.
+    */
+    action ForgetWritten(integer index)
+        if index >= 0 and index < written:GetSize()
+            written:Set(index, undefined)
+        end
+    end
+
+    /*
+    This action returns how the row's line ended in the file: a line feed, a
+    carriage return and line feed, a carriage return, or "" for a last line
+    with no line break.
+
+    Attribute: Returns The line ending.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    text ending = row:GetLineEnding()
+    */
+    action GetLineEnding returns text
+        return lineEnding
+    end
+
+    /*
+    This action sets how the row's line ends when it is written.
+
+    Attribute: Parameter ending The line ending, or "" for none.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    text value = ""
+    row:SetLineEnding(value:GetLineFeed())
+    */
+    action SetLineEnding(text ending)
+        if ending = undefined
+            ending = ""
+        end
+        lineEnding = ending
+    end
+
+    /*
+    This action returns a new row with the same values, written text and line
+    ending, so a change to one doesn't change the other. Undo uses it.
+
+    Attribute: Returns The copy.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Support.SpreadsheetRow
+    SpreadsheetRow row
+    row:AddValue(0, "Ada")
+    SpreadsheetRow other = row:Copy()
+    */
+    action Copy returns SpreadsheetRow
+        SpreadsheetRow copy
+        integer index = 0
+        repeat while index < values:GetSize()
+            copy:AddReadValue(values:Get(index), written:Get(index))
+            index = index + 1
+        end
+        copy:SetLineEnding(lineEnding)
+        return copy
+    end
+end

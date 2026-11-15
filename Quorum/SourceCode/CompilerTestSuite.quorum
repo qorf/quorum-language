@@ -72,6 +72,7 @@ class CompilerTestSuite is ProcessListener
     ListTester listChecks
     HashTableTester hashChecks
     SeparatedValueTester svChecks
+    SpreadsheetTester spreadsheetChecks
     DecompresserTester decompresserChecks
     UsePackageTester useChecks
     RandomTester randomChecks
@@ -106,6 +107,7 @@ class CompilerTestSuite is ProcessListener
         listChecks:SetCompilerTestSuite(me)
         hashChecks:SetCompilerTestSuite(me)
         svChecks:SetCompilerTestSuite(me)
+        spreadsheetChecks:SetCompilerTestSuite(me)
         decompresserChecks:SetCompilerTestSuite(me)
         useChecks:SetCompilerTestSuite(me)
         randomChecks:SetCompilerTestSuite(me)
@@ -242,6 +244,9 @@ class CompilerTestSuite is ProcessListener
 
         svChecks:Test()
         output svChecks:GetName() + GetCurrentTestPassText()
+
+        spreadsheetChecks:Test()
+        output spreadsheetChecks:GetName() + GetCurrentTestPassText()
 
         decompresserChecks:Test()
         output decompresserChecks:GetName() + GetCurrentTestPassText()

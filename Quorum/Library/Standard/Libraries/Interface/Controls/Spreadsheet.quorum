@@ -1,27 +1,52 @@
 package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
-use Libraries.Containers.Support.Pair
+use Libraries.System.File
+use Libraries.Game.GameStateManager
+use Libraries.Game.Game
+use Libraries.Interface.Accessibility
 use Libraries.Interface.Events.FocusEvent
-use Libraries.Interface.Layouts.SpreadsheetLayout
+use Libraries.Interface.Events.SpreadsheetChangedEvent
+use Libraries.Interface.Events.SpreadsheetListener
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.SpreadsheetSelection
-use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Undo.SpreadsheetEdit
+use Libraries.Interface.Undo.SpreadsheetEditManager
+use Libraries.Interface.Controls.Support.SpreadsheetRow
+use Libraries.Interface.Controls.Support.SpreadsheetFile
+use Libraries.Interface.Controls.Support.SpreadsheetFileProblem
+use Libraries.Interface.Controls.Support.SpreadsheetRenderer
+use Libraries.Interface.Controls.Support.SpreadsheetCellField
+use Libraries.Interface.Behaviors.Controls.SpreadsheetMenuBehavior
 
 /*
-The Spreadsheet class is a control that shows a grid of text Cells, arranged
-in Columns. The user can select a Cell with the mouse or move the selection
-with the arrow keys, and can activate a Cell, such as by double-clicking it.
-Screen readers read the Spreadsheet as a table. To fill it, make Columns,
-add Cells to them, and add the Columns to the Spreadsheet.
+The Spreadsheet class is a control that shows rows of text values in a grid,
+like a spreadsheet program, and lets the user move around it, select cells,
+rows and columns, edit values, add and remove rows and columns, copy and
+paste, find, and undo. It reads and writes comma separated value (CSV) files,
+and a file opened and saved without changes is the same as it was.
+
+Every value is text. Nothing is turned into numbers or dates, and there are
+no formulas: a value starting with = is text like any other. Rows and
+columns are counted from 0. Column letters (A, B, ..., Z, AA, AB) run across
+the top and row numbers down the left, and both stay in place while the
+cells scroll. Only the cells on screen are drawn, so large files stay fast.
+
+The keys follow Excel's: the arrows move, Shift extends the selection,
+Control (Command on a Mac) with an arrow jumps to the edge of the data,
+Control-Space selects the column and Shift-Space the row, F2 or typing edits
+a cell, Enter and Tab keep the edit and move, Escape cancels it, Delete
+clears, Control-Plus and Control-Minus add and remove rows or columns, and
+Shift-F10 opens the menu.
+
+Screen readers read the spreadsheet as a grid: each cell reports its text,
+or "blank", and its row and column.
 
 Attribute: Author William Allee
 
 Attribute: Example
 use Libraries.Game.Game
 use Libraries.Interface.Controls.Spreadsheet
-use Libraries.Interface.Controls.Column
-use Libraries.Interface.Controls.Cell
 
 class Main is Game
     action Main
@@ -30,538 +55,2686 @@ class Main is Game
 
     action CreateGame
         Spreadsheet sheet
-
-        Column names
-        Cell ada
-        ada:SetText("Ada")
-        names:Add(ada)
-        Cell grace
-        grace:SetText("Grace")
-        names:Add(grace)
-        sheet:Add(names)
-
-        Column years
-        Cell adaYear
-        adaYear:SetText("1815")
-        years:Add(adaYear)
-        Cell graceYear
-        graceYear:SetText("1906")
-        years:Add(graceYear)
-        sheet:Add(years)
-
+        sheet:LoadFromCommaSeparatedValue("Name,Year
+Ada,1815
+Grace,1906")
         sheet:SetPosition(50, 50)
         Add(sheet)
-        sheet:Select(0, 0)
+        sheet:Focus()
     end
 end
 */
-class Spreadsheet is Control
-    Array<Column> columns
+class Spreadsheet is ScrollableControl
+    // Sizes in points, before the interface scale.
+    constant number DEFAULT_COLUMN_WIDTH = 96
+    constant number MINIMUM_COLUMN_WIDTH = 24
+    constant number MAXIMUM_FIT_WIDTH = 600
+    constant number ROW_HEIGHT = 24
+    constant number HEADER_HEIGHT = 24
+    constant number CELL_PADDING = 6
+    // Blank rows and columns shown past the values, to type into.
+    constant integer EXTRA_ROWS = 20
+    constant integer EXTRA_COLUMNS = 5
+    // Rows looked at to fit a column's width.
+    constant integer FIT_ROW_LIMIT = 2000
+
+    // What a press on the spreadsheet is dragging.
+    constant integer DRAG_NONE = 0
+    constant integer DRAG_CELLS = 1
+    constant integer DRAG_ROWS = 2
+    constant integer DRAG_COLUMNS = 3
+    constant integer DRAG_WIDTH = 4
+
+    GameStateManager manager
+    // Gives the kinds of change (changeKinds:VALUES and so on).
+    SpreadsheetChangedEvent changeKinds
+    Array<SpreadsheetRow> rows
+    // The longest row's length.
+    integer columnCount = 0
+    // Widths in points; columns past the end are the default width.
+    Array<number> columnWidths
+    // Where each column starts, in points from the first column, kept until
+    // the columns or widths change.
+    Array<number> columnStarts
+    boolean columnStartsReady = false
+
     SpreadsheetSelection selection
+    SpreadsheetRenderer renderer
+    SpreadsheetEditManager edits
+    SpreadsheetFile csv
+    Array<SpreadsheetFileProblem> loadProblems
+    File file = undefined
+    // How new lines end: the file's own ending, or a line feed.
+    text defaultLineEnding = ""
+    Array<SpreadsheetListener> listeners
 
-    // The cellBehavior is called when a Cell would be activated if it doesn't
-    // have an activation behavior of its own defined.
-    Behavior cellBehavior = undefined
-    
+    SpreadsheetCellField field
+    boolean editing = false
+    integer editRow = 0
+    integer editColumn = 0
+
+    PopupMenu menu
+    boolean cellNamesIncludePosition = false
+    // Shift-Space selects the row; the space it also types is dropped.
+    boolean ignoreNextSpace = false
+
+    integer dragKind = 0
+    integer dragColumn = 0
+    number dragStartX = 0
+    number dragStartWidth = 0
+
+    // The step being recorded for undo.
+    Array<integer> editIndices
+    Array<SpreadsheetRow> editBefore
+    integer editCountBefore = 0
+    Array<SpreadsheetRow> everythingBefore
+    Array<number> widthsBefore
+    Array<integer> editSelectionBefore
+
     on create
-        SpreadsheetLayout layout
-        SetLayout(layout)
-
         LayoutProperties properties = GetDefaultLayoutProperties()
-        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelWidth(480)
+        properties:SetPixelHeight(320)
+        SetSize(480, 320)
 
+        SetInterfaceOptionsKey("Spreadsheet")
         SetInputGroup("Spreadsheet")
-
         SetFocusable(true)
         selection:Initialize(me)
         SetAccessibilityCode(parent:Item:TABLE)
-        SetName("Table")
+        SetName("Spreadsheet")
+
+        text value = ""
+        defaultLineEnding = value:GetLineFeed()
+        renderer:SetSpreadsheet(me)
+        field:SetSpreadsheet(me)
     end
 
     /*
-    This action returns true, because a Spreadsheet is a parent for
-    accessibility: screen readers treat its Cells as parts of the table.
+    This action returns true: screen readers treat the spreadsheet's edit
+    field as part of it.
 
-    Attribute: Returns True, since a Spreadsheet is an accessible parent.
+    Attribute: Returns True.
     */
     action IsAccessibleParent returns boolean
         return true
     end
 
     /*
-    This action adds a Column to the right side of the Spreadsheet and
-    connects the Column to it, so the Column's Cells can be selected.
+    This action reads a CSV file into the spreadsheet, replacing what it
+    held. A file that isn't valid CSV is still read; GetLoadProblems says what
+    was wrong. Undo history is emptied.
 
-    Attribute: Parameter column The Column to add.
-
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    */
-    action Add(Column column)
-        columns:Add(column)
-        column:SetSpreadsheet(me)
-        parent:Item2D:Add(column)
-    end
-
-    /*
-    This action adds a Column to the Spreadsheet's list of Columns at the
-    given position. Position 0 is the leftmost Column. Unlike Add with only
-    a Column, this action does not connect the Column to the Spreadsheet, so
-    call the Column's SetSpreadsheet action as well.
-
-    Attribute: Parameter position The index the new Column will have.
-
-    Attribute: Parameter column The Column to add.
+    Attribute: Parameter file The CSV file.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
+    use Libraries.System.File
+    File file
+    file:SetPath("Data.csv")
     Spreadsheet sheet
-    Column years
-    sheet:Add(years)
-    Column names
-    names:SetSpreadsheet(sheet)
-    sheet:Add(0, names)
+    sheet:Load(file)
     */
-    action Add(integer position, Column column)
-        columns:Add(position, column)
-
-        parent:Item2D:Add(column)
+    action Load(File file)
+        text contents = file:Read()
+        me:file = file
+        LoadText(contents, "Opened " + file:GetFileName())
     end
 
     /*
-    This action returns the Column at the given index. The leftmost Column
-    is at index 0.
+    This action reads the CSV file at a path, relative to the working
+    directory, as DataFrame:Load does.
 
-    Attribute: Parameter i The index of the Column.
-
-    Attribute: Returns The Column at that index.
+    Attribute: Parameter location The path of the file.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
     Spreadsheet sheet
-    Column names
-    sheet:Add(names)
-    Column first = sheet:GetColumn(0)
+    sheet:Load("Data.csv")
     */
-    action GetColumn(integer i) returns Column
-        return columns:Get(i)
+    action Load(text location)
+        File newFile
+        newFile:SetPath(location)
+        Load(newFile)
     end
 
     /*
-    This action removes the given Column, with its Cells, from the
-    Spreadsheet.
+    This action reads CSV text into the spreadsheet, replacing what it held.
 
-    Attribute: Parameter column The Column to remove.
+    Attribute: Parameter value CSV text.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
     Spreadsheet sheet
-    Column names
-    sheet:Add(names)
-    sheet:RemoveColumn(names)
+    sheet:LoadFromCommaSeparatedValue("Name,Year
+Ada,1815")
     */
-    action RemoveColumn(Column column)
-        columns:Remove(column)
-        column:SetSpreadsheet(undefined)
-        parent:Item2D:Remove(column)
+    action LoadFromCommaSeparatedValue(text value)
+        LoadText(value, "Loaded values")
+    end
+
+    private action LoadText(text contents, text description)
+        if editing
+            CancelEditing()
+        end
+        rows = csv:Read(contents)
+        loadProblems = csv:GetProblems()
+        text lineFeed = ""
+        defaultLineEnding = lineFeed:GetLineFeed()
+        integer index = 0
+        boolean found = false
+        repeat while index < rows:GetSize() and not found
+            text ending = rows:Get(index):GetLineEnding()
+            if ending not= ""
+                defaultLineEnding = ending
+                found = true
+            end
+            index = index + 1
+        end
+        columnWidths:Empty()
+        columnStartsReady = false
+        RecountColumns()
+        edits:Empty()
+        selection:Set(0, 0)
+        SetScrollPercentageX(0)
+        SetScrollPercentageY(0)
+        Changed(changeKinds:EVERYTHING, 0, GetRowSize() - 1, 0, GetSize() - 1, description)
     end
 
     /*
-    This action removes the Column at the given index, with its Cells, from
-    the Spreadsheet. Columns to its right move left by one.
+    This action returns what wasn't valid in the CSV last loaded, or an empty
+    array when it was valid.
 
-    Attribute: Parameter column The index of the Column to remove.
+    Attribute: Returns The problems.
+    */
+    action GetLoadProblems returns Array<SpreadsheetFileProblem>
+        return loadProblems
+    end
+
+    /*
+    This action writes the spreadsheet to a CSV file, which becomes the
+    spreadsheet's file. Values not changed since loading are written exactly
+    as they were.
+
+    Attribute: Parameter file The file to write.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
+    use Libraries.System.File
+    File file
+    file:SetPath("Data.csv")
     Spreadsheet sheet
-    Column names
-    sheet:Add(names)
-    sheet:RemoveColumnAt(0)
+    sheet:Load(file)
+    sheet:SetText(1, 1, "1816")
+    sheet:Save(file)
     */
-    action RemoveColumnAt(integer column)
-        Column c = columns:RemoveAt(column)
-        parent:Item2D:Remove(c)
+    action Save(File file)
+        if editing
+            CommitEditingWithoutFocus()
+        end
+        csv:Write(rows, file)
+        me:file = file
     end
 
     /*
-    This action returns how many Columns the Spreadsheet has.
-
-    Attribute: Returns The number of Columns.
+    This action writes the spreadsheet to the file it was loaded from or last
+    saved to. Without one, it does nothing.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
     Spreadsheet sheet
-    Column names
-    sheet:Add(names)
-    integer columns = sheet:GetColumnsSize()
+    sheet:Load("Data.csv")
+    sheet:Save()
     */
-    action GetColumnsSize returns integer
-        return columns:GetSize()
+    action Save
+        if file not= undefined
+            Save(file)
+        end
     end
 
     /*
-    This action returns how many rows the Spreadsheet has, which is the
-    number of Cells in its longest Column.
+    This action returns the file the spreadsheet was loaded from or last
+    saved to, or undefined.
+
+    Attribute: Returns The file.
+    */
+    action GetFile returns File
+        return file
+    end
+
+    /*
+    This action sets the file Save writes to.
+
+    Attribute: Parameter file The file.
+    */
+    action SetFile(File file)
+        me:file = file
+    end
+
+    /*
+    This action returns the spreadsheet as CSV text, as Save writes it.
+
+    Attribute: Returns The CSV text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    Spreadsheet sheet
+    sheet:LoadFromCommaSeparatedValue("a,b")
+    output sheet:ConvertToText()
+    */
+    action ConvertToText returns text
+        return csv:Write(rows)
+    end
+
+    /*
+    This action returns how many columns the spreadsheet has: the length of
+    its longest row, as DataFrame:GetSize gives its columns.
+
+    Attribute: Returns The number of columns.
+    */
+    action GetSize returns integer
+        return columnCount
+    end
+
+    /*
+    This action returns how many rows the spreadsheet has.
 
     Attribute: Returns The number of rows.
-
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    integer rows = sheet:GetRowsSize()
     */
-    action GetRowsSize returns integer
-        integer max = 0
-        integer counter = 0
-        repeat while counter < GetColumnsSize()
-            Column column = columns:Get(counter)
-            if column:GetSize() > max
-                max = column:GetSize()
-            end
-            counter = counter + 1
-        end
-
-        return max
+    action GetRowSize returns integer
+        return rows:GetSize()
     end
 
     /*
-    This action returns the Spreadsheet's selection, which says which Cell,
-    if any, is selected, and at which row and column.
+    This action returns true if the spreadsheet has no rows. (Not IsEmpty,
+    which is about an item's children.)
 
-    Attribute: Returns The SpreadsheetSelection of this Spreadsheet.
+    Attribute: Returns True if there are no rows.
+    */
+    action IsEmptySpreadsheet returns boolean
+        return rows:IsEmpty()
+    end
+
+    /*
+    This action removes every row. Undo history is emptied. (Not Empty, which
+    removes an item's children.)
+    */
+    action EmptySpreadsheet
+        if editing
+            CancelEditing()
+        end
+        rows:Empty()
+        columnWidths:Empty()
+        columnStartsReady = false
+        RecountColumns()
+        edits:Empty()
+        selection:Set(0, 0)
+        Changed(changeKinds:EVERYTHING, 0, 0, 0, 0, "Emptied")
+    end
+
+    /*
+    This action returns the text of a cell, or "" for a cell with no value.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The cell's text.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    use Libraries.Interface.Selections.SpreadsheetSelection
     Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    sheet:Select(0, 0)
-    SpreadsheetSelection selection = sheet:GetSelection()
-    integer row = selection:GetRow()
+    sheet:LoadFromCommaSeparatedValue("Name,Year
+Ada,1815")
+    output sheet:GetText(1, 1)
+    */
+    action GetText(integer row, integer column) returns text
+        if row < 0 or row >= rows:GetSize()
+            return ""
+        end
+        return rows:Get(row):GetValue(column)
+    end
+
+    /*
+    This action sets the text of a cell, as a program: it isn't recorded for
+    undo. Rows and values are added as needed.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Parameter value The new text.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    Spreadsheet sheet
+    sheet:SetText(0, 0, "Name")
+    */
+    action SetText(integer row, integer column, text value)
+        if row < 0 or column < 0
+            return now
+        end
+        PutText(row, column, value)
+        Changed(changeKinds:VALUES, row, row, column, column, "Changed " + GetCellName(row, column))
+    end
+
+    /*
+    This action sets the text of a cell as the user would, so it can be
+    undone. Screen readers that set a cell's value use it.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Parameter value The new text.
+    */
+    action SetTextAsUser(integer row, integer column, text value)
+        if row < 0 or column < 0
+            return now
+        end
+        if value = undefined
+            value = ""
+        end
+        if row < rows:GetSize() and column < rows:Get(row):GetSize() and GetText(row, column) = value
+            return now
+        end
+        StartRowsEdit(row, row)
+        PutText(row, column, value)
+        FinishRowsEdit("Typing in " + GetCellName(row, column))
+        Changed(changeKinds:VALUES, row, row, column, column, "Changed " + GetCellName(row, column))
+    end
+
+    private action PutText(integer row, integer column, text value)
+        EnsureRow(row)
+        SpreadsheetRow target = rows:Get(row)
+        target:SetValue(column, value)
+        if column + 1 > columnCount
+            columnCount = column + 1
+            columnStartsReady = false
+        end
+    end
+
+    /*
+    This action adds an empty row at the index, moving the rows below it
+    down. Undo history is emptied, since rows moved.
+
+    Attribute: Parameter index Where the new row goes, from 0.
+    */
+    action AddRow(integer index)
+        AddRows(index, 1)
+    end
+
+    /*
+    This action adds empty rows at the index.
+
+    Attribute: Parameter index Where the new rows go, from 0.
+
+    Attribute: Parameter count How many rows to add.
+    */
+    action AddRows(integer index, integer count)
+        if index < 0 or count < 1
+            return now
+        end
+        InsertRowsInternal(index, count)
+        edits:Empty()
+        Changed(changeKinds:ROWS_ADDED, index, index + count - 1, 0, GetSize() - 1, "Added " + RowsName(index, index + count - 1))
+    end
+
+    /*
+    This action removes the row at the index. Undo history is emptied.
+
+    Attribute: Parameter index The row to remove.
+    */
+    action RemoveRowAt(integer index)
+        RemoveRows(index, index)
+    end
+
+    /*
+    This action removes the rows from first to last.
+
+    Attribute: Parameter first The first row to remove.
+
+    Attribute: Parameter last The last row to remove.
+    */
+    action RemoveRows(integer first, integer last)
+        if first < 0 or first >= rows:GetSize() or last < first
+            return now
+        end
+        RemoveRowsInternal(first, last)
+        edits:Empty()
+        Changed(changeKinds:ROWS_REMOVED, first, last, 0, GetSize() - 1, "Removed " + RowsName(first, last))
+    end
+
+    /*
+    This action adds an empty column at the index, moving the columns to its
+    right over, as DataFrame:AddColumn adds one. Rows shorter than the index
+    are left as they are. Undo history is emptied.
+
+    Attribute: Parameter index Where the new column goes, from 0.
+    */
+    action AddColumn(integer index)
+        AddColumns(index, 1)
+    end
+
+    /*
+    This action adds empty columns at the index.
+
+    Attribute: Parameter index Where the new columns go, from 0.
+
+    Attribute: Parameter count How many columns to add.
+    */
+    action AddColumns(integer index, integer count)
+        if index < 0 or count < 1
+            return now
+        end
+        InsertColumnsInternal(index, count)
+        edits:Empty()
+        Changed(changeKinds:COLUMNS_ADDED, 0, GetRowSize() - 1, index, index + count - 1, "Added " + ColumnsName(index, index + count - 1))
+    end
+
+    /*
+    This action removes the column at the index, as DataFrame:RemoveColumnAt
+    does. Undo history is emptied.
+
+    Attribute: Parameter index The column to remove.
+    */
+    action RemoveColumnAt(integer index)
+        RemoveColumns(index, index)
+    end
+
+    /*
+    This action removes the columns from first to last.
+
+    Attribute: Parameter first The first column to remove.
+
+    Attribute: Parameter last The last column to remove.
+    */
+    action RemoveColumns(integer first, integer last)
+        if first < 0 or last < first
+            return now
+        end
+        RemoveColumnsInternal(first, last)
+        edits:Empty()
+        Changed(changeKinds:COLUMNS_REMOVED, 0, GetRowSize() - 1, first, last, "Removed " + ColumnsName(first, last))
+    end
+
+    /*
+    This action adds rows as the user would, so it can be undone.
+
+    Attribute: Parameter index Where the new rows go.
+
+    Attribute: Parameter count How many rows.
+    */
+    action AddRowsAsUser(integer index, integer count)
+        if index < 0 or count < 1
+            return now
+        end
+        text name = "Add " + RowsName(index, index + count - 1)
+        if index >= rows:GetSize() - 1
+            // At the end: the last row's line ending may change too.
+            StartRowsEdit(index - 1, index + count - 1)
+            InsertRowsInternal(index, count)
+            FinishRowsEdit(name)
+        else
+            StartSelectionRecord()
+            InsertRowsInternal(index, count)
+            Array<SpreadsheetRow> added
+            integer counter = 0
+            repeat while counter < count
+                added:Add(rows:Get(index + counter):Copy())
+                counter = counter + 1
+            end
+            SpreadsheetEdit edit
+            edit:Setup(me, edit:INSERTED_ROWS, name)
+            edit:SetMovedRows(index, added)
+            edit:SetSelections(editSelectionBefore, GetSelectionRecord())
+            edits:Add(edit)
+        end
+        selection:SetRows(index, index + count - 1)
+        Changed(changeKinds:ROWS_ADDED, index, index + count - 1, 0, GetSize() - 1, "Added " + RowsName(index, index + count - 1))
+    end
+
+    /*
+    This action removes rows as the user would, so it can be undone.
+
+    Attribute: Parameter first The first row to remove.
+
+    Attribute: Parameter last The last row to remove.
+    */
+    action RemoveRowsAsUser(integer first, integer last)
+        if first < 0 or first >= rows:GetSize() or last < first
+            return now
+        end
+        if last >= rows:GetSize()
+            last = rows:GetSize() - 1
+        end
+        StartSelectionRecord()
+        Array<SpreadsheetRow> removed
+        integer index = first
+        repeat while index <= last
+            removed:Add(rows:Get(index):Copy())
+            index = index + 1
+        end
+        RemoveRowsInternal(first, last)
+        integer target = first
+        if target >= rows:GetSize() and rows:GetSize() > 0
+            target = rows:GetSize() - 1
+        end
+        selection:Set(target, selection:GetColumn())
+        SpreadsheetEdit edit
+        edit:Setup(me, edit:REMOVED_ROWS, "Delete " + RowsName(first, last))
+        edit:SetMovedRows(first, removed)
+        edit:SetSelections(editSelectionBefore, GetSelectionRecord())
+        edits:Add(edit)
+        Changed(changeKinds:ROWS_REMOVED, first, last, 0, GetSize() - 1, "Removed " + RowsName(first, last))
+    end
+
+    /*
+    This action adds columns as the user would, so it can be undone.
+
+    Attribute: Parameter index Where the new columns go.
+
+    Attribute: Parameter count How many columns.
+    */
+    action AddColumnsAsUser(integer index, integer count)
+        if index < 0 or count < 1
+            return now
+        end
+        StartEverythingEdit()
+        InsertColumnsInternal(index, count)
+        selection:SetColumns(index, index + count - 1)
+        FinishEverythingEdit("Add " + ColumnsName(index, index + count - 1))
+        Changed(changeKinds:COLUMNS_ADDED, 0, GetRowSize() - 1, index, index + count - 1, "Added " + ColumnsName(index, index + count - 1))
+    end
+
+    /*
+    This action removes columns as the user would, so it can be undone.
+
+    Attribute: Parameter first The first column to remove.
+
+    Attribute: Parameter last The last column to remove.
+    */
+    action RemoveColumnsAsUser(integer first, integer last)
+        if first < 0 or last < first
+            return now
+        end
+        StartEverythingEdit()
+        RemoveColumnsInternal(first, last)
+        selection:Set(selection:GetRow(), first)
+        FinishEverythingEdit("Delete " + ColumnsName(first, last))
+        Changed(changeKinds:COLUMNS_REMOVED, 0, GetRowSize() - 1, first, last, "Removed " + ColumnsName(first, last))
+    end
+
+    private action EnsureRow(integer row)
+        repeat while rows:GetSize() <= row
+            AppendEmptyRow()
+        end
+    end
+
+    private action AppendEmptyRow
+        SpreadsheetRow newRow
+        if rows:IsEmpty()
+            newRow:SetLineEnding(defaultLineEnding)
+        else
+            SpreadsheetRow last = rows:Get(rows:GetSize() - 1)
+            if last:GetLineEnding() = ""
+                // The file had no line break at the end; it still won't.
+                last:SetLineEnding(defaultLineEnding)
+                newRow:SetLineEnding("")
+            else
+                newRow:SetLineEnding(defaultLineEnding)
+            end
+        end
+        newRow:SetValue(0, "")
+        rows:Add(newRow)
+    end
+
+    private action InsertRowsInternal(integer index, integer count)
+        if index >= rows:GetSize()
+            EnsureRow(index + count - 1)
+        else
+            integer counter = 0
+            repeat while counter < count
+                SpreadsheetRow newRow
+                newRow:SetValue(0, "")
+                newRow:SetLineEnding(defaultLineEnding)
+                rows:Add(index, newRow)
+                counter = counter + 1
+            end
+        end
+    end
+
+    private action RemoveRowsInternal(integer first, integer last)
+        if last >= rows:GetSize()
+            last = rows:GetSize() - 1
+        end
+        integer index = last
+        repeat while index >= first
+            rows:RemoveAt(index)
+            index = index - 1
+        end
+        RecountColumns()
+    end
+
+    private action InsertColumnsInternal(integer index, integer count)
+        integer rowIndex = 0
+        repeat while rowIndex < rows:GetSize()
+            SpreadsheetRow row = rows:Get(rowIndex)
+            // A row that ends before the new column is left as it is.
+            if row:GetSize() > index
+                integer counter = 0
+                repeat while counter < count
+                    row:AddValue(index, "")
+                    counter = counter + 1
+                end
+            end
+            rowIndex = rowIndex + 1
+        end
+        if index < columnWidths:GetSize()
+            integer widthCounter = 0
+            repeat while widthCounter < count
+                columnWidths:Add(index, DEFAULT_COLUMN_WIDTH)
+                widthCounter = widthCounter + 1
+            end
+        end
+        RecountColumns()
+        if columnCount < index + count
+            columnCount = index + count
+        end
+        columnStartsReady = false
+    end
+
+    private action RemoveColumnsInternal(integer first, integer last)
+        integer rowIndex = 0
+        repeat while rowIndex < rows:GetSize()
+            SpreadsheetRow row = rows:Get(rowIndex)
+            integer column = last
+            repeat while column >= first
+                row:RemoveValueAt(column)
+                column = column - 1
+            end
+            rowIndex = rowIndex + 1
+        end
+        integer widthColumn = last
+        repeat while widthColumn >= first
+            if widthColumn < columnWidths:GetSize()
+                columnWidths:RemoveAt(widthColumn)
+            end
+            widthColumn = widthColumn - 1
+        end
+        RecountColumns()
+        columnStartsReady = false
+    end
+
+    private action RecountColumns
+        integer longest = 0
+        integer index = 0
+        repeat while index < rows:GetSize()
+            integer size = rows:Get(index):GetSize()
+            if size > longest
+                longest = size
+            end
+            index = index + 1
+        end
+        columnCount = longest
+        columnStartsReady = false
+    end
+
+    /*
+    This action returns a column's letters: A for 0, Z for 25, AA for 26.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The column's letters.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Spreadsheet
+    Spreadsheet sheet
+    output sheet:GetColumnLabel(27)
+    */
+    action GetColumnLabel(integer column) returns text
+        if column < 0
+            return ""
+        end
+        text letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        text result = ""
+        integer remaining = column + 1
+        repeat while remaining > 0
+            integer place = (remaining - 1) mod 26
+            result = letters:GetCharacter(place) + result
+            remaining = (remaining - 1) / 26
+        end
+        return result
+    end
+
+    /*
+    This action returns a cell's name, its column's letters and row number,
+    such as C2 for row 1, column 2.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The cell's name.
+    */
+    action GetCellName(integer row, integer column) returns text
+        return GetColumnLabel(column) + (row + 1)
+    end
+
+    private action RowsName(integer first, integer last) returns text
+        if first = last
+            return "row " + (first + 1)
+        end
+        return "rows " + (first + 1) + " to " + (last + 1)
+    end
+
+    private action ColumnsName(integer first, integer last) returns text
+        if first = last
+            return "column " + GetColumnLabel(first)
+        end
+        return "columns " + GetColumnLabel(first) + " to " + GetColumnLabel(last)
+    end
+
+    /*
+    This action sets a column's width, in points before the interface scale.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Parameter width The width.
+    */
+    action SetColumnWidth(integer column, number width)
+        if column < 0
+            return now
+        end
+        if width < MINIMUM_COLUMN_WIDTH
+            width = MINIMUM_COLUMN_WIDTH
+        end
+        repeat while columnWidths:GetSize() <= column
+            columnWidths:Add(DEFAULT_COLUMN_WIDTH)
+        end
+        columnWidths:Set(column, width)
+        columnStartsReady = false
+        Refresh()
+    end
+
+    /*
+    This action returns a column's width, in points before the interface
+    scale.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The width.
+    */
+    action GetColumnWidth(integer column) returns number
+        if column >= 0 and column < columnWidths:GetSize()
+            return columnWidths:Get(column)
+        end
+        return DEFAULT_COLUMN_WIDTH
+    end
+
+    /*
+    This action sets a column's width to fit its widest value (looking at up
+    to the first 2000 rows), as double-clicking its right edge does.
+
+    Attribute: Parameter column The column, from 0.
+    */
+    action FitColumnWidth(integer column)
+        number widest = renderer:MeasureText(GetColumnLabel(column))
+        integer limit = rows:GetSize()
+        if limit > FIT_ROW_LIMIT
+            limit = FIT_ROW_LIMIT
+        end
+        integer index = 0
+        repeat while index < limit
+            text value = GetText(index, column)
+            if value not= ""
+                number width = renderer:MeasureText(value)
+                if width > widest
+                    widest = width
+                end
+            end
+            index = index + 1
+        end
+        number fitted = widest + 2 * CELL_PADDING + 2
+        if fitted > MAXIMUM_FIT_WIDTH
+            fitted = MAXIMUM_FIT_WIDTH
+        end
+        SetColumnWidth(column, fitted)
+    end
+
+    // ------------------------------------------------------------- Geometry
+    // In pixels. "Content" places are measured from the top left of all the
+    // cells, row and column labels included, before scrolling; "view" places
+    // from the top left of the spreadsheet.
+
+    /*
+    This action returns how many rows are shown: the rows with values and
+    some blank rows after them to type into.
+
+    Attribute: Returns The number of rows shown.
+    */
+    action GetDisplayedRowSize returns integer
+        return rows:GetSize() + EXTRA_ROWS
+    end
+
+    /*
+    This action returns how many columns are shown: the columns with values
+    and some blank columns after them.
+
+    Attribute: Returns The number of columns shown.
+    */
+    action GetDisplayedColumnSize returns integer
+        return columnCount + EXTRA_COLUMNS
+    end
+
+    /*
+    This action returns a row's height, in pixels.
+
+    Attribute: Returns The height.
+    */
+    action GetRowHeightInPixels returns number
+        return ROW_HEIGHT * GetInterfaceScale()
+    end
+
+    /*
+    This action returns the height of the row of column letters, in pixels.
+
+    Attribute: Returns The height.
+    */
+    action GetHeaderHeightInPixels returns number
+        return HEADER_HEIGHT * GetInterfaceScale()
+    end
+
+    /*
+    This action returns the width of the column of row numbers, in pixels,
+    which grows with the number of digits.
+
+    Attribute: Returns The width.
+    */
+    action GetRowLabelWidthInPixels returns number
+        text digits = "" + GetDisplayedRowSize()
+        number width = 16 + digits:GetSize() * 9
+        if width < 44
+            width = 44
+        end
+        return width * GetInterfaceScale()
+    end
+
+    /*
+    This action returns a column's width, in pixels.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The width.
+    */
+    action GetColumnWidthInPixels(integer column) returns number
+        return GetColumnWidth(column) * GetInterfaceScale()
+    end
+
+    /*
+    This action returns where a column starts in the content, in pixels from
+    its left edge, the row numbers included.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The place.
+    */
+    action GetColumnContentX(integer column) returns number
+        PrepareColumnStarts()
+        number points = 0
+        if column < columnStarts:GetSize()
+            points = columnStarts:Get(column)
+        else
+            integer last = columnStarts:GetSize() - 1
+            points = columnStarts:Get(last) + GetColumnWidth(last) + (column - last - 1) * DEFAULT_COLUMN_WIDTH
+        end
+        return GetRowLabelWidthInPixels() + points * GetInterfaceScale()
+    end
+
+    private action PrepareColumnStarts
+        if columnStartsReady
+            return now
+        end
+        columnStarts:Empty()
+        number start = 0
+        integer column = 0
+        integer shown = GetDisplayedColumnSize()
+        repeat while column < shown
+            columnStarts:Add(start)
+            start = start + GetColumnWidth(column)
+            column = column + 1
+        end
+        columnStartsReady = true
+    end
+
+    /*
+    This action returns how far the content is scrolled across, in pixels.
+
+    Attribute: Returns The distance.
+    */
+    action GetScrollOffsetX returns number
+        return GetScrollPercentageX() * GetTotalContentWidth()
+    end
+
+    /*
+    This action returns how far the content is scrolled down, in pixels.
+
+    Attribute: Returns The distance.
+    */
+    action GetScrollOffsetY returns number
+        return GetScrollPercentageY() * GetTotalContentHeight()
+    end
+
+    /*
+    This action returns where a cell's left edge is, in pixels from the
+    spreadsheet's left edge, after scrolling. Screen readers use it.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The place.
+    */
+    action GetCellLeft(integer column) returns number
+        return GetColumnContentX(column) - GetScrollOffsetX()
+    end
+
+    /*
+    This action returns where a cell's top edge is, in pixels from the
+    spreadsheet's top edge, after scrolling. Screen readers use it.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Returns The place.
+    */
+    action GetCellTop(integer row) returns number
+        return GetHeaderHeightInPixels() + row * GetRowHeightInPixels() - GetScrollOffsetY()
+    end
+
+    /*
+    This action returns the width of the area that shows cells, in pixels.
+
+    Attribute: Returns The width.
+    */
+    action GetViewWidth returns number
+        return renderer:GetWidth()
+    end
+
+    /*
+    This action returns the height of the area that shows cells, in pixels.
+
+    Attribute: Returns The height.
+    */
+    action GetViewHeight returns number
+        return renderer:GetHeight()
+    end
+
+    /*
+    This action returns the first row on screen, even partly.
+
+    Attribute: Returns The row.
+    */
+    action GetFirstVisibleRow returns integer
+        integer row = cast(integer, GetScrollOffsetY() / GetRowHeightInPixels())
+        if row < 0
+            row = 0
+        end
+        if row > GetDisplayedRowSize() - 1
+            row = GetDisplayedRowSize() - 1
+        end
+        return row
+    end
+
+    /*
+    This action returns the last row on screen, even partly.
+
+    Attribute: Returns The row.
+    */
+    action GetLastVisibleRow returns integer
+        number visible = GetViewHeight() - GetHeaderHeightInPixels()
+        if visible < 0
+            visible = 0
+        end
+        integer row = cast(integer, (GetScrollOffsetY() + visible) / GetRowHeightInPixels())
+        if row > GetDisplayedRowSize() - 1
+            row = GetDisplayedRowSize() - 1
+        end
+        if row < GetFirstVisibleRow()
+            row = GetFirstVisibleRow()
+        end
+        return row
+    end
+
+    /*
+    This action returns the first column on screen, even partly.
+
+    Attribute: Returns The column.
+    */
+    action GetFirstVisibleColumn returns integer
+        number offset = GetScrollOffsetX()
+        number labelWidth = GetRowLabelWidthInPixels()
+        integer column = 0
+        integer shown = GetDisplayedColumnSize()
+        repeat while column < shown - 1
+            if GetColumnContentX(column + 1) - offset > labelWidth
+                return column
+            end
+            column = column + 1
+        end
+        return column
+    end
+
+    /*
+    This action returns the last column on screen, even partly.
+
+    Attribute: Returns The column.
+    */
+    action GetLastVisibleColumn returns integer
+        number offset = GetScrollOffsetX()
+        number width = GetViewWidth()
+        integer column = GetFirstVisibleColumn()
+        integer shown = GetDisplayedColumnSize()
+        repeat while column < shown - 1
+            if GetColumnContentX(column + 1) - offset >= width
+                return column
+            end
+            column = column + 1
+        end
+        return column
+    end
+
+    /*
+    This action returns the width of all the cells and the row numbers, in
+    pixels. ScrollableControl uses it for the scroll bar.
+
+    Attribute: Returns The width.
+    */
+    action GetTotalContentWidth returns number
+        number total = GetColumnContentX(GetDisplayedColumnSize() - 1) + GetColumnWidthInPixels(GetDisplayedColumnSize() - 1)
+        if total < 1
+            total = 1
+        end
+        return total
+    end
+
+    /*
+    This action returns the height of all the rows and the column letters,
+    in pixels. ScrollableControl uses it for the scroll bar.
+
+    Attribute: Returns The height.
+    */
+    action GetTotalContentHeight returns number
+        return GetHeaderHeightInPixels() + GetDisplayedRowSize() * GetRowHeightInPixels()
+    end
+
+    /*
+    This action returns the control that draws the cells.
+
+    Attribute: Returns The renderer.
+    */
+    action GetScrollableRegion returns Control
+        return renderer
+    end
+
+    /*
+    This action returns how far one turn of the mouse wheel scrolls: one row,
+    as a share of the content's height.
+
+    Attribute: Returns The share.
+    */
+    action GetScrollIncrement returns number
+        return GetRowHeightInPixels() / GetTotalContentHeight()
+    end
+
+    private action RefreshScrollableRegion
+        renderer:Refresh()
+        PlaceField()
+    end
+
+    /*
+    This action scrolls just enough to show a cell below the column letters
+    and right of the row numbers.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+    */
+    action ScrollToShow(integer row, integer column)
+        number viewHeight = GetViewHeight()
+        number viewWidth = GetViewWidth()
+        if viewHeight <= 0 or viewWidth <= 0
+            return now
+        end
+        number totalHeight = GetTotalContentHeight()
+        number totalWidth = GetTotalContentWidth()
+        number offsetY = GetScrollOffsetY()
+        number offsetX = GetScrollOffsetX()
+
+        number top = GetHeaderHeightInPixels() + row * GetRowHeightInPixels()
+        number bottom = top + GetRowHeightInPixels()
+        number newOffsetY = offsetY
+        if top - offsetY < GetHeaderHeightInPixels()
+            newOffsetY = top - GetHeaderHeightInPixels()
+        elseif bottom - offsetY > viewHeight
+            newOffsetY = bottom - viewHeight
+        end
+
+        number left = GetColumnContentX(column)
+        number right = left + GetColumnWidthInPixels(column)
+        number newOffsetX = offsetX
+        if left - offsetX < GetRowLabelWidthInPixels()
+            newOffsetX = left - GetRowLabelWidthInPixels()
+        elseif right - offsetX > viewWidth
+            newOffsetX = right - viewWidth
+        end
+
+        if newOffsetY not= offsetY
+            SetScrollPercentageY(newOffsetY / totalHeight)
+        end
+        if newOffsetX not= offsetX
+            SetScrollPercentageX(newOffsetX / totalWidth)
+        end
+    end
+
+    /*
+    This action returns the selection: the current cell and the range.
+
+    Attribute: Returns The selection.
     */
     action GetSelection returns SpreadsheetSelection
         return selection
     end
 
     /*
-    This action returns true if the Spreadsheet has no Columns.
+    This action makes a cell current and the only cell selected, and scrolls
+    to it.
 
-    Attribute: Returns True if there are no Columns.
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
     Spreadsheet sheet
-    boolean empty = sheet:IsColumnsEmpty()
-    */
-    action IsColumnsEmpty returns boolean
-        return columns:IsEmpty()
-    end
-
-    /*
-    This action removes every Column and Cell from the Spreadsheet and
-    clears the selection.
-
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    Spreadsheet sheet
-    Column names
-    sheet:Add(names)
-    sheet:Empty()
-    */
-    action Empty
-        selection:Empty()
-        columns:Empty()
-        parent:Item2D:Empty()
-    end
-
-    /*
-    This action selects a single cell in the spreadsheet.
-    */
-    action Select(Cell cell)
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
-        end
-
-        if cell not= undefined
-            cell:GainedSelection()
-        end
-
-        selection:Set(cell)
-    end
-
-    /*
-    This action selects a single Cell at the provided x and y coordinates,
-    where the x coordinate represents the column and the y coordinate represents
-    the row.
+    sheet:LoadFromCommaSeparatedValue("a,b")
+    sheet:Select(0, 1)
     */
     action Select(integer row, integer column)
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
-        end
-
-        Cell cell = GetCell(row, column)
-        if cell not= undefined
-            cell:GainedSelection()
-        end
-
-        selection:Set(row, column)
+        MoveTo(row, column, false)
     end
 
     /*
-    This action clears the selection, so no Cell is selected.
+    This action moves the current cell, keeping it among the cells shown.
+    With extend, the range grows from its anchor, as Shift with an arrow key
+    does.
 
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    sheet:Select(0, 0)
-    sheet:Deselect()
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Parameter extend True to extend the selection.
     */
-    action Deselect
-        Cell oldSelection = selection:Get()
-        if oldSelection not= undefined
-            oldSelection:LostSelection()
+    action MoveTo(integer row, integer column, boolean extend)
+        if row > GetDisplayedRowSize() - 1
+            row = GetDisplayedRowSize() - 1
         end
-
-        selection:Empty()
+        if row < 0
+            row = 0
+        end
+        if column > GetDisplayedColumnSize() - 1
+            column = GetDisplayedColumnSize() - 1
+        end
+        if column < 0
+            column = 0
+        end
+        if extend
+            selection:Extend(row, column)
+        else
+            selection:Set(row, column)
+        end
+        ScrollToShow(row, column)
+        SelectionMoved()
     end
 
     /*
-    This action selects the Cell just above the selected one, in the same
-    Column. If the selection is already in the top row, nothing changes.
+    This action moves the current cell by a number of rows and columns, as the
+    arrow keys and Tab do.
 
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    Cell grace
-    grace:SetText("Grace")
-    names:Add(grace)
-    sheet:Add(names)
-    sheet:Select(1, 0)
-    sheet:MoveSelectionUp()
+    Attribute: Parameter rowChange Rows to move; negative is up.
+
+    Attribute: Parameter columnChange Columns to move; negative is left.
+
+    Attribute: Parameter extend True to extend the selection.
     */
-    action MoveSelectionUp
+    action MoveBy(integer rowChange, integer columnChange, boolean extend)
+        if selection:IsEmpty()
+            MoveTo(0, 0, false)
+            return now
+        end
+        MoveTo(selection:GetRow() + rowChange, selection:GetColumn() + columnChange, extend)
+    end
+
+    /*
+    This action jumps toward the edge of the data, as Control with an arrow
+    key does in Excel: to the end of the run of filled cells, or to the next
+    filled cell, or to the first or last row or column.
+
+    Attribute: Parameter rowChange 1 or -1 to move down or up, or 0.
+
+    Attribute: Parameter columnChange 1 or -1 to move right or left, or 0.
+
+    Attribute: Parameter extend True to extend the selection.
+    */
+    action MoveToEdge(integer rowChange, integer columnChange, boolean extend)
+        if selection:IsEmpty()
+            MoveTo(0, 0, false)
+            return now
+        end
         integer row = selection:GetRow()
         integer column = selection:GetColumn()
-        
-        if row > 0
-            Select(row - 1, column)
+        integer lastRow = rows:GetSize() - 1
+        integer lastColumn = columnCount - 1
+        if lastRow < 0
+            lastRow = 0
+        end
+        if lastColumn < 0
+            lastColumn = 0
+        end
+        boolean filled = GetText(row, column) not= ""
+        integer nextRow = row + rowChange
+        integer nextColumn = column + columnChange
+        boolean nextFilled = InData(nextRow, nextColumn, lastRow, lastColumn) and GetText(nextRow, nextColumn) not= ""
+        if filled and nextFilled
+            // To the last filled cell of this run.
+            repeat while InData(nextRow + rowChange, nextColumn + columnChange, lastRow, lastColumn) and GetText(nextRow + rowChange, nextColumn + columnChange) not= ""
+                nextRow = nextRow + rowChange
+                nextColumn = nextColumn + columnChange
+            end
+            MoveTo(nextRow, nextColumn, extend)
+            return now
+        end
+        // To the next filled cell, or the edge.
+        repeat while InData(nextRow, nextColumn, lastRow, lastColumn)
+            if GetText(nextRow, nextColumn) not= ""
+                MoveTo(nextRow, nextColumn, extend)
+                return now
+            end
+            nextRow = nextRow + rowChange
+            nextColumn = nextColumn + columnChange
+        end
+        integer edgeRow = row
+        integer edgeColumn = column
+        if rowChange > 0
+            edgeRow = lastRow
+        elseif rowChange < 0
+            edgeRow = 0
+        end
+        if columnChange > 0
+            edgeColumn = lastColumn
+        elseif columnChange < 0
+            edgeColumn = 0
+        end
+        MoveTo(edgeRow, edgeColumn, extend)
+    end
+
+    private action InData(integer row, integer column, integer lastRow, integer lastColumn) returns boolean
+        return row >= 0 and column >= 0 and row <= lastRow and column <= lastColumn
+    end
+
+    /*
+    This action moves a screen of rows up or down, as Page Up and Page Down
+    do.
+
+    Attribute: Parameter down True for down.
+
+    Attribute: Parameter extend True to extend the selection.
+    */
+    action MovePage(boolean down, boolean extend)
+        integer page = GetLastVisibleRow() - GetFirstVisibleRow()
+        if page < 1
+            page = 1
+        end
+        if down
+            MoveBy(page, 0, extend)
+        else
+            MoveBy(-page, 0, extend)
         end
     end
 
     /*
-    This action selects the Cell just below the selected one, in the same
-    Column. If the selection is already the last Cell in its Column,
-    nothing changes.
+    This action selects the whole columns of the selection, as Control-Space
+    does.
+    */
+    action SelectColumnsAsUser
+        if selection:IsEmpty()
+            selection:Set(0, 0)
+        end
+        integer anchor = selection:GetAnchorColumn()
+        if selection:GetKind() = selection:ROWS or selection:GetKind() = selection:EVERYTHING
+            anchor = selection:GetColumn()
+        end
+        selection:SetColumns(anchor, selection:GetColumn())
+        SelectionMoved()
+    end
+
+    /*
+    This action selects the whole rows of the selection, as Shift-Space does.
+    */
+    action SelectRowsAsUser
+        if selection:IsEmpty()
+            selection:Set(0, 0)
+        end
+        integer anchor = selection:GetAnchorRow()
+        if selection:GetKind() = selection:COLUMNS or selection:GetKind() = selection:EVERYTHING
+            anchor = selection:GetRow()
+        end
+        selection:SetRows(anchor, selection:GetRow())
+        ignoreNextSpace = true
+        SelectionMoved()
+    end
+
+    /*
+    This action selects every cell, as Control-A does.
+    */
+    action SelectEverythingAsUser
+        selection:SelectEverything()
+        SelectionMoved()
+    end
+
+    /*
+    This action selects whole rows, as clicking or dragging over row numbers
+    does.
+
+    Attribute: Parameter first The row the selection starts from.
+
+    Attribute: Parameter last The row where the current cell goes.
+    */
+    action SelectRows(integer first, integer last)
+        selection:SetRows(first, last)
+        SelectionMoved()
+    end
+
+    /*
+    This action selects whole columns, as clicking or dragging over column
+    letters does.
+
+    Attribute: Parameter first The column the selection starts from.
+
+    Attribute: Parameter last The column where the current cell goes.
+    */
+    action SelectColumns(integer first, integer last)
+        selection:SetColumns(first, last)
+        SelectionMoved()
+    end
+
+    private action SelectionMoved
+        Refresh()
+        NotifyAccessibility()
+    end
+
+    /*
+    This action returns true, once, if a space typed now should be dropped
+    because Shift-Space just selected the row. The typing behavior asks it.
+
+    Attribute: Returns True to drop the space.
+    */
+    action TakeIgnoredSpace returns boolean
+        boolean result = ignoreNextSpace
+        ignoreNextSpace = false
+        return result
+    end
+
+    /*
+    This action forgets a dropped space; each key other than Shift-Space
+    calls it.
+    */
+    action ForgetIgnoredSpace
+        ignoreNextSpace = false
+    end
+
+    /*
+    This action returns true while a cell is being edited.
+
+    Attribute: Returns True while editing.
+    */
+    action IsEditing returns boolean
+        return editing
+    end
+
+    /*
+    This action starts editing the current cell in place. With text, the
+    cell's text is replaced by it, as typing does; with undefined, the cell's
+    own text is edited, as F2 does.
+
+    Attribute: Parameter startText The text to start with, or undefined.
+    */
+    action BeginEditing(text startText)
+        if editing
+            return now
+        end
+        if selection:IsEmpty()
+            selection:Set(0, 0)
+        end
+        editRow = selection:GetRow()
+        editColumn = selection:GetColumn()
+        ScrollToShow(editRow, editColumn)
+        text value = startText
+        if value = undefined
+            value = GetText(editRow, editColumn)
+        end
+        field:SetName("Cell " + GetCellName(editRow, editColumn))
+        field:SetText(value)
+        editing = true
+        ignoreNextSpace = false
+        Add(field)
+        PlaceField()
+        field:Focus()
+        field:SetCaretPosition(value:GetSize())
+    end
+
+    /*
+    This action keeps the edit, then moves the current cell, as Enter and Tab
+    do.
+
+    Attribute: Parameter rowChange Rows to move after: 1 for Enter, -1 for Shift-Enter.
+
+    Attribute: Parameter columnChange Columns to move after: 1 for Tab, -1 for Shift-Tab.
+    */
+    action CommitEditing(integer rowChange, integer columnChange)
+        if not editing
+            return now
+        end
+        FinishEditing(true)
+        Focus()
+        MoveTo(editRow + rowChange, editColumn + columnChange, false)
+    end
+
+    /*
+    This action keeps the edit without taking the focus back, as when the
+    user clicks somewhere else.
+    */
+    action CommitEditingWithoutFocus
+        if not editing
+            return now
+        end
+        FinishEditing(true)
+        Refresh()
+    end
+
+    /*
+    This action ends editing without keeping the edit, as Escape does.
+    */
+    action CancelEditing
+        if not editing
+            return now
+        end
+        FinishEditing(false)
+        Focus()
+        SelectionMoved()
+    end
+
+    private action FinishEditing(boolean keep)
+        text value = field:GetText()
+        editing = false
+        Remove(field)
+        if keep
+            SetTextAsUser(editRow, editColumn, value)
+        end
+    end
+
+    // Puts the edit field over the cell being edited.
+    private action PlaceField
+        if not editing
+            return now
+        end
+        number x = GetCellLeft(editColumn)
+        number width = GetColumnWidthInPixels(editColumn)
+        number height = GetRowHeightInPixels()
+        number y = renderer:GetY() + renderer:GetHeight() - GetCellTop(editRow) - height
+        number scale = GetInterfaceScale()
+        LayoutProperties properties = field:GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPercentageHeight(0)
+        properties:SetPercentageX(0)
+        properties:SetPercentageY(0)
+        properties:SetPixelWidth(width / scale)
+        properties:SetPixelHeight(height / scale)
+        properties:SetPixelX(x)
+        properties:SetPixelY(y)
+        field:SetPosition(x, y)
+        field:SetSize(width, height)
+    end
+
+    /*
+    This action returns the field used to edit cells in place.
+
+    Attribute: Returns The field.
+    */
+    action GetEditField returns SpreadsheetCellField
+        return field
+    end
+
+    /*
+    This action clears the selected cells, as Delete does. It can be undone.
+    */
+    action ClearSelectionAsUser
+        if selection:IsEmpty()
+            return now
+        end
+        integer first = selection:GetFirstRow()
+        integer last = selection:GetLastRow()
+        if last > rows:GetSize() - 1
+            last = rows:GetSize() - 1
+        end
+        if first > last
+            return now
+        end
+        integer firstColumn = selection:GetFirstColumn()
+        integer lastColumn = selection:GetLastColumn()
+        StartRowsEdit(first, last)
+        integer row = first
+        repeat while row <= last
+            SpreadsheetRow target = rows:Get(row)
+            integer column = firstColumn
+            repeat while column <= lastColumn and column < target:GetSize()
+                if target:GetValue(column) not= ""
+                    target:SetValue(column, "")
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        FinishRowsEdit("Clear")
+        Changed(changeKinds:VALUES, first, last, firstColumn, lastColumn, "Cleared " + RangeName())
+    end
+
+    private action RangeName returns text
+        integer firstRow = selection:GetFirstRow()
+        integer lastRow = selection:GetLastRow()
+        integer firstColumn = selection:GetFirstColumn()
+        integer lastColumn = selection:GetLastColumn()
+        if selection:GetKind() = selection:ROWS
+            return RowsName(firstRow, lastRow)
+        elseif selection:GetKind() = selection:COLUMNS
+            return ColumnsName(firstColumn, lastColumn)
+        elseif selection:GetKind() = selection:EVERYTHING
+            return "everything"
+        end
+        if firstRow = lastRow and firstColumn = lastColumn
+            return GetCellName(firstRow, firstColumn)
+        end
+        return GetCellName(firstRow, firstColumn) + " to " + GetCellName(lastRow, lastColumn)
+    end
+
+    /*
+    This action adds rows or columns at the selection, as Control-Plus does:
+    rows above selected rows, columns left of selected columns, or, for
+    cells, a menu asks which.
+    */
+    action InsertAtSelectionAsUser
+        if selection:IsEmpty()
+            return now
+        end
+        if selection:GetKind() = selection:ROWS
+            AddRowsAsUser(selection:GetFirstRow(), selection:GetLastRow() - selection:GetFirstRow() + 1)
+        elseif selection:GetKind() = selection:COLUMNS
+            AddColumnsAsUser(selection:GetFirstColumn(), selection:GetLastColumn() - selection:GetFirstColumn() + 1)
+        else
+            OpenChoiceMenu(true)
+        end
+    end
+
+    /*
+    This action removes rows or columns at the selection, as Control-Minus
+    does: the selected rows or columns, or, for cells, a menu asks which.
+    */
+    action RemoveAtSelectionAsUser
+        if selection:IsEmpty()
+            return now
+        end
+        if selection:GetKind() = selection:ROWS
+            RemoveRowsAsUser(selection:GetFirstRow(), selection:GetLastRow())
+        elseif selection:GetKind() = selection:COLUMNS
+            RemoveColumnsAsUser(selection:GetFirstColumn(), selection:GetLastColumn())
+        else
+            OpenChoiceMenu(false)
+        end
+    end
+
+    /*
+    This action returns the selected cells as tab-separated text, a line per
+    row, the way other spreadsheet programs put cells on the clipboard.
+
+    Attribute: Returns The text, or "" when nothing is selected.
+    */
+    action CopySelection returns text
+        if selection:IsEmpty()
+            return ""
+        end
+        text tab = ""
+        tab = tab:GetTab()
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        integer firstRow = selection:GetFirstRow()
+        integer lastRow = selection:GetLastRow()
+        integer firstColumn = selection:GetFirstColumn()
+        integer lastColumn = selection:GetLastColumn()
+        text result = ""
+        integer row = firstRow
+        repeat while row <= lastRow
+            if row > firstRow
+                result = result + lineFeed
+            end
+            integer column = firstColumn
+            repeat while column <= lastColumn
+                if column > firstColumn
+                    result = result + tab
+                end
+                result = result + GetText(row, column)
+                column = column + 1
+            end
+            row = row + 1
+        end
+        return result
+    end
+
+    /*
+    This action returns the selected cells as tab-separated text and clears
+    them, as Cut does. It can be undone.
+
+    Attribute: Returns The text.
+    */
+    action CutSelectionAsUser returns text
+        text value = CopySelection()
+        ClearSelectionAsUser()
+        return value
+    end
+
+    /*
+    This action puts tab-separated text into the cells, starting at the top
+    left of the selection, as Paste does. Rows and values are added as
+    needed. It can be undone.
+
+    Attribute: Parameter value The text, a line per row and a tab between values.
+    */
+    action PasteAsUser(text value)
+        if value = undefined or value = ""
+            return now
+        end
+        if selection:IsEmpty()
+            selection:Set(0, 0)
+        end
+        text tab = ""
+        tab = tab:GetTab()
+        text lineFeed = ""
+        lineFeed = lineFeed:GetLineFeed()
+        text carriageReturn = ""
+        carriageReturn = carriageReturn:GetCarriageReturn()
+        text cleaned = value:Replace(carriageReturn + lineFeed, lineFeed)
+        cleaned = cleaned:Replace(carriageReturn, lineFeed)
+        if cleaned:EndsWith(lineFeed)
+            cleaned = cleaned:GetSubtext(0, cleaned:GetSize() - 1)
+        end
+        Array<text> lines = cleaned:Split(lineFeed, true)
+        integer top = selection:GetFirstRow()
+        integer left = selection:GetFirstColumn()
+        integer lastRow = top + lines:GetSize() - 1
+        StartRowsEdit(top, lastRow)
+        integer widest = 0
+        integer index = 0
+        repeat while index < lines:GetSize()
+            Array<text> parts = lines:Get(index):Split(tab, true)
+            integer part = 0
+            repeat while part < parts:GetSize()
+                PutText(top + index, left + part, parts:Get(part))
+                part = part + 1
+            end
+            if parts:GetSize() > widest
+                widest = parts:GetSize()
+            end
+            index = index + 1
+        end
+        FinishRowsEdit("Paste")
+        if widest < 1
+            widest = 1
+        end
+        selection:Set(top, left)
+        selection:Extend(lastRow, left + widest - 1)
+        Changed(changeKinds:VALUES, top, lastRow, left, left + widest - 1, "Pasted into " + RangeName())
+    end
+
+    /*
+    This action moves the current cell to the next cell holding the text,
+    going along rows and starting again at the top after the last row.
+
+    Attribute: Parameter value The text to find.
+
+    Attribute: Parameter matchCase True to tell capital letters from small ones.
+
+    Attribute: Parameter wholeCell True to find only cells whose whole text is the value.
+
+    Attribute: Parameter forward True to go forward, false to go back.
+
+    Attribute: Returns True if a cell was found.
 
     Attribute: Example
     use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
     Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    Cell grace
-    grace:SetText("Grace")
-    names:Add(grace)
-    sheet:Add(names)
-    sheet:Select(0, 0)
-    sheet:MoveSelectionDown()
+    sheet:LoadFromCommaSeparatedValue("Ada,1815
+Grace,1906")
+    boolean found = sheet:Find("grace", false, false, true)
     */
-    action MoveSelectionDown
+    action Find(text value, boolean matchCase, boolean wholeCell, boolean forward) returns boolean
+        if value = undefined or value = "" or rows:IsEmpty() or columnCount = 0
+            return false
+        end
+        integer width = columnCount
+        integer total = rows:GetSize() * width
+        integer start = 0
+        if not selection:IsEmpty() and selection:GetRow() < rows:GetSize() and selection:GetColumn() < width
+            start = selection:GetRow() * width + selection:GetColumn()
+        elseif not forward
+            start = 0
+        else
+            start = total - 1
+        end
+        integer step = 1
+        if not forward
+            step = -1
+        end
+        integer counter = 1
+        repeat while counter <= total
+            integer place = (start + step * counter) mod total
+            if place < 0
+                place = place + total
+            end
+            integer row = place / width
+            integer column = place mod width
+            if Matches(GetText(row, column), value, matchCase, wholeCell)
+                MoveTo(row, column, false)
+                return true
+            end
+            counter = counter + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns true if a cell's text matches what is looked for.
+
+    Attribute: Parameter cellText The cell's text.
+
+    Attribute: Parameter value What is looked for.
+
+    Attribute: Parameter matchCase True to tell capital letters from small ones.
+
+    Attribute: Parameter wholeCell True to match only the whole text.
+
+    Attribute: Returns True if it matches.
+    */
+    action Matches(text cellText, text value, boolean matchCase, boolean wholeCell) returns boolean
+        if cellText = undefined or cellText = ""
+            return false
+        end
+        text a = cellText
+        text b = value
+        if not matchCase
+            a = a:ToLowerCase()
+            b = b:ToLowerCase()
+        end
+        if wholeCell
+            return a = b
+        end
+        return a:Contains(b)
+    end
+
+    /*
+    This action replaces the text in the current cell if it matches, then
+    finds the next match, as a Replace button does. It can be undone.
+
+    Attribute: Parameter value The text to find.
+
+    Attribute: Parameter replacement The text to put in its place.
+
+    Attribute: Parameter matchCase True to tell capital letters from small ones.
+
+    Attribute: Parameter wholeCell True to replace only whole cells.
+
+    Attribute: Returns True if a replacement was made.
+    */
+    action Replace(text value, text replacement, boolean matchCase, boolean wholeCell) returns boolean
+        if selection:IsEmpty() or value = undefined or value = ""
+            return false
+        end
         integer row = selection:GetRow()
-        integer col = selection:GetColumn()
-        
-        if col >= 0 and col < columns:GetSize()
-            Column column = columns:Get(col)
-            if row < column:GetSize() - 1
-                Select(row + 1, col)
+        integer column = selection:GetColumn()
+        text current = GetText(row, column)
+        if not Matches(current, value, matchCase, wholeCell)
+            boolean found = Find(value, matchCase, wholeCell, true)
+            return false
+        end
+        StartRowsEdit(row, row)
+        PutText(row, column, ReplacedText(current, value, replacement, matchCase, wholeCell))
+        FinishRowsEdit("Replace")
+        Changed(changeKinds:VALUES, row, row, column, column, "Replaced in " + GetCellName(row, column))
+        boolean next = Find(value, matchCase, wholeCell, true)
+        return true
+    end
+
+    /*
+    This action replaces the text in every matching cell, as one step that
+    can be undone.
+
+    Attribute: Parameter value The text to find.
+
+    Attribute: Parameter replacement The text to put in its place.
+
+    Attribute: Parameter matchCase True to tell capital letters from small ones.
+
+    Attribute: Parameter wholeCell True to replace only whole cells.
+
+    Attribute: Returns How many cells were changed.
+    */
+    action ReplaceAll(text value, text replacement, boolean matchCase, boolean wholeCell) returns integer
+        if value = undefined or value = ""
+            return 0
+        end
+        Array<integer> changedRows
+        integer row = 0
+        repeat while row < rows:GetSize()
+            SpreadsheetRow target = rows:Get(row)
+            boolean rowMatches = false
+            integer column = 0
+            repeat while column < target:GetSize() and not rowMatches
+                if Matches(target:GetValue(column), value, matchCase, wholeCell)
+                    rowMatches = true
+                end
+                column = column + 1
+            end
+            if rowMatches
+                changedRows:Add(row)
+            end
+            row = row + 1
+        end
+        if changedRows:IsEmpty()
+            return 0
+        end
+        StartRowsEditFor(changedRows)
+        integer count = 0
+        integer index = 0
+        repeat while index < changedRows:GetSize()
+            SpreadsheetRow changedRow = rows:Get(changedRows:Get(index))
+            integer changedColumn = 0
+            repeat while changedColumn < changedRow:GetSize()
+                text current = changedRow:GetValue(changedColumn)
+                if Matches(current, value, matchCase, wholeCell)
+                    changedRow:SetValue(changedColumn, ReplacedText(current, value, replacement, matchCase, wholeCell))
+                    count = count + 1
+                end
+                changedColumn = changedColumn + 1
+            end
+            index = index + 1
+        end
+        FinishRowsEdit("Replace All")
+        RecountColumns()
+        Changed(changeKinds:VALUES, changedRows:Get(0), changedRows:Get(changedRows:GetSize() - 1), 0, GetSize() - 1, "Replaced " + count + " cells")
+        return count
+    end
+
+    private action ReplacedText(text current, text value, text replacement, boolean matchCase, boolean wholeCell) returns text
+        if replacement = undefined
+            replacement = ""
+        end
+        if wholeCell
+            return replacement
+        end
+        if matchCase
+            return current:Replace(value, replacement)
+        end
+        // Without matching case, each match is found in a small-letter copy.
+        text lower = current:ToLowerCase()
+        text target = value:ToLowerCase()
+        text result = ""
+        integer start = 0
+        integer found = lower:IndexOf(target, start)
+        repeat while found >= 0
+            result = result + current:GetSubtext(start, found) + replacement
+            start = found + target:GetSize()
+            found = lower:IndexOf(target, start)
+        end
+        return result + current:GetSubtext(start, current:GetSize())
+    end
+
+    /*
+    This action opens the spreadsheet's menu: add or remove rows and columns,
+    fit a column's width, cut, copy, paste and clear. Shift-F10 and a right
+    click open it.
+
+    Attribute: Parameter atCursor True to open it at the mouse, false at the current cell.
+    */
+    action OpenContextMenu(boolean atCursor)
+        menu:Empty()
+        if selection:IsEmpty()
+            selection:Set(0, 0)
+        end
+        integer firstRow = selection:GetFirstRow()
+        integer lastRow = selection:GetLastRow()
+        integer firstColumn = selection:GetFirstColumn()
+        integer lastColumn = selection:GetLastColumn()
+        SpreadsheetMenuBehavior temp
+        if selection:GetKind() = selection:ROWS
+            AddMenuItem("Insert " + CountName(lastRow - firstRow + 1, "row") + " above", temp:INSERT_ROWS_ABOVE)
+            AddMenuItem("Insert " + CountName(lastRow - firstRow + 1, "row") + " below", temp:INSERT_ROWS_BELOW)
+            AddMenuItem("Delete " + RowsName(firstRow, lastRow), temp:DELETE_ROWS)
+        elseif selection:GetKind() = selection:COLUMNS
+            AddMenuItem("Insert " + CountName(lastColumn - firstColumn + 1, "column") + " left", temp:INSERT_COLUMNS_LEFT)
+            AddMenuItem("Insert " + CountName(lastColumn - firstColumn + 1, "column") + " right", temp:INSERT_COLUMNS_RIGHT)
+            AddMenuItem("Delete " + ColumnsName(firstColumn, lastColumn), temp:DELETE_COLUMNS)
+            AddMenuItem("Fit column width", temp:FIT_WIDTH)
+        else
+            AddMenuItem("Insert row above", temp:INSERT_ROWS_ABOVE)
+            AddMenuItem("Insert row below", temp:INSERT_ROWS_BELOW)
+            AddMenuItem("Insert column left", temp:INSERT_COLUMNS_LEFT)
+            AddMenuItem("Insert column right", temp:INSERT_COLUMNS_RIGHT)
+            AddMenuItem("Delete " + RowsName(firstRow, lastRow), temp:DELETE_ROWS)
+            AddMenuItem("Delete " + ColumnsName(firstColumn, lastColumn), temp:DELETE_COLUMNS)
+        end
+        AddMenuItem("Cut", temp:CUT)
+        AddMenuItem("Copy", temp:COPY)
+        AddMenuItem("Paste", temp:PASTE)
+        AddMenuItem("Clear", temp:CLEAR)
+        ShowMenu(atCursor)
+    end
+
+    // The menu Control-Plus and Control-Minus open on cells: rows or columns?
+    private action OpenChoiceMenu(boolean insert)
+        menu:Empty()
+        SpreadsheetMenuBehavior temp
+        if insert
+            AddMenuItem("Insert entire row", temp:INSERT_ROWS_ABOVE)
+            AddMenuItem("Insert entire column", temp:INSERT_COLUMNS_LEFT)
+        else
+            AddMenuItem("Delete entire row", temp:DELETE_ROWS)
+            AddMenuItem("Delete entire column", temp:DELETE_COLUMNS)
+        end
+        ShowMenu(false)
+    end
+
+    private action CountName(integer count, text noun) returns text
+        if count = 1
+            return noun
+        end
+        return count + " " + noun + "s"
+    end
+
+    private action AddMenuItem(text name, integer command)
+        MenuItem item
+        item:SetName(name)
+        SpreadsheetMenuBehavior behavior
+        behavior:Setup(me, command)
+        item:SetBehavior(behavior)
+        menu:Add(item)
+    end
+
+    private action ShowMenu(boolean atCursor)
+        if atCursor
+            menu:OpenAtCursor()
+        else
+            integer row = selection:GetRow()
+            integer column = selection:GetColumn()
+            number x = GetGlobalX() + GetCellLeft(column)
+            number y = GetGlobalY() + renderer:GetY() + renderer:GetHeight() - GetCellTop(row) - GetRowHeightInPixels()
+            menu:OpenAt(x, y)
+        end
+    end
+
+    /*
+    This action answers a press of the mouse or a finger, at a place on the
+    screen: on a cell it selects it (Shift extends, a double click edits), on
+    a column letter or row number it selects the column or row, on the edge
+    of a column letter it starts changing the width (a double click fits it),
+    and on the corner it selects everything.
+
+    Attribute: Parameter x The place across the screen.
+
+    Attribute: Parameter y The place up the screen.
+
+    Attribute: Parameter clickCount 1 for a click, 2 for a double click.
+
+    Attribute: Parameter shift True if Shift is held.
+    */
+    action PressAt(number x, number y, integer clickCount, boolean shift)
+        dragKind = DRAG_NONE
+        integer hit = renderer:HitTest(x, y)
+        if hit = renderer:HIT_NONE
+            return now
+        end
+        if editing
+            CommitEditingWithoutFocus()
+        end
+        if not IsFocused()
+            Focus()
+        end
+        integer row = renderer:GetHitRow()
+        integer column = renderer:GetHitColumn()
+        if hit = renderer:HIT_CELL
+            if clickCount >= 2
+                MoveTo(row, column, false)
+                BeginEditing(undefined)
+                return now
+            end
+            if shift and selection:GetKind() = selection:CELLS
+                MoveTo(row, column, true)
+            else
+                MoveTo(row, column, false)
+            end
+            dragKind = DRAG_CELLS
+        elseif hit = renderer:HIT_COLUMN_EDGE
+            if clickCount >= 2
+                FitColumnWidth(column)
+                return now
+            end
+            dragKind = DRAG_WIDTH
+            dragColumn = column
+            dragStartX = x
+            dragStartWidth = GetColumnWidth(column)
+        elseif hit = renderer:HIT_COLUMN
+            if shift and selection:GetKind() = selection:COLUMNS
+                SelectColumns(selection:GetAnchorColumn(), column)
+            else
+                SelectColumns(column, column)
+            end
+            dragKind = DRAG_COLUMNS
+        elseif hit = renderer:HIT_ROW
+            if shift and selection:GetKind() = selection:ROWS
+                SelectRows(selection:GetAnchorRow(), row)
+            else
+                SelectRows(row, row)
+            end
+            dragKind = DRAG_ROWS
+        elseif hit = renderer:HIT_CORNER
+            SelectEverythingAsUser()
+        end
+    end
+
+    /*
+    This action answers the mouse or a finger moving while pressed: the
+    selection or a column's width follows it.
+
+    Attribute: Parameter x The place across the screen.
+
+    Attribute: Parameter y The place up the screen.
+    */
+    action DragTo(number x, number y)
+        if dragKind = DRAG_NONE
+            return now
+        end
+        if dragKind = DRAG_WIDTH
+            SetColumnWidth(dragColumn, dragStartWidth + (x - dragStartX) / GetInterfaceScale())
+            return now
+        end
+        integer hit = renderer:HitTest(x, y)
+        integer row = renderer:GetHitRow()
+        integer column = renderer:GetHitColumn()
+        if dragKind = DRAG_CELLS and hit = renderer:HIT_CELL
+            if row not= selection:GetRow() or column not= selection:GetColumn()
+                MoveTo(row, column, true)
+            end
+        elseif dragKind = DRAG_COLUMNS and column >= 0
+            if column not= selection:GetColumn()
+                SelectColumns(selection:GetAnchorColumn(), column)
+            end
+        elseif dragKind = DRAG_ROWS and row >= 0
+            if row not= selection:GetRow()
+                SelectRows(selection:GetAnchorRow(), row)
             end
         end
     end
 
     /*
-    This action selects the Cell just left of the selected one, in the same
-    row. If the selection is already in the leftmost Column, nothing
-    changes.
-
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    Column years
-    Cell year
-    year:SetText("1815")
-    years:Add(year)
-    sheet:Add(years)
-    sheet:Select(0, 1)
-    sheet:MoveSelectionLeft()
+    This action ends a press.
     */
-    action MoveSelectionLeft
-        integer row = selection:GetRow()
-        integer column = selection:GetColumn()
-
-        if selection:GetColumn() > 0
-            Select(row, column - 1)
-        end
+    action Release
+        dragKind = DRAG_NONE
     end
 
     /*
-    This action selects the Cell just right of the selected one, in the
-    same row. If the selection is already in the rightmost Column, nothing
-    changes.
+    This action answers a right click: the cell, row or column under it is
+    selected unless it already is, then the menu opens.
 
-    Attribute: Example
-    use Libraries.Interface.Controls.Spreadsheet
-    use Libraries.Interface.Controls.Column
-    use Libraries.Interface.Controls.Cell
-    Spreadsheet sheet
-    Column names
-    Cell ada
-    ada:SetText("Ada")
-    names:Add(ada)
-    sheet:Add(names)
-    Column years
-    Cell year
-    year:SetText("1815")
-    years:Add(year)
-    sheet:Add(years)
-    sheet:Select(0, 0)
-    sheet:MoveSelectionRight()
+    Attribute: Parameter x The place across the screen.
+
+    Attribute: Parameter y The place up the screen.
     */
-    action MoveSelectionRight
-        integer row = selection:GetRow()
-        integer column = selection:GetColumn()
-        
-        if selection:GetColumn() < columns:GetSize() - 1
-            Select(row, column + 1)
+    action OpenContextMenuAt(number x, number y)
+        integer hit = renderer:HitTest(x, y)
+        if hit = renderer:HIT_NONE
+            return now
         end
-    end
-
-    /*
-    This action returns the coordinates of a cell within the Spreadsheet within
-    a Pair object. The first value of the Pair is the x coordinate, representing
-    which column contains the cell. The second value of the Pair is the y
-    coordinate, representing which row contains the cell.
-
-    This action can potentially iterate over every cell in the Spreadsheet, and
-    should be used sparingly if working with lots of cells.
-    */
-    action GetCellCoordinates(Cell cell) returns Pair<integer>
-        integer col = 0
-        Pair<integer> pair
-
-        repeat while col < columns:GetSize()
-            Column column = columns:Get(col)
-            integer row = column:GetCellIndex(cell)
-            if row > -1
-                pair:Set(row, col)
-                return pair
+        if editing
+            CommitEditingWithoutFocus()
+        end
+        if not IsFocused()
+            Focus()
+        end
+        integer row = renderer:GetHitRow()
+        integer column = renderer:GetHitColumn()
+        if hit = renderer:HIT_CELL
+            if not selection:Contains(row, column)
+                MoveTo(row, column, false)
             end
-            col = col + 1
+        elseif hit = renderer:HIT_COLUMN or hit = renderer:HIT_COLUMN_EDGE
+            if not (selection:GetKind() = selection:COLUMNS and selection:Contains(0, column))
+                SelectColumns(column, column)
+            end
+        elseif hit = renderer:HIT_ROW
+            if not (selection:GetKind() = selection:ROWS and selection:Contains(row, 0))
+                SelectRows(row, row)
+            end
         end
-
-        // If the cell couldn't be found, return -1 for each coordinate.
-        pair:Set(-1, -1)
-        return pair
+        OpenContextMenu(true)
     end
 
     /*
-    This action returns the index of the column within the Spreadsheet, or
-    returns -1 if the column is not a part of this Spreadsheet.
+    This action returns the spreadsheet's undo and redo steps.
+
+    Attribute: Returns The edit manager.
     */
-    action GetColumnIndex(Column column) returns integer
-        return columns:GetFirstLocation(column)
+    action GetEditManager returns SpreadsheetEditManager
+        return edits
     end
 
     /*
-    This action gets the cell located at the given coordinates, specified 
-    as a row and then a column.
+    This action undoes the last step, if there is one.
     */
-    action GetCell(integer row, integer column) returns Cell
-        return columns:Get(column):GetCell(row)
+    action Undo
+        if editing
+            CancelEditing()
+        end
+        if edits:CanUndo()
+            edits:Undo()
+        end
     end
 
     /*
-    This action sets the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
-    be used instead.
+    This action redoes the last step undone, if there is one.
     */
-    action SetCellActivationBehavior(Behavior behavior)
-        cellBehavior = behavior
+    action Redo
+        if editing
+            CancelEditing()
+        end
+        if edits:CanRedo()
+            edits:Redo()
+        end
+    end
+
+    private action StartSelectionRecord
+        editSelectionBefore = GetSelectionRecord()
+    end
+
+    private action GetSelectionRecord returns Array<integer>
+        Array<integer> record
+        record:Add(selection:GetRow())
+        record:Add(selection:GetColumn())
+        record:Add(selection:GetAnchorRow())
+        record:Add(selection:GetAnchorColumn())
+        record:Add(selection:GetKind())
+        return record
+    end
+
+    // Records rows first to last before a change (and the last row, when
+    // rows are added after it, since its line ending can change).
+    private action StartRowsEdit(integer first, integer last)
+        Array<integer> indices
+        if first < 0
+            first = 0
+        end
+        if last >= rows:GetSize() and rows:GetSize() > 0 and first > rows:GetSize() - 1
+            indices:Add(rows:GetSize() - 1)
+        end
+        integer index = first
+        repeat while index <= last
+            indices:Add(index)
+            index = index + 1
+        end
+        StartRowsEditFor(indices)
+    end
+
+    private action StartRowsEditFor(Array<integer> indices)
+        editIndices = indices
+        Array<SpreadsheetRow> copies
+        integer index = 0
+        repeat while index < indices:GetSize()
+            integer row = indices:Get(index)
+            if row < rows:GetSize()
+                copies:Add(rows:Get(row):Copy())
+            else
+                copies:Add(undefined)
+            end
+            index = index + 1
+        end
+        editBefore = copies
+        editCountBefore = rows:GetSize()
+        StartSelectionRecord()
+    end
+
+    private action FinishRowsEdit(text name)
+        Array<SpreadsheetRow> copies
+        integer index = 0
+        repeat while index < editIndices:GetSize()
+            integer row = editIndices:Get(index)
+            if row < rows:GetSize()
+                copies:Add(rows:Get(row):Copy())
+            else
+                copies:Add(undefined)
+            end
+            index = index + 1
+        end
+        SpreadsheetEdit edit
+        edit:Setup(me, edit:ROWS, name)
+        edit:SetRows(editIndices, editBefore, copies, editCountBefore, rows:GetSize())
+        edit:SetSelections(editSelectionBefore, GetSelectionRecord())
+        edits:Add(edit)
+    end
+
+    private action StartEverythingEdit
+        everythingBefore = CopyRows()
+        widthsBefore = CopyWidths()
+        StartSelectionRecord()
+    end
+
+    private action FinishEverythingEdit(text name)
+        SpreadsheetEdit edit
+        edit:Setup(me, edit:EVERYTHING, name)
+        edit:SetEverything(everythingBefore, widthsBefore, CopyRows(), CopyWidths())
+        edit:SetSelections(editSelectionBefore, GetSelectionRecord())
+        edits:Add(edit)
+    end
+
+    private action CopyRows returns Array<SpreadsheetRow>
+        Array<SpreadsheetRow> copies
+        integer index = 0
+        repeat while index < rows:GetSize()
+            copies:Add(rows:Get(index):Copy())
+            index = index + 1
+        end
+        return copies
+    end
+
+    private action CopyWidths returns Array<number>
+        Array<number> copies
+        integer index = 0
+        repeat while index < columnWidths:GetSize()
+            copies:Add(columnWidths:Get(index))
+            index = index + 1
+        end
+        return copies
     end
 
     /*
-    This action returns the cell activation Behavior for this Spreadsheet. If a
-    cell would ever be activated (such as by a double-click), if it doesn't have
-    its own activation Behavior, the Spreadsheet's cell activation Behavior will
-    be used instead.
+    This action puts rows back for undo or redo: the spreadsheet gets the
+    given number of rows, and the given rows get copies of the given rows.
+    SpreadsheetEdit calls it.
+
+    Attribute: Parameter count How many rows there should be.
+
+    Attribute: Parameter indices Which rows to put back.
+
+    Attribute: Parameter copies The rows, undefined where a row shouldn't exist.
     */
-    action GetCellActivationBehavior returns Behavior
-        return cellBehavior
+    action PutRowsForUndo(integer count, Array<integer> indices, Array<SpreadsheetRow> copies)
+        repeat while rows:GetSize() > count
+            rows:RemoveAt(rows:GetSize() - 1)
+        end
+        repeat while rows:GetSize() < count
+            SpreadsheetRow blank
+            blank:SetLineEnding(defaultLineEnding)
+            rows:Add(blank)
+        end
+        integer index = 0
+        repeat while index < indices:GetSize()
+            integer row = indices:Get(index)
+            SpreadsheetRow copy = copies:Get(index)
+            if copy not= undefined and row < rows:GetSize()
+                rows:Set(row, copy:Copy())
+            end
+            index = index + 1
+        end
+        RecountColumns()
     end
 
     /*
+    This action puts copies of rows in at an index, for undo or redo.
 
+    Attribute: Parameter index Where the rows go.
+
+    Attribute: Parameter copies The rows.
+    */
+    action InsertRowsForUndo(integer index, Array<SpreadsheetRow> copies)
+        integer counter = 0
+        repeat while counter < copies:GetSize()
+            rows:Add(index + counter, copies:Get(counter):Copy())
+            counter = counter + 1
+        end
+        RecountColumns()
+    end
+
+    /*
+    This action takes rows out, for undo or redo.
+
+    Attribute: Parameter first The first row.
+
+    Attribute: Parameter last The last row.
+    */
+    action RemoveRowsForUndo(integer first, integer last)
+        RemoveRowsInternal(first, last)
+    end
+
+    /*
+    This action puts every row and the column widths back, for undo or redo.
+
+    Attribute: Parameter copies The rows.
+
+    Attribute: Parameter widths The column widths.
+    */
+    action PutEverythingForUndo(Array<SpreadsheetRow> copies, Array<number> widths)
+        Array<SpreadsheetRow> newRows
+        integer index = 0
+        repeat while index < copies:GetSize()
+            newRows:Add(copies:Get(index):Copy())
+            index = index + 1
+        end
+        rows = newRows
+        Array<number> newWidths
+        index = 0
+        repeat while index < widths:GetSize()
+            newWidths:Add(widths:Get(index))
+            index = index + 1
+        end
+        columnWidths = newWidths
+        RecountColumns()
+    end
+
+    /*
+    This action puts the selection back, for undo or redo.
+
+    Attribute: Parameter record The row, column, anchor row, anchor column and kind.
+    */
+    action PutSelectionForUndo(Array<integer> record)
+        if record = undefined or record:GetSize() < 5
+            return now
+        end
+        selection:Restore(record:Get(0), record:Get(1), record:Get(2), record:Get(3), record:Get(4))
+        if not selection:IsEmpty()
+            ScrollToShow(selection:GetRow(), selection:GetColumn())
+        end
+    end
+
+    /*
+    This action tells listeners that a step was undone or redone.
+    SpreadsheetEdit calls it.
+
+    Attribute: Parameter description What was undone or redone.
+    */
+    action NotifyUndone(text description)
+        Changed(changeKinds:UNDO, 0, GetRowSize() - 1, 0, GetSize() - 1, description)
+    end
+
+    /*
+    This action adds a listener, told each time the values change.
+
+    Attribute: Parameter listener The listener.
+    */
+    action AddSpreadsheetListener(SpreadsheetListener listener)
+        listeners:Add(listener)
+    end
+
+    /*
+    This action removes a listener.
+
+    Attribute: Parameter listener The listener.
+    */
+    action RemoveSpreadsheetListener(SpreadsheetListener listener)
+        boolean removed = listeners:Remove(listener)
+    end
+
+    private action Changed(integer kind, integer firstRow, integer lastRow, integer firstColumn, integer lastColumn, text description)
+        SpreadsheetChangedEvent event
+        event:Set(me, kind, firstRow, lastRow, firstColumn, lastColumn, description)
+        integer index = 0
+        repeat while index < listeners:GetSize()
+            listeners:Get(index):SpreadsheetChanged(event)
+            index = index + 1
+        end
+        // The current cell's text may have changed: its name follows.
+        selection:Changed()
+        Refresh()
+        NotifyAccessibility()
+    end
+
+    /*
+    This action draws the cells again: the scroll bars, the cells on screen,
+    the labels and the selection. The spreadsheet calls it after each change.
+    */
+    action Refresh
+        columnStartsReady = false
+        Resize()
+    end
+
+    /*
+    This action tells screen readers that the spreadsheet changed: its
+    values, its size, what is on screen, or the selection.
+    */
+    action NotifyAccessibility
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:SpreadsheetChanged(me)
+        end
+    end
+
+    /*
+    This action sets whether a cell's name for screen readers includes its
+    column letters and row number ("71, C2") or is its text alone ("71"). It
+    is for trying both with each screen reader; the default is the text
+    alone.
+
+    Attribute: Parameter include True to include the position.
+    */
+    action SetCellNamesIncludePosition(boolean include)
+        cellNamesIncludePosition = include
+        NotifyAccessibility()
+    end
+
+    /*
+    This action returns whether a cell's name for screen readers includes its
+    position.
+
+    Attribute: Returns True if it includes the position.
+    */
+    action GetCellNamesIncludePosition returns boolean
+        return cellNamesIncludePosition
+    end
+
+    /*
+    This action returns what screen readers say for a cell: its text, or
+    "blank", and with SetCellNamesIncludePosition, its name, such as C2.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The words for the cell.
+    */
+    action GetCellSpokenText(integer row, integer column) returns text
+        text value = GetText(row, column)
+        if value = ""
+            value = "blank"
+        end
+        if cellNamesIncludePosition
+            return value + ", " + GetCellName(row, column)
+        end
+        return value
+    end
+
+    /*
+    This action returns what screen readers say for a cell in place of its
+    role ("cell"): its name, such as C2. The current cell of a range of
+    cells also says the range, as in "E5, D3 through E5 selected".
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The words in place of the cell's role.
+    */
+    action GetCellRoleText(integer row, integer column) returns text
+        text result = GetCellName(row, column)
+        if selection:IsEmpty() or not selection:IsRange()
+            return result
+        end
+        if selection:GetKind() not= selection:CELLS
+            return result
+        end
+        if selection:GetRow() = row and selection:GetColumn() = column
+            text first = GetCellName(selection:GetFirstRow(), selection:GetFirstColumn())
+            text last = GetCellName(selection:GetLastRow(), selection:GetLastColumn())
+            result = result + ", " + first + " through " + last + " selected"
+        end
+        return result
+    end
+
+    /*
+    This action returns whether a row is wholly selected: whole rows are
+    selected and it is one of them, or everything is selected.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Returns True if the whole row is selected.
+    */
+    action IsWholeRowSelected(integer row) returns boolean
+        if selection:IsEmpty()
+            return false
+        end
+        if selection:GetKind() = selection:EVERYTHING
+            return true
+        end
+        if selection:GetKind() not= selection:ROWS
+            return false
+        end
+        return row >= selection:GetFirstRow() and row <= selection:GetLastRow()
+    end
+
+    /*
+    This action returns whether a column is wholly selected: whole columns
+    are selected and it is one of them, or everything is selected.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns True if the whole column is selected.
+    */
+    action IsWholeColumnSelected(integer column) returns boolean
+        if selection:IsEmpty()
+            return false
+        end
+        if selection:GetKind() = selection:EVERYTHING
+            return true
+        end
+        if selection:GetKind() not= selection:COLUMNS
+            return false
+        end
+        return column >= selection:GetFirstColumn() and column <= selection:GetLastColumn()
+    end
+
+    /*
+    This action returns what screen readers say for a row's number in place
+    of its role: "row", or "row, selected" when the whole row is selected.
+
+    Attribute: Parameter row The row, from 0.
+
+    Attribute: Returns The words in place of the row number's role.
+    */
+    action GetRowHeaderRoleText(integer row) returns text
+        if IsWholeRowSelected(row)
+            return "row, selected"
+        end
+        return "row"
+    end
+
+    /*
+    This action returns what screen readers say for a column's letters in
+    place of their role: "column", or "column, selected" when the whole
+    column is selected.
+
+    Attribute: Parameter column The column, from 0.
+
+    Attribute: Returns The words in place of the column letters' role.
+    */
+    action GetColumnHeaderRoleText(integer column) returns text
+        if IsWholeColumnSelected(column)
+            return "column, selected"
+        end
+        return "column"
+    end
+
+    /*
+    This action returns where a screen reader's focus goes inside the
+    spreadsheet: 1 for the current cell, 2 for the current row's number
+    (whole rows are selected), 3 for the current column's letters (whole
+    columns are selected), or 0 if nothing is current.
+
+    Attribute: Returns Which part has the focus.
+    */
+    action GetAccessibilityFocusPart returns integer
+        if selection:IsEmpty()
+            return 0
+        end
+        if selection:GetKind() = selection:ROWS
+            return 2
+        end
+        if selection:GetKind() = selection:COLUMNS
+            return 3
+        end
+        return 1
+    end
+
+    /*
+    This action is called when the spreadsheet gets the focus: the first cell
+    becomes current if none is.
+
+    Attribute: Parameter event The focus event.
     */
     action GainedFocus(FocusEvent event)
         if selection:IsEmpty()
-            if columns:IsEmpty() = false and columns:Get(0):IsEmpty() = false
-                Select(0, 0)
-            end
+            selection:Set(0, 0)
         end
-        parent:Control:GainedFocus(event)
+        parent:ScrollableControl:GainedFocus(event)
+        SelectionMoved()
+    end
+
+    /*
+    This action is called when the spreadsheet loses the focus: the current
+    cell's outline is drawn in the unfocused color.
+
+    Attribute: Parameter event The focus event.
+    */
+    action LostFocus(FocusEvent event)
+        parent:ScrollableControl:LostFocus(event)
+        if not editing
+            Refresh()
+        end
+    end
+
+    /*
+    This action returns the line ending new rows get: the file's own, or a
+    line feed.
+
+    Attribute: Returns The line ending.
+    */
+    action GetDefaultLineEnding returns text
+        return defaultLineEnding
     end
 end

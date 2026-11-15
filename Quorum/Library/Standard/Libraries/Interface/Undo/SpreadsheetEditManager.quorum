@@ -1,0 +1,24 @@
+package Libraries.Interface.Undo
+
+/*
+The SpreadsheetEditManager class holds a Spreadsheet's steps to undo and
+redo. Each Spreadsheet has one, from GetEditManager. Typing in a cell,
+clearing, pasting, replacing, and adding or removing rows or columns are each
+one step.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Undo.SpreadsheetEditManager
+Spreadsheet sheet
+sheet:LoadFromCommaSeparatedValue("a,b")
+sheet:Select(0, 1)
+sheet:ClearSelectionAsUser()
+SpreadsheetEditManager edits = sheet:GetEditManager()
+if edits:CanUndo()
+    edits:Undo()
+end
+*/
+class SpreadsheetEditManager is EditManager
+end

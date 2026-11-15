@@ -1,0 +1,271 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Game.GameInput
+use Libraries.Game.GameStateManager
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Game.WebApplication
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Events.MouseEvent
+
+/*
+The SpreadsheetInputSetup class builds the input tables of spreadsheets: the
+"Spreadsheet" table, and the "SpreadsheetCellField" table of the field a cell
+is edited in, which starts as a copy of the "TextField" table. The keys
+follow Excel's, with Command in place of Control on a Mac where Excel for Mac
+uses it:
+
+- Arrows move; with Shift, they extend the selection.
+- Control (Command) with an arrow jumps to the edge of the data.
+- Home goes to the start of the row; Control-Home to the first cell and
+  Control-End to the last cell with data.
+- Page Up and Page Down move a screen.
+- Tab and Shift-Tab move right and left; Enter and Shift-Enter down and up.
+- Control-Space selects the column, Shift-Space the row, Control-A
+  everything.
+- F2 edits the cell; typing replaces its text. In the field, Enter, Tab,
+  Shift-Enter and Shift-Tab keep the edit and move; Escape cancels it.
+- Delete and Backspace clear the selection.
+- Control-Plus adds rows or columns, Control-Minus removes them.
+- Control-Z undoes, Control-Y and Control-Shift-Z redo.
+- Control-C, Control-X and Control-V copy, cut and paste.
+- Shift-F10 opens the menu.
+
+The mouse and fingers select, drag, change column widths and open the menu,
+and the mouse wheel scrolls. DefaultInputSets:SetupSpreadsheetInput calls
+it when the game starts, so most users won't need to.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Behaviors.Controls.SpreadsheetInputSetup
+use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
+GameStateManager manager
+GameInput gameInput = manager:GetInput()
+SpreadsheetInputSetup setup
+setup:Setup(gameInput)
+*/
+class SpreadsheetInputSetup
+    KeyboardEvent keys
+    MouseEvent mouse
+    GameStateManager manager
+    // Control, or Command on a Mac.
+    integer primary = 0
+
+    /*
+    This action builds both tables and adds them to the game's input. The
+    "TextField" table must already be set up.
+
+    Attribute: Parameter gameInput The game's input.
+    */
+    action Setup(GameInput gameInput)
+        InputSet modifiers
+        primary = modifiers:CONTROL
+        if UsesMacKeys()
+            primary = modifiers:META
+        end
+        SetupSpreadsheetTable(gameInput)
+        SetupFieldTable(gameInput)
+    end
+
+    private action SetupSpreadsheetTable(GameInput gameInput)
+        InputTable table
+        table:SetIdentifier("Spreadsheet")
+        SpreadsheetKeyBehavior temp
+        InputSet modifiers
+        integer shift = modifiers:SHIFT
+        integer control = modifiers:CONTROL
+
+        AddKey(table, keys:UP, 0, 0, temp:MOVE_UP, false)
+        AddKey(table, keys:DOWN, 0, 0, temp:MOVE_DOWN, false)
+        AddKey(table, keys:LEFT, 0, 0, temp:MOVE_LEFT, false)
+        AddKey(table, keys:RIGHT, 0, 0, temp:MOVE_RIGHT, false)
+        AddKey(table, keys:UP, shift, 0, temp:MOVE_UP, true)
+        AddKey(table, keys:DOWN, shift, 0, temp:MOVE_DOWN, true)
+        AddKey(table, keys:LEFT, shift, 0, temp:MOVE_LEFT, true)
+        AddKey(table, keys:RIGHT, shift, 0, temp:MOVE_RIGHT, true)
+
+        AddKey(table, keys:UP, primary, 0, temp:EDGE_UP, false)
+        AddKey(table, keys:DOWN, primary, 0, temp:EDGE_DOWN, false)
+        AddKey(table, keys:LEFT, primary, 0, temp:EDGE_LEFT, false)
+        AddKey(table, keys:RIGHT, primary, 0, temp:EDGE_RIGHT, false)
+        AddKey(table, keys:UP, primary, shift, temp:EDGE_UP, true)
+        AddKey(table, keys:DOWN, primary, shift, temp:EDGE_DOWN, true)
+        AddKey(table, keys:LEFT, primary, shift, temp:EDGE_LEFT, true)
+        AddKey(table, keys:RIGHT, primary, shift, temp:EDGE_RIGHT, true)
+
+        AddKey(table, keys:HOME, 0, 0, temp:HOME, false)
+        AddKey(table, keys:HOME, shift, 0, temp:HOME, true)
+        AddKey(table, keys:HOME, primary, 0, temp:FIRST, false)
+        AddKey(table, keys:HOME, primary, shift, temp:FIRST, true)
+        AddKey(table, keys:END, primary, 0, temp:LAST, false)
+        AddKey(table, keys:END, primary, shift, temp:LAST, true)
+        AddKey(table, keys:PAGE_UP, 0, 0, temp:PAGE_UP, false)
+        AddKey(table, keys:PAGE_DOWN, 0, 0, temp:PAGE_DOWN, false)
+        AddKey(table, keys:PAGE_UP, shift, 0, temp:PAGE_UP, true)
+        AddKey(table, keys:PAGE_DOWN, shift, 0, temp:PAGE_DOWN, true)
+
+        AddKey(table, keys:TAB, 0, 0, temp:NEXT, false)
+        AddKey(table, keys:TAB, shift, 0, temp:PREVIOUS, false)
+        AddKey(table, keys:ENTER, 0, 0, temp:ENTER_DOWN, false)
+        AddKey(table, keys:NUMPAD_ENTER, 0, 0, temp:ENTER_DOWN, false)
+        AddKey(table, keys:ENTER, shift, 0, temp:ENTER_UP, false)
+
+        // Control-Space on every system, as in Excel for Mac too.
+        AddKey(table, keys:SPACE, control, 0, temp:SELECT_COLUMN, false)
+        AddKey(table, keys:SPACE, shift, 0, temp:SELECT_ROW, false)
+        AddKey(table, keys:A, primary, 0, temp:SELECT_EVERYTHING, false)
+
+        AddKey(table, keys:F2, 0, 0, temp:EDIT, false)
+        AddKey(table, keys:FORWARD_DELETE, 0, 0, temp:CLEAR, false)
+        AddKey(table, keys:BACKSPACE, 0, 0, temp:CLEAR, false)
+
+        AddKey(table, keys:EQUALS, primary, shift, temp:INSERT, false)
+        AddKey(table, keys:EQUALS, primary, 0, temp:INSERT, false)
+        AddKey(table, keys:NUMPAD_PLUS, primary, 0, temp:INSERT, false)
+        AddKey(table, keys:MINUS, primary, 0, temp:REMOVE, false)
+        AddKey(table, keys:NUMPAD_MINUS, primary, 0, temp:REMOVE, false)
+
+        AddKey(table, keys:Z, primary, 0, temp:UNDO, false)
+        AddKey(table, keys:Y, primary, 0, temp:REDO, false)
+        AddKey(table, keys:Z, primary, shift, temp:REDO, false)
+        AddKey(table, keys:F10, shift, 0, temp:MENU, false)
+
+        SpreadsheetCopyBehavior copyBehavior
+        SpreadsheetCutBehavior cutBehavior
+        SpreadsheetPasteBehavior pasteBehavior
+        table:Add(MakeKey(keys:C, primary, 0), copyBehavior)
+        table:Add(MakeKey(keys:X, primary, 0), cutBehavior)
+        table:Add(MakeKey(keys:V, primary, 0), pasteBehavior)
+
+        InputSet typing
+        typing:SetInputType(typing:TEXT_INPUT)
+        SpreadsheetTypingBehavior typingBehavior
+        table:Add(typing, typingBehavior)
+
+        // The mouse: a press, with or without Shift, and a double click.
+        SpreadsheetPointerBehavior pointer
+        InputSet press
+        press:SetMouseInput(mouse:LEFT)
+        table:Add(press, pointer)
+        InputSet shiftPress
+        shiftPress:SetMouseInput(mouse:LEFT)
+        shiftPress:AddModifier(shift)
+        table:Add(shiftPress, pointer)
+        InputSet doublePress
+        doublePress:SetMouseInput(mouse:LEFT)
+        doublePress:SetEventCount(2)
+        table:Add(doublePress, pointer)
+        InputSet release
+        release:SetMouseInput(mouse:LEFT)
+        release:SetInputTrigger(release:FINISH)
+        table:Add(release, pointer)
+        InputSet shiftRelease
+        shiftRelease:SetMouseInput(mouse:LEFT)
+        shiftRelease:AddModifier(shift)
+        shiftRelease:SetInputTrigger(shiftRelease:FINISH)
+        table:Add(shiftRelease, pointer)
+
+        InputSet dragStart
+        dragStart:SetDragItemInput()
+        dragStart:SetInputTrigger(dragStart:BEGIN)
+        table:Add(dragStart, pointer)
+        InputSet dragging
+        dragging:SetDragItemInput()
+        dragging:SetInputTrigger(dragging:CONTINUE)
+        table:Add(dragging, pointer)
+        InputSet drop
+        drop:SetDragItemInput()
+        drop:SetInputTrigger(drop:FINISH)
+        table:Add(drop, pointer)
+
+        SpreadsheetPointerBehavior menuPointer
+        menuPointer:SetOpensMenu(true)
+        InputSet rightPress
+        rightPress:SetMouseInput(mouse:RIGHT)
+        table:Add(rightPress, menuPointer)
+        if UsesMacKeys()
+            InputSet controlPress
+            controlPress:SetMouseInput(mouse:LEFT)
+            controlPress:AddModifier(control)
+            table:Add(controlPress, menuPointer)
+        end
+
+        InputSet touchDown
+        touchDown:SetInputType(touchDown:TOUCH_INPUT)
+        table:Add(touchDown, pointer)
+        InputSet touchMove
+        touchMove:SetInputType(touchMove:TOUCH_MOVEMENT_INPUT)
+        touchMove:SetInputTrigger(touchMove:CONTINUE)
+        table:Add(touchMove, pointer)
+        InputSet touchUp
+        touchUp:SetInputType(touchUp:TOUCH_INPUT)
+        touchUp:SetInputTrigger(touchUp:FINISH)
+        table:Add(touchUp, pointer)
+
+        InputSet wheel
+        wheel:SetInputType(wheel:MOUSE_WHEEL_INPUT)
+        ScrollableControlMouseScrollBehavior scrollBehavior
+        table:Add(wheel, scrollBehavior)
+
+        gameInput:AddInputTable(table)
+    end
+
+    private action SetupFieldTable(GameInput gameInput)
+        InputTable textFieldTable = gameInput:GetInputTable("TextField")
+        InputTable table = undefined
+        if textFieldTable = undefined
+            InputTable newTable
+            table = newTable
+        else
+            table = textFieldTable:Copy()
+        end
+        table:SetIdentifier("SpreadsheetCellField")
+        SpreadsheetKeyBehavior temp
+        InputSet modifiers
+        integer shift = modifiers:SHIFT
+        AddKey(table, keys:ENTER, 0, 0, temp:COMMIT_DOWN, false)
+        AddKey(table, keys:NUMPAD_ENTER, 0, 0, temp:COMMIT_DOWN, false)
+        AddKey(table, keys:ENTER, shift, 0, temp:COMMIT_UP, false)
+        AddKey(table, keys:TAB, 0, 0, temp:COMMIT_RIGHT, false)
+        AddKey(table, keys:TAB, shift, 0, temp:COMMIT_LEFT, false)
+        AddKey(table, keys:ESCAPE, 0, 0, temp:CANCEL, false)
+        gameInput:AddInputTable(table)
+    end
+
+    // A key with up to two modifiers (0 for none), for a SpreadsheetKeyBehavior.
+    private action AddKey(InputTable table, integer key, integer first, integer second, integer command, boolean extend)
+        SpreadsheetKeyBehavior behavior
+        behavior:Setup(command, extend)
+        table:Add(MakeKey(key, first, second), behavior)
+    end
+
+    private action MakeKey(integer key, integer first, integer second) returns InputSet
+        InputSet set
+        set:SetKeyboardInput(key)
+        if first not= 0
+            set:AddModifier(first)
+        end
+        if second not= 0 and second not= first
+            set:AddModifier(second)
+        end
+        return set
+    end
+
+    // True on a Mac, or in a browser on a Mac.
+    private action UsesMacKeys returns boolean
+        if manager:GetOperatingSystem():Contains("OS X")
+            return true
+        end
+        if manager:GetOperatingSystem():Contains("Web Browser")
+            if manager:GetApplication() is WebApplication
+                WebApplication webApp = cast(WebApplication, manager:GetApplication())
+                if webApp:GetWebOperatingSystem():Contains("Mac")
+                    return true
+                end
+            end
+        end
+        return false
+    end
+end

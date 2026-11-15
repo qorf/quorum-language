@@ -57,13 +57,18 @@ public class AndroidNode {
 
     // Said in place of the text, as a View's content description is.
     public String contentDescription = null;
+    // Said in place of the role, as AndroidX's role description is (a
+    // spreadsheet's cell name, such as "C2", or "row" and "column" for its
+    // headers), or null for the role TalkBack gives the class.
+    public String roleDescription = null;
     // False for something that can't be used now, such as a day outside a
     // calendar's allowed range.
     public boolean enabled = true;
     // A combo box: it can open (expand) or close (collapse) its list.
     public boolean expandable = false;
     public boolean expanded = false;
-    // A grid (a calendar's days): its rows and columns, or 0 for none.
+    // A grid (a calendar's days, a spreadsheet's cells): its rows and
+    // columns, or 0 for none.
     public int collectionRows = 0;
     public int collectionColumns = 0;
     // A cell in a grid: its row and column, or -1 for none.
@@ -72,6 +77,27 @@ public class AndroidNode {
     // A calendar's day: a virtual node with no Quorum item, in its
     // calendar's node.
     public boolean calendarDay = false;
+    // A cell in a grid that is a header (a spreadsheet's column letters or
+    // row number), so TalkBack says it as the column's or row's name.
+    public boolean collectionHeading = false;
+
+    // A spreadsheet's grid: whether it can scroll down (forward), up
+    // (backward), right and left, for TalkBack's scroll actions.
+    public boolean spreadsheetGrid = false;
+    public boolean scrollForward = false;
+    public boolean scrollBackward = false;
+    public boolean scrollRight = false;
+    public boolean scrollLeft = false;
+    // A part of a spreadsheet: a virtual node with no Quorum item, in its
+    // spreadsheet's node: SHEET_NONE, or a cell or header, with the
+    // spreadsheet's own row and column (-1 for none).
+    public static final int SHEET_NONE = 0;
+    public static final int SHEET_CELL = 1;
+    public static final int SHEET_COLUMN_HEADER = 2;
+    public static final int SHEET_ROW_HEADER = 3;
+    public int spreadsheetPart = SHEET_NONE;
+    public int spreadsheetRow = -1;
+    public int spreadsheetColumn = -1;
 
     public static final int HOST = android.view.View.NO_ID;
 }

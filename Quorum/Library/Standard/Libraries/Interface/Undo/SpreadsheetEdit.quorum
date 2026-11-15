@@ -1,0 +1,216 @@
+package Libraries.Interface.Undo
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Support.SpreadsheetRow
+
+/*
+The SpreadsheetEdit class is one step a Spreadsheet can undo and redo: cells
+typed, cleared, pasted or replaced, rows added or removed, or columns added
+or removed. It keeps copies of the rows as they were before and after the
+step, and where the selection was. The Spreadsheet makes these as the user
+edits and adds them to its SpreadsheetEditManager, so most users won't need
+this class directly.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Undo.SpreadsheetEditManager
+Spreadsheet sheet
+sheet:LoadFromCommaSeparatedValue("a,b")
+sheet:Select(0, 0)
+sheet:ClearSelectionAsUser()
+SpreadsheetEditManager edits = sheet:GetEditManager()
+edits:Undo()
+output sheet:GetText(0, 0)
+*/
+class SpreadsheetEdit is Edit
+    // Some rows changed in place; rows may have been added at the end.
+    public constant integer ROWS = 0
+    // Rows were put in at an index.
+    public constant integer INSERTED_ROWS = 1
+    // Rows were taken out at an index.
+    public constant integer REMOVED_ROWS = 2
+    // Everything changed, as columns being added or removed does.
+    public constant integer EVERYTHING = 3
+
+    Spreadsheet sheet = undefined
+    integer mode = ROWS
+    text name = ""
+
+    // ROWS: which rows, and copies before and after (undefined where the
+    // row didn't exist), with how many rows there were.
+    Array<integer> indices
+    Array<SpreadsheetRow> before
+    Array<SpreadsheetRow> after
+    integer countBefore = 0
+    integer countAfter = 0
+
+    // INSERTED_ROWS and REMOVED_ROWS: where, and copies of the rows.
+    integer index = 0
+    Array<SpreadsheetRow> movedRows
+
+    // EVERYTHING: copies of every row and the column widths.
+    Array<SpreadsheetRow> allBefore
+    Array<SpreadsheetRow> allAfter
+    Array<number> widthsBefore
+    Array<number> widthsAfter
+
+    // The selection before and after: row, column, anchor row, anchor
+    // column and kind.
+    Array<integer> selectionBefore
+    Array<integer> selectionAfter
+
+    /*
+    This action sets the spreadsheet, the kind of step and its name, such as
+    "Typing in C2". The Spreadsheet calls it.
+
+    Attribute: Parameter sheet The spreadsheet the step belongs to.
+
+    Attribute: Parameter mode ROWS, INSERTED_ROWS, REMOVED_ROWS or EVERYTHING.
+
+    Attribute: Parameter name What the step did, for an Undo menu item.
+    */
+    action Setup(Spreadsheet sheet, integer mode, text name)
+        me:sheet = sheet
+        me:mode = mode
+        me:name = name
+    end
+
+    /*
+    This action returns the kind of step: ROWS, INSERTED_ROWS, REMOVED_ROWS
+    or EVERYTHING.
+
+    Attribute: Returns The kind of step.
+    */
+    action GetMode returns integer
+        return mode
+    end
+
+    /*
+    This action records changed rows, for a ROWS step. The Spreadsheet calls
+    it.
+
+    Attribute: Parameter indices The rows changed.
+
+    Attribute: Parameter before Copies of those rows before, undefined where a row didn't exist.
+
+    Attribute: Parameter after Copies of those rows after, undefined where a row doesn't exist.
+
+    Attribute: Parameter countBefore How many rows there were before.
+
+    Attribute: Parameter countAfter How many rows there are after.
+    */
+    action SetRows(Array<integer> indices, Array<SpreadsheetRow> before, Array<SpreadsheetRow> after, integer countBefore, integer countAfter)
+        me:indices = indices
+        me:before = before
+        me:after = after
+        me:countBefore = countBefore
+        me:countAfter = countAfter
+    end
+
+    /*
+    This action records rows put in or taken out at an index, for an
+    INSERTED_ROWS or REMOVED_ROWS step. The Spreadsheet calls it.
+
+    Attribute: Parameter index Where the rows were put in or taken out.
+
+    Attribute: Parameter rows Copies of the rows.
+    */
+    action SetMovedRows(integer index, Array<SpreadsheetRow> rows)
+        me:index = index
+        movedRows = rows
+    end
+
+    /*
+    This action records every row and the column widths before and after,
+    for an EVERYTHING step. The Spreadsheet calls it.
+
+    Attribute: Parameter allBefore Copies of every row before.
+
+    Attribute: Parameter widthsBefore The column widths before.
+
+    Attribute: Parameter allAfter Copies of every row after.
+
+    Attribute: Parameter widthsAfter The column widths after.
+    */
+    action SetEverything(Array<SpreadsheetRow> allBefore, Array<number> widthsBefore, Array<SpreadsheetRow> allAfter, Array<number> widthsAfter)
+        me:allBefore = allBefore
+        me:widthsBefore = widthsBefore
+        me:allAfter = allAfter
+        me:widthsAfter = widthsAfter
+    end
+
+    /*
+    This action records where the selection was before and after the step.
+    Each array holds the row, the column, the anchor's row, the anchor's
+    column and the kind. The Spreadsheet calls it.
+
+    Attribute: Parameter selectionBefore The selection before.
+
+    Attribute: Parameter selectionAfter The selection after.
+    */
+    action SetSelections(Array<integer> selectionBefore, Array<integer> selectionAfter)
+        me:selectionBefore = selectionBefore
+        me:selectionAfter = selectionAfter
+    end
+
+    /*
+    This action puts the spreadsheet back as it was before the step.
+    */
+    action Undo
+        if sheet = undefined
+            return now
+        end
+        if mode = ROWS
+            sheet:PutRowsForUndo(countBefore, indices, before)
+        elseif mode = INSERTED_ROWS
+            sheet:RemoveRowsForUndo(index, index + movedRows:GetSize() - 1)
+        elseif mode = REMOVED_ROWS
+            sheet:InsertRowsForUndo(index, movedRows)
+        elseif mode = EVERYTHING
+            sheet:PutEverythingForUndo(allBefore, widthsBefore)
+        end
+        sheet:PutSelectionForUndo(selectionBefore)
+        sheet:NotifyUndone("Undid " + name)
+    end
+
+    /*
+    This action does the step again, after it was undone.
+    */
+    action Redo
+        if sheet = undefined
+            return now
+        end
+        if mode = ROWS
+            sheet:PutRowsForUndo(countAfter, indices, after)
+        elseif mode = INSERTED_ROWS
+            sheet:InsertRowsForUndo(index, movedRows)
+        elseif mode = REMOVED_ROWS
+            sheet:RemoveRowsForUndo(index, index + movedRows:GetSize() - 1)
+        elseif mode = EVERYTHING
+            sheet:PutEverythingForUndo(allAfter, widthsAfter)
+        end
+        sheet:PutSelectionForUndo(selectionAfter)
+        sheet:NotifyUndone("Redid " + name)
+    end
+
+    /*
+    This action returns "Undo" and the step's name, such as "Undo Typing in C2".
+
+    Attribute: Returns The name for an Undo menu item.
+    */
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    /*
+    This action returns "Redo" and the step's name.
+
+    Attribute: Returns The name for a Redo menu item.
+    */
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+end

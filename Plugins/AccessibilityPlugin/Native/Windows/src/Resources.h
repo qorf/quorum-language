@@ -27,7 +27,6 @@ struct JClass_AccessibilityManager
 	jclass me;
 	jmethodID GetTreeSelectionPointer;
 	jmethodID GetTabPaneSelectionPointer;
-	jmethodID GetSpreadsheetSelectionPointer;
 	jmethodID SetTabSelection;
 
 	// Used for TreeItems.
@@ -38,7 +37,7 @@ struct JClass_AccessibilityManager
 	jmethodID GetMenuItemSetSize;
 	jmethodID GetMenuItemSetPosition;
 
-	// Used for cells and Spreadsheets/TreeTable.
+	// Used for TreeTable cells (and, for the sizes, Spreadsheets).
 	jmethodID GetCellColumnIndex;
 	jmethodID GetCellRowIndex;
 	jmethodID GetCellText;
@@ -69,6 +68,18 @@ struct JClass_AccessibilityManager
 	jmethodID GetCalendarDayText;
 	jmethodID IsCalendarDayAvailable;
 	jmethodID GetCalendarCellBounds;
+
+	// Used for a Spreadsheet's cells (SpreadsheetControl), each known by its
+	// row and column.
+	jmethodID GetSpreadsheetState;
+	jmethodID GetSpreadsheetCellText;
+	jmethodID GetSpreadsheetCellName;
+	jmethodID GetSpreadsheetColumnLabel;
+	jmethodID GetSpreadsheetRoleText;
+	jmethodID IsSpreadsheetCellSelected;
+	jmethodID GetSpreadsheetCellBounds;
+	jmethodID MoveSpreadsheetTo;
+	jmethodID SetSpreadsheetCellText;
 };
 struct JClass_TextBox
 {
@@ -152,10 +163,6 @@ struct JClass_TreeTable
 {
 	jclass me;
 };
-struct JClass_Cell
-{
-	jclass me;
-};
 struct JClass_Item
 {
 	jclass me;
@@ -224,7 +231,6 @@ extern JClass_Dialog JavaClass_Dialog;
 extern JClass_List JavaClass_List;
 extern JClass_Spreadsheet JavaClass_Spreadsheet;
 extern JClass_TreeTable JavaClass_TreeTable;
-extern JClass_Cell JavaClass_Cell;
 extern JClass_ListItem JavaClass_ListItem;
 extern JClass_ProgressBar JavaClass_ProgressBar;
 extern JClass_MenuItem JavaClass_MenuItem;

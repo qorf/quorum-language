@@ -3,33 +3,46 @@ package Libraries.Interface.Behaviors.Controls
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Spreadsheet
-use Libraries.Interface.Selections.SpreadsheetSelection
-use Libraries.Interface.Controls.Cell
 use Libraries.Game.GameStateManager
 use Libraries.Game.Game
 
 /*
-    This class is a default behavior that adds copy support into the spreadsheet.
-    Broadly, while it can be used as a template for such a behavior, there is generally
-    no reason to interact with this class.
+    This class is the Copy key of a Spreadsheet: the selected cells go on the clipboard as tab-separated text, a line per row, as other spreadsheet programs put them. SpreadsheetInputSetup
+    gives it its key, so most users won't need it.
+
+    Attribute: Author William Allee
+
+    Attribute: Example
+    use Libraries.Interface.Behaviors.Controls.SpreadsheetCopyBehavior
+    SpreadsheetCopyBehavior behavior
 */
 class SpreadsheetCopyBehavior is Behavior
+    GameStateManager manager
+
+    /*
+    This action carries out the key on the spreadsheet with the focus.
+
+    Attribute: Parameter event The key event, whose item is the spreadsheet.
+    */
     action Run(BehaviorEvent event)
-        if event:GetItem() is Spreadsheet
-            Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
-            
-            SpreadsheetSelection selection = sheet:GetSelection()
-            Cell cell = selection:Get()
-            if cell = undefined
-                return now
-            end
-            text value = cell:GetText()
-            if value = undefined
-                return now
-            end
-            GameStateManager manager
-            Game game = manager:GetGame()
-            game:SetClipboard(value)
+        if not (event:GetItem() is Spreadsheet)
+            return now
         end
+        Spreadsheet sheet = cast(Spreadsheet, event:GetItem())
+        if sheet:IsEditing()
+            return now
+        end
+        sheet:ForgetIgnoredSpace()
+        Game game = manager:GetGame()
+        game:SetClipboard(sheet:CopySelection())
+    end
+
+    /*
+    This action returns true: the key's work is done at once.
+
+    Attribute: Returns True.
+    */
+    action IsFinished returns boolean
+        return true
     end
 end

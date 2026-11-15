@@ -13,8 +13,6 @@ import quorum.Libraries.Game.DesktopDisplay_;
 import quorum.Libraries.Game.Shapes.Rectangle_;
 import quorum.Libraries.Interface.Controls.ButtonGroup_;
 import quorum.Libraries.Interface.Controls.Button_;
-import quorum.Libraries.Interface.Controls.Cell_;
-import quorum.Libraries.Interface.Controls.Column_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.List_;
 import quorum.Libraries.Interface.Item_;
@@ -253,6 +251,7 @@ public class AccessibilityManager
     private native boolean ComboBoxExpandCollapseNative(long nativePointer, boolean open);
     private native boolean ColorWellChangedNative(long nativePointer);
     private native boolean CalendarChangedNative(long nativePointer);
+    private native boolean SpreadsheetChangedNative(long nativePointer);
     private native boolean ToggleButtonToggled(long nativePointer, boolean selected);
     private native boolean NameChangedNative(long nativePointer, String name);
     private native boolean DescriptionChangedNative(long nativePointer, String description);
@@ -929,6 +928,19 @@ public class AccessibilityManager
     }
 
     /*
+        A spreadsheet changed: its values, its size, what is on screen or the
+        selection. Its cells are read again for UI Automation, and the focus
+        follows the current cell while the spreadsheet has it.
+    */
+    public void SpreadsheetUpdated(Spreadsheet_ sheet) {
+        Long nativePointer = ITEM_MAP.get((Item_) sheet);
+        if (nativePointer == null)
+            return;
+
+        SpreadsheetChangedNative(nativePointer);
+    }
+
+    /*
         The words UI Automation gives as an item's help text. A control's
         tooltip words, when its tooltip is on, replace its description, as a
         native Windows control's tooltip is its help text.
@@ -1176,26 +1188,6 @@ public class AccessibilityManager
         return 1;
     }
     
-    /*
-    Used by the native layer. Given a Spreadsheet_ object, returns a pointer for
-    the selected TreeItem, or 0 if there's no selection.
-    */
-    public static long GetSpreadsheetSelectionPointer(Spreadsheet_ sheet)
-    {
-        SpreadsheetSelection_ selection = sheet.GetSelection();
-        Item_ item = selection.Get();
-        if (item == null)
-            return 0;
-        
-        Long itemPointer = ITEM_MAP.get(item);
-        
-        if (itemPointer == null)
-            return 0;
-        else
-            return itemPointer;
-    }
-    
-    
     public static void SetTabSelection(TabPane_ tabs, Tab_ tab) {
         tabs.Select(tab);
     }
@@ -1221,24 +1213,13 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the index of the column containing the
-    provided cell. The cell given might be a Cell object or a TreeTableCell. If
-    the value couldn't be retrieved for some reason, this returns -1.
+    provided TreeTableCell. A Spreadsheet's cells aren't items: the native
+    layer knows their rows and columns. If the value couldn't be retrieved
+    for some reason, this returns -1.
     */
     public static int GetCellColumnIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                Spreadsheet_ spreadsheet = cell.GetSpreadsheet();
-                if (spreadsheet != null)
-                    return spreadsheet.GetColumnIndex(column);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1257,22 +1238,12 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the index of the row containing a cell
-    (its y-index, essentially). The cell given might be a Cell object or a
-    TreeTableCell. If the value can't be retrieved, this returns -1.
+    (its y-index, essentially). The cell given is a TreeTableCell. If the
+    value can't be retrieved, this returns -1.
     */
     public static int GetCellRowIndex(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            Column_ column = cell.GetColumn();
-            
-            if (column != null)
-            {
-                return column.GetCellIndex(cell);
-            }
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             TreeTableColumn_ column = cell.GetColumn();
@@ -1287,26 +1258,22 @@ public class AccessibilityManager
         return -1;
     }
     
+    /*
+    Used by the native layer. Returns the pointer of a TreeTable's cell, or 0.
+    A Spreadsheet's cells aren't items (the native layer makes them from
+    their rows and columns), so a Spreadsheet gives 0.
+    */
     public static long GetTableItem(Object_ object, int row, int column)
     {
-        Spreadsheet_ spreadsheet = null;
         TreeTable_ treeTable = null;
         
-        if (object instanceof Spreadsheet_)
-        {
-            spreadsheet = (Spreadsheet_)object;
-        }
-        else if (object instanceof TreeTable_)
+        if (object instanceof TreeTable_)
         {
             treeTable = (TreeTable_)object;
         }
         
         Item_ item = null;
-        if (spreadsheet != null)
-        {
-            item = spreadsheet.GetCell(row, column);
-        }
-        else if (treeTable != null)
+        if (treeTable != null)
         {
             item = treeTable.GetCell(row, column);
         }
@@ -1328,7 +1295,8 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the total number of columns in a TreeTable
-    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    or Spreadsheet: for a Spreadsheet, the columns shown, its values and the
+    blank columns after them. If a TreeTableCell is given, gives information about
     the table structure that contains that cell. If the value can't be retrieved,
     this returns -1.
     */
@@ -1345,10 +1313,6 @@ public class AccessibilityManager
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1356,7 +1320,7 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetColumnsSize();
+            return spreadsheet.GetDisplayedColumnSize();
         }
         else if (treeTable != null)
         {
@@ -1369,7 +1333,8 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the total number of rows in a TreeTable
-    or Spreadsheet. If a Cell or TreeTableCell is given, gives information about
+    or Spreadsheet: for a Spreadsheet, the rows shown, its values and the
+    blank rows after them. If a TreeTableCell is given, gives information about
     the table structure that contains that cell. If the value can't be retrieved,
     this returns -1.
     */
@@ -1386,10 +1351,6 @@ public class AccessibilityManager
         {
             treeTable = (TreeTable_)object;
         }
-        else if (object instanceof Cell_)
-        {
-            spreadsheet = ((Cell_)object).GetSpreadsheet();
-        }
         else if (object instanceof TreeTableCell_)
         {
             treeTable = ((TreeTableCell_)object).GetTreeTable();
@@ -1397,7 +1358,7 @@ public class AccessibilityManager
         
         if (spreadsheet != null)
         {
-            return spreadsheet.GetRowsSize();
+            return spreadsheet.GetDisplayedRowSize();
         }
         else if (treeTable != null)
         {
@@ -1414,17 +1375,12 @@ public class AccessibilityManager
     
     /*
     Used by the native layer. Returns the text value of a given cell.
-    The cell given might be a Cell object or a TreeTableCell. 
+    The cell given is a TreeTableCell.
     If the value can't be retrieved, this returns the empty string.
     */
     public static String GetCellText(Object_ object)
     {
-        if (object instanceof Cell_)
-        {
-            Cell_ cell = (Cell_)object;
-            return cell.GetText();
-        }
-        else if (object instanceof TreeTableCell_)
+        if (object instanceof TreeTableCell_)
         {
             TreeTableCell_ cell = (TreeTableCell_)object;
             return cell.GetText();
@@ -1620,6 +1576,165 @@ public class AccessibilityManager
         bounds[2] = cell * scaleX;
         bounds[3] = partHeight * scaleY;
         return bounds;
+    }
+
+    /*
+        Facts about a Spreadsheet's cells for UI Automation (SpreadsheetControl).
+        The cells aren't items: the native side knows each by its row and
+        column, from 0, and asks for it here.
+    */
+
+    // The positions in the array GetSpreadsheetState gives.
+    private static final int SPREADSHEET_STATE_SIZE = 14;
+
+    /*
+        Everything the native side compares after a change, in one call:
+        0 the rows shown, 1 the columns shown, 2 to 5 the first and last rows
+        and columns on screen, 6 and 7 the current cell's row and column (-1
+        when none), 8 the selection's kind, 9 to 12 its first and last rows
+        and columns, and 13 whether a cell is being edited (1) or not (0).
+    */
+    public static int[] GetSpreadsheetState(Object_ object) {
+        int[] state = new int[SPREADSHEET_STATE_SIZE];
+        state[6] = -1;
+        state[7] = -1;
+        if (!(object instanceof Spreadsheet_))
+            return state;
+        Spreadsheet_ sheet = (Spreadsheet_) object;
+        state[0] = sheet.GetDisplayedRowSize();
+        state[1] = sheet.GetDisplayedColumnSize();
+        state[2] = sheet.GetFirstVisibleRow();
+        state[3] = sheet.GetLastVisibleRow();
+        state[4] = sheet.GetFirstVisibleColumn();
+        state[5] = sheet.GetLastVisibleColumn();
+        SpreadsheetSelection_ selection = sheet.GetSelection();
+        if (selection != null && !selection.IsEmpty()) {
+            state[6] = selection.GetRow();
+            state[7] = selection.GetColumn();
+            state[8] = selection.GetKind();
+            state[9] = selection.GetFirstRow();
+            state[10] = selection.GetLastRow();
+            state[11] = selection.GetFirstColumn();
+            state[12] = selection.GetLastColumn();
+        }
+        state[13] = sheet.IsEditing() ? 1 : 0;
+        return state;
+    }
+
+    // A cell's text: its value.
+    public static String GetSpreadsheetCellText(Object_ object, int row, int column) {
+        if (!(object instanceof Spreadsheet_))
+            return "";
+        String value = ((Spreadsheet_) object).GetText(row, column);
+        if (value == null)
+            return "";
+        return value;
+    }
+
+    // What a screen reader says for a cell: its text or "blank".
+    public static String GetSpreadsheetCellName(Object_ object, int row, int column) {
+        if (!(object instanceof Spreadsheet_))
+            return "";
+        String value = ((Spreadsheet_) object).GetCellSpokenText(row, column);
+        if (value == null)
+            return "";
+        return value;
+    }
+
+    // A column's letters, such as "C".
+    public static String GetSpreadsheetColumnLabel(Object_ object, int column) {
+        if (!(object instanceof Spreadsheet_))
+            return "";
+        String value = ((Spreadsheet_) object).GetColumnLabel(column);
+        if (value == null)
+            return "";
+        return value;
+    }
+
+    /*
+        What a screen reader says in place of a part's role: for a cell, its
+        name, such as "C2" (with the range, for the current cell of a range);
+        for a row's number (column -1), "row" or "row, selected"; for a
+        column's letters (row -1), "column" or "column, selected".
+    */
+    public static String GetSpreadsheetRoleText(Object_ object, int row, int column) {
+        if (!(object instanceof Spreadsheet_))
+            return "";
+        Spreadsheet_ sheet = (Spreadsheet_) object;
+        String value;
+        if (row < 0)
+            value = sheet.GetColumnHeaderRoleText(column);
+        else if (column < 0)
+            value = sheet.GetRowHeaderRoleText(row);
+        else
+            value = sheet.GetCellRoleText(row, column);
+        if (value == null)
+            return "";
+        return value;
+    }
+
+    // Whether a cell is in the selection.
+    public static boolean IsSpreadsheetCellSelected(Object_ object, int row, int column) {
+        if (!(object instanceof Spreadsheet_))
+            return false;
+        SpreadsheetSelection_ selection = ((Spreadsheet_) object).GetSelection();
+        if (selection == null)
+            return false;
+        return selection.Contains(row, column);
+    }
+
+    /*
+        The screen bounds (left, top, width, height) of a cell, or of a
+        column's letters for row -1, or of a row's number for column -1. The
+        spreadsheet gives its cells' places in pixels from the left of the
+        spreadsheet and the top of the area that shows cells, after scrolling.
+    */
+    public static double[] GetSpreadsheetCellBounds(Object_ object, int row, int column) {
+        double[] bounds = new double[4];
+        if (!(object instanceof Spreadsheet_))
+            return bounds;
+        Spreadsheet_ sheet = (Spreadsheet_) object;
+        double[] sheetBounds = GetBoundingRectangle(object);
+        double viewTop = sheetBounds[1];
+        Control_ region = sheet.GetScrollableRegion();
+        if (region != null) {
+            double[] regionBounds = GetBoundingRectangle(region);
+            viewTop = regionBounds[1];
+        }
+
+        if (column < 0) {
+            bounds[0] = sheetBounds[0];
+            bounds[2] = sheet.GetRowLabelWidthInPixels();
+        } else {
+            bounds[0] = sheetBounds[0] + sheet.GetCellLeft(column);
+            bounds[2] = sheet.GetColumnWidthInPixels(column);
+        }
+
+        if (row < 0) {
+            bounds[1] = viewTop;
+            bounds[3] = sheet.GetHeaderHeightInPixels();
+        } else {
+            bounds[1] = viewTop + sheet.GetCellTop(row);
+            bounds[3] = sheet.GetRowHeightInPixels();
+        }
+        return bounds;
+    }
+
+    // Moves the current cell, as the arrow keys do; with extend, the
+    // selection grows from its anchor, as Shift with an arrow key does.
+    public static void MoveSpreadsheetTo(Object_ object, int row, int column, boolean extend) {
+        if (!(object instanceof Spreadsheet_))
+            return;
+        ((Spreadsheet_) object).MoveTo(row, column, extend);
+    }
+
+    // Sets a cell's text as typing does, so it can be undone.
+    public static void SetSpreadsheetCellText(Object_ object, int row, int column, String value) {
+        if (!(object instanceof Spreadsheet_))
+            return;
+        if (value == null)
+            value = "";
+        ((Spreadsheet_) object).SetTextAsUser(row, column, value);
     }
 
     public static double[] GetTextBoundingRectangle(Object_ object, int startIndex, int endIndex)

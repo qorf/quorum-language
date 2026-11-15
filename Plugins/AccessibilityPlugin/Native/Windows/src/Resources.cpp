@@ -33,7 +33,6 @@ JClass_Dialog JavaClass_Dialog;
 JClass_List JavaClass_List;
 JClass_ListItem JavaClass_ListItem;
 JClass_Spreadsheet JavaClass_Spreadsheet;
-JClass_Cell JavaClass_Cell;
 JClass_ProgressBar JavaClass_ProgressBar;
 JClass_Item JavaClass_Item;
 JClass_MenuItem JavaClass_MenuItem;
@@ -92,7 +91,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	// Load the method ids
 	JavaClass_AccessibilityManager.GetTreeSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Tree_;)J");
 	JavaClass_AccessibilityManager.GetTabPaneSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTabPaneSelectionPointer", "(Lquorum/Libraries/Interface/Controls/TabPane_;)J");
-	JavaClass_AccessibilityManager.GetSpreadsheetSelectionPointer = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetSelectionPointer", "(Lquorum/Libraries/Interface/Controls/Spreadsheet_;)J");
 	JavaClass_AccessibilityManager.SetTabSelection = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "SetTabSelection", "(Lquorum/Libraries/Interface/Controls/TabPane_;Lquorum/Libraries/Interface/Controls/Tab_;)V");
 	JavaClass_AccessibilityManager.GetTreeItemSetSize = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeItemSetSize", "(Lquorum/Libraries/Interface/Controls/TreeItem_;)I");
 	JavaClass_AccessibilityManager.GetTreeItemSetPosition = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetTreeItemSetPosition", "(Lquorum/Libraries/Interface/Controls/TreeItem_;)I");
@@ -120,6 +118,24 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 	JavaClass_AccessibilityManager.IsCalendarDayAvailable = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsCalendarDayAvailable", "(Lquorum/Libraries/Language/Object_;I)Z");
 	ClearLookupException(env);
 	JavaClass_AccessibilityManager.GetCalendarCellBounds = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetCalendarCellBounds", "(Lquorum/Libraries/Language/Object_;II)[D");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetState = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetState", "(Lquorum/Libraries/Language/Object_;)[I");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetCellText", "(Lquorum/Libraries/Language/Object_;II)Ljava/lang/String;");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetCellName = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetCellName", "(Lquorum/Libraries/Language/Object_;II)Ljava/lang/String;");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetColumnLabel = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetColumnLabel", "(Lquorum/Libraries/Language/Object_;I)Ljava/lang/String;");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetRoleText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetRoleText", "(Lquorum/Libraries/Language/Object_;II)Ljava/lang/String;");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.IsSpreadsheetCellSelected = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "IsSpreadsheetCellSelected", "(Lquorum/Libraries/Language/Object_;II)Z");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.GetSpreadsheetCellBounds = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "GetSpreadsheetCellBounds", "(Lquorum/Libraries/Language/Object_;II)[D");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.MoveSpreadsheetTo = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "MoveSpreadsheetTo", "(Lquorum/Libraries/Language/Object_;IIZ)V");
+	ClearLookupException(env);
+	JavaClass_AccessibilityManager.SetSpreadsheetCellText = env->GetStaticMethodID(JavaClass_AccessibilityManager.me, "SetSpreadsheetCellText", "(Lquorum/Libraries/Language/Object_;IILjava/lang/String;)V");
 	ClearLookupException(env);
 
 	// Delete local reference
@@ -308,19 +324,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 
 	// Assign the ClassId as a Global Reference
 	JavaClass_Spreadsheet.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
-	// Delete local reference
-	env->DeleteLocalRef(tempLocalClassRef);
-#pragma endregion
-
-	/*************
-	* Cell
-	*************/
-#pragma region Cell
-// Load the class id
-	tempLocalClassRef = env->FindClass("quorum/Libraries/Interface/Controls/Cell_");
-
-	// Assign the ClassId as a Global Reference
-	JavaClass_Cell.me = (jclass)env->NewGlobalRef(tempLocalClassRef);
 	// Delete local reference
 	env->DeleteLocalRef(tempLocalClassRef);
 #pragma endregion

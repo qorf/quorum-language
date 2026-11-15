@@ -1,0 +1,59 @@
+package Libraries.Language.Compile.Test
+
+use Libraries.Containers.Array
+use Libraries.System.File
+
+/*
+    Tests that the spreadsheet's CSV reading and writing keeps files exactly
+    (Library/Tests/Spreadsheet). JavaScript is off, as for the separated value
+    tests.
+*/
+class SpreadsheetTester
+    CompilerTestSuite suite = undefined
+    text path = "Library/Tests/Spreadsheet/"
+    text passPath = path + "Pass/"
+
+    action Test
+        path = passPath
+        RoundTrip()
+    end
+
+    action GetName returns text
+        return "Spreadsheet Tests"
+    end
+
+    action GetCompilerTestSuite returns CompilerTestSuite
+        return suite
+    end
+
+    action SetCompilerTestSuite(CompilerTestSuite suite)
+        me:suite = suite
+    end
+
+    action RoundTrip
+        Array<File> files
+        Array<text> results
+        File main
+        main:SetPath(path + "RoundTrip.quorum")
+        files:Add(main)
+        results:Add("Line feeds: true")
+        results:Add("Carriage returns and line feeds: true")
+        results:Add("No line break at the end: true")
+        results:Add("Byte order mark: true")
+        results:Add("Empty: true")
+        results:Add("Header only: true")
+        results:Add("Quoted comma: true")
+        results:Add("Quoted line break: true")
+        results:Add("Doubled quotes: true")
+        results:Add("Ragged rows: true")
+        results:Add("Empty lines: true")
+        results:Add("Spaces: true")
+        results:Add("Equals sign: true")
+        results:Add("Empty values: true")
+        results:Add("Quoted plain value: true")
+        results:Add("One change: true")
+        results:Add("Problems: 1")
+        results:Add("Corrected: true")
+        suite:Test(files, results)
+    end
+end

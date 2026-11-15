@@ -466,92 +466,14 @@ shared class DefaultInputSets
         gameInput:AddInputTable(treeTable)
     end
 
+    /*
+        Builds the "Spreadsheet" input table and the "SpreadsheetCellField"
+        table of the field cells are edited in (SpreadsheetInputSetup), with
+        Excel's keys.
+    */
     action SetupSpreadsheetInput(GameInput gameInput)
-        InputTable spreadsheetTable
-        spreadsheetTable:SetIdentifier("Spreadsheet")
-        SpreadsheetCopyBehavior spreadsheetCopyBehavior
-        SpreadsheetCutBehavior spreadsheetCutBehavior
-        SpreadsheetPasteBehavior spreadsheetPasteBehavior
-        SpreadsheetDownBehavior spreadsheetDownBehavior
-        SpreadsheetUpBehavior spreadsheetUpBehavior
-        SpreadsheetLeftBehavior spreadsheetLeftBehavior
-        SpreadsheetRightBehavior spreadsheetRightBehavior
-        SpreadsheetActivationBehavior spreadsheetActivate
-
-        spreadsheetTable:Add(GetDownArrowKey(), spreadsheetDownBehavior)
-        spreadsheetTable:Add(GetUpArrowKey(), spreadsheetUpBehavior)
-        spreadsheetTable:Add(GetLeftArrowKey(), spreadsheetLeftBehavior)
-        spreadsheetTable:Add(GetRightArrowKey(), spreadsheetRightBehavior)
-
-        spreadsheetTable:Add(GetEnterKey(), spreadsheetActivate)
-
-        //copy past for fields
-        if ShouldUseMacKeys()
-            //first do copy paste
-            InputSet metaC
-            metaC:SetKeyboardInput(keys:C)
-            metaC:AddModifier(metaC:META)
-            spreadsheetTable:Add(metaC, spreadsheetCopyBehavior)
-
-            InputSet metaX
-            metaX:SetKeyboardInput(keys:X)
-            metaX:AddModifier(metaX:META)
-            spreadsheetTable:Add(metaX, spreadsheetCutBehavior)
-
-            InputSet metaV
-            metaV:SetKeyboardInput(keys:V)
-            metaV:AddModifier(metaV:META)
-            spreadsheetTable:Add(metaV, spreadsheetPasteBehavior)
-        else
-            InputSet controlC
-            controlC:SetKeyboardInput(keys:C)
-            controlC:AddModifier(controlC:CONTROL)
-            spreadsheetTable:Add(controlC, spreadsheetCopyBehavior)
-
-            InputSet controlX
-            controlX:SetKeyboardInput(keys:X)
-            controlX:AddModifier(controlX:CONTROL)
-            spreadsheetTable:Add(controlX, spreadsheetCutBehavior)
-
-            InputSet controlV
-            controlV:SetKeyboardInput(keys:V)
-            controlV:AddModifier(controlV:CONTROL)
-            spreadsheetTable:Add(controlV, spreadsheetPasteBehavior)
-        end
-
-        gameInput:AddInputTable(spreadsheetTable)
-
-        InputTable spreadsheetCellTable
-        spreadsheetCellTable:SetIdentifier("SpreadsheetCell")
-
-        InputSet doubleClickSet
-        doubleClickSet:SetMouseInput(mouse:LEFT)
-        doubleClickSet:SetEventCount(2)
-
-        InputSet clickDown
-        clickDown:SetMouseInput(mouse:ANY)
-
-        InputSet clickUp
-        clickUp:SetMouseInput(mouse:ANY)
-        clickUp:SetInputTrigger(clickUp:FINISH)
-
-        InputSet touchDown
-        touchDown:SetInputType(touchDown:TOUCH_INPUT)
-
-        InputSet touchUp
-        touchUp:SetInputType(touchUp:TOUCH_INPUT)
-        touchUp:SetInputTrigger(touchUp:FINISH)
-
-        ClickDownBehavior downBehavior
-        ClickUpBehavior upBehavior
-
-        spreadsheetCellTable:Add(clickDown, downBehavior)
-        spreadsheetCellTable:Add(touchDown, downBehavior)
-        spreadsheetCellTable:Add(clickUp, upBehavior)
-        spreadsheetCellTable:Add(touchUp, upBehavior)
-        spreadsheetCellTable:Add(doubleClickSet, spreadsheetActivate)
-
-        gameInput:AddInputTable(spreadsheetCellTable)
+        SpreadsheetInputSetup setup
+        setup:Setup(gameInput)
     end
 
     action SetupTreeTableInput(GameInput gameInput)

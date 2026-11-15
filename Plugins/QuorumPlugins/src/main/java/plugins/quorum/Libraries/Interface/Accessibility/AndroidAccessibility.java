@@ -12,6 +12,8 @@ import quorum.Libraries.Interface.Controls.Control_;
 import quorum.Libraries.Interface.Controls.ListItem_;
 import quorum.Libraries.Interface.Controls.RadioButton_;
 import quorum.Libraries.Interface.Controls.Slider_;
+import quorum.Libraries.Interface.Controls.Spreadsheet_;
+import quorum.Libraries.Interface.Selections.SpreadsheetSelection_;
 import quorum.Libraries.Interface.Controls.Tooltip_;
 import quorum.Libraries.Containers.Array_;
 import quorum.Libraries.Interface.Controls.Tree_;
@@ -100,6 +102,35 @@ public class AndroidAccessibility {
     // A calendar whose current day moved, so TalkBack may follow it.
     private Calendar_ calendarToFollow = null;
 
+    // What TalkBack's scroll actions ask of a spreadsheet's grid
+    // (SpreadsheetScrollFromTalkBack).
+    static final int SHEET_SCROLL_FORWARD = 0;
+    static final int SHEET_SCROLL_BACKWARD = 1;
+    static final int SHEET_SCROLL_DOWN = 2;
+    static final int SHEET_SCROLL_UP = 3;
+    static final int SHEET_SCROLL_RIGHT = 4;
+    static final int SHEET_SCROLL_LEFT = 5;
+
+    // A spreadsheet's cells and headers are virtual nodes with no item, made
+    // only for what is on screen. Each spreadsheet gets a block of ids, kept
+    // while it is accessible, below the calendars' blocks. A node's id comes
+    // from its row and column, not its place on screen, so TalkBack stays on
+    // the same node while the grid scrolls: a cell is the block's first id
+    // plus (row mod 8192) * 1024 + (column mod 1024); headers have
+    // SHEET_HEADER_BIT set, and column headers SHEET_COLUMN_BIT too. Rows
+    // 8192 apart (or columns 1024 apart) share ids, but are never both on
+    // screen.
+    private static final int FIRST_SPREADSHEET_ID = 0x40000000;
+    private static final int SPREADSHEET_BLOCK = 0x01000000;
+    private static final int SPREADSHEET_BLOCKS = 48;
+    private static final int SHEET_HEADER_BIT = 0x00800000;
+    private static final int SHEET_COLUMN_BIT = 0x00400000;
+    private static final int SHEET_ROW_MASK = 0x1FFF;
+    private static final int SHEET_COLUMN_MASK = 0x3FF;
+    private final Map<Integer, Integer> spreadsheetIds = new HashMap<>();
+    // A spreadsheet that changed, so TalkBack may follow its current cell.
+    private Spreadsheet_ spreadsheetToFollow = null;
+
     // The focused item's active part (Item:GetActiveDescendant, such as a
     // combo box's highlighted row) and that item, its owner. While there is
     // one, the part's node has the input focus in place of its owner's.
@@ -134,6 +165,10 @@ public class AndroidAccessibility {
         calendarDayIds.remove(item.GetHashCode());
         if (calendarToFollow == item) {
             calendarToFollow = null;
+        }
+        spreadsheetIds.remove(item.GetHashCode());
+        if (spreadsheetToFollow == item) {
+            spreadsheetToFollow = null;
         }
         if (activePartId == item.GetHashCode()) {
             activePartId = AndroidNode.HOST;
@@ -178,6 +213,19 @@ public class AndroidAccessibility {
         changed = true;
         if (calendar != null) {
             calendarToFollow = calendar;
+        }
+    }
+
+    /*
+        A spreadsheet changed: its values, its size, what is on screen, or
+        the selection. Its cells on screen are made again, and if it has the
+        focus and TalkBack is on one of its cells (or on nothing), TalkBack
+        follows the current cell, as for a calendar's current day.
+     */
+    public void NativeSpreadsheetChanged(Spreadsheet_ sheet) {
+        changed = true;
+        if (sheet != null) {
+            spreadsheetToFollow = sheet;
         }
     }
 
@@ -299,6 +347,14 @@ public class AndroidAccessibility {
                 if (day != AndroidNode.HOST) {
                     provider.MoveTalkBackTo(day, followReason);
                 }
+            } else if (focusToFollow instanceof Spreadsheet_) {
+                // A spreadsheet's node is only its cells' grid: TalkBack
+                // goes to the current cell, or the current row's number or
+                // column's letters while whole rows or columns are selected.
+                int cell = CurrentCellId((Spreadsheet_) focusToFollow);
+                if (cell != AndroidNode.HOST) {
+                    provider.MoveTalkBackTo(cell, followReason);
+                }
             } else {
                 provider.MoveTalkBackTo(focusToFollow.GetHashCode(), followReason);
             }
@@ -314,6 +370,222 @@ public class AndroidAccessibility {
             FollowCalendar(provider, calendarToFollow);
             calendarToFollow = null;
         }
+        if (spreadsheetToFollow != null) {
+            FollowSpreadsheet(provider, spreadsheetToFollow);
+            spreadsheetToFollow = null;
+        }
+    }
+
+    /*
+        TalkBack goes to a spreadsheet's current part (CurrentCellId: the
+        current cell, or the current row's number or column's letters while
+        whole rows or columns are selected) when the spreadsheet has the
+        focus (not while a cell is edited: the edit field has it) and
+        TalkBack is on one of its cells or headers, or on nothing (its part
+        scrolled away). Elsewhere it stays.
+     */
+    private void FollowSpreadsheet(AndroidAccessibilityProvider provider, Spreadsheet_ sheet) {
+        if (!HasFocus(sheet) || sheet.IsEditing()) {
+            return;
+        }
+        int cell = CurrentCellId(sheet);
+        if (cell == AndroidNode.HOST) {
+            return;
+        }
+        int on = provider.GetAccessibilityFocusId();
+        Integer first = spreadsheetIds.get(sheet.GetHashCode());
+        boolean onParts = first != null && on >= first && on < first + SPREADSHEET_BLOCK;
+        if (on == AndroidNode.HOST || onParts) {
+            provider.MoveTalkBackTo(cell, "spreadsheet cell");
+        }
+    }
+
+    /*
+        The node id of where TalkBack goes in a spreadsheet
+        (Spreadsheet:GetAccessibilityFocusPart): the current row's number
+        while whole rows are selected, the current column's letters while
+        whole columns are, otherwise the current cell; HOST when that isn't
+        on screen.
+     */
+    private int CurrentCellId(Spreadsheet_ sheet) {
+        Integer first = spreadsheetIds.get(sheet.GetHashCode());
+        SpreadsheetSelection_ selection = sheet.GetSelection();
+        if (first == null || selection == null || selection.IsEmpty()) {
+            return AndroidNode.HOST;
+        }
+        int row = selection.GetRow();
+        int column = selection.GetColumn();
+        boolean rowVisible = row >= sheet.GetFirstVisibleRow() && row <= sheet.GetLastVisibleRow();
+        boolean columnVisible = column >= sheet.GetFirstVisibleColumn() && column <= sheet.GetLastVisibleColumn();
+        int part = sheet.GetAccessibilityFocusPart();
+        if (part == 2) {
+            return rowVisible ? SheetRowHeaderId(first, row) : AndroidNode.HOST;
+        }
+        if (part == 3) {
+            return columnVisible ? SheetColumnHeaderId(first, column) : AndroidNode.HOST;
+        }
+        if (!rowVisible || !columnVisible) {
+            return AndroidNode.HOST;
+        }
+        return SheetCellId(first, row, column);
+    }
+
+    // The first id of a spreadsheet's block of ids, given out the first
+    // time: the first block no other spreadsheet has.
+    private int SpreadsheetBase(Spreadsheet_ sheet) {
+        Integer first = spreadsheetIds.get(sheet.GetHashCode());
+        if (first != null) {
+            return first;
+        }
+        Set<Integer> taken = new HashSet<>(spreadsheetIds.values());
+        int base = FIRST_SPREADSHEET_ID;
+        for (int block = 0; block < SPREADSHEET_BLOCKS; block++) {
+            int candidate = FIRST_SPREADSHEET_ID + block * SPREADSHEET_BLOCK;
+            if (!taken.contains(candidate)) {
+                base = candidate;
+                break;
+            }
+        }
+        spreadsheetIds.put(sheet.GetHashCode(), base);
+        return base;
+    }
+
+    private static int SheetCellId(int first, int row, int column) {
+        return first + ((row & SHEET_ROW_MASK) << 10) + (column & SHEET_COLUMN_MASK);
+    }
+
+    private static int SheetRowHeaderId(int first, int row) {
+        return first + SHEET_HEADER_BIT + (row & SHEET_ROW_MASK);
+    }
+
+    private static int SheetColumnHeaderId(int first, int column) {
+        return first + SHEET_HEADER_BIT + SHEET_COLUMN_BIT + (column & SHEET_COLUMN_MASK);
+    }
+
+    /*
+        A part of a spreadsheet on screen, in screen pixels from the top
+        left: left and top are the spreadsheet's pixels from its top left
+        (after scrolling), as GetCellLeft and GetCellTop give them, clipped
+        to the area from clipLeft and clipTop to its right and bottom edges,
+        so a cell partly under the column letters or row numbers covers
+        only what shows.
+     */
+    private Rect SheetPartBounds(Spreadsheet_ sheet, Rect bounds, double left, double top, double width, double height,
+            double clipLeft, double clipTop) {
+        double sheetWidth = sheet.GetWidth();
+        double sheetHeight = sheet.GetHeight();
+        if (sheetWidth <= 0 || sheetHeight <= 0) {
+            return new Rect(bounds.left, bounds.top, bounds.left, bounds.top);
+        }
+        double scaleX = bounds.width() / sheetWidth;
+        double scaleY = bounds.height() / sheetHeight;
+        double x0 = Math.max(left, clipLeft);
+        double y0 = Math.max(top, clipTop);
+        double x1 = Math.max(x0, Math.min(left + width, sheetWidth));
+        double y1 = Math.max(y0, Math.min(top + height, sheetHeight));
+        return new Rect(
+            (int) Math.round(bounds.left + x0 * scaleX),
+            (int) Math.round(bounds.top + y0 * scaleY),
+            (int) Math.round(bounds.left + x1 * scaleX),
+            (int) Math.round(bounds.top + y1 * scaleY));
+    }
+
+    /*
+        A spreadsheet's cells and headers on screen, as nodes in its grid
+        node: the column letters, then each row's number and cells. In the
+        grid, the letters are row 0 and the numbers column 0, as headers,
+        so a cell is one row and column further on; TalkBack says the
+        headers' names as it moves between rows and columns. A cell says its
+        text, or "blank", then Spreadsheet:GetCellRoleText (its name, such
+        as "C2", and a range's extent on the current cell of a range) as
+        its role description, in place of a role: "71, C2". A row's number
+        says "2, row" and a column's letters "C, column". Each is selected
+        while the selection holds it (a header while its whole row or
+        column is), which TalkBack says itself, so the role words don't
+        repeat it. Returns their ids in reading order.
+     */
+    private int[] AddSpreadsheetCells(Spreadsheet_ sheet, AndroidNode grid, Map<Integer, AndroidNode> nodes) {
+        int first = SpreadsheetBase(sheet);
+        List<Integer> ids = new ArrayList<>();
+        if (sheet.GetDisplayedRowSize() <= 0 || sheet.GetDisplayedColumnSize() <= 0) {
+            return ToArray(ids);
+        }
+        int firstRow = sheet.GetFirstVisibleRow();
+        int lastRow = sheet.GetLastVisibleRow();
+        int firstColumn = sheet.GetFirstVisibleColumn();
+        int lastColumn = sheet.GetLastVisibleColumn();
+        SpreadsheetSelection_ selection = sheet.GetSelection();
+        boolean hasSelection = selection != null && !selection.IsEmpty();
+        boolean editing = sheet.IsEditing();
+        Rect bounds = grid.bounds;
+        double headerHeight = sheet.GetHeaderHeightInPixels();
+        double labelWidth = sheet.GetRowLabelWidthInPixels();
+        double rowHeight = sheet.GetRowHeightInPixels();
+
+        for (int column = firstColumn; column <= lastColumn; column++) {
+            AndroidNode header = new AndroidNode();
+            header.id = SheetColumnHeaderId(first, column);
+            header.parentId = grid.id;
+            header.className = "android.view.View";
+            header.spreadsheetPart = AndroidNode.SHEET_COLUMN_HEADER;
+            header.spreadsheetColumn = column;
+            header.collectionRow = 0;
+            header.collectionColumn = column + 1;
+            header.collectionHeading = true;
+            header.contentDescription = Clean(sheet.GetColumnLabel(column));
+            header.roleDescription = "column";
+            header.selected = sheet.IsWholeColumnSelected(column);
+            header.clickable = !editing;
+            header.clickLabel = "select column";
+            header.bounds = SheetPartBounds(sheet, bounds, sheet.GetCellLeft(column), 0,
+                sheet.GetColumnWidthInPixels(column), headerHeight, labelWidth, 0);
+            nodes.put(header.id, header);
+            ids.add(header.id);
+        }
+        for (int row = firstRow; row <= lastRow; row++) {
+            double top = sheet.GetCellTop(row);
+            AndroidNode header = new AndroidNode();
+            header.id = SheetRowHeaderId(first, row);
+            header.parentId = grid.id;
+            header.className = "android.view.View";
+            header.spreadsheetPart = AndroidNode.SHEET_ROW_HEADER;
+            header.spreadsheetRow = row;
+            header.collectionRow = row + 1;
+            header.collectionColumn = 0;
+            header.collectionHeading = true;
+            header.contentDescription = "" + (row + 1);
+            header.roleDescription = "row";
+            header.selected = sheet.IsWholeRowSelected(row);
+            header.clickable = !editing;
+            header.clickLabel = "select row";
+            header.bounds = SheetPartBounds(sheet, bounds, 0, top, labelWidth, rowHeight, 0, headerHeight);
+            nodes.put(header.id, header);
+            ids.add(header.id);
+
+            for (int column = firstColumn; column <= lastColumn; column++) {
+                AndroidNode cell = new AndroidNode();
+                cell.id = SheetCellId(first, row, column);
+                cell.parentId = grid.id;
+                cell.className = "android.view.View";
+                cell.spreadsheetPart = AndroidNode.SHEET_CELL;
+                cell.spreadsheetRow = row;
+                cell.spreadsheetColumn = column;
+                cell.collectionRow = row + 1;
+                cell.collectionColumn = column + 1;
+                String value = Clean(sheet.GetText(row, column));
+                cell.contentDescription = value == null ? "blank" : value;
+                cell.roleDescription = Clean(sheet.GetCellRoleText(row, column));
+                cell.selected = hasSelection && selection.Contains(row, column);
+                boolean current = hasSelection && selection.GetRow() == row && selection.GetColumn() == column;
+                cell.clickable = !editing;
+                cell.clickLabel = current ? "edit" : "select";
+                cell.bounds = SheetPartBounds(sheet, bounds, sheet.GetCellLeft(column), top,
+                    sheet.GetColumnWidthInPixels(column), rowHeight, labelWidth, headerHeight);
+                nodes.put(cell.id, cell);
+                ids.add(cell.id);
+            }
+        }
+        return ToArray(ids);
     }
 
     private void FollowCalendar(AndroidAccessibilityProvider provider, Calendar_ calendar) {
@@ -506,6 +778,9 @@ public class AndroidAccessibility {
             } else if (item instanceof Calendar_) {
                 // A calendar's days, which have no items.
                 node.childIds = AddCalendarDays((Calendar_) item, node, nodes);
+            } else if (item instanceof Spreadsheet_ && node.spreadsheetGrid) {
+                // A spreadsheet's cells on screen, which have no items.
+                node.childIds = AddSpreadsheetCells((Spreadsheet_) item, node, nodes);
             }
         }
         provider.Publish(nodes, ToArray(roots));
@@ -635,6 +910,32 @@ public class AndroidAccessibility {
             node.readerFocusable = false;
             node.collectionRows = CALENDAR_ROWS;
             node.collectionColumns = CALENDAR_COLUMNS;
+        } else if (code == item.Get_Libraries_Interface_Item__TABLE_() && item instanceof Spreadsheet_) {
+            // The cells' grid, titled with the spreadsheet's name: TalkBack
+            // says the title and the grid's size when it enters, then reads
+            // the cells on screen (BuildSnapshot adds them), one more row
+            // and column for the headers. The grid itself isn't a stop. It
+            // scrolls while there are cells off screen.
+            Spreadsheet_ sheet = (Spreadsheet_) item;
+            int rows = Math.max(0, sheet.GetDisplayedRowSize());
+            int columns = Math.max(0, sheet.GetDisplayedColumnSize());
+            node.className = "android.widget.GridView";
+            node.containerTitle = Clean(item.GetName());
+            node.text = null;
+            node.readerFocusable = false;
+            node.spreadsheetGrid = true;
+            node.collectionRows = rows + 1;
+            node.collectionColumns = columns + 1;
+            if (rows > 0 && columns > 0 && !sheet.IsEditing()) {
+                int firstRow = sheet.GetFirstVisibleRow();
+                int lastRow = sheet.GetLastVisibleRow();
+                int firstColumn = sheet.GetFirstVisibleColumn();
+                int lastColumn = sheet.GetLastVisibleColumn();
+                node.scrollRight = lastColumn < columns - 1;
+                node.scrollLeft = firstColumn > 0;
+                node.scrollForward = lastRow < rows - 1 || node.scrollRight;
+                node.scrollBackward = firstRow > 0 || node.scrollLeft;
+            }
         } else if (code == item.Get_Libraries_Interface_Item__TEXTBOX_()) {
             node.className = "android.widget.EditText";
             node.clickable = true;
@@ -1146,6 +1447,124 @@ public class AndroidAccessibility {
                     calendar.MoveCurrentDay(days);
                 }
                 calendar.ChooseCurrentDay();
+                self.changed = true;
+            }
+        });
+    }
+
+    /*
+        TalkBack on a spreadsheet's cell or header (it has no item). Its
+        focus moving there (click false): the spreadsheet takes Quorum's
+        focus, as a touch gives it, and a cell becomes the current cell, so
+        the focus ring follows TalkBack. A double tap (click true): on the
+        current cell, it is edited, as F2 does, with the keyboard open; on
+        another cell, it becomes current; on a column's letters or a row's
+        number, the column or row is selected. Nothing happens while a cell
+        is edited.
+     */
+    static void SpreadsheetFromTalkBack(final int sheetId, final int part, final int row, final int column,
+            final boolean click) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(sheetId);
+                if (!(item instanceof Spreadsheet_)) return;
+                Spreadsheet_ sheet = (Spreadsheet_) item;
+                if (sheet.IsEditing()) return;
+                if (!self.HasFocus(sheet)) {
+                    self.focusFromTalkBack = sheetId;
+                    sheet.Focus();
+                    Item_ result = GameStateManager.game == null ? null : GameStateManager.game.GetFocus();
+                    self.focusAfterTalkBack = result == null ? AndroidNode.HOST : result.GetHashCode();
+                }
+                SpreadsheetSelection_ selection = sheet.GetSelection();
+                boolean current = selection != null && !selection.IsEmpty()
+                    && selection.GetRow() == row && selection.GetColumn() == column;
+                if (part == AndroidNode.SHEET_CELL) {
+                    if (click && current) {
+                        sheet.BeginEditing(null);
+                        AndroidKeyboard keyboard = new AndroidKeyboard();
+                        keyboard.DisplayKeyboard(AndroidKeyboard.TEXT_NO_CORRECTIONS, AndroidKeyboard.DONE);
+                    } else if (!current) {
+                        sheet.MoveTo(row, column, false);
+                    }
+                } else if (click && part == AndroidNode.SHEET_COLUMN_HEADER) {
+                    sheet.SelectColumns(column, column);
+                } else if (click && part == AndroidNode.SHEET_ROW_HEADER) {
+                    sheet.SelectRows(row, row);
+                }
+                self.changed = true;
+            }
+        });
+    }
+
+    /*
+        TalkBack's scroll actions on a spreadsheet's grid. The current cell
+        moves past the edge of what is on screen, which scrolls, and TalkBack
+        follows it (FollowSpreadsheet). Forward, as when a swipe goes past
+        the last cell on screen: the first cell on screen of the next row,
+        or after the last row, the top of the next columns. Backward is the
+        same the other way. Down, up, right and left move by a screenful,
+        as Page Down does.
+     */
+    static void SpreadsheetScrollFromTalkBack(final int sheetId, final int what) {
+        AndroidDisplay.RunOnGameThread(new Runnable() {
+            public void run() {
+                AndroidAccessibility self = instance;
+                if (self == null) return;
+                Item_ item = self.items.get(sheetId);
+                if (!(item instanceof Spreadsheet_)) return;
+                Spreadsheet_ sheet = (Spreadsheet_) item;
+                if (sheet.IsEditing()) return;
+                int rows = sheet.GetDisplayedRowSize();
+                int columns = sheet.GetDisplayedColumnSize();
+                if (rows <= 0 || columns <= 0) return;
+                int firstRow = sheet.GetFirstVisibleRow();
+                int lastRow = sheet.GetLastVisibleRow();
+                int firstColumn = sheet.GetFirstVisibleColumn();
+                int lastColumn = sheet.GetLastVisibleColumn();
+                SpreadsheetSelection_ selection = sheet.GetSelection();
+                boolean hasSelection = selection != null && !selection.IsEmpty();
+                int currentRow = hasSelection ? selection.GetRow() : firstRow;
+                int currentColumn = hasSelection ? selection.GetColumn() : firstColumn;
+                int rowPage = Math.max(1, lastRow - firstRow);
+                int columnPage = Math.max(1, lastColumn - firstColumn);
+
+                int row = currentRow;
+                int column = currentColumn;
+                if (what == SHEET_SCROLL_FORWARD) {
+                    if (lastRow < rows - 1) {
+                        row = lastRow + 1;
+                        column = firstColumn;
+                    } else if (lastColumn < columns - 1) {
+                        row = 0;
+                        column = lastColumn + 1;
+                    }
+                } else if (what == SHEET_SCROLL_BACKWARD) {
+                    if (firstRow > 0) {
+                        row = firstRow - 1;
+                        column = firstColumn;
+                    } else if (firstColumn > 0) {
+                        row = rows - 1;
+                        column = firstColumn - 1;
+                    }
+                } else if (what == SHEET_SCROLL_DOWN) {
+                    row = Math.min(rows - 1, currentRow + rowPage);
+                } else if (what == SHEET_SCROLL_UP) {
+                    row = Math.max(0, currentRow - rowPage);
+                } else if (what == SHEET_SCROLL_RIGHT) {
+                    column = Math.min(columns - 1, currentColumn + columnPage);
+                } else if (what == SHEET_SCROLL_LEFT) {
+                    column = Math.max(0, currentColumn - columnPage);
+                }
+                if (hasSelection && row == currentRow && column == currentColumn) return;
+                if (!self.HasFocus(sheet)) {
+                    self.focusFromTalkBack = sheetId;
+                    sheet.Focus();
+                }
+                sheet.MoveTo(row, column, false);
+                self.spreadsheetToFollow = sheet;
                 self.changed = true;
             }
         });

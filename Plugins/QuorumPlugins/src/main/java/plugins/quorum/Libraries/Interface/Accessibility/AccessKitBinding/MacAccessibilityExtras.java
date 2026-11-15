@@ -41,6 +41,27 @@ public final class MacAccessibilityExtras {
     // An outline whose rows VoiceOver must not count ("1 of 2"): a 3D
     // item's cursor (Item3DKit). Mac.so gives it no AXRows.
     public static final int UNCOUNTED = 2048;
+    // A spreadsheet's grid (SpreadsheetKit): Mac.so gives it its rows,
+    // row and column counts, and column headers, which AccessKit leaves out.
+    // count: its rows; level: its columns.
+    public static final int TABLE = 4096;
+    // One of a TABLE's rows of cells. index: the row, from 0.
+    public static final int TABLE_ROW = 8192;
+    // A cell: VoiceOver's "row 3, column 5". index: its row, position: its
+    // column, both from 0.
+    public static final int TABLE_CELL = 16384;
+    // A column's header, with TABLE_CELL. position: the column.
+    public static final int COLUMN_HEADER = 32768;
+    // A row's header. index: the row.
+    public static final int ROW_HEADER = 65536;
+    // The row of column headers, which isn't one of the table's rows.
+    public static final int TABLE_HEADER_ROW = 131072;
+    // A cell, or a whole row, in a TABLE's selection: Mac.so gives the
+    // table's selected cells and rows from these (AccessKit gives VoiceOver
+    // a selected state only for list-like items).
+    public static final int TABLE_SELECTED = 262144;
+    // A TABLE's current cell, which the keys move.
+    public static final int TABLE_CURRENT = 524288;
 
     /* Notices for queueNotice. The same numbers as AccessKitRuntime.m. */
 
@@ -58,6 +79,10 @@ public final class MacAccessibilityExtras {
     // item's, as its camera or cursor moves). AccessKit sends nothing when
     // only bounds change, so VoiceOver would keep the old box.
     public static final int MOVED = 6;
+    // AXSelectedCellsChanged, on a TABLE whose selection or current cell
+    // moved. VoiceOver follows a table through its selection, not through
+    // a focus moving inside it.
+    public static final int SELECTED_CELLS_CHANGED = 7;
 
     private MacAccessibilityExtras() {
     }

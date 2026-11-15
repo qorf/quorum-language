@@ -500,6 +500,10 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
             updateCalendar(global_CheckCast(item, "Libraries.Interface.Controls.Calendar"));
             return true;
         }
+        if (code == 15 && global_InstanceOf(item, "Libraries.Interface.Controls.Spreadsheet")) {
+            updateSpreadsheet(global_CheckCast(item, "Libraries.Interface.Controls.Spreadsheet"));
+            return true;
+        }
         return false;
     }
 
@@ -760,6 +764,304 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
             }
         }
     }
+
+    // A spreadsheet's selection kinds, as in SpreadsheetSelection.
+    const SHEET_CELLS = 0;
+    const SHEET_ROWS = 1;
+    const SHEET_COLUMNS = 2;
+    const SHEET_EVERYTHING = 3;
+
+    // Before acting on a click in a spreadsheet's grid: an edit in progress
+    // is kept and the spreadsheet takes Quorum's focus, as a press on the
+    // screen does.
+    function prepareSpreadsheetClick(sheet) {
+        if (sheet.IsEditing()) {
+            sheet.CommitEditingWithoutFocus();
+        }
+        if (!sheet.IsFocused()) {
+            sheet.Focus();
+        }
+    }
+
+    // A part of a spreadsheet's grid taking the focus gives Quorum's focus to
+    // the spreadsheet.
+    function addSpreadsheetFocusListener(part, sheet) {
+        part.addEventListener("focus", (event) => {
+            if (blurDelayedCall !== null) {
+                clearTimeout(blurDelayedCall);
+                blurDelayedCall = null;
+            }
+            if (!hasQuorumFocus(sheet)) {
+                sheet.Focus();
+            }
+        });
+        addBlurListener(part);
+    }
+
+    // Makes one of the elements of a spreadsheet's grid: a row, the corner,
+    // a column or row header, or a cell. Clicking a part does what clicking
+    // it on the screen does.
+    function makeSpreadsheetPart(sheet, partID, role) {
+        let part = document.createElement("div");
+        part.id = partID;
+        part.setAttribute("role", role);
+        part.quorumRow = -1;
+        part.quorumColumn = -1;
+
+        if (role == "gridcell") {
+            part.setAttribute("tabindex", "-1");
+            part.addEventListener("click", (event) => {
+                prepareSpreadsheetClick(sheet);
+                let selection = sheet.GetSelection();
+                let extend = event.shiftKey && selection != null && !selection.IsEmpty()
+                    && selection.GetKind() == SHEET_CELLS;
+                sheet.MoveTo$quorum_integer$quorum_integer$quorum_boolean(part.quorumRow, part.quorumColumn, extend);
+            });
+            part.addEventListener("dblclick", (event) => {
+                prepareSpreadsheetClick(sheet);
+                sheet.MoveTo$quorum_integer$quorum_integer$quorum_boolean(part.quorumRow, part.quorumColumn, false);
+                sheet.BeginEditing$quorum_text(null);
+            });
+            addSpreadsheetFocusListener(part, sheet);
+        } else if (role == "columnheader" && part.id.endsWith("-sheet-corner")) {
+            part.addEventListener("click", (event) => {
+                prepareSpreadsheetClick(sheet);
+                sheet.SelectEverythingAsUser();
+            });
+        } else if (role == "columnheader") {
+            // Column letters take the focus when whole columns are selected.
+            part.setAttribute("tabindex", "-1");
+            addSpreadsheetFocusListener(part, sheet);
+            part.addEventListener("click", (event) => {
+                prepareSpreadsheetClick(sheet);
+                let selection = sheet.GetSelection();
+                if (event.shiftKey && selection != null && selection.GetKind() == SHEET_COLUMNS) {
+                    sheet.SelectColumns$quorum_integer$quorum_integer(selection.GetAnchorColumn(), part.quorumColumn);
+                } else {
+                    sheet.SelectColumns$quorum_integer$quorum_integer(part.quorumColumn, part.quorumColumn);
+                }
+            });
+        } else if (role == "rowheader") {
+            // Row numbers take the focus when whole rows are selected.
+            part.setAttribute("tabindex", "-1");
+            addSpreadsheetFocusListener(part, sheet);
+            part.addEventListener("click", (event) => {
+                prepareSpreadsheetClick(sheet);
+                let selection = sheet.GetSelection();
+                if (event.shiftKey && selection != null && selection.GetKind() == SHEET_ROWS) {
+                    sheet.SelectRows$quorum_integer$quorum_integer(selection.GetAnchorRow(), part.quorumRow);
+                } else {
+                    sheet.SelectRows$quorum_integer$quorum_integer(part.quorumRow, part.quorumRow);
+                }
+            });
+        }
+        return part;
+    }
+
+    // The element of a spreadsheet's grid with this id, made if it is
+    // missing. Parts are kept between updates, so the focused cell isn't
+    // replaced while it stays on screen.
+    function getSpreadsheetPart(element, sheet, partID, role) {
+        let part = element.quorumSheetParts.get(partID);
+        if (part == null) {
+            part = makeSpreadsheetPart(sheet, partID, role);
+            element.quorumSheetParts.set(partID, part);
+        }
+        return part;
+    }
+
+    // Puts the wanted parts in a container in order, removing parts no longer
+    // shown first, and moving only the parts that are out of place.
+    function arrangeSpreadsheetParts(container, wanted) {
+        let keep = new Set(wanted);
+        for (let child of Array.from(container.children)) {
+            if (!keep.has(child)) {
+                child.remove();
+            }
+        }
+        for (let i = 0; i < wanted.length; i++) {
+            let atPlace = container.children[i];
+            if (atPlace !== wanted[i]) {
+                container.insertBefore(wanted[i], atPlace == undefined ? null : atPlace);
+            }
+        }
+    }
+
+    // Brings a spreadsheet's grid up to date: its label and size, a header
+    // row of column letters, and a row for each row on screen with its row
+    // number and cells. Only the cells on screen have elements; their
+    // aria-rowindex and aria-colindex give their places in the whole grid.
+    // The focus goes to the current row's number when whole rows are
+    // selected, the current column's letters when whole columns are, and
+    // otherwise the current cell; it gets the DOM focus when the spreadsheet
+    // has Quorum's and isn't editing.
+    function updateSpreadsheet(sheet) {
+        let id = sheet.GetHashCode();
+        if (elementList[id] == null) {
+            return;
+        }
+        let element = document.getElementById(id);
+        if (element == null) {
+            return;
+        }
+        element.quorumSpreadsheetGrid = true;
+        // Whether one of the grid's parts has the DOM focus before any is
+        // removed.
+        let hadFocus = element.contains(document.activeElement) && document.activeElement !== element;
+        if (element.quorumSheetParts == null) {
+            element.quorumSheetParts = new Map();
+        }
+
+        let name = sheet.GetName();
+        if (name != null) {
+            element.setAttribute("aria-label", name);
+        }
+        element.setAttribute("aria-multiselectable", "true");
+
+        let rowSize = sheet.GetDisplayedRowSize();
+        let columnSize = sheet.GetDisplayedColumnSize();
+        element.setAttribute("aria-rowcount", rowSize + 1);
+        element.setAttribute("aria-colcount", columnSize + 1);
+
+        let firstRow = Math.max(0, sheet.GetFirstVisibleRow());
+        let lastRow = Math.min(rowSize - 1, sheet.GetLastVisibleRow());
+        let firstColumn = Math.max(0, sheet.GetFirstVisibleColumn());
+        let lastColumn = Math.min(columnSize - 1, sheet.GetLastVisibleColumn());
+
+        let selection = sheet.GetSelection();
+        let empty = selection == null || selection.IsEmpty();
+        let kind = empty ? SHEET_CELLS : selection.GetKind();
+        let currentRow = empty ? -1 : selection.GetRow();
+        let currentColumn = empty ? -1 : selection.GetColumn();
+        let allRows = !empty && (kind == SHEET_COLUMNS || kind == SHEET_EVERYTHING);
+        let allColumns = !empty && (kind == SHEET_ROWS || kind == SHEET_EVERYTHING);
+        // Where the focus goes, as in Spreadsheet's GetAccessibilityFocusPart:
+        // 1 the current cell, 2 the current row's number, 3 the current
+        // column's letters, 0 nothing.
+        let focusPart = sheet.GetAccessibilityFocusPart();
+        let focusPartElement = null;
+
+        let rows = [];
+
+        // The header row: the corner, then a column header for each column
+        // on screen.
+        let header = getSpreadsheetPart(element, sheet, id + "-sheet-header", "row");
+        header.setAttribute("aria-rowindex", 1);
+        let headerParts = [];
+        let corner = getSpreadsheetPart(element, sheet, id + "-sheet-corner", "columnheader");
+        corner.setAttribute("aria-colindex", 1);
+        corner.setAttribute("aria-selected", (!empty && kind == SHEET_EVERYTHING) ? "true" : "false");
+        headerParts.push(corner);
+        for (let column = firstColumn; column <= lastColumn; column++) {
+            let columnHeader = getSpreadsheetPart(element, sheet, id + "-sheet-column-" + column, "columnheader");
+            columnHeader.quorumColumn = column;
+            columnHeader.setAttribute("aria-colindex", column + 2);
+            let label = sheet.GetColumnLabel$quorum_integer(column);
+            columnHeader.textContent = label == null ? "" : label;
+            let selected = allRows && selection.Contains$quorum_integer$quorum_integer(Math.max(0, currentRow), column);
+            columnHeader.setAttribute("aria-selected", selected ? "true" : "false");
+            // Screen readers say "column", or "column, selected", in place of
+            // the role.
+            columnHeader.setAttribute("aria-roledescription", sheet.GetColumnHeaderRoleText$quorum_integer(column));
+            if (focusPart == 3 && column == currentColumn) {
+                columnHeader.setAttribute("tabindex", "0");
+                focusPartElement = columnHeader;
+            } else {
+                columnHeader.setAttribute("tabindex", "-1");
+            }
+            headerParts.push(columnHeader);
+        }
+        arrangeSpreadsheetParts(header, headerParts);
+        rows.push(header);
+
+        // A row for each row on screen: its row number, then its cells.
+        for (let row = firstRow; row <= lastRow; row++) {
+            let rowElement = getSpreadsheetPart(element, sheet, id + "-sheet-row-" + row, "row");
+            rowElement.setAttribute("aria-rowindex", row + 2);
+            let rowParts = [];
+
+            let rowHeader = getSpreadsheetPart(element, sheet, id + "-sheet-rowheader-" + row, "rowheader");
+            rowHeader.quorumRow = row;
+            rowHeader.setAttribute("aria-colindex", 1);
+            rowHeader.textContent = "" + (row + 1);
+            let rowSelected = allColumns && selection.Contains$quorum_integer$quorum_integer(row, Math.max(0, currentColumn));
+            rowHeader.setAttribute("aria-selected", rowSelected ? "true" : "false");
+            // Screen readers say "row", or "row, selected", in place of the
+            // role.
+            rowHeader.setAttribute("aria-roledescription", sheet.GetRowHeaderRoleText$quorum_integer(row));
+            if (focusPart == 2 && row == currentRow) {
+                rowHeader.setAttribute("tabindex", "0");
+                focusPartElement = rowHeader;
+            } else {
+                rowHeader.setAttribute("tabindex", "-1");
+            }
+            rowParts.push(rowHeader);
+
+            for (let column = firstColumn; column <= lastColumn; column++) {
+                let cell = getSpreadsheetPart(element, sheet, id + "-sheet-cell-" + row + "-" + column, "gridcell");
+                cell.quorumRow = row;
+                cell.quorumColumn = column;
+                cell.setAttribute("aria-colindex", column + 2);
+                let value = sheet.GetText$quorum_integer$quorum_integer(row, column);
+                cell.textContent = value == null ? "" : value;
+                let spoken = sheet.GetCellSpokenText$quorum_integer$quorum_integer(row, column);
+                if (spoken != null) {
+                    cell.setAttribute("aria-label", spoken);
+                } else {
+                    cell.removeAttribute("aria-label");
+                }
+                let selected = !empty && selection.Contains$quorum_integer$quorum_integer(row, column);
+                cell.setAttribute("aria-selected", selected ? "true" : "false");
+                // Screen readers say the cell's name, such as C2, in place of
+                // the role, with the range for the current cell of a range.
+                cell.setAttribute("aria-roledescription", sheet.GetCellRoleText$quorum_integer$quorum_integer(row, column));
+                if (focusPart == 1 && row == currentRow && column == currentColumn) {
+                    cell.setAttribute("tabindex", "0");
+                    focusPartElement = cell;
+                } else {
+                    cell.setAttribute("tabindex", "-1");
+                }
+                rowParts.push(cell);
+            }
+            arrangeSpreadsheetParts(rowElement, rowParts);
+            rows.push(rowElement);
+        }
+
+        // The grid holds only its rows; anything else in it, such as the
+        // edit field, is placed just before it when added.
+        arrangeSpreadsheetParts(element, rows);
+
+        // Parts no longer shown are forgotten.
+        for (let [partID, part] of Array.from(element.quorumSheetParts.entries())) {
+            if (!part.isConnected) {
+                element.quorumSheetParts.delete(partID);
+            }
+        }
+
+        element.quorumFocusTarget = focusPartElement;
+        if (sheet.IsEditing() || !hasQuorumFocus(sheet)) {
+            return;
+        }
+        let target = focusPartElement;
+        if (target == null && hadFocus && !element.contains(document.activeElement)) {
+            // The focused cell scrolled away and the current cell isn't
+            // shown, so the grid itself keeps the focus.
+            target = element;
+        }
+        if (target != null && document.activeElement !== target) {
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
+                target.focus();
+            }
+        }
+    }
+
+//    system action SpreadsheetUpdated(Spreadsheet sheet)
+    // A spreadsheet changed: its values, size, what is on screen, or the
+    // selection. Its grid is brought up to date and the focus follows the
+    // current cell.
+    this.SpreadsheetUpdated$quorum_Libraries_Interface_Controls_Spreadsheet = function(sheet) {
+        updateSpreadsheet(sheet);
+    };
 
 //    system action ComboBoxExpanded(ComboBox box)
     // A combo box's list opened: the field is expanded and controls the list.
@@ -1231,33 +1533,27 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             case 14:
                 role = "tablist";
                 break;
-            //TABLE
+            //TABLE: a spreadsheet is a grid labelled by its name, with a
+            //header row of column letters and a row for each row on screen,
+            //built by updateSpreadsheet; the current cell takes the focus.
             case 15:
                 role = "table";
-                // if cells get added after the spreadsheet is added this could cause issues
-                if (global_InstanceOf(item,"Libraries.Interface.Controls.Spreadsheet")) {
+                if (global_InstanceOf(item, "Libraries.Interface.Controls.Spreadsheet")) {
                     let spreadsheet = global_CheckCast(item, "Libraries.Interface.Controls.Spreadsheet");
-                    for (let i = 0; i < spreadsheet.GetColumnsSize(); i++) {
-                        let row = document.createElement(elementType);
-                        row.id =id+"-row-"+i;
-                        row.setAttribute("role","row");
-                        para.appendChild(row);
-                    }
+                    role = "grid";
+                    itemName = spreadsheet.GetName();
+                    itemDescription = null;
+                    para.quorumSpreadsheetGrid = true;
+                    para.quorumSheetParts = new Map();
+                    afterAdd = () => {
+                        updateSpreadsheet(spreadsheet);
+                    };
                 }
                 break;
-            //CELL
+            //CELL: spreadsheets no longer have cell items; their cells are
+            //parts of the spreadsheet's grid.
             case 16:
                 role = "cell";
-                if (global_InstanceOf(item,"Libraries.Interface.Controls.Cell")) {
-                    let cell = global_CheckCast(item, "Libraries.Interface.Controls.Cell");
-                    let spreadsheet = global_CheckCast(cell.GetSpreadsheet(), "Libraries.Interface.Controls.Spreadsheet");
-                    para.innerHTML = cell.GetText();
-                    if(spreadsheet != undefined) {
-                        let position = spreadsheet.GetCellCoordinates$quorum_Libraries_Interface_Controls_Cell(cell);
-                        let rowNum = position.GetFirstValue();
-                        parent = spreadsheet.GetHashCode()+"-row-"+rowNum.GetValue();
-                    }
-                }
                 break;
             //TEXT_FIELD
             case 17:
@@ -1563,9 +1859,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             if(tablist !== null) {
                 parentElement.appendChild(tablist);
             }
-            if (parentElement.quorumCalendarGrid === true && parentElement.parentNode != null) {
+            if ((parentElement.quorumCalendarGrid === true || parentElement.quorumSpreadsheetGrid === true) && parentElement.parentNode != null) {
                 // A grid holds only its rows, so a calendar's own controls,
-                // such as its month buttons, go just before it.
+                // such as its month buttons, and a spreadsheet's edit field
+                // go just before it.
                 parentElement.parentNode.insertBefore(para, parentElement);
             } else {
                 parentElement.appendChild(para);

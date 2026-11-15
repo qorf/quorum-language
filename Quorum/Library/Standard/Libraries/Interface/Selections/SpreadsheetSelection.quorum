@@ -1,71 +1,318 @@
 package Libraries.Interface.Selections
-use Libraries.Interface.Item
-use Libraries.Interface.Item2D
-use Libraries.Interface.Controls.Cell
-use Libraries.Interface.Controls.Spreadsheet
-use Libraries.Containers.Support.Pair
 
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Spreadsheet
+
+/*
+The SpreadsheetSelection class is what is selected in a Spreadsheet: the
+current cell, where the keys act, and a range around it. The range is a block
+of cells from the current cell to an anchor cell, whole rows, whole columns,
+or everything. Rows and columns are counted from 0. The selection's display
+name is the current cell's text, which screen readers use.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Selections.SpreadsheetSelection
+Spreadsheet sheet
+sheet:LoadFromCommaSeparatedValue("a,b
+c,d")
+sheet:Select(1, 1)
+SpreadsheetSelection selection = sheet:GetSelection()
+output selection:GetRow()
+*/
 class SpreadsheetSelection is Selection
+    // The current cell.
     integer row = -1
     integer column = -1
+    // The other corner of the range.
+    integer anchorRow = -1
+    integer anchorColumn = -1
+    integer kind = 0
 
+    // A block of cells from the anchor to the current cell.
+    public constant integer CELLS = 0
+    // Whole rows, from the anchor's row to the current row.
+    public constant integer ROWS = 1
+    // Whole columns, from the anchor's column to the current column.
+    public constant integer COLUMNS = 2
+    // Every cell.
+    public constant integer EVERYTHING = 3
+
+    /*
+    This action connects the selection to its spreadsheet. The Spreadsheet
+    calls it when it is made.
+
+    Attribute: Parameter item The spreadsheet.
+    */
     action Initialize(Item item)
         Initialize(item, "")
     end
 
+    /*
+    This action returns true if no cell is current.
+
+    Attribute: Returns True if the selection is empty.
+    */
     action IsEmpty returns boolean
         return row < 0 or column < 0
     end
 
     /*
-        This action selects a single cell in the spreadsheet. In this case, 
-        the x represents the column number and the y represents the row.
+    This action makes one cell current and the whole selection.
+
+    Attribute: Parameter row The cell's row, from 0.
+
+    Attribute: Parameter column The cell's column, from 0.
     */
     action Set(integer row, integer column)
-        Spreadsheet sheet = GetSpreadsheet()
-        if sheet not= undefined
-            Cell cell = sheet:GetCell(row, column)
-            if cell not= undefined
-                me:row = row
-                me:column = column
-                SetDisplayName(cell:GetText())
-                return now
-            end
-        end
-
-        // If the Spreadsheet or Cell couldn't be found, set selection to empty.
-        Empty()
+        me:row = row
+        me:column = column
+        anchorRow = row
+        anchorColumn = column
+        kind = CELLS
+        Changed()
     end
 
     /*
-        This action selects a single cell in the spreadsheet.
+    This action moves the current cell and keeps the anchor, so the range
+    grows or shrinks, as Shift with an arrow key does.
+
+    Attribute: Parameter row The new current row, from 0.
+
+    Attribute: Parameter column The new current column, from 0.
     */
-    action Set(Cell cell)
-        if cell not= undefined
+    action Extend(integer row, integer column)
+        if IsEmpty()
+            Set(row, column)
+            return now
+        end
+        me:row = row
+        me:column = column
+        if kind = EVERYTHING
+            kind = CELLS
+        end
+        Changed()
+    end
+
+    /*
+    This action selects whole rows, from the first to the last given. The
+    current cell moves to the last row, in the current column.
+
+    Attribute: Parameter first The row the selection starts from.
+
+    Attribute: Parameter last The row the selection ends at, where the current cell goes.
+    */
+    action SetRows(integer first, integer last)
+        if column < 0
+            column = 0
+        end
+        anchorRow = first
+        row = last
+        anchorColumn = column
+        kind = ROWS
+        Changed()
+    end
+
+    /*
+    This action selects whole columns, from the first to the last given. The
+    current cell moves to the last column, in the current row.
+
+    Attribute: Parameter first The column the selection starts from.
+
+    Attribute: Parameter last The column the selection ends at, where the current cell goes.
+    */
+    action SetColumns(integer first, integer last)
+        if row < 0
+            row = 0
+        end
+        anchorColumn = first
+        column = last
+        anchorRow = row
+        kind = COLUMNS
+        Changed()
+    end
+
+    /*
+    This action selects every cell, keeping the current cell.
+    */
+    action SelectEverything
+        if IsEmpty()
+            row = 0
+            column = 0
+        end
+        anchorRow = row
+        anchorColumn = column
+        kind = EVERYTHING
+        Changed()
+    end
+
+    /*
+    This action returns true if the given cell is selected.
+
+    Attribute: Parameter row The cell's row.
+
+    Attribute: Parameter column The cell's column.
+
+    Attribute: Returns True if the cell is in the selection.
+    */
+    action Contains(integer row, integer column) returns boolean
+        if IsEmpty()
+            return false
+        end
+        if kind = EVERYTHING
+            return true
+        elseif kind = ROWS
+            return row >= GetFirstRow() and row <= GetLastRow()
+        elseif kind = COLUMNS
+            return column >= GetFirstColumn() and column <= GetLastColumn()
+        end
+        return row >= GetFirstRow() and row <= GetLastRow() and column >= GetFirstColumn() and column <= GetLastColumn()
+    end
+
+    /*
+    This action returns true if more than the current cell is selected.
+
+    Attribute: Returns True for a range, rows, columns or everything.
+    */
+    action IsRange returns boolean
+        if IsEmpty()
+            return false
+        end
+        return kind not= CELLS or row not= anchorRow or column not= anchorColumn
+    end
+
+    /*
+    This action returns what is selected: CELLS, ROWS, COLUMNS or EVERYTHING.
+
+    Attribute: Returns The kind of selection.
+    */
+    action GetKind returns integer
+        return kind
+    end
+
+    /*
+    This action returns the first row of the range. For whole columns or
+    everything, it is 0.
+
+    Attribute: Returns The first row.
+    */
+    action GetFirstRow returns integer
+        if kind = COLUMNS or kind = EVERYTHING
+            return 0
+        end
+        if anchorRow < row
+            return anchorRow
+        end
+        return row
+    end
+
+    /*
+    This action returns the last row of the range. For whole columns or
+    everything, it is the spreadsheet's last row with values.
+
+    Attribute: Returns The last row.
+    */
+    action GetLastRow returns integer
+        if kind = COLUMNS or kind = EVERYTHING
             Spreadsheet sheet = GetSpreadsheet()
-            if sheet not= undefined
-                Pair<integer> coords = sheet:GetCellCoordinates(cell)
-                if coords:GetFirstValue() > -1 and coords:GetSecondValue() > -1
-                    row = coords:GetFirstValue()
-                    column = coords:GetSecondValue()
-                    SetDisplayName(cell:GetText())
-                    return now
-                end
+            if sheet = undefined
+                return 0
             end
+            integer last = sheet:GetRowSize() - 1
+            if last < 0
+                return 0
+            end
+            return last
         end
-
-        // If we couldn't set it to the cell, empty the selection.
-        Empty()
+        if anchorRow > row
+            return anchorRow
+        end
+        return row
     end
 
-    action Get returns Cell
-        Spreadsheet sheet = GetSpreadsheet()
-        if sheet not= undefined and IsEmpty() = false
-            return sheet:GetCell(row, column)
+    /*
+    This action returns the first column of the range. For whole rows or
+    everything, it is 0.
+
+    Attribute: Returns The first column.
+    */
+    action GetFirstColumn returns integer
+        if kind = ROWS or kind = EVERYTHING
+            return 0
         end
-        return undefined
+        if anchorColumn < column
+            return anchorColumn
+        end
+        return column
     end
 
+    /*
+    This action returns the last column of the range. For whole rows or
+    everything, it is the spreadsheet's last column with values.
+
+    Attribute: Returns The last column.
+    */
+    action GetLastColumn returns integer
+        if kind = ROWS or kind = EVERYTHING
+            Spreadsheet sheet = GetSpreadsheet()
+            if sheet = undefined
+                return 0
+            end
+            integer last = sheet:GetSize() - 1
+            if last < 0
+                return 0
+            end
+            return last
+        end
+        if anchorColumn > column
+            return anchorColumn
+        end
+        return column
+    end
+
+    /*
+    This action returns the current cell's row, or -1 when empty.
+
+    Attribute: Returns The current row.
+    */
+    action GetRow returns integer
+        return row
+    end
+
+    /*
+    This action returns the current cell's column, or -1 when empty.
+
+    Attribute: Returns The current column.
+    */
+    action GetColumn returns integer
+        return column
+    end
+
+    /*
+    This action returns the anchor's row: where a range started.
+
+    Attribute: Returns The anchor row.
+    */
+    action GetAnchorRow returns integer
+        return anchorRow
+    end
+
+    /*
+    This action returns the anchor's column: where a range started.
+
+    Attribute: Returns The anchor column.
+    */
+    action GetAnchorColumn returns integer
+        return anchorColumn
+    end
+
+    /*
+    This action returns the spreadsheet the selection belongs to.
+
+    Attribute: Returns The spreadsheet, or undefined.
+    */
     action GetSpreadsheet returns Spreadsheet
         Item item = GetItem()
         if item is Spreadsheet
@@ -75,21 +322,50 @@ class SpreadsheetSelection is Selection
     end
 
     /*
-    The Empty action sets the selection to be empty, or in other words, there is
-    no cell actively selected. When the selection is empty, the x and y 
-    coordinates will be -1.
+    This action puts the selection back exactly as it was, as undo does.
+
+    Attribute: Parameter row The current row.
+
+    Attribute: Parameter column The current column.
+
+    Attribute: Parameter anchorRow The anchor's row.
+
+    Attribute: Parameter anchorColumn The anchor's column.
+
+    Attribute: Parameter kind CELLS, ROWS, COLUMNS or EVERYTHING.
+    */
+    action Restore(integer row, integer column, integer anchorRow, integer anchorColumn, integer kind)
+        me:row = row
+        me:column = column
+        me:anchorRow = anchorRow
+        me:anchorColumn = anchorColumn
+        me:kind = kind
+        Changed()
+    end
+
+    /*
+    This action clears the selection, so no cell is current.
     */
     action Empty
         row = -1
         column = -1
+        anchorRow = -1
+        anchorColumn = -1
+        kind = CELLS
         SetDisplayName("")
     end
 
-    action GetRow returns integer
-        return row
-    end
-
-    action GetColumn returns integer
-        return column
+    /*
+    This action tells listeners and screen readers that the selection
+    changed, with the current cell's text as its name. The other actions call
+    it.
+    */
+    action Changed
+        Spreadsheet sheet = GetSpreadsheet()
+        text name = ""
+        if sheet not= undefined and not IsEmpty()
+            name = sheet:GetText(row, column)
+        end
+        SetDisplayName(name)
     end
 end

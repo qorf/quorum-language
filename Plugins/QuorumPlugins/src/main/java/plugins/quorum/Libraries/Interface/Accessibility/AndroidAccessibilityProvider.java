@@ -34,6 +34,9 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
     // action, then one more for each next button.
     public static final int ACTION_TOOLTIP_BUTTON = 0x7f0b0100;
     public static final int MAXIMUM_TOOLTIP_BUTTONS = 64;
+    // Where AndroidX's AccessibilityNodeInfoCompat keeps a role description
+    // in a node's extras; TalkBack reads it from there.
+    static final String ROLE_DESCRIPTION_KEY = "AccessibilityNodeInfo.roleDescription";
 
     private final View view;
     // The snapshot, by id, and the top-level ids in reading order.
@@ -185,6 +188,12 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
         info.setText(node.text);
         info.setHintText(node.hint);
         info.setContentDescription(node.contentDescription);
+        // The framework has no setter for a role description; AndroidX's
+        // AccessibilityNodeInfoCompat.setRoleDescription keeps it in the
+        // extras under this key, where TalkBack reads it.
+        if (node.roleDescription != null) {
+            info.getExtras().putCharSequence(ROLE_DESCRIPTION_KEY, node.roleDescription);
+        }
         // Android 11 and later; before that, the state is in the text
         // (AndroidAccessibility.MakeNode).
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -259,15 +268,44 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             info.addAction(node.expanded ? AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
                                          : AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
         }
-        // A grid (a calendar's days), and a cell in one: TalkBack says the
-        // grid's size on entering it, and each cell's row and column.
+        // A grid (a calendar's days, a spreadsheet's cells), and a cell in
+        // one: TalkBack says the grid's size on entering it, and each cell's
+        // row and column, or the names of its headers.
         if (node.collectionRows > 0 && node.collectionColumns > 0) {
             info.setCollectionInfo(AccessibilityNodeInfo.CollectionInfo.obtain(
                 node.collectionRows, node.collectionColumns, false));
         }
         if (node.collectionRow >= 0 && node.collectionColumn >= 0) {
             info.setCollectionItemInfo(AccessibilityNodeInfo.CollectionItemInfo.obtain(
-                node.collectionRow, 1, node.collectionColumn, 1, false, node.selected));
+                node.collectionRow, 1, node.collectionColumn, 1, node.collectionHeading, node.selected));
+        }
+        // A spreadsheet's grid scrolls: TalkBack sends these when a swipe
+        // goes past the cells on screen, and in its Actions menu. The
+        // spreadsheet's current cell moves past the edge, which scrolls
+        // (AndroidAccessibility.SpreadsheetScrollFromTalkBack).
+        if (node.spreadsheetGrid) {
+            info.setScrollable(node.scrollForward || node.scrollBackward || node.scrollRight || node.scrollLeft);
+            if (node.scrollForward) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+            }
+            if (node.scrollBackward) {
+                info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
+            }
+            // The scrolls by direction are Android 6 and later.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (node.scrollForward) {
+                    info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_DOWN);
+                }
+                if (node.scrollBackward) {
+                    info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_UP);
+                }
+                if (node.scrollRight) {
+                    info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_RIGHT);
+                }
+                if (node.scrollLeft) {
+                    info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_LEFT);
+                }
+            }
         }
         // While an interactive tooltip shows: its buttons, by name.
         for (int i = 0; i < node.tooltipButtons.length && i < MAXIMUM_TOOLTIP_BUTTONS; i++) {
@@ -297,6 +335,13 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 }
                 // Quorum's focus follows TalkBack, as it follows VoiceOver.
                 // A calendar's day has no item: its calendar takes the focus.
+                // A spreadsheet's cell has none either: its spreadsheet takes
+                // the focus, and the cell becomes the current cell.
+                if (node.spreadsheetPart != AndroidNode.SHEET_NONE) {
+                    AndroidAccessibility.SpreadsheetFromTalkBack(node.parentId, node.spreadsheetPart,
+                        node.spreadsheetRow, node.spreadsheetColumn, false);
+                    return true;
+                }
                 AndroidAccessibility.FocusFromTalkBack(node.calendarDay ? node.parentId : id);
                 return true;
             case AccessibilityNodeInfo.ACTION_EXPAND:
@@ -342,16 +387,54 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 AndroidAccessibility.SetTextFromTalkBack(id, value == null ? "" : value.toString());
                 return true;
             case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD:
+                if (node.spreadsheetGrid) {
+                    if (!node.scrollForward) {
+                        return false;
+                    }
+                    AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_FORWARD);
+                    return true;
+                }
                 if (!node.slider) {
                     return false;
                 }
                 AndroidAccessibility.SliderFromTalkBack(id, AndroidAccessibility.SLIDER_STEP_UP);
                 return true;
             case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD:
+                if (node.spreadsheetGrid) {
+                    if (!node.scrollBackward) {
+                        return false;
+                    }
+                    AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_BACKWARD);
+                    return true;
+                }
                 if (!node.slider) {
                     return false;
                 }
                 AndroidAccessibility.SliderFromTalkBack(id, AndroidAccessibility.SLIDER_STEP_DOWN);
+                return true;
+            case android.R.id.accessibilityActionScrollDown:
+                if (!node.spreadsheetGrid || !node.scrollForward) {
+                    return false;
+                }
+                AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_DOWN);
+                return true;
+            case android.R.id.accessibilityActionScrollUp:
+                if (!node.spreadsheetGrid || !node.scrollBackward) {
+                    return false;
+                }
+                AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_UP);
+                return true;
+            case android.R.id.accessibilityActionScrollRight:
+                if (!node.spreadsheetGrid || !node.scrollRight) {
+                    return false;
+                }
+                AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_RIGHT);
+                return true;
+            case android.R.id.accessibilityActionScrollLeft:
+                if (!node.spreadsheetGrid || !node.scrollLeft) {
+                    return false;
+                }
+                AndroidAccessibility.SpreadsheetScrollFromTalkBack(id, AndroidAccessibility.SHEET_SCROLL_LEFT);
                 return true;
             case android.R.id.accessibilityActionSetProgress:
                 if (!node.slider || arguments == null) {
@@ -366,6 +449,9 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
                 }
                 if (node.calendarDay) {
                     AndroidAccessibility.CalendarDayFromTalkBack(node.parentId, node.collectionRow, node.collectionColumn);
+                } else if (node.spreadsheetPart != AndroidNode.SHEET_NONE) {
+                    AndroidAccessibility.SpreadsheetFromTalkBack(node.parentId, node.spreadsheetPart,
+                        node.spreadsheetRow, node.spreadsheetColumn, true);
                 } else {
                     AndroidAccessibility.ActivateFromTalkBack(id);
                 }
@@ -515,6 +601,10 @@ public class AndroidAccessibilityProvider extends AccessibilityNodeProvider {
             case ACTION_CHART_DOWN: return "previous by value";
             case AccessibilityNodeInfo.ACTION_SCROLL_FORWARD: return "scroll forward (slider up)";
             case AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD: return "scroll backward (slider down)";
+            case android.R.id.accessibilityActionScrollDown: return "scroll down";
+            case android.R.id.accessibilityActionScrollUp: return "scroll up";
+            case android.R.id.accessibilityActionScrollRight: return "scroll right";
+            case android.R.id.accessibilityActionScrollLeft: return "scroll left";
             case android.R.id.accessibilityActionSetProgress: return "set progress";
             case android.R.id.accessibilityActionShowTooltip: return "show tooltip";
             case android.R.id.accessibilityActionHideTooltip: return "hide tooltip";

@@ -1,0 +1,211 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Spreadsheet
+use Libraries.Interface.Controls.Support.SpreadsheetCellField
+
+/*
+The SpreadsheetKeyBehavior class carries out a Spreadsheet's keys, which
+SpreadsheetInputSetup gives it. Each key gets its own behavior, set up with
+one of the constants and whether it extends the selection. The keys follow
+Excel's. Keys for the spreadsheet do nothing while a cell is being edited;
+COMMIT_DOWN, COMMIT_UP, COMMIT_RIGHT, COMMIT_LEFT and CANCEL are for the
+edit field.
+
+Attribute: Author William Allee
+
+Attribute: Example
+use Libraries.Interface.Behaviors.Controls.SpreadsheetKeyBehavior
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+use Libraries.Interface.Events.KeyboardEvent
+KeyboardEvent keys
+InputSet downKey
+downKey:SetKeyboardInput(keys:DOWN)
+SpreadsheetKeyBehavior behavior
+behavior:Setup(behavior:MOVE_DOWN, false)
+InputTable table
+table:SetIdentifier("MySpreadsheetKeys")
+table:Add(downKey, behavior)
+*/
+class SpreadsheetKeyBehavior is Behavior
+    public constant integer MOVE_UP = 0
+    public constant integer MOVE_DOWN = 1
+    public constant integer MOVE_LEFT = 2
+    public constant integer MOVE_RIGHT = 3
+    public constant integer EDGE_UP = 4
+    public constant integer EDGE_DOWN = 5
+    public constant integer EDGE_LEFT = 6
+    public constant integer EDGE_RIGHT = 7
+    // To the first column of the row.
+    public constant integer HOME = 8
+    // To the first cell.
+    public constant integer FIRST = 9
+    // To the last cell with data.
+    public constant integer LAST = 10
+    public constant integer PAGE_UP = 11
+    public constant integer PAGE_DOWN = 12
+    // Tab and Shift-Tab.
+    public constant integer NEXT = 13
+    public constant integer PREVIOUS = 14
+    // Enter and Shift-Enter, when not editing: move down or up.
+    public constant integer ENTER_DOWN = 15
+    public constant integer ENTER_UP = 16
+    public constant integer SELECT_COLUMN = 17
+    public constant integer SELECT_ROW = 18
+    public constant integer SELECT_EVERYTHING = 19
+    // F2: edit the cell's text.
+    public constant integer EDIT = 20
+    // Delete and Backspace: clear the selection.
+    public constant integer CLEAR = 21
+    // Control-Plus and Control-Minus.
+    public constant integer INSERT = 22
+    public constant integer REMOVE = 23
+    public constant integer UNDO = 24
+    public constant integer REDO = 25
+    // Shift-F10 and the menu key.
+    public constant integer MENU = 26
+    // In the edit field: keep the edit and move.
+    public constant integer COMMIT_DOWN = 27
+    public constant integer COMMIT_UP = 28
+    public constant integer COMMIT_RIGHT = 29
+    public constant integer COMMIT_LEFT = 30
+    // In the edit field: Escape.
+    public constant integer CANCEL = 31
+
+    integer command = MOVE_DOWN
+    boolean extend = false
+
+    /*
+    This action chooses what the key does, and whether it extends the
+    selection, as Shift does with the moving keys.
+
+    Attribute: Parameter command What the key does, such as MOVE_DOWN.
+
+    Attribute: Parameter extend True to extend the selection.
+
+    Attribute: Example
+    use Libraries.Interface.Behaviors.Controls.SpreadsheetKeyBehavior
+    SpreadsheetKeyBehavior behavior
+    behavior:Setup(behavior:MOVE_DOWN, true)
+    */
+    action Setup(integer command, boolean extend)
+        me:command = command
+        me:extend = extend
+    end
+
+    /*
+    This action returns what the key does.
+
+    Attribute: Returns The command.
+    */
+    action GetCommand returns integer
+        return command
+    end
+
+    /*
+    This action carries out the key. The input tables call it, so most users
+    won't need to.
+
+    Attribute: Parameter event The key event, whose item is the spreadsheet or its edit field.
+    */
+    action Run(BehaviorEvent event)
+        Item item = event:GetItem()
+        if item is SpreadsheetCellField
+            SpreadsheetCellField field = cast(SpreadsheetCellField, item)
+            Spreadsheet owner = field:GetSpreadsheet()
+            if owner = undefined
+                return now
+            end
+            if command = COMMIT_DOWN
+                owner:CommitEditing(1, 0)
+            elseif command = COMMIT_UP
+                owner:CommitEditing(-1, 0)
+            elseif command = COMMIT_RIGHT
+                owner:CommitEditing(0, 1)
+            elseif command = COMMIT_LEFT
+                owner:CommitEditing(0, -1)
+            elseif command = CANCEL
+                owner:CancelEditing()
+            end
+            return now
+        end
+        if not (item is Spreadsheet)
+            return now
+        end
+        Spreadsheet sheet = cast(Spreadsheet, item)
+        if sheet:IsEditing()
+            return now
+        end
+        if command not= SELECT_ROW
+            sheet:ForgetIgnoredSpace()
+        end
+
+        if command = MOVE_UP
+            sheet:MoveBy(-1, 0, extend)
+        elseif command = MOVE_DOWN
+            sheet:MoveBy(1, 0, extend)
+        elseif command = MOVE_LEFT
+            sheet:MoveBy(0, -1, extend)
+        elseif command = MOVE_RIGHT
+            sheet:MoveBy(0, 1, extend)
+        elseif command = EDGE_UP
+            sheet:MoveToEdge(-1, 0, extend)
+        elseif command = EDGE_DOWN
+            sheet:MoveToEdge(1, 0, extend)
+        elseif command = EDGE_LEFT
+            sheet:MoveToEdge(0, -1, extend)
+        elseif command = EDGE_RIGHT
+            sheet:MoveToEdge(0, 1, extend)
+        elseif command = HOME
+            sheet:MoveTo(sheet:GetSelection():GetRow(), 0, extend)
+        elseif command = FIRST
+            sheet:MoveTo(0, 0, extend)
+        elseif command = LAST
+            sheet:MoveTo(sheet:GetRowSize() - 1, sheet:GetSize() - 1, extend)
+        elseif command = PAGE_UP
+            sheet:MovePage(false, extend)
+        elseif command = PAGE_DOWN
+            sheet:MovePage(true, extend)
+        elseif command = NEXT
+            sheet:MoveBy(0, 1, false)
+        elseif command = PREVIOUS
+            sheet:MoveBy(0, -1, false)
+        elseif command = ENTER_DOWN
+            sheet:MoveBy(1, 0, false)
+        elseif command = ENTER_UP
+            sheet:MoveBy(-1, 0, false)
+        elseif command = SELECT_COLUMN
+            sheet:SelectColumnsAsUser()
+        elseif command = SELECT_ROW
+            sheet:SelectRowsAsUser()
+        elseif command = SELECT_EVERYTHING
+            sheet:SelectEverythingAsUser()
+        elseif command = EDIT
+            sheet:BeginEditing(undefined)
+        elseif command = CLEAR
+            sheet:ClearSelectionAsUser()
+        elseif command = INSERT
+            sheet:InsertAtSelectionAsUser()
+        elseif command = REMOVE
+            sheet:RemoveAtSelectionAsUser()
+        elseif command = UNDO
+            sheet:Undo()
+        elseif command = REDO
+            sheet:Redo()
+        elseif command = MENU
+            sheet:OpenContextMenu(false)
+        end
+    end
+
+    /*
+    This action returns true: the key's work is done at once.
+
+    Attribute: Returns True.
+    */
+    action IsFinished returns boolean
+        return true
+    end
+end
