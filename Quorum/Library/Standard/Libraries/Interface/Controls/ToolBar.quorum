@@ -2,6 +2,8 @@ package Libraries.Interface.Controls
 
 use Libraries.Game.Graphics.Gradient
 use Libraries.Game.Graphics.Color
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Views.LabelBoxView
@@ -88,6 +90,7 @@ class ToolBar is Control
     */
     action Add(Item2D newItem)
         EnableTooltip(newItem)
+        LinkFocus(newItem)
         parent:Control:Add(newItem)
     end
 
@@ -110,7 +113,70 @@ class ToolBar is Control
     */
     action Add(integer index, Item2D newItem)
         EnableTooltip(newItem)
+        LinkFocus(newItem)
         parent:Control:Add(index, newItem)
+    end
+
+    /*
+        This action sets the item that gets the focus after the ToolBar. Tab
+        moves there from the ToolBar or from any control on it, unless that
+        control has been given a next item of its own.
+
+        Attribute: Parameter nextItem The item to focus after the ToolBar.
+    */
+    action SetNextFocus(Item nextItem)
+        Item oldNext = GetNextFocus()
+        parent:Item:SetNextFocus(nextItem)
+        integer i = 0
+        repeat while i < GetItemCount()
+            Item2D child = GetItem(i)
+            if IsSameItem(child:GetNextFocus(), oldNext)
+                child:SetNextFocus(nextItem)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        This action sets the item that gets the focus before the ToolBar.
+        Shift+Tab moves there from the ToolBar or from any control on it, unless
+        that control has been given a previous item of its own.
+
+        Attribute: Parameter previousItem The item to focus before the ToolBar.
+    */
+    action SetPreviousFocus(Item previousItem)
+        Item oldPrevious = GetPreviousFocus()
+        parent:Item:SetPreviousFocus(previousItem)
+        integer i = 0
+        repeat while i < GetItemCount()
+            Item2D child = GetItem(i)
+            if IsSameItem(child:GetPreviousFocus(), oldPrevious)
+                child:SetPreviousFocus(previousItem)
+            end
+            i = i + 1
+        end
+    end
+
+    // Returns true if both items are undefined, or both are the same item.
+    private action IsSameItem(Item first, Item second) returns boolean
+        if first = undefined
+            return second = undefined
+        end
+        if second = undefined
+            return false
+        end
+        return first:Equals(second)
+    end
+
+    // Gives an added control the ToolBar's next and previous items, so Tab and
+    // Shift+Tab leave the ToolBar from it. Links the control already has are kept.
+    private action LinkFocus(Item2D item)
+        if item:GetNextFocus() = undefined
+            item:SetNextFocus(GetNextFocus())
+        end
+        if item:GetPreviousFocus() = undefined
+            item:SetPreviousFocus(GetPreviousFocus())
+        end
     end
 
     private action EnableTooltip(Item2D item)

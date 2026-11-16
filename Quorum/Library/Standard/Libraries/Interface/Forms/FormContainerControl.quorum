@@ -2314,6 +2314,209 @@ class FormContainerControl is Control
         return undefined
     end
     /*
+        This action finds a combo box on this page or in any grouping on it, by
+        its name.
+
+        Attribute: Parameter name The combo box's name.
+        Attribute: Returns The combo box with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ComboBox
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddComboBox("Size")
+        ComboBox size = page:GetComboBox("Size")
+        size:Add("Small")
+        size:Add("Large")
+
+        form:Display()
+    */
+    action GetComboBox(text name) returns ComboBox
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control is ComboBox
+                if control:GetName() = name
+                    return cast(ComboBox, control)
+                end
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                ComboBox candidate = interface:GetComboBox(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action finds a color well on this page or in any grouping on it, by
+        its name.
+
+        Attribute: Parameter name The color well's name.
+        Attribute: Returns The color well with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.ColorWell
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddColorWell("Fill color")
+        ColorWell fill = page:GetColorWell("Fill color")
+        output fill:GetColorText()
+
+        form:Display()
+    */
+    action GetColorWell(text name) returns ColorWell
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control is ColorWell
+                if control:GetName() = name
+                    return cast(ColorWell, control)
+                end
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                ColorWell candidate = interface:GetColorWell(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action finds a calendar on this page or in any grouping on it, by
+        the name given to AddCalendar (a calendar keeps that as its description, since its own name is the month it shows).
+
+        Attribute: Parameter name The calendar's name.
+        Attribute: Returns The calendar with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Calendar
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddCalendar("Appointment")
+        Calendar appointment = page:GetCalendar("Appointment")
+
+        form:Display()
+    */
+    action GetCalendar(text name) returns Calendar
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control is Calendar
+                if control:GetDescription() = name
+                    return cast(Calendar, control)
+                end
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Calendar candidate = interface:GetCalendar(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action finds a date field on this page or in any grouping on it, by
+        its name.
+
+        Attribute: Parameter name The date field's name.
+        Attribute: Returns The date field with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.DateField
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddDateField("Birthday")
+        DateField birthday = page:GetDateField("Birthday")
+
+        form:Display()
+    */
+    action GetDateField(text name) returns DateField
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control is DateField
+                if control:GetName() = name
+                    return cast(DateField, control)
+                end
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                DateField candidate = interface:GetDateField(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
+        This action finds a spreadsheet on this page or in any grouping on it, by
+        its name.
+
+        Attribute: Parameter name The spreadsheet's name.
+        Attribute: Returns The spreadsheet with that name, or undefined if there is none.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+        use Libraries.Interface.Controls.Spreadsheet
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddSpreadsheet("Readings")
+        Spreadsheet sheet = page:GetSpreadsheet("Readings")
+
+        form:Display()
+    */
+    action GetSpreadsheet(text name) returns Spreadsheet
+        Array<Item2D> children = GetFormChildren()
+        integer index = 0
+        repeat while index < children:GetSize()
+            Item2D control = children:Get(index)
+            if control is Spreadsheet
+                if control:GetName() = name
+                    return cast(Spreadsheet, control)
+                end
+            elseif control is FormContainerControl
+                FormContainerControl interface = cast(FormContainerControl, cast(Object, control))
+                Spreadsheet candidate = interface:GetSpreadsheet(name)
+                if candidate not= undefined
+                    return candidate
+                end
+            end
+            index = index + 1
+        end
+
+        return undefined
+    end
+    /*
         This action gets any item from the form container control.
 
         Attribute: Parameter name The text name identifying the item.

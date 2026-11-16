@@ -59,7 +59,7 @@ function plugins_quorum_Libraries_Game_Graphics_Texture_(quorumTexture)
         return glHandle;
     };
     
-    this.Dispose = function() 
+    this.DisposeNative = function() 
     {
         if (glHandle !== 0)
         {

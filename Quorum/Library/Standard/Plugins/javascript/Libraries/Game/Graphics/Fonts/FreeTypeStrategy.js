@@ -133,13 +133,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
 			map.LoadFromByteBuffer(rgbaBuffer, bitmapData[3], bitmapData[2], format);
 
-			// Create File texture data
-			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
-			texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
-
 			// Create texture
 			var texture = new quorum_Libraries_Game_Graphics_Texture_();
-			texture.LoadFromTextureData$quorum_Libraries_Game_Graphics_TextureData(texData);
+			texture.LoadFromPixelMap$quorum_Libraries_Game_Graphics_PixelMap(pixmap);
 
 			// Create color
 			var c = new quorum_Libraries_Game_Graphics_Color_();
@@ -235,15 +231,11 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
     			var map = pixmap.plugin_;
     			var format = new quorum_Libraries_Game_Graphics_Format_();
     			format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
-    			map.LoadFromFontBitmap(rgbaBuffer, bitmapData[3], bitmapData[2], format);
-
-    			// Create File texture data
-    			var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
-    			texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
+    			map.LoadFromByteBuffer(rgbaBuffer, bitmapData[3], bitmapData[2], format);
 
     			// Create texture
     			var texture = new quorum_Libraries_Game_Graphics_Texture_();
-    			texture.LoadFromTextureData$quorum_Libraries_Game_Graphics_TextureData(texData);
+    			texture.LoadFromPixelMap$quorum_Libraries_Game_Graphics_PixelMap(pixmap);
 
     			// Create color
     			var c = new quorum_Libraries_Game_Graphics_Color_();
@@ -531,13 +523,9 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 		format.SetValue$quorum_integer(format.Get_Libraries_Game_Graphics_Format__RGBA8888_());
 		map.LoadFromByteBuffer(destination, totalWidth, totalHeight, format);
 
-		// Create File texture data
-		var texData = new quorum_Libraries_Game_Graphics_FileTextureData_();
-		texData.InitializeFileTextureData$quorum_Libraries_System_File$quorum_Libraries_Game_Graphics_PixelMap$quorum_Libraries_Game_Graphics_Format$quorum_boolean(null, pixmap, null, false);
-
 		// Create texture
 		var texture = new quorum_Libraries_Game_Graphics_Texture_();
-		texture.LoadFromTextureData$quorum_Libraries_Game_Graphics_TextureData(texData);
+		texture.LoadFromPixelMap$quorum_Libraries_Game_Graphics_PixelMap(pixmap);
 
 		// Create color
 		var c = new quorum_Libraries_Game_Graphics_Color_();
