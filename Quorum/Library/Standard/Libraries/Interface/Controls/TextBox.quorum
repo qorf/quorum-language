@@ -2950,7 +2950,14 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         caretCharacter = 0
         caretLine = 0
 
-        Resize()
+        GameStateManager manager
+        if manager:IsDisplayAvailable()
+            
+Resize()
+        else
+            RequestLayout()
+            return now
+        end
 
         FitCharacterOnScreen(caretLine, caretCharacter)
         GetLineDrawables()
