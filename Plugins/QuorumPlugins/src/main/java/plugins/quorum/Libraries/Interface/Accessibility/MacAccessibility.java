@@ -646,7 +646,22 @@ public class MacAccessibility {
             TreeUpdate update = TreeUpdate.withFocus(target);
             sentFocus = target;
             for (Map.Entry<NodeId, Node> entry : built.entrySet()) {
-                update.add(entry.getKey(), entry.getValue());
+                NodeId id = entry.getKey();
+                // A node built earlier in this update whose item was removed
+                // while a later node was built (a popup moving its menu items
+                // as it is measured) must not be sent: no node lists it now,
+                // and AccessKit stops the app over it (rule 2). An internal
+                // child's id is (kit id << 32) | number, so it stays while
+                // the kit that holds it does.
+                boolean present = items.containsKey(id)
+                    || items.containsKey(new NodeId(id.value >>> 32));
+                if (present) {
+                    update.add(id, entry.getValue());
+                } else {
+                    updateCheck.Remember("left out " + id.value
+                        + ": removed while this update was built");
+                    entry.getValue().drop();
+                }
             }
             return update;
         } catch (RuntimeException error) {
