@@ -567,17 +567,18 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     // Move calls too, so they are covered.
 
     action MoveX(number x)
+        // The border placing itself (LoadBorder) moves the border only.
+        if placing
+            parent:Model:MoveX(x)
+            return now
+        end
         // The move keys move the terrain cursor, which is the brush when a
         // tool is chosen.
         if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, x, 0)
             return now
         end
-        if placing
-            parent:Model:MoveX(x)
-        else
-            TellStaysAtOrigin()
-        end
+        TellStaysAtOrigin()
     end
 
     action MoveY(number y)
@@ -593,45 +594,48 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     end
 
     action MoveZ(number z)
+        // The border placing itself (LoadBorder) moves the border only.
+        if placing
+            parent:Model:MoveZ(z)
+            return now
+        end
         // The move keys move the terrain cursor, which is the brush when a
         // tool is chosen.
         if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, 0, -z)
             return now
         end
-        if placing
-            parent:Model:MoveZ(z)
-        else
-            TellStaysAtOrigin()
-        end
+        TellStaysAtOrigin()
     end
 
     action Move(number x, number y, number z)
+        // The border placing itself (LoadBorder) moves the border only.
+        if placing
+            parent:Model:Move(x, y, z)
+            return now
+        end
         // The move keys move the terrain cursor, which is the brush when a
         // tool is chosen.
         if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, x, -z)
             return now
         end
-        if placing
-            parent:Model:Move(x, y, z)
-        else
-            TellStaysAtOrigin()
-        end
+        TellStaysAtOrigin()
     end
 
     action Move(Vector3 vector)
+        // The border placing itself (LoadBorder) moves the border only.
+        if placing
+            parent:Model:Move(vector)
+            return now
+        end
         // The move keys move the terrain cursor, which is the brush when a
         // tool is chosen.
         if CursorInUse()
             GetSceneEditor():MoveTerrainBrush(terrain, vector:GetX(), -vector:GetZ())
             return now
         end
-        if placing
-            parent:Model:Move(vector)
-        else
-            TellStaysAtOrigin()
-        end
+        TellStaysAtOrigin()
     end
 
     action SetRotation(Vector3 rotation)

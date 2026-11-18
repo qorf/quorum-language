@@ -201,9 +201,9 @@ class EditorCamera3D is PerspectiveCamera
 
     /*
         GetViewDistance returns how far the camera is from what it looks at,
-        for scaling how far the mouse moves it: the distance ahead to its
-        target if it has one, else its height above the ground (height 0),
-        kept between 2 and 400.
+        for scaling how far the mouse and keys move it: the distance to its
+        target if it has one, whichever way the camera faces, else its
+        height above the ground (height 0), kept between 2 and 400.
 
         Attribute: Returns The distance, in world units
     */
@@ -212,11 +212,13 @@ class EditorCamera3D is PerspectiveCamera
         number reference = 0
         Vector3 position = GetPosition()
         if target not= undefined
-            Vector3 direction = GetDirection()
+            // How far away the target is, whichever way the camera faces,
+            // so turning doesn't change how fast the camera moves.
             Vector3 targetPosition = target:GetPosition()
-            reference = (targetPosition:GetX() - position:GetX()) * direction:GetX() +
-                (targetPosition:GetY() - position:GetY()) * direction:GetY() +
-                (targetPosition:GetZ() - position:GetZ()) * direction:GetZ()
+            number dx = targetPosition:GetX() - position:GetX()
+            number dy = targetPosition:GetY() - position:GetY()
+            number dz = targetPosition:GetZ() - position:GetZ()
+            reference = math:SquareRoot(dx * dx + dy * dy + dz * dz)
         else
             reference = math:AbsoluteValue(position:GetY())
         end

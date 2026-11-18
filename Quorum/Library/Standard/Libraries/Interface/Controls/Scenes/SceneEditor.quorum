@@ -2077,7 +2077,9 @@ action Update(number seconds)
     Attribute: Parameter forward How far forward, as the selection would move along -z
     */
     action MoveTerrainBrush(EditorTerrain terrain, number right, number forward)
-        if terrain = undefined
+        // A move of nothing, such as a Set to the same place, leaves the
+        // cursor, and the camera, where they are.
+        if terrain = undefined or (right = 0 and forward = 0)
             return now
         end
         EditorLayer layer = GetSelectedLayer()
