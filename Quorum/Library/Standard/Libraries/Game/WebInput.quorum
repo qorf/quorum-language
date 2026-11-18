@@ -2,6 +2,11 @@ package Libraries.Game
 
 use Libraries.Interface.Events.all
 use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.ScrollableControl
 
 /*
 This class automatically handles input and notifies event listeners for Games
@@ -26,7 +31,106 @@ GestureProcessor gestures
     end
     
     private system action SetGestureProcessor(GestureProcessor gestures)
-    
+
+    /*
+        This action returns whether this game would use a mouse wheel turn at a
+        point in its window. The web page asks this while the game doesn't have
+        the keyboard focus, so a wheel turn the game wouldn't use scrolls the
+        page instead. Most users shouldn't need to use this action directly.
+
+        Attribute: Parameter x The pointer's x position in the window, in pixels from the left.
+
+        Attribute: Parameter y The pointer's y position in the window, in pixels from the bottom.
+
+        Attribute: Parameter amount Positive for a turn toward the top, negative for one toward the bottom.
+
+        Attribute: Returns True if an item or layer at that point would use the turn.
+    */
+    action WouldUseScroll(number x, number y, integer amount) returns boolean
+        InputSet wheel
+        wheel:SetInputType(wheel:MOUSE_WHEEL_INPUT)
+        Array<InputSet> wheelSets
+        wheelSets:Add(wheel)
+        boolean up = amount > 0
+
+        GameStateManager manager
+        Game game = manager:GetGame()
+        if game = undefined
+            return false
+        end
+
+        // The game's layers, searched from the top one down, as mouse events
+        // are given out.
+        Array<Layer> layers
+        Iterator<Layer> iterator = game:GetLayerIterator()
+        repeat while iterator:HasNext()
+            layers:Add(iterator:Next())
+        end
+
+        integer counter = layers:GetSize()
+        repeat while counter > 0
+            counter = counter - 1
+            Layer layer = layers:Get(counter)
+
+            Item item = layer:GetItemWithInput(x, y, wheelSets)
+            if item not= undefined
+                return ItemUsesScroll(item, up)
+            end
+
+            if layer is Layer2D
+                Layer2D layer2D = cast(Layer2D, layer)
+                if layer2D:HasMouseWheelListeners()
+                    return true
+                end
+                // A modal dialog keeps the mouse from the layers below it.
+                if layer2D is DialogLayer
+                    DialogLayer dialogLayer = cast(DialogLayer, layer2D)
+                    if dialogLayer:IsModal()
+                        return false
+                    end
+                end
+            elseif layer is Layer3D
+                Layer3D layer3D = cast(Layer3D, layer)
+                if layer3D:HasMouseWheelListeners()
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    /*
+        Whether an item that takes the wheel would use a turn: a scrolling
+        control around it can still move that way, as
+        ScrollableControlMouseScrollBehavior finds its target, or it isn't
+        inside a scrolling control at all and uses the wheel itself, such as a
+        camera's zoom.
+    */
+    private action ItemUsesScroll(Item item, boolean up) returns boolean
+        boolean foundScrollable = false
+        Item seeker = item
+        repeat while seeker not= undefined
+            if seeker is ScrollableControl
+                foundScrollable = true
+                ScrollableControl scrollable = cast(ScrollableControl, seeker)
+                if scrollable:CanScrollVertically(up)
+                    return true
+                end
+            end
+
+            if seeker is Item2D
+                Item2D seeker2D = cast(Item2D, seeker)
+                seeker = seeker2D:GetParent()
+            elseif seeker is Item3D
+                Item3D seeker3D = cast(Item3D, seeker)
+                seeker = seeker3D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+        return not foundScrollable
+    end
+
     
 
 end

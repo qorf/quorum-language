@@ -2075,6 +2075,17 @@ if (GetViewportX() not= openGL:GetViewportX() or GetViewportY() not= openGL:GetV
     end
 
     /*
+        This action returns whether the layer has any MouseWheelListeners. A
+        layer with listeners uses every mouse wheel turn over it that no item
+        takes.
+
+        Attribute: Returns True if at least one MouseWheelListener was added.
+    */
+    action HasMouseWheelListeners returns boolean
+        return not mouseWheelListeners:IsEmpty()
+    end
+
+    /*
     This action will remove a TouchListener from the layer. The listener will no
     longer receive events from the layer. If the given TouchListener is not on
     the layer before calling this action, then this action will have no effect.

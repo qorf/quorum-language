@@ -365,6 +365,24 @@ function plugins_quorum_Libraries_Game_WebInput_()
                     event.stopPropagation();
                     event.preventDefault();
                     plugins_quorum_Libraries_Game_WebInput_.TakeFocus(gameInfo.game);
+
+                    // The rest of this press belongs to the canvas, even after the
+                    // pointer leaves it, so drags such as a scroll bar's keep
+                    // going. The browser ends the capture when the button comes
+                    // up (MDN, Element.setPointerCapture).
+                    if (event.target && event.target.setPointerCapture)
+                    {
+                        try
+                        {
+                            event.target.setPointerCapture(event.pointerId);
+                        }
+                        catch (error)
+                        {
+                            // A pointer that is already gone can't be captured;
+                            // the press works as before.
+                        }
+                    }
+
                     var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 1, gameInfo);
                     gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
                 }
@@ -420,14 +438,65 @@ function plugins_quorum_Libraries_Game_WebInput_()
         plugins_quorum_Libraries_Game_WebInput_.MouseScroll = function(event)
         {
             var gameInfo = plugins_quorum_Libraries_Game_WebInput_.GetMousedGameInfo(event);
-
-            if (gameInfo !== null && plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game))
+            if (gameInfo === null)
             {
-                event.stopPropagation();
-                event.preventDefault();
+                return;
+            }
 
-                var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5, gameInfo);
-                gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+            // A program with the focus takes every wheel turn over it, as
+            // before. Without the focus, it takes a turn only if something under
+            // the pointer would use it; otherwise the page scrolls, as a
+            // scrolling area on a web page hands off to the page at its edge.
+            if (!plugins_quorum_Libraries_Game_WebInput_.IsFocused(gameInfo.game) &&
+                !plugins_quorum_Libraries_Game_WebInput_.WouldUseScroll(event, gameInfo))
+            {
+                return;
+            }
+
+            event.stopPropagation();
+            event.preventDefault();
+
+            var quorumEvent = plugins_quorum_Libraries_Game_WebInput_.ConvertToQuorumMouseEvent(event, 5, gameInfo);
+            gameInfo.plugins_quorum_Libraries_Game_WebInput_.mouseEvents.push(quorumEvent);
+        };
+
+        // Asks the program under the pointer, right away, whether it would use
+        // this wheel turn. The browser only lets the turn be cancelled before
+        // this handler returns, so it can't wait for the program's next frame.
+        plugins_quorum_Libraries_Game_WebInput_.WouldUseScroll = function(event, gameInfo)
+        {
+            // Quorum scrolls up and down only; a sideways turn is the page's.
+            if (!event.deltaY)
+            {
+                return false;
+            }
+
+            var input = gameInfo.input;
+            if (input == null || !input.WouldUseScroll$quorum_number$quorum_number$quorum_integer)
+            {
+                return false;
+            }
+
+            // The same position ConvertToQuorumMouseEvent gives the program.
+            var canvas = gameInfo.display.plugin_.GetCanvas();
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = rect.bottom - event.clientY;
+
+            // Toward the top is positive, as in the scroll amount Quorum gets.
+            var amount = event.deltaY < 0 ? 1 : -1;
+
+            // Quorum code finds its game through the active game, so this
+            // program is made active for the question, then put back.
+            var previous = plugins_quorum_Libraries_Game_WebApplication_.activeGame;
+            plugins_quorum_Libraries_Game_WebApplication_.activeGame = gameInfo.game;
+            try
+            {
+                return input.WouldUseScroll$quorum_number$quorum_number$quorum_integer(x, y, amount);
+            }
+            finally
+            {
+                plugins_quorum_Libraries_Game_WebApplication_.activeGame = previous;
             }
         };
         
