@@ -192,6 +192,7 @@ class ProgressBar is Control
     */
     action SetMinimum(number minimum)
         me:minimum = minimum
+        NotifyRangeChanged()
     end
 
     /*
@@ -219,6 +220,20 @@ class ProgressBar is Control
     */
     action SetMaximum(number maximum)
         me:maximum = maximum
+        NotifyRangeChanged()
+    end
+
+    // Tells screen readers the range changed, through the same event as a new
+    // value, so each platform reads the minimum and maximum again.
+    private action NotifyRangeChanged
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            ProgressBarValueChangedEvent event
+            event:SetOldValue(me:value)
+            event:SetNewValue(me:value)
+            event:SetProgressBar(me)
+            access:ProgressBarValueChanged(event)
+        end
     end
 
     /*

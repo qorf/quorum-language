@@ -83,6 +83,10 @@ class ColorWell is Button
 
     on create
         SetInterfaceOptionsKey("ColorWell")
+        // A thin edge in the theme's border color, so the field shows even
+        // where its fill matches what is behind it, such as white on a
+        // Grouping in light mode.
+        SetBorderThickness(1)
         SetAccessibilityCode(parent:Item:COLOR_WELL)
         SetName("Color")
         // Room at the left for the square of color.

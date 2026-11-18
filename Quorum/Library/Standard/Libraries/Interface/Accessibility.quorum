@@ -19,6 +19,8 @@ use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.PopupMenu
+use Libraries.Interface.Controls.Tab
 use Libraries.Containers.Iterator
 use Libraries.Containers.Array
 use Libraries.Interface.Selections.ButtonGroupSelection
@@ -209,6 +211,34 @@ class Accessibility
     end
 
     /*
+        This action indicates that a tab pane's selected tab changed. It does
+        nothing here; a platform that marks tabs overrides it.
+
+        Attribute: Parameter tab The tab now selected, or undefined.
+    */
+    action TabSelected(Tab tab)
+    end
+
+    /*
+        This action indicates that a popup menu opened. It does nothing here; a
+        platform that marks the control that opened it overrides it.
+
+        Attribute: Parameter menu The popup menu.
+        Attribute: Parameter opener The item that had the focus when it opened, or undefined.
+    */
+    action PopupMenuOpened(PopupMenu menu, Item opener)
+    end
+
+    /*
+        This action indicates that a popup menu closed. It does nothing here.
+
+        Attribute: Parameter menu The popup menu.
+        Attribute: Parameter opener The item that had the focus when it opened, or undefined.
+    */
+    action PopupMenuClosed(PopupMenu menu, Item opener)
+    end
+
+    /*
         This action indicates that a combo box's list closed. It does nothing
         here; a platform that supports combo boxes overrides it.
 
@@ -270,7 +300,8 @@ class Accessibility
             TextSelectionChanged(textSelection)
 
         elseif selection is TabPaneSelection
-            // Do TabPane things
+            TabPaneSelection tabSelection = cast(TabPaneSelection, selection)
+            TabSelected(tabSelection:GetTab())
         elseif selection is MenuSelection
             
             MenuSelection menuSelection = cast(MenuSelection, selection)

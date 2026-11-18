@@ -22,26 +22,36 @@ void ProgressBarControl::SetValue(double value) {
 	if (currentValue == value) {
 		return;
 	}
+	// The old value is kept for the events, and the new one is stored even
+	// when events can't be sent yet, so the value never goes stale.
+	double oldValue = currentValue;
+	currentValue = value;
+
 	if (IsReadyForEvents())
 	{
-		VARIANT oldState, newState;
-		oldState.vt = VT_R8;
-		newState.vt = VT_R8;
-		oldState.lVal = currentValue;
-		newState.lVal = value;
-		currentValue = value;
-		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_RangeValueValuePropertyId, oldState, newState);
+		// The range value is a double (VT_R8), so it goes in dblVal, as
+		// SliderControl does.
+		VARIANT oldNumber, newNumber;
+		VariantInit(&oldNumber);
+		VariantInit(&newNumber);
+		oldNumber.vt = VT_R8;
+		oldNumber.dblVal = oldValue;
+		newNumber.vt = VT_R8;
+		newNumber.dblVal = value;
+		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_RangeValueValuePropertyId, oldNumber, newNumber);
 
-		VARIANT oldText, newText;
-		oldText.vt = VT_BSTR;
-		newText.vt = VT_BSTR;
-		int truncatedCurrent = (int)GetPercent(currentValue);
-		int truncatedNew = (int)GetPercent(value);
-		std::wstring oldWstr = L"" + std::to_wstring(truncatedCurrent) + L"%";
-		std::wstring newWstr = L"" + std::to_wstring(truncatedNew) + L"%";
-		oldText.bstrVal = wil::make_bstr(oldWstr.c_str()).release();
-		newText.bstrVal = wil::make_bstr(newWstr.c_str()).release();
-		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_ValueValuePropertyId, oldText, newText);
+		std::wstring oldText = std::to_wstring((int)GetPercent(oldValue)) + L"%";
+		std::wstring newText = std::to_wstring((int)GetPercent(value)) + L"%";
+		VARIANT oldWords, newWords;
+		VariantInit(&oldWords);
+		VariantInit(&newWords);
+		oldWords.vt = VT_BSTR;
+		oldWords.bstrVal = SysAllocString(oldText.c_str());
+		newWords.vt = VT_BSTR;
+		newWords.bstrVal = SysAllocString(newText.c_str());
+		UiaRaiseAutomationPropertyChangedEvent(GetProvider().get(), UIA_ValueValuePropertyId, oldWords, newWords);
+		VariantClear(&oldWords);
+		VariantClear(&newWords);
 	}
 }
 

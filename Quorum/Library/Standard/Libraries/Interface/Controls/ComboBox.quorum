@@ -122,6 +122,10 @@ class ComboBox is TextField, TextChangeListener, SelectionListener
     on create
         SetName("Combo Box")
         SetInterfaceOptionsKey("ComboBox")
+        // A thin edge in the theme's border color, so the field shows even
+        // where its fill matches what is behind it, such as white on a
+        // Grouping in light mode.
+        SetBorderThickness(1)
         SetInputGroup("ComboBox")
         SetAccessibilityCode(parent:Item:COMBO_BOX)
         AddTextChangeListener(me)
@@ -630,8 +634,10 @@ class ComboBox is TextField, TextChangeListener, SelectionListener
 
     /*
         This action moves the highlight in the list by the given number of rows,
-        stopping at the first and last rows, and writes the highlighted choice
-        into the field, as the arrow keys do. With nothing highlighted, a step of
+        stopping at the first and last rows, as the arrow keys do. The field's
+        text stays as it is until a choice is chosen (see ChooseHighlighted), so
+        screen readers name the highlighted choice rather than a change to the
+        text. With nothing highlighted, a step of
         1 highlights the first row and a step of -1 the last. A step as large as
         the list goes to the first or last row.
 
@@ -669,7 +675,7 @@ class ComboBox is TextField, TextChangeListener, SelectionListener
         if target >= count
             target = count - 1
         end
-        HighlightRow(target, true)
+        HighlightRow(target, false)
     end
 
     /*

@@ -117,6 +117,9 @@ class TextField is Control, MouseListener, MouseMovementListener, FocusListener
     integer caretCharacter = 0
     number caretX = 0
 
+    // True when the caret was moved before the display was available.
+    boolean needsCaretUpdate = false
+
     TextFieldSelection selection
     TextFieldEditManager editManager
     /*
@@ -360,6 +363,15 @@ GameStateManager manager
         caret:SetColor(GetIconColor())
 
         GetLineDrawables()
+
+        // Place a caret that was moved before the display was available.
+        if needsCaretUpdate
+            needsCaretUpdate = false
+            if moveView
+                FitCharacterOnScreen(caretCharacter)
+            end
+            caretX = PositionCaret()
+        end
     end
 
     /*
@@ -526,6 +538,13 @@ GameStateManager manager
     caretX, or ignored to preserve the old value.
     */
     private action PositionCaret returns number
+        // Nothing can be measured before the display is available, so the
+        // caret is placed once the graphics load (see LoadGraphics).
+        GameStateManager manager
+        if not manager:IsDisplayAvailable()
+            needsCaretUpdate = true
+            return caretX
+        end
 
         number x = horizontalOffset
         text lineCharacters = textValue
@@ -730,6 +749,14 @@ GameStateManager manager
     private action FitCharacterOnScreen(integer character)
         if character = 0
             horizontalOffset = 0
+            return now
+        end
+
+        // Nothing can be measured before the display is available, so the
+        // view is fitted once the graphics load (see LoadGraphics).
+        GameStateManager manager
+        if not manager:IsDisplayAvailable()
+            needsCaretUpdate = true
             return now
         end
 

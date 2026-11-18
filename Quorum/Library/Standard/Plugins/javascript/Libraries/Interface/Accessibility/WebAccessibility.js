@@ -383,11 +383,31 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     
 //    system action ProgressBarValueChanged(ProgressBarValueChangedEvent progress)
 
+    // aria-valuenow must lie between aria-valuemin and aria-valuemax; the bar
+    // itself draws a value outside its range as empty or full.
+    function clampProgress(bar, value) {
+        let min = bar.GetMinimum();
+        let max = bar.GetMaximum();
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    }
+
     this.ProgressBarValueChanged$quorum_Libraries_Interface_Events_ProgressBarValueChangedEvent = function(event) {
-        let progressbarID = event.GetProgressBar().GetHashCode();
+        let bar = event.GetProgressBar();
+        let progressbarID = bar.GetHashCode();
         if(elementList[progressbarID] != null) {
             let element = document.getElementById(progressbarID);
-            element.setAttribute("aria-valuenow", event.GetNewValue());
+            if (element != null) {
+                // The range may have changed too (SetMinimum, SetMaximum).
+                element.setAttribute("aria-valuemin", bar.GetMinimum());
+                element.setAttribute("aria-valuemax", bar.GetMaximum());
+                element.setAttribute("aria-valuenow", clampProgress(bar, event.GetNewValue()));
+            }
         }
         //console.log("Progress bar updated");
     };
@@ -611,6 +631,26 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     // Builds a calendar's grid inside its element: a header row of weekday
     // column headers and six rows of seven day cells. The cells are not
     // Quorum items; updateCalendar fills them in.
+    // Places a calendar's weekday header or day cell over where Quorum draws
+    // it, as a share of the calendar's size, as CalendarKit's DayBounds does
+    // (Calendar.quorum: WIDTH 268, HEIGHT 292, PADDING 8, WEEKDAY_HEIGHT 24,
+    // CELL_SIZE 36, six rows). Without this the cells stack below the
+    // calendar, and focusing one scrolls the page and misplaces the
+    // screen reader's box.
+    function placeCalendarPart(part, row, column) {
+        const WIDTH = 268, HEIGHT = 292, PADDING = 8, WEEKDAY_HEIGHT = 24, CELL_SIZE = 36, ROWS = 6;
+        // From the top: the day rows end PADDING above the bottom, and the
+        // weekday row sits just above them. Row -1 is the weekday row.
+        let gridTop = HEIGHT - PADDING - ROWS * CELL_SIZE;
+        let top = row < 0 ? gridTop - WEEKDAY_HEIGHT : gridTop + row * CELL_SIZE;
+        let height = row < 0 ? WEEKDAY_HEIGHT : CELL_SIZE;
+        part.style.position = "absolute";
+        part.style.left = (100 * (PADDING + column * CELL_SIZE) / WIDTH) + "%";
+        part.style.top = (100 * top / HEIGHT) + "%";
+        part.style.width = (100 * CELL_SIZE / WIDTH) + "%";
+        part.style.height = (100 * height / HEIGHT) + "%";
+    }
+
     function buildCalendarGrid(element, calendar) {
         let id = element.id;
         element.quorumCalendarGrid = true;
@@ -622,6 +662,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
             let weekday = document.createElement("div");
             weekday.id = id + "-weekday-" + column;
             weekday.setAttribute("role", "columnheader");
+            placeCalendarPart(weekday, -1, column);
             header.appendChild(weekday);
         }
         element.appendChild(header);
@@ -635,6 +676,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
                 cell.id = id + "-day-" + row + "-" + column;
                 cell.setAttribute("role", "gridcell");
                 cell.setAttribute("tabindex", "-1");
+                placeCalendarPart(cell, row, column);
                 cell.quorumDate = null;
 
                 // Clicking a day does what clicking it on the screen does: a
@@ -734,7 +776,13 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
                 if (chosen != null) {
                     selected = chosen.Equals$quorum_Libraries_Language_Object(date);
                 }
-                cell.setAttribute("aria-selected", selected ? "true" : "false");
+                // Only the chosen day has aria-selected, as in the W3C date
+                // picker, so the other days aren't read as "not selected."
+                if (selected) {
+                    cell.setAttribute("aria-selected", "true");
+                } else {
+                    cell.removeAttribute("aria-selected");
+                }
 
                 if (today.Equals$quorum_Libraries_Language_Object(date)) {
                     cell.setAttribute("aria-current", "date");
@@ -760,7 +808,8 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         element.quorumFocusTarget = focusCell;
         if (focusCell != null && hasQuorumFocus(calendar) && document.activeElement !== focusCell) {
             if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
-                focusCell.focus();
+                // The cell is placed over its day, but never scroll the page for it.
+                focusCell.focus({ preventScroll: true });
             }
         }
     }
@@ -895,6 +944,23 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     // selected, the current column's letters when whole columns are, and
     // otherwise the current cell; it gets the DOM focus when the spreadsheet
     // has Quorum's and isn't editing.
+    // Places a spreadsheet's header or cell over where Quorum draws it, in
+    // pixels from the spreadsheet's top left after scrolling, as a share of
+    // its size (as SpreadsheetKit's bounds do). Without this the parts stack
+    // below the grid, and focusing one scrolls the page.
+    function placeSheetPart(part, sheet, left, top, width, height) {
+        let sheetWidth = sheet.GetWidth();
+        let sheetHeight = sheet.GetHeight();
+        if (!(sheetWidth > 0 && sheetHeight > 0)) {
+            return;
+        }
+        part.style.position = "absolute";
+        part.style.left = (100 * left / sheetWidth) + "%";
+        part.style.top = (100 * top / sheetHeight) + "%";
+        part.style.width = (100 * width / sheetWidth) + "%";
+        part.style.height = (100 * height / sheetHeight) + "%";
+    }
+
     function updateSpreadsheet(sheet) {
         let id = sheet.GetHashCode();
         if (elementList[id] == null) {
@@ -949,11 +1015,13 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         header.setAttribute("aria-rowindex", 1);
         let headerParts = [];
         let corner = getSpreadsheetPart(element, sheet, id + "-sheet-corner", "columnheader");
+        placeSheetPart(corner, sheet, 0, 0, sheet.GetRowLabelWidthInPixels(), sheet.GetHeaderHeightInPixels());
         corner.setAttribute("aria-colindex", 1);
         corner.setAttribute("aria-selected", (!empty && kind == SHEET_EVERYTHING) ? "true" : "false");
         headerParts.push(corner);
         for (let column = firstColumn; column <= lastColumn; column++) {
             let columnHeader = getSpreadsheetPart(element, sheet, id + "-sheet-column-" + column, "columnheader");
+            placeSheetPart(columnHeader, sheet, sheet.GetCellLeft$quorum_integer(column), 0, sheet.GetColumnWidthInPixels$quorum_integer(column), sheet.GetHeaderHeightInPixels());
             columnHeader.quorumColumn = column;
             columnHeader.setAttribute("aria-colindex", column + 2);
             let label = sheet.GetColumnLabel$quorum_integer(column);
@@ -981,6 +1049,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
             let rowParts = [];
 
             let rowHeader = getSpreadsheetPart(element, sheet, id + "-sheet-rowheader-" + row, "rowheader");
+            placeSheetPart(rowHeader, sheet, 0, sheet.GetCellTop$quorum_integer(row), sheet.GetRowLabelWidthInPixels(), sheet.GetRowHeightInPixels());
             rowHeader.quorumRow = row;
             rowHeader.setAttribute("aria-colindex", 1);
             rowHeader.textContent = "" + (row + 1);
@@ -999,6 +1068,7 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
 
             for (let column = firstColumn; column <= lastColumn; column++) {
                 let cell = getSpreadsheetPart(element, sheet, id + "-sheet-cell-" + row + "-" + column, "gridcell");
+                placeSheetPart(cell, sheet, sheet.GetCellLeft$quorum_integer(column), sheet.GetCellTop$quorum_integer(row), sheet.GetColumnWidthInPixels$quorum_integer(column), sheet.GetRowHeightInPixels());
                 cell.quorumRow = row;
                 cell.quorumColumn = column;
                 cell.setAttribute("aria-colindex", column + 2);
@@ -1050,7 +1120,8 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         }
         if (target != null && document.activeElement !== target) {
             if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
-                target.focus();
+                // The part is placed over its cell, but never scroll the page for it.
+                target.focus({ preventScroll: true });
             }
         }
     }
@@ -1067,6 +1138,82 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     // A combo box's list opened: the field is expanded and controls the list.
     this.ComboBoxExpanded$quorum_Libraries_Interface_Controls_ComboBox = function(box) {
         updateComboBox(box);
+    };
+
+    // A control that opened a popup menu, with the attributes it had before,
+    // by the menu's id. While the menu is open, the control is marked as
+    // MDN's menu button is: aria-haspopup, aria-controls and aria-expanded.
+    // A control that already uses aria-expanded for itself, such as a tree
+    // item, keeps its own value, so its open or closed state isn't misreported.
+    const popupOpeners = new Map();
+
+    function restoreAttribute(element, name, value) {
+        if (value == null) {
+            element.removeAttribute(name);
+        } else {
+            element.setAttribute(name, value);
+        }
+    }
+
+//    system action PopupMenuOpenedNative(PopupMenu menu, Item opener)
+    this.PopupMenuOpenedNative$quorum_Libraries_Interface_Controls_PopupMenu$quorum_Libraries_Interface_Item = function(menu, opener) {
+        let element = document.getElementById(opener.GetHashCode());
+        if (element == null) {
+            return;
+        }
+        let saved = {
+            haspopup: element.getAttribute("aria-haspopup"),
+            controls: element.getAttribute("aria-controls"),
+            expanded: element.getAttribute("aria-expanded")
+        };
+        popupOpeners.set(menu.GetHashCode(), { element: element, saved: saved });
+        element.setAttribute("aria-haspopup", "menu");
+        element.setAttribute("aria-controls", String(menu.GetHashCode()));
+        if (saved.expanded == null) {
+            element.setAttribute("aria-expanded", "true");
+        }
+    };
+
+//    system action PopupMenuClosedNative(PopupMenu menu)
+    // The control that opened the popup gets back the attributes it had.
+    this.PopupMenuClosedNative$quorum_Libraries_Interface_Controls_PopupMenu = function(menu) {
+        let entry = popupOpeners.get(menu.GetHashCode());
+        if (entry == null) {
+            return;
+        }
+        popupOpeners.delete(menu.GetHashCode());
+        restoreAttribute(entry.element, "aria-haspopup", entry.saved.haspopup);
+        restoreAttribute(entry.element, "aria-controls", entry.saved.controls);
+        restoreAttribute(entry.element, "aria-expanded", entry.saved.expanded);
+    };
+
+    // Marks a tab pane's tabs selected or not (aria-selected), and hides
+    // every tab's panel but the selected one's, as MDN's tab pattern does.
+    function updateTabs(pane) {
+        if (pane == null) {
+            return;
+        }
+        let selected = pane.GetSelectedTab();
+        let selectedID = selected == null ? null : selected.GetHashCode();
+        let tabs = pane.GetTabs();
+        for (let i = 0; i < tabs.GetSize(); i++) {
+            let tab = tabs.Get$quorum_integer(i);
+            let tabID = tab.GetHashCode();
+            let element = document.getElementById(tabID);
+            if (element != null) {
+                element.setAttribute("aria-selected", tabID == selectedID ? "true" : "false");
+            }
+            let panel = document.getElementById(tabID + "-tabpanel");
+            if (panel != null) {
+                panel.hidden = (tabID != selectedID);
+            }
+        }
+    }
+
+//    system action TabSelectedNative(Tab tab)
+    // A tab was selected: its pane's tabs and panels are brought up to date.
+    this.TabSelectedNative$quorum_Libraries_Interface_Controls_Tab = function(tab) {
+        updateTabs(tab.GetTabPane());
     };
 
 //    system action ComboBoxCollapsed(ComboBox box)
@@ -1252,6 +1399,13 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     this.Select$quorum_Libraries_Interface_Item = function(item) {
         //console.log(item.GetName() + " selected");
         var id = item.GetHashCode();
+        // A combo box's option: updateComboBox points the field at it.
+        if (global_InstanceOf(item, "Libraries.Interface.Controls.ListItem")) {
+            let list = global_CheckCast(item, "Libraries.Interface.Controls.ListItem").GetList();
+            if (list != undefined && comboBoxLists.has(list.GetHashCode())) {
+                return;
+            }
+        }
         // Look for the nearest focusable element.
         let element = document.getElementById(id);
         while (element) {
@@ -1259,6 +1413,12 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
                 break;
             }
             element = element.parentElement;
+        }
+        if (element == null) {
+            // The item has no element, or nothing above it takes focus: a
+            // list that closed as its choice was made, such as a combo box's,
+            // whose options updateComboBox handles.
+            return;
         }
         element.setAttribute("aria-activedescendant", id);
     };
@@ -1452,6 +1612,8 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                         let menuGroup = document.createElement(elementType);
                         menuGroup.id = id + "-submenu";
                         menuGroup.setAttribute("role", "menu");
+                        // A menu needs a name: the item that opens it.
+                        menuGroup.setAttribute("aria-labelledby", id);
                         para.appendChild(menuGroup);
                         para.setAttribute("aria-haspopup", true);
                         para.setAttribute("aria-expanded", menuItem.IsOpen());
@@ -1527,6 +1689,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     tabpanel.setAttribute("aria-labelledby", tab.GetHashCode());
                     
                     para.setAttribute("aria-controls", tabpanelID);
+                    afterAdd = () => {
+                        updateTabs(tabpane);
+                    };
                 }
                 break;
             //TAB_PANE
@@ -1614,8 +1779,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 role = "dialog";
                 // dialogs are accessible parents so as long as their children are added properly dialogs will be announced
                 break;
-            //POPUP_MENU
+            //POPUP_MENU: a menu, named by the popup (by default "Pop-Up Menu");
+            //its items attach to it through GetMenuRoot.
             case 22:
+                role = "menu";
                 break;
             //PROGRESS_BAR
             case 23:
@@ -1624,7 +1791,7 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                     let progressbar = global_CheckCast(item, "Libraries.Interface.Controls.ProgressBar");
                     para.setAttribute("aria-valuemin", progressbar.GetMinimum());
                     para.setAttribute("aria-valuemax", progressbar.GetMaximum());
-                    para.setAttribute("aria-valuenow", progressbar.GetValue());
+                    para.setAttribute("aria-valuenow", clampProgress(progressbar, progressbar.GetValue()));
                 }
                 break;
             //TREE_TABLE_CELL

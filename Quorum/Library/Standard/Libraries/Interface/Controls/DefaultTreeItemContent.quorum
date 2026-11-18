@@ -8,6 +8,8 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Drawable
+use Libraries.Game.Graphics.Texture
+use Libraries.Game.Graphics.TextureFilter
 use Libraries.Interface.Views.View2D
 use Libraries.Interface.Views.DefaultTreeMenuView
 use Libraries.Interface.Behaviors.Controls.ToggleTreeViewBehavior
@@ -305,6 +307,15 @@ class DefaultTreeItemContent is TreeItemContent
 
         if region not= undefined and icon:GetTexture() not= region:GetTextureField()
             icon:Load(region)
+
+            // The icon is stretched to the row's height, so it is smoothed
+            // rather than blown up pixel by pixel, as CharacterIcon does.
+            Texture iconTexture = icon:GetTexture()
+            if iconTexture not= undefined
+                TextureFilter smooth
+                smooth:ConstructTextureFilter(smooth:LINEAR)
+                iconTexture:SetFilter(smooth, smooth)
+            end
             number aspectRatio = icon:GetWidth() / icon:GetHeight()
     
             LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()

@@ -20,6 +20,8 @@ use Libraries.Interface.Controls.Tooltip
 use Libraries.Interface.Controls.ComboBox
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.Calendar
+use Libraries.Interface.Controls.PopupMenu
+use Libraries.Interface.Controls.Tab
 use Libraries.Interface.Accessibility
 use Libraries.Game.GameStateManager
 use Libraries.Interface.Item2D
@@ -119,6 +121,44 @@ class WebAccessibility is Accessibility
             ComboBoxCollapsed(box)
         end
     end
+
+    /*
+        A tab was selected: the tabs of its pane are marked selected or not,
+        and only the selected tab's panel is shown to screen readers.
+    */
+    action TabSelected(Tab tab)
+        if tab not= undefined
+            TabSelectedNative(tab)
+        end
+    end
+
+    system action TabSelectedNative(Tab tab)
+
+    /*
+        A popup menu opened: the control that opened it is marked as having a
+        menu, open, that it controls.
+    */
+    action PopupMenuOpened(PopupMenu menu, Item opener)
+        if menu not= undefined
+            if opener not= undefined
+                PopupMenuOpenedNative(menu, opener)
+            end
+        end
+    end
+
+    /*
+        A popup menu closed: the control that opened it gets back the
+        attributes it had before.
+    */
+    action PopupMenuClosed(PopupMenu menu, Item opener)
+        if menu not= undefined
+            PopupMenuClosedNative(menu)
+        end
+    end
+
+    system action PopupMenuOpenedNative(PopupMenu menu, Item opener)
+
+    system action PopupMenuClosedNative(PopupMenu menu)
 
     system action ComboBoxExpanded(ComboBox box)
 

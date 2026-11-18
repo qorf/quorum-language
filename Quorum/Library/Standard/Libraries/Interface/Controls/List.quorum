@@ -2,6 +2,7 @@ package Libraries.Interface.Controls
 
 use Libraries.Containers.Array
 use Libraries.Game.Graphics.Font
+use Libraries.Game.GameStateManager
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Layouts.LayoutProperties
 use Libraries.Interface.Selections.ListSelection
@@ -659,8 +660,13 @@ class List is ScrollableLineControl, FirstLetterNavigator
         ListItem item = GetListItem(index)
         if item not= undefined
             item:GainedSelection()
-            if not IsLineVisible(index, item)
-                GoToItem(index)
+            // Scrolling measures the rows, which needs the display, so before
+            // the game starts the list is only told what is selected.
+            GameStateManager manager
+            if manager:IsDisplayAvailable()
+                if not IsLineVisible(index, item)
+                    GoToItem(index)
+                end
             end
         end
 

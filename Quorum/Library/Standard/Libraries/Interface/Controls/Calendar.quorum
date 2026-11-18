@@ -147,6 +147,9 @@ class Calendar is Control, MouseMovementListener
         SetSize(WIDTH, HEIGHT)
 
         SetInterfaceOptionsKey("Calendar")
+        // A thin edge in the theme's border color, as fields have, so the
+        // panel shows on the page and inside a Grouping.
+        SetBorderThickness(1)
         SetInputGroup("Calendar")
         SetFocusable(true)
         SetAccessibilityCode(parent:Item:CALENDAR)

@@ -190,13 +190,17 @@ class LightModeOptions is InterfaceOptions
         SetBorderColor("ColorWell", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
         SetFocusBorderColor("ColorWell", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
 
-        // Calendar: font = a day's number; foreground = other months' and
-        // unavailable days (dimmed, still 4.5 to 1 against the panel); border = today's ring; accent = the
+        // Calendar: background = the panel, the fields' color, so it shows on
+        // the page and in a Grouping; font = a day's number; foreground = other
+        // months' and unavailable days (dimmed, still 4.5 to 1 against the
+        // panel); border = the panel's edge and today's ring, the fields'
+        // border (3 to 1 or more against the page and the panel); accent = the
         // chosen day's fill (its number in white); focus border = the ring
         // around the day the keys are on.
+        SetBackgroundColor("Calendar", color:White())
         SetFontColor("Calendar", color:CustomColor(32.0 / MAX, 33.0 / MAX, 36.0 / MAX, 1))
         SetForegroundColor("Calendar", color:CustomColor(100.0 / MAX, 106.0 / MAX, 114.0 / MAX, 1))
-        SetBorderColor("Calendar", color:CustomColor(60.0 / MAX, 64.0 / MAX, 70.0 / MAX, 1))
+        SetBorderColor("Calendar", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
         SetAccentColor("Calendar", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
         SetFocusBorderColor("Calendar", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
         // The circle under the mouse: the menus' and trees' mouse-over gray.

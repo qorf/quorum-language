@@ -4,6 +4,8 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputMonitor
+use Libraries.Interface.Item
+use Libraries.Interface.Accessibility
 use Libraries.Game.Graphics.Color
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseListener
@@ -62,6 +64,9 @@ class PopupMenu is MenuRoot, MouseListener
     GameStateManager manager
     InputMonitor monitor
     Array<MenuItem> menuItems
+
+    // What had the focus when the menu opened, told to screen readers.
+    Item opener = undefined
 
     on create
         MenuPanel panel
@@ -338,10 +343,24 @@ class PopupMenu is MenuRoot, MouseListener
         use OpenAt or OpenAtCursor instead.
     */
     action Open
+        // What had the focus opened the menu (a right-click, Shift+F10 or
+        // the menu key on it), so screen readers can be told it has one.
+        opener = manager:GetFocusManager():GetFocus()
+        if opener not= undefined
+            if opener:Equals(me)
+                opener = undefined
+            end
+        end
+
         dialog:Show()
         dialog:GetLayer():AddMouseListener(me)
         Focus()
         SetSelectingState(true)
+
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:PopupMenuOpened(me, opener)
+        end
     end
 
     /*
@@ -380,6 +399,12 @@ class PopupMenu is MenuRoot, MouseListener
         end
 
         dialog:Hide()
+
+        Accessibility access = manager:GetAccessibility()
+        if access not= undefined
+            access:PopupMenuClosed(me, opener)
+        end
+        opener = undefined
     end
 
     /*

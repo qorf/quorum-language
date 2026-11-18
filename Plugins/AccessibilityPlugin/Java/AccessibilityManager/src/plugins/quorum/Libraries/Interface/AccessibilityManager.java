@@ -731,7 +731,7 @@ public class AccessibilityManager
         
         long nativePointer = ITEM_MAP.get(item);
         
-        ProgressBarValueChanged(nativePointer, (int)item.GetValue());
+        ProgressBarValueChanged(nativePointer, item.GetValue());
     }
     
     public void NameChanged(Item_ item)

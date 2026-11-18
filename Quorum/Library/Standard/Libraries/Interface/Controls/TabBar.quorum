@@ -744,6 +744,14 @@ this is false. */
     brought into view.
     */
     action Resize
+        // Laying out the tabs loads their graphics, which needs the display.
+        // Before the game starts, the bar asks to be laid out once it can be.
+        GameStateManager manager
+        if not manager:IsDisplayAvailable()
+            RequestLayout()
+            return now
+        end
+
         resizeDepth = resizeDepth + 1
         parent:Control:Resize()
         resizeDepth = resizeDepth - 1
