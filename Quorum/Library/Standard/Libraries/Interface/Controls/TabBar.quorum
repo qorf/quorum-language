@@ -15,6 +15,7 @@ use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Events.MouseWheelListener
 use Libraries.Interface.Selections.TabPaneSelection
 use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.ColorGroup
 use Libraries.Game.Graphics.Font
@@ -970,8 +971,14 @@ action TopFitTab(number index)
     Attribute: Parameter event The event describing the Tab that was opened or closed.
     */
     private action NotifyTabChangeListeners(TabChangeEvent event)
+        // The game's input passes the change on to listeners added to the
+        // game. Before the game starts it doesn't exist yet, so only this
+        // tab bar's own listeners are told.
         GameStateManager manager
-        manager:GetInput():NotifyTabChangeListeners(event)
+        GameInput gameInput = manager:GetInput()
+        if gameInput not= undefined
+            gameInput:NotifyTabChangeListeners(event)
+        end
 
         integer counter = 0
         if event:GetEventType() = event:OPENED
