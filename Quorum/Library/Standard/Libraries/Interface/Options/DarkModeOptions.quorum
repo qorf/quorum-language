@@ -404,10 +404,14 @@ class DarkModeOptions is InterfaceOptions
         SetDialogTopRightRounding(0.04)
         SetDialogBottomLeftRounding(0.04)
         SetDialogBottomRightRounding(0.04)
+        // The dialog's outline, which its bar and body draw.
+        SetDialogBorderColor(buttonEdge)
+        SetDialogBorderThickness(1)
 
         // Dialog bar specific colors.
-        SetDialogBarBackgroundColor(darkGray)
-        SetDialogBarBorderColor(color:CustomColor(74.0 / MAX, 78.0 / MAX, 82.0 / MAX, 1))
+        // A step lighter than the window (darkGray), so the bar shows against it.
+        SetDialogBarBackgroundColor(color:CustomColor(69.0 / MAX, 72.0 / MAX, 75.0 / MAX, 1))
+        SetDialogBarBorderColor(buttonEdge)
         SetDialogBarBorderThickness(1)
         SetDialogBarForegroundColor(color:CustomColor(230.0 / MAX, 78.0 / MAX, 88.0 / MAX, 1))
         SetDialogBarAccentColor(color:White())

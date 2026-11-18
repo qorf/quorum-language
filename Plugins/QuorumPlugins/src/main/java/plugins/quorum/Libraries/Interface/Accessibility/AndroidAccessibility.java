@@ -1106,8 +1106,10 @@ public class AndroidAccessibility {
         int screenHeight = GameStateManager.display.GetHeight();
         int left = (int) x;
         int bottom = screenHeight - (int) y;
-        int right = (int) (x + item2D.GetWidth());
-        int top = screenHeight - (int) (y + item2D.GetHeight());
+        // The size on screen, with the item's scale, such as a shape grown
+        // while it has the focus.
+        int right = (int) (x + item2D.GetWidth() * item2D.GetScaleX());
+        int top = screenHeight - (int) (y + item2D.GetHeight() * item2D.GetScaleY());
         return new Rect(left, top, right, bottom);
     }
 

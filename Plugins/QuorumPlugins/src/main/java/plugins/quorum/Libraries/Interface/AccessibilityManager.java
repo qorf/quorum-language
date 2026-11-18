@@ -1438,10 +1438,15 @@ public class AccessibilityManager
             if (itemY == Double.NaN)
                 itemY = 0;
             
+            // The size on screen, with the item's scale, such as a shape
+            // grown while it has the focus.
+            double width = ((Item2D_) item).GetWidth() * ((Item2D_) item).GetScaleX();
+            double height = ((Item2D_) item).GetHeight() * ((Item2D_) item).GetScaleY();
+
             bounds[0] = windowX + itemX;
-            bounds[1] = windowY + (windowHeight - (itemY + ((Item2D_) item).GetHeight()));
-            bounds[2] = ((Item2D_) item).GetWidth();
-            bounds[3] = ((Item2D_) item).GetHeight();
+            bounds[1] = windowY + (windowHeight - (itemY + height));
+            bounds[2] = width;
+            bounds[3] = height;
         }
         else if (item instanceof Item3D_)
         {

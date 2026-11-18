@@ -1628,6 +1628,44 @@ class Drawable is TextureRegion, Item2D
         Texture temp = textureManager:GetUnitTexture()
         Load(temp)
         SetColor(color)
+
+        // The unit texture is only a few pixels across, so the Drawable takes
+        // the size of the triangle's points instead. Screen readers, layouts
+        // and anything else that asks for its size then get the triangle's.
+        // This comes before the shapes below are set, so they keep the
+        // triangle's own points.
+        integer minX = x1
+        integer maxX = x1
+        if x2 < minX
+            minX = x2
+        end
+        if x2 > maxX
+            maxX = x2
+        end
+        if x3 < minX
+            minX = x3
+        end
+        if x3 > maxX
+            maxX = x3
+        end
+        integer minY = y1
+        integer maxY = y1
+        if y2 < minY
+            minY = y2
+        end
+        if y2 > maxY
+            maxY = y2
+        end
+        if y3 < minY
+            minY = y3
+        end
+        if y3 > maxY
+            maxY = y3
+        end
+        if maxX - minX > 0 and maxY - minY > 0
+            SetSize(maxX - minX, maxY - minY)
+        end
+
         Vector2 vertex1
         Vector2 vertex2
         Vector2 vertex3

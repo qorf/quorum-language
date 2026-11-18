@@ -335,10 +335,15 @@ public class ItemKit {
                 itemY = 0;
             }
 
+            // The size on screen, with the item's scale, such as a shape
+            // grown while it has the focus.
+            double width = item2D.GetWidth() * item2D.GetScaleX();
+            double height = item2D.GetHeight() * item2D.GetScaleY();
+
             return new Rect(
                     itemX,
-                    windowHeight - itemY - item2D.GetHeight(),
-                    item2D.GetWidth() + itemX,
+                    windowHeight - itemY - height,
+                    width + itemX,
                     windowHeight - itemY
             );
         }

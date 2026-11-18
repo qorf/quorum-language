@@ -93,7 +93,10 @@ class Dialog is Control, FormPrimitiveContainer
         topBar:SetInterfaceOptionsKey("DialogBar")
 
         LayoutProperties properties = GetDefaultLayoutProperties()
-        topBar:SetBorderStyle(properties:BOTTOM)
+        // The bar draws the top of the dialog's outline, all the way round
+        // its rounded top corners; its bottom edge is the line between the
+        // bar and the body. The body draws the outline's sides and bottom.
+        topBar:SetBorderStyle(properties:ALL)
         
         properties:SetHorizontalLayoutMode(properties:STANDARD)
         properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
@@ -481,14 +484,23 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
         end
     */
     action ApplyDefaultStyleToPage(Page page)
+        LayoutProperties properties = GetDefaultLayoutProperties()
         if showTopBar
             page:SetPixelHeight(-BAR_HEIGHT)
             page:SetTopMargin(-0.5)
+            // The bar draws the top of the outline, so the page draws its
+            // sides and bottom.
+            page:SetBorderStyle(properties:LEFT + properties:RIGHT + properties:BOTTOM)
         end
-        
+
         page:SetBorderThickness(GetBorderThickness())
-        page:SetBottomLeftPixelRounding(10)
-        page:SetBottomRightPixelRounding(10)
+        // The outline is the theme's dialog border, when it has one.
+        if GetBorderColor() not= undefined
+            page:SetBorderColor(GetBorderColor())
+        end
+        // The same rounding as the bar's top corners.
+        page:SetBottomLeftPixelRounding(8)
+        page:SetBottomRightPixelRounding(8)
     end
     
     /*

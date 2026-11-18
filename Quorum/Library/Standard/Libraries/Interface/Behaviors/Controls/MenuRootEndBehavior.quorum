@@ -1,0 +1,13 @@
+package Libraries.Interface.Behaviors.Controls
+
+/*
+    The MenuRootEndBehavior moves a menu's selection to the last item, as the End
+    key does: the last item in the selected item's menu, or the last menu on a
+    menu bar. If a menu on the bar was open, the new one opens. The default
+    keyboard setup adds it, so most users shouldn't need to.
+*/
+class MenuRootEndBehavior is MenuRootHomeBehavior
+    on create
+        SetToLast(true)
+    end
+end

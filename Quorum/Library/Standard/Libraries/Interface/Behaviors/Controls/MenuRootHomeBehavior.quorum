@@ -1,0 +1,79 @@
+package Libraries.Interface.Behaviors.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.MenuRoot
+use Libraries.Interface.Controls.MenuItem
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+
+/*
+    The MenuRootHomeBehavior moves a menu's selection to the first item, as the
+    Home key does: the first item in the selected item's menu, or the first menu
+    on a menu bar. If a menu on the bar was open, the new one opens. The default
+    keyboard setup adds it, so most users shouldn't need to.
+*/
+class MenuRootHomeBehavior is Behavior
+    boolean toLast = false
+
+    /*
+        This action sets whether the behavior moves to the last item instead of
+        the first, as the End key does.
+
+        Attribute: Parameter value true to move to the last item.
+    */
+    action SetToLast(boolean value)
+        toLast = value
+    end
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is MenuRoot
+            MenuRoot root = cast(MenuRoot, event:GetItem())
+            Array<MenuItem> path = root:GetSelection():GetPath()
+            if path:IsEmpty()
+                return now
+            end
+
+            MenuItem current = path:GetFromEnd()
+            MenuItem parentMenu = current:GetParentMenu()
+            MenuItem target = undefined
+            if parentMenu not= undefined
+                target = EdgeItem(parentMenu:GetMenuItems())
+                if target not= undefined
+                    target:Select()
+                end
+            else
+                target = EdgeItem(root:GetIterator())
+                if target not= undefined
+                    if root:HasBar()
+                        if current:IsOpen()
+                            target:Open()
+                        end
+                    end
+                    Array<MenuItem> newPath
+                    newPath:Add(target)
+                    root:Select(newPath)
+                end
+            end
+        end
+    end
+
+    /*
+        This action returns the first item the iterator gives, or the last if the
+        behavior moves to the last item. It returns undefined if there are none.
+
+        Attribute: Parameter iterator The items of one menu, in order.
+
+        Attribute: Returns The first or last item, or undefined.
+    */
+    private action EdgeItem(Iterator<MenuItem> iterator) returns MenuItem
+        MenuItem result = undefined
+        repeat while iterator:HasNext()
+            result = iterator:Next()
+            if not toLast
+                return result
+            end
+        end
+        return result
+    end
+end

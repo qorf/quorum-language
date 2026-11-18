@@ -411,7 +411,8 @@ SetCodeEditorSelectionColor(color:Black())
         SetDialogBottomRightRounding(0.04)
 
         // Dialog bar specific colors.
-        SetDialogBarBackgroundColor(color:CustomColor(234.0 / MAX, 234.0 / MAX, 234.0 / MAX, 1))
+        // A step darker than the window (234), so the bar shows against it.
+        SetDialogBarBackgroundColor(color:CustomColor(220.0 / MAX, 220.0 / MAX, 220.0 / MAX, 1))
         SetDialogBarBorderThickness(1)
         SetDialogBarBorderColor(greyBorder)
         SetDialogBarTopRightPixelRounding(8)

@@ -338,6 +338,18 @@ shared class DefaultInputSets
         escapeSet:SetKeyboardInput(keys:ESCAPE)
         menuRootTable:Add(escapeSet, menuCloseBehavior)
 
+        // Home and End go to the first and last item, as the APG menu pattern
+        // describes.
+        MenuRootHomeBehavior menuHomeBehavior
+        InputSet menuHomeSet
+        menuHomeSet:SetKeyboardInput(keys:HOME)
+        menuRootTable:Add(menuHomeSet, menuHomeBehavior)
+
+        MenuRootEndBehavior menuEndBehavior
+        InputSet menuEndSet
+        menuEndSet:SetKeyboardInput(keys:END)
+        menuRootTable:Add(menuEndSet, menuEndBehavior)
+
         gameInput:AddInputTable(menuRootTable)
 
         InputTable scrollableMenuTable

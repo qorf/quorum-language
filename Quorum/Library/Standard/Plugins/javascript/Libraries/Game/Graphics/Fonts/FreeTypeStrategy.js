@@ -558,13 +558,13 @@ function plugins_quorum_Libraries_Game_Graphics_Fonts_FreeTypeStrategy_(quorumFo
 	};
 
 	this.SystemGetUnderlinePosition = function () {
-		var GetMaximumAscentC = Module.cwrap('GetMaximumAscentC', 'number', null);
-		return (GetMaximumAscentC() >> 6);
+		var GetUnderlinePositionC = Module.cwrap('GetUnderlinePositionC', 'number', null);
+		return (GetUnderlinePositionC() >> 6);
 	};
 
 	this.SystemGetUnderlineThickness = function () {
-		var GetUnderlinePositionC = Module.cwrap('GetUnderlinePositionC', 'number', null);
-		return (GetUnderlinePositionC() >> 6);
+		var GetUnderlineThicknessC = Module.cwrap('GetUnderlineThicknessC', 'number', null);
+		return (GetUnderlineThicknessC() >> 6);
 	};
 
 	this.GetLineHeight = function () {

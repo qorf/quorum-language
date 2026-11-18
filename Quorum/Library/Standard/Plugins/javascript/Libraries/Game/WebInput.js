@@ -240,6 +240,10 @@ function plugins_quorum_Libraries_Game_WebInput_()
             for (let [key, value] of map)
             {
                 let currentInfo = value;
+                // A game that never finished starting has no input yet.
+                if (currentInfo.plugins_quorum_Libraries_Game_WebInput_ == null) {
+                    continue;
+                }
 
                 /*
                 On Mac OSX, the system won't report any keys that are released while one of the Meta buttons is held.

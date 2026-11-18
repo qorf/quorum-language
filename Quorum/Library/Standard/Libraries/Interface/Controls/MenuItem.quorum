@@ -657,6 +657,25 @@ label:SetAccessibilityCode(label:parent:Item:NOT_ACCESSIBLE)
     */
     action SetShortcut(text shortcut)
         shortcutLabel:SetText(shortcut)
+
+        // LoadGraphics shows the shortcut only if it was set by then. A
+        // shortcut set later, such as in CreateGame, is shown here, and the
+        // menu is laid out again to make room. Titles on a menu bar never
+        // show their shortcut.
+        boolean onBar = false
+        if GetParentMenu() = undefined
+            MenuRoot root = GetMenuRoot()
+            if root not= undefined
+                onBar = root:HasBar()
+            end
+        end
+
+        if shortcut = ""
+            shortcutLabel:Hide()
+        elseif not onBar
+            shortcutLabel:Show()
+        end
+        RequestLayout()
     end
     
     /*

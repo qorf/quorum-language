@@ -249,8 +249,10 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
                 let game = plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game;
                 let maxWidth = game.GetScreenWidth() - x;
                 let maxHeight = game.GetScreenHeight() - y;
-                let width = item2D.GetWidth();
-                let height = item2D.GetHeight();
+                // The size on screen, with the item's scale, such as a shape
+                // grown while it has the focus.
+                let width = item2D.GetWidth() * item2D.GetScaleX();
+                let height = item2D.GetHeight() * item2D.GetScaleY();
 
                 if (maxWidth < width)
                 {
@@ -292,7 +294,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             } else if (plainTooltipOwners.has(id)) {
                 element.setAttribute("aria-label", item.GetName());
             } else {
-                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
+                let description = item.GetDescription();
+                if (description != null && description !== "") {
+                    element.setAttribute("aria-label", item.GetName() + ", " + description);
+                } else {
+                    element.setAttribute("aria-label", item.GetName());
+                }
             }
         }
     };
@@ -320,7 +327,12 @@ function plugins_quorum_Libraries_Interface_Accessibility_WebAccessibility_(acce
             } else if (plainTooltipOwners.has(id)) {
                 element.setAttribute("aria-label", item.GetName());
             } else {
-                element.setAttribute("aria-label", item.GetName() + ", " + item.GetDescription());
+                let description = item.GetDescription();
+                if (description != null && description !== "") {
+                    element.setAttribute("aria-label", item.GetName() + ", " + description);
+                } else {
+                    element.setAttribute("aria-label", item.GetName());
+                }
             }
         }
     };
@@ -491,11 +503,47 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
         }
     };
 
+    // A menu bar's own items, not the items of its submenus.
+    function menuBarItems(bar) {
+        return Array.from(bar.querySelectorAll("[role=menuitem]")).filter((menuItem) => {
+            return menuItem.parentElement != null && menuItem.parentElement.closest("[role=menu],[role=menubar]") === bar;
+        });
+    }
+
+    // A shortcut as a menu item shows it, such as "Control + Shift + S", in the
+    // form aria-keyshortcuts takes: "Control+Shift+S". Command is Meta there.
+    function toKeyShortcuts(shortcut) {
+        if (shortcut == null || shortcut === "") {
+            return "";
+        }
+        let modifiers = { "command": "Meta", "cmd": "Meta", "control": "Control", "ctrl": "Control",
+                          "alt": "Alt", "option": "Alt", "shift": "Shift" };
+        return shortcut.split("+")
+            .map((part) => part.trim())
+            .filter((part) => part !== "")
+            .map((part) => modifiers[part.toLowerCase()] || part.replace(/\s+/g, ""))
+            .join("+");
+    }
+
     // The element that takes the DOM focus for an item's element: a
     // calendar's current day cell, or the element itself.
+
     function getFocusTarget(element) {
         if (element == null) {
             return null;
+        }
+        // A menu bar's focus is on one of its items, as in the W3C example: the
+        // one last focused (tabindex 0), or the first.
+        if (element.quorumMenuBar === true) {
+            let barItems = menuBarItems(element);
+            let current = barItems.find((barItem) => barItem.getAttribute("tabindex") === "0");
+            if (current != null) {
+                return current;
+            }
+            if (barItems.length > 0) {
+                return barItems[0];
+            }
+            return element;
         }
         if (element.quorumFocusTarget != null && element.contains(element.quorumFocusTarget)) {
             return element.quorumFocusTarget;
@@ -1399,6 +1447,30 @@ this.TextSelectionChanged$quorum_Libraries_Interface_Selections_TextFieldSelecti
     this.Select$quorum_Libraries_Interface_Item = function(item) {
         //console.log(item.GetName() + " selected");
         var id = item.GetHashCode();
+        // A menu item takes the browser's focus itself, as MDN's menubar page
+        // describes, rather than being pointed at with aria-activedescendant.
+        if (global_InstanceOf(item, "Libraries.Interface.Controls.MenuItem")) {
+            let menuElement = document.getElementById(id);
+            if (menuElement == null) {
+                return;
+            }
+            let pointing = menuElement.parentElement ? menuElement.parentElement.closest("[aria-activedescendant]") : null;
+            if (pointing != null && pointing !== root) {
+                pointing.removeAttribute("aria-activedescendant");
+            }
+            // On the menu bar itself, the focused item is the one the bar
+            // returns to (tabindex 0), as in the W3C example.
+            let owner = menuElement.parentElement ? menuElement.parentElement.closest("[role=menu],[role=menubar]") : null;
+            if (owner != null && owner.quorumMenuBar === true) {
+                menuBarItems(owner).forEach((barItem) => {
+                    barItem.setAttribute("tabindex", barItem === menuElement ? "0" : "-1");
+                });
+            }
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game)) {
+                menuElement.focus({ preventScroll: true });
+            }
+            return;
+        }
         // A combo box's option: updateComboBox points the field at it.
         if (global_InstanceOf(item, "Libraries.Interface.Controls.ListItem")) {
             let list = global_CheckCast(item, "Libraries.Interface.Controls.ListItem").GetList();
@@ -1519,6 +1591,11 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var sendInputEvents = false;
         let tablist = null;
         let tabpanel = null;
+        // A menu item with a submenu: as in the W3C menubar example, a wrapper
+        // (role none, like its li) holds the item and, right after it, its
+        // submenu.
+        let menuWrapper = null;
+        let menuSubmenu = null;
         // run once the element is in the document, for controls whose
         // attributes point at other elements
         let afterAdd = null;
@@ -1599,25 +1676,64 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 para.quorumItem = item;
                 textInputElements.set(id, para);
                 break;
-            //MENU_BAR
+            //MENU_BAR: as in the W3C example, the menu bar never takes the
+            //browser's focus itself; its focus goes to one of its items
+            //(getFocusTarget).
             case 7:
                 role = "menubar";
+                // A list, as in the W3C example: its items are li elements.
+                para = document.createElement("ul");
+                para.id = id;
+                para.quorumMenuBar = true;
                 break;
             //MENU_ITEM
             case 8:
                 role = "menuitem";
                 if (global_InstanceOf(item,"Libraries.Interface.Controls.MenuItem")) {
                     let menuItem = global_CheckCast(item, "Libraries.Interface.Controls.MenuItem");
+                    // List markup, as in the W3C example: an item with a
+                    // submenu is a span in an li (role none) followed by its
+                    // submenu's ul; any other item is an li itself.
+                    para = document.createElement(menuItem.IsMenu() ? "span" : "li");
+                    para.id = id;
                     if (menuItem.IsMenu()) {
-                        let menuGroup = document.createElement(elementType);
+                        let menuGroup = document.createElement("ul");
                         menuGroup.id = id + "-submenu";
                         menuGroup.setAttribute("role", "menu");
-                        // A menu needs a name: the item that opens it.
-                        menuGroup.setAttribute("aria-labelledby", id);
-                        para.appendChild(menuGroup);
-                        para.setAttribute("aria-haspopup", true);
-                        para.setAttribute("aria-expanded", menuItem.IsOpen());
+                        // A menu needs a name: its item's, as the W3C example
+                        // gives it with aria-label.
+                        menuGroup.setAttribute("aria-label", menuItem.GetName());
+                        // A closed submenu is hidden, and shown when it opens
+                        // (MenuChanged), as in the W3C example.
+                        menuGroup.hidden = !menuItem.IsOpen();
+                        menuWrapper = document.createElement("li");
+                        menuWrapper.id = id + "-menuwrap";
+                        menuWrapper.setAttribute("role", "none");
+                        menuSubmenu = menuGroup;
+                        para.setAttribute("aria-haspopup", "true");
+                        para.setAttribute("aria-expanded", menuItem.IsOpen() ? "true" : "false");
                     }
+                    // The item's name is its text, as in the W3C example. A
+                    // description, if it has one, still goes in its label.
+                    para.textContent = menuItem.GetName();
+                    // The item's shortcut, as MDN gives it: aria-keyshortcuts.
+                    let keyShortcuts = toKeyShortcuts(menuItem.GetShortcut());
+                    if (keyShortcuts !== "") {
+                        para.setAttribute("aria-keyshortcuts", keyShortcuts);
+                    }
+                    if (itemDescription == null || itemDescription === "") {
+                        itemName = null;
+                    }
+                    // Every menu item can take the browser's focus, and the
+                    // selected one does (Select), as in the W3C example.
+                    para.setAttribute("tabindex", "-1");
+                    para.addEventListener("focus", (event) => {
+                        if (blurDelayedCall !== null) {
+                            clearTimeout(blurDelayedCall);
+                            blurDelayedCall = null;
+                        }
+                    });
+                    addBlurListener(para);
                     //attach to proper parent
                     let parentMenu = menuItem.GetParentMenu();
                     if (parentMenu != undefined) {
@@ -1783,6 +1899,9 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             //its items attach to it through GetMenuRoot.
             case 22:
                 role = "menu";
+                // A list, as the menu bar's menus are.
+                para = document.createElement("ul");
+                para.id = id;
                 break;
             //PROGRESS_BAR
             case 23:
@@ -1966,14 +2085,18 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         
         if (itemName != null) {
             var result = itemName;
-            if(itemDescription != null) {
+            // An empty description adds nothing, so the name doesn't end in
+            // a stray comma.
+            if(itemDescription != null && itemDescription !== "") {
                 result = result + ", " + itemDescription;
             }
             para.setAttribute("aria-label", result);
         }
 
         if (item.IsFocusable()) {
-            para.setAttribute("tabindex", "-1");
+            if (para.quorumMenuBar !== true) {
+                para.setAttribute("tabindex", "-1");
+            }
             para.addEventListener("click", (event) => {
                 let webEvent = new quorum_Libraries_Interface_Events_WebAccessibilityEvent_();
                 webEvent.type = 4
@@ -2031,6 +2154,10 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
                 // such as its month buttons, and a spreadsheet's edit field
                 // go just before it.
                 parentElement.parentNode.insertBefore(para, parentElement);
+            } else if (menuWrapper !== null) {
+                menuWrapper.appendChild(para);
+                menuWrapper.appendChild(menuSubmenu);
+                parentElement.appendChild(menuWrapper);
             } else {
                 parentElement.appendChild(para);
             }
@@ -2045,7 +2172,13 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             if(tabpanel !== null) {
                 root.appendChild(tabpanel);
             }
-            root.appendChild(para);
+            if (menuWrapper !== null) {
+                menuWrapper.appendChild(para);
+                menuWrapper.appendChild(menuSubmenu);
+                root.appendChild(menuWrapper);
+            } else {
+                root.appendChild(para);
+            }
             //console.log(item.GetName(), " has been added.");
         }
 
@@ -2060,9 +2193,15 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         // Under rare circumstances, the item that is being added is supposed to already be focused by Quorum,
         // or it was previously focused, but then was removed and re-added.
         // If so, make sure it gets the focus.
-        if (item.IsFocused() && (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement)) {
-            removedFocusedElement = false;
-            getFocusTarget(para).focus();
+        if (item.IsFocused()) {
+            // Quorum focused this item before its element existed (a form
+            // focuses its first control as it starts), so it is the one to
+            // focus when the program gets the browser's focus.
+            currentFocus = item;
+            if (plugins_quorum_Libraries_Game_WebInput_.IsFocused(plugins_quorum_Libraries_Game_GameStateManager_.GetActiveGameInfo().game) || removedFocusedElement) {
+                removedFocusedElement = false;
+                getFocusTarget(para).focus();
+            }
         }
 
         return true;
@@ -2082,13 +2221,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
             }
             textInputElements.delete(id);
         }
+        let lostFocus = false;
         if (element != null) { //if the parent was removed then this would come up null
-            if (element === document.activeElement)
+            // A menu item with a submenu sits in a wrapper with its submenu;
+            // both go.
+            let wrapper = document.getElementById(id + "-menuwrap");
+            let removed = (wrapper != null) ? wrapper : element;
+            if (removed === document.activeElement || removed.contains(document.activeElement))
             {
                 removedFocusedElement = true;
+                lostFocus = true;
             }
 
-            element.remove();
+            removed.remove();
         }
         plainTooltipOwners.delete(id);
         activeDescendantOwners.delete(String(id));
@@ -2100,6 +2245,17 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         }
         //console.log(elementList[id], " has been removed.");
         elementList[id] = null;
+
+        // The browser's focus was inside what was removed, such as a submenu's
+        // item as its menu closed. It goes back to Quorum's focus, so the
+        // program keeps the keyboard.
+        if (lostFocus && currentFocus != null && currentFocus.GetHashCode() != id) {
+            let target = getFocusTarget(document.getElementById(currentFocus.GetHashCode()));
+            if (target != null) {
+                removedFocusedElement = false;
+                target.focus({ preventScroll: true });
+            }
+        }
         return true;
     };
     
@@ -2109,10 +2265,19 @@ this.ToggleButtonToggled$quorum_Libraries_Interface_Controls_ToggleButton = func
         var menuItemID = event.GetMenuItem().GetHashCode();
         if (elementList[menuItemID] != null) {
             var element = document.getElementById(menuItemID);
+            // The submenu is shown while open and hidden while closed, as in
+            // the W3C example.
+            let submenu = document.getElementById(menuItemID + "-submenu");
             if (event.GetEventType() == 1) {  //OPENED
-                element.setAttribute("aria-expanded", true);
+                if (submenu != null) {
+                    submenu.hidden = false;
+                }
+                element.setAttribute("aria-expanded", "true");
             } else if (event.GetEventType() == 2) {   //CLOSED
-                element.setAttribute("aria-expanded", false);
+                element.setAttribute("aria-expanded", "false");
+                if (submenu != null) {
+                    submenu.hidden = true;
+                }
             }
         }
     };

@@ -312,8 +312,11 @@ class FlowLayout is Layout
                     width = control:GetWidth()
                 elseif properties:GetHorizontalLayoutMode() = properties:FILL
                     width = containerWidth - x
-                    if width = 0
-                        // If there's no space left to fill, fill the next line instead.
+                    // Less than one pixel left, or none, after an earlier
+                    // item filled the line: fill the next line instead. The
+                    // width is rounded down below, so a fraction of a pixel
+                    // would otherwise become a zero-width item on this line.
+                    if width < 1
                         width = containerWidth
                     end
                 elseif properties:GetHorizontalLayoutMode() = properties:STANDARD

@@ -69,7 +69,7 @@ class Triangulation
 
                 if y < minY
                     minY = y
-                elseif y > minY
+                elseif y > maxY
                     maxY = y
                 end
 
@@ -427,10 +427,10 @@ class Triangulation
         lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 2)), 858993459) // Hex value: 33333333
         lx = bits:And(bits:Or(lx, bits:ShiftLeft(lx, 1)), 1431655765) // Hex value: 55555555
 
-        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 8)), 16711935) // Hex value: 00FF00FF
-        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 4)), 252645135) // Hex value: 0F0F0F0F
-        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 2)), 858993459) // Hex value: 33333333
-        ly = bits:And(bits:Or(ly, bits:ShiftLeft(lx, 1)), 1431655765) // Hex value: 55555555
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(ly, 8)), 16711935) // Hex value: 00FF00FF
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(ly, 4)), 252645135) // Hex value: 0F0F0F0F
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(ly, 2)), 858993459) // Hex value: 33333333
+        ly = bits:And(bits:Or(ly, bits:ShiftLeft(ly, 1)), 1431655765) // Hex value: 55555555
 
         return bits:Or(lx, bits:ShiftLeft(ly, 1))
     end
