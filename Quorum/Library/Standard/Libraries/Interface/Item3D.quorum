@@ -1118,7 +1118,29 @@ class Item3D is Item
     action SetRotationTransform(Matrix4 source)
         rotationMatrix:Set(source)
         transformDirty = true
+        CopyRotationToPhysics()
         NotifyMoved()
+    end
+
+    /*
+    Gives an item with physics the rotation in its rotation matrix. Its
+    physics body keeps its own copy of the rotation, which each physics step
+    copies back to the item (SetScreenPositionFromPhysicsPosition), so
+    anything that changes rotationMatrix calls this, or the change is undone.
+    The body's copy holds rotation without scale, so the shape's scaling is
+    taken out (Matrix3's SetWithoutScale).
+    */
+    private action CopyRotationToPhysics
+        if not updateTransform or shape = undefined
+            return now
+        end
+        Vector3 scale
+        shape:GetLocalScaling(scale)
+        Matrix3 basis
+        basis:SetWithoutScale(rotationMatrix, scale)
+        collisionTransform:GetBasis():Set(basis)
+        interpolationTransform:GetBasis():Set(basis)
+        drawnTransform:GetBasis():Set(basis)
     end
 
     /*  
@@ -1683,27 +1705,7 @@ class Item3D is Item
     action Rotate(Vector3 vector, number degrees, boolean rotateChildren)
         rotationMatrix:Rotate(vector:GetX(), vector:GetY(), -vector:GetZ(), degrees)
         transformDirty = true
-        if updateTransform
-            if shape not= undefined
-                Vector3 scale
-                shape:GetLocalScaling(scale)
-                Matrix3 tempMatrix
-                tempMatrix:row0column0 = rotationMatrix:row0column0 / scale:GetX()
-                tempMatrix:row0column1 = rotationMatrix:row0column1 / scale:GetX()
-                tempMatrix:row0column2 = rotationMatrix:row0column2 / scale:GetX()
-
-                tempMatrix:row1column0 = rotationMatrix:row1column0 / scale:GetY()
-                tempMatrix:row1column1 = rotationMatrix:row1column1 / scale:GetY()
-                tempMatrix:row1column2 = rotationMatrix:row1column2 / scale:GetY()
-
-                tempMatrix:row2column0 = rotationMatrix:row2column0 / scale:GetZ()
-                tempMatrix:row2column1 = rotationMatrix:row2column1 / scale:GetZ()
-                tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
-                collisionTransform:GetBasis():Set(tempMatrix)
-                interpolationTransform:GetBasis():Set(tempMatrix)
-                drawnTransform:GetBasis():Set(tempMatrix)
-            end
-        end
+        CopyRotationToPhysics()
         if rotateChildren
             RotateChildren(vector, degrees)
         end
@@ -2117,27 +2119,7 @@ class Item3D is Item
         rotationMatrix:Rotate(angles)
         transformDirty = true
 
-        if updateTransform
-            if shape not= undefined
-                Vector3 scale
-                shape:GetLocalScaling(scale)
-                Matrix3 tempMatrix
-                tempMatrix:row0column0 = rotationMatrix:row0column0 / scale:GetX()
-                tempMatrix:row0column1 = rotationMatrix:row0column1 / scale:GetX()
-                tempMatrix:row0column2 = rotationMatrix:row0column2 / scale:GetX()
-
-                tempMatrix:row1column0 = rotationMatrix:row1column0 / scale:GetY()
-                tempMatrix:row1column1 = rotationMatrix:row1column1 / scale:GetY()
-                tempMatrix:row1column2 = rotationMatrix:row1column2 / scale:GetY()
-
-                tempMatrix:row2column0 = rotationMatrix:row2column0 / scale:GetZ()
-                tempMatrix:row2column1 = rotationMatrix:row2column1 / scale:GetZ()
-                tempMatrix:row2column2 = rotationMatrix:row2column2 / scale:GetZ()
-                collisionTransform:GetBasis():Set(tempMatrix)
-                interpolationTransform:GetBasis():Set(tempMatrix)
-                drawnTransform:GetBasis():Set(tempMatrix)
-            end
-        end
+        CopyRotationToPhysics()
         NotifyMoved()
     end
 

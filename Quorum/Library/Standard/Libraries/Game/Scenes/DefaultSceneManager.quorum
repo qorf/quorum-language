@@ -852,7 +852,7 @@ number restitution = 0
                 transform:Set(9, -transform:Get(9))
             end
 
-            Matrix4 matrix = item:GetRotationTransform()
+            Matrix4 matrix
             matrix:row0column0 = transform:Get(0)
             matrix:row0column1 = transform:Get(1)
             matrix:row0column2 = transform:Get(2)
@@ -869,6 +869,10 @@ number restitution = 0
             matrix:row3column1 = transform:Get(13)
             matrix:row3column2 = transform:Get(14)
             matrix:row3column3 = transform:Get(15)
+            // Through SetRotationTransform, so an item with physics gets the
+            // rotation too: written into the item's own matrix, the first
+            // physics step put the item back as it was.
+            item:SetRotationTransform(matrix)
         end
 
         if children not= undefined

@@ -1119,6 +1119,53 @@ class Matrix3
         return me
     end
 
+    /*
+    This action sets this matrix to the 3 by 3 part of a 4 by 4 matrix with
+    a scale taken back out of it, by dividing rows: every number in the first
+    row is divided by the scale's x, every number in the second row by its
+    y, and every number in the third row by its z.
+
+    Dividing rows this way undoes scaling that was applied to each row. It
+    is the same as multiplying by a scaling matrix that has 1 over the scale
+    along its diagonal, with the scaling matrix on the left. For example, a
+    physics body's basis holds an item's rotation without its scale, so it
+    is made from the item's rotation and scaling this way.
+
+    Attribute: Parameter matrix The 4 by 4 matrix to read. It isn't changed.
+    Attribute: Parameter scale The scale to take out: x for the first row, y for the second and z for the third. None of them may be 0.
+    Attribute: Returns This matrix.
+
+    Attribute: Example
+
+    use Libraries.Compute.Matrix3
+    use Libraries.Compute.Matrix4
+    use Libraries.Compute.Vector3
+
+    Matrix4 rotation
+    rotation:SetToRotation(0, 1, 0, 90)
+    Vector3 scale
+    scale:Set(2, 2, 2)
+    Matrix3 basis
+    basis:SetWithoutScale(rotation, scale)
+    */
+    action SetWithoutScale(Matrix4 matrix, Vector3 scale) returns Matrix3
+        // Each row is multiplied by 1 over its scale: three divisions,
+        // not nine.
+        number inverseX = 1 / scale:GetX()
+        number inverseY = 1 / scale:GetY()
+        number inverseZ = 1 / scale:GetZ()
+        row0column0 = matrix:row0column0 * inverseX
+        row0column1 = matrix:row0column1 * inverseX
+        row0column2 = matrix:row0column2 * inverseX
+        row1column0 = matrix:row1column0 * inverseY
+        row1column1 = matrix:row1column1 * inverseY
+        row1column2 = matrix:row1column2 * inverseY
+        row2column0 = matrix:row2column0 * inverseZ
+        row2column1 = matrix:row2column1 * inverseZ
+        row2column2 = matrix:row2column2 * inverseZ
+        return me
+    end
+
 
     /*
     This action adds a translational component to the matrix. This action is
