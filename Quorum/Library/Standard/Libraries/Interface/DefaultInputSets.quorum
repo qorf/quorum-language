@@ -6,6 +6,7 @@ use Libraries.Interface.Events.KeyboardEvent
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputTable
+use Libraries.Containers.Array
 use Libraries.Interface.Controls.Scenes.SceneEditorInputTable
 use Libraries.Interface.Behaviors.Scenes.Selection.all
 use Libraries.Interface.Behaviors.Scenes.Selection.TerrainChooseToolBehavior
@@ -1639,6 +1640,14 @@ InputSet shiftF10SetTextBox
         table:Add(reportLocation, reportLocationBehavior)
         table:Add(reportCameraDirection, reportCameraDirectionBehavior)
         table:Add(reportItemsInView, reportItemsInViewBehavior)
+        // Also while a selection, the camera item or a new item's placeholder
+        // has the focus in 3D, as the camera keys are (AddCameraKey).
+        selectionTable:Add(reportCameraDirection, reportCameraDirectionBehavior)
+        selectionTable:Add(reportItemsInView, reportItemsInViewBehavior)
+        cameraItemTable3D:Add(reportCameraDirection, reportCameraDirectionBehavior)
+        cameraItemTable3D:Add(reportItemsInView, reportItemsInViewBehavior)
+        itemPreviewTable:Add(reportCameraDirection, reportCameraDirectionBehavior)
+        itemPreviewTable:Add(reportItemsInView, reportItemsInViewBehavior)
 
         InputSet selectionMoveLeft3DStart = sceneKeys:GetSelectionMoveLeft3DKey()
         InputSet selectionMoveLeft3DStop = sceneKeys:GetSelectionMoveLeft3DKey()
@@ -1769,20 +1778,27 @@ InputSet shiftF10SetTextBox
 
         // The 3D camera's keys: the same moves as the mouse, while held.
         SceneConstants cameraConstants
-        AddCameraKey(table, sceneKeys:GetCameraLookLeftKey(), cameraConstants:CAMERA_LOOK, -1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraLookRightKey(), cameraConstants:CAMERA_LOOK, 1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraLookUpKey(), cameraConstants:CAMERA_LOOK, 0, 1)
-        AddCameraKey(table, sceneKeys:GetCameraLookDownKey(), cameraConstants:CAMERA_LOOK, 0, -1)
-        AddCameraKey(table, sceneKeys:GetCameraSlideLeftKey(), cameraConstants:CAMERA_SLIDE, -1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraSlideRightKey(), cameraConstants:CAMERA_SLIDE, 1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraSlideUpKey(), cameraConstants:CAMERA_SLIDE, 0, 1)
-        AddCameraKey(table, sceneKeys:GetCameraSlideDownKey(), cameraConstants:CAMERA_SLIDE, 0, -1)
-        AddCameraKey(table, sceneKeys:GetCameraOrbitLeftKey(), cameraConstants:CAMERA_ORBIT, -1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraOrbitRightKey(), cameraConstants:CAMERA_ORBIT, 1, 0)
-        AddCameraKey(table, sceneKeys:GetCameraOrbitUpKey(), cameraConstants:CAMERA_ORBIT, 0, 1)
-        AddCameraKey(table, sceneKeys:GetCameraOrbitDownKey(), cameraConstants:CAMERA_ORBIT, 0, -1)
-        AddCameraKey(table, sceneKeys:GetCameraZoomInKey(), cameraConstants:CAMERA_ZOOM, 0, 1)
-        AddCameraKey(table, sceneKeys:GetCameraZoomOutKey(), cameraConstants:CAMERA_ZOOM, 0, -1)
+        // The camera keys also work while a selection, the camera item or a
+        // new item's placeholder has the focus: those sit in the 3D layer,
+        // not inside the scene editor, so its table never hears their keys.
+        Array<InputTable> cameraKeyTables
+        cameraKeyTables:Add(selectionTable)
+        cameraKeyTables:Add(cameraItemTable3D)
+        cameraKeyTables:Add(itemPreviewTable)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookLeftKey(), cameraConstants:CAMERA_LOOK, -1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookRightKey(), cameraConstants:CAMERA_LOOK, 1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookUpKey(), cameraConstants:CAMERA_LOOK, 0, 1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookDownKey(), cameraConstants:CAMERA_LOOK, 0, -1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraSlideLeftKey(), cameraConstants:CAMERA_SLIDE, -1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraSlideRightKey(), cameraConstants:CAMERA_SLIDE, 1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraSlideUpKey(), cameraConstants:CAMERA_SLIDE, 0, 1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraSlideDownKey(), cameraConstants:CAMERA_SLIDE, 0, -1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraOrbitLeftKey(), cameraConstants:CAMERA_ORBIT, -1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraOrbitRightKey(), cameraConstants:CAMERA_ORBIT, 1, 0)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraOrbitUpKey(), cameraConstants:CAMERA_ORBIT, 0, 1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraOrbitDownKey(), cameraConstants:CAMERA_ORBIT, 0, -1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraZoomInKey(), cameraConstants:CAMERA_ZOOM, 0, 1)
+        AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraZoomOutKey(), cameraConstants:CAMERA_ZOOM, 0, -1)
 
         // 2D camera set
         cameraItemTable2D:Add(reportLocation, reportLocationBehavior)
@@ -2145,8 +2161,10 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
 
         itemPreviewTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollLeftBehavior)
         itemPreviewTable2D:Add(selectionRotateForward2DStop, selectionStopRotatingRollBehavior)
-        itemPreviewTable2D:Add(selectionRotateForward2DStart, selectionStartRotatingRollRightBehavior)
-        itemPreviewTable2D:Add(selectionRotateForward2DStop, selectionStopRotatingRollBehavior)
+        // Backward, as the 2D selection has it; this was Forward twice, so
+        // Roll Right replaced Roll Left and backward was never bound.
+        itemPreviewTable2D:Add(selectionRotateBackward2DStart, selectionStartRotatingRollRightBehavior)
+        itemPreviewTable2D:Add(selectionRotateBackward2DStop, selectionStopRotatingRollBehavior)
 
         itemPreviewTable2D:Add(selectionScaleUpSet, selectionScaleUpBehavior)
         itemPreviewTable2D:Add(selectionScaleDownSet, selectionScaleDownBehavior)
@@ -3079,7 +3097,7 @@ connectorTable:Add(startDrag, dragBehavior)
         This action adds one of the 3D camera's keys: the move starts as the
         key goes down and stops as it comes up.
     */
-    private action AddCameraKey(SceneEditorInputTable table, InputSet key, integer move, integer x, integer y)
+    private action AddCameraKey(SceneEditorInputTable table, Array<InputTable> others, InputSet key, integer move, integer x, integer y)
         CameraKeyBehavior start
         start:Setup(move, x, y, true)
         table:Add3D(key, start)
@@ -3088,6 +3106,14 @@ connectorTable:Add(startDrag, dragBehavior)
         CameraKeyBehavior stop
         stop:Setup(move, x, y, false)
         table:Add3D(released, stop)
+        // The same keys where the focus can be in the 3D layer.
+        integer index = 0
+        repeat while index < others:GetSize()
+            InputTable other = others:Get(index)
+            other:Add(key, start)
+            other:Add(released, stop)
+            index = index + 1
+        end
     end
 
     private action AddTerrainToolKey(InputTable table, SceneEditorKeys sceneKeys, integer tool)

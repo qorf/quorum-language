@@ -8,6 +8,8 @@ use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Layer3D
 use Libraries.Game.Layer2D
+use Libraries.Game.Graphics.Painter3D
+use Libraries.Game.Graphics.Vulkan.VulkanPainter3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
@@ -392,6 +394,12 @@ class SceneEditor is Control, DefaultSceneManager
     boolean terrainGridPatchShown = false
     boolean flatGridHiddenForPatch = false
     constant integer TERRAIN_GRID_SQUARES_OUT = 4
+    // The grid drawn over terrain: its lines have faded out this many squares
+    // from the camera, and at least this many world units, and show this
+    // strongly (0 to 1).
+    constant number TERRAIN_GRID_FADE_SQUARES = 60
+    constant number TERRAIN_GRID_FADE_LEAST = 40
+    constant number TERRAIN_GRID_STRENGTH = 0.45
 
     // The terrain whose cursor a new item's preview starts at, recorded
     // before the preview takes the focus, so the ring stays shown with it.
@@ -1121,8 +1129,18 @@ action Update(number seconds)
                     end
                 elseif gridSnapEnabled = false
                     if selectionXDirection not= 0 or selectionZDirection not= 0
-                        workVector3:SetX(alongX * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
-                        workVector3:SetZ(alongZ * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        if focus is TerrainSelectionHighlight
+                            // The terrain cursor turns the keys to the camera
+                            // itself (MoveTerrainBrush), so it gets them as
+                            // pressed: right, and forward, which its Move
+                            // reads from -z. Turned here too, they were
+                            // turned twice.
+                            workVector3:SetX(selectionXDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                            workVector3:SetZ(-selectionZDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        else
+                            workVector3:SetX(alongX * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                            workVector3:SetZ(alongZ * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
+                        end
                         moved = true
                     end
     
@@ -2662,10 +2680,12 @@ action Update(number seconds)
     end
 
     /*
-    This action keeps the grid on a terrain: with the grid on and
-    a terrain's cursor shown on the ground, grid lines lie over the ground
-    around it, and the flat grid hides; otherwise the lines hide and the
-    flat grid comes back.
+    This action keeps the grid on terrain: with the grid on, the terrain
+    shader draws grid lines over every terrain in the scene, on the grid's
+    units, following the hills and fading out with distance from the camera
+    (VulkanPainter3D:SetTerrainGrid). The flat grid, at height 0, hides while
+    the scene has a terrain, so it doesn't cut through the ground. With the
+    grid off, neither shows.
     */
     private action UpdateTerrainGridPatch
         if not (GetSelectedLayer() is EditorLayer3D)
@@ -2673,41 +2693,39 @@ action Update(number seconds)
         end
         EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
         Grid3D grid = layer3D:GetGrid()
-        EditorTerrain shown = undefined
-        if IsTerrainBrushActive()
-            shown = brushTerrain
-        elseif cursorTerrain not= undefined
-            shown = cursorTerrain
+        boolean hasTerrain = not GetEditorTerrains():IsEmpty()
+        boolean gridOnTerrain = IsGridSnapping() and hasTerrain
+
+        Painter3D painter = layer3D:GetPainter()
+        if painter is VulkanPainter3D
+            VulkanPainter3D vulkan = cast(VulkanPainter3D, painter)
+            if gridOnTerrain
+                number unit = GetGridUnitSize()
+                number fadeDistance = unit * TERRAIN_GRID_FADE_SQUARES
+                if fadeDistance < TERRAIN_GRID_FADE_LEAST
+                    fadeDistance = TERRAIN_GRID_FADE_LEAST
+                end
+                vulkan:SetTerrainGrid(unit, fadeDistance, TERRAIN_GRID_STRENGTH)
+            elseif vulkan:GetTerrainGridUnit() not= 0
+                vulkan:SetTerrainGrid(0, 0, 0)
+            end
         end
-        boolean usePatch = IsGridSnapping() and shown not= undefined and shown:IsBrushOnGround()
-        if usePatch
-            if terrainGridPatch = undefined
-                TerrainGridPatch patch
-                terrainGridPatch = patch
-                terrainGridPatch:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), GetGridUnitSize(), TERRAIN_GRID_SQUARES_OUT)
-                layer3D:Add(terrainGridPatch)
-                terrainGridPatchShown = true
-            else
-                terrainGridPatch:Place(shown:GetWorldTerrain():GetData(), shown:GetBrushX(), shown:GetBrushZ(), GetGridUnitSize(), TERRAIN_GRID_SQUARES_OUT)
-            end
-            if not terrainGridPatchShown
-                terrainGridPatch:Show()
-                terrainGridPatchShown = true
-            end
+
+        // The old patch of lines around the cursor (TerrainGridPatch) is
+        // no longer shown.
+        if terrainGridPatch not= undefined and terrainGridPatchShown
+            terrainGridPatch:Hide()
+            terrainGridPatchShown = false
+        end
+        if gridOnTerrain
             if grid:IsShowing()
                 grid:Hide()
                 flatGridHiddenForPatch = true
             end
-        else
-            if terrainGridPatch not= undefined and terrainGridPatchShown
-                terrainGridPatch:Hide()
-                terrainGridPatchShown = false
-            end
-            if flatGridHiddenForPatch
-                flatGridHiddenForPatch = false
-                if IsGridSnapping()
-                    grid:Show()
-                end
+        elseif flatGridHiddenForPatch
+            flatGridHiddenForPatch = false
+            if IsGridSnapping()
+                grid:Show()
             end
         end
     end
@@ -6935,7 +6953,9 @@ The ring is one of the editor's own items: it isn't saved,
         number size = 0
         if IsTerrainBrushActive()
             shown = brushTerrain
-        elseif cursorTerrain not= undefined
+        elseif cursorTerrain not= undefined and not HasActivePreview()
+            // While an item from the palette is being placed, its
+            // placeholder shows where it goes, so the cursor hides.
             shown = cursorTerrain
             cursorOnly = true
         end
@@ -7014,9 +7034,9 @@ The ring is one of the editor's own items: it isn't saved,
             ringBlinkHidden = false
             return now
         end
-        // With the pulse set to None, nothing about the cursor moves on its
-        // own, so the ring stays solid (WCAG 2.2.2).
-        if stroking or cursorSettings:GetPulse() = cursorSettings:PULSE_NONE
+        // The ring stays solid unless blinking is turned on in the options
+        // (TerrainCursorSettings, off by default), and while a stroke is made.
+        if stroking or not cursorSettings:IsBlinking()
             ResetRingBlink()
             return now
         end
@@ -7065,7 +7085,9 @@ The ring is one of the editor's own items: it isn't saved,
         EditorTerrain shown = undefined
         if IsTerrainBrushActive()
             shown = brushTerrain
-        elseif cursorTerrain not= undefined
+        elseif cursorTerrain not= undefined and not HasActivePreview()
+            // Hidden while an item from the palette is being placed, as the
+            // ring is (UpdateBrushPreview).
             shown = cursorTerrain
         end
         EditorLayer layer = GetSelectedLayer()

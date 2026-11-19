@@ -347,10 +347,16 @@ class SceneEditorKeys
         return set
     end
 
-    /* Makes the grid's squares smaller. Default: Cmd+Alt+G on Mac, Ctrl+Alt+G elsewhere. */
+    /* Makes the grid's squares smaller. Default: Cmd+Ctrl+G on Mac (other
+       apps, such as Google Drive, often take Cmd+Alt+G for the whole
+       system), Ctrl+Alt+G elsewhere. */
     action GetDecreaseGridUnitKey returns InputSet
         InputSet set = WithCommand(keys:G)
-        set:AddModifier(set:ALT)
+        if ShouldUseMacKeys()
+            set:AddModifier(set:CONTROL)
+        else
+            set:AddModifier(set:ALT)
+        end
         return set
     end
 

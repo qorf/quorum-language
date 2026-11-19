@@ -113,8 +113,10 @@ class TerrainSplatFragmentShader is Shader
 // How many world units one tile of each ground texture covers.
 const float LAYER_REPEAT = " + tileText + ";
 
-// The 3D camera uniform; only whether lighting is
-// linear is used here.
+// The 3D camera uniform; whether lighting is linear, the camera's
+// position, and the grid drawn over terrain (VulkanPainter3D's
+// SetTerrainGrid: its unit, 0 for none, fade distance and strength) are
+// used here.
 layout(set = 0, binding = 0) uniform Camera
 {
     mat4 projectionViewMatrix;
@@ -124,6 +126,9 @@ layout(set = 0, binding = 0) uniform Camera
     float nearPlane;
     float farPlane;
     float linearLighting;
+    float gridUnit;
+    float gridFade;
+    float gridStrength;
 } camera;
 
 layout(set = 0, binding = 1) uniform sampler immutableSampler;
@@ -372,6 +377,28 @@ void decodeOutputColor()
 	outputColor.rgb = mix(high, low, vec3(lessThanEqual(c, vec3(0.04045))));
 }
 
+// The grid over the ground, such as the scene editor's: lines about a pixel
+// and a half wide on every multiple of the unit in x and z. They lie on the
+// ground, so they follow its hills. They fade out with distance from the
+// camera, and where squares get too small on screen to tell apart, so far
+// ground doesn't shimmer. They are lightened color plus a little light of
+// their own, so they show in shadow too.
+void applyTerrainGrid()
+{
+    if (camera.gridUnit <= 0.0 || camera.gridStrength <= 0.0)
+        return;
+    vec2 cell = v_position.xz / camera.gridUnit;
+    vec2 width = max(fwidth(cell), vec2(0.00001));
+    vec2 toLine = abs(fract(cell - 0.5) - 0.5) / (width * 1.5);
+    float line = 1.0 - min(min(toLine.x, toLine.y), 1.0);
+    float crowding = 1.0 - smoothstep(0.12, 0.35, max(width.x, width.y));
+    float away = distance(v_position.xyz, camera.cameraPosition);
+    float fade = 1.0 - smoothstep(camera.gridFade * 0.35, camera.gridFade, away);
+    float amount = line * crowding * fade * camera.gridStrength;
+    outputColor.rgb = mix(outputColor.rgb, vec3(1.0), amount);
+    outputEmissive = vec4(vec3(amount * 0.3), 0.0);
+}
+
 void main()
 {
    Instances instances = pushConstants.instances;
@@ -384,6 +411,7 @@ void main()
    if (material.metallic < 0.0)
    {
        splatTerrain(material);
+       applyTerrainGrid();
        decodeOutputColor();
        return;
    }

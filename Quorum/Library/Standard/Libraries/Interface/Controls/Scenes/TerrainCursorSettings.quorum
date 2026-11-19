@@ -5,9 +5,8 @@ use Libraries.Containers.Array
 /*
 The TerrainCursorSettings class holds how a scene editor marks its terrain
 cursor, beyond its ring: a beam of light rising from it, crosshair lines
-through it to the terrain's edges, their color and glow, and whether they
-pulse. A pulse of None also stops the ring's blink, so nothing about the
-cursor moves on its own. Quorum Studio keeps one of these in its options and
+through it to the terrain's edges, their color and glow, whether they
+pulse, and whether the ring blinks like a text cursor (off by default). Quorum Studio keeps one of these in its options and
 gives it to every scene editor, so a change shows in every scene at once.
 
 Attribute: Example
@@ -32,6 +31,9 @@ class TerrainCursorSettings
     integer topFade = 75
     integer crosshairOpacity = 50
     integer pulse = 2
+    // False, the default, keeps the ring solid; true blinks it like a text
+    // cursor.
+    boolean blinking = false
 
     // Counts every change, so a scene editor can tell when to draw again.
     integer version = 0
@@ -271,6 +273,29 @@ class TerrainCursorSettings
     end
 
     /*
+    This action returns true if the ring around the cursor blinks like a
+    text cursor. It is off by default.
+
+    Attribute: Returns True if the ring blinks
+    */
+    action IsBlinking returns boolean
+        return blinking
+    end
+
+    /*
+    This action sets whether the ring around the cursor blinks like a text
+    cursor. Off, the default, it stays solid.
+
+    Attribute: Parameter blink True to blink the ring
+    */
+    action SetBlinking(boolean blink)
+        if blink not= blinking
+            blinking = blink
+            version = version + 1
+        end
+    end
+
+    /*
     This action returns a number that changes whenever a setting does.
 
     Attribute: Returns The settings' version
@@ -283,6 +308,7 @@ class TerrainCursorSettings
     This action puts every setting back to its default.
     */
     action Reset
+        SetBlinking(false)
         SetShowBeam(true)
         SetShowCrosshair(true)
         SetColorName("Magenta")

@@ -10,6 +10,7 @@ use Libraries.Interface.Item3D
 use Libraries.Game.Graphics.Model
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
 use Libraries.Interface.Behaviors.Behavior
 
 /*
@@ -21,8 +22,17 @@ use Libraries.Interface.Behaviors.Behavior
 class ReportItemsInViewBehavior is Behavior
 
     action Run(BehaviorEvent event)
+        // The key may come to the scene editor itself, or to the item with
+        // the focus in its 3D layer: a selection, the camera item or a new
+        // item's placeholder.
+        SceneEditor controller = undefined
         if event:GetItem() is SceneEditor
-            SceneEditor controller = cast(SceneEditor, event:GetItem())
+            controller = cast(SceneEditor, event:GetItem())
+        elseif event:GetItem() is EditorItem
+            EditorItem focusedItem = cast(EditorItem, event:GetItem())
+            controller = focusedItem:GetSceneEditor()
+        end
+        if controller not= undefined
             text editorTag = controller:GetEditorTag()
 
             // TO-DO

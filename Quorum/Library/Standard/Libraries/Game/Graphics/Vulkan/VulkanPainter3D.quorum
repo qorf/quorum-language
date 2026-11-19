@@ -157,10 +157,18 @@ class VulkanPainter3D is Painter3D
     // The 3D camera uniform's contents: the
     // projection-view matrix, then the camera's position, time, the screen
     // size, and the near and far planes; then 1 if lighting is linear,
-    // and 3 numbers of padding. 28 numbers, 112
-    // bytes.
+    // then the terrain grid's unit (0 for none), fade distance and
+    // strength (SetTerrainGrid). 28 numbers, 112 bytes.
     Number32BitArray cameraDataArray
     constant integer CAMERA_DATA_SIZE = 28
+
+    // The grid drawn over terrain by the terrain shader, such as the scene
+    // editor's: the size of a square in world units, 0 for no grid; how
+    // far from the camera the lines have faded out; and how strongly the
+    // lines show, from 0 to 1.
+    number terrainGridUnit = 0
+    number terrainGridFade = 0
+    number terrainGridStrength = 0
 
     // Seconds since this painter started drawing, wrapped every hour, for
     // shaders that animate.
@@ -4447,9 +4455,44 @@ the sky's rotation as the first three columns of its
         else
             cameraDataArray:Set(24, 0)
         end
-        cameraDataArray:Set(25, 0)
-        cameraDataArray:Set(26, 0)
-        cameraDataArray:Set(27, 0)
+        cameraDataArray:Set(25, terrainGridUnit)
+        cameraDataArray:Set(26, terrainGridFade)
+        cameraDataArray:Set(27, terrainGridStrength)
+    end
+
+    /*
+    This action sets the grid the terrain shader draws over the ground, such
+    as the scene editor's: thin lines on every multiple of the unit in x and
+    z, following the ground's hills, fading out with distance from the
+    camera. Only terrain drawn by TerrainSplatFragmentShader shows it. A
+    unit of 0 turns the grid off, which is the default.
+
+    Attribute: Parameter unit The size of one square, in world units, or 0 for no grid
+    Attribute: Parameter fadeDistance How far from the camera, in world units, the lines have faded out
+    Attribute: Parameter strength How strongly the lines show, from 0 to 1
+    */
+    action SetTerrainGrid(number unit, number fadeDistance, number strength)
+        if unit < 0
+            unit = 0
+        end
+        if strength < 0
+            strength = 0
+        elseif strength > 1
+            strength = 1
+        end
+        terrainGridUnit = unit
+        terrainGridFade = fadeDistance
+        terrainGridStrength = strength
+    end
+
+    /*
+    This action returns the size of one square of the grid drawn over
+    terrain, or 0 if there is none.
+
+    Attribute: Returns The grid's unit, in world units, or 0
+    */
+    action GetTerrainGridUnit returns number
+        return terrainGridUnit
     end
 
     /*
