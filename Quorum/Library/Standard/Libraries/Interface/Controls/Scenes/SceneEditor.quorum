@@ -2694,6 +2694,16 @@ action Update(number seconds)
         EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
         Grid3D grid = layer3D:GetGrid()
         boolean hasTerrain = not GetEditorTerrains():IsEmpty()
+
+        // The grid starts off on terrain: the first time this layer has
+        // terrain, its grid is turned off once. The grid key turns it back on.
+        // The layer's own action is used so the screen reader doesn't say
+        // "Grid snapping disabled" each time a scene opens.
+        if hasTerrain and not layer3D:IsTerrainGridDefaultApplied()
+            layer3D:SetTerrainGridDefaultApplied(true)
+            layer3D:SetGridSnapping(false)
+        end
+
         boolean gridOnTerrain = IsGridSnapping() and hasTerrain
 
         Painter3D painter = layer3D:GetPainter()

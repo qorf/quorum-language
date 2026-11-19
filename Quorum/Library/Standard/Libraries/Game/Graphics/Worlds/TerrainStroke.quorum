@@ -563,9 +563,9 @@ class TerrainStroke
     full weight, times the strength, carrying any part of a drop to the next
     dab. Each drop starts at a random sample, kept with a chance equal to the
     brush's weight there, so most rain falls in the middle and none outside
-    the brush. Drops roll on up to one brush size past the dab, as the
-    generator's rain does, and the ground they leave settles off slopes
-    that are too steep.
+    the brush. Drops roll only inside the brush's square, so the change
+    stays the size of the brush, and the ground they leave settles off
+    slopes that are too steep.
 
     Attribute: Parameter firstX The first sample along x the dab covers.
     Attribute: Parameter firstZ The first sample along z the dab covers.
@@ -594,11 +594,12 @@ class TerrainStroke
         end
         rainOwed = rainOwed - drops
 
-        integer runOn = cast(integer, math:Ceiling(brush:GetSize() / data:GetVertexSpacing()))
-        integer minimumX = firstX - runOn
-        integer minimumZ = firstZ - runOn
-        integer maximumX = firstX + width - 1 + runOn
-        integer maximumZ = firstZ + depth - 1 + runOn
+        // Drops roll, dig and settle only inside the brush's square, so the
+        // change stays the size of the brush.
+        integer minimumX = firstX
+        integer minimumZ = firstZ
+        integer maximumX = firstX + width - 1
+        integer maximumZ = firstZ + depth - 1
         // The drops may change anything they can reach, so it is copied
         // first, for undo.
         CopyRegionsFor(minimumX - 1, minimumZ - 1, maximumX + 1, maximumZ + 1, false)

@@ -22,6 +22,7 @@ class EditorLayer3D is Layer3D, EditorLayer
 
     Grid3D grid
     boolean gridSnapEnabled = true
+    boolean terrainGridDefaultApplied = false
 
     EditorCursor3D cursor
     
@@ -138,6 +139,27 @@ class EditorLayer3D is Layer3D, EditorLayer
     */
     action IsGridSnapping returns boolean
         return gridSnapEnabled
+    end
+
+    /*
+        Returns true once this layer's grid has been turned off for its first
+        terrain. The grid starts off on terrain, and this makes sure that is
+        only done once, so the grid key can turn it back on.
+
+        Attribute: Returns True if the grid has been turned off for this layer's first terrain.
+    */
+    action IsTerrainGridDefaultApplied returns boolean
+        return terrainGridDefaultApplied
+    end
+
+    /*
+        Records whether this layer's grid has been turned off for its first
+        terrain.
+
+        Attribute: Parameter applied True once the grid has been turned off for the first terrain.
+    */
+    action SetTerrainGridDefaultApplied(boolean applied)
+        terrainGridDefaultApplied = applied
     end
 
     /*
