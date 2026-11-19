@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Scenes.Blueprints
 
 use Libraries.Game.Graphics.TextureRegion
+use Libraries.System.File
 
 
 /*
@@ -19,6 +20,16 @@ class ItemBlueprint
     integer responsiveness = -1
     number paletteScale = 1.0
     number paletteCrop = 0.0
+    // The picture file the palette icon came from, if any, so the palette
+    // can find the part of it that is drawn.
+    File paletteIconFile = undefined
+    // The part of the palette icon that isn't see-through, as fractions of
+    // its width and height from its top left, once the palette found it.
+    boolean hasDrawnRegion = false
+    number drawnLeft = 0
+    number drawnTop = 0
+    number drawnRight = 1
+    number drawnBottom = 1
 
 
     /*
@@ -139,5 +150,82 @@ class ItemBlueprint
     */
     action SetPaletteCrop(number paletteCrop)
         me:paletteCrop = paletteCrop
+    end
+
+    /*
+        This action sets the picture file the palette icon came from, so the
+        palette can trim the see-through space around what it shows.
+
+        Attribute: Parameter file The icon's picture file.
+    */
+    action SetPaletteIconFile(File file)
+        paletteIconFile = file
+        hasDrawnRegion = false
+    end
+
+    /*
+        This action returns the picture file the palette icon came from, or
+        undefined if it wasn't loaded from a file.
+
+        Attribute: Returns The icon's picture file, or undefined.
+    */
+    action GetPaletteIconFile returns File
+        return paletteIconFile
+    end
+
+    /*
+        This action keeps the part of the palette icon that isn't
+        see-through, as fractions of its width and height from its top left,
+        so the palette finds it only once.
+
+        Attribute: Parameter left The drawn part's left edge, 0 to 1.
+        Attribute: Parameter top The drawn part's top edge, 0 to 1.
+        Attribute: Parameter right The drawn part's right edge, 0 to 1.
+        Attribute: Parameter bottom The drawn part's bottom edge, 0 to 1.
+    */
+    action SetDrawnRegion(number left, number top, number right, number bottom)
+        drawnLeft = left
+        drawnTop = top
+        drawnRight = right
+        drawnBottom = bottom
+        hasDrawnRegion = true
+    end
+
+    /*
+        This action returns true once the drawn part of the palette icon has
+        been found.
+
+        Attribute: Returns True if SetDrawnRegion was called.
+    */
+    action HasDrawnRegion returns boolean
+        return hasDrawnRegion
+    end
+
+    /*
+        Attribute: Returns The drawn part's left edge, a fraction of the icon's width.
+    */
+    action GetDrawnLeft returns number
+        return drawnLeft
+    end
+
+    /*
+        Attribute: Returns The drawn part's top edge, a fraction of the icon's height.
+    */
+    action GetDrawnTop returns number
+        return drawnTop
+    end
+
+    /*
+        Attribute: Returns The drawn part's right edge, a fraction of the icon's width.
+    */
+    action GetDrawnRight returns number
+        return drawnRight
+    end
+
+    /*
+        Attribute: Returns The drawn part's bottom edge, a fraction of the icon's height.
+    */
+    action GetDrawnBottom returns number
+        return drawnBottom
     end
 end

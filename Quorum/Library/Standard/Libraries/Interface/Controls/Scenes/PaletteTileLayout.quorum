@@ -1,0 +1,252 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Item2D
+use Libraries.Containers.Array
+use Libraries.Interface.Layouts.TreeLayout
+use Libraries.Interface.Layouts.LayoutProperties
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.TreeItem
+
+/*
+    The PaletteTileLayout places the items under a category of the scene
+    palette as tiles, as many side by side as fit in the palette's visible
+    width, row after row, so widening the palette puts more in a row.
+    Anything else under it, such as a smaller category, goes on its own
+    line, as a tree places it. Items that are hidden, such as those a search
+    left out, take no room.
+
+    The tiles are still the tree's items, in the same order, so the keyboard
+    and screen readers move through them one after another, as through a
+    list.
+*/
+class PaletteTileLayout is TreeLayout
+    // How many tiles go side by side; 0, the default, fits as many as the
+    // palette's visible width holds.
+    integer columns = 0
+    // The space between tiles, across and down, in points before the
+    // interface scale.
+    number gap = 6
+    // Room left after the widest item, as a tree leaves (TreeLayout).
+    constant number END_ROOM = 12
+
+    /*
+        Sets how many tiles go side by side, or 0, the default, to fit as many
+        as the palette's visible width holds.
+
+        Attribute: Parameter count The number of tiles in a row, or 0.
+    */
+    action SetColumns(integer count)
+        if count >= 0
+            columns = count
+        end
+    end
+
+    /*
+        Returns how many tiles are set to go side by side, or 0 if as many as
+        fit.
+
+        Attribute: Returns The number of tiles in a row, or 0.
+    */
+    action GetColumns returns integer
+        return columns
+    end
+
+    action Layout(Control container, Array<Item2D> items, number containerWidth, number containerHeight)
+        number scale = 1
+        if container not= undefined
+            scale = container:GetInterfaceScale()
+            LayoutProperties containerProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if containerProperties not= undefined and containerProperties:NeedsRendering()
+                container:LoadGraphics(containerProperties)
+            end
+        end
+        number space = gap * scale
+        number lineGap = GetPadding() * scale
+        integer across = ColumnsFor(container, items, space)
+
+        // y is the bottom of the item being placed, going down from 0, as a
+        // tree item's panel expects (TreeItemLayout).
+        number y = 0
+        integer column = 0
+        number rowHeight = 0
+        number widest = 0
+        integer i = 0
+        repeat while i < items:GetSize()
+            Item2D kid = items:Get(i)
+            if kid:IsShowing()
+                number x = 0
+                if kid is Control
+                    Control control = cast(Control, kid)
+                    LayoutProperties properties = control:GetLayoutProperties(containerWidth, containerHeight)
+                    if properties not= undefined
+                        if properties:NeedsRendering()
+                            control:LoadGraphics(properties)
+                        end
+                        x = properties:GetPixelX()
+                    end
+                end
+                kid:Resize()
+                number height = kid:GetHeight()
+
+                if kid is ScenePaletteItem
+                    if column = 0
+                        rowHeight = height
+                    elseif height > rowHeight
+                        rowHeight = height
+                    end
+                    number left = x + column * (kid:GetWidth() + space)
+                    kid:SetPosition(left, y)
+                    if left + kid:GetWidth() > widest
+                        widest = left + kid:GetWidth()
+                    end
+                    column = column + 1
+                    if column = across
+                        column = 0
+                        y = y - rowHeight - space
+                    end
+                else
+                    // A row of tiles left unfinished ends before it.
+                    if column > 0
+                        column = 0
+                        y = y - rowHeight - space
+                    end
+                    kid:SetPosition(x, y)
+                    number treeHeight = 0
+                    if kid is TreeItem
+                        TreeItem treeItem = cast(TreeItem, kid)
+                        treeHeight = treeItem:GetTreeHeight() - height
+                    end
+                    y = y - height - treeHeight - lineGap
+                    number itemWidth = kid:GetWidth()
+                    if kid is TreeItem
+                        TreeItem wideItem = cast(TreeItem, kid)
+                        itemWidth = wideItem:GetTreeWidth()
+                    end
+                    if x + itemWidth > widest
+                        widest = x + itemWidth
+                    end
+                end
+            end
+            i = i + 1
+        end
+        if column > 0
+            y = y - rowHeight - space
+        end
+
+        // The panel fits what it holds, as a tree's does (TreeLayout).
+        if container not= undefined
+            LayoutProperties fitProperties = container:GetLayoutProperties(containerWidth, containerHeight)
+            if fitProperties not= undefined
+                if fitProperties:GetHorizontalLayoutMode() = fitProperties:FIT_CONTENTS
+                    container:SetWidth(widest + END_ROOM * scale)
+                end
+                if fitProperties:GetVerticalLayoutMode() = fitProperties:FIT_CONTENTS
+                    number oldTop = container:GetY() + container:GetHeight()
+                    container:SetHeight(-y)
+                    container:SetY(oldTop - container:GetHeight())
+                end
+            end
+            container:RequestLayout()
+        end
+    end
+
+    /*
+        Returns how tall the tiles and other items under a category are, as
+        this layout places them.
+
+        Attribute: Parameter children The children of the category's panel
+        Attribute: Parameter scale The panel's interface scale
+        Attribute: Returns The height, in pixels
+    */
+    action GetItemsHeight(Array<Item2D> children, number scale) returns number
+        number space = gap * scale
+        number lineGap = GetPadding() * scale
+        integer across = ColumnsFor(undefined, children, space)
+        number height = 0
+        integer column = 0
+        number rowHeight = 0
+        integer i = 0
+        repeat while i < children:GetSize()
+            Item2D child = children:Get(i)
+            if child:IsShowing()
+                if child is ScenePaletteItem
+                    if column = 0 or child:GetHeight() > rowHeight
+                        rowHeight = child:GetHeight()
+                    end
+                    column = column + 1
+                    if column = across
+                        column = 0
+                        height = height + rowHeight + space
+                    end
+                else
+                    if column > 0
+                        column = 0
+                        height = height + rowHeight + space
+                    end
+                    if child is TreeItem
+                        TreeItem item = cast(TreeItem, child)
+                        height = height + item:GetTreeHeight() + lineGap
+                    else
+                        height = height + child:GetHeight() + lineGap
+                    end
+                end
+            end
+            i = i + 1
+        end
+        if column > 0
+            height = height + rowHeight + space
+        end
+        return height
+    end
+
+    /*
+        Returns how many tiles go in a row: the number set, or as many as fit
+        between the left of the panel's tiles and the right of the palette's
+        visible area, at least 1. The tiles all have the same width.
+    */
+    private action ColumnsFor(Control container, Array<Item2D> items, number space) returns integer
+        if columns > 0
+            return columns
+        end
+        Item2D tile = undefined
+        integer i = 0
+        repeat while i < items:GetSize() and tile = undefined
+            if items:Get(i) is ScenePaletteItem and items:Get(i):GetWidth() > 0
+                tile = items:Get(i)
+            end
+            i = i + 1
+        end
+        if tile = undefined
+            return 1
+        end
+        Item2D panel = container
+        if panel = undefined
+            panel = tile:GetParent()
+        end
+        ScenePalette palette = FindPalette(panel)
+        if palette = undefined
+            return 3
+        end
+        number left = panel:GetGlobalX() + tile:GetX()
+        number room = palette:GetTileAreaRight() - left
+        integer count = cast(integer, (room + space) / (tile:GetWidth() + space))
+        if count < 1
+            count = 1
+        end
+        return count
+    end
+
+    /*
+        Returns the scene palette a panel is in, or undefined.
+    */
+    private action FindPalette(Item2D panel) returns ScenePalette
+        Item2D item = panel
+        repeat while item not= undefined
+            if item is ScenePalette
+                return cast(ScenePalette, item)
+            end
+            item = item:GetParent()
+        end
+        return undefined
+    end
+end

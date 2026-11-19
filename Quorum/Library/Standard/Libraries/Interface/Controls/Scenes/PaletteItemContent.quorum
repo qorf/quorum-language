@@ -1,71 +1,365 @@
 package Libraries.Interface.Controls.Scenes
 
 use Libraries.Interface.Controls.TreeItemContent
+use Libraries.Interface.Controls.Control
 use Libraries.Interface.Layouts.LayoutProperties
-use Libraries.Interface.Views.LabelBoxView
-use Libraries.Game.Graphics.Color
-use Libraries.Interface.Views.View2D
+use Libraries.Interface.Layouts.ManualLayout
+use Libraries.Interface.Views.ControlShaderView
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.Graphics.Label
 use Libraries.Interface.Controls.Icon
-use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Game.Graphics.TextureRegion
 use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
+use Libraries.Game.Graphics.PixelMap
+use Libraries.System.File
 
 /*
-    The PaletteItemContent class describes the Icons and selection boxes that make
-    a palette item. The icon from an ItemBlueprint is used to create a TreeItem that is still
-    named the same as the item but instead of text uses the icon instead of text.
+    The PaletteItemContent class is how a palette item looks: a tile, a
+    rounded card with the item's thumbnail fitted in its top and its name
+    under it. Tiles sit side by side in their category (PaletteTileLayout).
+
+    The card's colors come from the interface options under "PaletteTile": a
+    mid tone in both themes, so thumbnails drawn in thin white lines, such as
+    a light's or a sound's, show against it, and so do stone or wood models.
+    A selected tile takes the selection color with a focus colored edge.
+
+    A long name is shortened on the tile; screen readers say all of it.
 */
 class PaletteItemContent is TreeItemContent
-
+    // The rounded card behind the thumbnail and name. It is its own control
+    // so that coloring it never changes the colors this tile reads from the
+    // interface options.
+    Control card
     Icon icon
-    integer padding = 4
+    Label nameLabel
+    boolean loaded = false
+    // The blueprint this tile shows, kept so the thumbnail can be trimmed
+    // when the tile is first drawn rather than when it is made.
+    ItemBlueprint shownBlueprint = undefined
+    // The whole name, which the tile wraps onto two lines.
+    text fullName = ""
+    // The interface scale the name was last wrapped at, 0 if not yet.
+    number wrappedScale = 0
+    // The thumbnail's own size, before it is fitted.
+    number iconWidth = 0
+    number iconHeight = 0
+
+    // Sizes in points, before the interface scale.
+    // A tile is the inset, the thumbnail, a small gap, two lines of the
+    // name, and the inset again.
+    constant number TILE_WIDTH = 88
+    constant number TILE_HEIGHT = 118
+    constant number THUMBNAIL_SIZE = 70
+    constant number INSET = 6
+    constant number NAME_GAP = 4
+    // How far the name stays from the tile's sides.
+    constant number NAME_SIDE = 4
+    constant number ROUNDING = 8
+    constant integer NAME_SIZE = 12
+    // The most lines a name takes; a longer one is shortened with "...".
+    constant integer NAME_LINES = 2
 
     on create
-        FlowLayout layout
+        ManualLayout layout
+        // The layout sizes the tile too, and loads its graphics (its card),
+        // which nothing else here does.
+        layout:ApplyToContainer(true)
         SetLayout(layout)
+        SetInterfaceOptionsKey("PaletteTile")
 
         LayoutProperties properties = GetDefaultLayoutProperties()
+        properties:SetHorizontalLayoutMode(properties:STANDARD)
+        properties:SetVerticalLayoutMode(properties:STANDARD)
+        properties:SetPercentageWidth(0)
+        properties:SetPercentageHeight(0)
+        properties:SetPixelWidth(TILE_WIDTH)
+        properties:SetPixelHeight(TILE_HEIGHT)
 
-        properties:SetHorizontalLayoutMode(properties:FIT_CONTENTS)
-        properties:SetVerticalLayoutMode(properties:FIT_CONTENTS)
+        card:SetName("Palette Tile Card")
+        card:SetAcceptsMouseInput(false)
+        card:SetFocusable(false)
+        card:SetAccessibilityCode(card:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties cardProperties = card:GetDefaultLayoutProperties()
+        cardProperties:SetHorizontalLayoutMode(cardProperties:STANDARD)
+        cardProperties:SetVerticalLayoutMode(cardProperties:STANDARD)
+        card:SetPercentageX(0)
+        card:SetPercentageY(0)
+        card:SetPercentageWidth(1)
+        card:SetPercentageHeight(1)
+        card:SetCornerPixelRounding(ROUNDING, ROUNDING, ROUNDING, ROUNDING)
+        card:SetBorderThickness(1)
+        Add(card)
 
         icon:SetName("Palette Icon")
-        icon:SetLeftMargin(padding)
-        icon:SetRightMargin(padding)
-        icon:SetTopMargin(padding)
-        icon:SetBottomMargin(padding)
+        icon:SetAcceptsMouseInput(false)
+        icon:SetAccessibilityCode(icon:parent:Item:NOT_ACCESSIBLE)
+        LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
+        iconProperties:SetHorizontalLayoutMode(iconProperties:STANDARD)
+        iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
+        icon:SetPercentageWidth(0)
+        icon:SetPercentageHeight(0)
+        // Centered across.
+        icon:SetPercentageX(0.5)
+        icon:SetPercentageOriginX(0.5)
         Add(icon)
+
+        nameLabel:SetAcceptsMouseInput(false)
+        nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
+        nameLabel:SetFontSize(NAME_SIZE)
+        nameLabel:SetPositionOnBaseLine(false)
+        // Under the thumbnail, from the tile's left inset, justified: a
+        // line that wraps is spread to the tile's width, and the last line
+        // starts at the left.
+        nameLabel:SetAlignment(nameLabel:JUSTIFY_ALIGN)
+        nameLabel:SetPercentageX(0)
+        nameLabel:SetPercentageOriginX(0)
+        nameLabel:SetPercentageY(0)
+        Add(nameLabel)
 
         SetInputGroup("PaletteItemContent")
     end
 
     /*
-        Loads the content of the PaletteItem by taking the texture in the 
-        palette icon field of the blueprint. The icon is cropped and scaled
-        appropriately based on the information in the blueprint.
+        Loads the tile from the item's blueprint: its palette icon, cropped as
+        the blueprint says, fitted inside the top of the tile, keeping its
+        shape, and its name.
     */
     action Load(ItemBlueprint itemBlueprint)
+        shownBlueprint = itemBlueprint
         TextureRegion texture = itemBlueprint:GetPaletteIcon()
-        number scale = itemBlueprint:GetPaletteScale()
-        number crop = itemBlueprint:GetPaletteCrop()
-
-        if crop not= 0
-            texture:SetRegion(crop, crop, 1.0 - crop, 1.0 - crop)
+        if itemBlueprint:HasDrawnRegion()
+            texture:SetRegion(itemBlueprint:GetDrawnLeft(), itemBlueprint:GetDrawnTop(),
+                itemBlueprint:GetDrawnRight(), itemBlueprint:GetDrawnBottom())
+        else
+            // Until the tile is drawn (TrimThumbnail), or if its picture
+            // isn't a file, the blueprint's own crop.
+            number crop = itemBlueprint:GetPaletteCrop()
+            if crop not= 0
+                texture:SetRegion(crop, crop, 1.0 - crop, 1.0 - crop)
+            end
         end
-
         icon:Load(texture)
-        icon:SetPixelWidth(icon:GetWidth() * scale)
-        icon:SetPixelHeight(icon:GetHeight() * scale)
+        iconWidth = icon:GetWidth()
+        iconHeight = icon:GetHeight()
+        ShowName(itemBlueprint:GetName())
+        PlaceParts()
         RequestLayout()
     end
 
     /*
-    This action updates the text on the content. Most commonly, this is the name of the TreeItem,
-    which is used to set the text of the content's label.
+        Shows only the drawn part of the thumbnail, so a small object in a
+        large picture fills the thumbnail like a large one does; its real
+        size shows in the scene. Finding that part reads the picture's file,
+        so it is done when the tile is first drawn, once per item: the
+        palette makes a tile for every item, even in closed categories, and
+        reading all of their files at once held Studio up as it started.
+    */
+    private action TrimThumbnail
+        if shownBlueprint = undefined or shownBlueprint:GetPaletteIconFile() = undefined
+            return now
+        end
+        if not shownBlueprint:HasDrawnRegion()
+            FindDrawnRegion(shownBlueprint)
+        end
+        TextureRegion texture = shownBlueprint:GetPaletteIcon()
+        texture:SetRegion(shownBlueprint:GetDrawnLeft(), shownBlueprint:GetDrawnTop(),
+            shownBlueprint:GetDrawnRight(), shownBlueprint:GetDrawnBottom())
+        icon:Load(texture)
+        iconWidth = icon:GetWidth()
+        iconHeight = icon:GetHeight()
+    end
+
+    /*
+        Finds the part of the blueprint's icon picture that isn't
+        see-through and keeps it on the blueprint, with a little room around
+        it. About 128 points are tested across and down, so a large picture
+        is as quick as a small one. A picture that can't be read, or is all
+        see-through, keeps all of it.
+    */
+    private action FindDrawnRegion(ItemBlueprint itemBlueprint)
+        PixelMap pixels
+        check
+            pixels:LoadPixelMap(itemBlueprint:GetPaletteIconFile())
+        detect problem
+            itemBlueprint:SetDrawnRegion(0, 0, 1, 1)
+            return now
+        end
+        integer width = pixels:GetWidth()
+        integer height = pixels:GetHeight()
+        if width <= 0 or height <= 0
+            pixels:Dispose()
+            itemBlueprint:SetDrawnRegion(0, 0, 1, 1)
+            return now
+        end
+        integer stepX = 1 + width / 128
+        integer stepY = 1 + height / 128
+        integer leftmost = width
+        integer topmost = height
+        integer rightmost = -1
+        integer bottommost = -1
+        integer y = 0
+        repeat while y < height
+            integer x = 0
+            repeat while x < width
+                integer alpha = pixels:GetPixel(x, y) mod 256
+                if alpha < 0
+                    alpha = alpha + 256
+                end
+                // Nearly see-through edges, such as a soft shadow, don't count.
+                if alpha > 24
+                    if x < leftmost
+                        leftmost = x
+                    end
+                    if x > rightmost
+                        rightmost = x
+                    end
+                    if y < topmost
+                        topmost = y
+                    end
+                    if y > bottommost
+                        bottommost = y
+                    end
+                end
+                x = x + stepX
+            end
+            y = y + stepY
+        end
+        pixels:Dispose()
+        if rightmost < 0
+            itemBlueprint:SetDrawnRegion(0, 0, 1, 1)
+            return now
+        end
+
+        // A sample may miss the very edge, so the region reaches one step
+        // further, plus a little room so the object doesn't touch the box.
+        number across = rightmost - leftmost + stepX
+        number down = bottommost - topmost + stepY
+        number room = across
+        if down > room
+            room = down
+        end
+        room = room * 0.06
+        number left = (leftmost - stepX - room) / width
+        number top = (topmost - stepY - room) / height
+        number right = (rightmost + stepX + room) / width
+        number bottom = (bottommost + stepY + room) / height
+        if left < 0
+            left = 0
+        end
+        if top < 0
+            top = 0
+        end
+        if right > 1
+            right = 1
+        end
+        if bottom > 1
+            bottom = 1
+        end
+        itemBlueprint:SetDrawnRegion(left, top, right, bottom)
+    end
+
+    /*
+        Sizes the thumbnail to fit its box and puts it and the name in their
+        places. The layout scales sizes but not positions, so positions are
+        scaled here.
+    */
+    private action PlaceParts
+        number scale = GetInterfaceScale()
+        // The tile sizes itself, so the tree can measure it before the
+        // layout runs.
+        if GetWidth() not= TILE_WIDTH * scale or GetHeight() not= TILE_HEIGHT * scale
+            SetSize(TILE_WIDTH * scale, TILE_HEIGHT * scale)
+        end
+        if wrappedScale not= scale
+            WrapName()
+        end
+        number width = THUMBNAIL_SIZE
+        number height = THUMBNAIL_SIZE
+        if iconWidth > 0 and iconHeight > 0
+            if iconWidth >= iconHeight
+                height = THUMBNAIL_SIZE * iconHeight / iconWidth
+            else
+                width = THUMBNAIL_SIZE * iconWidth / iconHeight
+            end
+        end
+        icon:SetPixelWidth(width)
+        icon:SetPixelHeight(height)
+        // Centered down in the box above the name.
+        number boxBottom = TILE_HEIGHT - INSET - THUMBNAIL_SIZE
+        icon:SetPixelY((boxBottom + (THUMBNAIL_SIZE - height) / 2) * scale)
+        // The name's first line is just under the thumbnail, however many
+        // lines it takes: a label's later lines hang below its position, so
+        // it is placed by one line's height, not by its whole height.
+        number nameTop = (boxBottom - NAME_GAP) * scale
+        number lineHeight = nameLabel:GetHeight()
+        integer lines = nameLabel:GetLineCount()
+        if lines > 1
+            lineHeight = lineHeight / lines
+        end
+        nameLabel:SetPixelX(NAME_SIDE * scale)
+        nameLabel:SetPixelY(nameTop - lineHeight)
+    end
+
+    /*
+        Shows a name on the tile, wrapped to its width.
+    */
+    private action ShowName(text name)
+        if name = undefined
+            name = ""
+        end
+        fullName = name
+        wrappedScale = 0
+        WrapName()
+    end
+
+    /*
+        Wraps the name to the tile's width, centered, on at most NAME_LINES
+        lines. A name that needs more is cut a letter at a time, ending in
+        "...", until it fits.
+    */
+    private action WrapName
+        number scale = GetInterfaceScale()
+        wrappedScale = scale
+        nameLabel:SetMaximumWidth((TILE_WIDTH - 2 * NAME_SIDE) * scale)
+        nameLabel:SetText(fullName)
+        integer letters = fullName:GetSize()
+        repeat while NameLines() > NAME_LINES and letters > 1
+            letters = letters - 1
+            nameLabel:SetText(fullName:GetSubtext(0, letters):Trim() + "...")
+        end
+    end
+
+    /*
+        Returns how many lines the name takes now. A label arranges its text
+        when asked for its size, and only then counts its lines.
+    */
+    private action NameLines returns integer
+        if nameLabel:GetHeight() < 0
+            return 0
+        end
+        return nameLabel:GetLineCount()
+    end
+
+    /*
+    This action keeps the tile's own look, "PaletteTile", whatever key it is
+    given. A tree gives each row's content the tree's key, which would draw
+    the card in the panel's own color.
+
+    Attribute: Parameter key Not used; the tile always uses "PaletteTile".
+    */
+    action SetInterfaceOptionsKey(text key)
+        parent:Control:SetInterfaceOptionsKey("PaletteTile")
+    end
+
+    /*
+    This action updates the text on the content. Most commonly, this is the
+    name of the TreeItem: the tile shows it, shortened if long, and screen
+    readers say all of it.
     */
     action UpdateText(text newText)
         SetName(newText + " Palette Item")
+        ShowName(newText)
     end
 
     /*
@@ -91,47 +385,51 @@ class PaletteItemContent is TreeItemContent
     end
 
     action GainedSelection
-        View2D view = GetView2D()
-        if view is LabelBoxView
-            LabelBoxView boxView = cast(LabelBoxView, view)
-            boxView:SetBackgroundColor(GetSelectionColor())
-        end
+        ShowCard(GetSelectionColor(), GetFocusBorderColor(), GetSelectionFontColor())
         parent:Control:GainedSelection()
     end
 
     action LostSelection
-        View2D view = GetView2D()
-        if view is LabelBoxView
-            LabelBoxView boxView = cast(LabelBoxView, view)
-            boxView:SetBackgroundColor(GetBackgroundColor())
-        end
+        ShowCard(GetBackgroundColor(), GetBorderColor(), GetFontColor())
         parent:Control:LostSelection()
     end
 
     action UnfocusedSelection
-        View2D view = GetView2D()
-        if view is LabelBoxView
-            LabelBoxView boxView = cast(LabelBoxView, view)
-            boxView:SetBackgroundColor(GetUnfocusedSelectionColor())
+        ShowCard(GetUnfocusedSelectionColor(), GetBorderColor(), GetFontColor())
+    end
+
+    /*
+        Colors the tile's card, its edge and the name. A color the options
+        leave out keeps the one shown now.
+    */
+    private action ShowCard(ColorGroup fill, ColorGroup edge, ColorGroup words)
+        if fill not= undefined
+            card:SetBackgroundColor(fill)
         end
+        if edge not= undefined
+            card:SetBorderColor(edge)
+        end
+        if words not= undefined
+            nameLabel:SetFontColor(words)
+        end
+        card:RequestVerticesUpdate()
     end
 
     action LoadGraphics(LayoutProperties properties)
-        if GetView2D() = undefined
-            LabelBoxView view
+        if not loaded
+            loaded = true
+            TrimThumbnail()
+            ControlShaderView view
+            view:Initialize()
+            card:SetView2D(view)
             TreeItem item = GetTreeItem()
-            Color transparent
-            transparent:SetColor(0, 0, 0, 0)
-            if item:IsSelected()
-                view:Initialize(GetSelectionColor(), transparent)
+            if item not= undefined and item:IsSelected()
+                ShowCard(GetSelectionColor(), GetFocusBorderColor(), GetSelectionFontColor())
             else
-                view:Initialize(GetBackgroundColor(), transparent)
+                ShowCard(GetBackgroundColor(), GetBorderColor(), GetFontColor())
             end
-
-            SetView2D(view)
         end
-
+        PlaceParts()
         parent:Control:LoadGraphics(properties)
     end
-
 end

@@ -472,6 +472,19 @@ class TreeItem is Control
     end
 
     /*
+    This action sets how the items under this one are placed, such as side
+    by side in tiles (PaletteTileLayout) instead of one under another.
+
+    Attribute: Parameter layout The layout for this item's panel.
+    */
+    action SetChildrenLayout(TreeLayout layout)
+        if layout not= undefined
+            panel:SetLayout(layout)
+            panel:RequestLayout()
+        end
+    end
+
+    /*
     This action sets the Tree this item belongs to, and does the same for
     every item under it. It is called automatically when the item is added to
     a Tree or to another item, so most programs never call it directly.
@@ -674,28 +687,11 @@ class TreeItem is Control
         if open
             number height = GetHeight()
 
+            // The panel's layout says how tall the items under this one are:
+            // one under another, or side by side (PaletteTileLayout). It
+            // scales the gaps by the panel's scale.
             TreeLayout treeLayout = GetPanelLayout()
-            // TreeLayout scales the gap between rows by the panel's scale.
-            number padding = treeLayout:GetPadding() * panel:GetInterfaceScale()
-
-            integer counter = 0
-            Array<Item2D> children = panel:GetChildren()
-            repeat while counter < children:GetSize()
-                Item2D child = children:Get(counter)
-
-                if child is TreeItem
-                    TreeItem item = cast(TreeItem, child)
-                    height = height + item:GetTreeHeight()
-                else
-                    height = height + child:GetHeight()
-                end
-
-                counter = counter + 1
-            end
-
-            height = height + children:GetSize() * padding
-
-            return height
+            return height + treeLayout:GetItemsHeight(panel:GetChildren(), panel:GetInterfaceScale())
         else
             return GetHeight()
         end

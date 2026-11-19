@@ -49,6 +49,46 @@ class ModelSelectionHighlight is SelectionHighlight3D
     end
 
     /*
+        Returns true if the selected model shows a color chosen in the
+        editor over its own colors (Override color in the Properties panel).
+        Without this, the highlight answered for itself, and was never
+        overridden.
+
+        Attribute: Returns True if the model's color is overridden
+    */
+    action IsColorOverridden returns boolean
+        EditorModel item = GetEditorModel()
+        if item not= undefined
+            return item:IsColorOverridden()
+        end
+        return false
+    end
+
+    /*
+        Shows a color over the selected model's own colors, which it keeps
+        so they can be put back. Without this, the color went on the
+        highlight's box, and the model didn't change.
+
+        Attribute: Parameter color The color to show
+    */
+    action OverrideColor(Color color)
+        EditorModel item = GetEditorModel()
+        if item not= undefined
+            item:OverrideColor(color)
+        end
+    end
+
+    /*
+        Puts the selected model's own colors back, after OverrideColor.
+    */
+    action RestoreColor
+        EditorModel item = GetEditorModel()
+        if item not= undefined
+            item:RestoreColor()
+        end
+    end
+
+    /*
         Scale adjusts the dimensions of the model on each axis. This action
         scales the model on all 3 axis based on each value in the Vector3.
         The highlight is adjusted accordingly to contain the model.

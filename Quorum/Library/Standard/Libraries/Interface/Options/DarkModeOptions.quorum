@@ -177,6 +177,18 @@ class DarkModeOptions is InterfaceOptions
         SetBorderColor("ColorWell", color:CustomColor(150.0 / MAX, 157.0 / MAX, 166.0 / MAX, 1))
         SetFocusBorderColor("ColorWell", color:CustomColor(111.0 / MAX, 163.0 / MAX, 255.0 / MAX, 1))
 
+        // PaletteTile: a scene palette item's card, a little darker than the
+        // panel (60, 63, 65), so the tiles read as a tray the items sit in,
+        // with a lighter edge to outline each one. White and light
+        // thumbnails show well on it; the name is 4.5 to 1 or more against
+        // it. A selected tile takes the selection color, with the focus
+        // color on its edge.
+        SetBackgroundColor("PaletteTile", color:CustomColor(47.0 / MAX, 49.0 / MAX, 52.0 / MAX, 1))
+        SetBorderColor("PaletteTile", color:CustomColor(85.0 / MAX, 89.0 / MAX, 94.0 / MAX, 1))
+        SetFontColor("PaletteTile", color:CustomColor(230.0 / MAX, 232.0 / MAX, 235.0 / MAX, 1))
+        SetSelectionFontColor("PaletteTile", color:White())
+        SetUnfocusedSelectionColor("PaletteTile", color:CustomColor(70.0 / MAX, 80.0 / MAX, 104.0 / MAX, 1))
+
         // Calendar: background = the panel, the fields' color, so it shows on
         // the page and in a Grouping; font = a day's number; foreground = other
         // months' and unavailable days (dimmed, still 4.5 to 1 against the

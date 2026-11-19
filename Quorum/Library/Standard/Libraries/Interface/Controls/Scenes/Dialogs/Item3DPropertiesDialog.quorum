@@ -27,6 +27,10 @@ use Libraries.Interface.Controls.Scenes.Items.Previews.Custom3DPrimitivePreview
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesEnablePhysicsBehavior
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesFollowGroundBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesLeanWithSlopeBehavior
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesOverrideColorBehavior
+use Libraries.Interface.Events.PropertiesColorWellListener
+use Libraries.Interface.Controls.ColorWell
 
 class Item3DPropertiesDialog is PropertiesDialog
 
@@ -42,9 +46,10 @@ class Item3DPropertiesDialog is PropertiesDialog
     TextField rotationYawField = undefined
     TextField rotationPitchField = undefined
     TextField rotationRollField = undefined
-    TextField colorRedField = undefined
-    TextField colorGreenField = undefined
-    TextField colorBlueField = undefined
+    // The Look card: whether a chosen color shows over the item's own
+    // colors, and the color.
+    Checkbox overrideColorCheckbox = undefined
+    ColorWell colorWell = undefined
     Checkbox physicsEnabledCheckbox = undefined
     ButtonGroup responsivenessGroup = undefined
     TextField massField = undefined
@@ -54,6 +59,8 @@ class Item3DPropertiesDialog is PropertiesDialog
     // height above the ground.
     Control followGroundLine = undefined
     Checkbox followGroundCheckbox = undefined
+    Control leanWithSlopeLine = undefined
+    Checkbox leanWithSlopeCheckbox = undefined
     boolean settingFields = false
 
     // The width of the box each line's label sits in, so the fields after
@@ -111,11 +118,43 @@ class Item3DPropertiesDialog is PropertiesDialog
         placeCard:Add(followGroundLine)
         focusArray:Add(followGroundCheckbox)
 
+        // For a new item's preview only, as Follow the ground is.
+        Control leanLine = MakeCardLine()
+        leanWithSlopeLine = leanLine
+        Checkbox leanCheckbox
+        leanWithSlopeCheckbox = leanCheckbox
+        leanWithSlopeCheckbox:SetName("Lean with the slope")
+        leanWithSlopeCheckbox:SetDescription("Set on the ground by the pointer, it leans with the ground's slope, as foliage can")
+        PropertiesLeanWithSlopeBehavior leanBehavior
+        leanBehavior:SetDialog(me)
+        leanWithSlopeCheckbox:SetBehavior(leanBehavior)
+        leanWithSlopeLine:Add(leanWithSlopeCheckbox)
+        placeCard:Add(leanWithSlopeLine)
+        focusArray:Add(leanWithSlopeCheckbox)
+
+        // The Look card: Override color, and a well for the color. Choosing
+        // a color in the well turns Override color on.
         Control lookCard = AddCard(panel, "Look")
-        Array<TextField> color = AddTriple(lookCard, "Color", "Red", "Green", "Blue", "r", "g", "b", focusArray)
-        colorRedField = color:Get(0)
-        colorGreenField = color:Get(1)
-        colorBlueField = color:Get(2)
+        Control colorLine = MakeCardLine()
+        Checkbox overrideCheckbox
+        overrideColorCheckbox = overrideCheckbox
+        overrideColorCheckbox:SetName("Override color")
+        overrideColorCheckbox:SetDescription("Show the chosen color over the item's own colors; unchecked, its own colors come back")
+        PropertiesOverrideColorBehavior overrideBehavior
+        overrideBehavior:SetDialog(me)
+        overrideColorCheckbox:SetBehavior(overrideBehavior)
+        overrideColorCheckbox:SetRightMargin(12)
+        colorLine:Add(overrideColorCheckbox)
+        ColorWell well
+        colorWell = well
+        colorWell:SetName("Color")
+        PropertiesColorWellListener wellListener
+        wellListener:SetDialog(me)
+        colorWell:AddColorWellListener(wellListener)
+        colorLine:Add(colorWell)
+        lookCard:Add(colorLine)
+        focusArray:Add(overrideColorCheckbox)
+        focusArray:Add(colorWell)
 
         Control physicsCard = AddCard(panel, "Physics")
         Control physicsLine = MakeCardLine()
@@ -352,8 +391,11 @@ class Item3DPropertiesDialog is PropertiesDialog
             ItemPreview3D preview = cast(ItemPreview3D, item)
             followGroundCheckbox:SetToggleState(preview:IsFollowingGround())
             followGroundLine:Show()
+            leanWithSlopeCheckbox:SetToggleState(preview:IsLeaningWithSlope())
+            leanWithSlopeLine:Show()
         else
             followGroundLine:Hide()
+            leanWithSlopeLine:Hide()
         end
         settingFields = false
         nameField:SetText(item:GetName())
@@ -367,16 +409,15 @@ class Item3DPropertiesDialog is PropertiesDialog
         rotationPitchField:SetText("" + item:GetPitch())
         rotationRollField:SetText("" + item:GetRoll())
         
+        settingFields = true
+        overrideColorCheckbox:SetToggleState(item:IsColorOverridden())
         Color color = item:GetColor()
         if color not= undefined
-            colorRedField:SetText("" + color:GetRed())
-            colorGreenField:SetText("" + color:GetGreen())
-            colorBlueField:SetText("" + color:GetBlue())
-        else
-            colorRedField:SetText("")
-            colorGreenField:SetText("")
-            colorBlueField:SetText("")
+            Color shown = color:Copy()
+            shown:SetAlpha(1.0)
+            colorWell:SetColor(shown)
         end
+        settingFields = false
 
         physicsEnabledCheckbox:SetToggleState(item:IsEditorPhysicsEnabled())
         
@@ -500,39 +541,6 @@ class Item3DPropertiesDialog is PropertiesDialog
             detect e is Error
                 // Do nothing.
             end
-        elseif control:Equals(colorRedField)
-            check
-                number value = colorRedField:GetText():ParseNumber()
-                Color color = currentItem:GetColor()
-                if value not= color:GetRed()
-                    color:SetRed(value)
-                    currentItem:SetColor(color)
-                end
-            detect e is Error
-                // Do nothing.
-            end
-        elseif control:Equals(colorGreenField)
-            check
-                number value = colorGreenField:GetText():ParseNumber()
-                Color color = currentItem:GetColor()
-                if value not= color:GetGreen()
-                    color:SetGreen(value)
-                    currentItem:SetColor(color)
-                end
-            detect e is Error
-                // Do nothing.
-            end
-        elseif control:Equals(colorBlueField)
-            check
-                number value = colorBlueField:GetText():ParseNumber()
-                Color color = currentItem:GetColor()
-                if value not= color:GetBlue()
-                    color:SetBlue(value)
-                    currentItem:SetColor(color)
-                end
-            detect e is Error
-                // Do nothing.
-            end
         elseif control:Equals(massField)
             check
                 number value = massField:GetText():ParseNumber()
@@ -586,6 +594,84 @@ class Item3DPropertiesDialog is PropertiesDialog
             ItemPreview3D preview = cast(ItemPreview3D, item)
             preview:SetFollowingGround(follow)
         end
+    end
+
+    /*
+        This action sets whether the selected new item's preview leans with
+        the ground's slope when the pointer sets it on the ground. The Lean
+        with the slope checkbox calls it.
+
+        Attribute: Parameter lean True to lean with the slope
+    */
+    action SetLeanWithSlope(boolean lean)
+        if settingFields
+            return now
+        end
+        EditorItem item = GetSceneEditor():GetSelectedItem()
+        if item is ItemPreview3D
+            ItemPreview3D preview = cast(ItemPreview3D, item)
+            preview:SetLeaningWithSlope(lean)
+        end
+    end
+
+    /*
+        This action turns Override color on or off for the selected item: on,
+        the well's color shows over its own colors; off, its own colors come
+        back. The Override color checkbox calls it.
+
+        Attribute: Parameter override True to show the chosen color
+    */
+    action SetOverrideColor(boolean override)
+        if settingFields
+            return now
+        end
+        EditorItem item = GetSceneEditor():GetSelectedItem()
+        if not (item is EditorItem3D)
+            return now
+        end
+        EditorItem3D item3D = cast(EditorItem3D, item)
+        if override
+            ShowChosenColor(item3D)
+        else
+            item3D:RestoreColor()
+        end
+    end
+
+    /*
+        This action is called as a color is chosen in the Look card's well:
+        it shows over the selected item's own colors, and Override color
+        turns on.
+
+        Attribute: Parameter color The color chosen
+    */
+    action ColorChosen(Color color)
+        if settingFields or color = undefined
+            return now
+        end
+        EditorItem item = GetSceneEditor():GetSelectedItem()
+        if not (item is EditorItem3D)
+            return now
+        end
+        if not overrideColorCheckbox:GetToggleState()
+            settingFields = true
+            overrideColorCheckbox:SetToggleState(true)
+            settingFields = false
+        end
+        ShowChosenColor(cast(EditorItem3D, item))
+    end
+
+    /*
+        Puts the well's color over an item's own colors. A new item's preview
+        stays see-through, as it was made.
+    */
+    private action ShowChosenColor(EditorItem3D item)
+        Color chosen = colorWell:GetColor():Copy()
+        if item is ItemPreview3D and item:GetColor() not= undefined
+            chosen:SetAlpha(item:GetColor():GetAlpha())
+        else
+            chosen:SetAlpha(1.0)
+        end
+        item:OverrideColor(chosen)
     end
 
     action SetPhysicsEnabled(boolean enabled)

@@ -46,6 +46,11 @@ class ItemPreview is EditorItem
         removed, unless the focus went into the Properties, which edit it.
     */
     action LostFocus(FocusEvent event)
+        // While a copy of it is being placed, the placeholder stays, and
+        // takes the focus back when the copy is in.
+        if GetSceneEditor() not= undefined and GetSceneEditor():IsPlacingCopyNow()
+            return now
+        end
         if event:GetNewFocus() is Item2D
             Item2D item = cast(Item2D, event:GetNewFocus())
             if item:GetLayer() is DialogLayer

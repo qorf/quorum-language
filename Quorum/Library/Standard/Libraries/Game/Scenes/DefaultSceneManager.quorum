@@ -766,8 +766,19 @@ number restitution = 0
             elseif type = properties:CUSTOM
                 model:Load(ConvertToProjectFile(file))
                 model:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+                // A model file's saved color goes on every part, as it was
+                // shown: Model:SetColor(color) colors only the first part on
+                // Vulkan. Each part gets its own copy.
                 if color not= undefined
-                    model:SetColor(color)
+                    integer part = 0
+                    integer parts = model:GetMeshCount()
+                    if parts < 1
+                        parts = 1
+                    end
+                    repeat while part < parts
+                        model:SetColor(part, color:Copy())
+                        part = part + 1
+                    end
                 end
             end
         elseif audio not= undefined

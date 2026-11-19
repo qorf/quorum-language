@@ -190,6 +190,17 @@ class LightModeOptions is InterfaceOptions
         SetBorderColor("ColorWell", color:CustomColor(118.0 / MAX, 124.0 / MAX, 132.0 / MAX, 1))
         SetFocusBorderColor("ColorWell", color:CustomColor(38.0 / MAX, 117.0 / MAX, 191.0 / MAX, 1))
 
+        // PaletteTile: a scene palette item's card, a little darker than the
+        // panel (234 gray), so the tiles read as a tray the items sit in,
+        // with a darker edge to outline each one. The name is dark, 4.5 to 1
+        // or more against it. A selected tile takes the selection color,
+        // with white text and the focus color on its edge.
+        SetBackgroundColor("PaletteTile", color:CustomColor(220.0 / MAX, 222.0 / MAX, 225.0 / MAX, 1))
+        SetBorderColor("PaletteTile", color:CustomColor(186.0 / MAX, 190.0 / MAX, 196.0 / MAX, 1))
+        SetFontColor("PaletteTile", color:CustomColor(31.0 / MAX, 35.0 / MAX, 40.0 / MAX, 1))
+        SetSelectionFontColor("PaletteTile", color:White())
+        SetUnfocusedSelectionColor("PaletteTile", color:CustomColor(196.0 / MAX, 208.0 / MAX, 230.0 / MAX, 1))
+
         // Calendar: background = the panel, the fields' color, so it shows on
         // the page and in a Grouping; font = a day's number; foreground = other
         // months' and unavailable days (dimmed, still 4.5 to 1 against the

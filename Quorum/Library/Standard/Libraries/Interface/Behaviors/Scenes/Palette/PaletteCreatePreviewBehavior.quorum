@@ -43,9 +43,13 @@ class PaletteCreatePreviewBehavior is Behavior
                 CustomItemBlueprint custom = cast(CustomItemBlueprint, schematic)
                 if custom:IsFileValid(result)
                     controller:CreateItemPreview(custom, result)
+                    controller:BeginPlacingCopies()
                 end
             else
                 controller:CreateItemPreview(item:GetItemBlueprint())
+                // Enter or a double click places copies; dragging from the
+                // palette places one (SceneEditorAcceptDragBehavior).
+                controller:BeginPlacingCopies()
             end
         end 
     end

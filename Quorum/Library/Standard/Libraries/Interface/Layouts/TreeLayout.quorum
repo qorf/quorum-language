@@ -113,6 +113,32 @@ class TreeLayout is Layout
         end
     end
 
+    /*
+    This action returns how tall a tree item's children are, as this layout
+    places them: each child's height (with the items open under it) and the
+    gaps between them. TreeItem:GetTreeHeight uses it, so a layout that
+    places children differently, such as side by side, says its own height.
+
+    Attribute: Parameter children The children of a tree item's panel
+    Attribute: Parameter scale The panel's interface scale, for the gaps
+    Attribute: Returns The height, in pixels
+    */
+    action GetItemsHeight(Array<Item2D> children, number scale) returns number
+        number height = 0
+        integer counter = 0
+        repeat while counter < children:GetSize()
+            Item2D child = children:Get(counter)
+            if child is TreeItem
+                TreeItem item = cast(TreeItem, child)
+                height = height + item:GetTreeHeight()
+            else
+                height = height + child:GetHeight()
+            end
+            counter = counter + 1
+        end
+        return height + children:GetSize() * padding * scale
+    end
+
     action IsTopAligned returns boolean
         return isTopAligned
     end

@@ -22,6 +22,10 @@ class ItemPreview3D is ItemPreview, EditorItem3D
     // height as it is.
     boolean followGround = false
 
+    // True if, set on the ground by the pointer, the preview leans with the
+    // ground's slope, as foliage can; false, the default, keeps it upright.
+    boolean leanWithSlope = false
+
     on create
         SetInputGroup("NewItemPreview3D")
     end
@@ -51,6 +55,28 @@ class ItemPreview3D is ItemPreview, EditorItem3D
     */
     action SetFollowingGround(boolean follow)
         followGround = follow
+    end
+
+    /*
+        Returns true if the preview leans with the ground's slope when the
+        pointer sets it on the ground, set in the Properties panel's Place
+        card.
+
+        Attribute: Returns True to lean with the slope
+    */
+    action IsLeaningWithSlope returns boolean
+        return leanWithSlope
+    end
+
+    /*
+        Sets whether the preview leans with the ground's slope when the
+        pointer sets it on the ground: its pitch and roll then come from the
+        ground. It is off by default.
+
+        Attribute: Parameter lean True to lean with the slope
+    */
+    action SetLeaningWithSlope(boolean lean)
+        leanWithSlope = lean
     end
 
     /*

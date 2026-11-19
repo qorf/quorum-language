@@ -101,23 +101,29 @@ class ModelPreview is ItemPreview3D
         EditorModel model
         model:SetName(GetName())
         
-        // The preview's own color, which the Properties panel may have
-        // changed before the item was placed. The preview is drawn see-through
-        // (Load), so the placed item gets its color fully opaque.
-        Color color = GetColor():Copy()
-        color:SetAlpha(1.0)
+        // The item's own color: a shape's from its blueprint, a model file's
+        // its own. With "Override color" on, the color chosen in the
+        // Properties panel goes over it, kept so it can be put back. The
+        // preview is drawn see-through (Load), so the placed item's color is
+        // fully opaque.
+        Color own = schematic:GetColor():Copy()
+        own:SetAlpha(1.0)
         integer modelType = schematic:GetModelType()
         SceneProperties properties
 
         if modelType = properties:BOX
-            model:LoadBox(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+            model:LoadBox(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), own)
         elseif modelType = properties:SPHERE
-            model:LoadSphere(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+            model:LoadSphere(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), own)
         elseif modelType = properties:CYLINDER
-            model:LoadCylinder(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), color)
+            model:LoadCylinder(schematic:GetWidth(), schematic:GetHeight(), schematic:GetDepth(), own)
         elseif modelType = properties:CUSTOM
             model:Load(modelFile)
-            SetColor(color)
+        end
+        if IsColorOverridden() and GetColor() not= undefined
+            Color chosen = GetColor():Copy()
+            chosen:SetAlpha(1.0)
+            model:OverrideColor(chosen)
         end
 
         //add a property with its color for now

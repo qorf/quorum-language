@@ -22,6 +22,8 @@ use Libraries.Interface.Controls.Scenes.Blueprints.SpotLightBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Controls.Scenes.Assets.AssetPack
 use Libraries.Interface.Controls.Tree
+use Libraries.Interface.Controls.ScrollPane
+use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
 /*
@@ -61,6 +63,21 @@ class ScenePalette is Tree
 
     Array<AssetPack> loadedAssetPacks
 
+    // The words typed in the palette's search, in lower case, or "" to show
+    // every item.
+    text filterWords = ""
+    // The folds now in the palette, packs and their categories, with a key
+    // for each (the pack's name, or the pack's and the category's), so that
+    // building the palette again keeps the open ones open.
+    Array<TreeItem> folds
+    Array<text> foldKeys
+    Array<text> openKeys
+    // The right edge of the palette's visible area when the tiles were last
+    // laid out, so they are laid out again when it moves.
+    number lastTileAreaRight = 0
+    // Room kept at the right for the scroll bar, in points.
+    constant number SCROLL_BAR_ROOM = 16
+
     // Resources used to handle the visual component of dragging-and-dropping palette items.
     GameStateManager manager
     Layer2D draggedItemLayer = undefined
@@ -96,7 +113,12 @@ class ScenePalette is Tree
     action SetSceneEditor(SceneEditor sceneController)
         controller = sceneController
 
+        if filterWords = ""
+            RememberOpenFolds()
+        end
         Empty()
+        folds:Empty()
+        foldKeys:Empty()
         if controller = undefined
             if defaultItem = undefined
                 TreeItem item
@@ -111,6 +133,116 @@ class ScenePalette is Tree
                 AddAssetsToTree(loadedAssetPacks:Get(counter))
                 counter = counter + 1
             end
+        end
+    end
+
+    /*
+        Shows only the items whose names hold the given words, ignoring
+        case, as the palette's search field asks; categories left empty are
+        left out, and the rest open so their matches show. Empty words show
+        every item again, with the categories open or closed as they were
+        before the search.
+
+        Attribute: Parameter words The words to look for, or "" to show all.
+    */
+    action Filter(text words)
+        if words = undefined
+            words = ""
+        end
+        text lowered = words:Trim():ToLowerCase()
+        if lowered = filterWords
+            return now
+        end
+        if filterWords = ""
+            RememberOpenFolds()
+        end
+        filterWords = lowered
+        if controller not= undefined
+            SetSceneEditor(controller)
+        end
+    end
+
+    /*
+        Returns the words the palette's search now shows items for, in lower
+        case, or "" if it shows them all.
+
+        Attribute: Returns The search's words.
+    */
+    action GetFilter returns text
+        return filterWords
+    end
+
+    /*
+        Keeps the keys of the folds open now, so building the palette again
+        opens them.
+    */
+    private action RememberOpenFolds
+        if folds:IsEmpty()
+            return now
+        end
+        openKeys:Empty()
+        integer index = 0
+        repeat while index < folds:GetSize()
+            if folds:Get(index):IsOpen()
+                openKeys:Add(foldKeys:Get(index))
+            end
+            index = index + 1
+        end
+    end
+
+    /*
+        Returns true if a blueprint's name holds the search's words.
+    */
+    private action Matches(ItemBlueprint itemBlueprint) returns boolean
+        if filterWords = ""
+            return true
+        end
+        text name = itemBlueprint:GetName()
+        if name = undefined
+            return false
+        end
+        return name:ToLowerCase():Contains(filterWords)
+    end
+
+    /*
+        Opens a fold if a search is showing, or if it was open before.
+    */
+    private action OpenIfWanted(TreeItem fold, text key)
+        folds:Add(fold)
+        foldKeys:Add(key)
+        if filterWords not= "" or openKeys:Has(key)
+            fold:Open()
+        end
+    end
+
+    /*
+        Returns where, across the screen, the palette's visible area ends:
+        the right of the scroll pane it is in, less room for the scroll bar.
+        The tiles fill rows up to it (PaletteTileLayout).
+
+        Attribute: Returns The right edge, in the same units as GetGlobalX.
+    */
+    action GetTileAreaRight returns number
+        Item2D item = GetParent()
+        repeat while item not= undefined
+            if item is ScrollPane
+                return item:GetGlobalX() + item:GetWidth() - SCROLL_BAR_ROOM * GetInterfaceScale()
+            end
+            item = item:GetParent()
+        end
+        return GetGlobalX() + GetWidth()
+    end
+
+    /*
+        Each frame, lays the tiles out again if the palette's visible width
+        changed, such as when its partition is dragged, so rows hold as many
+        tiles as fit.
+    */
+    action Update(number seconds)
+        number right = GetTileAreaRight()
+        if right - lastTileAreaRight > 1 or lastTileAreaRight - right > 1
+            lastTileAreaRight = right
+            RequestLayout()
         end
     end
 
@@ -512,20 +644,25 @@ class ScenePalette is Tree
     /*
         Used internally. Takes a list of blueprints and a TreeItem (in this case the parent of the blueprints)
         and then makes TreeItems for each blueprint and adds them to the passed TreeItem.
+        Only blueprints matching the palette's search are added. Returns how
+        many were added.
     */
-    private action AddItemsToTreeItem(TreeItem treeItem, Array<ItemBlueprint> array)
+    private action AddItemsToTreeItem(TreeItem treeItem, Array<ItemBlueprint> array) returns integer
+        integer added = 0
         integer counter = 0
         repeat while counter < array:GetSize()
             ItemBlueprint itemBlueprint = array:Get(counter)   
-
-            ScenePaletteItem item
-            item:SetItemBlueprint(itemBlueprint)
-            item:SetName(itemBlueprint:GetName())
-            item:SetBehavior(paletteActivationBehavior)
-            
-            treeItem:Add(cast(TreeItem, item))
+            if Matches(itemBlueprint)
+                ScenePaletteItem item
+                item:SetItemBlueprint(itemBlueprint)
+                item:SetName(itemBlueprint:GetName())
+                item:SetBehavior(paletteActivationBehavior)
+                treeItem:Add(cast(TreeItem, item))
+                added = added + 1
+            end
             counter = counter + 1
         end
+        return added
     end
 
     /*
@@ -535,6 +672,10 @@ class ScenePalette is Tree
     private action AddAssetsToTree(AssetPack pack)
         TreeItem root
         root:SetName(pack:GetName())
+        // Items placed straight in the pack sit as tiles too.
+        PaletteTileLayout rootLayout
+        root:SetChildrenLayout(rootLayout)
+        integer shown = 0
 
         //first get all the categories and sort them
         Iterator<text> categoryIterator = pack:GetCategoryKeyIterator()
@@ -553,12 +694,19 @@ class ScenePalette is Tree
             //handle the default pack differently, at the end
             if value not= pack:DEFAULT
                 TreeItem cat //cat up a tree? The joke is solid. Judge if you want.
-                cat:SetName(value)
+                PaletteTileLayout catLayout
+                cat:SetChildrenLayout(catLayout)
     
                 Array<ItemBlueprint> items = pack:GetCategory(value)
                 items:Sort(itemComparison)
-                AddItemsToTreeItem(cat, items)
-                root:Add(cat) //add a cat to the tree
+                integer count = AddItemsToTreeItem(cat, items)
+                // The count shows, and is read, after the category's name.
+                cat:SetName(value + " (" + count + ")")
+                if count > 0
+                    root:Add(cat) //add a cat to the tree
+                    OpenIfWanted(cat, pack:GetName() + "/" + value)
+                    shown = shown + count
+                end
             end
 
             i = i + 1
@@ -569,10 +717,14 @@ class ScenePalette is Tree
         Array<ItemBlueprint> items = pack:GetCategory(pack:DEFAULT)
         if items not= undefined
             items:Sort(itemComparison)
-            AddItemsToTreeItem(root, items)
+            shown = shown + AddItemsToTreeItem(root, items)
         end
 
-        Add(root)
+        // A search leaves out a pack with nothing that matches.
+        if shown > 0 or filterWords = ""
+            Add(root)
+            OpenIfWanted(root, pack:GetName())
+        end
     end
 
     /*

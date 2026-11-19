@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Scenes
 
 use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.SceneEditor
 
@@ -58,4 +59,19 @@ class ScenePaletteItem is TreeItem
         return undefined
     end
 
+
+    /*
+        Returns whether a point, in the layer's coordinates, is on this
+        item's tile. A tree's item also counts its whole row, across the
+        tree, but tiles sit side by side in a row, so each takes only the
+        points on itself; otherwise a click on one tile picked the last one
+        in its row.
+
+        Attribute: Parameter containsX The point's x coordinate
+        Attribute: Parameter containsY The point's y coordinate
+        Attribute: Returns True if the point is on this tile
+    */
+    action Contains(number containsX, number containsY) returns boolean
+        return parent:Item2D:Contains(containsX, containsY)
+    end
 end

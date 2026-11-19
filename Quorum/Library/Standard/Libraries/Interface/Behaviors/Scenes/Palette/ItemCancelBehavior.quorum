@@ -25,6 +25,13 @@ class ItemCancelBehavior is Behavior
             if not controller:ReturnToPlacementTerrain()
                 controller:Focus()
             end
+            // The focus going to the scene editor keeps the preview, so a
+            // click in the scene can place it (or a copy of it). Escape
+            // means to stop, so the preview is canceled here if it is still
+            // there, which ends multiple placement too.
+            if controller:HasActivePreview()
+                controller:CancelItemPreview(preview)
+            end
             controller:NotifyAccessibility(controller, "Cancelled placement")
         end
     end

@@ -1,0 +1,27 @@
+package Libraries.Interface.Events
+
+use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
+
+/*
+    The PropertiesColorWellListener passes a color chosen in the Look card's
+    color well, in the Properties panel for a 3D item, to the dialog, which
+    puts it over the item's own colors.
+*/
+class PropertiesColorWellListener is ColorWellListener
+    Item3DPropertiesDialog dialog = undefined
+
+    /*
+        Sets the dialog the color well is in.
+
+        Attribute: Parameter properties The dialog
+    */
+    action SetDialog(Item3DPropertiesDialog properties)
+        dialog = properties
+    end
+
+    action ColorWellChanged(ColorWellChangedEvent event)
+        if dialog not= undefined
+            dialog:ColorChosen(event:GetNewColor())
+        end
+    end
+end

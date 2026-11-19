@@ -1,11 +1,13 @@
 package Libraries.Interface.Controls.Scenes
 
 use Libraries.Interface.Controls.Control
+use Libraries.Game.Graphics.Label
 use Libraries.Interface.Layouts.FlowLayout
 use Libraries.Interface.Views.LabelBoxView
 use Libraries.Game.Graphics.Color
 use Libraries.Game.Graphics.Camera
 use Libraries.Game.Layer3D
+use Libraries.Game.Layer2D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
 use Libraries.Containers.Array
@@ -333,6 +335,37 @@ class SceneEditor is Control, DefaultSceneManager
     // it, a click elsewhere moves it there, and a fainter ghost of it
     // follows the pointer to show where a click would move it.
     ItemPreview3D activePreview = undefined
+    // True while a placeholder from the palette (Enter or a double click)
+    // places copies: it follows the pointer, and each click or Enter
+    // places a copy where it is and keeps it out (multiple placement).
+    // Dragging from the palette places once, as before.
+    boolean placingCopies = false
+    // True while a copy is being placed, so the placeholder keeps itself if
+    // the focus moves for a moment.
+    boolean placingCopyNow = false
+    // A line outside the editor, such as above Studio's palette, that says
+    // what a click places while copies are being placed; hidden otherwise.
+    Label placementStatusLabel = undefined
+    // The settings of the last placeholder that placed copies, given to the
+    // next one from the palette, so switching tiles keeps them: scale,
+    // rotation, Follow the ground, Lean with the slope, physics, and the
+    // overriding color. A name and a model's own colors aren't kept.
+    boolean hasPlacementSettings = false
+    number placementScaleX = 1
+    number placementScaleY = 1
+    number placementScaleZ = 1
+    number placementYaw = 0
+    number placementPitch = 0
+    number placementRoll = 0
+    boolean placementFollowGround = false
+    boolean placementLeanWithSlope = false
+    boolean placementPhysicsEnabled = false
+    integer placementResponsiveness = 0
+    number placementMass = 0
+    number placementFriction = 0
+    number placementRestitution = 0
+    boolean placementColorOverridden = false
+    Color placementColor = undefined
     // True while placing selects the new item, so the camera stays put.
     boolean keepCameraAfterPlacing = false
     // True while a click selects an item: the camera follows it from where
@@ -1569,6 +1602,15 @@ action Update(number seconds)
     end
 
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
+        // A placeholder already being placed ends first, so its settings,
+        // such as its scale and color, are kept for this one. While the
+        // focus is in the Properties panel, as after typing a size or
+        // choosing a color, the placeholder doesn't lose the focus when
+        // another palette item is chosen, so nothing else ends it.
+        if HasActivePreview()
+            CancelItemPreview(activePreview)
+        end
+
         // Set again below if the new item starts at the terrain cursor. The
         // terrain is recorded now, before the preview takes the focus.
         placementTerrain = undefined
@@ -1684,6 +1726,10 @@ action Update(number seconds)
             // terrain's selection, while the terrain cursor is still known.
             text groundMessage = StartPreviewOnGround(preview)
             activePreview = preview
+            // Every new item from the palette, by a click, Enter, a double
+            // click or a drag, starts with the last placeholder's settings,
+            // such as its scale, so they are set once for many items.
+            ApplyPlacementSettings(preview)
             preview:Focus()
             if groundMessage not= ""
                 NotifyAccessibility(preview, groundMessage)
@@ -1694,14 +1740,28 @@ action Update(number seconds)
     end
 
     action CancelItemPreview(ItemPreview preview)
+        // Taken from the layer it is in, if it is still in one: it may have
+        // been taken out already (placed, or canceled before), and the
+        // selected layer may have changed since it was added.
         if preview is ItemPreview3D
             ItemPreview3D preview3D = cast(ItemPreview3D, preview)
-            EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
-            layer:Remove(preview3D)
+            Layer3D own3D = preview3D:GetLayer()
+            if own3D not= undefined
+                own3D:Remove(preview3D)
+            end
         else
             ItemPreview2D preview2D = cast(ItemPreview2D, preview)
-            EditorLayer2D layer = cast(EditorLayer2D, GetSelectedLayer())
-            layer:Remove(preview2D)
+            Layer2D own2D = preview2D:GetLayer()
+            if own2D not= undefined
+                own2D:Remove(preview2D)
+            end
+        end
+        // Only the placeholder being placed now is ended. An older one can
+        // be canceled after a new one is made, such as when the old one
+        // loses the focus to the new one; ending the new one then left it
+        // in the scene, untracked, as a ghost.
+        if activePreview not= undefined and not activePreview:Equals(preview)
+            return now
         end
         EndActivePreview()
         ReleasePlacementRing()
@@ -1712,12 +1772,20 @@ action Update(number seconds)
     ghost away, once it is placed or canceled.
     */
     private action EndActivePreview
+        // The next placeholder from the palette starts with these settings,
+        // however this one ended: placed, canceled, or left for another.
+        if activePreview not= undefined
+            RememberPlacementSettings(activePreview)
+        end
         activePreview = undefined
         previewInProperties = false
+        placingCopies = false
+        ShowPlacementStatus("")
         if previewGhost not= undefined
-            if GetSelectedLayer() is EditorLayer3D
-                EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
-                layer3D:Remove(previewGhost)
+            // From the layer it is in, even if another layer is selected now.
+            Layer3D ghostLayer = previewGhost:GetLayer()
+            if ghostLayer not= undefined
+                ghostLayer:Remove(previewGhost)
             end
             previewGhost:Dispose()
             previewGhost = undefined
@@ -1820,6 +1888,15 @@ action Update(number seconds)
             NotifyAccessibility(activePreview, "Back to " + activePreview:GetName())
             return now
         end
+        // Placing copies: every click places a copy where the pointer is.
+        if placingCopies
+            if MovePreviewToPointer(x, y)
+                PlaceCopyOfPreview(activePreview)
+            else
+                activePreview:Focus()
+            end
+            return now
+        end
         Vector3 point = PickPreviewPoint(x, y, activePreview:GetGlobalY())
         if point = undefined
             activePreview:Focus()
@@ -1857,6 +1934,16 @@ action Update(number seconds)
     action MovePreviewGhostToPointer(number x, number y)
         if not HasActivePreview()
             HidePreviewGhost()
+            return now
+        end
+        // Placing copies: the placeholder itself follows the pointer.
+        if placingCopies
+            HidePreviewGhost()
+            // While the focus is in the Properties panel, the placeholder
+            // waits, so the panel's numbers aren't changed under the typing.
+            if not previewInProperties
+                MovePreviewToPointer(x, y)
+            end
             return now
         end
         Vector3 point = PickPreviewPoint(x, y, activePreview:GetGlobalY())
@@ -1898,6 +1985,292 @@ action Update(number seconds)
             previewGhost:Show()
             previewGhostShown = true
         end
+    end
+
+    /*
+    This action starts multiple placement for the new item's placeholder
+    just made from the palette (with Enter or a double click): the
+    placeholder follows the pointer, and each click, or Enter, places a copy
+    where it is, until Escape or the focus leaving the scene editor and the
+    Properties panel. The placeholder's settings in the Properties panel,
+    such as its scale and rotation, are kept for every copy.
+    PaletteCreatePreviewBehavior calls it.
+    */
+    action BeginPlacingCopies
+        if not HasActivePreview()
+            return now
+        end
+        placingCopies = true
+        ShowPlacementStatus("Placing copies of " + activePreview:GetName() + " (Esc to stop)")
+        NotifyAccessibility(activePreview, "Placing copies of " + activePreview:GetName() +
+            ". Click or press Enter to place one, Escape to stop.")
+    end
+
+    /*
+    This action sets the line, outside the editor, that says what a click
+    places while copies are being placed, such as one above Studio's scene
+    palette. The editor shows it then and hides it otherwise. Undefined, the
+    default, shows nothing.
+
+    Attribute: Parameter label The line to show the status on, or undefined.
+    */
+    action SetPlacementStatusLabel(Label label)
+        if placementStatusLabel not= undefined and placementStatusLabel not= label
+            ShowPlacementStatus("")
+        end
+        placementStatusLabel = label
+        if placingCopies and activePreview not= undefined
+            ShowPlacementStatus("Placing copies of " + activePreview:GetName() + " (Esc to stop)")
+        else
+            ShowPlacementStatus("")
+        end
+    end
+
+    /*
+    This action returns the line that says what a click places while copies
+    are being placed, or undefined if none is set.
+
+    Attribute: Returns The status line, or undefined.
+    */
+    action GetPlacementStatusLabel returns Label
+        return placementStatusLabel
+    end
+
+    /*
+    Shows words on the placement status line, or hides it for "".
+    */
+    private action ShowPlacementStatus(text words)
+        if placementStatusLabel = undefined
+            return now
+        end
+        if words = ""
+            if placementStatusLabel:IsShowing()
+                placementStatusLabel:Hide()
+            else
+                return now
+            end
+        else
+            placementStatusLabel:SetText(words)
+            placementStatusLabel:Show()
+        end
+        Item2D column = placementStatusLabel:GetParent()
+        if column not= undefined and column is Control
+            Control container = cast(Control, column)
+            container:RequestLayout()
+        end
+    end
+
+    /*
+    This action keeps a placeholder's settings for the next one from the
+    palette.
+    */
+    private action RememberPlacementSettings(ItemPreview3D preview)
+        placementScaleX = preview:GetScaleX()
+        placementScaleY = preview:GetScaleY()
+        placementScaleZ = preview:GetScaleZ()
+        placementYaw = preview:GetYaw()
+        placementPitch = preview:GetPitch()
+        placementRoll = preview:GetRoll()
+        placementFollowGround = preview:IsFollowingGround()
+        placementLeanWithSlope = preview:IsLeaningWithSlope()
+        placementPhysicsEnabled = preview:IsEditorPhysicsEnabled()
+        placementResponsiveness = preview:GetEditorResponsiveness()
+        placementMass = preview:GetEditorMass()
+        placementFriction = preview:GetEditorFriction()
+        placementRestitution = preview:GetEditorRestitution()
+        placementColorOverridden = preview:IsColorOverridden()
+        placementColor = undefined
+        if preview:GetColor() not= undefined
+            placementColor = preview:GetColor():Copy()
+        end
+        hasPlacementSettings = true
+    end
+
+    /*
+    This action gives a new placeholder from the palette the settings the
+    last one had, then sets it on the ground again at its new size.
+    */
+    private action ApplyPlacementSettings(ItemPreview3D preview)
+        if not hasPlacementSettings
+            return now
+        end
+        preview:SetScale(placementScaleX, placementScaleY, placementScaleZ)
+        preview:SetRotation(placementYaw, placementPitch, placementRoll)
+        preview:SetFollowingGround(placementFollowGround)
+        preview:SetLeaningWithSlope(placementLeanWithSlope)
+        preview:SetEditorPhysicsEnabled(placementPhysicsEnabled)
+        if placementPhysicsEnabled
+            preview:SetEditorResponsiveness(placementResponsiveness)
+            preview:SetEditorMass(placementMass)
+            preview:SetEditorFriction(placementFriction)
+            preview:SetEditorRestitution(placementRestitution)
+        end
+        if placementColorOverridden and placementColor not= undefined
+            // The placeholder stays see-through, as it was made.
+            Color chosen = placementColor:Copy()
+            if preview:GetColor() not= undefined
+                chosen:SetAlpha(preview:GetColor():GetAlpha())
+            end
+            preview:OverrideColor(chosen)
+        end
+        boolean onGround = PutOnGround(preview, preview)
+        UpdateActivePropertiesDialog(preview)
+    end
+
+    /*
+    This action gives a placed item the placeholder's physics settings,
+    which turning it into a model doesn't carry over.
+    */
+    private action CopyPlacementPhysics(ItemPreview3D preview, Item placed)
+        if not (placed is EditorItem)
+            return now
+        end
+        // EditorItem is an interface, so it is cast through Object.
+        Object placedObject = placed
+        EditorItem item = cast(EditorItem, placedObject)
+        item:SetEditorPhysicsEnabled(preview:IsEditorPhysicsEnabled())
+        if preview:IsEditorPhysicsEnabled()
+            item:SetEditorResponsiveness(preview:GetEditorResponsiveness())
+            item:SetEditorMass(preview:GetEditorMass())
+            item:SetEditorFriction(preview:GetEditorFriction())
+            item:SetEditorRestitution(preview:GetEditorRestitution())
+        end
+    end
+
+    /*
+    This action returns true while the placeholder places copies (multiple
+    placement).
+
+    Attribute: Returns True while placing copies
+    */
+    action IsPlacingCopies returns boolean
+        return HasActivePreview() and placingCopies
+    end
+
+    /*
+    This action returns true while a copy of the placeholder is being
+    placed, so the placeholder doesn't end if the focus moves for a moment.
+    ItemPreview's LostFocus asks.
+
+    Attribute: Returns True while a copy is being placed
+    */
+    action IsPlacingCopyNow returns boolean
+        return placingCopyNow
+    end
+
+    /*
+    This action moves the placeholder to where the pointer points: onto the
+    ground of the nearest terrain, leaning with its slope if the
+    placeholder's "Lean with the slope" is on, or at its own height off the
+    ground. It returns false, and leaves the placeholder where it is, if the
+    pointer points at nothing.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    Attribute: Returns True if the placeholder moved
+    */
+    private action MovePreviewToPointer(number x, number y) returns boolean
+        Vector3 point = PickPreviewPoint(x, y, activePreview:GetGlobalY())
+        if point = undefined
+            return false
+        end
+        activePreview:SetPosition(point:GetX(), activePreview:GetY(), point:GetZ())
+        if PutOnGround(activePreview, activePreview) and activePreview:IsLeaningWithSlope()
+            LeanWithGround(activePreview, lastGround)
+            // Leaning moves its base, so it is set on the ground again.
+            boolean again = PutOnGround(activePreview, activePreview)
+        end
+        return true
+    end
+
+    /*
+    This action leans the placeholder with the ground under it, as foliage
+    leans with the slope: its up direction becomes the ground's, under its
+    own yaw. Its pitch and roll come from the ground; its yaw and scale stay
+    as set.
+
+    Attribute: Parameter preview The placeholder
+    Attribute: Parameter terrain The terrain under it
+    */
+    private action LeanWithGround(ItemPreview3D preview, EditorTerrain terrain)
+        if terrain = undefined
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        number x = preview:GetGlobalX()
+        number z = preview:GetGlobalZ()
+        if not data:HasHeight(x, z)
+            return now
+        end
+        Vector3 normal = data:GetNormal(x, z)
+        // The ground's up direction in the placeholder's own frame, after
+        // its yaw.
+        number yawRadians = preview:GetYaw() * math:pi / 180
+        number cosine = math:Cosine(yawRadians)
+        number sine = math:Sine(yawRadians)
+        number localX = normal:GetX() * cosine - normal:GetZ() * sine
+        number localY = normal:GetY()
+        number localZ = normal:GetX() * sine + normal:GetZ() * cosine
+        if localY <= 0.0001
+            return now
+        end
+        // Forward and back is the pitch, side to side the roll. If a copy
+        // leans away from the slope instead of with it, the sign of one of
+        // these is the one to change.
+        number pitch = math:InverseTangent(localZ / localY) * 180 / math:pi
+        if localX > 1
+            localX = 1
+        elseif localX < -1
+            localX = -1
+        end
+        number roll = -math:InverseSine(localX) * 180 / math:pi
+        preview:SetRotation(preview:GetYaw(), pitch, roll)
+    end
+
+    /*
+    This action places a copy of the placeholder where it is, while placing
+    copies: the copy gets the placeholder's name, scale, rotation and color,
+    is announced and can be undone, and the placeholder stays out, with the
+    next name and the focus, for more copies. Nothing is selected, so the
+    camera stays where it is.
+
+    Attribute: Parameter preview The placeholder
+    */
+    action PlaceCopyOfPreview(ItemPreview3D preview)
+        if preview = undefined or not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        placingCopyNow = true
+        if preview:GetItemBlueprint() not= undefined
+            IncrementNameCount(preview:GetItemBlueprint():GetName())
+        end
+        Model model = preview:ConvertToModel()
+        // Through the setter: the field is declared further down the file.
+        SetPreviewTransform(preview:GetTransform())
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        layer:Add(model)
+        CopyPlacementPhysics(preview, model)
+
+        text message = "Placed " + model:GetName()
+        if lastGround not= undefined
+            message = message + " on " + lastGround:GetName()
+        end
+        NotifyAccessibility(preview, message)
+
+        SceneEditorChangeEvent event
+        event:Set(me, model, undefined, layer, event:ADDED)
+        NotifySceneEditorChangeListeners(event)
+
+        if preview:GetItemBlueprint() not= undefined
+            text name = preview:GetItemBlueprint():GetName()
+            preview:SetName(name + GetNextNamePostfix(name))
+        end
+
+        SceneEditorInsertEdit edit
+        edit:Create(me, layer, model)
+        editManager:Add(edit)
+        placingCopyNow = false
+        preview:Focus()
     end
 
     /*
@@ -6988,6 +7361,7 @@ The ring is one of the editor's own items: it isn't saved,
             EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
             resultLayer = layer
             layer:Add(model)
+            CopyPlacementPhysics(preview, model)
         elseif newItem is ItemPreview2D
             ItemPreview2D preview = cast(ItemPreview2D, newItem)
             Drawable drawable = preview:ConvertToDrawable()
@@ -7026,8 +7400,15 @@ The ring is one of the editor's own items: it isn't saved,
         SceneEditorInsertEdit edit
         edit:Create(me, resultLayer, result)
         editManager:Add(edit)
-        EndActivePreview()
-        ReleasePlacementRing()
+        // The placeholder goes now. It was left in the scene for its losing
+        // the focus to take it away, but a click in the view gives the
+        // scene editor the focus, which keeps a placeholder, so it stayed,
+        // as a ghost.
+        boolean hadFocus = newItem:IsFocused()
+        CancelItemPreview(newItem)
+        if hadFocus
+            Focus()
+        end
     end
 
     action Add(EditorLayer layer, Item item)

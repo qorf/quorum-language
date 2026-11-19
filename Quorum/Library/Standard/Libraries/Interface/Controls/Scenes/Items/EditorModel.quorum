@@ -1,5 +1,6 @@
 package Libraries.Interface.Controls.Scenes.Items
 
+use Libraries.Game.Graphics.Models.Vulkan.ModelResourcesVulkan
 use Libraries.Game.Graphics.Model
 use Libraries.Game.Graphics.Color
 use Libraries.Containers.Array
@@ -22,6 +23,12 @@ class EditorModel is Model
     number yaw = 0
     number pitch = 0
     number roll = 0
+
+    // True while a color chosen in the editor ("Override color" in the
+    // Properties panel) is over the item's own colors, which are kept, one
+    // for each part (mesh), so they can be put back.
+    boolean colorOverridden = false
+    Array<Color> colorsBeforeOverride
 
     /*
         This action sets the orientation of the 3D object using yaw, pitch, and roll
@@ -143,6 +150,80 @@ class EditorModel is Model
         Vector3 vector
         vector:Set(GetScaleX(), GetScaleY(), GetScaleZ())
         return vector
+    end
+
+    /*
+        Returns true while a color chosen in the editor is over the item's
+        own colors.
+
+        Attribute: Returns True if the color is overridden
+    */
+    action IsColorOverridden returns boolean
+        return colorOverridden
+    end
+
+    /*
+        Puts a color over the item's own colors. The first time, the item's
+        own colors are kept, one for each part, so RestoreColor can put them
+        back.
+
+        Attribute: Parameter color The color to show
+    */
+    action OverrideColor(Color color)
+        if color = undefined
+            return now
+        end
+        if not colorOverridden
+            colorsBeforeOverride:Empty()
+            integer index = 0
+            repeat while index < GetMeshCount()
+                Color own = GetColor(index)
+                if own not= undefined
+                    own = own:Copy()
+                end
+                colorsBeforeOverride:Add(own)
+                index = index + 1
+            end
+            colorOverridden = true
+        end
+        // Every part of the model. Model:SetColor(color) colors only the
+        // first part on Vulkan, so a model of several parts kept its own
+        // colors on the rest, and the chosen color barely showed. Each part
+        // gets its own copy, so changing one never changes another.
+        integer part = 0
+        integer parts = GetMeshCount()
+        if parts < 1
+            parts = 1
+        end
+        repeat while part < parts
+            SetColor(part, color:Copy())
+            part = part + 1
+        end
+    end
+
+    /*
+        Puts the item's own colors back, from before OverrideColor.
+    */
+    action RestoreColor
+        if not colorOverridden
+            return now
+        end
+        // A part that had no color of its own goes back to none, so it
+        // draws in its material's colors again (Vulkan). That is set on the
+        // resources, since Model:SetColor needs a color.
+        integer index = 0
+        repeat while index < colorsBeforeOverride:GetSize()
+            Color own = colorsBeforeOverride:Get(index)
+            if own not= undefined
+                SetColor(index, own)
+            elseif GetResources() is ModelResourcesVulkan
+                // OpenGL keeps no color per part to go back to.
+                GetResources():SetColor(index, undefined)
+            end
+            index = index + 1
+        end
+        colorsBeforeOverride:Empty()
+        colorOverridden = false
     end
 
 end

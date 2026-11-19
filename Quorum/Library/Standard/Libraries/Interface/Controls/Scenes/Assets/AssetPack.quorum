@@ -175,6 +175,7 @@ class AssetPack
             model:SetPaletteCrop(0.15)
             model:SetPaletteScale(iconScale)
             model:SetPaletteIcon(icon)
+            model:SetPaletteIconFile(iconPath)
 
             if tile:HasValue("Physics Enabled")
                 boolean hasPhysics = tile:GetBoolean("Physics Enabled")
