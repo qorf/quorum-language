@@ -91,7 +91,7 @@ class TerrainPropertiesDialog is PropertiesDialog
         growLine:SetBottomMargin(8)
         Button growButton
         growButton:SetName("Grow Everywhere")
-        growButton:SetDescription("Add a flat region on every side of the terrain")
+        growButton:SetDescription("Add a region on every side of the terrain, shaped to meet its edge")
         TerrainGrowBehavior growBehavior
         growBehavior:SetDialog(me)
         growButton:SetBehavior(growBehavior)

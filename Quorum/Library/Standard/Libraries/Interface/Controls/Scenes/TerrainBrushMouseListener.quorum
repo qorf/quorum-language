@@ -46,6 +46,10 @@ class TerrainBrushMouseListener is MouseMovementListener
         elseif editor not= undefined and editor:IsDraggingRiverPoint()
             // A river's point being moved follows the pointer.
             editor:DragRiverPoint(event:GetX(), event:GetY())
+        elseif editor not= undefined and editor:IsDraggingRegionPlaceholder()
+            // An edge or corner of the region tools' placeholder being
+            // dragged follows the pointer.
+            editor:DragRegionPlaceholder(event:GetX(), event:GetY())
         end
     end
 end

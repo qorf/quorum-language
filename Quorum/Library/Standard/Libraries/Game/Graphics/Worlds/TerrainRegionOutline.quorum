@@ -1,0 +1,253 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Graphics.Models.Vulkan.MeshVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+
+/*
+A TerrainRegionOutline shows a flat rectangle on a terrain, such as the
+region slot under the pointer, or a block of regions about to be added: an
+outline at one height, with a black edge, so it shows on light and dark
+ground. Its lines' color can change, such as green where regions can go
+and red where they can't.
+
+Call Place whenever the rectangle or its height changes. Its mesh is made
+once and then updated in place, as TerrainRampPreview's is. It doesn't
+cast shadows.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.TerrainRegionOutline
+
+TerrainRegionOutline outline
+outline:Place(0, 0, 256, 256, 10)
+outline:SetLineColor(0.15, 0.85, 0.25)
+*/
+class TerrainRegionOutline is Model
+    // How far above its height the outline floats, in world units.
+    number lift = 0.3
+
+    // How wide the lines are, compared with the rectangle's shorter side,
+    // and the black edge on each side of them.
+    number lineShare = 0.012
+    number edgeShare = 0.6
+    number edgeDrop = 0.02
+
+    boolean loaded = false
+    MeshVulkan lineMesh = undefined
+    MeshVulkan edgeMesh = undefined
+    number lineRed = 0.15
+    number lineGreen = 0.85
+    number lineBlue = 0.25
+    Math math
+
+    Number32BitArray vertices
+    Number32BitArray edgeVertices
+    Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray textureCoordinates
+    Integer32BitArray indices
+
+    on create
+        // Four lines, each one quad's corners.
+        integer vertexCount = 16
+        vertices:SetSize(vertexCount * 3)
+        edgeVertices:SetSize(vertexCount * 3)
+        normals:SetSize(vertexCount * 3)
+        tangents:SetSize(vertexCount * 3)
+        bitangents:SetSize(vertexCount * 3)
+        textureCoordinates:SetSize(vertexCount * 2)
+        integer i = 0
+        repeat while i < vertexCount
+            normals:Set(i * 3, 0)
+            normals:Set(i * 3 + 1, 1)
+            normals:Set(i * 3 + 2, 0)
+            tangents:Set(i * 3, 1)
+            tangents:Set(i * 3 + 1, 0)
+            tangents:Set(i * 3 + 2, 0)
+            bitangents:Set(i * 3, 0)
+            bitangents:Set(i * 3 + 1, 0)
+            bitangents:Set(i * 3 + 2, 1)
+            textureCoordinates:Set(i * 2, 0)
+            textureCoordinates:Set(i * 2 + 1, 0)
+            i = i + 1
+        end
+
+        // Each line is one quad, drawn from both sides, so it shows
+        // whichever way the renderer culls.
+        indices:SetSize(4 * 12)
+        integer index = 0
+        integer line = 0
+        repeat while line < 4
+            integer first = line * 4
+            index = AddQuad(index, first, first + 1, first + 2, first + 3)
+            index = AddQuad(index, first, first + 2, first + 1, first + 3)
+            line = line + 1
+        end
+    end
+
+    /*
+    This action places the outline around a rectangle, at a height.
+
+    Attribute: Parameter minimumX The rectangle's smallest x, in world units.
+    Attribute: Parameter minimumZ The rectangle's smallest z, in world units.
+    Attribute: Parameter maximumX The rectangle's largest x, in world units.
+    Attribute: Parameter maximumZ The rectangle's largest z, in world units.
+    Attribute: Parameter height The height the outline is drawn at, in world units.
+    */
+    action Place(number minimumX, number minimumZ, number maximumX, number maximumZ, number height)
+        number centerX = (minimumX + maximumX) / 2
+        number centerZ = (minimumZ + maximumZ) / 2
+        number shorter = math:MinimumOf(maximumX - minimumX, maximumZ - minimumZ)
+        number line = math:MaximumOf(0.15, shorter * lineShare)
+        number edge = line * edgeShare
+        // Each line reaches past the corners by half its width, so the
+        // corners are filled.
+        number reach = line / 2
+
+        // The near and far lines, along x, then the left and right lines,
+        // along z.
+        SetLine(0, minimumX - reach, minimumZ, maximumX + reach, minimumZ, 0, 1, line, edge, centerX, centerZ)
+        SetLine(1, minimumX - reach, maximumZ, maximumX + reach, maximumZ, 0, 1, line, edge, centerX, centerZ)
+        SetLine(2, minimumX, minimumZ - reach, minimumX, maximumZ + reach, 1, 0, line, edge, centerX, centerZ)
+        SetLine(3, maximumX, minimumZ - reach, maximumX, maximumZ + reach, 1, 0, line, edge, centerX, centerZ)
+
+        MeshData mesh = MakeMesh(vertices)
+        MeshData edgeData = MakeMesh(edgeVertices)
+        if not loaded
+            LoadLines(mesh, edgeData)
+            loaded = true
+        else
+            lineMesh:UpdateVertices(mesh)
+            edgeMesh:UpdateVertices(edgeData)
+        end
+
+        SetPosition(centerX, height, centerZ)
+        SetWidth(maximumX - minimumX + 2 * (line + edge))
+        SetHeight(2 * lift)
+        SetDepth(maximumZ - minimumZ + 2 * (line + edge))
+    end
+
+    /*
+    This action sets the color of the outline's lines. The black edge
+    stays black.
+
+    Attribute: Parameter red The red part, from 0 to 1.
+    Attribute: Parameter green The green part, from 0 to 1.
+    Attribute: Parameter blue The blue part, from 0 to 1.
+    */
+    action SetLineColor(number red, number green, number blue)
+        if red = lineRed and green = lineGreen and blue = lineBlue
+            return now
+        end
+        lineRed = red
+        lineGreen = green
+        lineBlue = blue
+        if loaded
+            Color color
+            SetColor(0, color:CustomColor(lineRed, lineGreen, lineBlue, 1))
+        end
+    end
+
+    /*
+    This action sets one line's four corners, and its black edge's: a
+    ribbon from one point to another, as wide as the line, across the
+    given direction.
+    */
+    private action SetLine(integer line, number fromX, number fromZ, number toX, number toZ,
+            number sideX, number sideZ, number width, number edge, number centerX, number centerZ)
+        integer first = line * 4
+        number half = width / 2
+        number outer = half + edge
+        SetCorner(vertices, first, fromX - sideX * half - centerX, lift, fromZ - sideZ * half - centerZ)
+        SetCorner(vertices, first + 1, fromX + sideX * half - centerX, lift, fromZ + sideZ * half - centerZ)
+        SetCorner(vertices, first + 2, toX - sideX * half - centerX, lift, toZ - sideZ * half - centerZ)
+        SetCorner(vertices, first + 3, toX + sideX * half - centerX, lift, toZ + sideZ * half - centerZ)
+        number low = lift - edgeDrop
+        SetCorner(edgeVertices, first, fromX - sideX * outer - centerX, low, fromZ - sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 1, fromX + sideX * outer - centerX, low, fromZ + sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 2, toX - sideX * outer - centerX, low, toZ - sideZ * outer - centerZ)
+        SetCorner(edgeVertices, first + 3, toX + sideX * outer - centerX, low, toZ + sideZ * outer - centerZ)
+    end
+
+    /*
+    This action sets one corner.
+    */
+    private action SetCorner(Number32BitArray array, integer vertex, number x, number y, number z)
+        array:Set(vertex * 3, x)
+        array:Set(vertex * 3 + 1, y)
+        array:Set(vertex * 3 + 2, z)
+    end
+
+    /*
+    This action makes a mesh from a list of corners.
+    */
+    private action MakeMesh(Number32BitArray corners) returns MeshData
+        MeshData mesh
+        mesh:SetVertices(corners)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(textureCoordinates)
+        mesh:SetMaterialIndex(0)
+        return mesh
+    end
+
+    /*
+    This action adds two triangles for one quad to the list of indices.
+    */
+    private action AddQuad(integer index, integer a, integer b, integer c, integer d) returns integer
+        indices:Set(index, a)
+        indices:Set(index + 1, b)
+        indices:Set(index + 2, c)
+        indices:Set(index + 3, c)
+        indices:Set(index + 4, b)
+        indices:Set(index + 5, d)
+        return index + 6
+    end
+
+    /*
+    This action turns the outline's meshes into a blueprint and loads it,
+    the first time the outline is placed: lines in the outline's color with
+    black edges, no shadows.
+    */
+    private action LoadLines(MeshData mesh, MeshData edgeData)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+        meshes:Add(edgeData)
+
+        Material material
+        Vector4 diffuse
+        diffuse:Set(1, 1, 1, 1)
+        material:SetDiffuse(diffuse)
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID("Terrain region outline " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan lineBlueprint = manager:GetModelBlueprint(modelData)
+        Load(lineBlueprint)
+        lineMesh = lineBlueprint:GetMeshes():Get(0)
+        edgeMesh = lineBlueprint:GetMeshes():Get(1)
+
+        Color color
+        SetColor(0, color:CustomColor(lineRed, lineGreen, lineBlue, 1))
+        SetColor(1, color:CustomColor(0.02, 0.02, 0.02, 1))
+        SetCastsShadows(false)
+    end
+end

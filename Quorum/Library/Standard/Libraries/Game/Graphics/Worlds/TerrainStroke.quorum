@@ -641,11 +641,11 @@ class TerrainStroke
         boolean exists = data:HasRegion(locationX, locationZ)
         if operation = tools:ADD and not exists
             CopyRegion(locationX, locationZ, true)
-            // The height is worked out before the region is added, so it
-            // only counts the ground already there.
-            number startHeight = data:GetNeighborEdgeHeight(locationX, locationZ)
-            TerrainRegion added = data:AddRegion(locationX, locationZ)
-            added:Fill(startHeight)
+            // The new region is shaped from the ground around it, so it
+            // joins its neighbors without a step.
+            Array<TerrainRegion> added
+            added:Add(data:AddRegion(locationX, locationZ))
+            data:BlendRegions(added)
             changed = true
         elseif operation = tools:SUBTRACT and exists
             CopyRegion(locationX, locationZ, true)

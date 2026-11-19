@@ -103,6 +103,8 @@ use Libraries.Interface.Controls.Scenes.Dialogs.TerrainStampPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainBrushPropertiesDialog
 use Libraries.Game.Graphics.Worlds.TerrainBrushPreview
 use Libraries.Game.Graphics.Worlds.TerrainRampPreview
+use Libraries.Game.Graphics.Worlds.TerrainRegionOutline
+use Libraries.Game.Graphics.Worlds.TerrainRegion
 use Libraries.Game.Graphics.Worlds.TerrainBrush
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Compute.Ray
@@ -117,6 +119,7 @@ use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
 use Libraries.Game.InputMonitor
 use Libraries.Interface.Events.MouseEvent
 use Libraries.Interface.Undo.SceneEditorTerrainEdit
+use Libraries.Interface.Undo.SceneEditorRegionPlaceholderEdit
 use Libraries.Interface.Undo.SceneEditorFoliageEdit
 use Libraries.Interface.Undo.SceneEditorWaterEdit
 use Libraries.Interface.Events.BehaviorEvent
@@ -460,6 +463,51 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainBrushPreview rampStartMarker = undefined
     TerrainRampPreview rampOutline = undefined
     boolean rampShown = false
+
+    // The region tools, Add region and Remove region. The slot outline
+    // shows the region slot under the pointer, or under the terrain cursor
+    // when the keys moved it last: green where the tool can act, red where
+    // it can't. The placeholder is a rectangle of region slots, by region
+    // location, waiting to be added or removed. It is yellow, and white
+    // while the pointer is over an edge or corner that can be dragged.
+    // There is a placeholder while placeholderTerrain is defined.
+    TerrainRegionOutline regionSlotOutline = undefined
+    boolean regionSlotShown = false
+    integer regionSlotX = 0
+    integer regionSlotZ = 0
+    TerrainRegionOutline placeholderOutline = undefined
+    EditorTerrain placeholderTerrain = undefined
+    integer placeholderFirstX = 0
+    integer placeholderFirstZ = 0
+    integer placeholderLastX = 0
+    integer placeholderLastZ = 0
+    number placeholderHeight = 0
+    // An edge or corner of the placeholder being dragged with the mouse,
+    // which sides move, and the rectangle when the drag began, for undo.
+    boolean placeholderDragging = false
+    boolean dragLeft = false
+    boolean dragRight = false
+    boolean dragNear = false
+    boolean dragFar = false
+    integer dragStartFirstX = 0
+    integer dragStartFirstZ = 0
+    integer dragStartLastX = 0
+    integer dragStartLastZ = 0
+    // The height of the level the pointer is read on during a drag, kept
+    // from its start so the placeholder doesn't shift as its height does.
+    number dragHeight = 0
+    // Whether the slot outline follows the pointer, rather than the
+    // terrain cursor, and where the cursor was last seen, so a move with
+    // the keys gives the outline back to the cursor.
+    boolean slotFollowsPointer = false
+    number slotCursorX = 0
+    number slotCursorZ = 0
+    // True while the status line shows something from a region tool, so
+    // it is cleared when the tool is left.
+    boolean regionStatusShown = false
+    // How close to the placeholder's edge, as a share of a region's width,
+    // a press grabs the edge instead of committing.
+    constant number PLACEHOLDER_GRAB_SHARE = 0.15
 
     // A stroke with a terrain's brush: it goes on while the key
     // that started it, or the left mouse button, is held.
@@ -1039,6 +1087,7 @@ action Update(number seconds)
         UpdateTerrainStroke(seconds)
         UpdatePointerHold(seconds)
         UpdateRiverDrag()
+        UpdateRegionDrag()
         UpdateTerrainGridPatch()
         // A click in the view gives the scene editor the focus; a preview
         // being placed takes it back, so Enter and the arrow keys reach it.
@@ -1122,7 +1171,23 @@ action Update(number seconds)
                 // cursor does, and takes the cursor (and its ring) with it.
                 boolean followsCursor = focus is ItemPreview3D and placementTerrain not= undefined and placementTerrain = cursorTerrain
 
-                if gridSnapEnabled = false and followsCursor
+                // With a region tool, the terrain cursor steps one whole
+                // region at a time, since the tools act on whole regions.
+                // Gliding at the brush's speed took most of a minute to
+                // cross one region.
+                boolean regionSteps = focus is TerrainSelectionHighlight and IsTerrainBrushActive() and IsRegionTool(brushTerrain)
+                if regionSteps
+                    if selectionXDirection not= 0 or selectionZDirection not= 0
+                        if gridMoveTimer <= 0
+                            gridMoveTimer = gridMoveTimerMax
+                            StepTerrainCursor(brushTerrain, selectionXDirection, selectionZDirection)
+                        else
+                            gridMoveTimer = gridMoveTimer - seconds
+                        end
+                    else
+                        gridMoveTimer = 0
+                    end
+                elseif gridSnapEnabled = false and followsCursor
                     if selectionXDirection not= 0 or selectionZDirection not= 0
                         MoveTerrainBrush(placementTerrain, selectionXDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds, selectionZDirection * SELECTION_DIRECTIONAL_SPEED_3D * seconds)
                         MoveFocusToTerrainCursor(focus, placementTerrain)
@@ -2404,7 +2469,8 @@ action Update(number seconds)
     9 remove region, 10 stamp, 11 erode, 12 auto paint, 13 foliage), or 0
     to leave the tool. With a tool chosen, a
     ring shows the brush on the ground; the arrow keys and the pointer move
-    it, and the size keys size it. A stroke going on is finished first. It is
+    it, and the size keys size it. The region tools show region slots and
+    a placeholder instead of the ring (PressRegionTool). A stroke going on is finished first. It is
     announced, and the Brush section of the Properties panel follows.
 
     Attribute: Parameter terrain The terrain
@@ -2428,6 +2494,16 @@ action Update(number seconds)
             brushTerrain = terrain
             ShowAllRiverLines(terrain)
             NotifyAccessibility(terrain, "River tool. " + DescribeRiversForTool(terrain) + "Click, or press Space, to start a river and add its points; press Enter to finish it, or Escape to stop. " + terrain:DescribeBrush())
+        elseif tool = 8 or tool = 9
+            // The region tools work with whole regions, through a
+            // placeholder, whatever the brush's size.
+            brushTerrain = terrain
+            text verb = "add"
+            if tool = 9
+                verb = "remove"
+            end
+            NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. Click a region slot, or use the brush, to put down a placeholder. " +
+                "Drag its edges, or use the size keys, to resize it, then click inside it to " + verb + " the regions.")
         elseif tool > 0
             brushTerrain = terrain
             NotifyAccessibility(terrain, terrain:GetToolName(tool) + " tool. " + terrain:DescribeBrush())
@@ -2823,6 +2899,19 @@ action Update(number seconds)
         // In Quorum's left-handed world, the right of forward (x, z) is (z, -x).
         number moveX = forwardZ * right + forwardX * forward
         number moveZ = -forwardX * right + forwardZ * forward
+        // A region tool steps to the middle of the next region slot.
+        if IsRegionTool(terrain)
+            TerrainData data = terrain:GetWorldTerrain():GetData()
+            integer locationX = GetRegionLocationAt(data, terrain:GetBrushX()) + cast(integer, moveX)
+            integer locationZ = GetRegionLocationAt(data, terrain:GetBrushZ()) + cast(integer, moveZ)
+            if not data:IsInRegionMap(locationX, locationZ)
+                TellRegionTool(terrain, "That is the edge of the grid of regions, which runs from -16 to 15 along each side.")
+                return now
+            end
+            number size = GetRegionWorldSize(data)
+            MoveTerrainCursorTo(terrain, (locationX + 0.5) * size, (locationZ + 0.5) * size)
+            return now
+        end
         number step = GetTerrainCursorStep(terrain)
         Grid3D grid = layer3D:GetGrid()
         number x = grid:GetNearestGridCoordinate(terrain:GetBrushX() + moveX * step)
@@ -3304,6 +3393,11 @@ action Update(number seconds)
     */
     action PressTerrainCursor(number x, number y)
         EditorTerrain terrain = GetPointerTerrain()
+        // The region tools work with a placeholder (PressRegionTool).
+        if terrain not= undefined and terrain = brushTerrain and IsRegionTool(terrain)
+            PressRegionTool(terrain, x, y)
+            return now
+        end
         Vector3 hit = PickPointerGround(terrain, x, y)
         if hit = undefined
             return now
@@ -3315,18 +3409,6 @@ action Update(number seconds)
             terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
             UpdateBrushPreview()
             PressRiverTool(terrain, hit:GetX(), hit:GetZ(), true)
-            return now
-        end
-        // The region tools add or remove the one region under the click, so
-        // a click acts where it lands. Off the ground the ring can't be
-        // seen, so a first click that only moved the cursor looked like it
-        // did nothing.
-        integer toolNumber = terrain:GetToolNumber()
-        if toolNumber = 8 or toolNumber = 9
-            terrainCursorMovedByPointer = true
-            terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
-            UpdateBrushPreview()
-            BeginTerrainStroke(terrain, true, 0)
             return now
         end
         if terrain:HasTool() and IsInsideRing(terrain, hit)
@@ -3379,6 +3461,11 @@ action Update(number seconds)
             return now
         end
         EditorTerrain terrain = GetPointerTerrain()
+        // The region tools show the region slot under the pointer instead.
+        if terrain = brushTerrain and IsRegionTool(terrain)
+            MoveRegionSlotToPointer(terrain, x, y)
+            return now
+        end
         Vector3 hit = PickPointerGround(terrain, x, y)
         TerrainData data = terrain:GetWorldTerrain():GetData()
         if hit = undefined or not data:HasHeight(hit:GetX(), hit:GetZ()) or IsInsideRing(terrain, hit)
@@ -5716,9 +5803,10 @@ the foliage there is drawn again, the terrain is
     end
 
     /*
-    This action makes a terrain one region bigger on every side, with flat
-    new regions, as far as the grid of regions allows. It can be
-    undone.
+    This action makes a terrain one region bigger on every side, as far as
+    the grid of regions allows. The new regions are shaped together from
+    the terrain's edge (TerrainData's BlendRegions), so they join it
+    without a step. It can be undone.
 
     Attribute: Parameter terrain The terrain
     */
@@ -5736,12 +5824,13 @@ the foliage there is drawn again, the terrain is
         operation:BeginOperation(data, "grow", true, true)
         operation:CopyAreaIncludingEmpty(firstX * size, firstZ * size, lastX * size + size - 1, lastZ * size + size - 1)
         integer added = 0
+        Array<TerrainRegion> grown
         integer locationZ = firstZ
         repeat while locationZ <= lastZ
             integer locationX = firstX
             repeat while locationX <= lastX
                 if data:IsInRegionMap(locationX, locationZ) and not data:HasRegion(locationX, locationZ)
-                    data:AddRegion(locationX, locationZ)
+                    grown:Add(data:AddRegion(locationX, locationZ))
                     added = added + 1
                 end
                 locationX = locationX + 1
@@ -5753,7 +5842,821 @@ the foliage there is drawn again, the terrain is
             NotifyAccessibility(terrain, "The terrain can't grow: it reaches the edge of the grid of regions on every side.")
             return now
         end
+        data:BlendRegions(grown)
         FinishTerrainOperation(terrain, operation, "Added " + added + " regions. The terrain is now " + terrain:DescribeSize())
+    end
+
+    /*
+    This action returns true if a terrain's chosen tool is Add region or
+    Remove region. Those tools work with whole regions, through a
+    placeholder: a click puts down a rectangle of region slots, its edges
+    can be dragged, and a click inside it adds or removes the regions.
+
+    Attribute: Parameter terrain The terrain, which may be undefined
+    Attribute: Returns True if the tool is a region tool
+    */
+    action IsRegionTool(EditorTerrain terrain) returns boolean
+        if terrain = undefined
+            return false
+        end
+        integer tool = terrain:GetToolNumber()
+        return tool = 8 or tool = 9
+    end
+
+    /*
+    This action returns how wide one region is, in world units.
+    */
+    private action GetRegionWorldSize(TerrainData data) returns number
+        return data:GetRegionSize() * data:GetVertexSpacing()
+    end
+
+    /*
+    This action returns the region location a world position is in, along
+    x or z. Both axes work the same way.
+    */
+    private action GetRegionLocationAt(TerrainData data, number world) returns integer
+        return data:GetRegionLocation(data:GetSampleX(world))
+    end
+
+    /*
+    This action returns where the pointer meets a flat level at a height,
+    in the same screen coordinates as mouse events, or undefined if it
+    points away from it.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    Attribute: Parameter height The level's height
+    Attribute: Returns The point, or undefined
+    */
+    private action PickRegionPlane(number x, number y, number height) returns Vector3
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return undefined
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // GetPickRay mirrors x across the view, as in PickPointerGround.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray ray = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        Vector3 direction = ray:GetDirection()
+        Vector3 origin = ray:GetOrigin()
+        if math:AbsoluteValue(direction:GetY()) < 0.0001
+            return undefined
+        end
+        number distance = (height - origin:GetY()) / direction:GetY()
+        if distance <= 0
+            return undefined
+        end
+        Vector3 point
+        point:Set(origin:GetX() + direction:GetX() * distance, height, origin:GetZ() + direction:GetZ() * distance)
+        return point
+    end
+
+    /*
+    This action returns where the pointer points for a region tool: the
+    ground under it, or past the ground's edge, the level at height 0.
+    */
+    private action PickRegionPoint(EditorTerrain terrain, number x, number y) returns Vector3
+        Vector3 hit = PickPointerGround(terrain, x, y)
+        if hit = undefined
+            hit = PickRegionPlane(x, y, 0)
+        end
+        return hit
+    end
+
+    /*
+    This action returns the height to draw an outline around a rectangle of
+    region slots at: the ground around it, or the highest ground in it, if
+    that is higher, so the outline isn't hidden under the ground.
+    */
+    private action GetRegionRectangleHeight(TerrainData data, integer firstX, integer firstZ, integer lastX, integer lastZ) returns number
+        number height = data:GetBlockEdgeHeight(firstX, firstZ, lastX, lastZ)
+        integer locationZ = firstZ
+        repeat while locationZ <= lastZ
+            integer locationX = firstX
+            repeat while locationX <= lastX
+                TerrainRegion region = data:GetRegion(locationX, locationZ)
+                if region not= undefined and region:GetHighestHeight() > height
+                    height = region:GetHighestHeight()
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        return height
+    end
+
+    /*
+    This action returns true if a terrain's region tool can act on a region
+    slot: Add region where there is no region yet, Remove region where
+    there is one, inside the grid of regions.
+    */
+    private action CanRegionToolActAt(EditorTerrain terrain, integer locationX, integer locationZ) returns boolean
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if not data:IsInRegionMap(locationX, locationZ)
+            return false
+        end
+        if terrain:GetToolNumber() = 8
+            return not data:HasRegion(locationX, locationZ)
+        end
+        return data:HasRegion(locationX, locationZ)
+    end
+
+    /*
+    This action shows the slot outline around one region slot: green where
+    the region tool can act, red where it can't.
+    */
+    private action ShowRegionSlot(EditorTerrain terrain, integer locationX, integer locationZ)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        boolean moved = not regionSlotShown or locationX not= regionSlotX or locationZ not= regionSlotZ
+        if regionSlotOutline = undefined
+            TerrainRegionOutline outline
+            outline:SetName("Region Slot")
+            outline:SetProperty(constants:EDITOR_TAG, undefined)
+            // The outline lets clicks through to the scene editor.
+            outline:SetAcceptsMouseInput(false)
+            regionSlotOutline = outline
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(outline)
+            moved = true
+        end
+        if moved
+            number size = GetRegionWorldSize(data)
+            regionSlotOutline:Place(locationX * size, locationZ * size, (locationX + 1) * size, (locationZ + 1) * size,
+                GetRegionRectangleHeight(data, locationX, locationZ, locationX, locationZ))
+        end
+        if CanRegionToolActAt(terrain, locationX, locationZ)
+            regionSlotOutline:SetLineColor(0.15, 0.85, 0.25)
+        else
+            regionSlotOutline:SetLineColor(0.95, 0.15, 0.1)
+        end
+        if not regionSlotShown
+            regionSlotOutline:Show()
+            regionSlotShown = true
+        end
+        regionSlotX = locationX
+        regionSlotZ = locationZ
+    end
+
+    /*
+    This action hides the slot outline. It is placed again when it next
+    shows, so it takes any new ground height.
+    */
+    private action HideRegionSlot
+        if regionSlotOutline not= undefined and regionSlotShown
+            regionSlotOutline:Hide()
+        end
+        regionSlotShown = false
+    end
+
+    /*
+    This action follows the pointer with a region tool: the slot under it is
+    outlined, except over the placeholder, whose edges turn white where the
+    pointer can grab them.
+    */
+    private action MoveRegionSlotToPointer(EditorTerrain terrain, number x, number y)
+        HideTerrainGhost()
+        slotFollowsPointer = true
+        if placeholderDragging
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if placeholderTerrain = terrain and placeholderOutline not= undefined
+            Vector3 point = PickRegionPlane(x, y, placeholderHeight)
+            if point not= undefined
+                if FindPlaceholderEdges(data, point)
+                    placeholderOutline:SetLineColor(1, 1, 1)
+                    HideRegionSlot()
+                    return now
+                end
+                placeholderOutline:SetLineColor(1, 0.85, 0.1)
+                if IsInsidePlaceholder(data, point)
+                    HideRegionSlot()
+                    return now
+                end
+            end
+        end
+        Vector3 hit = PickRegionPoint(terrain, x, y)
+        if hit = undefined
+            HideRegionSlot()
+            return now
+        end
+        ShowRegionSlot(terrain, GetRegionLocationAt(data, hit:GetX()), GetRegionLocationAt(data, hit:GetZ()))
+    end
+
+    /*
+    This action keeps the region tool's outlines up to date, once a frame:
+    a placeholder on another terrain is dropped, and when the keys moved
+    the terrain cursor last, the slot under the cursor is outlined.
+    */
+    private action UpdateRegionToolPreview
+        EditorTerrain terrain = brushTerrain
+        if placeholderTerrain not= undefined and placeholderTerrain not= terrain
+            HidePlaceholder()
+        end
+        boolean cursorMoved = terrain:GetBrushX() not= slotCursorX or terrain:GetBrushZ() not= slotCursorZ
+        slotCursorX = terrain:GetBrushX()
+        slotCursorZ = terrain:GetBrushZ()
+        if cursorMoved and not terrainCursorMovedByPointer
+            slotFollowsPointer = false
+        end
+        if slotFollowsPointer or placeholderDragging
+            return now
+        end
+        if not terrain:IsBrushPlaced()
+            HideRegionSlot()
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer locationX = GetRegionLocationAt(data, terrain:GetBrushX())
+        integer locationZ = GetRegionLocationAt(data, terrain:GetBrushZ())
+        // Over the placeholder, the brush key commits it, so no slot shows.
+        if placeholderTerrain = terrain and IsPlaceholderSlot(locationX, locationZ)
+            HideRegionSlot()
+            return now
+        end
+        ShowRegionSlot(terrain, locationX, locationZ)
+    end
+
+    /*
+    This action returns true if a region slot is inside the placeholder.
+    */
+    private action IsPlaceholderSlot(integer locationX, integer locationZ) returns boolean
+        return locationX >= placeholderFirstX and locationX <= placeholderLastX and
+            locationZ >= placeholderFirstZ and locationZ <= placeholderLastZ
+    end
+
+    /*
+    This action returns true if a point on the ground is inside the
+    placeholder.
+    */
+    private action IsInsidePlaceholder(TerrainData data, Vector3 point) returns boolean
+        number size = GetRegionWorldSize(data)
+        return point:GetX() >= placeholderFirstX * size and point:GetX() <= (placeholderLastX + 1) * size and
+            point:GetZ() >= placeholderFirstZ * size and point:GetZ() <= (placeholderLastZ + 1) * size
+    end
+
+    /*
+    This action works out which of the placeholder's edges a point on the
+    ground is close enough to grab, and notes them for a drag: one edge,
+    or two at a corner. It returns true if it is near any.
+    */
+    private action FindPlaceholderEdges(TerrainData data, Vector3 point) returns boolean
+        number size = GetRegionWorldSize(data)
+        number grab = size * PLACEHOLDER_GRAB_SHARE
+        number left = placeholderFirstX * size
+        number right = (placeholderLastX + 1) * size
+        number near = placeholderFirstZ * size
+        number far = (placeholderLastZ + 1) * size
+        number pointX = point:GetX()
+        number pointZ = point:GetZ()
+        dragLeft = false
+        dragRight = false
+        dragNear = false
+        dragFar = false
+        if pointX < left - grab or pointX > right + grab or pointZ < near - grab or pointZ > far + grab
+            return false
+        end
+        if math:AbsoluteValue(pointX - left) <= grab
+            dragLeft = true
+        elseif math:AbsoluteValue(pointX - right) <= grab
+            dragRight = true
+        end
+        if math:AbsoluteValue(pointZ - near) <= grab
+            dragNear = true
+        elseif math:AbsoluteValue(pointZ - far) <= grab
+            dragFar = true
+        end
+        return dragLeft or dragRight or dragNear or dragFar
+    end
+
+    /*
+    This action draws the placeholder's outline where its rectangle is now,
+    at the height its regions would start at, and shows what it holds on
+    the status line.
+    */
+    private action ShowPlaceholderOutline
+        EditorTerrain terrain = placeholderTerrain
+        EditorLayer layer = GetSelectedLayer()
+        if terrain = undefined or not (layer is EditorLayer3D)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if placeholderOutline = undefined
+            TerrainRegionOutline outline
+            outline:SetName("Region Placeholder")
+            outline:SetProperty(constants:EDITOR_TAG, undefined)
+            // The outline lets clicks through to the scene editor.
+            outline:SetAcceptsMouseInput(false)
+            placeholderOutline = outline
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(outline)
+        end
+        number size = GetRegionWorldSize(data)
+        placeholderHeight = GetRegionRectangleHeight(data, placeholderFirstX, placeholderFirstZ, placeholderLastX, placeholderLastZ)
+        placeholderOutline:Place(placeholderFirstX * size, placeholderFirstZ * size, (placeholderLastX + 1) * size, (placeholderLastZ + 1) * size, placeholderHeight)
+        placeholderOutline:SetLineColor(1, 0.85, 0.1)
+        placeholderOutline:Show()
+        text verb = "add"
+        if terrain:GetToolNumber() = 9
+            verb = "remove"
+        end
+        ShowPlacementStatus(DescribeRegionPlaceholder() + " Click inside to " + verb + ", drag an edge to resize, Esc to drop.")
+        regionStatusShown = true
+    end
+
+    /*
+    This action puts the placeholder away, with nothing added or removed.
+    */
+    private action HidePlaceholder
+        placeholderTerrain = undefined
+        placeholderDragging = false
+        if placeholderOutline not= undefined
+            placeholderOutline:Hide()
+        end
+        ShowPlacementStatus("")
+        regionStatusShown = false
+    end
+
+    /*
+    This action shows the placeholder on a terrain with a rectangle, or
+    puts it away.
+    */
+    private action ApplyRegionPlaceholder(EditorTerrain terrain, boolean shown, integer firstX, integer firstZ, integer lastX, integer lastZ)
+        if not shown
+            HidePlaceholder()
+            return now
+        end
+        placeholderTerrain = terrain
+        placeholderFirstX = firstX
+        placeholderFirstZ = firstZ
+        placeholderLastX = lastX
+        placeholderLastZ = lastZ
+        ShowPlaceholderOutline()
+    end
+
+    /*
+    This action sets the placeholder for undo and redo
+    (SceneEditorRegionPlaceholderEdit). It does nothing unless the terrain
+    has a region tool chosen.
+
+    Attribute: Parameter terrain The terrain the placeholder is on
+    Attribute: Parameter shown True for a placeholder, false for none
+    Attribute: Parameter firstX Its first region location along x
+    Attribute: Parameter firstZ Its first region location along z
+    Attribute: Parameter lastX Its last region location along x
+    Attribute: Parameter lastZ Its last region location along z
+    Attribute: Parameter message What was done, such as "Undid resize region placeholder", or "" to say nothing
+    */
+    action SetRegionPlaceholderState(EditorTerrain terrain, boolean shown, integer firstX, integer firstZ, integer lastX, integer lastZ, text message)
+        if terrain = undefined or terrain not= brushTerrain or not IsRegionTool(terrain)
+            return now
+        end
+        ApplyRegionPlaceholder(terrain, shown, firstX, firstZ, lastX, lastZ)
+        HideRegionSlot()
+        if message not= ""
+            if shown
+                NotifyAccessibility(terrain, message + ". " + DescribeRegionPlaceholder())
+            else
+                NotifyAccessibility(terrain, message + ". No placeholder.")
+            end
+        end
+    end
+
+    /*
+    This action describes the placeholder for screen readers and the status
+    line, such as "Placeholder 3 by 2 regions, 5 new, 1 already there."
+
+    Attribute: Returns The description
+    */
+    action DescribeRegionPlaceholder returns text
+        if placeholderTerrain = undefined
+            return "No placeholder."
+        end
+        TerrainData data = placeholderTerrain:GetWorldTerrain():GetData()
+        boolean adding = placeholderTerrain:GetToolNumber() = 8
+        integer width = placeholderLastX - placeholderFirstX + 1
+        integer depth = placeholderLastZ - placeholderFirstZ + 1
+        integer acting = CountPlaceholderSlots(data, adding)
+        integer others = width * depth - acting
+        text result = "Placeholder " + width + " by " + depth + " regions"
+        if adding
+            result = result + ", " + acting + " new"
+            if others > 0
+                result = result + ", " + others + " already there"
+            end
+        else
+            result = result + ", " + acting + " to remove"
+            if others > 0
+                result = result + ", " + others + " empty"
+            end
+        end
+        return result + "."
+    end
+
+    /*
+    This action counts the slots in the placeholder the tool acts on: those
+    with no region yet when adding, those with one when removing.
+    */
+    private action CountPlaceholderSlots(TerrainData data, boolean adding) returns integer
+        integer count = 0
+        integer locationZ = placeholderFirstZ
+        repeat while locationZ <= placeholderLastZ
+            integer locationX = placeholderFirstX
+            repeat while locationX <= placeholderLastX
+                if data:IsInRegionMap(locationX, locationZ)
+                    boolean exists = data:HasRegion(locationX, locationZ)
+                    if (adding and not exists) or (not adding and exists)
+                        count = count + 1
+                    end
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        return count
+    end
+
+    /*
+    This action changes the placeholder as one undoable step: it is put
+    down, moved, resized or dropped. Nothing is said; the caller says it.
+    */
+    private action ChangeRegionPlaceholder(EditorTerrain terrain, boolean shown, integer firstX, integer firstZ, integer lastX, integer lastZ, text name)
+        SceneEditorRegionPlaceholderEdit edit
+        edit:Create(me, terrain, name, undefined)
+        edit:SetBefore(placeholderTerrain = terrain, placeholderFirstX, placeholderFirstZ, placeholderLastX, placeholderLastZ)
+        edit:SetAfter(shown, firstX, firstZ, lastX, lastZ)
+        editManager:Add(edit)
+        ApplyRegionPlaceholder(terrain, shown, firstX, firstZ, lastX, lastZ)
+        HideRegionSlot()
+    end
+
+    /*
+    This action tells the user something about the region tool, both to a
+    screen reader and on the status line.
+    */
+    private action TellRegionTool(EditorTerrain terrain, text message)
+        NotifyAccessibility(terrain, message)
+        ShowPlacementStatus(message)
+        regionStatusShown = true
+    end
+
+    /*
+    This action returns how to use the placeholder, said when one is put
+    down.
+    */
+    private action DescribePlaceholderUse(EditorTerrain terrain) returns text
+        text verb = "add"
+        if terrain:GetToolNumber() = 9
+            verb = "remove"
+        end
+        return "Click inside it, or use the brush there, to " + verb + " them. Drag an edge, or use the brush outside it, to stretch it. " +
+            "The size keys grow and shrink it. Escape drops it."
+    end
+
+    /*
+    This action handles a press of the left mouse button with a region
+    tool. On the placeholder's edge or corner it starts a drag; inside the
+    placeholder it adds or removes its regions; anywhere else it puts down
+    a new placeholder of one region slot there.
+    */
+    private action PressRegionTool(EditorTerrain terrain, number x, number y)
+        HideTerrainGhost()
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if placeholderTerrain = terrain
+            Vector3 point = PickRegionPlane(x, y, placeholderHeight)
+            if point not= undefined
+                if FindPlaceholderEdges(data, point)
+                    placeholderDragging = true
+                    dragHeight = placeholderHeight
+                    dragStartFirstX = placeholderFirstX
+                    dragStartFirstZ = placeholderFirstZ
+                    dragStartLastX = placeholderLastX
+                    dragStartLastZ = placeholderLastZ
+                    HideRegionSlot()
+                    return now
+                end
+                if IsInsidePlaceholder(data, point)
+                    CommitRegionPlaceholder()
+                    return now
+                end
+            end
+        end
+        Vector3 hit = PickRegionPoint(terrain, x, y)
+        if hit = undefined
+            return now
+        end
+        terrainCursorMovedByPointer = true
+        terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+        integer locationX = GetRegionLocationAt(data, hit:GetX())
+        integer locationZ = GetRegionLocationAt(data, hit:GetZ())
+        if not data:IsInRegionMap(locationX, locationZ)
+            TellRegionTool(terrain, "A region can't go there: the grid of regions runs from -16 to 15 along each side.")
+            return now
+        end
+        ChangeRegionPlaceholder(terrain, true, locationX, locationZ, locationX, locationZ, "place region placeholder")
+        NotifyAccessibility(terrain, DescribeRegionPlaceholder() + " " + DescribePlaceholderUse(terrain))
+    end
+
+    /*
+    This action returns true while an edge or corner of the region tool's
+    placeholder is being dragged with the mouse.
+
+    Attribute: Returns True during a drag
+    */
+    action IsDraggingRegionPlaceholder returns boolean
+        return placeholderDragging
+    end
+
+    /*
+    This action moves the dragged edges of the placeholder to the region
+    slot under the pointer, given in the same screen coordinates as mouse
+    events. It stays inside the grid of regions and at least one slot
+    wide. The pointer listener calls it.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action DragRegionPlaceholder(number x, number y)
+        if not placeholderDragging or placeholderTerrain = undefined
+            return now
+        end
+        TerrainData data = placeholderTerrain:GetWorldTerrain():GetData()
+        Vector3 point = PickRegionPlane(x, y, dragHeight)
+        if point = undefined
+            return now
+        end
+        integer locationX = GetRegionLocationAt(data, point:GetX())
+        integer locationZ = GetRegionLocationAt(data, point:GetZ())
+        integer firstX = placeholderFirstX
+        integer firstZ = placeholderFirstZ
+        integer lastX = placeholderLastX
+        integer lastZ = placeholderLastZ
+        // Each side only moves inside the grid, and not past the other side.
+        if data:IsInRegionMap(locationX, firstZ)
+            if dragLeft
+                firstX = locationX
+                if firstX > lastX
+                    firstX = lastX
+                end
+            elseif dragRight
+                lastX = locationX
+                if lastX < firstX
+                    lastX = firstX
+                end
+            end
+        end
+        if data:IsInRegionMap(firstX, locationZ)
+            if dragNear
+                firstZ = locationZ
+                if firstZ > lastZ
+                    firstZ = lastZ
+                end
+            elseif dragFar
+                lastZ = locationZ
+                if lastZ < firstZ
+                    lastZ = firstZ
+                end
+            end
+        end
+        if firstX = placeholderFirstX and firstZ = placeholderFirstZ and lastX = placeholderLastX and lastZ = placeholderLastZ
+            return now
+        end
+        placeholderFirstX = firstX
+        placeholderFirstZ = firstZ
+        placeholderLastX = lastX
+        placeholderLastZ = lastZ
+        ShowPlaceholderOutline()
+        placeholderOutline:SetLineColor(1, 1, 1)
+    end
+
+    /*
+    This action ends a drag of the placeholder once the button is let go,
+    as one undoable step, and says the placeholder's new size.
+    */
+    private action UpdateRegionDrag
+        if not placeholderDragging
+            return now
+        end
+        if strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+            return now
+        end
+        placeholderDragging = false
+        if placeholderTerrain = undefined
+            return now
+        end
+        if placeholderFirstX = dragStartFirstX and placeholderFirstZ = dragStartFirstZ and
+                placeholderLastX = dragStartLastX and placeholderLastZ = dragStartLastZ
+            return now
+        end
+        SceneEditorRegionPlaceholderEdit edit
+        edit:Create(me, placeholderTerrain, "resize region placeholder", undefined)
+        edit:SetBefore(true, dragStartFirstX, dragStartFirstZ, dragStartLastX, dragStartLastZ)
+        edit:SetAfter(true, placeholderFirstX, placeholderFirstZ, placeholderLastX, placeholderLastZ)
+        editManager:Add(edit)
+        NotifyAccessibility(placeholderTerrain, DescribeRegionPlaceholder())
+    end
+
+    /*
+    This action uses a region tool at the terrain cursor, as the brush key
+    does: with no placeholder, it puts one down at the cursor's slot;
+    inside the placeholder, it adds or removes its regions; outside it, it
+    stretches the placeholder to reach the cursor's slot.
+    */
+    private action UseRegionToolAtCursor(EditorTerrain terrain)
+        if not terrain:IsBrushPlaced()
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer locationX = GetRegionLocationAt(data, terrain:GetBrushX())
+        integer locationZ = GetRegionLocationAt(data, terrain:GetBrushZ())
+        if not data:IsInRegionMap(locationX, locationZ)
+            TellRegionTool(terrain, "A region can't go there: the grid of regions runs from -16 to 15 along each side.")
+            return now
+        end
+        if placeholderTerrain not= terrain
+            ChangeRegionPlaceholder(terrain, true, locationX, locationZ, locationX, locationZ, "place region placeholder")
+            NotifyAccessibility(terrain, DescribeRegionPlaceholder() + " " + DescribePlaceholderUse(terrain))
+            return now
+        end
+        if IsPlaceholderSlot(locationX, locationZ)
+            CommitRegionPlaceholder()
+            return now
+        end
+        integer firstX = placeholderFirstX
+        integer firstZ = placeholderFirstZ
+        integer lastX = placeholderLastX
+        integer lastZ = placeholderLastZ
+        if locationX < firstX
+            firstX = locationX
+        elseif locationX > lastX
+            lastX = locationX
+        end
+        if locationZ < firstZ
+            firstZ = locationZ
+        elseif locationZ > lastZ
+            lastZ = locationZ
+        end
+        ChangeRegionPlaceholder(terrain, true, firstX, firstZ, lastX, lastZ, "stretch region placeholder")
+        NotifyAccessibility(terrain, DescribeRegionPlaceholder())
+    end
+
+    /*
+    This action grows or shrinks the placeholder by one region slot on
+    every side, as the size keys do. It stays inside the grid of regions,
+    and a side that is one or two slots across doesn't shrink.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter amount 1 to grow, -1 to shrink
+    */
+    private action ResizeRegionPlaceholder(EditorTerrain terrain, integer amount)
+        if placeholderTerrain not= terrain
+            TellRegionTool(terrain, "Put down a placeholder first, with a click or the brush key. The size keys then grow and shrink it.")
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        integer firstX = placeholderFirstX
+        integer firstZ = placeholderFirstZ
+        integer lastX = placeholderLastX
+        integer lastZ = placeholderLastZ
+        if amount > 0
+            if data:IsInRegionMap(firstX - 1, firstZ)
+                firstX = firstX - 1
+            end
+            if data:IsInRegionMap(lastX + 1, firstZ)
+                lastX = lastX + 1
+            end
+            if data:IsInRegionMap(firstX, firstZ - 1)
+                firstZ = firstZ - 1
+            end
+            if data:IsInRegionMap(firstX, lastZ + 1)
+                lastZ = lastZ + 1
+            end
+        else
+            if lastX - firstX >= 2
+                firstX = firstX + 1
+                lastX = lastX - 1
+            end
+            if lastZ - firstZ >= 2
+                firstZ = firstZ + 1
+                lastZ = lastZ - 1
+            end
+        end
+        if firstX = placeholderFirstX and firstZ = placeholderFirstZ and lastX = placeholderLastX and lastZ = placeholderLastZ
+            if amount > 0
+                TellRegionTool(terrain, "The placeholder can't grow: it reaches the edge of the grid of regions.")
+            else
+                TellRegionTool(terrain, "The placeholder can't shrink any more.")
+            end
+            return now
+        end
+        ChangeRegionPlaceholder(terrain, true, firstX, firstZ, lastX, lastZ, "resize region placeholder")
+        NotifyAccessibility(terrain, DescribeRegionPlaceholder())
+    end
+
+    /*
+    This action drops the placeholder, with nothing added or removed, as
+    Escape does. It can be undone.
+
+    Attribute: Returns True if there was a placeholder, so Escape did this
+    */
+    action DropRegionPlaceholder returns boolean
+        if placeholderTerrain = undefined
+            return false
+        end
+        EditorTerrain terrain = placeholderTerrain
+        text verb = "added"
+        if terrain:GetToolNumber() = 9
+            verb = "removed"
+        end
+        ChangeRegionPlaceholder(terrain, false, 0, 0, 0, 0, "drop region placeholder")
+        NotifyAccessibility(terrain, "Dropped the placeholder. Nothing was " + verb + ".")
+        return true
+    end
+
+    /*
+    This action adds the regions in the placeholder, or removes them for
+    Remove region, as one undoable step, and puts the placeholder away.
+    New regions are shaped together from the ground around them
+    (TerrainData's BlendRegions). Undoing it brings the placeholder back.
+    */
+    private action CommitRegionPlaceholder
+        EditorTerrain terrain = placeholderTerrain
+        if terrain = undefined or not CanOperateOn(terrain)
+            return now
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        boolean adding = terrain:GetToolNumber() = 8
+        integer acting = CountPlaceholderSlots(data, adding)
+        if acting = 0
+            if adding
+                TellRegionTool(terrain, "Every slot in the placeholder already has ground, so nothing was added.")
+            else
+                TellRegionTool(terrain, "The placeholder has no regions in it, so nothing was removed.")
+            end
+            return now
+        end
+        if not adding and acting >= data:GetRegionCount()
+            TellRegionTool(terrain, "That would remove every region of the terrain. Leave at least one.")
+            return now
+        end
+        text name = "add regions"
+        if not adding
+            name = "remove regions"
+        end
+
+        integer size = data:GetRegionSize()
+        TerrainStroke operation
+        operation:BeginOperation(data, name, true, true)
+        operation:CopyAreaIncludingEmpty(placeholderFirstX * size, placeholderFirstZ * size, placeholderLastX * size + size - 1, placeholderLastZ * size + size - 1)
+        Array<TerrainRegion> added
+        integer locationZ = placeholderFirstZ
+        repeat while locationZ <= placeholderLastZ
+            integer locationX = placeholderFirstX
+            repeat while locationX <= placeholderLastX
+                if data:IsInRegionMap(locationX, locationZ)
+                    if adding and not data:HasRegion(locationX, locationZ)
+                        added:Add(data:AddRegion(locationX, locationZ))
+                    elseif not adding and data:HasRegion(locationX, locationZ)
+                        data:RemoveRegion(locationX, locationZ)
+                    end
+                end
+                locationX = locationX + 1
+            end
+            locationZ = locationZ + 1
+        end
+        if adding
+            data:BlendRegions(added)
+        end
+        data:AddToSplatEditedArea(placeholderFirstX * size, placeholderFirstZ * size, placeholderLastX * size + size - 1, placeholderLastZ * size + size - 1)
+        TerrainStrokeEdit strokeEdit = operation:End()
+
+        if strokeEdit not= undefined
+            SceneEditorRegionPlaceholderEdit edit
+            edit:Create(me, terrain, name, strokeEdit)
+            edit:SetBefore(true, placeholderFirstX, placeholderFirstZ, placeholderLastX, placeholderLastZ)
+            edit:SetAfter(false, 0, 0, 0, 0)
+            editManager:Add(edit)
+        end
+        HidePlaceholder()
+        HideRegionSlot()
+
+        terrain:SetChanged(true)
+        RedrawTerrain(terrain)
+        TerrainFactsChanged(terrain)
+        text regions = " regions."
+        if acting = 1
+            regions = " region."
+        end
+        text verb = "Added "
+        if not adding
+            verb = "Removed "
+        end
+        NotifyAccessibility(terrain, verb + acting + regions + " The terrain is now " + terrain:DescribeSize())
     end
 
     /*
@@ -6977,6 +7880,29 @@ The ring is one of the editor's own items: it isn't saved,
     listed or picked.
     */
     private action UpdateBrushPreview
+        // The region tools show region slots and their placeholder, not the
+        // ring, since they act on whole regions, whatever the brush's size.
+        if IsTerrainBrushActive() and IsRegionTool(brushTerrain)
+            if brushPreviewShown
+                brushPreview:Hide()
+                brushPreviewShown = false
+            end
+            HideRampPreview()
+            UpdateRegionToolPreview()
+            return now
+        end
+        // Leaving a region tool drops its placeholder, with nothing added.
+        if regionSlotShown
+            HideRegionSlot()
+        end
+        if placeholderTerrain not= undefined
+            HidePlaceholder()
+        end
+        if regionStatusShown
+            ShowPlacementStatus("")
+            regionStatusShown = false
+        end
+
         // The ring shows the brush of the terrain whose tool is chosen, or,
         // with no tool, the terrain cursor, in the color of its beam and
         // crosshair (TerrainCursorSettings). Either way it is the brush's
@@ -8039,6 +8965,20 @@ The ring is one of the editor's own items: it isn't saved,
         if command <= constants:COMMAND_TERRAIN_TOOL + terrain:LAST_TOOL
             SetTerrainTool(terrain, command - constants:COMMAND_TERRAIN_TOOL)
             return now
+        end
+        // The region tools don't use the brush's size, so the brush key
+        // and the size keys work their placeholder.
+        if terrain = brushTerrain and IsRegionTool(terrain)
+            if command = constants:COMMAND_TERRAIN_USE_BRUSH
+                UseRegionToolAtCursor(terrain)
+                return now
+            elseif command = constants:COMMAND_TERRAIN_LARGER
+                ResizeRegionPlaceholder(terrain, 1)
+                return now
+            elseif command = constants:COMMAND_TERRAIN_SMALLER
+                ResizeRegionPlaceholder(terrain, -1)
+                return now
+            end
         end
         // The brush's size and strength change with or without a tool.
         if command = constants:COMMAND_TERRAIN_STRONGER

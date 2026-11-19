@@ -1,0 +1,138 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Game.Graphics.Worlds.TerrainStrokeEdit
+
+/*
+    The SceneEditorRegionPlaceholderEdit is one step with the placeholder
+    of the Add region and Remove region tools, in the scene editor's undo
+    list: placing it, moving or resizing it, dropping it, or committing it.
+    It keeps the placeholder's rectangle before and after the step, where
+    there may be no placeholder. A commit also keeps the terrain stroke
+    that added or removed the regions, so undoing a commit takes the
+    regions back out, or puts them back, and brings the placeholder back
+    so it can be changed and committed again.
+
+    If the terrain no longer has a region tool chosen, undo and redo only
+    change the ground; the placeholder is left alone.
+*/
+class SceneEditorRegionPlaceholderEdit is Edit
+    SceneEditor controller = undefined
+    EditorTerrain terrain = undefined
+    text name = ""
+    TerrainStrokeEdit strokeEdit = undefined
+
+    // The placeholder before the step: whether there was one, and its
+    // first and last region locations along x and z.
+    boolean beforeShown = false
+    integer beforeFirstX = 0
+    integer beforeFirstZ = 0
+    integer beforeLastX = 0
+    integer beforeLastZ = 0
+
+    // The placeholder after the step.
+    boolean afterShown = false
+    integer afterFirstX = 0
+    integer afterFirstZ = 0
+    integer afterLastX = 0
+    integer afterLastZ = 0
+
+    /*
+        Sets up the edit with what the step does and the terrain stroke of
+        a commit, or undefined for a step that only changes the placeholder.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter terrain The terrain the placeholder is on
+        Attribute: Parameter name What the step does, such as "resize region placeholder", for the undo name
+        Attribute: Parameter strokeEdit The commit's terrain stroke, or undefined
+    */
+    action Create(SceneEditor controller, EditorTerrain terrain, text name, TerrainStrokeEdit strokeEdit)
+        me:controller = controller
+        me:terrain = terrain
+        me:name = name
+        me:strokeEdit = strokeEdit
+    end
+
+    /*
+        Sets the placeholder before the step.
+
+        Attribute: Parameter shown True if there was a placeholder
+        Attribute: Parameter firstX Its first region location along x
+        Attribute: Parameter firstZ Its first region location along z
+        Attribute: Parameter lastX Its last region location along x
+        Attribute: Parameter lastZ Its last region location along z
+    */
+    action SetBefore(boolean shown, integer firstX, integer firstZ, integer lastX, integer lastZ)
+        beforeShown = shown
+        beforeFirstX = firstX
+        beforeFirstZ = firstZ
+        beforeLastX = lastX
+        beforeLastZ = lastZ
+    end
+
+    /*
+        Sets the placeholder after the step.
+
+        Attribute: Parameter shown True if there is a placeholder
+        Attribute: Parameter firstX Its first region location along x
+        Attribute: Parameter firstZ Its first region location along z
+        Attribute: Parameter lastX Its last region location along x
+        Attribute: Parameter lastZ Its last region location along z
+    */
+    action SetAfter(boolean shown, integer firstX, integer firstZ, integer lastX, integer lastZ)
+        afterShown = shown
+        afterFirstX = firstX
+        afterFirstZ = firstZ
+        afterLastX = lastX
+        afterLastZ = lastZ
+    end
+
+    action Undo
+        if strokeEdit not= undefined
+            strokeEdit:Undo()
+            controller:TerrainEdited(terrain, "Undid " + name)
+            controller:SetRegionPlaceholderState(terrain, beforeShown, beforeFirstX, beforeFirstZ, beforeLastX, beforeLastZ, "")
+        else
+            controller:SetRegionPlaceholderState(terrain, beforeShown, beforeFirstX, beforeFirstZ, beforeLastX, beforeLastZ, "Undid " + name)
+        end
+    end
+
+    action Redo
+        if strokeEdit not= undefined
+            strokeEdit:Redo()
+            controller:TerrainEdited(terrain, "Redid " + name)
+            controller:SetRegionPlaceholderState(terrain, afterShown, afterFirstX, afterFirstZ, afterLastX, afterLastZ, "")
+        else
+            controller:SetRegionPlaceholderState(terrain, afterShown, afterFirstX, afterFirstZ, afterLastX, afterLastZ, "Redid " + name)
+        end
+    end
+
+    action CanUndo returns boolean
+        if strokeEdit not= undefined
+            return strokeEdit:CanUndo()
+        end
+        return true
+    end
+
+    action CanRedo returns boolean
+        if strokeEdit not= undefined
+            return strokeEdit:CanRedo()
+        end
+        return true
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+        if strokeEdit not= undefined
+            strokeEdit:Dispose()
+        end
+    end
+end

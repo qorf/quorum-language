@@ -197,44 +197,252 @@ class TerrainData
     /*
     This action returns the average height of the ground along the edges a
     region location shares with the regions next to it, or 0 if it has no
-    neighbors. A new region starts at this height, so it joins the ground
-    beside it instead of starting at 0, which may be far below, such as
-    under the sea.
+    neighbors. It is GetBlockEdgeHeight for a block of one region.
 
     Attribute: Parameter locationX The region location along x.
     Attribute: Parameter locationZ The region location along z.
     Attribute: Returns The average edge height, in world units, or 0.
     */
     action GetNeighborEdgeHeight(integer locationX, integer locationZ) returns number
+        return GetBlockEdgeHeight(locationX, locationZ, locationX, locationZ)
+    end
+
+    /*
+    This action returns the average height of the ground just outside a
+    rectangle of region locations: the samples next to the rectangle's
+    edges that have ground. It is 0 if there is no ground around it. It
+    tells roughly what height new regions in the rectangle would start at.
+
+    Attribute: Parameter minimumX The rectangle's first region location along x.
+    Attribute: Parameter minimumZ The rectangle's first region location along z.
+    Attribute: Parameter maximumX The rectangle's last region location along x.
+    Attribute: Parameter maximumZ The rectangle's last region location along z.
+    Attribute: Returns The average height, in world units, or 0.
+    */
+    action GetBlockEdgeHeight(integer minimumX, integer minimumZ, integer maximumX, integer maximumZ) returns number
         integer size = regionSize
-        integer firstX = locationX * size
-        integer firstZ = locationZ * size
+        integer firstX = minimumX * size
+        integer firstZ = minimumZ * size
+        integer lastX = maximumX * size + size - 1
+        integer lastZ = maximumZ * size + size - 1
         number total = 0
         integer count = 0
-        integer i = 0
-        repeat while i < size
-            if HasRegion(locationX - 1, locationZ)
-                total = total + GetSampleHeight(firstX - 1, firstZ + i)
-                count = count + 1
+        // Down the left and right sides.
+        integer locationZ = minimumZ
+        repeat while locationZ <= maximumZ
+            if HasRegion(minimumX - 1, locationZ)
+                integer leftStep = 0
+                repeat while leftStep < size
+                    total = total + GetSampleHeight(firstX - 1, locationZ * size + leftStep)
+                    count = count + 1
+                    leftStep = leftStep + 1
+                end
             end
-            if HasRegion(locationX + 1, locationZ)
-                total = total + GetSampleHeight(firstX + size, firstZ + i)
-                count = count + 1
+            if HasRegion(maximumX + 1, locationZ)
+                integer rightStep = 0
+                repeat while rightStep < size
+                    total = total + GetSampleHeight(lastX + 1, locationZ * size + rightStep)
+                    count = count + 1
+                    rightStep = rightStep + 1
+                end
             end
-            if HasRegion(locationX, locationZ - 1)
-                total = total + GetSampleHeight(firstX + i, firstZ - 1)
-                count = count + 1
+            locationZ = locationZ + 1
+        end
+        // Along the near and far sides.
+        integer locationX = minimumX
+        repeat while locationX <= maximumX
+            if HasRegion(locationX, minimumZ - 1)
+                integer nearStep = 0
+                repeat while nearStep < size
+                    total = total + GetSampleHeight(locationX * size + nearStep, firstZ - 1)
+                    count = count + 1
+                    nearStep = nearStep + 1
+                end
             end
-            if HasRegion(locationX, locationZ + 1)
-                total = total + GetSampleHeight(firstX + i, firstZ + size)
-                count = count + 1
+            if HasRegion(locationX, maximumZ + 1)
+                integer farStep = 0
+                repeat while farStep < size
+                    total = total + GetSampleHeight(locationX * size + farStep, lastZ + 1)
+                    count = count + 1
+                    farStep = farStep + 1
+                end
             end
-            i = i + 1
+            locationX = locationX + 1
         end
         if count = 0
             return 0
         end
         return total / count
+    end
+
+    /*
+    This action sets every height in a group of new regions from the
+    ground around them, so they join the terrain without a step. Each
+    sample looks along x and z, both ways, past the other new regions, to
+    the first ground that was already there. It takes that ground's height
+    at the edge, and counts it more the closer it is. A way with no ground
+    uses the average height of the ground beside the new regions. Next to
+    old ground a new region matches it; away from it, it levels off. Since
+    the group is blended as one, there are no seams between its regions.
+
+    Attribute: Parameter added The new regions, already in the region map.
+    */
+    action BlendRegions(Array<TerrainRegion> added)
+        number base = GetHeightAroundRegions(added)
+        integer size = regionSize
+        integer index = 0
+        repeat while index < added:GetSize()
+            TerrainRegion region = added:Get(index)
+            integer locationX = region:GetLocationX()
+            integer locationZ = region:GetLocationZ()
+            integer firstX = locationX * size
+            integer firstZ = locationZ * size
+
+            // Where the nearest old ground, or the lack of it, is each way.
+            integer leftLocation = FindBlendEdge(added, locationX, locationZ, -1, 0)
+            integer rightLocation = FindBlendEdge(added, locationX, locationZ, 1, 0)
+            integer nearLocation = FindBlendEdge(added, locationX, locationZ, 0, -1)
+            integer farLocation = FindBlendEdge(added, locationX, locationZ, 0, 1)
+            boolean hasLeft = HasRegion(leftLocation, locationZ)
+            boolean hasRight = HasRegion(rightLocation, locationZ)
+            boolean hasNear = HasRegion(locationX, nearLocation)
+            boolean hasFar = HasRegion(locationX, farLocation)
+            // The sample of that ground at the edge facing this region.
+            integer leftColumn = leftLocation * size + size - 1
+            integer rightColumn = rightLocation * size
+            integer nearRow = nearLocation * size + size - 1
+            integer farRow = farLocation * size
+
+            // The range of heights grows from here as samples are set.
+            region:Fill(base)
+            integer z = 0
+            repeat while z < size
+                integer sampleZ = firstZ + z
+                number leftHeight = base
+                if hasLeft
+                    leftHeight = GetSampleHeight(leftColumn, sampleZ)
+                end
+                number rightHeight = base
+                if hasRight
+                    rightHeight = GetSampleHeight(rightColumn, sampleZ)
+                end
+                integer nearDistance = sampleZ - nearRow
+                integer farDistance = farRow - sampleZ
+                number nearWeight = 1.0 / cast(number, nearDistance * nearDistance)
+                number farWeight = 1.0 / cast(number, farDistance * farDistance)
+                integer x = 0
+                repeat while x < size
+                    integer sampleX = firstX + x
+                    number nearHeight = base
+                    if hasNear
+                        nearHeight = GetSampleHeight(sampleX, nearRow)
+                    end
+                    number farHeight = base
+                    if hasFar
+                        farHeight = GetSampleHeight(sampleX, farRow)
+                    end
+                    integer leftDistance = sampleX - leftColumn
+                    integer rightDistance = rightColumn - sampleX
+                    number leftWeight = 1.0 / cast(number, leftDistance * leftDistance)
+                    number rightWeight = 1.0 / cast(number, rightDistance * rightDistance)
+                    number total = leftWeight + rightWeight + nearWeight + farWeight
+                    region:SetHeight(x, z, (leftHeight * leftWeight + rightHeight * rightWeight
+                        + nearHeight * nearWeight + farHeight * farWeight) / total)
+                    x = x + 1
+                end
+                z = z + 1
+            end
+            index = index + 1
+        end
+    end
+
+    /*
+    This action returns the average height of the old ground along the
+    edges a group of new regions shares with it, or 0 if they touch none.
+    */
+    private action GetHeightAroundRegions(Array<TerrainRegion> added) returns number
+        integer size = regionSize
+        number total = 0
+        integer count = 0
+        integer index = 0
+        repeat while index < added:GetSize()
+            TerrainRegion region = added:Get(index)
+            integer locationX = region:GetLocationX()
+            integer locationZ = region:GetLocationZ()
+            integer firstX = locationX * size
+            integer firstZ = locationZ * size
+            boolean hasLeft = IsOldRegion(added, locationX - 1, locationZ)
+            boolean hasRight = IsOldRegion(added, locationX + 1, locationZ)
+            boolean hasNear = IsOldRegion(added, locationX, locationZ - 1)
+            boolean hasFar = IsOldRegion(added, locationX, locationZ + 1)
+            integer i = 0
+            repeat while i < size
+                if hasLeft
+                    total = total + GetSampleHeight(firstX - 1, firstZ + i)
+                    count = count + 1
+                end
+                if hasRight
+                    total = total + GetSampleHeight(firstX + size, firstZ + i)
+                    count = count + 1
+                end
+                if hasNear
+                    total = total + GetSampleHeight(firstX + i, firstZ - 1)
+                    count = count + 1
+                end
+                if hasFar
+                    total = total + GetSampleHeight(firstX + i, firstZ + size)
+                    count = count + 1
+                end
+                i = i + 1
+            end
+            index = index + 1
+        end
+        if count = 0
+            return 0
+        end
+        return total / count
+    end
+
+    /*
+    This action steps from a region location one way, past the new regions
+    in a group, and returns the location it stops at, along the axis it
+    steps on: the first one with old ground, or the first with no region.
+    It always stops, since there are no regions outside the region map.
+    */
+    private action FindBlendEdge(Array<TerrainRegion> added, integer locationX, integer locationZ, integer stepX, integer stepZ) returns integer
+        integer x = locationX + stepX
+        integer z = locationZ + stepZ
+        repeat while HasRegion(x, z) and IsListedRegion(added, x, z)
+            x = x + stepX
+            z = z + stepZ
+        end
+        if stepX not= 0
+            return x
+        end
+        return z
+    end
+
+    /*
+    This action returns true if a location has a region that isn't one of
+    a group of new regions.
+    */
+    private action IsOldRegion(Array<TerrainRegion> added, integer locationX, integer locationZ) returns boolean
+        return HasRegion(locationX, locationZ) and not IsListedRegion(added, locationX, locationZ)
+    end
+
+    /*
+    This action returns true if one of a group of regions is at a location.
+    */
+    private action IsListedRegion(Array<TerrainRegion> added, integer locationX, integer locationZ) returns boolean
+        integer index = 0
+        repeat while index < added:GetSize()
+            TerrainRegion region = added:Get(index)
+            if region:GetLocationX() = locationX and region:GetLocationZ() = locationZ
+                return true
+            end
+            index = index + 1
+        end
+        return false
     end
 
     /*
