@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 use Libraries.Compute.Math
+use Libraries.Compute.Random
 
 /*
 A TerrainStroke is one use of a TerrainBrush on a TerrainData: everything
@@ -75,6 +76,18 @@ class TerrainStroke
     Array<integer> touchedZ
     Array<TerrainRegion> beforeCopies
 
+    // For ERODE and AUTO brushes: the generator whose rain and painting
+    // rules they use, and how many layers the terrain has (SetGenerator).
+    TerrainGenerator generator = undefined
+    integer generatorLayers = 4
+    // Where an ERODE brush's drops of rain start, and the part of a drop
+    // owed from earlier dabs, so a slow brush still rains.
+    Random rain
+    number rainOwed = 0
+    // About how many drops of rain an ERODE brush lets fall each second for
+    // each sample under its full weight, at a strength of 1.
+    constant number RAIN_RATE = 1
+
     /*
     This action starts a stroke. The brush's settings are read as the stroke
     goes, so changing the brush during a stroke changes the rest of it.
@@ -94,7 +107,22 @@ class TerrainStroke
         editName = brush:GetName()
         editChangesShape = tools:ChangesShape(brush:GetTool())
         editChangesSplat = tools:ChangesSplat(brush:GetTool())
+        rainOwed = 0
         StartLists()
+    end
+
+    /*
+    This action gives the stroke a TerrainGenerator, whose rain an ERODE brush
+    uses and whose painting rules an AUTO brush uses, and how many layers the
+    terrain has, so auto paint uses only those. Without one, those brushes
+    change nothing. Other brushes don't use it.
+
+    Attribute: Parameter terrainGenerator The generator.
+    Attribute: Parameter layerCount How many layers the terrain has, from 1 to 4.
+    */
+    action SetGenerator(TerrainGenerator terrainGenerator, integer layerCount)
+        generator = terrainGenerator
+        generatorLayers = layerCount
     end
 
     /*
@@ -357,6 +385,8 @@ class TerrainStroke
 
         if tool = tools:TEXTURE
             DabTexture(firstX, firstZ, width, depth, weights, operation, seconds)
+        elseif tool = tools:SCULPT and operation = tools:ERODE
+            DabErode(firstX, firstZ, width, depth, weights, seconds)
         else
             DabHeight(firstX, firstZ, width, depth, weights, tool, operation, seconds, spacing)
         end
@@ -449,11 +479,17 @@ class TerrainStroke
     private action DabTexture(integer firstX, integer firstZ, integer width, integer depth, Number32BitArray weights,
             integer operation, number seconds)
         boolean blending = operation = tools:AVERAGE
+        boolean autoPainting = operation = tools:AUTO
+        if autoPainting and generator = undefined
+            return now
+        end
 
-        // For blending, every goal is worked out before any weight changes:
-        // four numbers per sample, red, green, blue and alpha.
+        // For blending and auto paint, every goal is worked out before any
+        // weight changes: four numbers per sample, red, green, blue and
+        // alpha. Blending's are the weights around the sample; auto paint's
+        // come from the generator's rules.
         Number32BitArray goals = undefined
-        if blending
+        if blending or autoPainting
             Number32BitArray newGoals
             goals = newGoals
             goals:SetSize(width * depth * 4)
@@ -462,7 +498,11 @@ class TerrainStroke
                 integer goalColumn = 0
                 repeat while goalColumn < width
                     if weights:Get(goalRow * width + goalColumn) > 0
-                        FillAverageSplat(firstX + goalColumn, firstZ + goalRow, goals, (goalRow * width + goalColumn) * 4)
+                        if blending
+                            FillAverageSplat(firstX + goalColumn, firstZ + goalRow, goals, (goalRow * width + goalColumn) * 4)
+                        else
+                            generator:FillAutoPaintGoal(data, firstX + goalColumn, firstZ + goalRow, generatorLayers, goals, (goalRow * width + goalColumn) * 4)
+                        end
                     end
                     goalColumn = goalColumn + 1
                 end
@@ -489,7 +529,7 @@ class TerrainStroke
                     number greenGoal = 0
                     number blueGoal = 0
                     number alphaGoal = 0
-                    if blending
+                    if blending or autoPainting
                         integer start = (row * width + column) * 4
                         redGoal = goals:Get(start)
                         greenGoal = goals:Get(start + 1)
@@ -514,6 +554,72 @@ class TerrainStroke
                 column = column + 1
             end
             row = row + 1
+        end
+    end
+
+    /*
+    This action rains on the ground for one dab of an ERODE brush. It lets
+    fall about RAIN_RATE drops a second for each sample under the brush's
+    full weight, times the strength, carrying any part of a drop to the next
+    dab. Each drop starts at a random sample, kept with a chance equal to the
+    brush's weight there, so most rain falls in the middle and none outside
+    the brush. Drops roll on up to one brush size past the dab, as the
+    generator's rain does, and the ground they leave settles off slopes
+    that are too steep.
+
+    Attribute: Parameter firstX The first sample along x the dab covers.
+    Attribute: Parameter firstZ The first sample along z the dab covers.
+    Attribute: Parameter width How many samples the dab covers along x.
+    Attribute: Parameter depth How many samples the dab covers along z.
+    Attribute: Parameter weights The brush's weight at each sample, one row after another.
+    Attribute: Parameter seconds How long the brush is held here.
+    */
+    private action DabErode(integer firstX, integer firstZ, integer width, integer depth, Number32BitArray weights, number seconds)
+        if generator = undefined
+            return now
+        end
+        number total = 0
+        integer index = 0
+        repeat while index < weights:GetSize()
+            total = total + weights:Get(index)
+            index = index + 1
+        end
+        if total <= 0
+            return now
+        end
+        rainOwed = rainOwed + brush:GetStrength() * seconds * total * RAIN_RATE
+        integer drops = cast(integer, rainOwed)
+        if drops < 1
+            return now
+        end
+        rainOwed = rainOwed - drops
+
+        integer runOn = cast(integer, math:Ceiling(brush:GetSize() / data:GetVertexSpacing()))
+        integer minimumX = firstX - runOn
+        integer minimumZ = firstZ - runOn
+        integer maximumX = firstX + width - 1 + runOn
+        integer maximumZ = firstZ + depth - 1 + runOn
+        // The drops may change anything they can reach, so it is copied
+        // first, for undo.
+        CopyRegionsFor(minimumX - 1, minimumZ - 1, maximumX + 1, maximumZ + 1, false)
+
+        integer fallen = 0
+        integer tries = 0
+        repeat while fallen < drops and tries < drops * 20
+            tries = tries + 1
+            integer column = cast(integer, rain:RandomNumber() * width)
+            integer row = cast(integer, rain:RandomNumber() * depth)
+            if column < width and row < depth
+                number weight = weights:Get(row * width + column)
+                if weight > 0 and rain:RandomNumber() < weight
+                    generator:ErodeDrop(data, firstX + column, firstZ + row, rain, minimumX, minimumZ, maximumX, maximumZ)
+                    fallen = fallen + 1
+                end
+            end
+        end
+        if fallen > 0
+            generator:SettleAfterRain(data, minimumX, minimumZ, maximumX, maximumZ)
+            changed = true
         end
     end
 

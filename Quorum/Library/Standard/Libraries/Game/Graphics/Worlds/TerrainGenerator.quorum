@@ -497,70 +497,108 @@ class TerrainGenerator
         repeat while drop < drops
             number positionX = startMinimumX + random:RandomNumber() * (startMaximumX - startMinimumX - 1)
             number positionZ = startMinimumZ + random:RandomNumber() * (startMaximumZ - startMinimumZ - 1)
-            number directionX = 0
-            number directionZ = 0
-            number speed = 1
-            number water = 1
-            number sediment = 0
-
-            integer step = 0
-            boolean rolling = HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
-            repeat while rolling and step < maximumSteps
-                number height = GetCellHeight(data, positionX, positionZ)
-                number slopeX = GetCellSlopeX(data, positionX, positionZ)
-                number slopeZ = GetCellSlopeZ(data, positionX, positionZ)
-
-                // Roll downhill, keeping a little of the last direction.
-                directionX = directionX * inertia - slopeX * (1 - inertia)
-                directionZ = directionZ * inertia - slopeZ * (1 - inertia)
-                number length = math:SquareRoot(directionX * directionX + directionZ * directionZ)
-                if length < 0.000001
-                    // Flat ground: pick a direction at random.
-                    number angle = random:RandomNumber() * 2 * math:pi
-                    directionX = math:Cosine(angle)
-                    directionZ = math:Sine(angle)
-                else
-                    directionX = directionX / length
-                    directionZ = directionZ / length
-                end
-                number nextX = positionX + directionX
-                number nextZ = positionZ + directionZ
-
-                if not HasCell(data, nextX, nextZ, minimumX, minimumZ, maximumX, maximumZ)
-                    rolling = false
-                else
-                    number nextHeight = GetCellHeight(data, nextX, nextZ)
-                    number change = nextHeight - height
-                    number capacity = math:MaximumOf(-change, minimumCapacity) * speed * water * capacityFactor
-                    if sediment > capacity or change > 0
-                        // Too much to carry, or going uphill: leave some
-                        // ground here, enough to fill the rise if uphill.
-                        number left = (sediment - capacity) * depositRate
-                        if change > 0
-                            left = math:MinimumOf(change, sediment)
-                        end
-                        sediment = sediment - left
-                        AddToCell(data, positionX, positionZ, left)
-                    else
-                        // Room to carry more: pick up ground, but never dig
-                        // deeper than the drop to the next point.
-                        number taken = math:MinimumOf((capacity - sediment) * erodeRate, -change)
-                        sediment = sediment + taken
-                        SpreadAround(data, positionX, positionZ, -taken, minimumX, minimumZ, maximumX, maximumZ)
-                    end
-                    speed = math:SquareRoot(math:MaximumOf(0, speed * speed - change * gravity))
-                    water = water * (1 - evaporation)
-                    positionX = nextX
-                    positionZ = nextZ
-                    step = step + 1
-                end
-            end
-            // Whatever the drop still carries is left where it stopped.
-            if sediment > 0 and HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
-                SpreadAround(data, positionX, positionZ, sediment, minimumX, minimumZ, maximumX, maximumZ)
-            end
+            ErodeDrop(data, positionX, positionZ, random, minimumX, minimumZ, maximumX, maximumZ)
             drop = drop + 1
         end
+    end
+
+    /*
+    This action sends one drop of rain from a point: it rolls downhill,
+    picking up ground where it can carry more and leaving it where it can
+    carry less, as ErodeWithRain describes, until it leaves the rectangle,
+    reaches ground with no region, runs dry, or has rolled maximumSteps
+    samples. A brush's stroke uses it to rain where the brush is.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter startX Where the drop starts along x, in samples.
+    Attribute: Parameter startZ Where the drop starts along z, in samples.
+    Attribute: Parameter random The random numbers, for directions on flat ground.
+    Attribute: Parameter minimumX The smallest sample along x the drop may reach.
+    Attribute: Parameter minimumZ The smallest sample along z the drop may reach.
+    Attribute: Parameter maximumX The largest sample along x the drop may reach.
+    Attribute: Parameter maximumZ The largest sample along z the drop may reach.
+    */
+    action ErodeDrop(TerrainData data, number startX, number startZ, Random random, integer minimumX, integer minimumZ,
+            integer maximumX, integer maximumZ)
+        number positionX = startX
+        number positionZ = startZ
+        number directionX = 0
+        number directionZ = 0
+        number speed = 1
+        number water = 1
+        number sediment = 0
+
+        integer step = 0
+        boolean rolling = HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
+        repeat while rolling and step < maximumSteps
+            number height = GetCellHeight(data, positionX, positionZ)
+            number slopeX = GetCellSlopeX(data, positionX, positionZ)
+            number slopeZ = GetCellSlopeZ(data, positionX, positionZ)
+
+            // Roll downhill, keeping a little of the last direction.
+            directionX = directionX * inertia - slopeX * (1 - inertia)
+            directionZ = directionZ * inertia - slopeZ * (1 - inertia)
+            number length = math:SquareRoot(directionX * directionX + directionZ * directionZ)
+            if length < 0.000001
+                // Flat ground: pick a direction at random.
+                number angle = random:RandomNumber() * 2 * math:pi
+                directionX = math:Cosine(angle)
+                directionZ = math:Sine(angle)
+            else
+                directionX = directionX / length
+                directionZ = directionZ / length
+            end
+            number nextX = positionX + directionX
+            number nextZ = positionZ + directionZ
+
+            if not HasCell(data, nextX, nextZ, minimumX, minimumZ, maximumX, maximumZ)
+                rolling = false
+            else
+                number nextHeight = GetCellHeight(data, nextX, nextZ)
+                number change = nextHeight - height
+                number capacity = math:MaximumOf(-change, minimumCapacity) * speed * water * capacityFactor
+                if sediment > capacity or change > 0
+                    // Too much to carry, or going uphill: leave some
+                    // ground here, enough to fill the rise if uphill.
+                    number left = (sediment - capacity) * depositRate
+                    if change > 0
+                        left = math:MinimumOf(change, sediment)
+                    end
+                    sediment = sediment - left
+                    AddToCell(data, positionX, positionZ, left)
+                else
+                    // Room to carry more: pick up ground, but never dig
+                    // deeper than the drop to the next point.
+                    number taken = math:MinimumOf((capacity - sediment) * erodeRate, -change)
+                    sediment = sediment + taken
+                    SpreadAround(data, positionX, positionZ, -taken, minimumX, minimumZ, maximumX, maximumZ)
+                end
+                speed = math:SquareRoot(math:MaximumOf(0, speed * speed - change * gravity))
+                water = water * (1 - evaporation)
+                positionX = nextX
+                positionZ = nextZ
+                step = step + 1
+            end
+        end
+        // Whatever the drop still carries is left where it stopped.
+        if sediment > 0 and HasCell(data, positionX, positionZ, minimumX, minimumZ, maximumX, maximumZ)
+            SpreadAround(data, positionX, positionZ, sediment, minimumX, minimumZ, maximumX, maximumZ)
+        end
+    end
+
+    /*
+    This action lets ground slide off slopes steeper than the generator's
+    settle angle, three passes over a rectangle, as erosion does after its
+    rain. A brush's stroke uses it after raining.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter minimumX The rectangle's smallest sample along x.
+    Attribute: Parameter minimumZ The rectangle's smallest sample along z.
+    Attribute: Parameter maximumX The rectangle's largest sample along x.
+    Attribute: Parameter maximumZ The rectangle's largest sample along z.
+    */
+    action SettleAfterRain(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
+        Settle(data, minimumX, minimumZ, maximumX, maximumZ, 3, settleDegrees)
     end
 
     /*
@@ -666,26 +704,17 @@ class TerrainGenerator
     Attribute: Parameter maximumZ The rectangle's largest sample along z.
     */
     action AutoPaint(TerrainData data, integer minimumX, integer minimumZ, integer maximumX, integer maximumZ)
-        number spacing = data:GetVertexSpacing()
+        Number32BitArray goal
+        goal:SetSize(4)
         integer z = minimumZ
         repeat while z <= maximumZ
             integer x = minimumX
             repeat while x <= maximumX
                 if data:HasSample(x, z)
-                    number height = data:GetSampleHeight(x, z)
-                    number slope = data:GetSlope(x * spacing, z * spacing)
-                    number rock = Smooth((slope - rockLowDegrees) / (rockHighDegrees - rockLowDegrees))
-                    number sand = math:Clamp((sandHeight + sandFade - height) / sandFade, 0, 1)
-                    number dirt = math:Clamp(GetHollowDepth(data, x, z) / hollowDepth, 0, 1)
-
-                    number left = 1 - rock
-                    number sandShare = left * sand
-                    left = left - sandShare
-                    number dirtShare = left * dirt
-                    left = left - dirtShare
+                    FillAutoPaintGoal(data, x, z, 4, goal, 0)
                     // Only changed weights are written, so painting again
                     // changes nothing and the splat texture isn't remade.
-                    integer code = data:PackSplat(left, rock, dirtShare, sandShare)
+                    integer code = data:PackSplat(goal:Get(0), goal:Get(1), goal:Get(2), goal:Get(3))
                     if code not= data:GetSampleSplat(x, z)
                         data:SetSampleSplat(x, z, code)
                     end
@@ -694,6 +723,52 @@ class TerrainGenerator
             end
             z = z + 1
         end
+    end
+
+    /*
+    This action works out the splat weights the painting rules give one
+    sample, as AutoPaint describes, and puts its four numbers (red, green,
+    blue and alpha) into an array, from a place in it. Layers past the
+    terrain's count are folded into the first, as TerrainData's
+    FoldSplatLayers does. A brush's stroke uses these as the goals it paints
+    toward.
+
+    Attribute: Parameter data The terrain.
+    Attribute: Parameter x The sample along x.
+    Attribute: Parameter z The sample along z.
+    Attribute: Parameter layerCount How many layers the terrain has, from 1 to 4.
+    Attribute: Parameter goals The array the four weights go into.
+    Attribute: Parameter start Where in the array the first weight goes.
+    */
+    action FillAutoPaintGoal(TerrainData data, integer x, integer z, integer layerCount, Number32BitArray goals, integer start)
+        number spacing = data:GetVertexSpacing()
+        number height = data:GetSampleHeight(x, z)
+        number slope = data:GetSlope(x * spacing, z * spacing)
+        number rock = Smooth((slope - rockLowDegrees) / (rockHighDegrees - rockLowDegrees))
+        number sand = math:Clamp((sandHeight + sandFade - height) / sandFade, 0, 1)
+        number dirt = math:Clamp(GetHollowDepth(data, x, z) / hollowDepth, 0, 1)
+
+        number left = 1 - rock
+        number sandShare = left * sand
+        left = left - sandShare
+        number dirtShare = left * dirt
+        left = left - dirtShare
+        if layerCount < 4
+            left = left + sandShare
+            sandShare = 0
+        end
+        if layerCount < 3
+            left = left + dirtShare
+            dirtShare = 0
+        end
+        if layerCount < 2
+            left = left + rock
+            rock = 0
+        end
+        goals:Set(start, left)
+        goals:Set(start + 1, rock)
+        goals:Set(start + 2, dirtShare)
+        goals:Set(start + 3, sandShare)
     end
 
     /*

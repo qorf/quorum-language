@@ -144,8 +144,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddToolButton("Add region")
         AddToolButton("Remove region")
         // The scene editor's own tools (EditorTerrain's STAMP_TOOL to
-        // AUTO_PAINT_TOOL), which act once per click. The stamp's shape is
-        // set in the Generate section.
+        // AUTO_PAINT_TOOL). Stamp acts once per click, and its shape is set
+        // in the Generate section; Erode and Auto paint are strokes, like
+        // the brushes above.
         AddToolButton("Stamp")
         AddToolButton("Erode")
         AddToolButton("Auto paint")
@@ -333,7 +334,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         // Fill water fills the whole hollow, so it has no size.
         // The River tool's width is the river's, set in the Water section.
         boolean usesSize = tool > 0 and tool not= 8 and tool not= 9 and not (terrain not= undefined and (tool = terrain:FILL_WATER_TOOL or tool = terrain:RIVER_TOOL))
+        // Erode and Auto paint are strokes, so they use strength and
+        // falloff too.
         boolean usesStrength = tool = 1 or tool = 2 or tool = 3 or tool = 4 or tool = 6 or tool = 7
+            or (terrain not= undefined and (tool = terrain:ERODE_TOOL or tool = terrain:AUTO_PAINT_TOOL))
         boolean usesFalloff = usesStrength
         boolean foliageTool = terrain not= undefined and tool = terrain:FOLIAGE_TOOL
         if foliageTool

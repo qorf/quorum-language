@@ -596,7 +596,7 @@ class EditorTerrain is TerrainItem
         Chooses a tool, numbered as in the in-game terrain editor: 1 raise,
         2 lower, 3 smooth, 4 flatten, 5 ramp, 6 paint, 7 blend paint, 8 add
         region, 9 remove region; then, in the scene editor only, 10 stamp,
-        11 erode and 12 auto paint, which act once per click, 13 foliage,
+        11 erode and 12 auto paint, which are strokes, 13 foliage,
         14 fill water, 15 paint water and 16 river; or 0 for none. The first time a tool is chosen, the brush starts at
         the terrain's middle.
 
@@ -625,12 +625,16 @@ class EditorTerrain is TerrainItem
             brush:SetTool(tools:REGION, tools:ADD)
         elseif tool = 9
             brush:SetTool(tools:REGION, tools:SUBTRACT)
-        elseif tool = STAMP_TOOL or tool = ERODE_TOOL
-            // These change the ground's shape, but not with the brush's
-            // own strokes.
+        elseif tool = STAMP_TOOL
+            // The stamp changes the ground's shape, but not with the
+            // brush's own strokes.
             brush:SetTool(tools:SCULPT, tools:ADD)
+        elseif tool = ERODE_TOOL
+            // Strokes that rain on the ground under the brush.
+            brush:SetTool(tools:SCULPT, tools:ERODE)
         elseif tool = AUTO_PAINT_TOOL
-            brush:SetTool(tools:TEXTURE, tools:ADD)
+            // Strokes that paint by the generator's rules under the brush.
+            brush:SetTool(tools:TEXTURE, tools:AUTO)
         elseif tool = FOLIAGE_TOOL or tool = FILL_WATER_TOOL or tool = PAINT_WATER_TOOL or tool = RIVER_TOOL
             // The Foliage and water tools don't change the ground with the
             // brush; the scene editor places copies and water itself.

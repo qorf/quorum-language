@@ -31,6 +31,7 @@ use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesLeanWithSlopeBehav
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesOverrideColorBehavior
 use Libraries.Interface.Events.PropertiesColorWellListener
 use Libraries.Interface.Controls.ColorWell
+use Libraries.Interface.Controls.SliderField
 
 class Item3DPropertiesDialog is PropertiesDialog
 
@@ -46,6 +47,8 @@ class Item3DPropertiesDialog is PropertiesDialog
     TextField rotationYawField = undefined
     TextField rotationPitchField = undefined
     TextField rotationRollField = undefined
+    // On: changing one scale changes the other two by the same ratio.
+    Checkbox keepProportionsCheckbox = undefined
     // The Look card: whether a chosen color shows over the item's own
     // colors, and the color.
     Checkbox overrideColorCheckbox = undefined
@@ -66,6 +69,8 @@ class Item3DPropertiesDialog is PropertiesDialog
     // The width of the box each line's label sits in, so the fields after
     // the labels line up and are the same size (the terrain sections' way).
     constant number FIELD_LABEL_WIDTH = 90
+    // The short labels before the scale and rotation sliders, such as "pitch".
+    constant number PLACE_LABEL_WIDTH = 44
     // The gap after each of a line's three fields, in pixels.
     constant integer CELL_GAP = 6
 
@@ -95,14 +100,29 @@ class Item3DPropertiesDialog is PropertiesDialog
         positionXField = position:Get(0)
         positionYField = position:Get(1)
         positionZField = position:Get(2)
-        Array<TextField> scale = AddTriple(placeCard, "Scale", "X Scale", "Y Scale", "Z Scale", "x", "y", "z", focusArray)
-        scaleXField = scale:Get(0)
-        scaleYField = scale:Get(1)
-        scaleZField = scale:Get(2)
-        Array<TextField> rotation = AddTriple(placeCard, "Rotation", "Yaw", "Pitch", "Roll", "yaw", "pitch", "roll", focusArray)
-        rotationYawField = rotation:Get(0)
-        rotationPitchField = rotation:Get(1)
-        rotationRollField = rotation:Get(2)
+        // Scale and rotation are sliders, each with a field for exact
+        // numbers. Scale is spread by ratios, 0.01 to 1000 with 1 in the
+        // middle; any other number but 0 can be typed. Rotation is in
+        // degrees, and any number can be typed.
+        placeCard:Add(MakeLabelLine("Scale"))
+        Control proportionsLine = MakeCardLine()
+        proportionsLine:SetTopMargin(0)
+        Checkbox proportionsCheckbox
+        keepProportionsCheckbox = proportionsCheckbox
+        keepProportionsCheckbox:SetName("Keep proportions")
+        keepProportionsCheckbox:SetDescription("Changing one scale changes the other two by the same amount, so the item keeps its shape")
+        keepProportionsCheckbox:SetToggleState(true)
+        proportionsLine:Add(keepProportionsCheckbox)
+        placeCard:Add(proportionsLine)
+        focusArray:Add(keepProportionsCheckbox)
+        scaleXField = AddPlaceSlider(placeCard, focusArray, "x", "X Scale", "The item's size along x: 1 is its own size", 0.01, 1000, 1.05, 2, true, "")
+        scaleYField = AddPlaceSlider(placeCard, focusArray, "y", "Y Scale", "The item's size along y: 1 is its own size", 0.01, 1000, 1.05, 2, true, "")
+        scaleZField = AddPlaceSlider(placeCard, focusArray, "z", "Z Scale", "The item's size along z: 1 is its own size", 0.01, 1000, 1.05, 2, true, "")
+
+        placeCard:Add(MakeLabelLine("Rotation"))
+        rotationYawField = AddPlaceSlider(placeCard, focusArray, "yaw", "Yaw", "The turn left or right, in degrees", -180, 180, 1, 15, false, "degrees")
+        rotationPitchField = AddPlaceSlider(placeCard, focusArray, "pitch", "Pitch", "The tilt up or down, in degrees", -90, 90, 1, 15, false, "degrees")
+        rotationRollField = AddPlaceSlider(placeCard, focusArray, "roll", "Roll", "The lean to either side, in degrees", -180, 180, 1, 15, false, "degrees")
 
         // For a new item's preview only (SetFields shows it).
         Control followLine = MakeCardLine()
@@ -278,6 +298,44 @@ class Item3DPropertiesDialog is PropertiesDialog
         made:Add(AddTaggedField(line, thirdName, thirdTag, focusArray))
         card:Add(line)
         return made
+    end
+
+    /*
+        Adds a slider line to the Place card: a short label, a slider and a
+        field for exact numbers, both in the focus order. A number beyond the
+        slider's range can still be typed, and is kept. Returns the field,
+        which the dialog listens to as it does its other fields.
+
+        Attribute: Parameter card The card
+        Attribute: Parameter focusArray The section's focus order
+        Attribute: Parameter label The short label before the slider, such as "x"
+        Attribute: Parameter name The name screen readers say, such as "X Scale"
+        Attribute: Parameter description What the setting does
+        Attribute: Parameter minimum The slider's least value
+        Attribute: Parameter maximum The slider's greatest value
+        Attribute: Parameter step One key press's change, a factor if spread by ratio
+        Attribute: Parameter pageStep Page Up's and Page Down's change, a factor if spread by ratio
+        Attribute: Parameter byRatio True to spread the slider by ratios
+        Attribute: Parameter units A word screen readers say after the value, or ""
+        Attribute: Returns The field
+    */
+    private action AddPlaceSlider(Control card, Array<Control> focusArray, text label, text name, text description,
+            number minimum, number maximum, number step, number pageStep, boolean byRatio, text units) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, PLACE_LABEL_WIDTH)
+        sliderField:SetAllowsValuesBeyondRange(true)
+        if byRatio
+            sliderField:SetLogarithmic(true)
+            sliderField:SetDecimalPlaces(2)
+        end
+        if units not= ""
+            sliderField:SetUnits(units)
+        end
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        card:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
     end
 
     /*
@@ -475,39 +533,21 @@ class Item3DPropertiesDialog is PropertiesDialog
         elseif control:Equals(scaleXField)
             check
                 number value = scaleXField:GetText():ParseNumber()
-                if value = 0
-                    return now
-                end
-
-                if value not= currentItem:GetScaleX()
-                    currentItem:SetScaleX(value)
-                end
+                ChangeScale(currentItem, 0, value)
             detect e is Error
                 // Do nothing.
             end
         elseif control:Equals(scaleYField)
             check
                 number value = scaleYField:GetText():ParseNumber()
-                if value = 0
-                    return now
-                end
-
-                if value not= currentItem:GetScaleY()
-                    currentItem:SetScaleY(value)
-                end
+                ChangeScale(currentItem, 1, value)
             detect e is Error
                 // Do nothing.
             end
         elseif control:Equals(scaleZField)
             check
                 number value = scaleZField:GetText():ParseNumber()
-                if value = 0
-                    return now
-                end
-
-                if value not= currentItem:GetScaleZ()
-                    currentItem:SetScaleZ(value)
-                end
+                ChangeScale(currentItem, 2, value)
             detect e is Error
                 // Do nothing.
             end
@@ -611,6 +651,65 @@ class Item3DPropertiesDialog is PropertiesDialog
         if item is ItemPreview3D
             ItemPreview3D preview = cast(ItemPreview3D, item)
             preview:SetLeaningWithSlope(lean)
+        end
+    end
+
+    /*
+        Changes one of an item's scales, as its field or slider asks. A
+        scale of 0 is ignored, as is no change. With Keep proportions on, the
+        other two change by the same ratio, so the item keeps its shape, and
+        their fields show them; the field being changed is left alone, so
+        typing in it isn't interrupted.
+
+        Attribute: Parameter item The item
+        Attribute: Parameter axis 0 for x, 1 for y, 2 for z
+        Attribute: Parameter value The new scale
+    */
+    private action ChangeScale(EditorItem3D item, integer axis, number value)
+        number before = item:GetScaleX()
+        if axis = 1
+            before = item:GetScaleY()
+        elseif axis = 2
+            before = item:GetScaleZ()
+        end
+        if value = 0 or value = before
+            return now
+        end
+        if keepProportionsCheckbox = undefined or not keepProportionsCheckbox:GetToggleState() or before = 0
+            if axis = 0
+                item:SetScaleX(value)
+            elseif axis = 1
+                item:SetScaleY(value)
+            else
+                item:SetScaleZ(value)
+            end
+            return now
+        end
+        number ratio = value / before
+        number newX = item:GetScaleX() * ratio
+        number newY = item:GetScaleY() * ratio
+        number newZ = item:GetScaleZ() * ratio
+        // The axis asked for gets exactly the number given.
+        if axis = 0
+            newX = value
+        elseif axis = 1
+            newY = value
+        else
+            newZ = value
+        end
+        // The item first, so the other fields' changes below find nothing
+        // left to change.
+        item:SetScaleX(newX)
+        item:SetScaleY(newY)
+        item:SetScaleZ(newZ)
+        if axis not= 0
+            scaleXField:SetText("" + newX)
+        end
+        if axis not= 1
+            scaleYField:SetText("" + newY)
+        end
+        if axis not= 2
+            scaleZField:SetText("" + newZ)
         end
     end
 

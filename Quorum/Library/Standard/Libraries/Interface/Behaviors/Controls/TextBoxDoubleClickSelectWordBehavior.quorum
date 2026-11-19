@@ -57,8 +57,12 @@ class TextBoxDoubleClickSelectWordBehavior is Behavior
                     end
                     beginWordIsFinished = true
                 elseif IsWhiteSpace(previousCharacter)
-                    if beginIndex = caretPosition and IsSpecialCharacter(textBox:GetText(beginIndex, beginIndex + 1))
-                        selectionIsSpecialCharacter = true
+                    // At the very end of the text there is no character at the
+                    // caret to look at.
+                    if beginIndex = caretPosition and beginIndex < textBox:GetSize()
+                        if IsSpecialCharacter(textBox:GetText(beginIndex, beginIndex + 1))
+                            selectionIsSpecialCharacter = true
+                        end
                     end
                     beginWordIsFinished = true
                 else

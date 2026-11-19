@@ -5,11 +5,14 @@ TerrainTool names the kinds of change a terrain brush can make. A brush
 has a tool, which says what it changes, and an operation, which says how:
 
 - SCULPT changes the ground's shape. ADD raises it, SUBTRACT lowers it,
-  AVERAGE smooths it, and GRADIENT pulls it toward a ramp between two
-  points.
+  AVERAGE smooths it, GRADIENT pulls it toward a ramp between two
+  points, and ERODE wears it down with rain, as weather would (it needs a
+  TerrainGenerator, given to the stroke).
 - HEIGHT with REPLACE flattens the ground toward one height.
-- TEXTURE changes the splat weights. ADD paints one ground texture, and
-  AVERAGE blurs the weights so textures blend more softly.
+- TEXTURE changes the splat weights. ADD paints one ground texture,
+  AVERAGE blurs the weights so textures blend more softly, and AUTO paints
+  by a TerrainGenerator's rules: rock on slopes, sand low down, dirt in
+  hollows and grass elsewhere.
 - REGION adds (ADD) or removes (SUBTRACT) the whole region under the
   brush's center.
 
@@ -36,6 +39,8 @@ class TerrainTool
     public constant integer REPLACE = 2
     public constant integer AVERAGE = 3
     public constant integer GRADIENT = 4
+    public constant integer ERODE = 5
+    public constant integer AUTO = 6
 
     /*
     This action returns true if a tool and operation make sense together.
@@ -46,11 +51,11 @@ class TerrainTool
     */
     action IsValid(integer tool, integer operation) returns boolean
         if tool = SCULPT
-            return operation = ADD or operation = SUBTRACT or operation = AVERAGE or operation = GRADIENT
+            return operation = ADD or operation = SUBTRACT or operation = AVERAGE or operation = GRADIENT or operation = ERODE
         elseif tool = HEIGHT
             return operation = REPLACE
         elseif tool = TEXTURE
-            return operation = ADD or operation = AVERAGE
+            return operation = ADD or operation = AVERAGE or operation = AUTO
         elseif tool = REGION
             return operation = ADD or operation = SUBTRACT
         end
@@ -75,6 +80,8 @@ class TerrainTool
                 return "smooth"
             elseif operation = GRADIENT
                 return "ramp"
+            elseif operation = ERODE
+                return "erode"
             end
         elseif tool = HEIGHT
             if operation = REPLACE
@@ -85,6 +92,8 @@ class TerrainTool
                 return "paint"
             elseif operation = AVERAGE
                 return "blend paint"
+            elseif operation = AUTO
+                return "auto paint"
             end
         elseif tool = REGION
             if operation = ADD

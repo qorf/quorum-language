@@ -3527,10 +3527,13 @@ action Update(number seconds)
             end
             return now
         end
-        if tool = terrain:STAMP_TOOL or tool = terrain:ERODE_TOOL or tool = terrain:AUTO_PAINT_TOOL
-            // These aren't strokes: each click (or Space) does it once at
-            // the brush, as one undoable change.
+        if tool = terrain:STAMP_TOOL
+            // The stamp presses one shape: each click (or Space) does it
+            // once at the brush, as one undoable change.
             UseOperationTool(terrain, tool)
+            return now
+        end
+        if tool = terrain:AUTO_PAINT_TOOL and not CanAutoPaint(terrain)
             return now
         end
         if tool = terrain:FILL_WATER_TOOL
@@ -3556,6 +3559,10 @@ action Update(number seconds)
             return now
         end
         terrainStroke:Begin(terrain:GetWorldTerrain():GetData(), terrain:GetBrush())
+        // Erode and Auto paint are strokes too: they use the generator's
+        // rain and painting rules under the brush, fading with its falloff
+        // and as strong as its strength.
+        terrainStroke:SetGenerator(generator, terrain:GetLayerCount())
         paintShownSeconds = 0
         stroking = true
         strokeByMouse = byMouse
@@ -3563,9 +3570,9 @@ action Update(number seconds)
     end
 
     /*
-    This action uses the Stamp, Erode or Auto paint tool once, at the brush:
-    a stamp with the terrain's stamp settings from the Generate section, or
-    erosion or auto paint as wide as the brush.
+    This action uses the Stamp tool once, at the brush, with the terrain's
+    stamp settings from the Generate section. Erode and Auto paint are
+    strokes instead (BeginTerrainStroke).
     */
     private action UseOperationTool(EditorTerrain terrain, integer tool)
         if tool = terrain:STAMP_TOOL
@@ -3574,10 +3581,6 @@ action Update(number seconds)
                 mode = generator:GetStampMode(terrain:GetStampShape())
             end
             StampTerrain(terrain, terrain:GetStampShape(), mode, terrain:GetStampHeight(), terrain:GetStampTurn())
-        elseif tool = terrain:ERODE_TOOL
-            ErodeTerrainAtBrush(terrain)
-        else
-            AutoPaintTerrainAtBrush(terrain)
         end
     end
 
@@ -3649,8 +3652,8 @@ action Update(number seconds)
                 // says the new size.
                 EndTerrainStroke()
                 return now
-            elseif toolNumber = 6 or toolNumber = 7
-                // Painting and blending load the splat texture again to show, so it is
+            elseif toolNumber = 6 or toolNumber = 7 or toolNumber = brushTerrain:AUTO_PAINT_TOOL
+                // Painting, blending and auto paint load the splat texture again to show, so it is
                 // shown a few times a second, and fully at the end.
                 paintShownSeconds = paintShownSeconds + seconds
                 if paintShownSeconds >= PAINT_SHOW_INTERVAL
@@ -5371,6 +5374,14 @@ the foliage there is drawn again, the terrain is
             return "Painted " + terrain:GetLayerLabel(terrain:GetBrush():GetLayer()) + ". " + terrain:DescribeBrushHeight()
         elseif tool = 7
             return "Blended the paint. " + terrain:DescribeBrush()
+        elseif tool = terrain:ERODE_TOOL
+            number worn = strokeEdit:GetLargestHeightChange()
+            if worn < 0
+                worn = -worn
+            end
+            return "Eroded, changing heights by up to " + RoundTenth(worn) + ". " + terrain:DescribeBrushHeight()
+        elseif tool = terrain:AUTO_PAINT_TOOL
+            return "Auto painted under the brush. " + terrain:DescribeBrush()
         elseif tool = 8 or tool = 9
             return terrain:GetToolName(tool) + " done. The terrain is now " + terrain:DescribeSize()
         end

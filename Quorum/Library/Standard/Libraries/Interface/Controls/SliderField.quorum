@@ -47,6 +47,13 @@ class SliderField is Control, SliderListener
     Slider slider
     TextField field
     SliderFieldLayout layout
+    // True if a number outside the slider's range may be typed (or set by a
+    // program) and kept: the field keeps it and GetValue returns it, while
+    // the slider rests at its nearest end (SetAllowsValuesBeyondRange).
+    boolean beyondRange = false
+    // True while the field holds such a number, which is beyondValue.
+    boolean holdingBeyond = false
+    number beyondValue = 0
 
     on create
         SetLayout(layout)
@@ -159,8 +166,49 @@ class SliderField is Control, SliderListener
         detect e is Error
             parsed = false
         end
-        if parsed and typed not= slider:GetValue()
-            slider:SetValue(typed)
+        if parsed
+            HoldIfBeyond(typed)
+            if typed not= slider:GetValue()
+                slider:SetValue(typed)
+            end
+        end
+    end
+
+    /*
+        Sets whether a number outside the slider's range may be typed in the
+        field, or set by a program, and kept. The field keeps the number and
+        GetValue returns it, while the slider rests at its nearest end;
+        moving the slider again gives its own value. Off, the default, such a
+        number is brought into the range. A setting with a usual range but no
+        real limit, such as an item's scale, can use it.
+
+        Attribute: Parameter allow True to keep numbers beyond the range.
+    */
+    action SetAllowsValuesBeyondRange(boolean allow)
+        beyondRange = allow
+        if not allow
+            holdingBeyond = false
+        end
+    end
+
+    /*
+        Returns true if numbers outside the slider's range are kept
+        (SetAllowsValuesBeyondRange).
+
+        Attribute: Returns True if they are kept.
+    */
+    action AllowsValuesBeyondRange returns boolean
+        return beyondRange
+    end
+
+    /*
+        Notes whether a number is outside the range and kept, so GetValue
+        returns it.
+    */
+    private action HoldIfBeyond(number value)
+        holdingBeyond = beyondRange and (value < slider:GetMinimum() or value > slider:GetMaximum())
+        if holdingBeyond
+            beyondValue = value
         end
     end
 
@@ -197,6 +245,9 @@ class SliderField is Control, SliderListener
         Attribute: Returns The value.
     */
     action GetValue returns number
+        if holdingBeyond
+            return beyondValue
+        end
         return slider:GetValue()
     end
 
@@ -207,6 +258,7 @@ class SliderField is Control, SliderListener
         Attribute: Parameter value The value.
     */
     action SetValue(number value)
+        HoldIfBeyond(value)
         slider:SetValue(value)
         ShowNumber()
     end
@@ -247,6 +299,7 @@ class SliderField is Control, SliderListener
         Attribute: Parameter event The change.
     */
     action SliderChanged(SliderChangedEvent event)
+        holdingBeyond = false
         ShowNumber()
     end
 
@@ -264,6 +317,12 @@ class SliderField is Control, SliderListener
             parsed = false
         end
         if parsed
+            HoldIfBeyond(typed)
+            if holdingBeyond
+                // The field keeps the number; the slider rests at its end.
+                slider:SetValue(typed)
+                return now
+            end
             slider:ChangeValue(typed, true)
         end
         ShowNumber()
@@ -274,6 +333,11 @@ class SliderField is Control, SliderListener
     */
     private action ShowNumber
         text shown = slider:GetNumberText()
+        if holdingBeyond
+            // A number beyond the range is shown as it is, not the
+            // slider's end.
+            shown = "" + beyondValue
+        end
         if field:GetText() not= shown
             field:SetText(shown)
         end
