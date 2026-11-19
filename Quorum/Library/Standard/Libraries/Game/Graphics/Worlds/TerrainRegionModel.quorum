@@ -104,8 +104,7 @@ class TerrainRegionModel is TerrainPatch
 
     Building again updates the mesh in place when the region's grid size and
     splat setting are unchanged. Otherwise it makes a new mesh, and the
-    renderer cannot yet free the old one, so its memory stays in use. See
-    VulkanChanges.md.
+    renderer cannot yet free the old one, so its memory stays in use.
 
     Attribute: Parameter data The heights of the whole terrain.
     Attribute: Parameter region The region this model draws.

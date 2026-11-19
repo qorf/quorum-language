@@ -79,7 +79,7 @@ if pickRay:GetDirection():GetY() not= 0
 end
 end
                 // Over a terrain, the item goes where the pointer meets the
-                // ground and rests on it (Items on terrain, phase 1).
+                // ground and rests on it.
                 Vector3 groundHit = editor:PickGround(dropEvent:GetX(), dropEvent:GetY())
                 if groundHit not= undefined
                     hitX = groundHit:GetX()

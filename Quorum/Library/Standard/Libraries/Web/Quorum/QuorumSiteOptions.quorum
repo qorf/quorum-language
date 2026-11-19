@@ -55,7 +55,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebColor trackYellow      // header-yellow-100
     WebColor stopRed          // the block editor's Stop button
 
-    // A lesson's goals (design A): a white box with a dark blue bar on
+    // A lesson's goals: a white box with a dark blue bar on
     // its left and a small grey label. Only goals look this way, not
     // every list.
     WebBoxStyle goals
@@ -79,7 +79,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebTextStyle lessonTitle
     WebTextStyle lessonDescription
 
-    // A lesson's practice problem sets (design A): a card for each set, a
+    // A lesson's practice problem sets: a card for each set, a
     // white box with a dark blue bar on its top, holding a small grey
     // label ("Set 1"), the set's name as a link, and "Start".
     WebGridLayout problemSets
@@ -124,7 +124,7 @@ shared class QuorumSiteOptions is StyleOptions
     // its column.
     WebBoxStyle chartBox
 
-    // The Reference page's topic map (phase 5, C2 + C3): a search box
+    // The Reference page's topic map: a search box
     // with a dark blue edge, topic chips (dark blue on white, reversed on
     // hover), and a grid of white tutorial cards with a grey edge that
     // shows against the page (4.8 to 1), each listing every lesson. Grey
@@ -148,7 +148,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebTextStyle topicCardLessons
     WebTextStyle topicStatus
 
-    // A picture beside words (phase 5B): stacked on a phone, side by side
+    // A picture beside words: stacked on a phone, side by side
     // from a small screen up, the picture taking two fifths of the row.
     // Questions that open: each with a grey line under it.
     WebStackLayout pictureStack
@@ -159,7 +159,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle question
     WebBoxStyle anchoredBox
 
-    // The home page's old look (phase 5C, from its Tailwind): a light blue
+    // The home page's old look (from its Tailwind): a light blue
     // hero band with white pill buttons; a switcher (a grey pill bar, the
     // chosen button light blue); centered sections with large headings,
     // narrow centered words, an outline pill and a black pill; a light
@@ -202,7 +202,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebTextStyle noticeHeading
     WebBoxStyle noticeWords
 
-    // The Download page's old look (phase 5B, from its Tailwind): a grey
+    // The Download page's old look (from its Tailwind): a grey
     // product banner (grey 25) with the words in a third and the
     // screenshot in two thirds, a full-width button in the button blue
     // with dark bold words (6.2 to 1), a bold underlined link; a black
@@ -246,7 +246,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle featureCardPictureWide
     WebBoxStyle greyCardBody
 
-    // Choice tiles (phase 5, design C, the Learn page's "New to Quorum?"):
+    // Choice tiles (the Learn page's "New to Quorum?"):
     // a grid of links, each a tile in the site's dark blue with white bold
     // words and an icon beside them (7.6 to 1, WCAG AAA; the button blue
     // with black words was 6.2 to 1); on hover or focus, near black with
@@ -258,7 +258,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebTextStyle choiceWordsActive
     WebRowLayout choiceTileLayout
 
-    // Course cards (phase 5, the Learn page, design A): a grid of white
+    // Course cards (the Learn page): a grid of white
     // cards, one column on a phone, each with its picture across the top,
     // then its name, description and a "Details" disclosure.
     WebGridLayout courseCards
@@ -267,7 +267,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle courseCardPicture
     WebBoxStyle courseCardBody
 
-    // A track page's unit cards (phase 5, design A): a small picture
+    // A track page's unit cards: a small picture
     // beside the words, which take the rest of the row (no wrapping, so
     // the words stay beside it), and the "Lessons" disclosure's label in
     // dark blue bold words.
@@ -277,7 +277,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle unitLessonsLabel
     WebTextStyle unitLessonsWords
 
-    // A lesson's standards, for teachers (design 2): a small label, a
+    // A lesson's standards, for teachers: a small label, a
     // grid of cards, one for each standard, and a link to every standard.
     WebTextStyle standardsLabel
     WebGridLayout standardsGrid
@@ -288,33 +288,33 @@ shared class QuorumSiteOptions is StyleOptions
     WebTextStyle standardWords
     WebTextStyle standardsLink
 
-    // The standards report (design 1): summary tiles, the coverage map,
+    // The standards report: summary tiles, the coverage map,
     // the specialties, and a card for every standard.
     StandardsReportLooks standardsReport
 
-    // The block editor (phase 5C, from the old BlockIDE's Tailwind): a
+    // The block editor (from the old BlockIDE's Tailwind): a
     // white frame with a light blue edge and a deep shadow, a light blue
     // toolbar, a light blue Run with black words (8.6 to 1), a red Stop
     // with white words (6.5 to 1), both grey with white words while
     // unavailable (4.8 to 1), and a grey console in the code font.
     BlockEditorLooks blockEditor
 
-    // Forms (phase 6): fields with a grey edge and a dark blue focus
+    // Forms: fields with a grey edge and a dark blue focus
     // ring, the button blue with black bold words (6.2 to 1), messages as
     // the sign-in dialog shows them, and a quiz's right and wrong words in
     // a darker green (5.0 to 1) and red (6.5 to 1) than the old Tailwind
     // green-600 (3.3 to 1, too low) and red-600.
     FormLooks forms
 
-    // A topic browser (the reference page's tutorials, 2026-11-02, design
-    // "A + tree 2"): the tree a white box with a grey edge, its groups
+    // A topic browser (the reference page's tutorials): the tree a white
+    // box with a grey edge, its groups
     // black and bold with grey counts, their topics dark blue under a light
     // blue line, the current one on light blue; topics as white tiles with
     // a grey edge (dark blue on hover, a thicker dark blue edge when shown),
     // each with its icon in dark blue on light blue.
     TopicBrowserLooks topicBrowser
 
-    // Steps (phase 6, the practice problems' row of numbered problems): a
+    // Steps (the practice problems' row of numbered problems): a
     // white box with a grey edge and a medium shadow; each step a small
     // circle with a blue edge, the current one black with white numbers;
     // grey arrows between. And a problem's buttons (Previous, Check, Next):
@@ -334,7 +334,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle hintHeading
     WebBoxStyle hintBody
 
-    // Numbered rows (NumberedRows, design B, a set's problems): a white
+    // Numbered rows (NumberedRows, a set's problems): a white
     // card with a grey edge; each row its number in a blue-edged circle,
     // its title, and a light blue pill link at the right (black words on
     // light blue, 8.6 to 1), with a grey line between rows.
@@ -347,7 +347,7 @@ shared class QuorumSiteOptions is StyleOptions
     WebBoxStyle numberedRowLink
     WebBoxStyle numberedRowLinkHover
 
-    // A reader's projects (phase 6, design A): how many there are, under
+    // A reader's projects: how many there are, under
     // the title and its New Project button; the table as a white card with a
     // light grey edge, light blue column names in dark blue (7.6 to 1),
     // white rows with a grey line between, the names bold, and Delete in
@@ -588,7 +588,7 @@ shared class QuorumSiteOptions is StyleOptions
         teachingTipLabel = label:Copy()
         discussionGoalLabel = label:Copy()
 
-        // Labeled description lists (design C): a white box with a dark
+        // Labeled description lists: a white box with a dark
         // blue bar on its left, a small grey label in capitals, and the
         // terms in dark blue, each beside its description.
         WebBoxStyle labeledPairs = GetLabeledDescriptionList()
@@ -669,7 +669,7 @@ shared class QuorumSiteOptions is StyleOptions
         figureWords:SetLineHeight(constants:SMALL_LINE_HEIGHT)
         figureWords:SetColor(grey50)
 
-        // Breadcrumbs (design B): one wrapping row, links without
+        // Breadcrumbs: one wrapping row, links without
         // underlines, grey marks between, the current page in bold.
         breadcrumbs:SetGap(constants:SPACING_2)
         breadcrumbs:SetWrap(true)
@@ -681,7 +681,7 @@ shared class QuorumSiteOptions is StyleOptions
         breadcrumbSeparator:SetColor(grey40)
         breadcrumbCurrent:SetBold(true)
 
-        // "Up next" (design F): a white box with a blue bar on its left,
+        // "Up next": a white box with a blue bar on its left,
         // a small grey label, the next lesson's name large and bold, its
         // description, and a grey line under the box.
         upNext:SetBackground(white)
@@ -870,7 +870,7 @@ shared class QuorumSiteOptions is StyleOptions
         colorBannerRow:SetGap(constants:SPACING_8)
         colorBannerRow:SetCenteredHorizontally(true)
         colorBannerRow:SetCenteredVertically(true)
-        // On a phone (design A), the picture on the left and the words
+        // On a phone, the picture on the left and the words
         // beside it, taking the rest of the row: the words come first in
         // the page, so the row is shown reversed. From a medium screen, the
         // words first and the picture after them, centered.
@@ -980,7 +980,7 @@ shared class QuorumSiteOptions is StyleOptions
         unitLessonsLabel:SetPadding(constants:SPACING_1, constants:SPACING_0)
         unitLessonsLabel:SetTextStyle(unitLessonsWords)
 
-        // Standards (design 2): white cards with a dark blue bar on top,
+        // Standards: white cards with a dark blue bar on top,
         // side by side when there's room.
         standardsLabel = upNextLabel:Copy()
         standardsGrid:SetGap(constants:SPACING_2_5)
@@ -1007,7 +1007,7 @@ shared class QuorumSiteOptions is StyleOptions
         standardsLink:SetUnderline(false)
         standardsLink:SetColor(quorumBlue150)
 
-        // The standards report (design 1). Tiles: white, rounded, a small
+        // The standards report. Tiles: white, rounded, a small
         // grey label in capitals over a large bold number.
         WebBoxStyle reportTile = standardsReport:GetTile()
         reportTile:SetBackground(white)

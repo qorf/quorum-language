@@ -62,7 +62,7 @@ public class QuorumFile {
         String[] list = file.list();
         // The folder was deleted (or can't be read) after the caller checked
         // it was one, such as while a build or git changes files: an empty
-        // listing. File.list returns null then (found 2026-11-06).
+        // listing. File.list returns null then.
         if (list == null) {
             return "";
         }

@@ -228,7 +228,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
             if relatedItem = undefined
                 // A layer's own row selects the layer alone, even when an
                 // item in it was selected, so the layer's sections (such as
-                // Sky) show again (fixed 2026-11-06).
+                // Sky) show again.
                 if relatedLayer not= controller:GetSelectedLayer() or controller:GetSelectedItem() not= undefined
                     controller:SetSelection(relatedLayer, undefined)
                 end

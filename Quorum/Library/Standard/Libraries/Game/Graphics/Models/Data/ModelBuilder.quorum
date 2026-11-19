@@ -180,8 +180,7 @@ class ModelBuilder
     down when seen from below; with mirrorSideways, along x instead, so the
     picture is mirrored left to right and stays upright. A double-sided
     plane's back uses that, so a card stood up on end (such as foliage)
-    looks right from behind (found 2026-11-06: half the grass cards were
-    upside down).
+    looks right from behind instead of upside down.
     */
     private action AddHorizontalPlane(MeshData data, number x, number y, number z, number width, number depth, Vector4 setTextureCoordinates, boolean facesUp, boolean mirrorSideways)
         Number32BitArray vertices = data:GetVertices()
