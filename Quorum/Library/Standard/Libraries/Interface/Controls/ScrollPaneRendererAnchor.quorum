@@ -28,6 +28,34 @@ package Libraries.Interface.Controls
     form:Display()
 */
 class ScrollPaneRendererAnchor is Control
+    // How tall the content is by itself, before it is stretched to fill the
+    // pane, or -1 when its layout doesn't say (GetNaturalHeight).
+    number naturalHeight = -1
+
+    /*
+        This action sets how tall the content is by itself, before it is
+        stretched to fill the pane. A layout that stretches the content, such as
+        a form's, calls it, so most programs don't need to.
+
+        Attribute: Parameter height How tall the content is by itself, in pixels.
+    */
+    action SetNaturalHeight(number height)
+        naturalHeight = height
+    end
+
+    /*
+        This action returns how tall the content is by itself, before it is
+        stretched to fill the pane. If the layout never set it, this is the
+        anchor's height.
+
+        Attribute: Returns How tall the content is by itself, in pixels.
+    */
+    action GetNaturalHeight returns number
+        if naturalHeight < 0
+            return GetHeight()
+        end
+        return naturalHeight
+    end
 
     /*
         This action returns the ScrollPaneRenderer that holds this anchor. The

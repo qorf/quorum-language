@@ -1036,6 +1036,10 @@ without mipmaps, distant cards are read from the
     drawn again, it takes new places on its next update.
     */
     action Dispose
+        // The region models are freed too. Otherwise their meshes stay in
+        // the renderer for as long as the program runs, which wastes
+        // graphics memory each time a scene with terrain is closed.
+        terrain:DisposeModels()
         terrain:ReleaseTexturePlaces()
         water:Clear(me)
         Iterator<FoliageCellItem> items = foliageItems:GetValueIterator()

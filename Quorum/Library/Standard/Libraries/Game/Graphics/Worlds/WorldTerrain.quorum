@@ -1569,6 +1569,41 @@ class WorldTerrain
     end
 
     /*
+    This action frees every region model the terrain made, near and far,
+    such as when the terrain is no longer used. Their meshes are freed, so
+    remove them from the game first. A model kept in more than one list is
+    only freed once, since freeing a model again does nothing.
+    */
+    action DisposeModels
+        integer i = 0
+        repeat while i < regionModels:GetSize()
+            regionModels:Get(i):Dispose()
+            i = i + 1
+        end
+        regionModels:Empty()
+        i = 0
+        repeat while i < farModels:GetSize()
+            farModels:Get(i):Dispose()
+            i = i + 1
+        end
+        farModels:Empty()
+        i = 0
+        repeat while i < modelMap:GetSize()
+            if modelMap:Get(i) not= undefined
+                modelMap:Get(i):Dispose()
+                modelMap:Set(i, undefined)
+            end
+            activeMap:Set(i, 0)
+            if farModelMap:Get(i) not= undefined
+                farModelMap:Get(i):Dispose()
+                farModelMap:Set(i, undefined)
+            end
+            farActiveMap:Set(i, 0)
+            i = i + 1
+        end
+    end
+
+    /*
     This action works out which samples the splat texture covers: every
     region location that has a region, loaded or saved, from the first to
     the last along each axis, plus one more sample on the far sides. Then it

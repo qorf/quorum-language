@@ -195,6 +195,49 @@ class TerrainData
     end
 
     /*
+    This action returns the average height of the ground along the edges a
+    region location shares with the regions next to it, or 0 if it has no
+    neighbors. A new region starts at this height, so it joins the ground
+    beside it instead of starting at 0, which may be far below, such as
+    under the sea.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns The average edge height, in world units, or 0.
+    */
+    action GetNeighborEdgeHeight(integer locationX, integer locationZ) returns number
+        integer size = regionSize
+        integer firstX = locationX * size
+        integer firstZ = locationZ * size
+        number total = 0
+        integer count = 0
+        integer i = 0
+        repeat while i < size
+            if HasRegion(locationX - 1, locationZ)
+                total = total + GetSampleHeight(firstX - 1, firstZ + i)
+                count = count + 1
+            end
+            if HasRegion(locationX + 1, locationZ)
+                total = total + GetSampleHeight(firstX + size, firstZ + i)
+                count = count + 1
+            end
+            if HasRegion(locationX, locationZ - 1)
+                total = total + GetSampleHeight(firstX + i, firstZ - 1)
+                count = count + 1
+            end
+            if HasRegion(locationX, locationZ + 1)
+                total = total + GetSampleHeight(firstX + i, firstZ + size)
+                count = count + 1
+            end
+            i = i + 1
+        end
+        if count = 0
+            return 0
+        end
+        return total / count
+    end
+
+    /*
     This action returns the region at a location.
 
     Attribute: Parameter locationX The region location along x.

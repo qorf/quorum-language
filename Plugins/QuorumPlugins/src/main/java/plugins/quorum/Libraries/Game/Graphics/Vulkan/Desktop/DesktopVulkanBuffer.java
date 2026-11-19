@@ -139,6 +139,10 @@ public class DesktopVulkanBuffer implements VulkanBufferStrategy
 
         VulkanBuffer_ quorumBuffer = (VulkanBuffer_)peer.me_;
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
+        // A buffer that was never made, or whose making failed, has no device
+        // or memory to map, so mapping it fails instead of crashing.
+        if (quorumDevice == null || quorumDevice.GetMemoryAllocator() == null || memoryHandle == 0L)
+            return false;
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
         try (MemoryStack stack = MemoryStack.stackPush())
@@ -161,6 +165,13 @@ public class DesktopVulkanBuffer implements VulkanBufferStrategy
 
         VulkanBuffer_ quorumBuffer = (VulkanBuffer_)peer.me_;
         VulkanDevice_ quorumDevice = quorumBuffer.GetDevice();
+        // With no device or memory there is nothing to unmap; just forget the
+        // mapping.
+        if (quorumDevice == null || quorumDevice.GetMemoryAllocator() == null || memoryHandle == 0L)
+        {
+            mappedMemoryPointer = 0L;
+            return;
+        }
         VulkanMemoryAllocator pluginMemoryAllocator = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanMemoryAllocator)quorumDevice.GetMemoryAllocator()).plugin_;
 
         // VMA unmaps by allocation, not by the mapped address.

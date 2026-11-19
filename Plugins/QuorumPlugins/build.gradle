@@ -246,6 +246,13 @@ test {
     //useJUnitPlatform()
 }
 
+// Gradle's file operations, for use while a task runs (instead of the
+// project's delete and copy, which can't be used then).
+interface FileOperations {
+    @javax.inject.Inject
+    FileSystemOperations getFiles()
+}
+
 // Copies the plugins jar and its libraries into the standard library. The
 // copies are in doLast, after the jar task: a copy written directly in this
 // block runs while Gradle sets up the build, and copies the previous build's
@@ -254,22 +261,34 @@ test {
 // new jar was never copied.
 task copyToQuorum {
     dependsOn jar
+    // Everything the copy needs is read now, while the build is set up:
+    // using the project while the task runs (in doLast) is deprecated, and
+    // fails in Gradle 10. The files themselves are still found when it runs.
+    def lwjglVersion = project.ext.lwjglVersion
+    def operations = project.objects.newInstance(FileOperations)
+    def librariesFolder = file('../../Quorum/Library/Compiled/Run/libraries')
+    def runFolder = file('../../Quorum/Library/Compiled/Run/')
+    def libraries = configurations.runtimeClasspath
+    def pluginsJar = jar.archiveFile
+    def oldLwjgl = fileTree(librariesFolder) {
+        include 'lwjgl*.jar'
+        exclude "lwjgl*-${lwjglVersion}*.jar"
+    }
 
     doLast {
         // The copy below only adds files, so remove LWJGL jars of any other
         // version first; otherwise each upgrade leaves the old ones behind,
         // and they end up in the installers.
-        delete fileTree('../../Quorum/Library/Compiled/Run/libraries') {
-            include 'lwjgl*.jar'
-            exclude "lwjgl*-${project.ext.lwjglVersion}*.jar"
+        operations.files.delete {
+            delete oldLwjgl
         }
-        copy {
-            from configurations.runtimeClasspath
-            into '../../Quorum/Library/Compiled/Run/libraries'
+        operations.files.copy {
+            from libraries
+            into librariesFolder
         }
-        copy {
-            from jar.archiveFile
-            into '../../Quorum/Library/Compiled/Run/'
+        operations.files.copy {
+            from pluginsJar
+            into runFolder
         }
     }
 }

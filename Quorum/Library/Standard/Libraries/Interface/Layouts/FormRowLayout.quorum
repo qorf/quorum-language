@@ -28,6 +28,7 @@ use Libraries.Interface.Controls.ToggleButton
 use Libraries.Interface.Controls.RadioButton
 use Libraries.Interface.Controls.Checkbox
 use Libraries.Interface.Forms.FormRowSeparator
+use Libraries.Compute.Math
 
 class FormRowLayout is Layout
 
@@ -66,6 +67,10 @@ class FormRowLayout is Layout
     constant number CHOICE_TRACK_PADDING = 6
     // Footer buttons are at least this wide.
     constant number MIN_FOOTER_BUTTON_WIDTH = 88
+    // Points to spare beside a footer button's words, so they stay on one
+    // line (LayoutFooter).
+    constant number FOOTER_TEXT_SLACK = 4
+    Math math
 
     // Labels currently drawn as captions above their field, so they go
     // back to normal when there is room for a row again.
@@ -96,11 +101,13 @@ class FormRowLayout is Layout
         FormContainerControl container = undefined
 
         number minimumResultHeight = containerHeight
+        // In a scroll pane, the anchor that holds the form (SetNaturalHeight).
+        ScrollPaneRendererAnchor anchor = undefined
 
         if parentControl is FormContainerControl
             container = cast(FormContainerControl, parentControl)
         elseif parentControl is ScrollPaneRendererAnchor
-            ScrollPaneRendererAnchor anchor = cast(ScrollPaneRendererAnchor, parentControl)
+            anchor = cast(ScrollPaneRendererAnchor, parentControl)
             container = cast(FormContainerControl, cast(Object, anchor:GetScrollPane()))
             minimumResultHeight = container:GetHeight()
         end
@@ -712,6 +719,11 @@ class FormRowLayout is Layout
         // If the container is depending on us to figure out the height, use our calculated heights instead of assuming the containerHeight is trustworthy.
         if parentControl:GetVerticalLayoutMode() = parentControl:FIT_CONTENTS
             resultHeight = areaHeights:Get(TOP_AREA) + areaHeights:Get(CENTER_AREA) + areaHeights:Get(BOTTOM_AREA)
+            // How tall the form is by itself, before it fills the pane, so a
+            // Dialog fitting its contents doesn't measure its own height.
+            if anchor not= undefined
+                anchor:SetNaturalHeight(resultHeight)
+            end
             if resultHeight < minimumResultHeight
                 resultHeight = minimumResultHeight
             end
@@ -1494,7 +1506,10 @@ class FormRowLayout is Layout
             // Footer words stay at their size instead of growing to fill.
             button:SetAutomaticFontSizing(false)
             text words = button:GetDefaultLayoutProperties():GetLabelText()
-            number buttonWidth = MeasureText(button, words, fallback) + (button:GetLeftPadding() + button:GetRightPadding()) * scale
+            // Rounded up, with a few points to spare: the button gives its
+            // label exactly this width less its padding, and a line that
+            // misses by a fraction of a pixel would wrap onto two lines.
+            number buttonWidth = math:Ceiling(MeasureText(button, words, fallback) + (button:GetLeftPadding() + button:GetRightPadding()) * scale) + FOOTER_TEXT_SLACK * scale
             if buttonWidth < MIN_FOOTER_BUTTON_WIDTH * scale
                 buttonWidth = MIN_FOOTER_BUTTON_WIDTH * scale
             end

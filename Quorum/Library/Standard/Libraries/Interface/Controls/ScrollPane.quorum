@@ -533,6 +533,30 @@ class ScrollPane is ScrollableControl
     end
 
     /*
+        This action returns how tall the pane's content is by itself, before it
+        is stretched to fill the pane. A form, for example, stretches its content
+        so its footer sits at the bottom of the pane. The content is laid out
+        first if it needs to be. It is useful for sizing something to fit the
+        content, such as a Dialog (see SetFitToContents in Dialog).
+
+        Attribute: Returns How tall the content is by itself, in pixels.
+
+        Attribute: Example
+        use Libraries.Interface.Forms.Form
+        use Libraries.Interface.Forms.Page
+
+        Form form
+        Page page = form:GetMainPage()
+        page:AddLabel("Name")
+        page:AddTextField("Name")
+        form:Display()
+        number height = page:GetNaturalContentHeight()
+    */
+    action GetNaturalContentHeight returns number
+        return renderer:GetNaturalContentHeight()
+    end
+
+    /*
         This action returns how far one line of a mouse wheel turn scrolls the
         pane, as a share of the content's height between 0 and 1. It is 10 pixels
         for each unit of the scroll distance (see SetScrollDistance), divided by

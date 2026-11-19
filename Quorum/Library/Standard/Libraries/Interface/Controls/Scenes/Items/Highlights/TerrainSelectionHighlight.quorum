@@ -81,6 +81,10 @@ class TerrainSelectionHighlight is SelectionHighlight3D
     // How far above the ground the border floats, in world units.
     constant number BORDER_LIFT = 0.15
 
+    // How many times the border has been built, so each build's mesh has
+    // its own name.
+    integer borderBuilds = 0
+
     /*
         Loads a border around the whole terrain: a flat band just outside
         its edges, a little above the ground, following the ground's height
@@ -241,8 +245,12 @@ class TerrainSelectionHighlight is SelectionHighlight3D
         material:SetDiffuse(diffuse)
         Array<Material> materials
         materials:Add(material)
+        // Each build gets its own name. The renderer keeps meshes by name,
+        // so reusing a name handed back the old border, and it never grew
+        // with the terrain. Loading the new mesh frees the old one.
+        borderBuilds = borderBuilds + 1
         ModelData modelData
-        modelData:SetID("Terrain selection border " + GetHashCode())
+        modelData:SetID("Terrain selection border " + GetHashCode() + " build " + borderBuilds)
         modelData:SetMeshes(meshes)
         modelData:SetMaterials(materials)
 

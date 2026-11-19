@@ -244,6 +244,23 @@ class ScrollPaneRenderer is Control
     end
 
     /*
+        This action returns how tall the content is by itself, before it is
+        stretched to fill the renderer. If the renderer or the content needs a
+        new layout, it is laid out first. A form's content is stretched so its
+        footer sits at the bottom; for content that isn't, this is the same as
+        GetContentHeight.
+
+        Attribute: Returns How tall the content is by itself, in pixels.
+    */
+    action GetNaturalContentHeight returns number
+        if NeedsLayout() or scrollAnchor:NeedsLayout()
+            Resize()
+        end
+
+        return scrollAnchor:GetNaturalHeight()
+    end
+
+    /*
         This action returns the layout properties of the content area.
 
         Attribute: Returns The layout properties of the content area.

@@ -26,6 +26,8 @@ use Libraries.Game.InputSet
 use Libraries.Interface.Behaviors.Controls.MouseOnBehavior
 use Libraries.Interface.Views.DrawableView
 use Libraries.Containers.Iterator
+use Libraries.Game.GameDisplay
+use Libraries.Compute.Math
 
 /*
     The Dialog class is a window that appears above the rest of a game or
@@ -78,6 +80,21 @@ class Dialog is Control, FormPrimitiveContainer
     boolean useDefaultPage = true
     Page currentPage = undefined
     Page defaultPage = undefined
+
+    // Fit to contents (SetFitToContents): the width is a share of the
+    // window, kept between a minimum and a maximum in points before the
+    // interface scale, and the height is the page's content plus the bar.
+    boolean fitToContents = false
+    number fitWidthShare = 0.5
+    number fitMinimumWidth = 360
+    number fitMaximumWidth = 720
+    Math math
+    // True while the Dialog works out its size, so the Resize that setting
+    // its size causes doesn't start again.
+    boolean fitting = false
+    // A Dialog that fits its contents is never larger than this share of
+    // the window; content that doesn't fit scrolls in the page.
+    constant number WINDOW_SHARE = 0.9
 
     // The top bar's height, in points before the interface scale.
     constant number BAR_HEIGHT = 32
@@ -386,7 +403,163 @@ nameLabel:SetAccessibilityCode(nameLabel:parent:Item:NOT_ACCESSIBLE)
             layer:SetViewport(0, 0, manager:GetGameDisplay():GetWidth(), manager:GetGameDisplay():GetHeight())
             layer:GetCamera():Update()
         end
+        if fitToContents
+            if not fitting
+                fitting = true
+                FitToWindow()
+                fitting = false
+            end
+        end
         parent:Control:Resize()
+    end
+
+    /*
+        This action sets whether the Dialog sizes itself to its contents and to the
+        window. When it does, its width is a share of the window, kept between a
+        minimum and a maximum (SetFitWidth), and its height is as tall as its page's
+        contents plus its top bar. It is never larger than nine tenths of the
+        window: if the contents are taller, the page scrolls. The size is worked out
+        again whenever the window changes size or the interface scale changes, so
+        the Dialog stays on the screen. Any width or height set before is replaced.
+        It is off by default.
+
+        Attribute: Parameter value True to fit the Dialog to its contents and the window.
+
+        Attribute: Example
+        use Libraries.Game.Game
+        use Libraries.Interface.Controls.Dialog
+        use Libraries.Interface.Forms.Page
+
+        class Main is Game
+            action Main
+                StartGame()
+            end
+
+            action CreateGame
+                Dialog dialog
+                dialog:SetName("Rename")
+                Page page = dialog:InitializeDefaultPage()
+                page:AddLabel("New name")
+                page:AddTextField("New name")
+                dialog:SetFitToContents(true)
+                dialog:Show()
+            end
+        end
+    */
+    action SetFitToContents(boolean value)
+        fitToContents = value
+        RequestLayout()
+    end
+
+    /*
+        This action returns whether the Dialog sizes itself to its contents and to
+        the window (SetFitToContents).
+
+        Attribute: Returns True if the Dialog fits its contents and the window.
+    */
+    action IsFittingToContents returns boolean
+        return fitToContents
+    end
+
+    /*
+        This action sets the width of a Dialog that fits its contents: a share of
+        the window's width, kept between a minimum and a maximum. The minimum and
+        maximum are in points before the interface scale. A window narrower than
+        the minimum still keeps the whole Dialog on the screen. The default is half
+        the window, between 360 and 720 points.
+
+        Attribute: Parameter share The share of the window's width, such as 0.5 for half.
+
+        Attribute: Parameter minimum The narrowest the Dialog is, in points.
+
+        Attribute: Parameter maximum The widest the Dialog is, in points.
+    */
+    action SetFitWidth(number share, number minimum, number maximum)
+        fitWidthShare = share
+        fitMinimumWidth = minimum
+        fitMaximumWidth = maximum
+        RequestLayout()
+    end
+
+    /*
+    Works out the size of a Dialog that fits its contents, and sets it in its
+    layout properties as well, so the layer's layout gives it the same size
+    and centers it. The page is measured at the new width, since its text
+    wraps to it.
+    */
+    private action FitToWindow
+        GameDisplay display = manager:GetGameDisplay()
+        Game game = manager:GetGame()
+        if display = undefined or game = undefined
+            return now
+        end
+        number windowWidth = display:GetWidth()
+        number windowHeight = display:GetHeight()
+        if windowWidth <= 0 or windowHeight <= 0
+            return now
+        end
+        number scale = game:GetInterfaceScale()
+        if scale <= 0
+            scale = 1
+        end
+
+        number width = windowWidth * fitWidthShare
+        if width < fitMinimumWidth * scale
+            width = fitMinimumWidth * scale
+        end
+        if width > fitMaximumWidth * scale
+            width = fitMaximumWidth * scale
+        end
+        if width > windowWidth * WINDOW_SHARE
+            width = windowWidth * WINDOW_SHARE
+        end
+
+        Page page = currentPage
+        if page = undefined
+            page = defaultPage
+        end
+        number height = GetHeight()
+        if page not= undefined
+            // The page at the new width, then how tall its contents are.
+            page:SetSize(width, page:GetHeight())
+            number barHeight = 0
+            if showTopBar
+                barHeight = BAR_HEIGHT * scale
+            end
+            // The contents by themselves: the total is at least the page's
+            // own height, which would grow the Dialog on every resize.
+            height = page:GetNaturalContentHeight() + barHeight + GetBorderThickness() * 2
+        end
+        if height > windowHeight * WINDOW_SHARE
+            height = windowHeight * WINDOW_SHARE
+        end
+
+        // In points before the scale, as the layout multiplies them by it.
+        // Set only when they change, so a layout doesn't ask for another.
+        number pointWidth = width / scale
+        number pointHeight = height / scale
+        if GetPercentageWidth() not= 0
+            SetPercentageWidth(0)
+        end
+        if GetPercentageHeight() not= 0
+            SetPercentageHeight(0)
+        end
+        if math:AbsoluteValue(GetPixelWidth() - pointWidth) > 0.5
+            SetPixelWidth(pointWidth)
+        end
+        if math:AbsoluteValue(GetPixelHeight() - pointHeight) > 0.5
+            SetPixelHeight(pointHeight)
+        end
+        LayoutProperties properties = GetDefaultLayoutProperties()
+        if properties:GetHorizontalLayoutMode() not= properties:STANDARD
+            SetHorizontalLayoutMode(properties:STANDARD)
+        end
+        if properties:GetVerticalLayoutMode() not= properties:STANDARD
+            SetVerticalLayoutMode(properties:STANDARD)
+        end
+
+        SetSize(width, height)
+        SetPosition((windowWidth - width) / 2.0, (windowHeight - height) / 2.0)
     end
 
     /*

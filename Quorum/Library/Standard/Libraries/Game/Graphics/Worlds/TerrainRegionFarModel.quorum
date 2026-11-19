@@ -525,7 +525,12 @@ class TerrainRegionFarModel is TerrainPatch
         materials:Add(material)
 
         ModelData modelData
-        modelData:SetID(GetName() + " far region " + locationX + ", " + locationZ + " build " + buildCount)
+        // The renderer keeps meshes by name for as long as the program runs,
+        // so the name is this model's own. A new model for the same region,
+        // such as after adding a region or opening the scene again, must
+        // never get an older model's mesh, which was built for the old
+        // paint texture and without its new neighbors.
+        modelData:SetID(GetName() + " far region " + locationX + ", " + locationZ + " model " + GetHashCode() + " build " + buildCount)
         modelData:SetMeshes(meshes)
         modelData:SetMaterials(materials)
 

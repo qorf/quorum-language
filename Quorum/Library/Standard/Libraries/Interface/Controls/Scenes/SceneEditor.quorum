@@ -3317,6 +3317,18 @@ action Update(number seconds)
             PressRiverTool(terrain, hit:GetX(), hit:GetZ(), true)
             return now
         end
+        // The region tools add or remove the one region under the click, so
+        // a click acts where it lands. Off the ground the ring can't be
+        // seen, so a first click that only moved the cursor looked like it
+        // did nothing.
+        integer toolNumber = terrain:GetToolNumber()
+        if toolNumber = 8 or toolNumber = 9
+            terrainCursorMovedByPointer = true
+            terrain:SetBrushPosition(hit:GetX(), hit:GetZ())
+            UpdateBrushPreview()
+            BeginTerrainStroke(terrain, true, 0)
+            return now
+        end
         if terrain:HasTool() and IsInsideRing(terrain, hit)
             BeginTerrainStroke(terrain, true, 0)
             return now
