@@ -4,6 +4,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Iterator
 use Libraries.Game.GameStateManager
 use Libraries.Game.InputMonitor
+use Libraries.Game.GameDisplay
 use Libraries.Interface.Item
 use Libraries.Interface.Accessibility
 use Libraries.Game.Graphics.Color
@@ -67,6 +68,16 @@ class PopupMenu is MenuRoot, MouseListener
 
     // What had the focus when the menu opened, told to screen readers.
     Item opener = undefined
+
+    // Where OpenAt was asked to put the menu's top left corner. The menu
+    // opens down and to the right from it when it fits, and otherwise up
+    // or to the left (KeepOnScreen).
+    number anchorX = 0
+    number anchorY = 0
+    boolean anchored = false
+    // Where the menu's top left corner is placed now, after KeepOnScreen.
+    number anchorPlacedX = 0
+    number anchorPlacedY = 0
 
     on create
         MenuPanel panel
@@ -326,6 +337,11 @@ class PopupMenu is MenuRoot, MouseListener
         end
     */
     action OpenAt(number x, number y)
+        anchorX = x
+        anchorY = y
+        anchorPlacedX = x
+        anchorPlacedY = y
+        anchored = true
         LayoutProperties properties = dialog:GetDefaultLayoutProperties()
         properties:SetPercentageX(0)
         properties:SetPercentageY(0)
@@ -334,6 +350,81 @@ class PopupMenu is MenuRoot, MouseListener
         properties:SetPercentageOriginX(0)
         properties:SetPercentageOriginY(1)
         Open()
+    end
+
+    /*
+        This action lays out the popup menu, then keeps it on the screen: once
+        its items are laid out, a menu that would run off the bottom of the
+        window opens upward from the point instead, and one that would run off
+        the right opens to the left. When neither way fits, it moves just far
+        enough to stay inside the window. The engine calls it, so most
+        programs don't need to.
+    */
+    action Resize
+        parent:Control:Resize()
+        KeepOnScreen()
+    end
+
+    /*
+    Picks the menu's corner for the point given to OpenAt, from the menu's
+    size and the window's. It changes the placement only when it differs,
+    so the layout it asks for settles at once.
+    */
+    private action KeepOnScreen
+        if not anchored or not dialog:IsShowing() or panel = undefined
+            return now
+        end
+        GameDisplay display = manager:GetGameDisplay()
+        if display = undefined
+            return now
+        end
+        number windowWidth = display:GetWidth()
+        number windowHeight = display:GetHeight()
+        // The popup is a point; its panel of items hangs down and to the
+        // right from it (VerticalMenuLayout), so the panel's size is the
+        // menu's.
+        number width = panel:GetWidth()
+        number height = panel:GetHeight()
+        if width <= 0 or height <= 0 or windowWidth <= 0 or windowHeight <= 0
+            return now
+        end
+
+        // The menu's top (y is from the bottom of the window): at the point
+        // when the menu fits below it, else with its bottom at the point,
+        // else as close to the point as fits.
+        number top = anchorY
+        if anchorY - height < 0
+            if anchorY + height <= windowHeight
+                top = anchorY + height
+            elseif height <= windowHeight
+                top = height
+            else
+                top = windowHeight
+            end
+        end
+
+        // The menu's left edge: at the point when it fits to the right, else
+        // with its right edge at the point, else as close as fits.
+        number left = anchorX
+        if anchorX + width > windowWidth
+            if anchorX - width >= 0
+                left = anchorX - width
+            elseif width <= windowWidth
+                left = windowWidth - width
+            else
+                left = 0
+            end
+        end
+
+        LayoutProperties properties = dialog:GetDefaultLayoutProperties()
+        if properties:GetPixelX() not= left or properties:GetPixelY() not= top
+            properties:SetPixelX(left)
+            properties:SetPixelY(top)
+            dialog:SetPosition(dialog:GetX() + left - anchorPlacedX, dialog:GetY() + top - anchorPlacedY)
+            anchorPlacedX = left
+            anchorPlacedY = top
+            dialog:RequestLayout()
+        end
     end
 
     /*

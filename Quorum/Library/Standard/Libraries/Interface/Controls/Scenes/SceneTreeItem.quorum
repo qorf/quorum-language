@@ -4,6 +4,8 @@ use Libraries.Interface.Controls.TreeItem
 use Libraries.Interface.Item
 use Libraries.Game.Layer
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Containers.Array
+use Libraries.Interface.Events.BehaviorEvent
 
 /*
     The SceneTreeItem represents an Item in the SceneTree. The SceneTree describes the items
@@ -19,6 +21,27 @@ class SceneTreeItem is TreeItem
     */
     Item sceneItem = undefined
     EditorLayer sceneLayer = undefined
+
+    // What the row shows, for its icon: a layer, a camera, a model and so on.
+    public constant integer KIND_NONE = 0
+    public constant integer KIND_LAYER = 1
+    public constant integer KIND_CAMERA = 2
+    public constant integer KIND_MODEL = 3
+    public constant integer KIND_TERRAIN = 4
+    public constant integer KIND_LIGHT = 5
+    public constant integer KIND_SOUND = 6
+    public constant integer KIND_IMAGE = 7
+    public constant integer KIND_COUNT = 8
+    integer rowKind = KIND_NONE
+
+    // A group row holds the items that share one name, numbered, such as
+    // Striped Chimney, Striped Chimney 1 and Striped Chimney 2.
+    boolean isGroupRow = false
+    Array<Item> groupItems
+
+    // Names this row among the tree's rows, to keep it open, or selected,
+    // when the tree is built again (SceneTree).
+    text rowKey = ""
 
     /*
         SetSceneItem sets an Item2D or Item3D that this TreeItem will present.
@@ -60,5 +83,94 @@ class SceneTreeItem is TreeItem
     action GetSceneEditor returns SceneEditor
         SceneTree tree = cast(SceneTree, GetTree())
         return tree:GetSceneEditor()
+    end
+    /*
+        This action sets what kind of thing the row shows, such as
+        KIND_CAMERA or KIND_MODEL. The SceneTree gives the row the kind's icon.
+
+        Attribute: Parameter value The kind, one of the KIND constants.
+    */
+    action SetKind(integer value)
+        rowKind = value
+    end
+
+    /*
+        This action returns what kind of thing the row shows, one of the
+        KIND constants.
+
+        Attribute: Returns The kind.
+    */
+    action GetKind returns integer
+        return rowKind
+    end
+
+    /*
+        This action makes the row a group: the items that share one name,
+        numbered. Selecting it highlights all of them in the scene.
+
+        Attribute: Parameter value True for a group row.
+    */
+    action SetGroup(boolean value)
+        isGroupRow = value
+    end
+
+    /*
+        This action returns true if the row is a group of items that share one
+        name.
+
+        Attribute: Returns True for a group row.
+    */
+    action IsGroup returns boolean
+        return isGroupRow
+    end
+
+    /*
+        This action adds a scene item to a group row.
+
+        Attribute: Parameter item The scene item.
+    */
+    action AddGroupItem(Item item)
+        groupItems:Add(item)
+    end
+
+    /*
+        This action returns a group row's scene items.
+
+        Attribute: Returns The items in the group.
+    */
+    action GetGroupItems returns Array<Item>
+        return groupItems
+    end
+
+    /*
+        This action sets the text that names the row among the tree's rows.
+
+        Attribute: Parameter value The key.
+    */
+    action SetKey(text value)
+        rowKey = value
+    end
+
+    /*
+        This action returns the text that names the row among the tree's rows.
+
+        Attribute: Returns The key.
+    */
+    action GetKey returns text
+        return rowKey
+    end
+    /*
+        A double click opens or closes a row and activates it. A group row's
+        activation opens or closes it too (SceneTreeItemActivationBehavior), so a
+        group row only opens or closes, once.
+
+        Attribute: Parameter event The event for the double click.
+    */
+    action OnDoubleClick(BehaviorEvent event)
+        if isGroupRow
+            ToggleOpen()
+            return now
+        end
+        parent:TreeItem:OnDoubleClick(event)
     end
 end

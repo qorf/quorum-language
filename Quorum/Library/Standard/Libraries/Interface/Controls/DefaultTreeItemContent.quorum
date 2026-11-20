@@ -321,7 +321,7 @@ class DefaultTreeItemContent is TreeItemContent
             LayoutProperties iconProperties = icon:GetDefaultLayoutProperties()
             iconProperties:SetVerticalLayoutMode(iconProperties:STANDARD)
             iconProperties:SetHorizontalLayoutMode(iconProperties:MAINTAIN_ASPECT_RATIO)
-            iconProperties:SetPercentageHeight(1.0)
+            iconProperties:SetPercentageHeight(treeItem:GetIconHeightShare())
             iconProperties:SetPercentageWidth(aspectRatio)
             iconProperties:SetLeftMargin(5)
             iconProperties:SetRightMargin(5)

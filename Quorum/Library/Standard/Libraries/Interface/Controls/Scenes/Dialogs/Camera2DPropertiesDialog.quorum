@@ -22,166 +22,67 @@ use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
 use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Controls.Scenes.Items.CameraItem2D
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.Scenes.SceneEditor
 
 /*
     The Camera2DPropertiesDialog class is a dialog that appears when selecting 
     a CameraItem2D. Like other properties dialogs this dialog has several fields 
-    and buttons to adjust its properties. This dialog only has 4 properties to 
+    and buttons to adjust its properties. This dialog only has 3 properties to 
     edit so there are not as many controls on the dialog as others.
 */
 class Camera2DPropertiesDialog is PropertiesDialog
 
-    // Controls used on the dialog itself
+    // The sliders, and their number fields, which SliderTaken is called with.
+    SliderField positionXSlider = undefined
+    SliderField positionYSlider = undefined
+    SliderField zoomSlider = undefined
     TextField positionXField = undefined
     TextField positionYField = undefined
     TextField zoomField = undefined
-    TextField rotationField = undefined
+
+    // The label column's width, before the interface scale.
+    constant number FIELD_LABEL_WIDTH = 120
+    // The position sliders' ends. A camera farther out still shows its
+    // position in the field.
+    constant number FARTHEST_POSITION = 5000
 
     /*
-        Creates and adds all the controls this dialog needs
+        Creates and adds all the controls this dialog needs. Each property
+        is a slider with its number beside it, as in the other properties
+        panels.
     */
     action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Camera Properties")
 
         Label basicPropertiesLabel
         basicPropertiesLabel:SetSize(18)
-        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetText("Camera Properties")
         basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
         // Its text is the section's title, under a header that opens and
         // closes it when the panel shows several sections.
         SetHeading(basicPropertiesLabel)
 
-        Label positionLabel
-        
-        TextField positionXField
-        me:positionXField = positionXField
+        positionXSlider = MakeSliderField("X:", "Position X", "Where the camera is, left and right", -FARTHEST_POSITION, FARTHEST_POSITION, 1, 100, FIELD_LABEL_WIDTH)
+        positionXSlider:SetDecimalPlaces(1)
+        positionXSlider:SetAllowsValuesBeyondRange(true)
+        positionXField = positionXSlider:GetField()
+        panel:Add(positionXSlider)
+        ChainControl(focusArray, positionXField)
 
-        TextField positionYField
-        me:positionYField = positionYField
+        positionYSlider = MakeSliderField("Y:", "Position Y", "Where the camera is, up and down", -FARTHEST_POSITION, FARTHEST_POSITION, 1, 100, FIELD_LABEL_WIDTH)
+        positionYSlider:SetDecimalPlaces(1)
+        positionYSlider:SetAllowsValuesBeyondRange(true)
+        positionYField = positionYSlider:GetField()
+        panel:Add(positionYSlider)
+        ChainControl(focusArray, positionYField)
 
-        FlowLayout positionLayout
-        Control positionContainer
-        positionContainer:SetLayout(positionLayout)
-        positionContainer:SetPercentageWidth(1.0)
-        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftMargin(20)
-        positionContainer:SetTopMargin(10)
-        positionContainer:SetRightMargin(30)
-        positionContainer:SetBottomMargin(10)
-
-        positionLabel:SetText("Position")
-        positionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        positionLabel:SetPercentageWidth(0.3)
-        positionContainer:Add(positionLabel)
-        
-        FlowLayout positionFieldLayout
-        Control positionFieldContainer
-        positionFieldContainer:SetLayout(positionFieldLayout)
-
-        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
-        positionFieldContainer:SetName("Position Fields")
-        positionXField:SetName("X")
-        positionXField:SetText("")
-        positionXField:SetFocusable(true)
-        positionXField:AddTextChangeListener(me)
-        positionXField:SetRightMargin(8)
-        positionXField:SetPercentageWidth(0.5)
-        positionXField:SetPixelWidth(-8)
-        positionFieldContainer:Add(positionXField)
-
-        positionYField:SetName("Y")
-        positionYField:SetText("")
-        positionYField:SetFocusable(true)
-        positionYField:AddTextChangeListener(me)
-        positionYField:SetRightMargin(8)
-        positionYField:SetPercentageWidth(0.5)
-        positionYField:SetPixelWidth(-8)
-        positionFieldContainer:Add(positionYField)
-
-        focusArray:Add(positionXField)
-        focusArray:Add(positionYField)
-
-        positionContainer:Add(positionFieldContainer)
-        panel:Add(positionContainer)
-
-        FlowLayout zoomLayout
-        Control zoomContainer
-        zoomContainer:SetLayout(zoomLayout)
-        zoomContainer:SetPercentageWidth(1.0)
-        zoomContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
-        zoomContainer:SetLeftMargin(20)
-        zoomContainer:SetTopMargin(10)
-        zoomContainer:SetRightMargin(30)
-        zoomContainer:SetBottomMargin(10)
-
-        Label zoomLabel
-        zoomLabel:SetText("Zoom")
-        zoomLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
-        zoomLabel:SetPercentageWidth(0.3)
-        zoomContainer:Add(zoomLabel)
-        
-        FlowLayout zoomFieldLayout
-        Control zoomFieldContainer
-        zoomFieldContainer:SetLayout(zoomFieldLayout)
-
-        TextField zoomField
-        me:zoomField = zoomField
-
-        zoomFieldContainer:SetHorizontalLayoutMode(zoomFieldContainer:FILL)
-        zoomFieldContainer:SetName("Zoom Field")
-        zoomField:SetName("Zoom")
-        zoomField:SetText("")
-        zoomField:SetFocusable(true)
-        zoomField:AddTextChangeListener(me)
-        zoomField:SetRightMargin(8)
-        zoomField:SetPercentageWidth(1.0)
-        zoomField:SetPixelWidth(-8)
-        zoomFieldContainer:Add(zoomField)
-
-        focusArray:Add(zoomField)
-
-        zoomContainer:Add(zoomFieldContainer)
-        panel:Add(zoomContainer)
-
-//        Label rotationLabel
-//        
-//        TextField rotationField
-//        me:rotationField = rotationField
-//
-//        FlowLayout rotationLayout
-//        Control rotationContainer
-//        rotationContainer:SetLayout(rotationLayout)
-//        rotationContainer:SetPercentageWidth(1.0)
-//        rotationContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-//        rotationContainer:SetLeftMargin(10)
-//        rotationContainer:SetTopMargin(10)
-//        rotationContainer:SetRightMargin(30)
-//        rotationContainer:SetBottomMargin(10)
-//
-//        rotationLabel:SetText("Rotation:")
-//        rotationLabel:SetRightMargin(10)
-//        rotationContainer:Add(rotationLabel)
-//        
-//        FlowLayout rotationFieldLayout
-//        Control rotationFieldContainer
-//        rotationFieldContainer:SetLayout(rotationFieldLayout)
-//
-//        rotationFieldContainer:SetHorizontalLayoutMode(rotationFieldContainer:FILL)
-//        rotationFieldContainer:SetName("Rotation Fields")
-//        rotationField:SetName("Rotation")
-//        rotationField:SetText("")
-//        rotationField:SetFocusable(true)
-//        rotationField:AddTextChangeListener(me)
-//        rotationField:SetRightMargin(8)
-//        rotationField:SetPercentageWidth(1)
-//        rotationField:SetPixelWidth(-8)
-//        rotationFieldContainer:Add(rotationField)
-//
-//        focusArray:Add(rotationField)
-//
-//        rotationContainer:Add(rotationFieldContainer)
-//        panel:Add(rotationContainer)
+        zoomSlider = MakeSliderField("Zoom:", "Zoom", "How far the camera is zoomed in. 1 shows the scene at its size; more is closer.", 0.1, 10, 0.1, 1, FIELD_LABEL_WIDTH)
+        zoomSlider:SetDecimalPlaces(2)
+        zoomField = zoomSlider:GetField()
+        panel:Add(zoomSlider)
+        ChainControl(focusArray, zoomField)
     end
 
     /*
@@ -231,72 +132,59 @@ class Camera2DPropertiesDialog is PropertiesDialog
     end
 
     /*
-        This action takes a CameraItem2D and sets the fields in the dialog based on the
-        properties
+        This action takes a CameraItem2D and sets the sliders from it. Setting
+        a slider's value doesn't tell its listeners, so nothing is sent back
+        to the camera.
     */
     action SetFields(CameraItem2D cameraItem)
         OrthographicCamera camera = cast(OrthographicCamera, cameraItem:GetCamera())
-        positionXField:SetText("" + camera:GetPosition():GetX())
-        positionYField:SetText("" + camera:GetPosition():GetY())
-        zoomField:SetText("" + camera:GetZoom())
-//        rotationField:SetText("" + item:GetRotation())
+        positionXSlider:SetValue(camera:GetPosition():GetX())
+        positionYSlider:SetValue(camera:GetPosition():GetY())
+        zoomSlider:SetValue(camera:GetZoom())
     end
 
     /*
-        Updates the properties of the selected item as text is changed in any text field in the dialog.
-        If the text is updated to any invalid values the text is ignored. 
-    */
-    action TextChanged(TextChangeEvent event)
-        CameraItem2D currentItem = cast(CameraItem2D, GetSceneEditor():GetSelectedItem())
-        OrthographicCamera camera = cast(OrthographicCamera, currentItem:GetCamera())
-        Control control = event:GetControl()
+        This action is called when a slider's value is final: the slider was
+        let go or moved with the keys, or a number was typed and the focus
+        left the field. Text that isn't a number is put back.
 
-        if currentItem = undefined
+        Attribute: Parameter field The slider's number field.
+    */
+    action SliderTaken(TextField field)
+        SceneEditor sceneEditor = GetSceneEditor()
+        if sceneEditor = undefined
+            return now
+        end
+        EditorItem selected = sceneEditor:GetSelectedItem()
+        if not (selected is CameraItem2D)
+            return now
+        end
+        CameraItem2D cameraItem = cast(CameraItem2D, selected)
+        OrthographicCamera camera = cast(OrthographicCamera, cameraItem:GetCamera())
+
+        number value = 0
+        check
+            value = field:GetText():Trim():ParseNumber()
+        detect e is Error
+            SetFields(cameraItem)
             return now
         end
 
-        if control:Equals(positionXField)
-            check
-                number value = positionXField:GetText():ParseNumber()
-                if value not= currentItem:GetX()
-                    currentItem:SetX(value)
-                end
-            detect e is Error
-                // Do nothing.
+        if field:Equals(positionXField)
+            if value not= cameraItem:GetX()
+                cameraItem:SetX(value)
             end
-        elseif control:Equals(positionYField)
-            check
-                number value = positionYField:GetText():ParseNumber()
-                if value not= currentItem:GetY()
-                    currentItem:SetY(value)
-                end
-            detect e is Error
-                // Do nothing.
+        elseif field:Equals(positionYField)
+            if value not= cameraItem:GetY()
+                cameraItem:SetY(value)
             end
-        elseif control:Equals(zoomField)
-            check
-                number value = zoomField:GetText():ParseNumber()
-                if value <= 0
-                    return now
-                end
-
-                if value not= camera:GetZoom()
-                    camera:SetZoom(value)
-                    EditorLayer2D layer = cast(EditorLayer2D, currentItem:GetLayer())
+        elseif field:Equals(zoomField)
+            if value > 0 and value not= camera:GetZoom()
+                camera:SetZoom(value)
+                if cameraItem:GetLayer() is EditorLayer2D
+                    EditorLayer2D layer = cast(EditorLayer2D, cameraItem:GetLayer())
                     layer:UpdateGridSize()
                 end
-            detect e is Error
-                // Do nothing.
-            end
-        elseif control:Equals(rotationField)
-            check
-                number value = rotationField:GetText():ParseNumber()
-
-//                if value not= currentItem:GetScaleX()
-//                    currentItem:SetScaleX(value)
-//                end
-            detect e is Error
-                // Do nothing.
             end
         end
     end

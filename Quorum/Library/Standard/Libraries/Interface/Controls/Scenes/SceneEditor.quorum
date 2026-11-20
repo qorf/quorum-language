@@ -89,6 +89,7 @@ use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Item2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Camera2DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Camera3DPropertiesDialog
+use Libraries.Game.Graphics.PerspectiveCamera
 use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.SkyPropertiesDialog
@@ -1030,7 +1031,9 @@ class SceneEditor is Control, DefaultSceneManager
             return now
         end
         
-        if keepCameraOnSelection
+        // Selecting an item while viewing through the game camera leaves
+        // the view where it is, so a click doesn't move where a game starts.
+        if keepCameraOnSelection or layer3D:IsViewingGameCamera()
             layer3D:GetEditorCamera():SetTargetWithoutMoving(cast(Item3D, item))
             return now
         end
@@ -8288,13 +8291,52 @@ The ring is one of the editor's own items: it isn't saved,
 
             item:Focus()
         elseif layer is EditorLayer3D
-            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
-            CameraItem3D item
-            item:Load(layer3D:GetEditorCamera(), me)
-            layer3D:Add(item)
-            SetSelection(layer3D, item)
+            // The editor views through its own camera again.
+            SelectCamera3D(cast(EditorLayer3D, layer), false, true)
+        end
+    end
 
+    /*
+        This action selects one of a 3D layer's cameras, the game's or the
+        editor's own, and views the scene through it. The layer keeps viewing
+        through it until the other is selected, so moving the view with the
+        mouse or keys moves that camera, and the camera's properties show it.
+        Each camera has one item, made the first time and kept.
+
+        Attribute: Parameter layer The layer.
+        Attribute: Parameter game True for the game camera, false for the editor's.
+        Attribute: Parameter moveFocus True to move the focus to the camera, as
+        activating it does; false to leave it, as selecting it in the Scene tab does.
+    */
+    action SelectCamera3D(EditorLayer3D layer, boolean game, boolean moveFocus)
+        layer:ViewThroughGameCamera(game)
+        CameraItem3D item = layer:GetCameraItem(game)
+        if item = undefined
+            CameraItem3D made
+            item = made
+            item:SetGameCamera(game)
+            layer:SetCameraItem(game, item)
+            layer:Add(item)
+        end
+        item:Load(layer:GetEditorCamera(), me)
+        SetSelection(layer, item)
+        if moveFocus
             item:Focus()
+        end
+    end
+
+    /*
+        This action selects a 3D layer's game camera, where a game using the
+        scene starts looking, and views the scene through it. The layer keeps
+        viewing through it until the editor camera is selected, so moving the
+        view with the mouse or keys moves the game camera, and the camera's
+        properties show it.
+
+        Attribute: Parameter layer The layer.
+    */
+    action SelectGameCamera(EditorLayer layer)
+        if layer is EditorLayer3D
+            SelectCamera3D(cast(EditorLayer3D, layer), true, true)
         end
     end
 
@@ -9608,13 +9650,149 @@ The ring is one of the editor's own items: it isn't saved,
                 camera:SetZoom(json:GetNumber(key))
                 return true
             end
+        elseif layer is EditorLayer3D
+            // The scene's camera is the game camera. The editor's view is
+            // under EDITOR_ keys; a scene saved before there was a game
+            // camera has none, and its camera is the editor's view too.
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            EditorCamera3D gameCamera = layer3D:GetGameCamera()
+            EditorCamera3D editorView = layer3D:GetEditorViewCamera()
+            if IsViewKey(key)
+                LoadViewKey(gameCamera, key, key, json)
+                if not HasJsonKey(json, "EDITOR_" + properties:POSITION)
+                    LoadViewKey(editorView, key, key, json)
+                end
+                return true
+            end
+            text editorPrefix = "EDITOR_"
+            if key:StartsWith(editorPrefix)
+                text plainKey = key:GetSubtext(editorPrefix:GetSize())
+                if IsViewKey(plainKey)
+                    LoadViewKey(editorView, key, plainKey, json)
+                    return true
+                end
+            end
         end
 
         return false
     end
 
+    // The camera keys a 3D layer saves for both its game camera and the
+    // editor's view.
+    private action IsViewKey(text key) returns boolean
+        if key = properties:POSITION
+            return true
+        elseif key = properties:DIRECTION
+            return true
+        elseif key = properties:UP
+            return true
+        elseif key = properties:FIELD_OF_VIEW
+            return true
+        elseif key = properties:NEAR
+            return true
+        elseif key = properties:FAR
+            return true
+        end
+        return false
+    end
+
+    private action HasJsonKey(JavaScriptObjectNotation json, text key) returns boolean
+        Array<text> keys = json:GetKeys()
+        integer index = 0
+        repeat while index < keys:GetSize()
+            if keys:Get(index) = key
+                return true
+            end
+            index = index + 1
+        end
+        return false
+    end
+
+    // Loads one saved view value, stored under the key, into a camera.
+    private action LoadViewKey(Camera target, text key, text plainKey, JavaScriptObjectNotation json)
+        if plainKey = properties:POSITION
+            Number32BitArray position = ConvertToNumber32BitArray(json:GetObject(key))
+            target:SetPosition(position:Get(0), position:Get(1), position:Get(2))
+        elseif plainKey = properties:DIRECTION
+            Number32BitArray direction = ConvertToNumber32BitArray(json:GetObject(key))
+            target:SetDirection(direction:Get(0), direction:Get(1), direction:Get(2))
+            // The camera's own turn and tilt follow the direction.
+            if target is EditorCamera3D
+                EditorCamera3D editorCamera = cast(EditorCamera3D, target)
+                editorCamera:MatchView()
+            end
+        elseif plainKey = properties:UP
+            Number32BitArray up = ConvertToNumber32BitArray(json:GetObject(key))
+            target:SetUp(up:Get(0), up:Get(1), up:Get(2))
+        elseif plainKey = properties:FIELD_OF_VIEW
+            if target is PerspectiveCamera
+                PerspectiveCamera perspective = cast(PerspectiveCamera, target)
+                perspective:SetFieldOfView(json:GetNumber(key))
+            end
+        elseif plainKey = properties:NEAR
+            target:SetNear(json:GetNumber(key))
+        elseif plainKey = properties:FAR
+            target:SetFar(json:GetNumber(key))
+        end
+        target:Update()
+    end
+
     private action CustomSaveCameraProperty(Layer layer, Camera camera, text key, JavaScriptObjectNotation json) returns boolean
-        // Comparing: the camera is the editor's view, so it is left out.
+        // A 3D layer saves its game camera as the scene's camera, and the
+        // editor's view beside it under EDITOR_ keys. Comparing (whether the
+        // scene changed) counts the game camera, not the editor's view.
+        if layer is EditorLayer3D
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            EditorCamera3D gameCamera = layer3D:GetGameCamera()
+            // The editor's own camera, even while viewing through the game's.
+            EditorCamera3D editorView = layer3D:GetEditorViewCamera()
+            if key = properties:POSITION
+                Vector3 gamePosition = gameCamera:GetPosition()
+                json:Add(key, NewJsonArray(gamePosition:GetX(), gamePosition:GetY(), gamePosition:GetZ()))
+                if not comparingText
+                    Vector3 editorPosition = editorView:GetPosition()
+                    json:Add("EDITOR_" + key, NewJsonArray(editorPosition:GetX(), editorPosition:GetY(), editorPosition:GetZ()))
+                end
+                return true
+            elseif key = properties:DIRECTION
+                Vector3 gameDirection = gameCamera:GetDirection()
+                json:Add(key, NewJsonArray(gameDirection:GetX(), gameDirection:GetY(), gameDirection:GetZ()))
+                if not comparingText
+                    Vector3 editorDirection = editorView:GetDirection()
+                    json:Add("EDITOR_" + key, NewJsonArray(editorDirection:GetX(), editorDirection:GetY(), editorDirection:GetZ()))
+                end
+                return true
+            elseif key = properties:UP
+                Vector3 gameUp = gameCamera:GetUp()
+                json:Add(key, NewJsonArray(gameUp:GetX(), gameUp:GetY(), gameUp:GetZ()))
+                if not comparingText
+                    Vector3 editorUp = editorView:GetUp()
+                    json:Add("EDITOR_" + key, NewJsonArray(editorUp:GetX(), editorUp:GetY(), editorUp:GetZ()))
+                end
+                return true
+            elseif key = properties:FIELD_OF_VIEW
+                json:Add(key, gameCamera:GetFieldOfView())
+                if not comparingText
+                    json:Add("EDITOR_" + key, editorView:GetFieldOfView())
+                end
+                return true
+            elseif key = properties:NEAR
+                // What a game draws, so it counts when comparing.
+                json:Add(key, gameCamera:GetNear())
+                if not comparingText
+                    json:Add("EDITOR_" + key, editorView:GetNear())
+                end
+                return true
+            elseif key = properties:FAR
+                json:Add(key, gameCamera:GetFar())
+                if not comparingText
+                    json:Add("EDITOR_" + key, editorView:GetFar())
+                end
+                return true
+            end
+        end
+
+        // Comparing: the rest of the camera is the editor's, so it is left out.
         if comparingText
             return true
         end

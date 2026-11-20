@@ -61,6 +61,9 @@ main:Select()
 form:Display()
 */
 class TreeItem is Control
+    // How much of the row's height the icon takes, from 0 to 1
+    // (SetIconHeightShare).
+    number iconHeightShare = 1.0
 
     TreePanel panel
     TreeItemContent contents = undefined
@@ -933,6 +936,38 @@ class TreeItem is Control
                 PlaceLeadingBar()
             end
         end
+    end
+
+    /*
+    This action sets how much of the row's height the item's icon takes, from
+    0 to 1. The icon keeps its shape and stays centered. The default, 1, is
+    the whole height; a smaller share, such as 0.7, keeps a detailed icon
+    from looking larger than the text beside it.
+
+    Attribute: Parameter share The share of the row's height, from 0 to 1.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.TreeItem
+    TreeItem item
+    item:SetName("Main.quorum")
+    item:SetIconHeightShare(0.7)
+    */
+    action SetIconHeightShare(number share)
+        if share <= 0 or share > 1
+            return now
+        end
+        iconHeightShare = share
+        RequestLayout()
+    end
+
+    /*
+    This action returns how much of the row's height the item's icon takes,
+    from 0 to 1. The default is 1.
+
+    Attribute: Returns The share of the row's height.
+    */
+    action GetIconHeightShare returns number
+        return iconHeightShare
     end
 
     /*

@@ -14,6 +14,8 @@ use Libraries.Compute.Ray
 use Libraries.Compute.Vector3
 use Libraries.Compute.Matrix4
 use Libraries.Compute.Math
+use Libraries.Game.Graphics.Model
+use Libraries.Game.BoundingBox
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 use Libraries.Game.Graphics.Camera
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
@@ -25,7 +27,6 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor
-use Libraries.Game.Item3DDepthComparison
 use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 
@@ -37,7 +38,6 @@ use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 */
 class SelectScene3DItemBehavior is Behavior
     SceneConstants constants
-    Item3DDepthComparison depthSorter
 
     action Run(BehaviorEvent event)
         MouseEvent mouse = event:GetMouseEvent()
@@ -77,7 +77,9 @@ class SelectScene3DItemBehavior is Behavior
 
         integer counter = 0
         Item3D temp = undefined
-        Array<Item> targetArray
+        // The item the ray meets first, and how far along the ray.
+        Item3D nearestItem = undefined
+        number nearestItemDistance = 0
         
         // A terrain is picked where the ray meets its ground, not by a box:
         // its box would be all its regions.
@@ -100,25 +102,23 @@ class SelectScene3DItemBehavior is Behavior
                             nearestTerrainHit = hit
                         end
                     end
-                elseif RayIntersectsItem(ray, temp)
-                    targetArray:Add(temp)
+                else
+                    number itemDistance = GetRayHitDistance(ray, temp)
+                    if itemDistance >= 0 and (nearestItem = undefined or itemDistance < nearestItemDistance)
+                        nearestItem = temp
+                        nearestItemDistance = itemDistance
+                    end
                 end
             end
         end
         
+        // Whatever the ray meets first wins, the ground or an item. The
+        // item's distance is where the ray enters its box, not its center,
+        // which may be far past the ground for a big or flat model, such as
+        // a floor lying on the ground.
         Array<Item> result
-        if targetArray:GetSize() not= 0
-            depthSorter:SetOrigin(origin)
-            targetArray:Sort(depthSorter)
-            Item3D nearest = cast(Item3D, targetArray:Get(0))
-
-            // The nearest item wins, unless the ground is hit before the
-            // item's center.
-            if nearestTerrain not= undefined and nearestTerrainDistance < origin:Distance(nearest:GetGlobalX(), nearest:GetGlobalY(), nearest:GetGlobalZ())
-                result:Add(nearestTerrain)
-            else
-                result:Add(nearest)
-            end
+        if nearestItem not= undefined and (nearestTerrain = undefined or nearestItemDistance <= nearestTerrainDistance)
+            result:Add(nearestItem)
         elseif nearestTerrain not= undefined
             result:Add(nearestTerrain)
         end
@@ -153,16 +153,37 @@ class SelectScene3DItemBehavior is Behavior
     end
     
     /*
-    This action will test if the given ray intersects with an Item3D. This
-    intersection is tested using the item's size times its scale, and its
-    parents' scale, as an axis-aligned box. It does not turn with the item's
-    rotation, and assumes the Item is a box-like shape.
+    This action returns how far along a ray it first meets an Item3D, or -1
+    if it misses. A model is tested against its mesh's bounds, turned and
+    scaled with it. Anything else is tested against a box of its size times
+    its scale, centered on its position, lined up with the world's axes.
     */
-    private action RayIntersectsItem(Ray ray, Item3D item) returns boolean
-        number divX = 1.0 / ray:GetDirection():GetX()
-        number divY = 1.0 / ray:GetDirection():GetY()
-        number divZ = 1.0 / ray:GetDirection():GetZ()
+    private action GetRayHitDistance(Ray ray, Item3D item) returns number
+        // A model is tested against the bounds of its mesh, in its own
+        // space: the click's ray is taken back through the model's
+        // position, turn and scale. So the test matches what is drawn,
+        // even when the mesh isn't centered on the model's origin or the
+        // model is turned.
+        if item is Model
+            Model model = cast(Model, item)
+            if model:GetModelBlueprint() not= undefined
+                BoundingBox bounds = model:CalculateBoundingBox()
+                Matrix4 inverse = model:GetTransform():Copy()
+                if bounds:IsValid() and inverse:Determinant() not= 0
+                    inverse:Inverse()
+                    Vector3 localOrigin
+                    localOrigin:Set(ray:GetOrigin())
+                    localOrigin:Multiply(inverse)
+                    Vector3 localDirection
+                    localDirection:Set(ray:GetDirection())
+                    localDirection:Rotate(inverse)
+                    return RayMeetsBox(localOrigin, localDirection, bounds:GetMinimum(), bounds:GetMaximum())
+                end
+            end
+        end
 
+        // Anything else is tested against a box of its size, centered on
+        // its position, lined up with the world's axes.
         // The item's size as it shows: its own size times its scale, and its
         // parents' scale, read from the lengths of its world transform's axes.
         Math math
@@ -170,9 +191,25 @@ class SelectScene3DItemBehavior is Behavior
         number halfWidth = item:GetWidth() * 0.5 * math:SquareRoot(transform:row0column0 * transform:row0column0 + transform:row1column0 * transform:row1column0 + transform:row2column0 * transform:row2column0)
         number halfHeight = item:GetHeight() * 0.5 * math:SquareRoot(transform:row0column1 * transform:row0column1 + transform:row1column1 * transform:row1column1 + transform:row2column1 * transform:row2column1)
         number halfDepth = item:GetDepth() * 0.5 * math:SquareRoot(transform:row0column2 * transform:row0column2 + transform:row1column2 * transform:row1column2 + transform:row2column2 * transform:row2column2)
+        Vector3 minimum
+        minimum:Set(item:GetGlobalX() - halfWidth, item:GetGlobalY() - halfHeight, item:GetGlobalZ() - halfDepth)
+        Vector3 maximum
+        maximum:Set(item:GetGlobalX() + halfWidth, item:GetGlobalY() + halfHeight, item:GetGlobalZ() + halfDepth)
+        return RayMeetsBox(ray:GetOrigin(), ray:GetDirection(), minimum, maximum)
+    end
 
-        number minX = ((item:GetGlobalX() - halfWidth) - ray:GetOrigin():GetX()) * divX
-        number maxX = ((item:GetGlobalX() + halfWidth) - ray:GetOrigin():GetX()) * divX
+    /*
+        Returns true if a ray meets a box lined up with the axes, ahead of
+        the ray's origin, by the slab test: where the ray enters and leaves
+        the box along each axis must overlap.
+    */
+    private action RayMeetsBox(Vector3 origin, Vector3 direction, Vector3 minimum, Vector3 maximum) returns number
+        number divX = 1.0 / direction:GetX()
+        number divY = 1.0 / direction:GetY()
+        number divZ = 1.0 / direction:GetZ()
+
+        number minX = (minimum:GetX() - origin:GetX()) * divX
+        number maxX = (maximum:GetX() - origin:GetX()) * divX
         
         if minX > maxX
             number temp = minX
@@ -180,8 +217,8 @@ class SelectScene3DItemBehavior is Behavior
             maxX = temp
         end
 
-        number minY = ((item:GetGlobalY() - halfHeight) - ray:GetOrigin():GetY()) * divY
-        number maxY = ((item:GetGlobalY() + halfHeight) - ray:GetOrigin():GetY()) * divY
+        number minY = (minimum:GetY() - origin:GetY()) * divY
+        number maxY = (maximum:GetY() - origin:GetY()) * divY
 
         if minY > maxY
             number temp = minY
@@ -189,8 +226,8 @@ class SelectScene3DItemBehavior is Behavior
             maxY = temp
         end
 
-        number minZ = ((item:GetGlobalZ() - halfDepth) - ray:GetOrigin():GetZ()) * divZ
-        number maxZ = ((item:GetGlobalZ() + halfDepth) - ray:GetOrigin():GetZ()) * divZ
+        number minZ = (minimum:GetZ() - origin:GetZ()) * divZ
+        number maxZ = (maximum:GetZ() - origin:GetZ()) * divZ
 
         if minZ > maxZ
             number temp = minZ
@@ -214,7 +251,15 @@ class SelectScene3DItemBehavior is Behavior
             max = maxZ
         end
 
-        return max >= 0 and max >= min
+        // Missed, or the box is behind the ray: -1. Otherwise where the
+        // ray enters the box, or 0 if it starts inside it.
+        if max < 0 or max < min
+            return -1
+        end
+        if min < 0
+            return 0
+        end
+        return min
     end
 
 end

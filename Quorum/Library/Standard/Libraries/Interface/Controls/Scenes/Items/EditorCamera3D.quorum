@@ -159,6 +159,16 @@ class EditorCamera3D is PerspectiveCamera
         Attribute: Parameter distance The distance the camera should be away from the target
     */
     action SetDistance(number distance)
+        if target = undefined
+            // With nothing to stay away from, the camera moves along its
+            // view by the change, closer for a smaller distance.
+            Vector3 step = GetDirection():Copy()
+            step:Scale(me:distance - distance)
+            Move(step)
+            me:distance = distance
+            Update()
+            return now
+        end
         me:distance = distance
         UpdateCameraPosition()
     end

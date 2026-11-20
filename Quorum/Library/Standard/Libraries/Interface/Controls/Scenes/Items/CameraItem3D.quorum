@@ -17,6 +17,9 @@ use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
     camera such as rotation or distance from a targeted item.
 */
 class CameraItem3D is CameraItem, EditorItem3D
+    // True for the item that stands for a layer's game camera, rather than
+    // the editor's (SceneEditor:SelectGameCamera).
+    boolean isGameCamera = false
 
     on create
         SetInputGroup("CameraItem3D")
@@ -144,4 +147,23 @@ class CameraItem3D is CameraItem, EditorItem3D
         return camera:GetZoom()
     end
 
+    /*
+        This action marks the item as standing for its layer's game camera,
+        where a game starts looking, rather than the editor's camera.
+
+        Attribute: Parameter value True for the game camera.
+    */
+    action SetGameCamera(boolean value)
+        isGameCamera = value
+    end
+
+    /*
+        This action returns true if the item stands for its layer's game
+        camera, rather than the editor's camera.
+
+        Attribute: Returns True for the game camera.
+    */
+    action IsGameCamera returns boolean
+        return isGameCamera
+    end
 end

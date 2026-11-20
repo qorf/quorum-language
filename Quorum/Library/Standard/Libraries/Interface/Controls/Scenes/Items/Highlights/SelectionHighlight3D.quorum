@@ -50,35 +50,92 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
 
         SetScale(item:GetScaleX(), item:GetScaleY(), item:GetScaleZ())
 
+        // The box is scaled with the item, so the padding is divided by the
+        // scale, to stay the same size in the world at any scale.
+        number boxWidth = item:GetWidth() + padding / ScaleOrOne(item:GetScaleX())
+        number boxHeight = item:GetHeight() + padding / ScaleOrOne(item:GetScaleY())
+        number boxDepth = item:GetDepth() + padding / ScaleOrOne(item:GetScaleZ())
+
         boolean loadedShape = false
         if item is Model
             Model model = cast(Model, item)
             integer type = model:GetModelType()
             if type = properties:BOX
-                LoadBox(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                LoadBox(boxWidth, boxHeight, boxDepth, color)
                 loadedShape = true
             elseif type = properties:SPHERE
-                LoadSphere(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                LoadSphere(boxWidth, boxHeight, boxDepth, color)
                 loadedShape = true
             elseif type = properties:CYLINDER
-                LoadCylinder(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+                LoadCylinder(boxWidth, boxHeight, boxDepth, color)
                 loadedShape = true
             elseif type = properties:PLANE
-                LoadBox(item:GetWidth() + padding, padding, item:GetDepth() + padding, color)
+                LoadBox(boxWidth, padding / ScaleOrOne(item:GetScaleY()), boxDepth, color)
                 loadedShape = true
             end
         end
 
         if loadedShape = false
-            LoadBox(item:GetWidth() + padding, item:GetHeight() + padding, item:GetDepth() + padding, color)
+            LoadBox(boxWidth, boxHeight, boxDepth, color)
         end
 
         SetRotationTransform(item:GetRotationTransform())
 
-        SetPosition(item:GetGlobalPosition())
+        // The box goes over the middle of the model's shape, not its
+        // origin. The item isn't set yet, so this moves only the box.
+        SetPosition(GetItemMiddle(item))
 
         me:item = item
         SetSceneEditor(controller)
+    end
+
+    /*
+        Returns the size of a scale, ignoring its sign, or 1 for a scale of
+        0, so it can be divided by.
+    */
+    private action ScaleOrOne(number scale) returns number
+        number size = scale
+        if size < 0
+            size = -size
+        end
+        if size = 0
+            return 1
+        end
+        return size
+    end
+
+    /*
+        Returns where the middle of an item's shape is in the world. A
+        model's mesh is often not centered on the model's origin, such as a
+        figure whose origin is at its feet, so the middle of its bounds is
+        taken through the model's position, turn and scale.
+    */
+    private action GetItemMiddle(EditorModel item) returns Vector3
+        Vector3 middle
+        middle:Set(item:GetGlobalX(), item:GetGlobalY(), item:GetGlobalZ())
+        if item:GetModelBlueprint() = undefined
+            return middle
+        end
+        BoundingBox box = item:CalculateBoundingBox()
+        if not box:IsValid()
+            return middle
+        end
+        middle:Set(box:GetCenter())
+        middle:Multiply(item:GetTransform())
+        return middle
+    end
+
+    /*
+        Moves the box, and not the item, back over the middle of the item's
+        shape, such as after the item is turned or scaled, which turns or
+        scales the box around its own middle.
+    */
+    action PlaceOverItem
+        if item = undefined
+            return now
+        end
+        Vector3 middle = GetItemMiddle(item)
+        parent:Model:Move(middle:GetX() - GetGlobalX(), middle:GetY() - GetGlobalY(), middle:GetZ() - GetGlobalZ())
     end
 
     /*

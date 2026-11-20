@@ -3,16 +3,23 @@ package Libraries.Interface.Controls.Scenes
 use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Interface.Controls.Tree
 use Libraries.Containers.Array
+use Libraries.Containers.HashTable
 use Libraries.Game.Layer
 use Libraries.Game.Layer2D
 use Libraries.Game.Layer3D
 use Libraries.Interface.Controls.TreeItem
+use Libraries.Interface.Controls.PopupMenu
 use Libraries.Containers.Iterator
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.SelectionListener
 use Libraries.Interface.Events.SelectionEvent
 use Libraries.Interface.Selections.TreeSelection
 use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.Font
+use Libraries.Game.Graphics.Glyph
+use Libraries.Game.Graphics.ColorGroup
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
 use Libraries.Interface.Controls.Scenes.SceneConstants
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
@@ -20,23 +27,39 @@ use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Events.SceneEditorChangeListener
 use Libraries.Interface.Events.SceneEditorChangeEvent
 use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.Items.CameraItem
+use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
+use Libraries.Interface.Controls.Scenes.Items.EditorPointLight
+use Libraries.Interface.Controls.Scenes.Items.EditorSpotLight
+use Libraries.Interface.Controls.Scenes.Items.EditorAudio3D
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
 use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeItemActivationBehavior
 use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeEditorCameraBehavior
+use Libraries.Interface.Behaviors.Scenes.Controls.SceneTreeGameCameraBehavior
 
 /*
-    The SceneTree class is a Tree that is built based on all the layers and items in a 
-    scene loaded into a scene editor. The SceneTree builds out a tree by going through 
-    the layers and items and making tree items for each. The SceneTree is also a 
-    SceneEditorChangeListener that will add and remove TreeItems as items are added or 
-    removed from the scene. The SceneTree allows for the user to go through a tree to 
-    see all items in a scene and choose to edit the item from the tree. The default 
-    behavior of the items in the tree is to select the item in the editor. 
+    The SceneTree class is a Tree that is built based on all the layers and items in a
+    scene loaded into a scene editor. Each layer has a Cameras section, a Lights section
+    when it has lights, and an Items section. Items are listed by name, with a number at
+    the end of a name compared as a number, so Floor 2 comes before Floor 10. Items that
+    share a name apart from that number, such as Striped Chimney, Striped Chimney 1 and
+    Striped Chimney 2, are folded under one group row that shows how many there are.
+
+    The tree follows the scene editor's selection: selecting an item in the scene selects
+    its row, without taking the focus. Selecting a row highlights its item, or a group's
+    items, in the scene, and activating a row (Return or a double click) moves the focus
+    to the item in the editor. A filter (SetFilter) shows only the items whose names
+    contain some text.
+
+    The SceneTree is also a SceneEditorChangeListener: when items are added to or removed
+    from the scene, it builds its rows again, keeping open what was open and selected what
+    was selected. With an icon font (SetIconFont), each row shows an icon for its kind.
 */
 class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
 
     SceneConstants constants
     SceneEditor controller = undefined
-    
+
     // A single Item indicating that no scene is loaded.
     TreeItem defaultItem = undefined
 
@@ -46,6 +69,9 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
     // A behavior used for the default editor camera items.
     SceneTreeEditorCameraBehavior editorCameraBehavior
 
+    // A behavior used for a 3D layer's game camera items.
+    SceneTreeGameCameraBehavior gameCameraBehavior
+
     // An Array used to select a single item in a Scene.
     Array<Item> filterArray
 
@@ -53,12 +79,66 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
     // a development feature but still here if needed
     boolean enabledScenes3D = true
 
+    // The kinds' constants, and each kind's icon character and color.
+    SceneTreeItem kinds
+    Font iconFont = undefined
+    Array<text> kindCharacters
+    Array<ColorGroup> kindColors
+
+    // True while the tree selects a row to follow the editor, or tells the
+    // editor about a row the user selected, so neither is sent back.
+    boolean following = false
+
+    // True when the scene changed and the rows are built again on the next
+    // update, once, however many items changed (Update).
+    boolean rebuildNeeded = false
+
+    // The filter's text, and what was open before filtering began, put back
+    // when the filter is cleared.
+    text filterText = ""
+    HashTable<text, text> openBeforeFilter
+
+    // The menu an item's or a group's row opens (SetRowPopupMenu).
+    PopupMenu rowMenu = undefined
+
+    // How many items the filter shows, and how many there are.
+    integer shownItemCount = 0
+    integer totalItemCount = 0
+
+    constant text SECTION_CAMERAS = "Cameras"
+    constant text SECTION_LIGHTS = "Lights"
+    constant text SECTION_ITEMS = "Items"
+    constant text EDITOR_CAMERA = "Editor Camera"
+    constant text GAME_CAMERA = "Game Camera"
+    constant number ICON_HEIGHT_SHARE = 0.7
+
     on create
         SetName("Scene Items")
         AddSelectionListener(me)
         filterArray:SetSize(1)
+
+        // Font Awesome's characters for each kind, used when an icon font is
+        // given (SetIconFont).
+        kindCharacters:SetSize(kinds:KIND_COUNT)
+        kindColors:SetSize(kinds:KIND_COUNT)
+        text unicode = ""
+        kindCharacters:Set(kinds:KIND_NONE, "")
+        // layer-group
+        kindCharacters:Set(kinds:KIND_LAYER, unicode:GetUnicodeValue(62973))
+        // camera
+        kindCharacters:Set(kinds:KIND_CAMERA, unicode:GetUnicodeValue(61488))
+        // cube
+        kindCharacters:Set(kinds:KIND_MODEL, unicode:GetUnicodeValue(61874))
+        // mountain
+        kindCharacters:Set(kinds:KIND_TERRAIN, unicode:GetUnicodeValue(63228))
+        // lightbulb
+        kindCharacters:Set(kinds:KIND_LIGHT, unicode:GetUnicodeValue(61675))
+        // volume-high
+        kindCharacters:Set(kinds:KIND_SOUND, unicode:GetUnicodeValue(61480))
+        // image
+        kindCharacters:Set(kinds:KIND_IMAGE, unicode:GetUnicodeValue(61502))
     end
-    
+
     /*
         Returns the SceneEditor this tree is using to build itself out
     */
@@ -67,16 +147,55 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
     end
 
     /*
+        This action sets the font the rows' icons come from: Font Awesome 6 Free,
+        solid. Without one, rows have no icons. The rows are built again.
+
+        Attribute: Parameter font The icon font.
+    */
+    action SetIconFont(Font font)
+        iconFont = font
+        RebuildKeepingState()
+    end
+
+    /*
+        This action sets the color of one kind's icons, such as the cameras'.
+        It should keep at least 3 to 1 against the tree's background.
+
+        Attribute: Parameter kind The kind, one of SceneTreeItem's KIND constants.
+        Attribute: Parameter color The icons' color.
+    */
+    action SetKindColor(integer kind, ColorGroup color)
+        if kind < 0 or kind >= kinds:KIND_COUNT
+            return now
+        end
+        kindColors:Set(kind, color)
+        RebuildKeepingState()
+    end
+
+    /*
+        This action sets the menu an item's row, or a group's, opens with a
+        right click, Shift+F10 or the menu key. Layers and sections have none.
+
+        Attribute: Parameter menu The menu.
+    */
+    action SetRowPopupMenu(PopupMenu menu)
+        rowMenu = menu
+        RebuildKeepingState()
+    end
+
+    /*
         Sets the SceneEditor for this SceneTree to use. When the editor is set the tree
         will load TreeItems based on the layers and items in the scene. The SceneTree will
-        also sets itself to listen to changes in the SceneEditor.
+        also listen to changes in the SceneEditor, and to its selection.
     */
     action SetSceneEditor(SceneEditor sceneController)
         if controller not= undefined
             controller:RemoveSceneEditorChangeListener(me)
+            boolean removed = controller:RemoveSelectionListener(me)
         end
 
         controller = sceneController
+        rebuildNeeded = false
 
         Empty()
         if controller = undefined
@@ -89,78 +208,776 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
             Add(defaultItem)
         else
             controller:AddSceneEditorChangeListener(me)
+            controller:AddSelectionListener(me)
             Load(controller:GetSceneLayers())
+            if filterText not= ""
+                OpenAll()
+            end
+        end
+    end
+
+    /*
+        This action shows only the items whose names contain the text, ignoring
+        case, with the layers, sections and groups that hold them, opened. An
+        empty text shows every item again, with what was open before.
+
+        Attribute: Parameter value The text to look for.
+    */
+    action SetFilter(text value)
+        text newFilter = value:Trim()
+        if newFilter = filterText
+            return now
+        end
+        if filterText = ""
+            openBeforeFilter = GetOpenKeys()
+        end
+        filterText = newFilter
+        if filterText = ""
+            Rebuild(openBeforeFilter)
+        else
+            HashTable<text, text> none
+            Rebuild(none)
+        end
+    end
+
+    /*
+        This action selects the first item or group the tree shows, such as the
+        first a filter found, opening the rows above it. If there's none, it
+        selects the first row. It returns false when the tree has no rows.
+
+        Attribute: Returns True if a row was selected.
+    */
+    action SelectFirstResult returns boolean
+        if rebuildNeeded
+            RebuildKeepingState()
+        end
+        TreeItem first = undefined
+        Iterator<TreeItem> rows = GetTreeItems()
+        if rows:HasNext()
+            first = rows:Next()
+        end
+        if first = undefined
+            return false
+        end
+        TreeItem result = undefined
+        Iterator<TreeItem> all = GetTreeItems()
+        repeat while all:HasNext() and result = undefined
+            result = FindFirstResult(all:Next())
+        end
+        if result = undefined
+            result = first
+        end
+        OpenAbove(result)
+        Select(result:GetTreePath())
+        return true
+    end
+
+    // The first item or group row at or under a row, or undefined.
+    private action FindFirstResult(TreeItem row) returns TreeItem
+        if row is SceneTreeItem
+            SceneTreeItem sceneRow = cast(SceneTreeItem, row)
+            if sceneRow:IsGroup() or sceneRow:GetSceneItem() not= undefined
+                return row
+            end
+        end
+        Iterator<TreeItem> children = row:GetTreeItems()
+        repeat while children:HasNext()
+            TreeItem found = FindFirstResult(children:Next())
+            if found not= undefined
+                return found
+            end
+        end
+        return undefined
+    end
+
+    /*
+        This action returns the filter's text, or an empty text when there's no
+        filter.
+
+        Attribute: Returns The filter's text.
+    */
+    action GetFilter returns text
+        return filterText
+    end
+
+    /*
+        This action returns how many items the filter shows. With no filter, it
+        is every item.
+
+        Attribute: Returns How many items show.
+    */
+    action GetShownItemCount returns integer
+        return shownItemCount
+    end
+
+    /*
+        This action returns how many items the scene has, filtered or not.
+
+        Attribute: Returns How many items there are.
+    */
+    action GetTotalItemCount returns integer
+        return totalItemCount
+    end
+
+    /*
+        The rows are built again once on the next update after the scene
+        changed, rather than once for each item added or removed.
+    */
+    action Update(number seconds)
+        if rebuildNeeded
+            RebuildKeepingState()
+        end
+    end
+
+    // Builds the rows again, keeping what's open and what's selected.
+    private action RebuildKeepingState
+        if controller = undefined
+            return now
+        end
+        Rebuild(GetOpenKeys())
+    end
+
+    /*
+        Builds the rows again, opening the rows named in the open keys (or,
+        with a filter, every row that holds others), and selects again what
+        was selected, without telling the editor.
+    */
+    private action Rebuild(HashTable<text, text> openKeys)
+        rebuildNeeded = false
+        if controller = undefined
+            return now
+        end
+
+        Item selectedItem = undefined
+        text selectedKey = ""
+        TreeSelection selection = GetSelection()
+        if not selection:IsEmpty()
+            TreeItem selectedRow = selection:GetTreeItem()
+            if selectedRow is SceneTreeItem
+                SceneTreeItem sceneRow = cast(SceneTreeItem, selectedRow)
+                selectedItem = sceneRow:GetSceneItem()
+                selectedKey = sceneRow:GetKey()
+            end
+        end
+
+        Empty()
+        Load(controller:GetSceneLayers())
+        if filterText = ""
+            ApplyOpenKeys(openKeys)
+        else
+            OpenAll()
+        end
+
+        SceneTreeItem again = undefined
+        if selectedItem not= undefined
+            again = FindItemRow(selectedItem)
+        end
+        if again = undefined and selectedKey not= ""
+            again = FindKeyRow(selectedKey)
+        end
+        if again not= undefined
+            following = true
+            Select(again:GetTreePath())
+            following = false
         end
     end
 
     /*
         Creates and add the SceneTreeItems based on all the layers and items passed to this
-        action. 
+        action.
     */
     private action Load(Array<EditorLayer> layers)
+        shownItemCount = 0
+        totalItemCount = 0
+        text match = filterText:ToLowerCase()
+
         integer counter = 0
         repeat while counter < layers:GetSize()
             EditorLayer current = layers:Get(counter)
-            SceneTreeItem layerTreeItem
-            layerTreeItem:SetName(current:GetName())    
-            layerTreeItem:SetSceneLayer(current)
-            layerTreeItem:SetBehavior(itemActivationBehavior)
-
-            SceneTreeItem cameraItem
-            cameraItem:SetName("Cameras")
-            cameraItem:SetSceneLayer(current)
-            cameraItem:SetBehavior(itemActivationBehavior)
-            layerTreeItem:Add(cast(TreeItem, cameraItem))
-
-            SceneTreeItem editorCameraItem
-            editorCameraItem:SetName("Editor Camera")
-            editorCameraItem:SetSceneLayer(current)
-            editorCameraItem:SetBehavior(editorCameraBehavior)
-            cameraItem:Add(cast(TreeItem, editorCameraItem))
-
-            SceneTreeItem itemContainerItem
-            itemContainerItem:SetName("Items")
-            itemContainerItem:SetSceneLayer(current)    
-            itemContainerItem:SetBehavior(itemActivationBehavior)
-            layerTreeItem:Add(cast(TreeItem, itemContainerItem))    
-
-
+            boolean supported = false
             if current is EditorLayer2D
-                EditorLayer2D layer = cast(EditorLayer2D, current)
-
-                Iterator<Item2D> iterator = layer:GetIterator()
-                repeat while iterator:HasNext()
-                    Item2D item = iterator:Next()
-                    if item:HasProperty(constants:EDITOR_TAG) = false
-                        SceneTreeItem treeItem = ItemToTreeItems(item, layer)
-                        itemContainerItem:Add(cast(TreeItem, treeItem))
-                    end
-                end
-
-                // Do any other special setup for Layer2D here, e.g. set up specific context menu or properties
-            elseif current is EditorLayer3D and enabledScenes3D
-                EditorLayer3D layer = cast(EditorLayer3D, current)
-
-                Iterator<Item3D> iterator = layer:GetIterator()
-                repeat while iterator:HasNext()
-                    Item3D item = iterator:Next()
-                    if item:HasProperty(constants:EDITOR_TAG) = false
-                        TreeItem treeItem = ItemToTreeItems(item, layer)
-                        itemContainerItem:Add(treeItem)
-                    end
-                end
-
-                // Do any other special setup for Layer3D here, e.g. set up specific context menu or properties
-            else
-                layerTreeItem = undefined
+                supported = true
+            elseif current is EditorLayer3D
+                supported = enabledScenes3D
             end
 
-            if layerTreeItem not= undefined
-                Add(cast(TreeItem, layerTreeItem))
+            if supported
+                SceneTreeItem layerTreeItem = MakeRow(current:GetName(), kinds:KIND_LAYER, current)
+                layerTreeItem:SetBehavior(itemActivationBehavior)
+
+                SceneTreeItem cameraItem = MakeRow(SECTION_CAMERAS, kinds:KIND_NONE, current)
+                cameraItem:SetBehavior(itemActivationBehavior)
+
+                SceneTreeItem editorCameraItem = MakeRow(EDITOR_CAMERA, kinds:KIND_CAMERA, current)
+                editorCameraItem:SetBehavior(editorCameraBehavior)
+                if Matches(EDITOR_CAMERA, match)
+                    cameraItem:Add(cast(TreeItem, editorCameraItem))
+                end
+                // Where a game using the scene starts looking, apart from
+                // the editor's view.
+                if current is EditorLayer3D and Matches(GAME_CAMERA, match)
+                    SceneTreeItem gameCameraItem = MakeRow(GAME_CAMERA, kinds:KIND_CAMERA, current)
+                    gameCameraItem:SetBehavior(gameCameraBehavior)
+                    cameraItem:Add(cast(TreeItem, gameCameraItem))
+                end
+                if cameraItem:GetSize() > 0
+                    layerTreeItem:Add(cast(TreeItem, cameraItem))
+                end
+
+                Array<SceneTreeItem> lightRows
+                Array<SceneTreeItem> itemRows
+
+                if current is EditorLayer2D
+                    EditorLayer2D layer = cast(EditorLayer2D, current)
+                    Iterator<Item2D> iterator = layer:GetIterator()
+                    repeat while iterator:HasNext()
+                        Item2D item = iterator:Next()
+                        if item:HasProperty(constants:EDITOR_TAG) = false and not (item is CameraItem)
+                            SceneTreeItem treeItem = ItemToTreeItems(item, layer)
+                            itemRows:Add(treeItem)
+                        end
+                    end
+                else
+                    EditorLayer3D layer = cast(EditorLayer3D, current)
+                    Iterator<Item3D> iterator = layer:GetIterator()
+                    repeat while iterator:HasNext()
+                        Item3D item = iterator:Next()
+                        if item:HasProperty(constants:EDITOR_TAG) = false and not (item is CameraItem)
+                            SceneTreeItem treeItem = ItemToTreeItems(item, layer)
+                            if treeItem:GetKind() = kinds:KIND_LIGHT
+                                lightRows:Add(treeItem)
+                            else
+                                itemRows:Add(treeItem)
+                            end
+                        end
+                    end
+                end
+
+                totalItemCount = totalItemCount + lightRows:GetSize() + itemRows:GetSize()
+                Array<SceneTreeItem> shownLights = KeepMatches(lightRows, match)
+                Array<SceneTreeItem> shownItems = KeepMatches(itemRows, match)
+                shownItemCount = shownItemCount + shownLights:GetSize() + shownItems:GetSize()
+
+                if not shownLights:IsEmpty()
+                    PlaceSection(layerTreeItem, SECTION_LIGHTS, shownLights, current)
+                end
+                // Items shows even when the layer has none, so there's a
+                // row to select the layer's items from, except while
+                // filtering.
+                if not shownItems:IsEmpty() or match = ""
+                    PlaceSection(layerTreeItem, SECTION_ITEMS, shownItems, current)
+                end
+
+                if layerTreeItem:GetSize() > 0 or match = ""
+                    Decorate(layerTreeItem, "" + counter, false)
+                    Add(cast(TreeItem, layerTreeItem))
+                end
             end
 
             counter = counter + 1
         end
+
+        if match not= "" and IsEmpty()
+            TreeItem nothing
+            nothing:SetName("Nothing named like that in this scene.")
+            Add(nothing)
+        end
+    end
+
+    // A row with a name, a kind and the layer it belongs to.
+    private action MakeRow(text name, integer kind, EditorLayer layer) returns SceneTreeItem
+        SceneTreeItem row
+        row:SetName(name)
+        row:SetKind(kind)
+        row:SetSceneLayer(layer)
+        return row
+    end
+
+    /*
+        Puts a section's rows under it, in natural order, folding rows that
+        share a name apart from a number into group rows. The section shows
+        how many items it has.
+    */
+    private action PlaceSection(SceneTreeItem layerRow, text title, Array<SceneTreeItem> rows, EditorLayer layer)
+        SortRows(rows)
+
+        SceneTreeItem section = MakeRow(title, kinds:KIND_NONE, layer)
+        section:SetBehavior(itemActivationBehavior)
+
+        integer index = 0
+        repeat while index < rows:GetSize()
+            SceneTreeItem first = rows:Get(index)
+            text base = GetBaseName(first:GetName())
+            integer last = index + 1
+            boolean same = last < rows:GetSize()
+            repeat while same
+                SceneTreeItem candidate = rows:Get(last)
+                if GetBaseName(candidate:GetName()):EqualsIgnoringCase(base)
+                    last = last + 1
+                    same = last < rows:GetSize()
+                else
+                    same = false
+                end
+            end
+
+            if last - index >= 2
+                SceneTreeItem groupRow = MakeRow(base, first:GetKind(), layer)
+                groupRow:SetGroup(true)
+                groupRow:SetBehavior(itemActivationBehavior)
+                integer member = index
+                repeat while member < last
+                    SceneTreeItem memberRow = rows:Get(member)
+                    if memberRow:GetKind() not= groupRow:GetKind()
+                        groupRow:SetKind(kinds:KIND_NONE)
+                    end
+                    groupRow:AddGroupItem(memberRow:GetSceneItem())
+                    groupRow:Add(cast(TreeItem, memberRow))
+                    member = member + 1
+                end
+                integer size = last - index
+                groupRow:SetTrailingText("" + size)
+                groupRow:SetDescription("Group of " + size + " items")
+                section:Add(cast(TreeItem, groupRow))
+            else
+                section:Add(cast(TreeItem, first))
+            end
+            index = last
+        end
+
+        section:SetTrailingText("" + rows:GetSize())
+        if rows:GetSize() = 1
+            section:SetDescription("1 item")
+        else
+            section:SetDescription("" + rows:GetSize() + " items")
+        end
+        layerRow:Add(cast(TreeItem, section))
+    end
+
+    /*
+        Gives each row its key, for keeping it open or selected when the
+        rows are built again, and its kind's icon. Rows in a group show no icon;
+        the group row does.
+    */
+    private action Decorate(SceneTreeItem row, text parentKey, boolean insideGroup)
+        text key = parentKey + "/" + row:GetName()
+        if row:IsGroup()
+            key = key + "/group"
+        end
+        row:SetKey(key)
+        if not insideGroup
+            ApplyIcon(row)
+        end
+        if rowMenu not= undefined
+            if row:IsGroup() or row:GetSceneItem() not= undefined
+                row:SetPopupMenu(rowMenu)
+            end
+        end
+
+        Array<SceneTreeItem> children = GetChildRows(row)
+        integer index = 0
+        repeat while index < children:GetSize()
+            Decorate(children:Get(index), key, row:IsGroup())
+            index = index + 1
+        end
+    end
+
+    // The kind's icon and color, when there's an icon font.
+    private action ApplyIcon(SceneTreeItem row)
+        if iconFont = undefined
+            return now
+        end
+        integer kind = row:GetKind()
+        if kind <= kinds:KIND_NONE or kind >= kinds:KIND_COUNT
+            return now
+        end
+        Glyph glyph = iconFont:GetGlyph(kindCharacters:Get(kind))
+        if glyph = undefined
+            return now
+        end
+        if glyph:texture = undefined
+            return now
+        end
+        row:SetIcon(glyph:texture)
+        // The icons are detailed, so they're a little shorter than the text.
+        row:SetIconHeightShare(ICON_HEIGHT_SHARE)
+        ColorGroup color = kindColors:Get(kind)
+        if color not= undefined
+            row:SetIconColor(color)
+        end
+    end
+
+    // A row's children that are scene rows.
+    private action GetChildRows(TreeItem row) returns Array<SceneTreeItem>
+        Array<SceneTreeItem> result
+        Iterator<TreeItem> children = row:GetTreeItems()
+        repeat while children:HasNext()
+            TreeItem child = children:Next()
+            if child is SceneTreeItem
+                result:Add(cast(SceneTreeItem, child))
+            end
+        end
+        return result
+    end
+
+    // True when there's no filter, or the name contains it, ignoring case.
+    private action Matches(text name, text match) returns boolean
+        if match = ""
+            return true
+        end
+        return name:ToLowerCase():Contains(match)
+    end
+
+    // The rows that match the filter, or hold a row that does.
+    private action KeepMatches(Array<SceneTreeItem> rows, text match) returns Array<SceneTreeItem>
+        if match = ""
+            return rows
+        end
+        Array<SceneTreeItem> result
+        integer index = 0
+        repeat while index < rows:GetSize()
+            SceneTreeItem row = rows:Get(index)
+            if Prune(row, match)
+                result:Add(row)
+            end
+            index = index + 1
+        end
+        return result
+    end
+
+    /*
+        Returns true if the row's name matches, keeping all under it, or if
+        something under it matches, taking out the children that don't.
+    */
+    private action Prune(SceneTreeItem row, text match) returns boolean
+        if Matches(row:GetName(), match)
+            return true
+        end
+        boolean any = false
+        Array<SceneTreeItem> children = GetChildRows(row)
+        integer index = 0
+        repeat while index < children:GetSize()
+            SceneTreeItem child = children:Get(index)
+            if Prune(child, match)
+                any = true
+            else
+                row:Remove(cast(TreeItem, child))
+            end
+            index = index + 1
+        end
+        return any
+    end
+
+    // Sorts rows in natural order; equal names keep the order they had.
+    private action SortRows(Array<SceneTreeItem> rows)
+        integer index = 1
+        repeat while index < rows:GetSize()
+            SceneTreeItem current = rows:Get(index)
+            integer place = index - 1
+            boolean moving = true
+            repeat while moving
+                if place < 0
+                    moving = false
+                elseif CompareNames(rows:Get(place):GetName(), current:GetName()) > 0
+                    rows:Set(place + 1, rows:Get(place))
+                    place = place - 1
+                else
+                    moving = false
+                end
+            end
+            rows:Set(place + 1, current)
+            index = index + 1
+        end
+    end
+
+    /*
+        Compares two names for natural order: by the name apart from a number
+        at its end, ignoring case, then by that number, so Floor 2 comes before
+        Floor 10 and a name with no number comes first.
+    */
+    private action CompareNames(text left, text right) returns integer
+        text leftBase = GetBaseName(left)
+        text rightBase = GetBaseName(right)
+        integer result = leftBase:CompareIgnoringCase(rightBase)
+        if result not= 0
+            return result
+        end
+        integer leftNumber = GetNameNumber(left)
+        integer rightNumber = GetNameNumber(right)
+        if leftNumber < rightNumber
+            return -1
+        elseif leftNumber > rightNumber
+            return 1
+        end
+        return 0
+    end
+
+    /*
+        Returns a name apart from a number at its end: "Striped Chimney 12"
+        and "Chimney (2)" give "Striped Chimney" and "Chimney". A name with no
+        such number is returned as it is.
+    */
+    private action GetBaseName(text name) returns text
+        text trimmed = name:Trim()
+        integer start = GetNumberStart(trimmed)
+        if start < 0
+            return trimmed
+        end
+        return trimmed:GetSubtext(0, start):Trim()
+    end
+
+    // The number at a name's end, or -1 for none.
+    private action GetNameNumber(text name) returns integer
+        text trimmed = name:Trim()
+        integer start = GetNumberStart(trimmed)
+        if start < 0
+            return -1
+        end
+        text digits = trimmed:GetSubtext(start + 1, trimmed:GetSize())
+        digits = digits:Replace("(", "")
+        digits = digits:Replace(")", "")
+        integer result = -1
+        check
+            result = digits:Trim():ParseInteger()
+        detect e is Error
+            result = -1
+        end
+        return result
+    end
+
+    /*
+        Returns where the space before a name's ending number is, or -1 when
+        the name doesn't end in a number after a space: "Floor 12" gives 5,
+        "Chimney (2)" gives 7, and "Chimney" gives -1.
+    */
+    private action GetNumberStart(text name) returns integer
+        integer size = name:GetSize()
+        if size = 0
+            return -1
+        end
+        integer last = size - 1
+        boolean parentheses = false
+        // A closing parenthesis.
+        if name:GetUnicodeInteger(last) = 41
+            parentheses = true
+            last = last - 1
+        end
+
+        integer index = last
+        boolean scanning = index >= 0
+        repeat while scanning
+            if IsDigitAt(name, index)
+                index = index - 1
+                scanning = index >= 0
+            else
+                scanning = false
+            end
+        end
+
+        // No digits at all.
+        if index = last
+            return -1
+        end
+        if parentheses
+            if index < 0
+                return -1
+            end
+            // An opening parenthesis.
+            if name:GetUnicodeInteger(index) not= 40
+                return -1
+            end
+            index = index - 1
+        end
+        // The whole name is a number, or the number isn't after a space.
+        if index < 0
+            return -1
+        end
+        if name:GetUnicodeInteger(index) not= 32
+            return -1
+        end
+        return index
+    end
+
+    private action IsDigitAt(text name, integer index) returns boolean
+        integer code = name:GetUnicodeInteger(index)
+        return code >= 48 and code <= 57
+    end
+
+    // The keys of the rows that are open now.
+    private action GetOpenKeys returns HashTable<text, text>
+        HashTable<text, text> result
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            CollectOpen(rows:Next(), result)
+        end
+        return result
+    end
+
+    private action CollectOpen(TreeItem row, HashTable<text, text> result)
+        if row is SceneTreeItem and row:IsOpen()
+            SceneTreeItem sceneRow = cast(SceneTreeItem, row)
+            result:Set(sceneRow:GetKey(), sceneRow:GetKey())
+        end
+        Iterator<TreeItem> children = row:GetTreeItems()
+        repeat while children:HasNext()
+            CollectOpen(children:Next(), result)
+        end
+    end
+
+    // Opens the rows named in the keys.
+    private action ApplyOpenKeys(HashTable<text, text> openKeys)
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            OpenByKey(rows:Next(), openKeys)
+        end
+    end
+
+    private action OpenByKey(TreeItem row, HashTable<text, text> openKeys)
+        if row is SceneTreeItem
+            SceneTreeItem sceneRow = cast(SceneTreeItem, row)
+            if openKeys:HasKey(sceneRow:GetKey()) and row:GetSize() > 0
+                row:Open()
+            end
+        end
+        Iterator<TreeItem> children = row:GetTreeItems()
+        repeat while children:HasNext()
+            OpenByKey(children:Next(), openKeys)
+        end
+    end
+
+    // Opens every row that holds others, for a filter's results.
+    private action OpenAll
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            OpenEvery(rows:Next())
+        end
+    end
+
+    private action OpenEvery(TreeItem row)
+        if row:GetSize() > 0
+            row:Open()
+        end
+        Iterator<TreeItem> children = row:GetTreeItems()
+        repeat while children:HasNext()
+            OpenEvery(children:Next())
+        end
+    end
+
+    // Opens the rows above a row, so it shows.
+    private action OpenAbove(TreeItem row)
+        TreeItem above = row:GetParentTreeItem()
+        repeat while above not= undefined
+            if not above:IsOpen()
+                above:Open()
+            end
+            above = above:GetParentTreeItem()
+        end
+    end
+
+    // The row for a scene item, or undefined.
+    private action FindItemRow(Item item) returns SceneTreeItem
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            TreeItem row = rows:Next()
+            if row is SceneTreeItem
+                SceneTreeItem found = GetTreeItem(cast(SceneTreeItem, row), item)
+                if found not= undefined
+                    return found
+                end
+            end
+        end
+        return undefined
+    end
+
+    // The row with a key, or undefined.
+    private action FindKeyRow(text key) returns SceneTreeItem
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            TreeItem row = rows:Next()
+            if row is SceneTreeItem
+                SceneTreeItem found = FindKeyUnder(cast(SceneTreeItem, row), key)
+                if found not= undefined
+                    return found
+                end
+            end
+        end
+        return undefined
+    end
+
+    private action FindKeyUnder(SceneTreeItem row, text key) returns SceneTreeItem
+        if row:GetKey() = key
+            return row
+        end
+        Array<SceneTreeItem> children = GetChildRows(row)
+        integer index = 0
+        repeat while index < children:GetSize()
+            SceneTreeItem found = FindKeyUnder(children:Get(index), key)
+            if found not= undefined
+                return found
+            end
+            index = index + 1
+        end
+        return undefined
+    end
+
+    // A layer's camera row with the name, or undefined.
+    private action FindCameraRow(EditorLayer layer, text name) returns SceneTreeItem
+        SceneTreeItem layerRow = FindLayerRow(layer)
+        if layerRow = undefined
+            return undefined
+        end
+        Array<SceneTreeItem> sections = GetChildRows(layerRow)
+        integer index = 0
+        repeat while index < sections:GetSize()
+            SceneTreeItem section = sections:Get(index)
+            if section:GetName() = SECTION_CAMERAS
+                Array<SceneTreeItem> cameras = GetChildRows(section)
+                integer cameraIndex = 0
+                repeat while cameraIndex < cameras:GetSize()
+                    SceneTreeItem cameraRow = cameras:Get(cameraIndex)
+                    if cameraRow:GetName() = name
+                        return cameraRow
+                    end
+                    cameraIndex = cameraIndex + 1
+                end
+            end
+            index = index + 1
+        end
+        return undefined
+    end
+
+    // A layer's own row, or undefined.
+    private action FindLayerRow(EditorLayer layer) returns SceneTreeItem
+        Iterator<TreeItem> rows = GetTreeItems()
+        repeat while rows:HasNext()
+            TreeItem row = rows:Next()
+            if row is SceneTreeItem
+                SceneTreeItem sceneRow = cast(SceneTreeItem, row)
+                if sceneRow:GetSceneLayer() = layer
+                    return sceneRow
+                end
+            end
+        end
+        return undefined
+    end
+
+    // What kind of thing a scene item is, for its icon and its section.
+    private action GetKindOf(Item item) returns integer
+        if item is EditorPointLight
+            return kinds:KIND_LIGHT
+        elseif item is EditorSpotLight
+            return kinds:KIND_LIGHT
+        elseif item is EditorAudio3D
+            return kinds:KIND_SOUND
+        elseif item is TerrainItem
+            return kinds:KIND_TERRAIN
+        elseif item is CameraItem
+            return kinds:KIND_CAMERA
+        elseif item is Item3D
+            return kinds:KIND_MODEL
+        elseif item is Item2D
+            return kinds:KIND_IMAGE
+        end
+        return kinds:KIND_NONE
     end
 
     /*
@@ -172,6 +989,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         treeItem:SetName(item:GetName())
         treeItem:SetSceneItem(item)
         treeItem:SetSceneLayer(layer)
+        treeItem:SetKind(GetKindOf(item))
         Array<Item2D> children = item:GetChildren()
         integer i = 0
         repeat while i < children:GetSize()
@@ -193,6 +1011,7 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         treeItem:SetName(item:GetName())
         treeItem:SetSceneItem(item)
         treeItem:SetSceneLayer(layer)
+        treeItem:SetKind(GetKindOf(item))
 
         // A terrain's region models come from its files, and aren't
         // separate items in the scene.
@@ -209,23 +1028,43 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
     end
 
     /*
-        As the Selection in the tree changes the SceneEditor is updated visually to reflect what is being 
+        As the Selection in the tree changes the SceneEditor is updated visually to reflect what is being
         selected. If the item selected in the tree is on a layer that is not selected in the editor then the
-        editors selections is changed. If an item is selected then the editor filters out other items and highlights
-        the item selected in the tree. 
+        editors selections is changed. If an item is selected then the editor highlights it; a group row
+        highlights all of its items. When the editor's own selection changes, the tree selects the row for
+        it (Follow).
     */
     action SelectionChanged(SelectionEvent event)
+        if following
+            return now
+        end
         if event:GetSelection() is TreeSelection
             TreeSelection selection = cast(TreeSelection, event:GetSelection())
             TreeItem selectedItem = selection:GetTreeItem()
-            if selectedItem = defaultItem
+            if selectedItem = defaultItem or controller = undefined
+                return now
+            end
+            if not (selectedItem is SceneTreeItem)
                 return now
             end
 
             SceneTreeItem treeItem = cast(SceneTreeItem, selectedItem)
             EditorLayer relatedLayer = treeItem:GetSceneLayer()
             Item relatedItem = treeItem:GetSceneItem()
-            if relatedItem = undefined
+
+            // What the editor says back about this change isn't followed.
+            following = true
+
+            // A 3D layer's camera row selects that camera and views through
+            // it, leaving the focus in the tree.
+            if relatedItem = undefined and treeItem:GetKind() = kinds:KIND_CAMERA and relatedLayer is EditorLayer3D
+                EditorLayer3D cameraLayer = cast(EditorLayer3D, relatedLayer)
+                controller:SelectCamera3D(cameraLayer, treeItem:GetName() = GAME_CAMERA, false)
+                following = false
+                return now
+            end
+
+            if relatedItem = undefined and not treeItem:IsGroup()
                 // A layer's own row selects the layer alone, even when an
                 // item in it was selected, so the layer's sections (such as
                 // Sky) show again.
@@ -236,99 +1075,92 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
                 controller:SetSelectedLayer(relatedLayer)
             end
 
-            if relatedItem not= undefined
+            if treeItem:IsGroup()
+                controller:SetFilteredItems(treeItem:GetGroupItems(), false)
+            elseif relatedItem not= undefined
                 filterArray:Set(0, relatedItem)
                 controller:SetFilteredItems(filterArray, false)
             end
+            following = false
 
         elseif event:GetSelection() is SceneEditorSelection
-
+            SceneEditorSelection editorSelection = cast(SceneEditorSelection, event:GetSelection())
+            Follow(editorSelection)
         end
     end
 
     /*
-        Called by the listener system. When an item is added to the scene then the SceneTree is updated
-        to have a TreeItem for that item.
+        Selects the row for what the editor selected, opening the rows above
+        it, without taking the focus. When the filter hides it, or it isn't in
+        the tree (such as the editor's cursor), nothing changes.
+    */
+    private action Follow(SceneEditorSelection selection)
+        if controller = undefined
+            return now
+        end
+        if rebuildNeeded
+            RebuildKeepingState()
+        end
+
+        Item item = selection:GetSelectedItem()
+        // An item focused in the editor is selected through its highlight.
+        if item is SelectionHighlight
+            SelectionHighlight highlight = cast(SelectionHighlight, item)
+            item = highlight:GetItem()
+        end
+
+        SceneTreeItem row = undefined
+        if item is CameraItem3D
+            // A camera selected in the editor selects its row under Cameras.
+            CameraItem3D cameraItem = cast(CameraItem3D, item)
+            text cameraName = EDITOR_CAMERA
+            if cameraItem:IsGameCamera()
+                cameraName = GAME_CAMERA
+            end
+            row = FindCameraRow(selection:GetSelectedLayer(), cameraName)
+        elseif item not= undefined
+            row = FindItemRow(item)
+        elseif selection:GetSelectedLayer() not= undefined
+            row = FindLayerRow(selection:GetSelectedLayer())
+        end
+        if row = undefined
+            return now
+        end
+
+        TreeSelection current = GetSelection()
+        if not current:IsEmpty()
+            TreeItem rowItem = row
+            if current:GetTreeItem() = rowItem
+                return now
+            end
+        end
+
+        following = true
+        OpenAbove(row)
+        Select(row:GetTreePath())
+        following = false
+    end
+
+    /*
+        Called by the listener system. When an item is added to the scene, the rows are
+        built again on the next update.
     */
     action SceneAddedItem(SceneEditorChangeEvent event)
         if controller = undefined
             return now
         end
-
-        Item item = event:GetItem()
-        Item parentItem = event:GetParentItem()
-        EditorLayer layer = event:GetLayer()
-
-        Iterator<TreeItem> treeItems = GetTreeItems()
-
-        SceneTreeItem layerTreeItem = undefined
-        boolean finished = false
-
-        repeat while treeItems:HasNext() and finished = false
-            SceneTreeItem treeItem = cast(SceneTreeItem, treeItems:Next())
-            if treeItem:GetSceneLayer() = layer
-                layerTreeItem = treeItem
-                Iterator<TreeItem> subTree = treeItem:GetTreeItems()
-                repeat while subTree:HasNext() and finished = false
-                    SceneTreeItem candidate = cast(SceneTreeItem, subTree:Next())
-                    if candidate:GetName() = "Items"
-                        layerTreeItem = candidate
-                        finished = true
-                    end
-                end
-                finished = true
-            end
-        end
-
-        if parentItem = undefined
-            if item is Item3D
-                layerTreeItem:Add(cast(TreeItem, ItemToTreeItems(cast(Item3D, item), layer)))
-            elseif item is Item2D
-                layerTreeItem:Add(cast(TreeItem, ItemToTreeItems(cast(Item2D, item), layer)))
-            end
-        else
-            SceneTreeItem targetItem = GetTreeItem(layerTreeItem, parentItem)
-            if targetItem not= undefined
-                if item is Item3D
-                    targetItem:Add(cast(TreeItem, ItemToTreeItems(cast(Item3D, item), layer)))
-                elseif item is Item2D
-                    targetItem:Add(cast(TreeItem, ItemToTreeItems(cast(Item2D, item), layer)))
-                end
-            end
-        end
+        rebuildNeeded = true
     end
 
     /*
-        Called by the listener system. When an item is removed to the scene then the SceneTree is updated
-        to not have a TreeItem for that item.
+        Called by the listener system. When an item is removed from the scene, the rows are
+        built again on the next update.
     */
     action SceneRemovedItem(SceneEditorChangeEvent event)
         if controller = undefined
             return now
         end
-
-        Item item = event:GetItem()
-        Item parentItem = event:GetParentItem()
-        EditorLayer layer = event:GetLayer()
-
-        Iterator<TreeItem> treeItems = GetTreeItems()
-
-        SceneTreeItem layerTreeItem = undefined
-        boolean finished = false
-
-        repeat while treeItems:HasNext() and finished = false
-            SceneTreeItem treeItem = cast(SceneTreeItem, treeItems:Next())
-            SceneTreeItem target = GetTreeItem(treeItem, item)
-            if target not= undefined
-                if treeItem = target
-                    Remove(cast(TreeItem, treeItem))
-                else
-                    TreeItem parentTreeItem = target:GetParentTreeItem()
-                    parentTreeItem:Remove(cast(TreeItem, target))
-                end
-                finished = true
-            end
-        end
+        rebuildNeeded = true
     end
 
     /*
@@ -342,9 +1174,12 @@ class SceneTree is Tree, SelectionListener, SceneEditorChangeListener
         Iterator<TreeItem> children = root:GetTreeItems()
         SceneTreeItem target = undefined
         repeat while children:HasNext()
-            target = GetTreeItem(cast(SceneTreeItem, children:Next()), item)
-            if target not= undefined and target:GetSceneItem() = item
-                return target
+            TreeItem child = children:Next()
+            if child is SceneTreeItem
+                target = GetTreeItem(cast(SceneTreeItem, child), item)
+                if target not= undefined
+                    return target
+                end
             end
         end
 

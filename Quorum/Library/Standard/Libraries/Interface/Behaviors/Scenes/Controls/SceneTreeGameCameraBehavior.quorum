@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Scenes.Controls
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.SceneTreeItem
+use Libraries.Interface.Controls.Scenes.SceneEditor
+
+/*
+    This behavior is the activation behavior of a 3D layer's Game Camera row in the
+    Scene tree: it selects the layer's game camera in the editor, so its properties
+    show (SceneEditor:SelectGameCamera).
+*/
+class SceneTreeGameCameraBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if event:GetItem() is SceneTreeItem = false
+            return now
+        end
+
+        SceneTreeItem treeItem = cast(SceneTreeItem, event:GetItem())
+        SceneEditor controller = treeItem:GetSceneEditor()
+        if controller not= undefined and treeItem:GetSceneLayer() not= undefined
+            controller:SelectGameCamera(treeItem:GetSceneLayer())
+        end
+    end
+end

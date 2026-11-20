@@ -6,6 +6,10 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionHighlight
 use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Controls.Scenes.SceneTreeItem
 use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Game.Graphics.Camera
+use Libraries.Compute.Frustum
 
 /*
     This behavior is the default activation behavior for the Scene Tree when activating a 
@@ -21,6 +25,17 @@ class SceneTreeItemActivationBehavior is Behavior
         end
 
         SceneTreeItem treeItem = cast(SceneTreeItem, event:GetItem())
+
+        // A group of items with one name opens or closes.
+        if treeItem:IsGroup()
+            if treeItem:IsOpen()
+                treeItem:Close()
+            else
+                treeItem:Open()
+            end
+            return now
+        end
+
         Item item = treeItem:GetSceneItem()
 
         //If there is no item, check if a layer is active and if so, jump to it
@@ -40,11 +55,38 @@ class SceneTreeItemActivationBehavior is Behavior
         if controller not= undefined
             SelectionHighlight highlight = controller:GetSelectionHighlight(item)
             if highlight not= undefined
+                // The camera turns to the item only when it's off the
+                // screen; an item already in view leaves the view as it is.
+                boolean inView = IsInView(controller, item)
+                if inView
+                    controller:SetKeepCameraOnSelection(true)
+                end
                 highlight:Focus()
+                if inView
+                    controller:SetKeepCameraOnSelection(false)
+                end
             elseif treeItem:GetSceneLayer() not= undefined
                 controller:SetSelectedLayer(treeItem:GetSceneLayer())
                 controller:Focus()
             end
         end
+    end
+
+    // Whether a 3D item's position is inside the editor camera's view.
+    private action IsInView(SceneEditor controller, Item item) returns boolean
+        if not (item is Item3D)
+            return false
+        end
+        if not (controller:GetSelectedLayer() is EditorLayer3D)
+            return false
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, controller:GetSelectedLayer())
+        Camera camera = layer:GetCamera()
+        if camera = undefined
+            return false
+        end
+        Item3D item3D = cast(Item3D, item)
+        Frustum frustum = camera:GetFrustum()
+        return frustum:PointInFrustum(item3D:GetGlobalPosition())
     end
 end

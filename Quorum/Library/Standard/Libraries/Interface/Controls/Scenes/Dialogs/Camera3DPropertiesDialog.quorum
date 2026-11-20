@@ -19,6 +19,9 @@ use Libraries.Interface.Selections.SceneEditorSelection
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
 use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
+use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Compute.Vector3
 
 /*
     The Camera3DPropertiesDialog class is a dialog that appears when selecting 
@@ -27,203 +30,119 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PropertiesDialog
 */
 class Camera3DPropertiesDialog is PropertiesDialog
 
-    // Controls used on the dialog itself
-    TextField distanceField = undefined
+    // The sliders, and their number fields, which SliderTaken is called with.
+    SliderField xSlider = undefined
+    SliderField ySlider = undefined
+    SliderField zSlider = undefined
+    TextField xField = undefined
+    TextField yField = undefined
+    TextField zField = undefined
+    SliderField nearSlider = undefined
+    SliderField farSlider = undefined
+    SliderField turnSlider = undefined
+    SliderField tiltSlider = undefined
+    SliderField fovSlider = undefined
+    TextField nearField = undefined
+    TextField farField = undefined
     TextField yawField = undefined
     TextField pitchField = undefined
-    TextField zoomField = undefined
     TextField fovField = undefined
 
+    // The label column's width, before the interface scale.
+    constant number FIELD_LABEL_WIDTH = 120
+    // The tilt stops short of straight up and down, where the camera can't
+    // tell which way is up and the view breaks.
+    constant number MOST_PITCH = 89
+    // The near and far sliders' ends. Both are logarithmic, since small
+    // changes matter close up and large ones far away. The far end stays a
+    // little beyond the near end, so something is always drawn.
+    constant number LEAST_NEAR = 0.01
+    constant number MOST_NEAR = 100
+    constant number LEAST_FAR = 10
+    constant number MOST_FAR = 100000
+    constant number NEAR_FAR_GAP = 0.01
+    // The position sliders' ends. A camera farther out still shows its
+    // position in the field.
+    constant number FARTHEST_POSITION = 2000
+
     /*
-        Creates and adds all the controls this dialog needs
+        Creates and adds all the controls this dialog needs. Each property
+        is a slider with its number beside it, as in the other properties
+        panels, the same for the editor's camera and the game camera. There's
+        no Zoom: a 3D camera's zoom narrows the field of view
+        without saying so, and isn't saved with the scene, so Field of View
+        is the one lens setting, and the editor's zoom keys and mouse wheel
+        move the camera closer.
     */
     private action CreateInterface(Control panel, Array<Control> focusArray)
         SetName("Camera Properties")
 
         Label basicPropertiesLabel
         basicPropertiesLabel:SetSize(18)
-        basicPropertiesLabel:SetText("Basic Properties")
+        basicPropertiesLabel:SetText("Camera Properties")
         basicPropertiesLabel:SetLeftMargin(20)
         panel:Add(basicPropertiesLabel)
         // Its text is the section's title, under a header that opens and
         // closes it when the panel shows several sections.
         SetHeading(basicPropertiesLabel)
 
+        // Where the camera is, together in one card.
+        Control positionCard = AddCard(panel, "Position")
+        xSlider = MakePositionSlider("X:", "Position X", "Where the camera is, left and right")
+        xField = xSlider:GetField()
+        positionCard:Add(xSlider)
+        ChainControl(focusArray, xField)
 
-        Label positionLabel
-        
-        TextField distanceField
-        me:distanceField = distanceField
+        ySlider = MakePositionSlider("Y:", "Position Y", "Where the camera is, up and down")
+        yField = ySlider:GetField()
+        positionCard:Add(ySlider)
+        ChainControl(focusArray, yField)
 
-        FlowLayout positionLayout
-        Control positionContainer
-        positionContainer:SetLayout(positionLayout)
-        positionContainer:SetPercentageWidth(1.0)
-        positionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        positionContainer:SetLeftMargin(20)
-        positionContainer:SetTopMargin(10)
-        positionContainer:SetRightMargin(30)
-        positionContainer:SetBottomMargin(10)
-
-        positionLabel:SetText("Distance")
-        positionLabel:SetHorizontalLayoutMode(positionLabel:parent:Control:STANDARD)
-        positionLabel:SetPercentageWidth(0.3)
-        positionContainer:Add(positionLabel)
-        
-        FlowLayout positionFieldLayout
-        Control positionFieldContainer
-        positionFieldContainer:SetLayout(positionFieldLayout)
-
-        positionFieldContainer:SetHorizontalLayoutMode(positionFieldContainer:FILL)
-        positionFieldContainer:SetName("Distance Field")
-        distanceField:SetName("Distance")
-        distanceField:SetText("")
-        distanceField:SetFocusable(true)
-        distanceField:AddTextChangeListener(me)
-        distanceField:SetRightMargin(8)
-        distanceField:SetPercentageWidth(1.0)
-        distanceField:SetPixelWidth(-8)
-        positionFieldContainer:Add(distanceField)
-
-        focusArray:Add(distanceField)
-
-        positionContainer:Add(positionFieldContainer)
-        panel:Add(positionContainer)
+        zSlider = MakePositionSlider("Z:", "Position Z", "Where the camera is, forward and back")
+        zField = zSlider:GetField()
+        positionCard:Add(zSlider)
+        ChainControl(focusArray, zField)
 
 
-        Label directionLabel
-        
-        TextField yawField
-        me:yawField = yawField
+        // Which way the camera looks, and how wide.
+        Control viewCard = AddCard(panel, "View")
+        turnSlider = MakeSliderField("Turn:", "Turn", "How far the camera is turned left or right, in degrees", -180, 180, 1, 15, FIELD_LABEL_WIDTH)
+        turnSlider:SetUnits("degrees")
+        turnSlider:SetDecimalPlaces(1)
+        yawField = turnSlider:GetField()
+        viewCard:Add(turnSlider)
+        ChainControl(focusArray, yawField)
 
-        TextField pitchField
-        me:pitchField = pitchField
+        tiltSlider = MakeSliderField("Tilt:", "Tilt", "How far the camera is tilted down, in degrees. Negative tilts it up.", -MOST_PITCH, MOST_PITCH, 1, 15, FIELD_LABEL_WIDTH)
+        tiltSlider:SetUnits("degrees")
+        tiltSlider:SetDecimalPlaces(1)
+        pitchField = tiltSlider:GetField()
+        viewCard:Add(tiltSlider)
+        ChainControl(focusArray, pitchField)
 
+        fovSlider = MakeSliderField("Field of View:", "Field of View", "How wide the camera sees, in degrees", 10, 120, 1, 10, FIELD_LABEL_WIDTH)
+        fovSlider:SetUnits("degrees")
+        fovField = fovSlider:GetField()
+        viewCard:Add(fovSlider)
+        ChainControl(focusArray, fovField)
 
-        FlowLayout directionLayout
-        Control directionContainer
-        directionContainer:SetLayout(directionLayout)
-        directionContainer:SetPercentageWidth(1.0)
-        directionContainer:SetVerticalLayoutMode(positionContainer:FIT_CONTENTS)
-        directionContainer:SetLeftMargin(20)
-        directionContainer:SetTopMargin(10)
-        directionContainer:SetRightMargin(30)
-        directionContainer:SetBottomMargin(10)
+        // What's drawn: nothing closer than Near or farther than Far.
+        Control rangeCard = AddCard(panel, "Drawing Range")
+        nearSlider = MakeSliderField("Near:", "Near", "The closest the camera draws. Anything nearer isn't drawn.", LEAST_NEAR, MOST_NEAR, 0.01, 1, FIELD_LABEL_WIDTH)
+        nearSlider:SetLogarithmic(true)
+        nearSlider:SetDecimalPlaces(2)
+        nearSlider:SetAllowsValuesBeyondRange(true)
+        nearField = nearSlider:GetField()
+        rangeCard:Add(nearSlider)
+        ChainControl(focusArray, nearField)
 
-        directionLabel:SetText("Direction")
-        directionLabel:SetHorizontalLayoutMode(directionLabel:parent:Control:STANDARD)
-        directionLabel:SetPercentageWidth(0.3)
-        directionContainer:Add(directionLabel)
-        
-        FlowLayout directionFieldLayout
-        Control directionFieldContainer
-        directionFieldContainer:SetLayout(directionFieldLayout)
-
-        directionFieldContainer:SetHorizontalLayoutMode(directionFieldContainer:FILL)
-        directionFieldContainer:SetName("Direction Fields")
-        yawField:SetName("Yaw")
-        yawField:SetText("")
-        yawField:SetFocusable(true)
-        yawField:AddTextChangeListener(me)
-        yawField:SetRightMargin(8)
-        yawField:SetPercentageWidth(0.5)
-        yawField:SetPixelWidth(-8)
-        directionFieldContainer:Add(yawField)
-
-        pitchField:SetName("Pitch")
-        pitchField:SetText("")
-        pitchField:SetFocusable(true)
-        pitchField:AddTextChangeListener(me)
-        pitchField:SetRightMargin(8)
-        pitchField:SetPercentageWidth(0.5)
-        pitchField:SetPixelWidth(-8)
-        directionFieldContainer:Add(pitchField)
-
-        focusArray:Add(yawField)
-        focusArray:Add(pitchField)
-
-        directionContainer:Add(directionFieldContainer)
-        panel:Add(directionContainer)
-
-
-        FlowLayout zoomLayout
-        Control zoomContainer
-        zoomContainer:SetLayout(zoomLayout)
-        zoomContainer:SetPercentageWidth(1.0)
-        zoomContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
-        zoomContainer:SetLeftMargin(20)
-        zoomContainer:SetTopMargin(10)
-        zoomContainer:SetRightMargin(30)
-        zoomContainer:SetBottomMargin(10)
-
-        Label zoomLabel
-        zoomLabel:SetText("Zoom")
-        zoomLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
-        zoomLabel:SetPercentageWidth(0.3)
-        zoomContainer:Add(zoomLabel)
-        
-        FlowLayout zoomFieldLayout
-        Control zoomFieldContainer
-        zoomFieldContainer:SetLayout(zoomFieldLayout)
-
-        TextField zoomField
-        me:zoomField = zoomField
-
-        zoomFieldContainer:SetHorizontalLayoutMode(zoomFieldContainer:FILL)
-        zoomFieldContainer:SetName("Zoom Field")
-        zoomField:SetName("Zoom")
-        zoomField:SetText("")
-        zoomField:SetFocusable(true)
-        zoomField:AddTextChangeListener(me)
-        zoomField:SetRightMargin(8)
-        zoomField:SetPercentageWidth(1.0)
-        zoomField:SetPixelWidth(-8)
-        zoomFieldContainer:Add(zoomField)
-
-        focusArray:Add(zoomField)
-
-        zoomContainer:Add(zoomFieldContainer)
-        panel:Add(zoomContainer)
-
-
-        FlowLayout fovLayout
-        Control fovContainer
-        fovContainer:SetLayout(fovLayout)
-        fovContainer:SetPercentageWidth(1.0)
-        fovContainer:SetVerticalLayoutMode(zoomContainer:FIT_CONTENTS)
-        fovContainer:SetLeftMargin(20)
-        fovContainer:SetTopMargin(10)
-        fovContainer:SetRightMargin(30)
-        fovContainer:SetBottomMargin(10)
-
-        Label fovLabel
-        fovLabel:SetText("Field of View")
-        fovLabel:SetHorizontalLayoutMode(zoomLabel:parent:Control:STANDARD)
-        fovLabel:SetPercentageWidth(0.5)
-        fovContainer:Add(fovLabel)
-        
-        FlowLayout fovFieldLayout
-        Control fovFieldContainer
-        fovFieldContainer:SetLayout(fovFieldLayout)
-
-        TextField fovField
-        me:fovField = fovField
-
-        fovFieldContainer:SetHorizontalLayoutMode(fovFieldContainer:FILL)
-        fovFieldContainer:SetName("Field of View")
-        fovField:SetName("Field of View")
-        fovField:SetText("")
-        fovField:SetFocusable(true)
-        fovField:AddTextChangeListener(me)
-        fovField:SetRightMargin(8)
-        fovField:SetPercentageWidth(1.0)
-        fovField:SetPixelWidth(-8)
-        fovFieldContainer:Add(fovField)
-
-        focusArray:Add(fovField)
-
-        fovContainer:Add(fovFieldContainer)
-        panel:Add(fovContainer)
+        farSlider = MakeSliderField("Far:", "Far", "The farthest the camera draws. Anything farther isn't drawn.", LEAST_FAR, MOST_FAR, 10, 1000, FIELD_LABEL_WIDTH)
+        farSlider:SetLogarithmic(true)
+        farSlider:SetDecimalPlaces(0)
+        farSlider:SetAllowsValuesBeyondRange(true)
+        farField = farSlider:GetField()
+        rangeCard:Add(farSlider)
+        ChainControl(focusArray, farField)
     end
 
     /*
@@ -267,85 +186,124 @@ class Camera3DPropertiesDialog is PropertiesDialog
     end
 
     /*
-        This action takes a CameraItem3D and sets the fields in the dialog based on its
-        properties.
+        This action takes a CameraItem3D and sets the sliders from it. Setting
+        a slider's value doesn't tell its listeners, so nothing is sent back
+        to the camera.
     */
     action SetFields(CameraItem3D cameraItem)
         EditorCamera3D camera = cameraItem:GetEditorCamera()
-        distanceField:SetText("" + camera:GetDistance())
-        yawField:SetText("" + cameraItem:GetYaw())
-        pitchField:SetText("" + cameraItem:GetPitch())
-        zoomField:SetText("" + camera:GetZoom())
-        fovField:SetText("" + camera:GetFieldOfView())
+        Vector3 position = camera:GetPosition()
+        xSlider:SetValue(position:GetX())
+        ySlider:SetValue(position:GetY())
+        zSlider:SetValue(position:GetZ())
+        turnSlider:SetValue(WrapTurn(cameraItem:GetYaw()))
+        tiltSlider:SetValue(cameraItem:GetPitch())
+        fovSlider:SetValue(camera:GetFieldOfView())
+        nearSlider:SetValue(camera:GetNear())
+        farSlider:SetValue(camera:GetFar())
+    end
+
+    private action MakePositionSlider(text label, text name, text description) returns SliderField
+        SliderField slider = MakeSliderField(label, name, description, -FARTHEST_POSITION, FARTHEST_POSITION, 1, 50, FIELD_LABEL_WIDTH)
+        slider:SetDecimalPlaces(1)
+        slider:SetAllowsValuesBeyondRange(true)
+        return slider
+    end
+
+    // A turn between -180 and 180 degrees, the slider's range.
+    private action WrapTurn(number degrees) returns number
+        number value = degrees
+        repeat while value > 180
+            value = value - 360
+        end
+        repeat while value < -180
+            value = value + 360
+        end
+        return value
     end
 
     /*
-        Updates the properties of the selected item as text is changed in any text field in the dialog.
-        If the text is updated to any invalid values the text is ignored. 
-    */
-    action TextChanged(TextChangeEvent event)
-        CameraItem3D currentItem = cast(CameraItem3D, GetSceneEditor():GetSelectedItem())
-        EditorCamera3D camera = currentItem:GetEditorCamera()
-        Control control = event:GetControl()
+        This action is called when a slider's value is final: the slider was
+        let go or moved with the keys, or a number was typed and the focus
+        left the field. Text that isn't a number is put back.
 
-        if currentItem = undefined
+        Attribute: Parameter field The slider's number field.
+    */
+    action SliderTaken(TextField field)
+        SceneEditor sceneEditor = GetSceneEditor()
+        if sceneEditor = undefined
+            return now
+        end
+        EditorItem selected = sceneEditor:GetSelectedItem()
+        if not (selected is CameraItem3D)
+            return now
+        end
+        CameraItem3D cameraItem = cast(CameraItem3D, selected)
+        EditorCamera3D camera = cameraItem:GetEditorCamera()
+
+        number value = 0
+        check
+            value = field:GetText():Trim():ParseNumber()
+        detect e is Error
+            SetFields(cameraItem)
             return now
         end
 
-        if control:Equals(distanceField)
-            check
-                number value = distanceField:GetText():ParseNumber()
-                if value not= currentItem:GetDistance()
-                    currentItem:SetDistance(value)
-                end
-            detect e is Error
-                // Do nothing.
+        if field:Equals(xField) or field:Equals(yField) or field:Equals(zField)
+            Vector3 position = camera:GetPosition()
+            number x = position:GetX()
+            number y = position:GetY()
+            number z = position:GetZ()
+            if field:Equals(xField)
+                x = value
+            elseif field:Equals(yField)
+                y = value
+            else
+                z = value
             end
-        elseif control:Equals(yawField)
-            check
-                number value = yawField:GetText():ParseNumber()
-                if value not= currentItem:GetYaw()
-                    currentItem:SetYaw(value)
-                end
-            detect e is Error
-                // Do nothing.
+            // Placed by hand, the camera stops following what it was
+            // looking at, so it stays where it was put.
+            camera:SetTarget(undefined)
+            camera:SetPosition(x, y, z)
+            camera:Update()
+            cameraItem:SetPosition(x, y, z)
+        elseif field:Equals(nearField)
+            // Near stays above zero and short of Far.
+            if value < LEAST_NEAR
+                value = LEAST_NEAR
             end
-        elseif control:Equals(pitchField)
-            check
-                number value = pitchField:GetText():ParseNumber()
-                if value not= currentItem:GetPitch()
-                    currentItem:SetPitch(value)
-                end
-            detect e is Error
-                // Do nothing.
+            if value > camera:GetFar() - NEAR_FAR_GAP
+                value = camera:GetFar() - NEAR_FAR_GAP
             end
-        elseif control:Equals(zoomField)
-            check
-                number value = zoomField:GetText():ParseNumber()
-                if value <= 0
-                    return now
-                end
-
-                if value not= camera:GetZoom()
-                    camera:SetZoom(value)
-                end
-            detect e is Error
-                // Do nothing.
+            camera:SetNear(value)
+            camera:Update()
+        elseif field:Equals(farField)
+            if value < camera:GetNear() + NEAR_FAR_GAP
+                value = camera:GetNear() + NEAR_FAR_GAP
             end
-        elseif control:Equals(fovField)
-            check
-                number value = fovField:GetText():ParseNumber()
-                if value <= 0
-                    return now
-                end
-                
-                if value not= camera:GetFieldOfView()
-                    camera:SetFieldOfView(value)
-                end
-            detect e is Error
-                // Do nothing.
+            camera:SetFar(value)
+            camera:Update()
+        elseif field:Equals(yawField)
+            if value not= cameraItem:GetYaw()
+                cameraItem:SetYaw(value)
+            end
+        elseif field:Equals(pitchField)
+            if value > MOST_PITCH
+                value = MOST_PITCH
+            elseif value < -MOST_PITCH
+                value = -MOST_PITCH
+            end
+            if value not= cameraItem:GetPitch()
+                cameraItem:SetPitch(value)
+            end
+        elseif field:Equals(fovField)
+            if value > 0 and value not= camera:GetFieldOfView()
+                camera:SetFieldOfView(value)
             end
         end
+        // Turn and tilt move the camera, so its position shows anew, and a
+        // near or far that was kept in range shows what was taken.
+        SetFields(cameraItem)
     end
 
     /*
@@ -354,8 +312,8 @@ class Camera3DPropertiesDialog is PropertiesDialog
     changed to a different field, possibly context sensitive.
     */
     action FocusField
-        distanceField:Focus()
-        distanceField:Select(0, distanceField:GetSize(), true)
+        xField:Focus()
+        xField:Select(0, xField:GetSize(), true)
     end
 
 end

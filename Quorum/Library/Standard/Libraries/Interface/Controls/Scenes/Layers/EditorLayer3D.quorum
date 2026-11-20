@@ -8,6 +8,8 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCursor
 use Libraries.Interface.Controls.Scenes.Items.Grid3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCursor3D
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Game.Graphics.Camera
+use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Item3D
 use Libraries.Interface.Controls.Scenes.SceneConstants
@@ -19,6 +21,16 @@ use Libraries.Interface.Controls.Scenes.SceneConstants
     moving the editor camera affects where the camera starts when running a 3D scene.
 */
 class EditorLayer3D is Layer3D, EditorLayer
+    // Where a game using the scene starts looking (GetGameCamera).
+    EditorCamera3D gameCamera
+    // The editor's own camera, and whether the layer is viewing through
+    // the game camera instead (ViewThroughGameCamera).
+    EditorCamera3D editorViewCamera = undefined
+    boolean viewingGameCamera = false
+    // The items that stand for the two cameras when one is selected, made
+    // once and kept (SceneEditor:SelectCamera3D).
+    CameraItem3D editorCameraItem = undefined
+    CameraItem3D gameCameraItem = undefined
 
     Grid3D grid
     boolean gridSnapEnabled = true
@@ -37,6 +49,7 @@ class EditorLayer3D is Layer3D, EditorLayer
         ShowEditorComponents(false)
 
         EditorCamera3D camera
+        editorViewCamera = camera
         SetCamera(camera)
     end
 
@@ -238,6 +251,95 @@ class EditorLayer3D is Layer3D, EditorLayer
     */
     action GetEditorCamera returns EditorCamera3D
         return cast(EditorCamera3D, GetCamera())
+    end
+
+    /*
+        This action returns the game camera: where a game using this scene
+        starts looking. It is apart from the editor's camera, so moving around
+        to edit doesn't change it. It is saved as the scene's camera, and the
+        editor's view is saved beside it (SceneEditor).
+
+        Attribute: Returns The game camera.
+    */
+    action GetGameCamera returns EditorCamera3D
+        return gameCamera
+    end
+
+    /*
+        This action returns the editor's own camera, whichever camera the
+        layer is viewing through now.
+
+        Attribute: Returns The editor's camera.
+    */
+    action GetEditorViewCamera returns EditorCamera3D
+        return editorViewCamera
+    end
+
+    /*
+        This action makes the layer show the scene through its game camera, or
+        through the editor's own camera again. The layer keeps viewing through
+        it, so moving the view with the mouse or keys, or with the camera's
+        properties, moves that camera, until the other one is chosen
+        (GetEditorCamera returns the camera in use).
+
+        Attribute: Parameter value True to view through the game camera.
+    */
+    action ViewThroughGameCamera(boolean value)
+        if value = viewingGameCamera
+            return now
+        end
+        Camera current = GetCamera()
+        EditorCamera3D next = editorViewCamera
+        if value
+            next = gameCamera
+        end
+        // The screen's size carries over, so the view isn't stretched. Each
+        // camera keeps its own near and far.
+        next:SetWidth(current:GetWidth())
+        next:SetHeight(current:GetHeight())
+        next:Update()
+        SetCamera(next)
+        viewingGameCamera = value
+    end
+
+    /*
+        This action returns true if the layer is viewing through its game
+        camera, rather than the editor's own camera.
+
+        Attribute: Returns True while viewing through the game camera.
+    */
+    action IsViewingGameCamera returns boolean
+        return viewingGameCamera
+    end
+
+    /*
+        This action returns the item that stands for the game camera, or for
+        the editor's camera, when it is selected, or undefined if it hasn't
+        been made yet.
+
+        Attribute: Parameter game True for the game camera's item.
+        Attribute: Returns The camera's item, or undefined.
+    */
+    action GetCameraItem(boolean game) returns CameraItem3D
+        if game
+            return gameCameraItem
+        end
+        return editorCameraItem
+    end
+
+    /*
+        This action keeps the item that stands for the game camera, or for the
+        editor's camera.
+
+        Attribute: Parameter game True for the game camera's item.
+        Attribute: Parameter item The camera's item.
+    */
+    action SetCameraItem(boolean game, CameraItem3D item)
+        if game
+            gameCameraItem = item
+        else
+            editorCameraItem = item
+        end
     end
     
     

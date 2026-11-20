@@ -144,19 +144,24 @@ Animations animations = data:GetAnimations()
                 number y = positions:Get(j + 1)
                 number z = positions:Get(j + 2)
                 
+                // A point can be both the smallest and the largest so far,
+                // such as the first, so each is checked on its own.
                 if x < minX
                     minX = x
-                elseif x > maxX
+                end
+                if x > maxX
                     maxX = x
                 end
                 if y < minY
                     minY = y
-                elseif y > maxY
+                end
+                if y > maxY
                     maxY = y
                 end
                 if z < minZ
                     minZ = z
-                elseif z > maxZ
+                end
+                if z > maxZ
                     maxZ = z
                 end
                 
