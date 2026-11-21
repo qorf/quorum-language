@@ -725,6 +725,8 @@ class DefaultSceneManager is SceneManager
 
         // These variables are used if the Item is a Model.
         Model model = undefined
+        // The names of the model's hidden parts, hidden once it is loaded.
+        Array<text> hiddenPartNames
         text file = ""
         integer type = properties:NONE
 
@@ -846,6 +848,19 @@ number restitution = 0
                 doppler = json:GetBoolean(key)
             elseif key = properties:PLAY_ON_LOAD
                 playOnLoad = json:GetBoolean(key)
+            elseif key = properties:HIDDEN_PARTS
+                JavaScriptObjectNotation holder = json:GetObject(key)
+                if holder not= undefined
+                    JavaScriptObjectNotation names = holder
+                    if holder:IsArrayObject()
+                        names = holder:GetArray()
+                    end
+                    integer nameIndex = 0
+                    repeat while nameIndex < names:GetSize()
+                        hiddenPartNames:Add(names:Get(nameIndex):GetText())
+                        nameIndex = nameIndex + 1
+                    end
+                end
             elseif key = properties:CONTROLLER
                 // Kept with the item, and built once its layer is loaded.
                 JavaScriptObjectNotation block = json:GetObject(key)
@@ -899,6 +914,12 @@ number restitution = 0
             elseif type = properties:CUSTOM
                 model:Load(ConvertToProjectFile(file))
                 model:SetDimensions(size:Get(0), size:Get(1), size:Get(2))
+                // Parts hidden in the scene editor, such as a blanket.
+                integer hiddenIndex = 0
+                repeat while hiddenIndex < hiddenPartNames:GetSize()
+                    model:SetPartShown(hiddenPartNames:Get(hiddenIndex), false)
+                    hiddenIndex = hiddenIndex + 1
+                end
                 // A model file's saved color goes on every part, as it was
                 // shown: Model:SetColor(color) colors only the first part on
                 // Vulkan. Each part gets its own copy.
@@ -1790,6 +1811,26 @@ number restitution = 0
                 if file not= undefined
                     json:Add(properties:FILE, file:GetPath())
                 end
+            end
+            if model:HasHiddenParts() and not CustomSaveProperty3D(item, properties:HIDDEN_PARTS, json)
+                // By name, once each, so every piece with a name is hidden.
+                Array<text> hiddenNames
+                integer part = 0
+                repeat while part < model:GetPartCount()
+                    text partName = model:GetPartName(part)
+                    if not model:IsPartShown(part) and not hiddenNames:Has(partName)
+                        hiddenNames:Add(partName)
+                    end
+                    part = part + 1
+                end
+                JavaScriptObjectNotation hiddenJson
+                hiddenJson:SetArray()
+                integer hiddenIndex = 0
+                repeat while hiddenIndex < hiddenNames:GetSize()
+                    hiddenJson:Add(hiddenNames:Get(hiddenIndex))
+                    hiddenIndex = hiddenIndex + 1
+                end
+                json:Add(properties:HIDDEN_PARTS, hiddenJson)
             end
         elseif light not= undefined
             if not CustomSaveProperty3D(item, properties:COLOR, json)

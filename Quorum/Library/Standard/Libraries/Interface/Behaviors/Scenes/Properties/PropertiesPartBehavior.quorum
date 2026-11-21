@@ -1,0 +1,49 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.Scenes.Dialogs.Item3DPropertiesDialog
+
+/*
+    The PropertiesPartBehavior is one checkbox in a model's Parts card, such
+    as "Show Fabric". It tells the section which part was checked or
+    unchecked.
+*/
+class PropertiesPartBehavior is Behavior
+    Item3DPropertiesDialog dialog = undefined
+    Checkbox checkbox = undefined
+    text partName = ""
+
+    /*
+        Sets the section, the checkbox and the part's name.
+
+        Attribute: Parameter dialog The item's properties section
+        Attribute: Parameter box The part's checkbox
+        Attribute: Parameter name The part's name in the model's file
+    */
+    action Setup(Item3DPropertiesDialog dialog, Checkbox box, text name)
+        me:dialog = dialog
+        checkbox = box
+        partName = name
+    end
+
+    action Run(BehaviorEvent event)
+        PassOn()
+    end
+
+    /*
+        A checkbox runs its behavior only when it is checked, and calls
+        Dispose when it is unchecked, so unchecking is passed on the same
+        way.
+    */
+    action Dispose
+        PassOn()
+    end
+
+    private action PassOn
+        if dialog not= undefined and checkbox not= undefined
+            dialog:PartToggled(partName, checkbox:GetToggleState())
+        end
+    end
+end

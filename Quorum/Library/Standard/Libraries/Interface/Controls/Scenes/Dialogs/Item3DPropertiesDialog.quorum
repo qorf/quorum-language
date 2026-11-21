@@ -32,6 +32,8 @@ use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesOverrideColorBehav
 use Libraries.Interface.Events.PropertiesColorWellListener
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesPartBehavior
 
 class Item3DPropertiesDialog is PropertiesDialog
 
@@ -63,6 +65,14 @@ class Item3DPropertiesDialog is PropertiesDialog
     Control physicsCardPart = undefined
     Control physicsNotePart = undefined
     Label physicsNote = undefined
+    // The Parts card: one checkbox per part name of the selected model,
+    // shown when it has two or more, such as a toy car's body, glass and
+    // blanket. The model they are for.
+    Label partsTitlePart = undefined
+    Control partsCardPart = undefined
+    Array<Checkbox> partCheckboxes
+    Array<Control> partLines
+    EditorModel partsModel = undefined
     // A new item's preview only: whether the arrow keys keep it at its
     // height above the ground.
     Control followGroundLine = undefined
@@ -180,6 +190,14 @@ class Item3DPropertiesDialog is PropertiesDialog
         lookCard:Add(colorLine)
         focusArray:Add(overrideColorCheckbox)
         focusArray:Add(colorWell)
+
+        // The Parts card, filled for each selected model (ShowPartsCard).
+        partsTitlePart = MakeCardTitle("Parts")
+        panel:Add(partsTitlePart)
+        partsCardPart = MakeCard()
+        panel:Add(partsCardPart)
+        partsTitlePart:Hide()
+        partsCardPart:Hide()
 
         panel:Add(MakeCardTitle("Physics"))
         Control physicsCard = MakeCard()
@@ -504,7 +522,102 @@ class Item3DPropertiesDialog is PropertiesDialog
         massField:SetText("" + item:GetEditorMass())
         frictionField:SetText("" + item:GetEditorFriction())
         restitutionField:SetText("" + item:GetEditorRestitution())
+        ShowPartsCard(item)
         ShowPhysicsPart(item)
+    end
+
+    /*
+        Fills the Parts card with a checkbox for each part name of a selected
+        model, checked if those parts are shown, or hides the card if the
+        model has fewer than two names.
+    */
+    private action ShowPartsCard(EditorItem3D item)
+        EditorModel model = undefined
+        if item is ModelSelectionHighlight
+            ModelSelectionHighlight highlight = cast(ModelSelectionHighlight, item)
+            model = highlight:GetEditorModel()
+        end
+        Array<text> names
+        if model not= undefined
+            integer part = 0
+            repeat while part < model:GetPartCount()
+                text partName = model:GetPartName(part)
+                if not names:Has(partName)
+                    names:Add(partName)
+                end
+                part = part + 1
+            end
+        end
+        // The checkboxes are made again for each model.
+        integer i = 0
+        repeat while i < partLines:GetSize()
+            partsCardPart:Remove(partLines:Get(i))
+            i = i + 1
+        end
+        partLines:Empty()
+        partCheckboxes:Empty()
+        partsModel = model
+        if names:GetSize() < 2
+            partsTitlePart:Hide()
+            partsCardPart:Hide()
+            partsCardPart:RequestLayout()
+            return now
+        end
+        settingFields = true
+        i = 0
+        repeat while i < names:GetSize()
+            text name = names:Get(i)
+            text label = name
+            if label = ""
+                label = "unnamed parts"
+            end
+            Control line = MakeCardLine()
+            Checkbox box
+            box:SetName("Show " + label)
+            box:SetDescription("Draw this part of the model. Hidden parts aren't drawn, and Fit to model leaves them out. The model's file isn't changed.")
+            box:SetToggleState(IsNameShown(model, name))
+            PropertiesPartBehavior behavior
+            behavior:Setup(me, box, name)
+            box:SetBehavior(behavior)
+            line:Add(box)
+            partsCardPart:Add(line)
+            partLines:Add(line)
+            partCheckboxes:Add(box)
+            i = i + 1
+        end
+        settingFields = false
+        partsTitlePart:Show()
+        partsCardPart:Show()
+        partsCardPart:RequestLayout()
+    end
+
+    /*
+        Returns true if every part of a model with a name is shown.
+    */
+    private action IsNameShown(EditorModel model, text name) returns boolean
+        integer part = 0
+        repeat while part < model:GetPartCount()
+            if model:GetPartName(part) = name and not model:IsPartShown(part)
+                return false
+            end
+            part = part + 1
+        end
+        return true
+    end
+
+    /*
+        This action is called when a part's checkbox in the Parts card is
+        checked or unchecked: the part is shown or hidden, as one step to
+        undo.
+
+        Attribute: Parameter name The part's name in the model's file
+        Attribute: Parameter shown True to draw it
+    */
+    action PartToggled(text name, boolean shown)
+        if settingFields or partsModel = undefined or GetSceneEditor() = undefined
+            return now
+        end
+        GetSceneEditor():SetModelPartShown(partsModel, name, shown)
     end
 
     /*
@@ -519,19 +632,28 @@ class Item3DPropertiesDialog is PropertiesDialog
             controlled = GetSceneEditor():GetControllerSettings(highlight:GetEditorModel()) not= undefined
         end
         Control first = GetFirstFocus()
+        // After the Look card, the Parts card's checkboxes, if it shows.
+        Control afterLook = colorWell
+        integer i = 0
+        repeat while i < partCheckboxes:GetSize()
+            afterLook:SetNextFocus(partCheckboxes:Get(i))
+            partCheckboxes:Get(i):SetPreviousFocus(afterLook)
+            afterLook = partCheckboxes:Get(i)
+            i = i + 1
+        end
         if controlled
             physicsCardPart:Hide()
             physicsNotePart:Show()
-            colorWell:SetNextFocus(physicsNote)
-            physicsNote:SetPreviousFocus(colorWell)
+            afterLook:SetNextFocus(physicsNote)
+            physicsNote:SetPreviousFocus(afterLook)
             physicsNote:SetNextFocus(first)
             first:SetPreviousFocus(physicsNote)
             SetLastFocus(physicsNote)
         else
             physicsNotePart:Hide()
             physicsCardPart:Show()
-            colorWell:SetNextFocus(physicsEnabledCheckbox)
-            physicsEnabledCheckbox:SetPreviousFocus(colorWell)
+            afterLook:SetNextFocus(physicsEnabledCheckbox)
+            physicsEnabledCheckbox:SetPreviousFocus(afterLook)
             restitutionField:SetNextFocus(first)
             first:SetPreviousFocus(restitutionField)
             SetLastFocus(restitutionField)

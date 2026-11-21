@@ -101,6 +101,7 @@ use Libraries.Interface.Undo.SceneEditorSkyEdit
 use Libraries.Interface.Undo.SceneEditorControllerEdit
 use Libraries.Interface.Undo.SceneEditorMoveEdit
 use Libraries.Interface.Undo.SceneEditorLayerPhysicsEdit
+use Libraries.Interface.Undo.SceneEditorPartEdit
 use Libraries.Interface.Controls.Scenes.Dialogs.LayerPhysicsPropertiesDialog
 use Libraries.Game.Scenes.VehicleControllerSettings
 use Libraries.Interface.Controls.Scenes.Dialogs.ControllerPropertiesDialog
@@ -5786,6 +5787,95 @@ the foliage there is drawn again, the terrain is
         edit:Create(me, item, before, settings, changeName)
         editManager:Add(edit)
         ControllerEdited(item, message)
+    end
+
+    /*
+    This action shows or hides every part of a model with a name, such as a
+    blanket that came with a toy car, as one step to undo, then shows and
+    says the change. The model's file isn't changed; the hidden parts are
+    saved in the scene.
+
+    Attribute: Parameter model The model
+    Attribute: Parameter partName The parts' name in the model's file
+    Attribute: Parameter shown True to draw them
+    */
+    action SetModelPartShown(Model model, text partName, boolean shown)
+        if model = undefined
+            return now
+        end
+        boolean before = IsModelPartShown(model, partName)
+        if before = shown
+            return now
+        end
+        text label = partName
+        if label = ""
+            label = "unnamed parts"
+        end
+        text changeName = "hide " + label
+        text message = label + " hidden."
+        if shown
+            changeName = "show " + label
+            message = label + " shown."
+        end
+        SceneEditorPartEdit edit
+        edit:Create(me, model, partName, before, shown, changeName)
+        editManager:Add(edit)
+        PutModelPart(model, partName, shown, message)
+    end
+
+    /*
+    This action shows or hides a model's parts with a name without a step to
+    undo, such as when a change is undone or redone.
+
+    Attribute: Parameter model The model
+    Attribute: Parameter partName The parts' name
+    Attribute: Parameter shown True to draw them
+    Attribute: Parameter message What to say, or an empty text to say nothing
+    */
+    action PutModelPart(Model model, text partName, boolean shown, text message)
+        if model = undefined
+            return now
+        end
+        model:SetPartShown(partName, shown)
+        // The model's size is the shown parts', so its selection box fits
+        // them, and so does a physics shape made from its size.
+        BoundingBox bounds = model:CalculateBoundingBox()
+        if bounds:IsValid()
+            model:SetDimensions(bounds:GetWidth(), bounds:GetHeight(), bounds:GetDepth())
+        end
+        Item selected = GetSelectedItem()
+        if selected is ModelSelectionHighlight
+            ModelSelectionHighlight highlight = cast(ModelSelectionHighlight, selected)
+            EditorModel shownModel = highlight:GetEditorModel()
+            if shownModel not= undefined and shownModel:Equals(model)
+                highlight:Load(shownModel, me)
+                if fadedBox not= undefined and fadedBox:Equals(highlight)
+                    highlight:SetFaint(true)
+                end
+                UpdateActivePropertiesDialog(highlight)
+                if item3dPropertiesDialog:IsShowing()
+                    EditorItem3D fieldsItem = highlight
+                    item3dPropertiesDialog:SetFields(fieldsItem)
+                end
+            end
+        end
+        if message not= ""
+            NotifyAccessibility(me, message)
+        end
+    end
+
+    /*
+    Returns true if every part of a model with a name is shown.
+    */
+    private action IsModelPartShown(Model model, text partName) returns boolean
+        integer part = 0
+        repeat while part < model:GetPartCount()
+            if model:GetPartName(part) = partName and not model:IsPartShown(part)
+                return false
+            end
+            part = part + 1
+        end
+        return true
     end
 
     /*

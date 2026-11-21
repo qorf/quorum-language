@@ -1,0 +1,58 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Game.Graphics.Model
+
+/*
+    The SceneEditorPartEdit is one part of a model shown or hidden in the
+    scene editor's undo list, such as the blanket under a toy car. It holds
+    the part's name and whether it was shown before and after, and gives
+    the model one or the other, then has the scene editor show it and say
+    what happened.
+*/
+class SceneEditorPartEdit is Edit
+    SceneEditor controller = undefined
+    Model model = undefined
+    text partName = ""
+    boolean shownBefore = true
+    boolean shownAfter = true
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter model The model
+        Attribute: Parameter part The part's name in the model's file
+        Attribute: Parameter before True if the part was shown before
+        Attribute: Parameter after True if the part is shown after
+        Attribute: Parameter changeName What changed, such as "hide Fabric"
+    */
+    action Create(SceneEditor controller, Model model, text part, boolean before, boolean after, text changeName)
+        me:controller = controller
+        me:model = model
+        partName = part
+        shownBefore = before
+        shownAfter = after
+        name = changeName
+    end
+
+    action Undo
+        controller:PutModelPart(model, partName, shownBefore, "Undid " + name + ".")
+    end
+
+    action Redo
+        controller:PutModelPart(model, partName, shownAfter, "Redid " + name + ".")
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

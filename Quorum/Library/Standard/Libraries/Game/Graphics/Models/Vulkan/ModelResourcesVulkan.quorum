@@ -20,6 +20,10 @@ class ModelResourcesVulkan is ModelResources
     // If these values are undefined, the default value from the blueprint is used instead.
     Array<Color> diffuseColors
     Array<Texture> textures
+    // True for each part (mesh) that is hidden: not drawn, casting no
+    // shadow, and left out of the model's bounds. Parts past the end are
+    // shown.
+    Array<boolean> hiddenParts
     
     /*An array of VulkanBuffers representing the vertices of this model after animation has been applied. 
 If this model doesn't have animations, the array will be undefined. Otherwise, the array will contain
@@ -92,9 +96,56 @@ end
         return textures:Get(meshIndex)
     end
     
+    /*
+    This action returns true if a part (mesh) of the model is drawn.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Returns True if it is shown.
+    */
+    action IsPartShown(integer part) returns boolean
+        if part < 0 or part >= hiddenParts:GetSize()
+            return true
+        end
+        return not hiddenParts:Get(part)
+    end
+
+    /*
+    This action shows or hides a part (mesh) of the model.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Parameter shown True to draw it.
+    */
+    action SetPartShown(integer part, boolean shown)
+        if part < 0
+            return now
+        end
+        repeat while hiddenParts:GetSize() <= part
+            hiddenParts:Add(false)
+        end
+        hiddenParts:Set(part, not shown)
+    end
+
+    /*
+    This action returns true if any part of the model is hidden.
+
+    Attribute: Returns True if a part is hidden.
+    */
+    action HasHiddenParts returns boolean
+        integer i = 0
+        repeat while i < hiddenParts:GetSize()
+            if hiddenParts:Get(i)
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
     action SetFromBlueprint(ModelBlueprint schematic)
         // Buffers made for a previous blueprint go first.
         Release()
+        // Every part of a new blueprint starts shown.
+        hiddenParts:Empty()
 
         // If the blueprint has animations, create one buffer per mesh to store post-animation transformed vertices.
         if schematic:HasAnimations()

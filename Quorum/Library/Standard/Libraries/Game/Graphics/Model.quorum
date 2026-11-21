@@ -2931,6 +2931,18 @@ end
 
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        // Hidden parts are left out (SetPartShown).
+        if HasHiddenParts() and modelBlueprint is ModelBlueprintVulkan
+            ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+            integer part = 0
+            repeat while part < GetPartCount()
+                if IsPartShown(part)
+                    vulkanBlueprint:ExtendBoundingBox(box, part)
+                end
+                part = part + 1
+            end
+            return box
+        end
         return modelBlueprint:ExtendBoundingBox(box)
     end
 
@@ -3198,6 +3210,104 @@ end
     
     action GetMeshCount returns integer
         return modelBlueprint:GetMeshCount()
+    end
+
+    /*
+    This action returns how many parts the model has: the meshes in its
+    file, such as a car's body, glass and wheels. Each can be shown or
+    hidden (SetPartShown).
+
+    Attribute: Returns The count, or 0 if no model is loaded.
+    */
+    action GetPartCount returns integer
+        if modelBlueprint = undefined
+            return 0
+        end
+        return modelBlueprint:GetMeshCount()
+    end
+
+    /*
+    This action returns the name a part has in the model's file, such as
+    "Fabric", or "" if it has none.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Returns The name.
+    */
+    action GetPartName(integer part) returns text
+        if modelBlueprint is ModelBlueprintVulkan
+            ModelBlueprintVulkan vulkanBlueprint = cast(ModelBlueprintVulkan, modelBlueprint)
+            return vulkanBlueprint:GetPartName(part)
+        end
+        return ""
+    end
+
+    /*
+    This action returns true if a part of the model is drawn.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Returns True if it is shown.
+    */
+    action IsPartShown(integer part) returns boolean
+        if resources is ModelResourcesVulkan
+            ModelResourcesVulkan vulkanResources = cast(ModelResourcesVulkan, resources)
+            return vulkanResources:IsPartShown(part)
+        end
+        return true
+    end
+
+    /*
+    This action shows or hides a part of the model, such as a stand or a
+    blanket that came with it. A hidden part isn't drawn, casts no shadow,
+    and is left out of the model's bounds. The model's file isn't changed.
+    Parts are hidden with Vulkan only.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Parameter shown True to draw it.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Model
+    Model car
+    car:Load("Car/ToyCar.gltf")
+    car:SetPartShown("Fabric", false)
+    */
+    action SetPartShown(integer part, boolean shown)
+        if part < 0 or part >= GetPartCount()
+            return now
+        end
+        if resources is ModelResourcesVulkan
+            ModelResourcesVulkan vulkanResources = cast(ModelResourcesVulkan, resources)
+            vulkanResources:SetPartShown(part, shown)
+        end
+    end
+
+    /*
+    This action shows or hides every part with a name, as the model's file
+    names it, such as "Fabric".
+
+    Attribute: Parameter name The parts' name.
+    Attribute: Parameter shown True to draw them.
+    */
+    action SetPartShown(text name, boolean shown)
+        integer part = 0
+        repeat while part < GetPartCount()
+            if GetPartName(part) = name
+                SetPartShown(part, shown)
+            end
+            part = part + 1
+        end
+    end
+
+    /*
+    This action returns true if any part of the model is hidden.
+
+    Attribute: Returns True if a part is hidden.
+    */
+    action HasHiddenParts returns boolean
+        if resources is ModelResourcesVulkan
+            ModelResourcesVulkan vulkanResources = cast(ModelResourcesVulkan, resources)
+            return vulkanResources:HasHiddenParts()
+        end
+        return false
     end
     
     action HasTransparency returns boolean

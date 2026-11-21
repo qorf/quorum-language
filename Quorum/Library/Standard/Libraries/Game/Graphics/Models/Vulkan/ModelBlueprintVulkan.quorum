@@ -127,57 +127,90 @@ Animations animations = data:GetAnimations()
     encapsulate the bounds of this Model.
     */
     action ExtendBoundingBox(BoundingBox box) returns BoundingBox
+        integer i = 0
+        repeat while i < data:GetMeshes():GetSize()
+            ExtendBoundingBox(box, i)
+            i = i + 1
+        end
+        return box
+    end
+
+    /*
+    This action expands a BoundingBox to take in one part (mesh) of the
+    model, such as to leave out a hidden part (Model's SetPartShown).
+
+    Attribute: Parameter box The BoundingBox to extend.
+    Attribute: Parameter part The part, from 0.
+    Attribute: Returns The given BoundingBox.
+    */
+    action ExtendBoundingBox(BoundingBox box, integer part) returns BoundingBox
+        if part < 0 or part >= data:GetMeshes():GetSize()
+            return box
+        end
         number minX = box:GetMinimum():GetX()
         number minY = box:GetMinimum():GetY()
         number minZ = box:GetMinimum():GetZ()
         number maxX = box:GetMaximum():GetX()
         number maxY = box:GetMaximum():GetY()
         number maxZ = box:GetMaximum():GetZ()
-        
-        integer i = 0
-        repeat while i < data:GetMeshes():GetSize()
-            MeshData mesh = data:GetMeshes():Get(i)
-            Number32BitArray positions = mesh:GetVertices()
-            integer j = 0
-            repeat while j < positions:GetSize()
-                number x = positions:Get(j)
-                number y = positions:Get(j + 1)
-                number z = positions:Get(j + 2)
-                
-                // A point can be both the smallest and the largest so far,
-                // such as the first, so each is checked on its own.
-                if x < minX
-                    minX = x
-                end
-                if x > maxX
-                    maxX = x
-                end
-                if y < minY
-                    minY = y
-                end
-                if y > maxY
-                    maxY = y
-                end
-                if z < minZ
-                    minZ = z
-                end
-                if z > maxZ
-                    maxZ = z
-                end
-                
-                j = j + 3
+
+        MeshData mesh = data:GetMeshes():Get(part)
+        Number32BitArray positions = mesh:GetVertices()
+        integer j = 0
+        repeat while j < positions:GetSize()
+            number x = positions:Get(j)
+            number y = positions:Get(j + 1)
+            number z = positions:Get(j + 2)
+
+            // A point can be both the smallest and the largest so far,
+            // such as the first, so each is checked on its own.
+            if x < minX
+                minX = x
             end
-            
-            i = i + 1
+            if x > maxX
+                maxX = x
+            end
+            if y < minY
+                minY = y
+            end
+            if y > maxY
+                maxY = y
+            end
+            if z < minZ
+                minZ = z
+            end
+            if z > maxZ
+                maxZ = z
+            end
+
+            j = j + 3
         end
-        
+
         Vector3 min
         min:Set(minX, minY, minZ)
         Vector3 max
         max:Set(maxX, maxY, maxZ)
-        
+
         box:Set(min, max)
         return box
+    end
+
+    /*
+    This action returns the name a part (mesh) of the model has in its
+    file, such as "Fabric", or "" if it has none.
+
+    Attribute: Parameter part The part, from 0.
+    Attribute: Returns The name.
+    */
+    action GetPartName(integer part) returns text
+        if data = undefined or part < 0 or part >= data:GetMeshes():GetSize()
+            return ""
+        end
+        text name = data:GetMeshes():Get(part):GetName()
+        if name = undefined
+            return ""
+        end
+        return name
     end
 
     action GetMeshes returns Array<MeshVulkan>
