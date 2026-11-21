@@ -384,7 +384,15 @@ void main()
         if (groundDistance <= surfaceDistance)
             discard;
         thickness = groundDistance - surfaceDistance;
-        depth = max(surface.y - ground.y, 0.0);
+        // How deep the water is here. Looking down into it, the ground
+        // behind is below the surface, and the height between them is the
+        // depth. Looking up through it, such as up the face of a waterfall,
+        // the ground behind is higher than where the eye enters the water,
+        // so the water the eye looks through is used instead.
+        if (V.y >= 0.0)
+            depth = max(surface.y - ground.y, 0.0);
+        else
+            depth = thickness;
     }
 
     // Deeper water is darker. The more water the eye looks through, the
@@ -403,8 +411,13 @@ void main()
     if (!hasGround)
         opacity = 1.0;
 
-    // Seen from below, the surface faces down.
-    if (V.y < 0.0)
+    // Seen from its back, such as from under a lake, the surface faces
+    // away from the eye, so its normal is turned over. A sloping sheet,
+    // such as a waterfall, seen from its front stays as it is, even when
+    // the eye is lower than it.
+    vec3 sheetNormal = normalize(v_tangentBitangentNormal[2]);
+    bool seenFromBack = dot(sheetNormal, V) < 0.0;
+    if (seenFromBack)
         N.y = -N.y;
 
     vec3 body = sceneInfo.ambientColor * sceneInfo.ambientIntensity * waterColor;
@@ -440,7 +453,7 @@ void main()
     float facing = max(dot(N, V), 0.0);
     float fresnel = WATER_REFLECTANCE + (1.0 - WATER_REFLECTANCE) * pow(1.0 - facing, 5.0);
     float reflection = clamp(fresnel * water.look.w * shore, 0.0, 1.0);
-    if (V.y < 0.0)
+    if (seenFromBack)
         reflection = 0.0;
     vec3 R = reflect(-V, N);
     R.y = abs(R.y);

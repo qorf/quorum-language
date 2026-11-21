@@ -253,9 +253,9 @@ class TerrainItem is Item3D
             integer forgotten = terrain:GetData():ForgetRegionsNotLoaded()
         end
         terrain:GetData():Save(GetFolder(file))
-        // Each region with foliage, or that had a foliage file, writes it
-        // beside its heights.
-        foliage:Save(GetFolder(file))
+        // Each region with foliage coverage, or that had a coverage file,
+        // writes it beside its heights, with each asset's name.
+        foliage:Save(GetFolder(file), foliageList)
         // The sea and lakes, if there are any, in water.json.
         water:Save(GetFolder(file))
     end
@@ -482,9 +482,9 @@ class TerrainItem is Item3D
     end
 
     /*
-    This action makes the drawing of the foliage cells in an area again now,
-    after copies there were added, removed or moved, such as by a brush
-    stroke or by sculpting under them.
+    This action works out the foliage's copies in an area again from its
+    coverage, and makes their drawing again now, such as after a brush
+    stroke painted coverage there, or one was undone.
 
     Attribute: Parameter x The area's middle along x, in world units.
     Attribute: Parameter z The area's middle along z, in world units.
@@ -495,6 +495,7 @@ class TerrainItem is Item3D
             foliageChanged = true
             return now
         end
+        foliage:GenerateArea(foliageList, x, z, radius)
         integer i = 0
         repeat while i < foliage:GetCellCount()
             FoliageCell cell = foliage:GetCellAtIndex(i)
@@ -510,9 +511,11 @@ class TerrainItem is Item3D
     end
 
     /*
-    This action moves the foliage in an area onto the ground under it, after
-    the ground there was sculpted, keeping each asset's height offset.
-A scene editor calls it as the ground changes.
+    This action keeps the foliage in an area on the ground under it, after
+    the ground there was sculpted: placed copies move onto the ground,
+    keeping each asset's height offset, and the copies worked out from
+    coverage are worked out again, since the slopes changed too. A scene
+    editor calls it as the ground changes.
 
     Attribute: Parameter x The area's middle along x, in world units.
     Attribute: Parameter z The area's middle along z, in world units.
@@ -521,25 +524,40 @@ A scene editor calls it as the ground changes.
     */
     action FollowGround(number x, number z, number radius) returns integer
         Array<FoliageCell> moved = foliage:FollowGround(foliageList, x, z, radius)
+        if foliageList = undefined or GetLayer() = undefined
+            foliageChanged = true
+            return moved:GetSize()
+        end
         integer i = 0
         repeat while i < moved:GetSize()
             FoliageCell cell = moved:Get(i)
-            text key = "" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ()
-            if foliageItems:HasKey(key)
-                foliageItems:GetValue(key):PlaceAgain()
+            if radius < 0
+                // Worked out again: the copies may have changed, so the
+                // cell's drawing is made again.
+                RefreshFoliageCell(cell)
+            else
+                text key = "" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ()
+                if foliageItems:HasKey(key)
+                    foliageItems:GetValue(key):PlaceAgain()
+                end
             end
             i = i + 1
         end
+        RefreshRenderBounds()
         return moved:GetSize()
     end
 
     /*
-    This action makes every foliage cell's drawing again: the old cell items
-    are taken out, and one made for each cell with copies whose asset is in
-    the foliage list.
+    This action works out every foliage cell's copies again from the
+    coverage and the assets' settings, and makes their drawing again: the
+    old cell items are taken out, and one made for each cell with copies
+    whose asset is in the foliage list.
     */
     private action BuildFoliage
         foliageChanged = false
+        if foliageList not= undefined
+            foliage:Generate(foliageList)
+        end
         Array<text> keys
         Iterator<text> iterator = foliageItems:GetKeyIterator()
         repeat while iterator:HasNext()

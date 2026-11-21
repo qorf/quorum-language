@@ -414,8 +414,10 @@ class EditorTerrain is TerrainItem
     end
 
     /*
-        Describes the foliage under the brush, such as "12 Pine, 3 Rock", or
-        "no foliage".
+        Describes the foliage under the brush: how many copies of each asset,
+        and how much of each asset's coverage is painted at the brush's
+        middle, from 0 to 1, such as "12 Pine, coverage 0.8, 3 Rock,
+        coverage 0.2", or "no foliage".
 
         Attribute: Returns The description
     */
@@ -456,11 +458,17 @@ class EditorTerrain is TerrainItem
         text result = ""
         a = 0
         repeat while a < counts:GetSize()
-            if counts:Get(a) > 0
+            number coverage = foliage:GetCoverage(a, brushX, brushZ)
+            if counts:Get(a) > 0 or coverage > 0
                 if result not= ""
                     result = result + ", "
                 end
                 result = result + counts:Get(a) + " " + list:GetAsset(a):GetName()
+                // An asset that grows on a material layer has no painted
+                // coverage to report.
+                if list:GetAsset(a):GetGrowsOnLayer() = 0
+                    result = result + ", coverage " + Round(coverage)
+                end
             end
             a = a + 1
         end

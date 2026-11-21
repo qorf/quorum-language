@@ -9,32 +9,49 @@ use Libraries.Compute.Random
 use Libraries.System.File
 
 /*
-TerrainFoliage holds where every copy of every foliage asset stands on one
-terrain. The copies are kept in FoliageCells: each region
-of the terrain is split into square cells about 32 units wide, and each cell
-holds one asset's copies, so a cell can be drawn and culled as one piece.
+TerrainFoliage holds the foliage of one terrain: where each foliage asset
+grows, and the copies drawn from that.
 
-It is saved beside the terrain's height images, one file per region with
-foliage, such as "region_-1_2_foliage.json", so a region's foliage loads
-with it. Saving never deletes a file: a region whose foliage was all removed
-gets a file with no cells.
+Where an asset grows is its coverage: for each region, a FoliageCoverage
+grid with a value from 0 to 1 at each spot. The Foliage brush paints it
+(PaintCoverage). An asset can instead grow wherever one of the terrain's
+material layers is painted. The copies are worked out from the coverage and
+the asset's settings (Generate, GenerateArea), the same way every time, so a
+change to an asset's density, size or slopes changes the whole painted area,
+and the same scene always has the same foliage.
 
-The assets themselves (which model, how dense) are in a FoliageList; copies
-here name their asset by its number in that list.
+The copies are kept in FoliageCells: each region of the terrain is split
+into square cells about 32 units wide, and each cell holds one asset's
+copies, so a cell can be drawn and culled as one piece. A program can also
+place copies itself (AddCopy, AddCopyOnGround); those stay when the
+worked-out copies are replaced, but they aren't saved.
+
+How copies are worked out: each cell has an endless list of candidate
+spots, made by a random number generator seeded by the cell and the asset,
+and each candidate has its own steady random rank, turn, size and shade.
+A cell uses as many candidates as its asset's density asks for over the
+cell's area, and a candidate grows a copy where its rank is below the
+coverage there and the slope suits the asset. Raising the density adds
+candidates at the end of the list, so the copies already there stay; lowering
+it takes the last ones away.
+
+The coverage is saved beside the terrain's height images, one file per
+region, such as "region_-1_2_coverage.json". Saving never deletes a file: a
+region whose coverage was all removed gets a file with none.
+
+The assets themselves (which model, how dense) are in a FoliageList; cells
+and coverage name their asset by its number in that list.
 
 Attribute: Example
 use Libraries.Game.Graphics.Worlds.TerrainItem
 use Libraries.Game.Graphics.Worlds.TerrainFoliage
-use Libraries.Game.Graphics.Worlds.FoliageAsset
-use Libraries.Compute.Random
 
 TerrainItem ground
 ground:Load("Scenes/Terrains/Terrain1/terrain.json")
 TerrainFoliage foliage = ground:GetTerrainFoliage()
-FoliageAsset rock
-rock:SetName("Rock")
-Random random
-foliage:AddCopyOnGround(0, rock, 10, 20, random)
+// Asset 0 grows fully in a circle 10 units wide.
+boolean changed = foliage:PaintCoverage(0, 10, 20, 5, 1, false)
+foliage:GenerateArea(ground:GetFoliageList(), 10, 20, 5)
 */
 class TerrainFoliage
     TerrainData data = undefined
@@ -44,13 +61,28 @@ class TerrainFoliage
     HashTable<text, FoliageCell> cellTable
     Array<FoliageCell> cells
 
-    // The regions a foliage file was loaded for, by "x/z", so saving writes
-    // them again even when their foliage is gone.
+    // Where each asset grows: every coverage, by "asset/x/z" for its
+    // region's location, and the same in a list.
+    HashTable<text, FoliageCoverage> coverageTable
+    Array<FoliageCoverage> coverages
+
+    // The regions a coverage file was loaded for, by "x/z", so saving
+    // writes them again even when their coverage is gone.
     HashTable<text, text> regionsWithFiles
 
     // How wide a cell is wanted, in world units. Each region is split into a
     // whole number of cells, as near this width as can be.
     constant number WANTED_CELL_SIZE = 32
+
+    // How far apart coverage spots are wanted, in world units.
+    constant number WANTED_SPOT_SPACING = 2
+
+    // The most candidate spots a cell tries, however dense its asset.
+    constant integer MOST_CANDIDATES = 40000
+
+    // Within this share of the brush's radius, painting has its full
+    // effect; it fades to nothing at the edge.
+    constant number BRUSH_INNER_SHARE = 0.6
 
     /*
     This action sets the terrain data the foliage stands on. TerrainItem
@@ -103,6 +135,36 @@ class TerrainFoliage
             return WANTED_CELL_SIZE
         end
         return data:GetRegionSize() * data:GetVertexSpacing()
+    end
+
+    /*
+    This action returns how many coverage spots each region has along each
+    side.
+
+    Attribute: Returns The count, at least 1.
+    */
+    action GetSpotsPerRegion returns integer
+        integer count = cast(integer, math:Round(GetRegionWidth() / WANTED_SPOT_SPACING))
+        if count < 1
+            return 1
+        end
+        return count
+    end
+
+    /*
+    This action returns how far apart coverage spots are, in world units.
+
+    Attribute: Returns The spacing.
+    */
+    action GetSpotSpacing returns number
+        return GetRegionWidth() / GetSpotsPerRegion()
+    end
+
+    /*
+    This action returns the region along one axis holding a world position.
+    */
+    private action GetRegionAt(number world) returns integer
+        return cast(integer, math:Floor(world / GetRegionWidth()))
     end
 
     /*
@@ -213,16 +275,20 @@ class TerrainFoliage
     end
 
     /*
-    This action moves the copies in an area up or down onto the ground
-    under them, after the ground was sculpted, keeping
-    their asset's height offset. Copies with no ground under them, such as
-    on a removed region, stay where they are.
+    This action keeps the foliage on the ground after the ground was
+    sculpted. In an area, such as under the brush during a stroke, every
+    copy moves up or down onto the ground, keeping its asset's height
+    offset, which is quick. For the whole terrain, such as when a stroke
+    ends or after an undo, placed copies move onto the ground and the rest
+    are worked out again from their coverage, since the slopes changed too.
+    Copies with no ground under them, such as on a removed region, stay
+    where they are.
 
-    Attribute: Parameter list The foliage list, for each asset's height offset, or undefined for none.
+    Attribute: Parameter list The foliage list, for each asset's settings, or undefined for none.
     Attribute: Parameter x The area's middle along x, in world units.
     Attribute: Parameter z The area's middle along z, in world units.
     Attribute: Parameter radius How far the area reaches from its middle; a negative radius is the whole terrain.
-    Attribute: Returns The cells whose copies moved.
+    Attribute: Returns The cells whose copies moved, or every cell for the whole terrain.
     */
     action FollowGround(FoliageList list, number x, number z, number radius) returns Array<FoliageCell>
         Array<FoliageCell> moved
@@ -232,18 +298,20 @@ class TerrainFoliage
         integer i = 0
         repeat while i < cells:GetSize()
             FoliageCell cell = cells:Get(i)
-            number size = cell:GetCellSize()
-            number lowX = cell:GetCellX() * size
-            number lowZ = cell:GetCellZ() * size
-            boolean inside = radius < 0 or (lowX <= x + radius and lowX + size >= x - radius and lowZ <= z + radius and lowZ + size >= z - radius)
-            if inside and not cell:IsEmpty()
+            if IsCellInArea(cell, x, z, radius) and not cell:IsEmpty()
                 number offset = 0
                 if list not= undefined and cell:GetAsset() >= 0 and cell:GetAsset() < list:GetAssetCount()
                     offset = list:GetAsset(cell:GetAsset()):GetHeightOffset()
                 end
+                // For the whole terrain, only the placed copies move; the
+                // rest are worked out again below.
+                integer count = cell:GetCount()
+                if radius < 0
+                    count = cell:GetPlacedCount()
+                end
                 boolean changed = false
                 integer copy = 0
-                repeat while copy < cell:GetCount()
+                repeat while copy < count
                     number copyX = cell:GetX(copy)
                     number copyZ = cell:GetZ(copy)
                     if data:HasHeight(copyX, copyZ)
@@ -256,13 +324,347 @@ class TerrainFoliage
                     end
                     copy = copy + 1
                 end
-                if changed
+                if changed and radius >= 0
                     moved:Add(cell)
                 end
             end
             i = i + 1
         end
+        if radius < 0
+            if list not= undefined
+                Generate(list)
+            end
+            moved = cells
+        end
         return moved
+    end
+
+    /*
+    This action returns true if a cell overlaps the square around a circle,
+    or always for a negative radius.
+    */
+    private action IsCellInArea(FoliageCell cell, number x, number z, number radius) returns boolean
+        if radius < 0
+            return true
+        end
+        number size = cell:GetCellSize()
+        number lowX = cell:GetCellX() * size
+        number lowZ = cell:GetCellZ() * size
+        return lowX <= x + radius and lowX + size >= x - radius and lowZ <= z + radius and lowZ + size >= z - radius
+    end
+
+    /*
+    This action returns an asset's coverage at a place, blended from the
+    spots around it: 0 where it doesn't grow, up to 1 where it grows at its
+    full density.
+
+    Attribute: Parameter asset The asset's number in the foliage list.
+    Attribute: Parameter x The place along x, in world units.
+    Attribute: Parameter z The place along z, in world units.
+    Attribute: Returns The coverage, from 0 to 1.
+    */
+    action GetCoverage(integer asset, number x, number z) returns number
+        integer regionX = GetRegionAt(x)
+        integer regionZ = GetRegionAt(z)
+        FoliageCoverage coverage = GetCoverageOf(asset, regionX, regionZ, false)
+        if coverage = undefined
+            return 0
+        end
+        number width = GetRegionWidth()
+        return coverage:GetAt(x - regionX * width, z - regionZ * width)
+    end
+
+    /*
+    This action returns an asset's coverage of one region, making it, with
+    no coverage, if it isn't there and make is true. It is undefined if it
+    isn't there, and isn't made.
+    */
+    private action GetCoverageOf(integer asset, integer regionX, integer regionZ, boolean make) returns FoliageCoverage
+        text key = "" + asset + "/" + regionX + "/" + regionZ
+        if coverageTable:HasKey(key)
+            return coverageTable:GetValue(key)
+        end
+        if not make
+            return undefined
+        end
+        FoliageCoverage coverage
+        coverage:Setup(asset, regionX, regionZ, GetSpotsPerRegion(), GetSpotSpacing())
+        coverageTable:Add(key, coverage)
+        coverages:Add(coverage)
+        return coverage
+    end
+
+    /*
+    This action returns the coverages a circle reaches: of one asset, made
+    where they aren't there yet if make is true (only over regions that
+    have ground), or of every asset, with an asset of -1, only those there.
+
+    Attribute: Parameter asset The asset's number, or -1 for every asset.
+    Attribute: Parameter x The circle's middle along x, in world units.
+    Attribute: Parameter z The circle's middle along z, in world units.
+    Attribute: Parameter radius The circle's radius, in world units.
+    Attribute: Parameter make True to make an asset's coverage where it isn't there yet.
+    Attribute: Returns The coverages.
+    */
+    action GetCoveragesNear(integer asset, number x, number z, number radius, boolean make) returns Array<FoliageCoverage>
+        Array<FoliageCoverage> found
+        integer firstX = GetRegionAt(x - radius)
+        integer lastX = GetRegionAt(x + radius)
+        integer firstZ = GetRegionAt(z - radius)
+        integer lastZ = GetRegionAt(z + radius)
+        if asset < 0
+            integer i = 0
+            repeat while i < coverages:GetSize()
+                FoliageCoverage coverage = coverages:Get(i)
+                if coverage:GetLocationX() >= firstX and coverage:GetLocationX() <= lastX and
+                        coverage:GetLocationZ() >= firstZ and coverage:GetLocationZ() <= lastZ
+                    found:Add(coverage)
+                end
+                i = i + 1
+            end
+            return found
+        end
+        integer regionZ = firstZ
+        repeat while regionZ <= lastZ
+            integer regionX = firstX
+            repeat while regionX <= lastX
+                boolean canMake = make and data not= undefined and data:HasRegion(regionX, regionZ)
+                FoliageCoverage coverage = GetCoverageOf(asset, regionX, regionZ, canMake)
+                if coverage not= undefined
+                    found:Add(coverage)
+                end
+                regionX = regionX + 1
+            end
+            regionZ = regionZ + 1
+        end
+        return found
+    end
+
+    /*
+    This action paints coverage in a circle: of one asset, moving it toward
+    a target, or lowering one asset's or every asset's toward none. The
+    effect is full near the middle and fades to nothing at the edge.
+
+    Attribute: Parameter asset The asset's number, or -1 to lower every asset's.
+    Attribute: Parameter x The circle's middle along x, in world units.
+    Attribute: Parameter z The circle's middle along z, in world units.
+    Attribute: Parameter radius The circle's radius, in world units.
+    Attribute: Parameter target The coverage to move toward, from 0 to 1, when not lowering.
+    Attribute: Parameter lower True to lower coverage toward none.
+    Attribute: Returns True if any coverage changed.
+    */
+    action PaintCoverage(integer asset, number x, number z, number radius, number target, boolean lower) returns boolean
+        if data = undefined or radius <= 0 or (asset < 0 and not lower)
+            return false
+        end
+        number goal = target
+        if goal < 0
+            goal = 0
+        elseif goal > 1
+            goal = 1
+        end
+        boolean changed = false
+        number width = GetRegionWidth()
+        number inner = radius * BRUSH_INNER_SHARE
+        Array<FoliageCoverage> reached = GetCoveragesNear(asset, x, z, radius, not lower)
+        integer i = 0
+        repeat while i < reached:GetSize()
+            FoliageCoverage coverage = reached:Get(i)
+            number spacing = coverage:GetSpacing()
+            number cornerX = coverage:GetLocationX() * width
+            number cornerZ = coverage:GetLocationZ() * width
+            integer firstSpotX = cast(integer, math:Floor((x - radius - cornerX) / spacing))
+            integer lastSpotX = cast(integer, math:Floor((x + radius - cornerX) / spacing)) + 1
+            integer firstSpotZ = cast(integer, math:Floor((z - radius - cornerZ) / spacing))
+            integer lastSpotZ = cast(integer, math:Floor((z + radius - cornerZ) / spacing)) + 1
+            integer spotZ = firstSpotZ
+            repeat while spotZ <= lastSpotZ
+                integer spotX = firstSpotX
+                repeat while spotX <= lastSpotX
+                    if spotX >= 0 and spotZ >= 0 and spotX < coverage:GetSpotCount() and spotZ < coverage:GetSpotCount()
+                        number offsetX = cornerX + spotX * spacing - x
+                        number offsetZ = cornerZ + spotZ * spacing - z
+                        number distance = math:SquareRoot(offsetX * offsetX + offsetZ * offsetZ)
+                        if distance < radius
+                            number weight = 1
+                            if distance > inner
+                                weight = (radius - distance) / (radius - inner)
+                            end
+                            number old = coverage:Get(spotX, spotZ)
+                            number painted = old + (goal - old) * weight
+                            if lower
+                                painted = old * (1 - weight)
+                            end
+                            if painted - old > 0.001 or old - painted > 0.001
+                                coverage:Set(spotX, spotZ, painted)
+                                changed = true
+                            end
+                        end
+                    end
+                    spotX = spotX + 1
+                end
+                spotZ = spotZ + 1
+            end
+            i = i + 1
+        end
+        return changed
+    end
+
+    /*
+    This action works out every cell's copies again, from the coverage and
+    the assets' settings, such as after an asset's settings changed or the
+    foliage was loaded. Copies a program placed stay.
+
+    Attribute: Parameter list The foliage list.
+    */
+    action Generate(FoliageList list)
+        if data = undefined or list = undefined
+            return now
+        end
+        // Cells whose asset no longer grows anywhere lose their copies.
+        integer i = 0
+        repeat while i < cells:GetSize()
+            Array<number> none
+            cells:Get(i):SetGenerated(none)
+            i = i + 1
+        end
+        integer cellsPerRegion = GetCellsPerRegion()
+        integer asset = 0
+        repeat while asset < list:GetAssetCount()
+            FoliageAsset settings = list:GetAsset(asset)
+            integer regionIndex = 0
+            repeat while regionIndex < data:GetRegionCount()
+                TerrainRegion region = data:GetRegionAtIndex(regionIndex)
+                integer regionX = region:GetLocationX()
+                integer regionZ = region:GetLocationZ()
+                FoliageCoverage coverage = GetCoverageOf(asset, regionX, regionZ, false)
+                boolean grows = settings:GetGrowsOnLayer() > 0 or (coverage not= undefined and coverage:HasAny())
+                if grows
+                    integer cellZ = 0
+                    repeat while cellZ < cellsPerRegion
+                        integer cellX = 0
+                        repeat while cellX < cellsPerRegion
+                            GenerateCell(settings, asset, regionX * cellsPerRegion + cellX, regionZ * cellsPerRegion + cellZ)
+                            cellX = cellX + 1
+                        end
+                        cellZ = cellZ + 1
+                    end
+                end
+                regionIndex = regionIndex + 1
+            end
+            asset = asset + 1
+        end
+    end
+
+    /*
+    This action works out the copies of every asset again in the cells a
+    circle reaches, such as after the brush painted coverage there.
+
+    Attribute: Parameter list The foliage list.
+    Attribute: Parameter x The circle's middle along x, in world units.
+    Attribute: Parameter z The circle's middle along z, in world units.
+    Attribute: Parameter radius The circle's radius, in world units.
+    */
+    action GenerateArea(FoliageList list, number x, number z, number radius)
+        if data = undefined or list = undefined
+            return now
+        end
+        integer firstX = GetCellAt(x - radius)
+        integer lastX = GetCellAt(x + radius)
+        integer firstZ = GetCellAt(z - radius)
+        integer lastZ = GetCellAt(z + radius)
+        integer asset = 0
+        repeat while asset < list:GetAssetCount()
+            FoliageAsset settings = list:GetAsset(asset)
+            integer cellZ = firstZ
+            repeat while cellZ <= lastZ
+                integer cellX = firstX
+                repeat while cellX <= lastX
+                    GenerateCell(settings, asset, cellX, cellZ)
+                    cellX = cellX + 1
+                end
+                cellZ = cellZ + 1
+            end
+            asset = asset + 1
+        end
+    end
+
+    /*
+    This action works out one cell's copies of one asset from its coverage
+    and settings, replacing the worked-out copies it had. A cell is only
+    made if copies grow in it.
+    */
+    private action GenerateCell(FoliageAsset settings, integer asset, integer cellX, integer cellZ)
+        text key = "" + asset + "/" + cellX + "/" + cellZ
+        number width = GetRegionWidth()
+        integer regionX = GetRegionOfCell(cellX)
+        integer regionZ = GetRegionOfCell(cellZ)
+        FoliageCoverage coverage = GetCoverageOf(asset, regionX, regionZ, false)
+        integer layer = settings:GetGrowsOnLayer()
+        Array<number> numbers
+        if layer > 0 or coverage not= undefined
+            number size = GetCellSize()
+            number lowX = cellX * size
+            number lowZ = cellZ * size
+            number wanted = settings:GetDensity() * size * size
+            integer candidates = cast(integer, wanted)
+            if wanted > candidates
+                candidates = candidates + 1
+            end
+            if candidates > MOST_CANDIDATES
+                candidates = MOST_CANDIDATES
+            end
+            // The same seed for the same cell and asset, so the same
+            // candidates come every time.
+            Random random
+            random:SetSeed(asset * 7919.0 + cellX * 104729.0 + cellZ * 1299709.0)
+            integer candidate = 0
+            repeat while candidate < candidates
+                // Every candidate takes all its random numbers, whether it
+                // grows or not, so later candidates never change.
+                number placeX = lowX + random:RandomNumber() * size
+                number placeZ = lowZ + random:RandomNumber() * size
+                number rank = random:RandomNumber()
+                number turnPick = random:RandomNumber()
+                number scalePick = random:RandomNumber()
+                number shadePick = random:RandomNumber()
+                number grows = 0
+                if layer > 0
+                    grows = GetLayerWeight(layer, placeX, placeZ)
+                else
+                    grows = coverage:GetAt(placeX - regionX * width, placeZ - regionZ * width)
+                end
+                if rank < grows and data:HasHeight(placeX, placeZ)
+                    if settings:GrowsOnSlope(data:GetSlope(placeX, placeZ))
+                        numbers:Add(placeX)
+                        numbers:Add(data:GetSurfaceHeight(placeX, placeZ) + settings:GetHeightOffset())
+                        numbers:Add(placeZ)
+                        if settings:HasRandomTurn()
+                            numbers:Add(turnPick * 360)
+                        else
+                            numbers:Add(0)
+                        end
+                        numbers:Add(settings:GetBaseScale() * (1 + (scalePick * 2 - 1) * settings:GetRandomScale()))
+                        numbers:Add(1 - shadePick * settings:GetShadeVariation())
+                    end
+                end
+                candidate = candidate + 1
+            end
+        end
+        if numbers:IsEmpty() and not cellTable:HasKey(key)
+            return now
+        end
+        FoliageCell cell = GetOrMakeCell(asset, cellX, cellZ)
+        cell:SetGenerated(numbers)
+    end
+
+    /*
+    This action returns how much of one of the terrain's material layers is
+    painted at a place, from 0 to 1.
+    */
+    private action GetLayerWeight(integer layer, number x, number z) returns number
+        integer code = data:GetSampleSplat(data:GetSampleX(x), data:GetSampleZ(z))
+        return data:GetSplatWeight(code, layer - 1)
     end
 
     /*
@@ -334,6 +736,19 @@ class TerrainFoliage
             i = i + 1
         end
         cells = kept
+        Array<FoliageCoverage> keptCoverage
+        i = 0
+        repeat while i < coverages:GetSize()
+            FoliageCoverage coverage = coverages:Get(i)
+            if coverage:GetAsset() not= asset
+                if coverage:GetAsset() > asset
+                    coverage:SetAsset(coverage:GetAsset() - 1)
+                end
+                keptCoverage:Add(coverage)
+            end
+            i = i + 1
+        end
+        coverages = keptCoverage
         RebuildTable()
     end
 
@@ -355,12 +770,22 @@ class TerrainFoliage
             end
             i = i + 1
         end
+        i = 0
+        repeat while i < coverages:GetSize()
+            FoliageCoverage coverage = coverages:Get(i)
+            if coverage:GetAsset() = first
+                coverage:SetAsset(second)
+            elseif coverage:GetAsset() = second
+                coverage:SetAsset(first)
+            end
+            i = i + 1
+        end
         RebuildTable()
     end
 
     /*
-    This action makes the table of cells again from the list, after their
-    asset numbers changed.
+    This action makes the tables of cells and coverage again from their
+    lists, after their asset numbers changed.
     */
     private action RebuildTable
         cellTable:Empty()
@@ -370,32 +795,43 @@ class TerrainFoliage
             cellTable:Add("" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ(), cell)
             i = i + 1
         end
+        coverageTable:Empty()
+        i = 0
+        repeat while i < coverages:GetSize()
+            FoliageCoverage coverage = coverages:Get(i)
+            coverageTable:Add("" + coverage:GetAsset() + "/" + coverage:GetLocationX() + "/" + coverage:GetLocationZ(), coverage)
+            i = i + 1
+        end
     end
 
     /*
-    This action removes every copy. Files already saved stay as they are
-    until the next save.
+    This action removes every copy and all coverage. Files already saved
+    stay as they are until the next save.
     */
     action Empty
         cells:Empty()
         cellTable:Empty()
+        coverages:Empty()
+        coverageTable:Empty()
     end
 
     /*
-    This action returns the name of a region's foliage file, such as
-    "region_-1_2_foliage.json".
+    This action returns the name of a region's coverage file, such as
+    "region_-1_2_coverage.json".
 
     Attribute: Parameter locationX The region's location along x.
     Attribute: Parameter locationZ The region's location along z.
     Attribute: Returns The file's name.
     */
     action GetRegionFileName(integer locationX, integer locationZ) returns text
-        return "region_" + locationX + "_" + locationZ + "_foliage.json"
+        return "region_" + locationX + "_" + locationZ + "_coverage.json"
     end
 
     /*
-    This action reads the foliage of every region of the terrain from a
-    folder, replacing what is held. Regions with no foliage file have none.
+    This action reads the coverage of every region of the terrain from a
+    folder, replacing what is held. Regions with no coverage file have none.
+    Call Generate with the foliage list afterward to work out the copies;
+    TerrainItem does this when it draws the foliage.
 
     Attribute: Parameter folder The terrain's folder, holding its terrain.json.
     */
@@ -414,7 +850,8 @@ class TerrainFoliage
     end
 
     /*
-    This action reads one region's foliage file, if it has one.
+    This action reads one region's coverage file, if it has one. Coverage
+    made with another grid size is skipped.
 
     Attribute: Parameter folder The terrain's folder.
     Attribute: Parameter locationX The region's location along x.
@@ -428,7 +865,7 @@ class TerrainFoliage
         regionsWithFiles:Add("" + locationX + "/" + locationZ, "")
         JavaScriptObjectNotation json
         json:Read(file)
-        JavaScriptObjectNotation holder = json:GetObject("Cells")
+        JavaScriptObjectNotation holder = json:GetObject("Coverage")
         if holder = undefined
             return now
         end
@@ -438,60 +875,54 @@ class TerrainFoliage
         end
         integer i = 0
         repeat while i < list:GetSize()
-            LoadCell(list:Get(i))
+            JavaScriptObjectNotation item = list:Get(i)
+            integer asset = cast(integer, ReadNumber(item, "Asset"))
+            integer spots = cast(integer, ReadNumber(item, "Spots"))
+            if spots = GetSpotsPerRegion()
+                FoliageCoverage coverage = GetCoverageOf(asset, locationX, locationZ, true)
+                if not coverage:FromJson(item)
+                    coverage:Setup(asset, locationX, locationZ, GetSpotsPerRegion(), GetSpotSpacing())
+                end
+            end
             i = i + 1
         end
     end
 
     /*
-    This action reads one cell of a region's foliage file.
-    */
-    private action LoadCell(JavaScriptObjectNotation item)
-        integer asset = cast(integer, ReadNumber(item, "Asset"))
-        integer cellX = cast(integer, ReadNumber(item, "X"))
-        integer cellZ = cast(integer, ReadNumber(item, "Z"))
-        FoliageCell cell = GetOrMakeCell(asset, cellX, cellZ)
-        JavaScriptObjectNotation holder = item:GetObject("Copies")
-        if holder = undefined
-            return now
-        end
-        JavaScriptObjectNotation copies = holder
-        if holder:IsArrayObject()
-            copies = holder:GetArray()
-        end
-        integer count = copies:GetSize() / cell:VALUES_PER_COPY
-        integer i = 0
-        repeat while i < count
-            integer start = i * cell:VALUES_PER_COPY
-            cell:Add(ReadArrayNumber(copies, start), ReadArrayNumber(copies, start + 1), ReadArrayNumber(copies, start + 2),
-                ReadArrayNumber(copies, start + 3), ReadArrayNumber(copies, start + 4), ReadArrayNumber(copies, start + 5))
-            i = i + 1
-        end
-    end
-
-    /*
-    This action writes the foliage of every region that has any, or had a
-    foliage file when loaded, to a folder. Regions without foliage that
-    never had a file get none. Nothing is deleted.
+    This action writes the coverage of every region that has any, or had a
+    coverage file when loaded, to a folder. Regions without coverage that
+    never had a file get none. Nothing is deleted. Copies a program placed
+    aren't saved.
 
     Attribute: Parameter folder The terrain's folder, holding its terrain.json.
     */
     action Save(File folder)
+        Save(folder, undefined)
+    end
+
+    /*
+    This action is Save, also writing each asset's name beside its
+    coverage, from the foliage list, so a file can be checked by hand.
+
+    Attribute: Parameter folder The terrain's folder, holding its terrain.json.
+    Attribute: Parameter list The foliage list, or undefined to write no names.
+    */
+    action Save(File folder, FoliageList list)
         if data = undefined
             return now
         end
-        // Each region's cells, by "x/z".
-        HashTable<text, Array<FoliageCell>> byRegion
+        // Each region's coverage that has any, by "x/z".
+        HashTable<text, Array<FoliageCoverage>> byRegion
         integer i = 0
-        repeat while i < cells:GetSize()
-            FoliageCell cell = cells:Get(i)
-            if not cell:IsEmpty()
-                text key = "" + GetRegionOfCell(cell:GetCellX()) + "/" + GetRegionOfCell(cell:GetCellZ())
+        repeat while i < coverages:GetSize()
+            FoliageCoverage coverage = coverages:Get(i)
+            if coverage:HasAny()
+                text key = "" + coverage:GetLocationX() + "/" + coverage:GetLocationZ()
                 if not byRegion:HasKey(key)
-                    Array<FoliageCell> list
-                    byRegion:Add(key, list)
+                    Array<FoliageCoverage> regionList
+                    byRegion:Add(key, regionList)
                 end
-                byRegion:GetValue(key):Add(cell)
+                byRegion:GetValue(key):Add(coverage)
             end
             i = i + 1
         end
@@ -501,47 +932,38 @@ class TerrainFoliage
             TerrainRegion region = data:GetRegionAtIndex(i)
             text key = "" + region:GetLocationX() + "/" + region:GetLocationZ()
             if byRegion:HasKey(key)
-                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), byRegion:GetValue(key))
+                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), byRegion:GetValue(key), list)
                 if not regionsWithFiles:HasKey(key)
                     regionsWithFiles:Add(key, "")
                 end
             elseif regionsWithFiles:HasKey(key)
-                Array<FoliageCell> none
-                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), none)
+                Array<FoliageCoverage> none
+                SaveRegion(folder, region:GetLocationX(), region:GetLocationZ(), none, list)
             end
             i = i + 1
         end
     end
 
     /*
-    This action writes one region's foliage file.
+    This action writes one region's coverage file.
     */
-    private action SaveRegion(File folder, integer locationX, integer locationZ, Array<FoliageCell> regionCells)
+    private action SaveRegion(File folder, integer locationX, integer locationZ, Array<FoliageCoverage> regionCoverage, FoliageList list)
         JavaScriptObjectNotation json
-        json:Add("Format", "Quorum Region Foliage")
+        json:Add("Format", "Quorum Region Foliage Coverage")
         json:Add("Version", 1)
-        JavaScriptObjectNotation list
-        list:SetArray()
+        JavaScriptObjectNotation items
+        items:SetArray()
         integer i = 0
-        repeat while i < regionCells:GetSize()
-            FoliageCell cell = regionCells:Get(i)
-            JavaScriptObjectNotation item
-            item:Add("Asset", cell:GetAsset())
-            item:Add("X", cell:GetCellX())
-            item:Add("Z", cell:GetCellZ())
-            JavaScriptObjectNotation copies
-            copies:SetArray()
-            Array<number> values = cell:GetValues()
-            integer j = 0
-            repeat while j < values:GetSize()
-                copies:Add(values:Get(j))
-                j = j + 1
+        repeat while i < regionCoverage:GetSize()
+            FoliageCoverage coverage = regionCoverage:Get(i)
+            text name = ""
+            if list not= undefined and coverage:GetAsset() >= 0 and coverage:GetAsset() < list:GetAssetCount()
+                name = list:GetAsset(coverage:GetAsset()):GetName()
             end
-            item:Add("Copies", copies)
-            list:Add(item)
+            items:Add(coverage:ToJson(name))
             i = i + 1
         end
-        json:Add("Cells", list)
+        json:Add("Coverage", items)
         File file = GetFileInFolder(folder, GetRegionFileName(locationX, locationZ))
         file:Write(json:ToText())
     end
@@ -578,17 +1000,5 @@ class TerrainFoliage
             end
         end
         return 0
-    end
-
-    /*
-    This action returns one number of an array, whether it was written as a
-    whole number or with a decimal point.
-    */
-    private action ReadArrayNumber(JavaScriptObjectNotation array, integer index) returns number
-        JavaScriptObjectNotation item = array:Get(index)
-        if item:IsInteger()
-            return item:GetInteger()
-        end
-        return item:GetNumber()
     end
 end

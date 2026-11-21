@@ -3799,6 +3799,15 @@ action Update(number seconds)
         stroke:Begin(terrain:GetTerrainFoliage(), terrain:GetFoliageList(), terrain:GetFoliageAsset(), mode)
         foliageStroke = stroke
         foliageStroking = true
+        // An asset that grows on a material layer isn't painted: it grows
+        // wherever that layer is.
+        FoliageList list = terrain:GetFoliageList()
+        if mode = stroke:ADD_COPIES and list not= undefined and terrain:GetFoliageAsset() < list:GetAssetCount()
+            FoliageAsset chosen = list:GetAsset(terrain:GetFoliageAsset())
+            if chosen:GetGrowsOnLayer() > 0
+                NotifyAccessibility(terrain, chosen:GetName() + " grows wherever material layer " + chosen:GetGrowsOnLayer() + " is painted. Paint that layer to grow it.")
+            end
+        end
     end
 
     /*
@@ -3819,8 +3828,14 @@ action Update(number seconds)
         text name = ""
         text message = ""
         if foliageStroke:GetMode() = foliageStroke:ADD_COPIES
-            name = "add " + foliageStroke:GetAssetName()
-            message = "Added " + foliageStroke:GetAddedCount() + " " + foliageStroke:GetAssetName() + "."
+            name = "paint " + foliageStroke:GetAssetName()
+            // The brush moves coverage toward its strength, so a light brush
+            // over thick growth thins it.
+            if foliageStroke:GetRemovedCount() > 0
+                message = "Thinned " + foliageStroke:GetAssetName() + ", " + foliageStroke:GetRemovedCount() + " fewer."
+            else
+                message = "Added " + foliageStroke:GetAddedCount() + " " + foliageStroke:GetAssetName() + "."
+            end
         else
             name = "remove " + foliageStroke:GetAssetName()
             message = "Removed " + foliageStroke:GetRemovedCount() + " " + foliageStroke:GetAssetName() + "."

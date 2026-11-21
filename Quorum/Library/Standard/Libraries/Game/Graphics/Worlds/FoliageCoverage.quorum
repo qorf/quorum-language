@@ -1,0 +1,342 @@
+package Libraries.Game.Graphics.Worlds
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Compute.Math
+
+/*
+A FoliageCoverage holds where one foliage asset grows over one region of a
+terrain: a square grid of spots, each with a coverage from 0 (none) to 1
+(the asset's full density). The Foliage brush paints coverage, and
+TerrainFoliage works out the copies from it, so the asset's settings, such
+as its density, can change after painting and the whole painted area
+follows.
+
+The grid starts at the region's corner. Spot (0, 0) is at the corner, and
+each spot is spacing world units from the next.
+
+Attribute: Example
+use Libraries.Game.Graphics.Worlds.FoliageCoverage
+
+FoliageCoverage coverage
+coverage:Setup(0, 0, 0, 128, 2)
+coverage:Set(10, 20, 0.5)
+output coverage:Get(10, 20)
+*/
+class FoliageCoverage
+    // The asset's number in the foliage list, and the region's location.
+    integer asset = 0
+    integer locationX = 0
+    integer locationZ = 0
+    // How many spots there are along each side, and how far apart they are.
+    integer spots = 1
+    number spacing = 1
+    Number32BitArray values
+    Math math
+
+    on create
+        // A Number32BitArray has no storage until SetSize.
+        values:SetSize(1)
+        values:Set(0, 0)
+    end
+
+    /*
+    This action sets which asset and region the coverage is for, and makes
+    its grid, with no coverage anywhere.
+
+    Attribute: Parameter assetNumber The asset's number in the foliage list.
+    Attribute: Parameter x The region's location along x.
+    Attribute: Parameter z The region's location along z.
+    Attribute: Parameter spotCount How many spots there are along each side.
+    Attribute: Parameter spotSpacing How far apart the spots are, in world units.
+    */
+    action Setup(integer assetNumber, integer x, integer z, integer spotCount, number spotSpacing)
+        asset = assetNumber
+        locationX = x
+        locationZ = z
+        spots = spotCount
+        if spots < 1
+            spots = 1
+        end
+        spacing = spotSpacing
+        values:SetSize(spots * spots)
+        integer i = 0
+        repeat while i < spots * spots
+            values:Set(i, 0)
+            i = i + 1
+        end
+    end
+
+    /*
+    This action returns the asset's number in the foliage list.
+
+    Attribute: Returns The number.
+    */
+    action GetAsset returns integer
+        return asset
+    end
+
+    /*
+    This action sets the asset's number, for when the foliage list's
+    assets move.
+
+    Attribute: Parameter assetNumber The new number.
+    */
+    action SetAsset(integer assetNumber)
+        asset = assetNumber
+    end
+
+    /*
+    This action returns the region's location along x.
+
+    Attribute: Returns The location.
+    */
+    action GetLocationX returns integer
+        return locationX
+    end
+
+    /*
+    This action returns the region's location along z.
+
+    Attribute: Returns The location.
+    */
+    action GetLocationZ returns integer
+        return locationZ
+    end
+
+    /*
+    This action returns how many spots there are along each side.
+
+    Attribute: Returns The count.
+    */
+    action GetSpotCount returns integer
+        return spots
+    end
+
+    /*
+    This action returns how far apart the spots are, in world units.
+
+    Attribute: Returns The spacing.
+    */
+    action GetSpacing returns number
+        return spacing
+    end
+
+    /*
+    This action returns the coverage at a spot, or 0 outside the grid.
+
+    Attribute: Parameter x The spot along x, from 0.
+    Attribute: Parameter z The spot along z, from 0.
+    Attribute: Returns The coverage, from 0 to 1.
+    */
+    action Get(integer x, integer z) returns number
+        if x < 0 or z < 0 or x >= spots or z >= spots
+            return 0
+        end
+        return values:Get(z * spots + x)
+    end
+
+    /*
+    This action sets the coverage at a spot, kept between 0 and 1. Spots
+    outside the grid are ignored.
+
+    Attribute: Parameter x The spot along x, from 0.
+    Attribute: Parameter z The spot along z, from 0.
+    Attribute: Parameter value The coverage, from 0 to 1.
+    */
+    action Set(integer x, integer z, number value)
+        if x < 0 or z < 0 or x >= spots or z >= spots
+            return now
+        end
+        number kept = value
+        if kept < 0
+            kept = 0
+        elseif kept > 1
+            kept = 1
+        end
+        values:Set(z * spots + x, kept)
+    end
+
+    /*
+    This action returns the coverage at a place inside the region, blended
+    from the four spots around it, so the edges of a painted area are soft.
+    Places past the grid's last spots use the nearest spot.
+
+    Attribute: Parameter localX The place along x, in world units from the region's corner.
+    Attribute: Parameter localZ The place along z, in world units from the region's corner.
+    Attribute: Returns The coverage, from 0 to 1.
+    */
+    action GetAt(number localX, number localZ) returns number
+        number gridX = localX / spacing
+        number gridZ = localZ / spacing
+        integer x0 = cast(integer, math:Floor(gridX))
+        integer z0 = cast(integer, math:Floor(gridZ))
+        number fractionX = gridX - x0
+        number fractionZ = gridZ - z0
+        integer x1 = x0 + 1
+        integer z1 = z0 + 1
+        // Past the last spot, the edge spot is used.
+        if x0 < 0
+            x0 = 0
+            fractionX = 0
+        end
+        if z0 < 0
+            z0 = 0
+            fractionZ = 0
+        end
+        if x1 >= spots
+            x1 = spots - 1
+        end
+        if z1 >= spots
+            z1 = spots - 1
+        end
+        if x0 >= spots
+            x0 = spots - 1
+        end
+        if z0 >= spots
+            z0 = spots - 1
+        end
+        number near = values:Get(z0 * spots + x0) * (1 - fractionX) + values:Get(z0 * spots + x1) * fractionX
+        number far = values:Get(z1 * spots + x0) * (1 - fractionX) + values:Get(z1 * spots + x1) * fractionX
+        return near * (1 - fractionZ) + far * fractionZ
+    end
+
+    /*
+    This action returns true if any spot has coverage.
+
+    Attribute: Returns True if the asset grows anywhere in the region.
+    */
+    action HasAny returns boolean
+        integer i = 0
+        repeat while i < values:GetSize()
+            if values:Get(i) > 0
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
+    This action returns a copy of every spot's coverage, row by row, such as
+    to keep it for undo.
+
+    Attribute: Returns The copy.
+    */
+    action CopyValues returns Array<number>
+        Array<number> copy
+        integer i = 0
+        repeat while i < values:GetSize()
+            copy:Add(values:Get(i))
+            i = i + 1
+        end
+        return copy
+    end
+
+    /*
+    This action sets every spot's coverage from a copy made by CopyValues.
+    A copy of another size is ignored.
+
+    Attribute: Parameter copy The copy.
+    */
+    action SetValues(Array<number> copy)
+        if copy:GetSize() not= values:GetSize()
+            return now
+        end
+        integer i = 0
+        repeat while i < copy:GetSize()
+            values:Set(i, copy:Get(i))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action writes the coverage as a JSON object: the asset, the asset's
+    name (so a file can be checked against the list), the grid's size, and
+    the values as runs of the same level, from 0 to 255, since most of a
+    region is either bare or fully covered.
+
+    Attribute: Parameter assetName The asset's name.
+    Attribute: Returns The object.
+    */
+    action ToJson(text assetName) returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:Add("Asset", asset)
+        json:Add("Name", assetName)
+        json:Add("Spots", spots)
+        JavaScriptObjectNotation runs
+        runs:SetArray()
+        integer runLevel = -1
+        integer runLength = 0
+        integer i = 0
+        repeat while i < values:GetSize()
+            integer level = cast(integer, values:Get(i) * 255 + 0.5)
+            if level = runLevel
+                runLength = runLength + 1
+            else
+                if runLength > 0
+                    runs:Add(runLength)
+                    runs:Add(runLevel)
+                end
+                runLevel = level
+                runLength = 1
+            end
+            i = i + 1
+        end
+        if runLength > 0
+            runs:Add(runLength)
+            runs:Add(runLevel)
+        end
+        json:Add("Runs", runs)
+        return json
+    end
+
+    /*
+    This action reads the values written by ToJson. If the grid's size
+    differs from this coverage's, or the runs don't fill it, nothing is
+    read and it returns false.
+
+    Attribute: Parameter json The object.
+    Attribute: Returns True if the values were read.
+    */
+    action FromJson(JavaScriptObjectNotation json) returns boolean
+        JavaScriptObjectNotation holder = json:GetObject("Runs")
+        if holder = undefined
+            return false
+        end
+        JavaScriptObjectNotation runs = holder
+        if holder:IsArrayObject()
+            runs = holder:GetArray()
+        end
+        Array<number> read
+        integer i = 0
+        repeat while i + 1 < runs:GetSize()
+            integer runLength = cast(integer, ReadArrayNumber(runs, i))
+            number level = ReadArrayNumber(runs, i + 1) / 255.0
+            integer j = 0
+            repeat while j < runLength
+                read:Add(level)
+                j = j + 1
+            end
+            i = i + 2
+        end
+        if read:GetSize() not= values:GetSize()
+            return false
+        end
+        SetValues(read)
+        return true
+    end
+
+    /*
+    This action returns one number of an array, whether it was written as a
+    whole number or with a decimal point.
+    */
+    private action ReadArrayNumber(JavaScriptObjectNotation array, integer index) returns number
+        JavaScriptObjectNotation item = array:Get(index)
+        if item:IsInteger()
+            return item:GetInteger()
+        end
+        return item:GetNumber()
+    end
+end

@@ -12,6 +12,11 @@ Each copy is six numbers: where it stands (x, y and z, in world units), its
 turn about the up axis in degrees, its scale, and its shade (1 is the
 asset's own color, less is darker).
 
+A cell holds two kinds of copies. Copies worked out from the asset's
+coverage, which TerrainFoliage replaces whenever the coverage or the
+asset's settings change (SetGenerated), and copies a program placed itself
+with Add, which stay. Copies are numbered with the placed ones first.
+
 Attribute: Example
 use Libraries.Game.Graphics.Worlds.FoliageCell
 
@@ -28,8 +33,10 @@ class FoliageCell
     integer cellZ = 0
     number cellSize = 32
 
-    // Six numbers per copy: x, y, z, turn, scale, shade.
-    Array<number> values
+    // Six numbers per copy: x, y, z, turn, scale, shade. Copies a program
+    // placed, and copies worked out from coverage.
+    Array<number> placed
+    Array<number> generated
 
     // How many numbers each copy takes.
     public constant integer VALUES_PER_COPY = 6
@@ -96,7 +103,8 @@ class FoliageCell
     end
 
     /*
-    This action adds a copy.
+    This action adds a copy that a program placed itself. It stays when the
+    copies worked out from coverage are replaced.
 
     Attribute: Parameter x Where it stands along x, in world units.
     Attribute: Parameter y Its height, in world units.
@@ -106,12 +114,40 @@ class FoliageCell
     Attribute: Parameter shade Its shade, 1 for the asset's own color.
     */
     action Add(number x, number y, number z, number turn, number scale, number shade)
-        values:Add(x)
-        values:Add(y)
-        values:Add(z)
-        values:Add(turn)
-        values:Add(scale)
-        values:Add(shade)
+        placed:Add(x)
+        placed:Add(y)
+        placed:Add(z)
+        placed:Add(turn)
+        placed:Add(scale)
+        placed:Add(shade)
+    end
+
+    /*
+    This action replaces the copies worked out from coverage, keeping the
+    placed ones. TerrainFoliage calls it.
+
+    Attribute: Parameter numbers The copies, six numbers each, as Add takes them.
+    */
+    action SetGenerated(Array<number> numbers)
+        generated = numbers
+    end
+
+    /*
+    This action returns how many copies a program placed.
+
+    Attribute: Returns The count.
+    */
+    action GetPlacedCount returns integer
+        return placed:GetSize() / VALUES_PER_COPY
+    end
+
+    /*
+    This action returns how many copies were worked out from coverage.
+
+    Attribute: Returns The count.
+    */
+    action GetGeneratedCount returns integer
+        return generated:GetSize() / VALUES_PER_COPY
     end
 
     /*
@@ -120,7 +156,7 @@ class FoliageCell
     Attribute: Returns The count.
     */
     action GetCount returns integer
-        return values:GetSize() / VALUES_PER_COPY
+        return (placed:GetSize() + generated:GetSize()) / VALUES_PER_COPY
     end
 
     /*
@@ -129,7 +165,19 @@ class FoliageCell
     Attribute: Returns True when empty.
     */
     action IsEmpty returns boolean
-        return values:IsEmpty()
+        return placed:IsEmpty() and generated:IsEmpty()
+    end
+
+    /*
+    This action returns one of a copy's six numbers, from the placed copies
+    or the worked-out ones.
+    */
+    private action GetValue(integer index, integer part) returns number
+        integer placedCount = placed:GetSize() / VALUES_PER_COPY
+        if index < placedCount
+            return placed:Get(index * VALUES_PER_COPY + part)
+        end
+        return generated:Get((index - placedCount) * VALUES_PER_COPY + part)
     end
 
     /*
@@ -139,7 +187,7 @@ class FoliageCell
     Attribute: Returns The x, in world units.
     */
     action GetX(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY)
+        return GetValue(index, 0)
     end
 
     /*
@@ -149,7 +197,7 @@ class FoliageCell
     Attribute: Returns The y, in world units.
     */
     action GetY(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY + 1)
+        return GetValue(index, 1)
     end
 
     /*
@@ -159,7 +207,7 @@ class FoliageCell
     Attribute: Returns The z, in world units.
     */
     action GetZ(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY + 2)
+        return GetValue(index, 2)
     end
 
     /*
@@ -169,7 +217,7 @@ class FoliageCell
     Attribute: Returns The turn, in degrees.
     */
     action GetTurn(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY + 3)
+        return GetValue(index, 3)
     end
 
     /*
@@ -179,7 +227,7 @@ class FoliageCell
     Attribute: Returns The scale.
     */
     action GetScale(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY + 4)
+        return GetValue(index, 4)
     end
 
     /*
@@ -189,7 +237,7 @@ class FoliageCell
     Attribute: Returns The shade, 1 for the asset's own color.
     */
     action GetShade(integer index) returns number
-        return values:Get(index * VALUES_PER_COPY + 5)
+        return GetValue(index, 5)
     end
 
     /*
@@ -200,12 +248,19 @@ class FoliageCell
     Attribute: Parameter y Its new height, in world units.
     */
     action SetY(integer index, number y)
-        values:Set(index * VALUES_PER_COPY + 1, y)
+        integer placedCount = placed:GetSize() / VALUES_PER_COPY
+        if index < placedCount
+            placed:Set(index * VALUES_PER_COPY + 1, y)
+        else
+            generated:Set((index - placedCount) * VALUES_PER_COPY + 1, y)
+        end
     end
 
     /*
     This action removes the copies whose middles are within a distance of a
-    point, measured across the ground (x and z).
+    point, measured across the ground (x and z). Copies worked out from
+    coverage come back the next time the cell is worked out, unless the
+    coverage there is lowered.
 
     Attribute: Parameter x The point along x, in world units.
     Attribute: Parameter z The point along z, in world units.
@@ -213,36 +268,41 @@ class FoliageCell
     Attribute: Returns How many copies were removed.
     */
     action RemoveNear(number x, number z, number radius) returns integer
-        Array<number> kept
-        integer removed = 0
-        number radiusSquared = radius * radius
-        integer count = GetCount()
-        integer i = 0
-        repeat while i < count
-            number offsetX = GetX(i) - x
-            number offsetZ = GetZ(i) - z
-            if offsetX * offsetX + offsetZ * offsetZ <= radiusSquared
-                removed = removed + 1
-            else
-                integer j = 0
-                repeat while j < VALUES_PER_COPY
-                    kept:Add(values:Get(i * VALUES_PER_COPY + j))
-                    j = j + 1
-                end
-            end
-            i = i + 1
-        end
-        if removed > 0
-            values = kept
-        end
-        return removed
+        integer before = GetCount()
+        placed = KeepFar(placed, x, z, radius)
+        generated = KeepFar(generated, x, z, radius)
+        return before - GetCount()
     end
 
     /*
-    This action removes every copy.
+    This action returns the copies in a list whose middles are farther than
+    a distance from a point.
+    */
+    private action KeepFar(Array<number> numbers, number x, number z, number radius) returns Array<number>
+        Array<number> kept
+        number radiusSquared = radius * radius
+        integer i = 0
+        repeat while i + VALUES_PER_COPY <= numbers:GetSize()
+            number offsetX = numbers:Get(i) - x
+            number offsetZ = numbers:Get(i + 2) - z
+            if offsetX * offsetX + offsetZ * offsetZ > radiusSquared
+                integer j = 0
+                repeat while j < VALUES_PER_COPY
+                    kept:Add(numbers:Get(i + j))
+                    j = j + 1
+                end
+            end
+            i = i + VALUES_PER_COPY
+        end
+        return kept
+    end
+
+    /*
+    This action removes every copy, placed and worked out.
     */
     action Empty
-        values:Empty()
+        placed:Empty()
+        generated:Empty()
     end
 
     /*
@@ -283,15 +343,5 @@ class FoliageCell
             i = i + 1
         end
         return highest
-    end
-
-    /*
-    This action returns every copy's numbers, six per copy, in order, for
-    saving.
-
-    Attribute: Returns The numbers.
-    */
-    action GetValues returns Array<number>
-        return values
     end
 end

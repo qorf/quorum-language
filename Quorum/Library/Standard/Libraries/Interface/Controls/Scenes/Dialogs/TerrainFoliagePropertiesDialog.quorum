@@ -165,7 +165,11 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     constant integer TINT_GREEN_FIELD = 24
     constant integer TINT_BLUE_FIELD = 25
     constant integer WIND_DIRECTION_FIELD = 26
-    constant integer FIELD_COUNT = 27
+    // How many crossed pictures a card has, from 1 to 3.
+    constant integer CARD_PLANES_FIELD = 27
+    // 0 to grow where the brush paints, or a material layer from 1 to 4.
+    constant integer GROWS_ON_FIELD = 28
+    constant integer FIELD_COUNT = 29
 
     // The terrain whose foliage is shown, or undefined.
     EditorTerrain terrain = undefined
@@ -273,12 +277,18 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         AddSettingsField(nameCard, NAME_FIELD, -1, "Name:", "Asset name")
 
         Control placement = MakeGroup(PLACEMENT_GROUP, "Placement")
-        AddSettingsField(placement, DENSITY_FIELD, PLACEMENT_GROUP, "Density:", "Copies per square unit the brush places")
-        AddSettingsField(placement, SCALE_FIELD, PLACEMENT_GROUP, "Scale:", "Each copy's base scale")
+        AddSliderSetting(placement, DENSITY_FIELD, PLACEMENT_GROUP, "Density", "Copies per square unit where the asset's coverage is full; everything already painted follows", 0, 5, 0.01, 0.1, "")
+        AddSliderSetting(placement, SCALE_FIELD, PLACEMENT_GROUP, "Scale", "Each copy's base scale", 0.05, 10, 0.05, 0.5, "")
+        // Denser or larger than the sliders reach can still be typed.
+        SliderField densitySlider = settingsSliders:Get(DENSITY_FIELD)
+        densitySlider:SetAllowsValuesBeyondRange(true)
+        SliderField scaleSlider = settingsSliders:Get(SCALE_FIELD)
+        scaleSlider:SetAllowsValuesBeyondRange(true)
         AddSliderSetting(placement, RANDOM_SCALE_FIELD, PLACEMENT_GROUP, "Size varies", "How much each copy's size varies, as a share, from 0 to 1", 0, 1, 0.01, 0.1, "")
         AddSliderSetting(placement, LOWEST_SLOPE_FIELD, PLACEMENT_GROUP, "Lowest slope", "The least slope it grows on, in degrees", 0, 90, 1, 10, "degrees")
         AddSliderSetting(placement, STEEPEST_SLOPE_FIELD, PLACEMENT_GROUP, "Steepest slope", "The steepest slope it grows on, in degrees", 0, 90, 1, 10, "degrees")
         AddSettingsField(placement, OFFSET_FIELD, PLACEMENT_GROUP, "Height offset:", "How far above the ground each copy stands")
+        AddSliderSetting(placement, GROWS_ON_FIELD, PLACEMENT_GROUP, "Grows on layer", "0 to grow where the Foliage brush paints it, or 1 to 4 to grow wherever that material layer is painted", 0, 4, 1, 1, "")
 
         Control lean = MakeGroup(LEAN_GROUP, "Lean and turn")
         alignCheckbox = AddCheckbox(lean, LEAN_GROUP, "Lean with slope", "Whether copies lean with the ground's slope, as grass and rocks often do", ALIGN_TO_NORMAL)
@@ -286,6 +296,7 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         AddSliderSetting(lean, RANDOM_TILT_FIELD, LEAN_GROUP, "Lean varies", "How much more each copy may lean at random, in degrees", 0, 90, 1, 10, "degrees")
         randomTurnCheckbox = AddCheckbox(lean, LEAN_GROUP, "Random turn", "Turn each copy a random amount about the up axis", RANDOM_TURN)
         AddSliderSetting(lean, TURN_FIELD, LEAN_GROUP, "Turn", "A turn every copy gets about the up axis, in degrees, added to its random turn", 0, 360, 1, 15, "degrees")
+        AddSliderSetting(lean, CARD_PLANES_FIELD, LEAN_GROUP, "Card planes", "For a card: how many pictures stand at each copy, each turned its own way, from 1 to 3. One suits grass painted densely", 1, 3, 1, 1, "")
 
         Control color = MakeGroup(COLOR_GROUP, "Color and wind")
         AddSliderSetting(color, SHADE_FIELD, COLOR_GROUP, "Shade varies", "How much each copy's shade varies, from 0 to 1", 0, 1, 0.01, 0.1, "")
@@ -714,8 +725,8 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
     */
     private action FillSettings(FoliageAsset asset)
         SetTextIfDifferent(settingsFields:Get(NAME_FIELD), asset:GetName())
-        SetTextIfDifferent(settingsFields:Get(DENSITY_FIELD), "" + asset:GetDensity())
-        SetTextIfDifferent(settingsFields:Get(SCALE_FIELD), "" + asset:GetBaseScale())
+        ShowNumber(DENSITY_FIELD, asset:GetDensity())
+        ShowNumber(SCALE_FIELD, asset:GetBaseScale())
         ShowNumber(RANDOM_SCALE_FIELD, asset:GetRandomScale())
         ShowNumber(SHADE_FIELD, asset:GetShadeVariation())
         ShowNumber(LOWEST_SLOPE_FIELD, asset:GetMinimumSlope())
@@ -744,6 +755,8 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
         ShowNumber(TINT_GREEN_FIELD, asset:GetTintGreen())
         ShowNumber(TINT_BLUE_FIELD, asset:GetTintBlue())
         ShowNumber(WIND_DIRECTION_FIELD, asset:GetWindDirection())
+        ShowNumber(CARD_PLANES_FIELD, asset:GetCardPlanes())
+        ShowNumber(GROWS_ON_FIELD, asset:GetGrowsOnLayer())
         ShowNumber(HUE_FIELD, asset:GetRandomHue())
         SetTextIfDifferent(settingsFields:Get(FADE_FIELD), "" + asset:GetFadeMargin())
         randomTurnCheckbox:SetToggleState(asset:HasRandomTurn())
@@ -1039,6 +1052,20 @@ class TerrainFoliagePropertiesDialog is PropertiesDialog
                 return false
             end
             asset:SetWindDirection(value)
+        elseif place = CARD_PLANES_FIELD and value >= 1 and value <= 3
+            // A whole number of planes, the nearest to the value.
+            integer planes = cast(integer, value + 0.5)
+            if planes = asset:GetCardPlanes()
+                return false
+            end
+            asset:SetCardPlanes(planes)
+        elseif place = GROWS_ON_FIELD and value <= 4
+            // A whole layer number, the nearest to the value.
+            integer layer = cast(integer, value + 0.5)
+            if layer = asset:GetGrowsOnLayer()
+                return false
+            end
+            asset:SetGrowsOnLayer(layer)
         else
             return false
         end

@@ -244,7 +244,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         foliageNote = note
         // One line, since a wrapped label draws outside its card.
         foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
-        foliageNote:SetDescription("Hold Ctrl while painting to remove this asset's copies, or Ctrl and Shift to remove every asset's. Strength scales the asset's density.")
+        foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. Hold Ctrl while painting to thin this asset away, or Ctrl and Shift to thin every asset.")
         foliageNote:SetHorizontalLayoutMode(foliageNote:parent:Control:STANDARD)
         foliageNote:SetPercentageWidth(1.0)
         foliageNote:SetFocusable(true)
@@ -743,7 +743,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         else
             // One line, since a wrapped label draws outside its card.
             foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
-            foliageNote:SetDescription("Hold Ctrl while painting to remove this asset's copies, or Ctrl and Shift to remove every asset's. Strength scales the asset's density.")
+            foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. Hold Ctrl while painting to thin this asset away, or Ctrl and Shift to thin every asset.")
             integer chosen = terrain:GetFoliageAsset()
             integer button = 0
             repeat while button < foliageOrder:GetSize() and button < foliageGroup:GetSize()

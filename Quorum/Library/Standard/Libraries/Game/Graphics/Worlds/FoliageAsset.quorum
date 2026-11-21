@@ -38,6 +38,10 @@ class FoliageAsset
     // How far above or below the ground each copy stands, in world units.
     number heightOffset = 0
 
+    // 0 to grow where the Foliage brush painted the asset's coverage, or a
+    // material layer, from 1 to 4, to grow wherever that layer is painted.
+    integer growsOnLayer = 0
+
     // Each copy's size: the base scale, varied by up to this share either
     // way (0.2 is 20% larger or smaller).
     number baseScale = 1
@@ -352,8 +356,8 @@ class FoliageAsset
     end
 
     /*
-    This action returns how many copies per square unit the foliage brush
-    places.
+    This action returns how many copies grow on each square unit where the
+    asset's coverage is full. Where the coverage is lower, fewer grow.
 
     Attribute: Returns The density.
     */
@@ -362,8 +366,33 @@ class FoliageAsset
     end
 
     /*
-    This action sets how many copies per square unit the foliage brush
-    places, such as 0.02 for trees or 2 for grass.
+    This action returns where the asset grows: 0 where the Foliage brush
+    painted its coverage, or a material layer, from 1 to 4, to grow wherever
+    that layer is painted on the ground, as much as it is painted.
+
+    Attribute: Returns 0, or the layer from 1 to 4.
+    */
+    action GetGrowsOnLayer returns integer
+        return growsOnLayer
+    end
+
+    /*
+    This action sets where the asset grows: 0 where the Foliage brush
+    painted its coverage, or a material layer, from 1 to 4.
+
+    Attribute: Parameter layer 0, or the layer from 1 to 4.
+    */
+    action SetGrowsOnLayer(integer layer)
+        if layer < 0 or layer > 4
+            alert("A foliage asset grows on layer 0 to 4, but was given " + layer + ".")
+        end
+        growsOnLayer = layer
+    end
+
+    /*
+    This action sets how many copies grow on each square unit where the
+    asset's coverage is full, such as 0.02 for trees or 2 for grass. Copies
+    already painted change to match.
 
     Attribute: Parameter value The density, more than 0.
     */
@@ -931,6 +960,7 @@ Levels past it cast none, which saves drawing
         cardPicturePath = other:GetCardPicturePath()
         cardPlanes = other:GetCardPlanes()
         heightOffset = other:GetHeightOffset()
+        growsOnLayer = other:GetGrowsOnLayer()
         baseScale = other:GetBaseScale()
         randomScale = other:GetRandomScale()
         randomTurn = other:HasRandomTurn()
@@ -977,6 +1007,7 @@ Levels past it cast none, which saves drawing
             json:Add("Card Planes", cardPlanes)
         end
         json:Add("Height Offset", heightOffset)
+        json:Add("Grows On Layer", growsOnLayer)
         json:Add("Scale", baseScale)
         json:Add("Random Scale", randomScale)
         json:Add("Random Turn", randomTurn)
@@ -1062,6 +1093,9 @@ Levels past it cast none, which saves drawing
         end
         if HasNumber(json, "Height Offset")
             heightOffset = ReadNumber(json, "Height Offset")
+        end
+        if HasNumber(json, "Grows On Layer")
+            growsOnLayer = cast(integer, ReadNumber(json, "Grows On Layer"))
         end
         if HasNumber(json, "Scale")
             baseScale = ReadNumber(json, "Scale")

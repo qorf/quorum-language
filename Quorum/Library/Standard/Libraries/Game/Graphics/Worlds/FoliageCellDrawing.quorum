@@ -46,6 +46,10 @@ class FoliageCellDrawing
     integer fullCount = 0
     boolean colored = false
 
+    // How far, at most, each plane of a card with more than one plane
+    // leans its own way, in degrees, so the planes form a loose bunch.
+    constant number CARD_PLANE_LEAN = 12
+
     // The range of numbers kept, as last given to Keep; -1 before.
     number keptLow = -1
     number keptHigh = -1
@@ -176,8 +180,9 @@ class FoliageCellDrawing
     then by the asset's fixed lean plus a random lean, each copy in its own
     direction. A card has one entry per plane: the
     plane lies flat, so it is pitched -90 degrees, which stands it with the
-    picture's top up, raised by half its height, and each plane is turned
-    an equal share of half a circle.
+    picture's top up, raised by half its height. With more than one plane,
+    each plane after the first takes its own steady random turn, and each
+    leans a little its own way, so the planes don't form a fixed X.
 
     Attribute: Parameter cell The cell.
     Attribute: Parameter asset The cell's asset.
@@ -261,7 +266,34 @@ class FoliageCellDrawing
             integer plane = 0
             repeat while plane < planes
                 if card
-                    WriteTransform(entry, turn + plane * 180.0 / planes, -90, scale, x, y + scale / 2, z, upX, upY, upZ, leans)
+                    // Planes at fixed equal turns made every copy show the
+                    // same picture and its mirror. Each plane after the
+                    // first takes its own steady random turn, and with more
+                    // than one plane each leans a little its own way, so a
+                    // card is a loose bunch of pictures.
+                    number planeTurn = 0
+                    number planeUpX = upX
+                    number planeUpY = upY
+                    number planeUpZ = upZ
+                    boolean planeLeans = leans
+                    if planes > 1
+                        if plane > 0
+                            planeTurn = GetHash(x, z, 4 + plane) * 180
+                        end
+                        number planeTilt = GetHash(x, z, 8 + plane) * CARD_PLANE_LEAN * math:pi / 180
+                        number planeDirection = GetHash(x, z, 12 + plane) * 2 * math:pi
+                        number leanedX = upX + math:Sine(planeTilt) * math:Cosine(planeDirection)
+                        number leanedY = upY - (1 - math:Cosine(planeTilt))
+                        number leanedZ = upZ + math:Sine(planeTilt) * math:Sine(planeDirection)
+                        number leanedLength = math:SquareRoot(leanedX * leanedX + leanedY * leanedY + leanedZ * leanedZ)
+                        if leanedLength > 0.0001
+                            planeUpX = leanedX / leanedLength
+                            planeUpY = leanedY / leanedLength
+                            planeUpZ = leanedZ / leanedLength
+                            planeLeans = true
+                        end
+                    end
+                    WriteTransform(entry, turn + planeTurn, -90, scale, x, y + scale / 2, z, planeUpX, planeUpY, planeUpZ, planeLeans)
                 else
                     WriteTransform(entry, turn, 0, scale, x, y, z, upX, upY, upZ, leans)
                 end
