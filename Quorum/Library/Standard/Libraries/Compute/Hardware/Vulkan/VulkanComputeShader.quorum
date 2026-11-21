@@ -1,0 +1,27 @@
+package Libraries.Compute.Hardware.Vulkan
+
+use Libraries.Game.Graphics.Shaders.Shader
+
+/*
+The VulkanComputeShader class is a compute shader's GLSL source for
+VulkanCompute: a Shader of the compute kind, which VulkanComputeDevice
+compiles with its device. Programs give VulkanCompute:SetProgram a name and
+source, and it makes one of these; they don't need to make one themselves.
+
+Attribute: Example
+
+use Libraries.Compute.Hardware.Vulkan.VulkanComputeShader
+
+VulkanComputeShader shader
+shader:SetName("Doubler")
+shader:SetCode("#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+")
+*/
+class VulkanComputeShader is Shader
+    on create
+        SetType(parent:Shader:COMPUTE_SHADER)
+    end
+end

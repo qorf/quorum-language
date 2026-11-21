@@ -112,4 +112,13 @@ public class DesktopVulkanComputePipeline implements VulkanComputePipelineStrate
     {
         return vulkanPipelineHandle;
     }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (vulkanPipelineHandle == 0L)
+            return;
+        VkDevice vkDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_.GetDevice();
+        vkDestroyPipeline(vkDevice, vulkanPipelineHandle, null);
+        vulkanPipelineHandle = 0L;
+    }
 }

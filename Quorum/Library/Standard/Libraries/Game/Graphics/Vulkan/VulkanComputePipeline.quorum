@@ -22,8 +22,42 @@ boolean result = CreateNative(device,  info)
     
     private system action CreateNative(VulkanDevice device, VulkanComputePipelineInfo info) returns boolean
 
+    /*
+    This action frees the pipeline. Nothing may still be running with it.
+    Doing it twice does nothing.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanComputePipeline
+
+    VulkanComputePipeline pipeline
+    // after Create, and once the device has finished with it
+    pipeline:Dispose()
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
+    end
+
+    private system action DisposeNative(VulkanDevice device)
+
+    /*
+    This action returns true if the pipeline has been made and not freed.
+
+    Attribute: Returns True if the pipeline exists.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanComputePipeline
+
+    VulkanComputePipeline pipeline
+    output pipeline:IsInitialized()
+    */
+    action IsInitialized returns boolean
+        return initialized
     end
 
     action GetDevice returns VulkanDevice

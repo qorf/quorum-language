@@ -1,0 +1,595 @@
+package Libraries.Compute.Hardware
+
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Number64BitArray
+
+/*
+The HardwareCompute class runs a program on the graphics card (a compute
+shader) over a block of numbers, whatever the graphics system underneath:
+Libraries.Compute.Hardware.Vulkan.VulkanCompute today, and WebGPU later
+for the web. Programs that use it only talk to this class.
+
+A computation is made from the program's compute device, which the
+system gives (GameStateManager:GetComputeDevice): the running game's
+graphics card when a game is drawing with the same graphics system, or one
+with no window (headless). Every computation shares that device. Then:
+
+    1. SetProgram: the shader's source, in the language the graphics
+       system takes (GLSL for Vulkan, WGSL for WebGPU).
+    2. SetData: the numbers. The program reads and writes them in place.
+    3. Run: run the program over a grid of work groups and wait; then
+       GetValues reads the numbers back.
+
+Numbers can be given two ways:
+
+    Number32BitArray   32-bit numbers, copied as they are: for graphics, or
+                       work where 32 bits are precise enough.
+    Number64BitArray   Quorum's own 64-bit numbers, held on the graphics
+                       card as the number format says (SetNumberFormat):
+        DOUBLE_NUMBER_32  (the default) each number as two 32-bit
+                          numbers, high and low, about 48 bits. Works on
+                          every graphics card, Apple's included, which
+                          have no 64-bit numbers. Numbers past the range of
+                          a 32-bit number (above about 3.4e38, or below
+                          about 1e-38) can't be held this way.
+        NUMBER_64         real 64-bit numbers, on cards that have them (not
+                          Apple's). Not written yet.
+
+The program must be written for the format: with DOUBLE_NUMBER_32, number
+i is 32-bit numbers 2i (high) and 2i + 1 (low) of the buffer, and
+Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode reads and
+writes them.
+
+Several runs can also be sent together, in order, each seeing what the
+one before it wrote: BeginRuns, then AddRun for each, then FinishRuns,
+which sends them all at once and waits. Each run can carry a few integers
+of its own (SetRunIntegerCount), so one program can work on a different
+part of the data each time, such as each step of a chain of matrix
+multiplies kept on the graphics card.
+
+Dispose releases what the computation made; the device stays.
+
+Attribute: Example
+
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Containers.Number32BitArray
+
+// doubles every number it is given
+text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+"
+GameStateManager manager
+HardwareComputeDevice device = manager:GetComputeDevice()
+if device not= undefined
+    HardwareCompute compute = device:CreateCompute()
+    Number32BitArray values
+    values:SetSize(3)
+    values:Set(0, 1)
+    values:Set(1, 2)
+    values:Set(2, 3)
+    compute:SetProgram("Doubler", program)
+    compute:SetData(values)
+    compute:Run(3, 1, 1)
+    compute:GetValues(0, values)
+    output values:Get(2)
+    compute:Dispose()
+end
+*/
+class HardwareCompute
+    /* Each 64-bit number as two 32-bit numbers, high and low: every graphics card. */
+    public constant integer DOUBLE_NUMBER_32 = 0
+    /* Each 64-bit number as a real 64-bit number: only graphics cards that have them. */
+    public constant integer NUMBER_64 = 1
+
+    integer numberFormat = DOUBLE_NUMBER_32
+
+    /*
+    This action returns the device this computation runs on: the one it
+    was made from (HardwareComputeDevice:CreateCompute).
+
+    Attribute: Returns the device.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        output compute:GetDevice():GetSystemName()
+    end
+    */
+    blueprint action GetDevice returns HardwareComputeDevice
+
+    /*
+    This action sets how Quorum's 64-bit numbers are held on the graphics
+    card: DOUBLE_NUMBER_32 (the default; every graphics card) or NUMBER_64
+    (graphics cards with 64-bit numbers). Set it before SetData, and give
+    a program written for the same format.
+
+    Attribute: Parameter format DOUBLE_NUMBER_32 or NUMBER_64.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    compute:SetNumberFormat(compute:DOUBLE_NUMBER_32)
+    */
+    action SetNumberFormat(integer format)
+        if format not= DOUBLE_NUMBER_32 and format not= NUMBER_64
+            alert("The number format needs to be DOUBLE_NUMBER_32 or NUMBER_64, not " + format + ".")
+        end
+        numberFormat = format
+    end
+
+    /*
+    This action returns how Quorum's 64-bit numbers are held on the
+    graphics card.
+
+    Attribute: Returns DOUBLE_NUMBER_32 or NUMBER_64.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    if compute:GetNumberFormat() = compute:DOUBLE_NUMBER_32
+        output "Each number is held as two 32-bit numbers."
+    end
+    */
+    action GetNumberFormat returns integer
+        return numberFormat
+    end
+
+    /*
+    This action sets the program to run. Setting the same name and source
+    again keeps the compiled program, so it costs nothing; a different one
+    is compiled.
+
+    Attribute: Parameter name a name for the program, used in error messages.
+
+    Attribute: Parameter code the program's source, in the graphics system's shader language (GLSL for Vulkan).
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+"
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        compute:SetProgram("Doubler", program)
+    end
+    */
+    blueprint action SetProgram(text name, text code)
+
+    /*
+    This action copies 32-bit numbers to the graphics card for the program
+    to read and write, as they are. The space on the card is kept between
+    calls while the numbers fit.
+
+    Attribute: Parameter data the numbers.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(2)
+        values:Set(0, 1.5)
+        values:Set(1, 2.5)
+        compute:SetData(values)
+    end
+    */
+    blueprint action SetData(Number32BitArray data)
+
+    /*
+    This action copies Quorum's 64-bit numbers to the graphics card for the
+    program to read and write, held as the number format says. With
+    DOUBLE_NUMBER_32, each number becomes two 32-bit numbers, so the card
+    holds twice as many.
+
+    Attribute: Parameter data the numbers.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number64BitArray
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number64BitArray values
+        values:SetSize(2)
+        values:Set(0, 1.000000001)
+        values:Set(1, 2.000000001)
+        compute:SetData(values)
+    end
+    */
+    blueprint action SetData(Number64BitArray data)
+
+    /*
+    This action runs the program over x by y by z work groups (each as
+    large as the program says) and waits for it to finish.
+
+    Attribute: Parameter x the number of work groups across.
+
+    Attribute: Parameter y the number of work groups down.
+
+    Attribute: Parameter z the number of work groups deep.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+"
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(100)
+        compute:SetProgram("Doubler", program)
+        compute:SetData(values)
+        compute:Run(100, 1, 1)
+    end
+    */
+    blueprint action Run(integer x, integer y, integer z)
+
+    /*
+    This action sets how many integers each run is given, for the program
+    to read as a block of uints (in Vulkan, a push_constant block). They
+    let one program work on a different part of the data each run. 0, the
+    default, gives none. Set it before the program first runs; changing it
+    later builds the program's pipeline again.
+
+    Attribute: Parameter count how many integers each run is given.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    compute:SetRunIntegerCount(2)
+    */
+    blueprint action SetRunIntegerCount(integer count)
+
+    /*
+    This action starts a group of runs. Add each with AddRun, then send
+    them all with FinishRuns.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Array
+    use Libraries.Containers.Number32BitArray
+
+    // adds the run's integer to every number
+    text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (push_constant) uniform Settings { uint amount; } settings;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] += float(settings.amount); }
+"
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(10)
+        compute:SetRunIntegerCount(1)
+        compute:SetProgram("Adder", program)
+        compute:SetData(values)
+        compute:BeginRuns()
+        Array<integer> first
+        first:Add(1)
+        compute:AddRun(10, 1, 1, first)
+        Array<integer> second
+        second:Add(2)
+        compute:AddRun(10, 1, 1, second)
+        compute:FinishRuns()
+        // every number is now 3
+    end
+    */
+    blueprint action BeginRuns
+
+    /*
+    This action adds a run to the group started by BeginRuns. It starts
+    after the run before it has finished, and sees everything that run
+    wrote.
+
+    Attribute: Parameter x the number of work groups across.
+
+    Attribute: Parameter y the number of work groups down.
+
+    Attribute: Parameter z the number of work groups deep.
+
+    Attribute: Parameter runIntegers this run's integers: as many as SetRunIntegerCount said, or undefined when that is 0.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+"
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(10)
+        compute:SetProgram("Doubler", program)
+        compute:SetData(values)
+        compute:BeginRuns()
+        compute:AddRun(10, 1, 1, undefined)
+        compute:AddRun(10, 1, 1, undefined)
+        compute:FinishRuns()
+    end
+    */
+    blueprint action AddRun(integer x, integer y, integer z, Array<integer> runIntegers)
+
+    /*
+    This action sends the runs added since BeginRuns to the graphics card,
+    all at once, and waits for the last to finish.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    text program = "#version 450
+layout (std430, set=0, binding=0) buffer Numbers { float data[]; } numbers;
+layout (local_size_x = 1) in;
+void main() { numbers.data[gl_GlobalInvocationID.x] *= 2.0; }
+"
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(10)
+        compute:SetProgram("Doubler", program)
+        compute:SetData(values)
+        compute:BeginRuns()
+        compute:AddRun(10, 1, 1, undefined)
+        compute:FinishRuns()
+    end
+    */
+    blueprint action FinishRuns
+
+    /*
+    This action forgets the compiled program, so the next run compiles it
+    and builds its pipeline again. It is for measuring what compiling
+    costs; programs don't need it.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        compute:ForgetProgram()
+    end
+    */
+    blueprint action ForgetProgram
+
+    /*
+    This action returns how long the last compile took: turning the
+    program's source into the graphics system's own form.
+
+    Attribute: Returns the time in milliseconds.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    output "Compiling took " + compute:GetCompileTime() + " ms"
+    */
+    blueprint action GetCompileTime returns number
+
+    /*
+    This action returns how long building the last pipeline took: where
+    the graphics driver prepares the compiled program for its card.
+
+    Attribute: Returns the time in milliseconds.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    output "The pipeline took " + compute:GetPipelineTime() + " ms"
+    */
+    blueprint action GetPipelineTime returns number
+
+    /*
+    This action returns one 32-bit number from the graphics card, after a
+    run.
+
+    Attribute: Parameter index which 32-bit number of the data, from 0.
+
+    Attribute: Returns the number.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(1)
+        values:Set(0, 4)
+        compute:SetData(values)
+        output compute:GetValue(0)
+    end
+    */
+    blueprint action GetValue(integer index) returns number
+
+    /*
+    This action copies 32-bit numbers back from the graphics card, after a
+    run: as many as into holds, starting at 32-bit number start, in one
+    copy.
+
+    Attribute: Parameter start the first 32-bit number to copy, from 0.
+
+    Attribute: Parameter into where the numbers go; its size says how many.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number32BitArray
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number32BitArray values
+        values:SetSize(4)
+        compute:SetData(values)
+        Number32BitArray lastTwo
+        lastTwo:SetSize(2)
+        compute:GetValues(2, lastTwo)
+    end
+    */
+    blueprint action GetValues(integer start, Number32BitArray into)
+
+    /*
+    This action copies Quorum's 64-bit numbers back from the graphics card,
+    after a run, read as the number format says: as many as into holds,
+    starting at number start. With DOUBLE_NUMBER_32, number start is
+    32-bit numbers 2 * start and 2 * start + 1, added together.
+
+    Attribute: Parameter start the first number to copy, from 0, counted in 64-bit numbers.
+
+    Attribute: Parameter into where the numbers go; its size says how many.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+    use Libraries.Containers.Number64BitArray
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        Number64BitArray values
+        values:SetSize(4)
+        compute:SetData(values)
+        Number64BitArray answer
+        answer:SetSize(4)
+        compute:GetValues(0, answer)
+    end
+    */
+    blueprint action GetValues(integer start, Number64BitArray into)
+
+    /*
+    This action sets a file to keep compiled programs in between program
+    runs, so a later run can skip the graphics driver's compile. "" (the
+    default) keeps nothing. A graphics system without such a cache ignores
+    it.
+
+    Attribute: Parameter path the file's path; it is made if it doesn't exist.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareCompute compute = manager:GetComputeDevice():CreateCompute()
+    compute:SetProgramCacheFile("Data/programs.cache")
+    */
+    blueprint action SetProgramCacheFile(text path)
+
+    /*
+    This action releases what the compute made on the graphics card: its
+    program, data and commands. A running game's device is left alone.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        compute:Dispose()
+    end
+    */
+    blueprint action Dispose
+end

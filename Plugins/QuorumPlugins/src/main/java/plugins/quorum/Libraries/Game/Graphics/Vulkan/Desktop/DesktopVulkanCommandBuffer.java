@@ -80,4 +80,14 @@ public class DesktopVulkanCommandBuffer implements VulkanCommandBufferStrategy
     {
         return commandBuffer;
     }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice, VulkanCommandPool_ quorumPool)
+    {
+        if (commandBuffer == null)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        VulkanCommandPool pluginPool = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanCommandPool)quorumPool).plugin_;
+        vkFreeCommandBuffers(pluginDevice.GetDevice(), pluginPool.GetCommandPoolHandle(), commandBuffer);
+        commandBuffer = null;
+    }
 }

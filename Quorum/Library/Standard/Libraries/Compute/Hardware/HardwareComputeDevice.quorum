@@ -1,0 +1,184 @@
+package Libraries.Compute.Hardware
+
+/*
+The HardwareComputeDevice class is a graphics card that can run compute
+programs, whatever the graphics system underneath (Vulkan today, WebGPU on
+the web later). A program asks the system for one and makes its
+computations from it; it never needs to know which system it got.
+
+There is one per program, shared by every computation: the running game's
+device when a game is drawing with the same graphics system, or one with no
+window (headless), made the first time it is asked for and kept until the
+program ends. GameStateManager:GetComputeDevice returns it.
+
+Attribute: Example
+
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareCompute
+
+GameStateManager manager
+HardwareComputeDevice device = manager:GetComputeDevice()
+if device = undefined
+    output "This computer has no graphics card that can compute."
+else
+    output "Computing with " + device:GetSystemName()
+    HardwareCompute compute = device:CreateCompute()
+    // SetProgram, SetData, Run, GetValues, then Dispose
+    compute:Dispose()
+end
+*/
+class HardwareComputeDevice
+    /*
+    This action finds the graphics card and makes the device, or shares a
+    running game's. The system calls it before handing the device out
+    (GameStateManager:GetComputeDevice); programs don't need to.
+
+    Attribute: Returns true if a graphics card can compute, false if there is none.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+
+    VulkanComputeDevice vulkan
+    HardwareComputeDevice device = vulkan
+    if not device:Start()
+        output "No graphics card can compute with Vulkan."
+    end
+    */
+    blueprint action Start returns boolean
+
+    /*
+    This action says whether Start has succeeded.
+
+    Attribute: Returns true if the device is ready.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        output device:IsStarted()
+    end
+    */
+    blueprint action IsStarted returns boolean
+
+    /*
+    This action returns the name of the graphics system underneath.
+
+    Attribute: Returns the name, such as "Vulkan" or "WebGPU".
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        output device:GetSystemName()
+    end
+    */
+    blueprint action GetSystemName returns text
+
+    /*
+    This action says whether the device is one of its own, with no window,
+    rather than a running game's.
+
+    Attribute: Returns true if the device is headless.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined and device:IsHeadless()
+        output "Computing without a game."
+    end
+    */
+    blueprint action IsHeadless returns boolean
+
+    /*
+    This action returns what the device allows: work group sizes, work
+    groups per run, shared memory, data size, and 64-bit numbers.
+
+    Attribute: Returns the limits.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareComputeLimits limits = device:GetLimits()
+        output limits:GetMaxWorkGroupThreads()
+    end
+    */
+    blueprint action GetLimits returns HardwareComputeLimits
+
+    /*
+    This action makes a computation on this device: a HardwareCompute with
+    its own program, data and commands, ready for SetProgram. Dispose it
+    when done; the device stays.
+
+    Attribute: Returns the new computation, or undefined if the device can't make one.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        compute:Dispose()
+    end
+    */
+    blueprint action CreateCompute returns HardwareCompute
+
+    /*
+    This action describes the device's limits in a line of text, for
+    reports.
+
+    Attribute: Returns the description.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        output device:DescribeLimits()
+    end
+    */
+    action DescribeLimits returns text
+        HardwareComputeLimits limits = GetLimits()
+        if limits = undefined
+            return "not started"
+        end
+        text result = "largest data block " + limits:GetMaxDataBytes() + " bytes; "
+        result = result + "work groups per run " + limits:GetMaxWorkGroupCount(0) + " x " + limits:GetMaxWorkGroupCount(1) + " x " + limits:GetMaxWorkGroupCount(2) + "; "
+        result = result + "largest work group " + limits:GetMaxWorkGroupSize(0) + " x " + limits:GetMaxWorkGroupSize(1) + " x " + limits:GetMaxWorkGroupSize(2) + ", "
+        result = result + limits:GetMaxWorkGroupThreads() + " threads; "
+        result = result + "shared memory " + limits:GetMaxSharedMemoryBytes() + " bytes; "
+        if limits:HasNumber64()
+            result = result + "has 64-bit numbers"
+        else
+            result = result + "no 64-bit numbers"
+        end
+        return result
+    end
+end

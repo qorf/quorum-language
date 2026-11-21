@@ -21,6 +21,7 @@ use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlig
 use Libraries.Interface.Behaviors.Scenes.Properties.TerrainWaterButtonBehavior
 use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
+use Libraries.Game.Graphics.Worlds.TerrainData
 use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 
@@ -59,6 +60,9 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     public constant integer REMOVE_LAKE = 2
     public constant integer REMOVE_RIVER = 5
     public constant integer EDIT_RIVER = 6
+    public constant integer FINISH_RIVER = 7
+    public constant integer STOP_RIVER = 8
+    public constant integer RIVER_ENDS_IN_WATER = 9
 
     // The parts that fold, by number (PropertiesFoldItem). A lake's part
     // is LAKE_PART plus its number, and a river's RIVER_PART plus its.
@@ -83,13 +87,16 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     constant number INNER_INDENT = 34
 
     // A lake's fields, by place in its card.
+    // DEPTH_FIELD is a rectangle lake's length along z; WATER_DEPTH_FIELD is
+    // how deep its water is at its deepest.
     constant integer NAME_FIELD = 0
     constant integer LEVEL_FIELD = 1
-    constant integer X_FIELD = 2
-    constant integer Z_FIELD = 3
-    constant integer WIDTH_FIELD = 4
-    constant integer DEPTH_FIELD = 5
-    constant integer LAKE_FIELDS = 6
+    constant integer WATER_DEPTH_FIELD = 2
+    constant integer X_FIELD = 3
+    constant integer Z_FIELD = 4
+    constant integer WIDTH_FIELD = 5
+    constant integer DEPTH_FIELD = 6
+    constant integer LAKE_FIELDS = 7
 
     // A river's fields, by place in its card.
     constant integer RIVER_NAME_FIELD = 0
@@ -128,6 +135,10 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     Array<Control> lakeFoldRows
     Array<Control> lakeCards
     Array<TextField> lakeFields
+    // Each lake shown: how deep its water is at its deepest, and its lowest
+    // ground, as last shown, for its Water depth slider.
+    Array<number> lakeDeepest
+    Array<number> lakeGround
     Array<Button> removeButtons
     integer rowsShown = 0
 
@@ -146,6 +157,12 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     PropertiesFoldItem newRiversFold
     Control newRiversFoldRow = undefined
     Control newRiversCard = undefined
+    // In New rivers: whether a river being drawn ends in water, and, while
+    // one is drawn, Finish river and Stop.
+    Checkbox riverEndsCheckbox = undefined
+    Control riverDrawingLine = undefined
+    Button finishRiverButton = undefined
+    Button stopRiverButton = undefined
     TextField newRiverWidthField = undefined
     TextField newRiverDepthField = undefined
 
@@ -237,6 +254,22 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         newRiversCard = MakeIndentedCard(INNER_INDENT + 6)
         newRiverWidthField = AddSlider(newRiversCard, "Width:", "A new river's width", 0.5, 32, 0.5, 4)
         newRiverDepthField = AddSlider(newRiversCard, "Depth:", "A new river's depth in its middle", 0.1, 10, 0.1, 1)
+        Control endsLine = MakeCardLine()
+        Checkbox ends
+        riverEndsCheckbox = ends
+        riverEndsCheckbox:SetName("Finish when the river reaches water")
+        riverEndsCheckbox:SetDescription("While drawing a river, a point put in the sea or a lake finishes it there")
+        TerrainWaterButtonBehavior endsBehavior
+        endsBehavior:Setup(me, RIVER_ENDS_IN_WATER, 0)
+        endsBehavior:SetCheckbox(true)
+        riverEndsCheckbox:SetBehavior(endsBehavior)
+        endsLine:Add(riverEndsCheckbox)
+        newRiversCard:Add(endsLine)
+        // Shown only while a river is drawn.
+        riverDrawingLine = MakeButtonRow()
+        finishRiverButton = MakeButton(riverDrawingLine, "Finish river", "Make the river from the points drawn so far", FINISH_RIVER, 0)
+        stopRiverButton = MakeButton(riverDrawingLine, "Stop", "Stop drawing the river, without making it", STOP_RIVER, 0)
+        newRiversCard:Add(riverDrawingLine)
 
         // The look.
         lookFold:SetName("Look")
@@ -280,15 +313,20 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         fold:SetName("Lake " + (index + 1))
         fold:ShowOpen(false)
         lakeOpen:Add(false)
+        lakeDeepest:Add(0)
+        lakeGround:Add(0)
         lakeFolds:Add(fold)
         lakeFoldRows:Add(MakeFoldRow(fold, LAKE_PART + index, INNER_INDENT))
         Control card = MakeIndentedCard(INNER_INDENT + 6)
+        // Sliders, in the order of the fields' numbers above. Their ranges
+        // follow the lake when it is shown (SetSliderRange).
         lakeFields:Add(AddField(card, "Name:", "Lake " + (index + 1) + " name"))
-        lakeFields:Add(AddField(card, "Water level:", "Lake " + (index + 1) + " water level"))
-        lakeFields:Add(AddField(card, "Middle x:", "Lake " + (index + 1) + " middle along x"))
-        lakeFields:Add(AddField(card, "Middle z:", "Lake " + (index + 1) + " middle along z"))
-        lakeFields:Add(AddField(card, "Width:", "Lake " + (index + 1) + " width, along x"))
-        lakeFields:Add(AddField(card, "Depth:", "Lake " + (index + 1) + " size along z"))
+        lakeFields:Add(AddSlider(card, "Water level:", "Lake " + (index + 1) + " water level", 0, 100, 0.1, 1))
+        lakeFields:Add(AddSlider(card, "Water depth:", "Lake " + (index + 1) + " water depth, at its deepest", 0.1, 50, 0.1, 1))
+        lakeFields:Add(AddSlider(card, "Middle x:", "Lake " + (index + 1) + " middle along x", -200, 200, 0.5, 5))
+        lakeFields:Add(AddSlider(card, "Middle z:", "Lake " + (index + 1) + " middle along z", -200, 200, 0.5, 5))
+        lakeFields:Add(AddSlider(card, "Width:", "Lake " + (index + 1) + " width, along x", 1, 200, 0.5, 5))
+        lakeFields:Add(AddSlider(card, "Length:", "Lake " + (index + 1) + " length, along z", 1, 200, 0.5, 5))
         Control buttonLine = MakeButtonRow()
         Button removeButton = MakeButton(buttonLine, "Remove lake", "Remove lake " + (index + 1), REMOVE_LAKE, index)
         card:Add(buttonLine)
@@ -336,8 +374,21 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
     */
     private action AddSlider(Control card, text label, text name, number minimum, number maximum, number step, number pageStep) returns TextField
         SliderField sliderField = MakeSliderField(label, name, "", minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        // A number past the track, such as a lake far from the middle, is
+        // kept; the track follows when the lake is shown again.
+        sliderField:SetAllowsValuesBeyondRange(true)
         card:Add(sliderField)
         return sliderField:GetField()
+    end
+
+    /*
+        Sets the range of a slider made by AddSlider, from its number field.
+    */
+    private action SetSliderRange(TextField field, number minimum, number maximum)
+        if field:GetParent() is SliderField
+            SliderField sliderField = cast(SliderField, field:GetParent())
+            sliderField:GetSlider():SetRange(minimum, maximum)
+        end
     end
 
     /*
@@ -446,6 +497,14 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
         updating = true
         TerrainWater water = terrain:GetWater()
         seaCheckbox:SetToggleState(water:HasSea())
+        riverEndsCheckbox:SetToggleState(terrain:IsRiverEndingInWater())
+        // Finish river and Stop show only while a river is drawn.
+        if GetSceneEditor() not= undefined and GetSceneEditor():IsDrawingRiver()
+            riverDrawingLine:Show()
+        else
+            riverDrawingLine:Hide()
+        end
+        riverDrawingLine:RequestLayout()
         SetText(seaLevelField, "" + Round(water:GetSeaLevel()))
         if water:HasSea()
             seaFold:SetName("Sea, level " + Round(water:GetSeaLevel()))
@@ -503,11 +562,43 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             // A lake of water cells has its shape from its cells, so only its
             // name and level can be typed; its place and size are hidden.
             boolean masked = lake:IsMasked()
-            if masked
-                lakeFolds:Get(i):SetName(lake:GetName() + ", level " + Round(lake:GetLevel()) + ", about " + Round(lake:GetWidth()) + " by " + Round(lake:GetDepth()))
-            else
-                lakeFolds:Get(i):SetName(lake:GetName() + ", level " + Round(lake:GetLevel()) + ", " + Round(lake:GetWidth()) + " by " + Round(lake:GetDepth()))
+            TerrainData data = terrain:GetWorldTerrain():GetData()
+            // The lowest ground under the lake: under its cells, or at a
+            // rectangle lake's middle.
+            number ground = lake:GetLowestGround(data)
+            if not masked and data:HasHeight(lake:GetX(), lake:GetZ())
+                ground = data:GetSurfaceHeight(lake:GetX(), lake:GetZ())
             end
+            number deepest = lake:GetLevel() - ground
+            if lake:IsFollowingGround()
+                deepest = lake:GetWaterDepth()
+            end
+            if deepest < 0
+                deepest = 0
+            end
+            if masked
+                lakeFolds:Get(i):SetName(lake:GetName() + ", level " + Round(lake:GetLevel()) + ", " + Round(deepest) + " deep, about " + Round(lake:GetWidth()) + " by " + Round(lake:GetDepth()))
+            else
+                lakeFolds:Get(i):SetName(lake:GetName() + ", level " + Round(lake:GetLevel()) + ", " + Round(deepest) + " deep, " + Round(lake:GetWidth()) + " by " + Round(lake:GetDepth()))
+            end
+            // The sliders' tracks follow the lake.
+            integer fieldStart = i * LAKE_FIELDS
+            SetSliderRange(lakeFields:Get(fieldStart + LEVEL_FIELD), Round(ground - 5), Round(ground + 60))
+            SetSliderRange(lakeFields:Get(fieldStart + X_FIELD), Round(lake:GetX() - 200), Round(lake:GetX() + 200))
+            SetSliderRange(lakeFields:Get(fieldStart + Z_FIELD), Round(lake:GetZ() - 200), Round(lake:GetZ() + 200))
+            SetSliderRange(lakeFields:Get(fieldStart + WIDTH_FIELD), 1, Round(lake:GetWidth() * 2 + 50))
+            SetSliderRange(lakeFields:Get(fieldStart + DEPTH_FIELD), 1, Round(lake:GetDepth() * 2 + 50))
+            // A lake painted to follow the ground has no one water depth
+            // to set here.
+            Control depthLine = cast(Control, lakeFields:Get(fieldStart + WATER_DEPTH_FIELD):GetParent())
+            if lake:IsFollowingGround()
+                depthLine:Hide()
+            else
+                depthLine:Show()
+            end
+            depthLine:RequestLayout()
+            lakeDeepest:Set(i, deepest)
+            lakeGround:Set(i, ground)
             integer shapeField = X_FIELD
             repeat while shapeField <= DEPTH_FIELD
                 Control line = cast(Control, lakeFields:Get(i * LAKE_FIELDS + shapeField):GetParent())
@@ -521,6 +612,7 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             end
             SetText(lakeFields:Get(i * LAKE_FIELDS + NAME_FIELD), lake:GetName())
             SetText(lakeFields:Get(i * LAKE_FIELDS + LEVEL_FIELD), "" + Round(lake:GetLevel()))
+            SetText(lakeFields:Get(i * LAKE_FIELDS + WATER_DEPTH_FIELD), "" + Round(deepest))
             SetText(lakeFields:Get(i * LAKE_FIELDS + X_FIELD), "" + Round(lake:GetX()))
             SetText(lakeFields:Get(i * LAKE_FIELDS + Z_FIELD), "" + Round(lake:GetZ()))
             SetText(lakeFields:Get(i * LAKE_FIELDS + WIDTH_FIELD), "" + Round(lake:GetWidth()))
@@ -691,12 +783,19 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
                 repeat while i < count
                     chain:Add(lakeFolds:Get(i):GetTree())
                     if lakeOpen:Get(i)
-                        // A lake of water cells shows only its name and level.
-                        boolean masked = terrain:GetWater():GetLake(i):IsMasked()
+                        // A lake of water cells shows only its name, level
+                        // and water depth; a painted lake has no water
+                        // depth. Each slider comes before its number.
+                        TerrainLake shownLake = terrain:GetWater():GetLake(i)
+                        boolean masked = shownLake:IsMasked()
                         integer field = 0
                         repeat while field < LAKE_FIELDS
-                            if not masked or field = NAME_FIELD or field = LEVEL_FIELD
-                                chain:Add(lakeFields:Get(i * LAKE_FIELDS + field))
+                            boolean wanted = not masked or field = NAME_FIELD or field = LEVEL_FIELD or field = WATER_DEPTH_FIELD
+                            if field = WATER_DEPTH_FIELD and shownLake:IsFollowingGround()
+                                wanted = false
+                            end
+                            if wanted
+                                ChainControl(chain, lakeFields:Get(i * LAKE_FIELDS + field))
                             end
                             field = field + 1
                         end
@@ -726,6 +825,11 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             if newRiversOpen
                 ChainControl(chain, newRiverWidthField)
                 ChainControl(chain, newRiverDepthField)
+                chain:Add(riverEndsCheckbox)
+                if GetSceneEditor() not= undefined and GetSceneEditor():IsDrawingRiver()
+                    chain:Add(finishRiverButton)
+                    chain:Add(stopRiverButton)
+                end
             end
         end
         chain:Add(lookFold:GetTree())
@@ -824,6 +928,12 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
             riversFold:GetTree():Focus()
         elseif kind = EDIT_RIVER
             editor:EditTerrainRiver(terrain, lake)
+        elseif kind = FINISH_RIVER
+            editor:FinishRiverDrawing()
+        elseif kind = STOP_RIVER
+            editor:CancelRiverDrawing()
+        elseif kind = RIVER_ENDS_IN_WATER
+            editor:SetRiverEndingInWater(terrain, riverEndsCheckbox:GetToggleState())
         end
     end
 
@@ -913,6 +1023,14 @@ class TerrainWaterPropertiesDialog is PropertiesDialog
                     number newLakeWidth = ReadKept(lakeFields:Get(start + WIDTH_FIELD), lake:GetWidth())
                     number newLakeDepth = ReadKept(lakeFields:Get(start + DEPTH_FIELD), lake:GetDepth())
                     number newLevel = ReadKept(lakeFields:Get(start + LEVEL_FIELD), lake:GetLevel())
+                    // A new water depth sets the level: the lowest ground
+                    // under the lake plus the depth.
+                    if field:Equals(lakeFields:Get(start + WATER_DEPTH_FIELD)) and index < lakeDeepest:GetSize()
+                        number newDeepest = ReadKept(field, lakeDeepest:Get(index))
+                        if newDeepest > 0 and Round(newDeepest) not= Round(lakeDeepest:Get(index))
+                            newLevel = Round(lakeGround:Get(index) + newDeepest)
+                        end
+                    end
                     if name not= lake:GetName() or newX not= lake:GetX() or newZ not= lake:GetZ() or newLakeWidth not= lake:GetWidth() or newLakeDepth not= lake:GetDepth() or newLevel not= lake:GetLevel()
                         editor:SetTerrainLake(terrain, index, newX, newZ, newLakeWidth, newLakeDepth, newLevel, name)
                     end

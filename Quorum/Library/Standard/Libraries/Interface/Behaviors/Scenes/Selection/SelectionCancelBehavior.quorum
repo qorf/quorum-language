@@ -39,6 +39,10 @@ class SelectionCancelBehavior is Behavior
                 if highlight:GetSceneEditor():CancelRiverDrawing()
                     return now
                 end
+                // So is a chosen lake let go.
+                if highlight:GetSceneEditor():DropChosenLake()
+                    return now
+                end
                 // So is the region tools' placeholder, with nothing added.
                 if highlight:GetSceneEditor():DropRegionPlaceholder()
                     return now

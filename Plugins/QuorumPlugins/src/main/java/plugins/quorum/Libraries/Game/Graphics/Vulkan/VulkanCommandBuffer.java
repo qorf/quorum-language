@@ -38,6 +38,11 @@ public class VulkanCommandBuffer
         strategy.Reset(releaseResources);
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice, VulkanCommandPool_ quorumPool)
+    {
+        strategy.DisposeNative(quorumDevice, quorumPool);
+    }
+
     // LWJGL's objects, for the other desktop strategies only.
 
     public VkCommandBuffer GetCommandBuffer()

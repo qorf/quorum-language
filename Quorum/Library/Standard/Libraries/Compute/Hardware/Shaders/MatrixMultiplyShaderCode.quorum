@@ -1,0 +1,223 @@
+package Libraries.Compute.Hardware.Shaders
+
+/*
+The MatrixMultiplyShaderCode class writes the GLSL compute shader that
+multiplies two matrices of Quorum numbers on the graphics card, in
+HardwareCompute's DOUBLE_NUMBER_32 format (see DoubleNumber32ShaderCode).
+
+Every matrix is stored column by column, one number (two 32-bit numbers)
+per element. Where the matrices are, and their sizes, reach the shader with
+each run, as RUN_INTEGER_COUNT integers (HardwareCompute's run integers,
+Vulkan push constants), in this order:
+
+    rowsA     rows of A, and of the answer
+    colsA     columns of A, which are the rows of B
+    colsB     columns of B, and of the answer
+    offsetA   where A starts in the buffer, counted in numbers
+    offsetB   where B starts
+    offsetC   where the answer goes
+
+Since every run says where its matrices are, one buffer can hold many,
+and a chain of multiplies can run on the graphics card without coming
+back between steps, each step reading the one before's answer.
+
+Each thread works out one number of the answer. Work groups are
+size x size threads; run ceil(rowsA / size) by ceil(colsB / size) by 1 of
+them. Two ways:
+
+    plain   each thread reads its row of A and column of B from memory.
+            A size of 1 is one thread per group.
+    tiled   the group loads size x size tiles of A and B into shared
+            memory together, then multiplies from there: each number is
+            read from memory once per tile instead of once per answer.
+            Needs 2 * size * size * 8 bytes of shared memory. Numbers past
+            an edge are loaded as zero, which adds nothing (exactly).
+
+A GLSL work group's size is fixed when it is compiled, so the size is part
+of the source: each size is its own program.
+
+Attribute: Example
+
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Compute.Hardware.Shaders.MatrixMultiplyShaderCode
+use Libraries.Containers.Array
+use Libraries.Containers.Number64BitArray
+
+// a 2 x 2 times a 2 x 2: A at 0, B at 4, the answer at 8, column by column
+MatrixMultiplyShaderCode shaderCode
+GameStateManager manager
+HardwareComputeDevice device = manager:GetComputeDevice()
+if device not= undefined
+    HardwareCompute compute = device:CreateCompute()
+    Number64BitArray numbers
+    numbers:SetSize(12)
+    numbers:Set(0, 1)
+    numbers:Set(1, 3)
+    numbers:Set(2, 2)
+    numbers:Set(3, 4)
+    numbers:Set(4, 5)
+    numbers:Set(5, 7)
+    numbers:Set(6, 6)
+    numbers:Set(7, 8)
+    compute:SetRunIntegerCount(shaderCode:RUN_INTEGER_COUNT)
+    compute:SetProgram("MatrixMultiply", shaderCode:GetCode(false, 16))
+    compute:SetData(numbers)
+    Array<integer> place
+    place:Add(2)
+    place:Add(2)
+    place:Add(2)
+    place:Add(0)
+    place:Add(4)
+    place:Add(8)
+    compute:BeginRuns()
+    compute:AddRun(1, 1, 1, place)
+    compute:FinishRuns()
+    Number64BitArray answer
+    answer:SetSize(4)
+    compute:GetValues(8, answer)
+    // answer holds 19, 43, 22, 50
+end
+*/
+class MatrixMultiplyShaderCode
+    /* How many integers each run gives the shader, in the order above. */
+    public constant integer RUN_INTEGER_COUNT = 6
+
+    DoubleNumber32ShaderCode pairs
+
+    /*
+    This action returns the shader's GLSL source, with size x size work
+    groups, tiled or plain. Run it with ceil(rowsA / size) by
+    ceil(colsB / size) by 1 work groups, giving each run RUN_INTEGER_COUNT
+    integers.
+
+    Attribute: Parameter tiled true to multiply from tiles in shared memory (faster from about 1,024 square up), false to read from memory.
+
+    Attribute: Parameter size the work group's width and height: 16 is a good default, 1 is one thread per group.
+
+    Attribute: Returns the GLSL source.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.MatrixMultiplyShaderCode
+
+    MatrixMultiplyShaderCode shaderCode
+    text grouped = shaderCode:GetCode(false, 16)
+    text tiled = shaderCode:GetCode(true, 16)
+    */
+    action GetCode(boolean tiled, integer size) returns text
+        if size < 1
+            alert("A matrix multiply's work group size needs to be 1 or more, not " + size + ".")
+        end
+        text tile = "" + size
+        text code = "#version 450
+" + pairs:GetBufferDeclaration(0) + "
+// this run's sizes, and where its matrices start, in numbers
+layout (push_constant) uniform MultiplyRun {
+    uint rowsA;
+    uint colsA;
+    uint colsB;
+    uint offsetA;
+    uint offsetB;
+    uint offsetC;
+} multiplyRun;
+
+layout (local_size_x = " + tile + ", local_size_y = " + tile + ") in;
+"
+        if tiled
+            code = code + "
+// one tile of each matrix, high and low parts
+shared vec2 tileA[" + tile + "][" + tile + "];
+shared vec2 tileB[" + tile + "][" + tile + "];
+"
+        end
+        code = code + pairs:GetLoadAndStore() + pairs:GetArithmetic()
+        if tiled
+            code = code + GetTiledMain(tile)
+        else
+            code = code + GetPlainMain()
+        end
+        return code
+    end
+
+    private action GetSetup returns text
+        return "
+    uint rowsA = multiplyRun.rowsA;
+    uint colsA = multiplyRun.colsA;
+    uint rowsB = multiplyRun.colsA;
+    uint colsB = multiplyRun.colsB;
+    uint offsetA = multiplyRun.offsetA;
+    uint offsetB = multiplyRun.offsetB;
+    uint offsetC = multiplyRun.offsetC;
+"
+    end
+
+    // One answer per thread, reading its row and column from memory.
+    private action GetPlainMain returns text
+        return "
+void main()
+{" + GetSetup() + "
+    uint row = gl_GlobalInvocationID.x;
+    uint col = gl_GlobalInvocationID.y;
+
+    if (row < rowsA && col < colsB) {
+        vec2 sum = vec2(0.0, 0.0);
+        for (uint k = 0u; k < colsA; ++k) {
+            vec2 a = loadNumber(offsetA + row + k * rowsA);
+            vec2 b = loadNumber(offsetB + k + col * rowsB);
+            sum = addNumbers(sum, multiplyNumbers(a, b));
+        }
+        storeNumber(offsetC + row + col * rowsA, sum);
+    }
+}
+"
+    end
+
+    // One answer per thread, from tiles the work group loads together.
+    // Every thread takes part in loading and waiting, even one whose
+    // answer is past the edge, so the barriers are reached by all.
+    private action GetTiledMain(text tile) returns text
+        return "
+void main()
+{" + GetSetup() + "
+    uint T = " + tile + "u;
+    uint row = gl_GlobalInvocationID.x;
+    uint col = gl_GlobalInvocationID.y;
+    uint lx = gl_LocalInvocationID.x;
+    uint ly = gl_LocalInvocationID.y;
+
+    vec2 sum = vec2(0.0, 0.0);
+    uint tiles = (colsA + T - 1u) / T;
+    for (uint t = 0u; t < tiles; ++t) {
+        // this thread's number of A's tile: row 'row', column t * T + ly
+        uint kA = t * T + ly;
+        if (row < rowsA && kA < colsA) {
+            tileA[lx][ly] = loadNumber(offsetA + row + kA * rowsA);
+        } else {
+            tileA[lx][ly] = vec2(0.0, 0.0);
+        }
+        // and of B's tile: row t * T + lx, column 'col'
+        uint kB = t * T + lx;
+        if (kB < rowsB && col < colsB) {
+            tileB[lx][ly] = loadNumber(offsetB + kB + col * rowsB);
+        } else {
+            tileB[lx][ly] = vec2(0.0, 0.0);
+        }
+        memoryBarrierShared();
+        barrier();
+
+        for (uint k = 0u; k < T; ++k) {
+            sum = addNumbers(sum, multiplyNumbers(tileA[lx][k], tileB[k][ly]));
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    if (row < rowsA && col < colsB) {
+        storeNumber(offsetC + row + col * rowsA, sum);
+    }
+}
+"
+    end
+end

@@ -89,9 +89,20 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     Control waterLabelPart = undefined
     Control waterPart = undefined
     TextField waterDepthField = undefined
+    // Fill water's choice: to the level, or like poured water.
+    Control waterFillLine = undefined
+    ButtonGroup waterFillGroup = undefined
 
-    // What the section's button does.
+    // The River tool's part while a river is drawn: Finish river and Stop.
+    Control riverLabelPart = undefined
+    Control riverPart = undefined
+    Button finishRiverButton = undefined
+    Button stopRiverButton = undefined
+
+    // What the section's buttons do.
     public constant integer TAKE_HEIGHT = 0
+    public constant integer FINISH_RIVER = 1
+    public constant integer STOP_RIVER = 2
 
     // How wide the number fields' labels are, in pixels before the
     // interface scale, so the fields line up.
@@ -291,7 +302,36 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         Control waterCard = MakeCard()
         panel:Add(waterCard)
         waterPart = waterCard
-        waterDepthField = AddSliderNumber(waterCard, focusArray, "Water depth:", "Water depth", "How far above the ground under the brush the water's level goes", 0.1, 20, 0.1, 1, false)
+        waterDepthField = AddSliderNumber(waterCard, focusArray, "Water depth:", "Water depth", "How deep the water is: for Fill water, above the bottom of the hollow; for Paint water, above the ground", 0.1, 20, 0.1, 1, false)
+        // Fill water only: up to the level, or as poured water.
+        Control fillLine = MakeCardLine()
+        waterFillLine = fillLine
+        ButtonGroup fillChoices
+        waterFillGroup = fillChoices
+        waterFillGroup:SetName("Fill")
+        waterFillGroup:SetHorizontalLayoutMode(fillLine:FILL)
+        waterFillGroup:SetVerticalLayoutMode(fillLine:FIT_CONTENTS)
+        FlowLayout fillLayout
+        waterFillGroup:SetLayout(fillLayout)
+        AddFullWidthChoice(waterFillGroup, "To the level", "The water rises to its depth above the hollow's bottom, over all the connected ground lower than that")
+        AddFullWidthChoice(waterFillGroup, "Like poured water", "The water stops at the hollow's rim, where more would spill over and run away")
+        waterFillGroup:AddSelectionListener(me)
+        waterFillLine:Add(waterFillGroup)
+        waterCard:Add(waterFillLine)
+        focusArray:Add(waterFillGroup)
+
+        // The River tool, while a river is drawn: finish it, or stop.
+        riverLabelPart = MakeCardTitle("River")
+        panel:Add(riverLabelPart)
+        Control riverCard = MakeCard()
+        panel:Add(riverCard)
+        riverPart = riverCard
+        Control riverButtons = MakeButtonRow()
+        finishRiverButton = AddBrushButton(riverButtons, "Finish river", "Make the river from the points drawn so far", FINISH_RIVER)
+        stopRiverButton = AddBrushButton(riverButtons, "Stop", "Stop drawing the river, without making it", STOP_RIVER)
+        riverCard:Add(riverButtons)
+        focusArray:Add(finishRiverButton)
+        focusArray:Add(stopRiverButton)
 
         // The ramp has no controls here: its ends are set with the Ramp
         // tool, by clicking or with the ramp point key.
@@ -327,6 +367,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         partsShown:Add(foliageModePart)
         partsShown:Add(waterLabelPart)
         partsShown:Add(waterPart)
+        partsShown:Add(riverLabelPart)
+        partsShown:Add(riverPart)
         partsShown:Add(settingsLabelPart)
         partsShown:Add(settingsPart)
     end
@@ -399,6 +441,18 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             wanted:Add(waterLabelPart)
             wanted:Add(waterPart)
             ChainControl(chain, waterDepthField)
+            if tool = terrain:FILL_WATER_TOOL
+                chain:Add(waterFillGroup)
+            end
+        end
+        // Only Fill water has the fill choice.
+        ShowLine(waterFillLine, terrain not= undefined and tool = terrain:FILL_WATER_TOOL)
+        // Finish river and Stop, while a river is drawn.
+        if terrain not= undefined and tool = terrain:RIVER_TOOL and GetSceneEditor() not= undefined and GetSceneEditor():IsDrawingRiver()
+            wanted:Add(riverLabelPart)
+            wanted:Add(riverPart)
+            chain:Add(finishRiverButton)
+            chain:Add(stopRiverButton)
         end
         if foliageTool
             wanted:Add(foliageLabelPart)
@@ -542,6 +596,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         end
         if kind = TAKE_HEIGHT
             GetSceneEditor():TakeTerrainFlattenHeight(terrain)
+        elseif kind = FINISH_RIVER
+            GetSceneEditor():FinishRiverDrawing()
+        elseif kind = STOP_RIVER
+            GetSceneEditor():CancelRiverDrawing()
         end
     end
 
@@ -636,6 +694,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                     GetSceneEditor():SetTerrainFlattenToStart(terrain, choice:GetIndex() = 0)
                     // The height shows only for a set height.
                     ShowToolParts()
+                end
+                return now
+            end
+            if choice:GetButtonGroup() = waterFillGroup
+                integer fillMode = choice:GetIndex()
+                if fillMode >= 0 and fillMode <= 1 and fillMode not= terrain:GetWaterFillMode()
+                    GetSceneEditor():SetWaterFillMode(terrain, fillMode)
                 end
                 return now
             end
@@ -736,6 +801,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             foliageModeGroup:GetButtonAt(terrain:GetFoliageBrushMode()):SetToggleState(true)
         end
         SetFieldText(waterDepthField, terrain:GetWaterDepth())
+        waterFillGroup:GetButtonAt(terrain:GetWaterFillMode()):SetToggleState(true)
         SetFieldText(flattenHeightField, brush:GetTargetHeight())
         SetFieldText(sizeField, brush:GetSize())
         SetFieldText(strengthField, brush:GetStrength())

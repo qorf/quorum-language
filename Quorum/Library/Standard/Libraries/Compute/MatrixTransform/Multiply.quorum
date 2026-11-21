@@ -3,13 +3,32 @@ package Libraries.Compute.MatrixTransform
 use Libraries.Compute.MatrixTransform.MatrixTransform
 use Libraries.Compute.Matrix
 use Libraries.Containers.Array
-use Libraries.Containers.Number32BitArray
-use Libraries.Game.Graphics.Shaders.Vulkan.Compute.OneBufferComputeShaderVulkan
-use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
-use Libraries.System.DateTime
+use Libraries.Containers.Number64BitArray
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareComputeLimits
+use Libraries.Compute.Hardware.Shaders.MatrixMultiplyShaderCode
+use Libraries.System.Logging.SharedLogger
 
     /*
-        This is a MatrixTransform class to perform a matrix multiply operation on two matrices. 
+        This is a MatrixTransform class to perform a matrix multiply operation on two matrices.
+
+        Transform multiplies on the CPU. TransformInHardware multiplies on
+        the graphics card (GameStateManager:GetComputeDevice), with or
+        without a game, and is much faster for large matrices: about 20 to
+        30 times the CPU's speed from 512 x 512 up on a recent Mac. Numbers
+        go to the graphics card as two 32-bit numbers each (about 48 bits),
+        so its answers agree with the CPU's to about 14 significant digits,
+        and exactly when every answer and partial sum is a whole number
+        below 2^48. When there is no graphics card that can compute, or the
+        numbers are too large or too small to hold as two 32-bit numbers,
+        or the matrices are too large for the graphics card,
+        TransformInHardware multiplies on the CPU instead (RanInHardware
+        says which).
+
+        The graphics card's program and memory are kept between calls, so
+        keep one Multiply for many multiplies; Release lets them go.
 
         Attribute Returns A new matrix after the operation is performed.
 
@@ -18,7 +37,7 @@ use Libraries.System.DateTime
         use Libraries.Compute.Matrix
         use Libraries.Compute.MatrixTransform.Multiply
 
-        class Main 
+        class Main
             action Main
                 Matrix matrix
                 matrix:Fill(2, 3, 10.0)
@@ -37,13 +56,17 @@ class Multiply is MatrixTransform
     private integer cutoffSingleSize = 80
     private integer hardwareCutoff = cutoffSingleSize * cutoffSingleSize * cutoffSingleSize
 boolean forceSoftware = false
-    // rounds a number to a float, for GetHigh and GetLow; a new
-    // Number32BitArray has no storage (not even a size) until SetSize
-    Number32BitArray rounder
-    boolean rounderReady = false
-    
+
+    // the graphics card: one computation, kept between calls
+    HardwareCompute compute = undefined
+    MatrixMultiplyShaderCode shaderCode
+    boolean tiled = false
+    integer requestedTileSize = 0
+    integer tileSize = 16
+    boolean ranInHardware = false
+
     /*
-        This method sets the a matrix of values for the transform function to apply. 
+        This method sets the a matrix of values for the transform function to apply.
 
         Attribute Parameter The value matrix to apply in the transform.
 
@@ -52,7 +75,7 @@ boolean forceSoftware = false
         use Libraries.Compute.Matrix
         use Libraries.Compute.MatrixTransform.Multiply
 
-        class Main 
+        class Main
             action Main
                 Matrix matrix2
                 matrix2:Fill(3, 2, 2.0)
@@ -67,7 +90,7 @@ boolean forceSoftware = false
     end
 
     /*
-        This method gets the matrix of values that the transform function will apply. 
+        This method gets the matrix of values that the transform function will apply.
 
         Attribute Parameter The value to apply in the transform.
 
@@ -76,7 +99,7 @@ boolean forceSoftware = false
         use Libraries.Compute.Matrix
         use Libraries.Compute.MatrixTransform.Multiply
 
-        class Main 
+        class Main
             action Main
                 Matrix matrix2
                 matrix2:Fill(3, 2, 2.0)
@@ -91,7 +114,7 @@ boolean forceSoftware = false
     end
 
     /*
-        This is a MatrixTransform class to perform a matrix multiply operation on two matrices. 
+        This is a MatrixTransform class to perform a matrix multiply operation on two matrices.
 
         Attribute Returns A new matrix after the operation is performed.
 
@@ -100,7 +123,7 @@ boolean forceSoftware = false
         use Libraries.Compute.Matrix
         use Libraries.Compute.MatrixTransform.Multiply
 
-        class Main 
+        class Main
             action Main
                 Matrix matrix
                 matrix:Fill(2, 3, 10.0)
@@ -116,100 +139,7 @@ boolean forceSoftware = false
     action Transform(Matrix matrix) returns Matrix
 return TransformInSoftware(matrix)
     end
-    
-    private action GetShaderCode returns text
-        text code = "#version 450
 
-layout (std430, set=0, binding=0) buffer srcBuf {
-    float data[];
-} buff;
-
-layout (local_size_x = 1) in;
-
-vec2 loadDouble(uint dindex) {
-    return vec2(buff.data[2u * dindex], buff.data[2u * dindex + 1u]);
-}
-
-void storeDouble(uint dindex, vec2 value) {
-    buff.data[2u * dindex]      = value.x;
-    buff.data[2u * dindex + 1u] = value.y;
-}
-
-// Each number is two floats, a high and a low part whose sum is the number
-// (double-float), since Metal has no doubles. Every step of the error
-// arithmetic is precise, so fast math may not reorder or simplify it away.
-
-// a + b as a sum and its exact rounding error, when |a| >= |b|
-vec2 quickTwoSum(float a, float b) {
-    precise float s = a + b;
-    precise float e = b - (s - a);
-    return vec2(s, e);
-}
-
-// a + b as a sum and its exact rounding error, for any a and b
-vec2 twoSum(float a, float b) {
-    precise float s = a + b;
-    precise float v = s - a;
-    precise float e = (a - (s - v)) + (b - v);
-    return vec2(s, e);
-}
-
-// a * b as a product and its exact rounding error
-vec2 twoProduct(float a, float b) {
-    precise float p = a * b;
-    precise float e = fma(a, b, -p);
-    return vec2(p, e);
-}
-
-vec2 mulDouble(vec2 a, vec2 b) {
-    vec2 p = twoProduct(a.x, b.x);
-    precise float crossTerms = a.x * b.y + a.y * b.x;
-    precise float e = p.y + crossTerms;
-    return quickTwoSum(p.x, e);
-}
-
-vec2 addDouble(vec2 a, vec2 b) {
-    vec2 s = twoSum(a.x, b.x);
-    precise float e = s.y + (a.y + b.y);
-    return quickTwoSum(s.x, e);
-}
-
-void main()
-{
-    
-    uint rowsA = uint(buff.data[0]);
-    uint colsA = uint(buff.data[1]);
-    uint rowsB = uint(buff.data[2]);
-    uint colsB = uint(buff.data[3]);
-
-    // Offsets into the buffer, in doubles: the four sizes take two
-    uint offsetA_double = 2;
-    uint offsetB_double = offsetA_double + (rowsA * colsA); // in doubles
-    uint offsetC_double = offsetB_double + (rowsB * colsB); // in doubles
-
-    uint row = gl_GlobalInvocationID.x;
-    uint col = gl_GlobalInvocationID.y;
-
-    if (row < rowsA && col < colsB) {
-        vec2 sum = vec2(0.0, 0.0);
-        for (uint k = 0u; k < colsA; ++k) {
-            uint a_idx = offsetA_double + row + k * rowsA;
-            uint b_idx = offsetB_double + k + col * rowsB;
-
-            vec2 a = loadDouble(a_idx);
-            vec2 b = loadDouble(b_idx);
-
-            sum = addDouble(sum, mulDouble(a, b));
-        }
-
-        uint c_idx = offsetC_double + row + col * rowsA;
-        storeDouble(c_idx, sum);
-    }
-}
-"
-        return code
-    end
-    
     action TransformInSoftware(Matrix matrix) returns Matrix
 Matrix newMatrix
         newMatrix:SetSize(matrix:GetRows(), values:GetColumns())
@@ -230,120 +160,389 @@ Matrix newMatrix
         end
         return newMatrix
     end
-    
-    action TransformInHardware(Matrix matrix) returns Matrix
-        Number32BitArray array = FillBuffer(matrix)
-OneBufferComputeShaderVulkan compute
-        compute:SetName("DoubleMatrixMultiplyShader")
-compute:SetCode(GetShaderCode())
 
-        compute:Create()
-        VulkanNumber32BitMappedMemory mapping = compute:SetBuffer(array)
-        compute:SetupPipelines()
-        
-        integer x = cast(integer, array:Get(0))
-integer y = cast(integer, array:Get(3))
-        compute:Run(x, y, 1)
-        compute:Wait()
-        
-        
-resultColumns = values:GetColumns()
-        resultRows = matrix:GetRows()
-        Matrix result
-        result:SetSize(resultRows, resultColumns)
-        
-resultIndex = 4 + (values:GetSize() + matrix:GetSize()) * 2
-        i = resultIndex
-        j = 0
-        k = 0
-        repeat while j < resultColumns 
-            repeat while k < resultRows and i < mapping:GetSize()
-number high = mapping:Get(i)
-number low = mapping:Get(i+1)
-                number value = high + low
-                result:Set(k, j, value)
-                    
-                
-                k = k + 1
-                        i = i + 2
-end
-            
-            k = 0
-            j = j + 1
+    /*
+        This action multiplies matrix by the value matrix on the graphics
+        card. It uses the CPU instead (and logs why) when there is no
+        graphics card that can compute, when a number or product is too
+        large or too small to hold as two 32-bit numbers, or when the
+        matrices don't fit the graphics card.
+
+        Attribute: Parameter matrix The matrix on the left.
+
+        Attribute: Returns A new matrix: matrix times the value matrix.
+
+        Attribute: Example
+
+        use Libraries.Compute.Matrix
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(512, 512, 1.5)
+                Multiply multiply
+                multiply:SetValue(matrix)
+                Matrix result = multiply:TransformInHardware(matrix)
+                output result:Get(0, 0)
+                multiply:Release()
+            end
         end
-        
+    */
+    action TransformInHardware(Matrix matrix) returns Matrix
+        ranInHardware = false
+        if values = undefined
+            alert("Multiply needs the value matrix: call SetValue first.")
+        end
+        if matrix:GetColumns() not= values:GetRows()
+            alert("A " + matrix:GetRows() + " x " + matrix:GetColumns() + " matrix can't be multiplied by a " + values:GetRows() + " x " + values:GetColumns() + " one: the columns of the first must equal the rows of the second.")
+        end
+        text problem = CheckRange(matrix)
+        if problem not= ""
+            return InSoftwareBecause(matrix, problem)
+        end
+        if compute = undefined
+            GameStateManager manager
+            HardwareComputeDevice device = manager:GetComputeDevice()
+            if device = undefined
+                return InSoftwareBecause(matrix, "no graphics card can compute")
+            end
+            compute = device:CreateCompute()
+            if compute = undefined
+                return InSoftwareBecause(matrix, "the graphics card has no queue that can compute")
+            end
+        end
+
+        integer rows = matrix:GetRows()
+        integer inner = matrix:GetColumns()
+        integer columns = values:GetColumns()
+        HardwareComputeLimits limits = compute:GetDevice():GetLimits()
+        tileSize = ChooseTileSize(limits)
+        integer groupsAcross = (rows + tileSize - 1) / tileSize
+        integer groupsDown = (columns + tileSize - 1) / tileSize
+        if groupsAcross > limits:GetMaxWorkGroupCount(0) or groupsDown > limits:GetMaxWorkGroupCount(1)
+            return InSoftwareBecause(matrix, "the answer needs more work groups than the graphics card allows in one run")
+        end
+
+        // the buffer, in numbers: A, then B, then room for the answer,
+        // each column by column
+        integer placeB = matrix:GetSize()
+        integer placeAnswer = placeB + values:GetSize()
+        integer total = placeAnswer + rows * columns
+        if total * 8.0 > limits:GetMaxDataBytes()
+            return InSoftwareBecause(matrix, "the matrices are larger than the graphics card's largest block of data")
+        end
+
+        compute:SetRunIntegerCount(shaderCode:RUN_INTEGER_COUNT)
+        // the same source is compiled once and kept
+        text kind = "Plain"
+        if tiled
+            kind = "Tiled"
+        end
+        compute:SetProgram("MatrixMultiply" + kind + tileSize, shaderCode:GetCode(tiled, tileSize))
+
+        Number64BitArray numbers
+        numbers:SetSize(total)
+        FillNumbers(0, numbers, matrix)
+        FillNumbers(placeB, numbers, values)
+        compute:SetNumberFormat(compute:DOUBLE_NUMBER_32)
+        compute:SetData(numbers)
+
+        Array<integer> place
+        place:Add(rows)
+        place:Add(inner)
+        place:Add(columns)
+        place:Add(0)
+        place:Add(placeB)
+        place:Add(placeAnswer)
+        compute:BeginRuns()
+        compute:AddRun(groupsAcross, groupsDown, 1, place)
+        compute:FinishRuns()
+
+        Number64BitArray answer
+        answer:SetSize(rows * columns)
+        compute:GetValues(placeAnswer, answer)
+        Matrix result
+        result:SetSize(rows, columns)
+        integer i = 0
+        integer column = 0
+        repeat while column < columns
+            integer row = 0
+            repeat while row < rows
+                result:Set(row, column, answer:Get(i))
+                row = row + 1
+                i = i + 1
+            end
+            column = column + 1
+        end
+        ranInHardware = true
         return result
     end
-    
-    
-private action FillBuffer(Matrix matrix) returns Number32BitArray
-        Number32BitArray array
-        integer metadata = 4
-        integer size = CalculateBufferSize(values, matrix)
-        size = metadata + size
-array:SetSize(size)
-        array:Set(0, matrix:GetRows())
-array:Set(1, matrix:GetColumns())
-array:Set(2, values:GetRows())
-array:Set(3, values:GetColumns())
-        FillBuffer(4, array, matrix)
-FillBuffer(4 + matrix:GetSize() * 2, array, values)
-        
-        return array
-end
-    
-    
+
+    /*
+        This action says whether the last TransformInHardware ran on the
+        graphics card, or fell back to the CPU.
+
+        Attribute: Returns true if the graphics card did the last multiply.
+
+        Attribute: Example
+
+        use Libraries.Compute.Matrix
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(64, 64, 2.0)
+                Multiply multiply
+                multiply:SetValue(matrix)
+                Matrix result = multiply:TransformInHardware(matrix)
+                output multiply:RanInHardware()
+            end
+        end
+    */
+    action RanInHardware returns boolean
+        return ranInHardware
+    end
+
+    /*
+        This action chooses how TransformInHardware divides the work: true
+        loads tiles of both matrices into each work group's shared memory,
+        which is faster from about 1,024 x 1,024 up; false (the default)
+        reads from memory directly, which is as fast or faster for smaller
+        matrices.
+
+        Attribute: Parameter yes true to use tiles.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                multiply:SetTiled(true)
+            end
+        end
+    */
+    action SetTiled(boolean yes)
+        tiled = yes
+    end
+
+    /*
+        This action says whether TransformInHardware uses tiles.
+
+        Attribute: Returns true if it uses tiles.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                output multiply:IsTiled()
+            end
+        end
+    */
+    action IsTiled returns boolean
+        return tiled
+    end
+
+    /*
+        This action sets the width and height of TransformInHardware's work
+        groups. It is halved until the graphics card allows it. 0, the
+        default, picks 16.
+
+        Attribute: Parameter size The width and height, or 0 for the default.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                multiply:SetTileSize(32)
+            end
+        end
+    */
+    action SetTileSize(integer size)
+        if size < 0
+            alert("A tile size needs to be 0 (the default) or more, not " + size + ".")
+        end
+        requestedTileSize = size
+    end
+
+    /*
+        This action returns the work group width and height the last
+        TransformInHardware used.
+
+        Attribute: Returns The tile size.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                output multiply:GetTileSize()
+            end
+        end
+    */
+    action GetTileSize returns integer
+        return tileSize
+    end
+
+    /*
+        This action lets go of what TransformInHardware keeps on the
+        graphics card between calls: its program, memory and commands. The
+        next call makes them again. The graphics card itself is the
+        program's and stays.
+
+        Attribute: Example
+
+        use Libraries.Compute.Matrix
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(64, 64, 2.0)
+                Multiply multiply
+                multiply:SetValue(matrix)
+                Matrix result = multiply:TransformInHardware(matrix)
+                multiply:Release()
+            end
+        end
+    */
+    action Release
+        if compute not= undefined
+            compute:Dispose()
+        end
+        compute = undefined
+    end
+
+    // The CPU's answer, logging why the graphics card wasn't used.
+    private action InSoftwareBecause(Matrix matrix, text reason) returns Matrix
+        SharedLogger logger
+        logger:Log("Multiply:TransformInHardware used the CPU: " + reason + ".")
+        return TransformInSoftware(matrix)
+    end
+
+    /*
+    Why the numbers can't be held as two 32-bit numbers each, or "" if they
+    can: a number, or the largest possible sum, past about 3.4e38; or the
+    smallest product so small that its low part would lose precision.
+    */
+    private action CheckRange(Matrix matrix) returns text
+        number largestA = LargestMagnitude(matrix)
+        number largestB = LargestMagnitude(values)
+        if largestA > 1.0e38 or largestB > 1.0e38
+            return "a number is too large to hold as two 32-bit numbers"
+        end
+        if largestA * largestB * matrix:GetColumns() > 1.0e38
+            return "a product or sum could pass the largest 32-bit number"
+        end
+        number smallestA = SmallestMagnitude(matrix)
+        number smallestB = SmallestMagnitude(values)
+        if smallestA > 0 and smallestB > 0 and smallestA * smallestB < 1.0e-30
+            return "a product could be too small to hold as two 32-bit numbers"
+        end
+        return ""
+    end
+
+    private action LargestMagnitude(Matrix matrix) returns number
+        number largest = 0
+        integer row = 0
+        repeat while row < matrix:GetRows()
+            integer column = 0
+            repeat while column < matrix:GetColumns()
+                number value = matrix:Get(row, column)
+                if value < 0
+                    value = -value
+                end
+                if value > largest
+                    largest = value
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        return largest
+    end
+
+    // The smallest number that isn't zero, ignoring sign; 0 if all are zero.
+    private action SmallestMagnitude(Matrix matrix) returns number
+        number smallest = 0
+        integer row = 0
+        repeat while row < matrix:GetRows()
+            integer column = 0
+            repeat while column < matrix:GetColumns()
+                number value = matrix:Get(row, column)
+                if value < 0
+                    value = -value
+                end
+                if value > 0 and (smallest = 0 or value < smallest)
+                    smallest = value
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        return smallest
+    end
+
+    // The tile size asked for (or 16), halved until the device allows it.
+    private action ChooseTileSize(HardwareComputeLimits limits) returns integer
+        integer size = requestedTileSize
+        if size = 0
+            size = 16
+        end
+        repeat while size > 1 and not Fits(size, limits)
+            size = size / 2
+        end
+        return size
+    end
+
+    private action Fits(integer size, HardwareComputeLimits limits) returns boolean
+        if size * size > limits:GetMaxWorkGroupThreads()
+            return false
+        end
+        if size > limits:GetMaxWorkGroupSize(0) or size > limits:GetMaxWorkGroupSize(1)
+            return false
+        end
+        if tiled and 2 * size * size * 8 > limits:GetMaxSharedMemoryBytes()
+            return false
+        end
+        return true
+    end
+
+    // A matrix into the numbers from place on, column by column.
+    private action FillNumbers(integer place, Number64BitArray numbers, Matrix matrix)
+        integer i = place
+        integer column = 0
+        repeat while column < matrix:GetColumns()
+            integer row = 0
+            repeat while row < matrix:GetRows()
+                numbers:Set(i, matrix:Get(row, column))
+                row = row + 1
+                i = i + 1
+            end
+            column = column + 1
+        end
+    end
+
 action CalculateBufferSize(Matrix matrix1, Matrix matrix2) returns integer
         integer size1 = matrix1:GetSize()
 integer size2 = matrix2:GetSize()
         integer size3 = matrix1:GetRows() * matrix2:GetColumns()
-        
+
         //4 positions in the buffer for constants
         return (size1 + size2 + size3) * 2
     end
-    
-    
-private action FillBuffer(integer offset, Number32BitArray array, Matrix matrix)
-i = offset
-        j = 0
-        k = 0
-        integer rows = matrix:GetRows()
-        integer columns = matrix:GetColumns()
-        integer size = matrix:GetSize() + offset
-        repeat while j < columns
-            repeat while k < rows
-                number value = matrix:Get(k,j)
-                array:Set(i, GetHigh(value))
-                array:Set(i + 1, GetLow(value))
-                k = k + 1
-i = i + 2
-            end
-            k = 0
-            j = j + 1
-        end
-    end
-    
-    
-    /*
-    The high part of a number sent to the GPU: the number rounded to a
-    float. (A one-number Number32BitArray does the rounding.)
-    */
-    private action GetHigh(number value) returns number
-        if not rounderReady
-            rounder:SetSize(1)
-            rounderReady = true
-        end
-        rounder:Set(0, value)
-        return rounder:Get(0)
-    end
 
-    /* The low part: what the high part leaves out, rounded to a float. */
-    private action GetLow(number value) returns number
-        number high = GetHigh(value)
-        rounder:Set(0, value - high)
-        return rounder:Get(0)
-    end
-    
     action GetHardwareCutoff returns integer
         return hardwareCutoff
     end
@@ -353,4 +552,3 @@ i = i + 2
     end
 
 end
-

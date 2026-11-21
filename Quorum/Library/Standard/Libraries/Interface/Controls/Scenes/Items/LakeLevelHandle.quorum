@@ -1,0 +1,183 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+/*
+The LakeLevelHandle is the scene editor's handle for a chosen lake: an
+upright post from the lowest ground under the lake up to its water, with a
+flat ring at the water's level. Dragging it up or down raises or lowers
+the water. It is an editor helper, not a scene item, and lets clicks
+through; the scene editor tests clicks on it itself.
+
+The post and ring are made once, one unit tall, and stretched to the
+water's height, so moving the level doesn't make a new model.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.LakeLevelHandle
+
+LakeLevelHandle handle
+handle:Place(10, 2, 20, 6)
+*/
+class LakeLevelHandle is Model
+    SceneConstants constants
+    Math math
+    boolean built = false
+
+    // How wide the post is, the ring's radius and its band's width, and
+    // how many pieces the ring has.
+    constant number POST_WIDTH = 0.15
+    constant number RING_RADIUS = 1.5
+    constant number RING_WIDTH = 0.2
+    constant integer RING_PIECES = 24
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+    end
+
+    /*
+    This action puts the handle at a lake's lowest ground, reaching up to
+    its water.
+
+    Attribute: Parameter x The lowest ground's place along x
+    Attribute: Parameter ground The lowest ground's height
+    Attribute: Parameter z The lowest ground's place along z
+    Attribute: Parameter level The water's level
+    */
+    action Place(number x, number ground, number z, number level)
+        if not built
+            Build()
+            built = true
+        end
+        number height = level - ground
+        if height < 0.05
+            height = 0.05
+        end
+        SetPosition(x, ground, z)
+        SetScale(1, height, 1)
+    end
+
+    /*
+    Makes the post and ring, one unit tall: the post as two strips crossing
+    from 0 to 1 high, the ring as a flat band at 1, so stretching the
+    model's height moves the ring and leaves its band flat.
+    */
+    private action Build
+        integer quads = 2 + RING_PIECES
+        Number32BitArray vertices
+        vertices:SetSize(quads * 4 * 3)
+        Number32BitArray normals
+        normals:SetSize(quads * 4 * 3)
+        Number32BitArray tangents
+        tangents:SetSize(quads * 4 * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(quads * 4 * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(quads * 4 * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        number half = POST_WIDTH / 2
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 0, -half, 0, 0)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 1, half, 0, 0)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 2, -half, 1, 0)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 3, half, 1, 0)
+        SetQuad(indices, 0)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 4, 0, 0, -half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 5, 0, 0, half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 6, 0, 1, -half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, 7, 0, 1, half)
+        SetQuad(indices, 1)
+
+        number inner = RING_RADIUS - RING_WIDTH / 2
+        number outer = RING_RADIUS + RING_WIDTH / 2
+        integer piece = 0
+        repeat while piece < RING_PIECES
+            number fromAngle = 2 * math:pi * piece / RING_PIECES
+            number toAngle = 2 * math:pi * (piece + 1) / RING_PIECES
+            integer quad = 2 + piece
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4, inner * math:Cosine(fromAngle), 1, inner * math:Sine(fromAngle))
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 1, outer * math:Cosine(fromAngle), 1, outer * math:Sine(fromAngle))
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 2, inner * math:Cosine(toAngle), 1, inner * math:Sine(toAngle))
+            SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 3, outer * math:Cosine(toAngle), 1, outer * math:Sine(toAngle))
+            SetQuad(indices, quad)
+            piece = piece + 1
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(0)
+        Array<MeshData> meshes
+        meshes:Add(mesh)
+
+        // Bright yellow and unlit, so it shows over water and ground.
+        Material material
+        Vector4 color
+        color:Set(1, 0.9, 0.2, 1)
+        material:SetDiffuse(color)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        Array<Material> materials
+        materials:Add(material)
+
+        ModelData modelData
+        modelData:SetID("Lake level handle " + GetHashCode())
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+    end
+
+    /*
+    Sets one corner. The handle is unlit, so the normal is only a
+    placeholder.
+    */
+    private action SetCorner(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
+            Number32BitArray coordinates, integer vertex, number x, number y, number z)
+        vertices:Set(vertex * 3, x)
+        vertices:Set(vertex * 3 + 1, y)
+        vertices:Set(vertex * 3 + 2, z)
+        normals:Set(vertex * 3, 0)
+        normals:Set(vertex * 3 + 1, 1)
+        normals:Set(vertex * 3 + 2, 0)
+        tangents:Set(vertex * 3, 1)
+        tangents:Set(vertex * 3 + 1, 0)
+        tangents:Set(vertex * 3 + 2, 0)
+        bitangents:Set(vertex * 3, 0)
+        bitangents:Set(vertex * 3 + 1, 0)
+        bitangents:Set(vertex * 3 + 2, 1)
+        coordinates:Set(vertex * 2, 0)
+        coordinates:Set(vertex * 2 + 1, 0)
+    end
+
+    /*
+    Sets one quad's two triangles.
+    */
+    private action SetQuad(Integer32BitArray indices, integer quad)
+        integer first = quad * 4
+        indices:Set(quad * 6, first)
+        indices:Set(quad * 6 + 1, first + 2)
+        indices:Set(quad * 6 + 2, first + 1)
+        indices:Set(quad * 6 + 3, first + 1)
+        indices:Set(quad * 6 + 4, first + 2)
+        indices:Set(quad * 6 + 5, first + 3)
+    end
+end

@@ -26,6 +26,11 @@ public class VulkanCommandPool
         return strategy.GetCommandPoolHandle();
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        strategy.DisposeNative(quorumDevice);
+    }
+
     public VulkanCommandPoolStrategy GetStrategy()
     {
         return strategy;

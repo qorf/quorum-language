@@ -111,6 +111,26 @@ class VulkanPipelineCache
         return SaveNative(file:GetAbsolutePath())
     end
 
+    /*
+    This action frees the cache. Pipelines made with it keep working. Doing
+    it twice does nothing.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+
+    VulkanPipelineCache cache
+    // after Create
+    cache:Dispose()
+    */
+    action Dispose
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
+    end
+
     action IsInitialized returns boolean
         return initialized
     end
@@ -122,5 +142,7 @@ class VulkanPipelineCache
     private system action GetDataNative returns ByteArray
 
     private system action SaveNative(text path) returns boolean
+
+    private system action DisposeNative(VulkanDevice device)
 
 end

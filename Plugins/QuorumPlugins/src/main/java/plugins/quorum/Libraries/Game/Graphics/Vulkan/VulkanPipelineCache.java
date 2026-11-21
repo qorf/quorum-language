@@ -63,6 +63,11 @@ public class VulkanPipelineCache
         return strategy.GetVulkanCacheHandle();
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        strategy.DisposeNative(quorumDevice);
+    }
+
     public VulkanPipelineCacheStrategy GetStrategy()
     {
         return strategy;

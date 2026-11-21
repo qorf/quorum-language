@@ -71,6 +71,11 @@ class EditorTerrain is TerrainItem
     // How far above the ground under the brush the Fill water and Paint
     // water tools put the water's level.
     number waterDepth = 2
+    // How Fill water fills: up to its level (TerrainLake's FILL_TO_LEVEL),
+    // or as poured water, stopping at the hollow's rim (FILL_POURED).
+    integer waterFillMode = 0
+    // True if a river being drawn finishes when a point is put in water.
+    boolean riverEndsInWater = true
 
     // The foliage asset the Foliage tool paints, by its number in the
     // foliage list, and whether the foliage list file has
@@ -418,6 +423,49 @@ class EditorTerrain is TerrainItem
     */
     action SetWaterDepth(number depth)
         waterDepth = depth
+    end
+
+    /*
+        Returns how Fill water fills.
+
+        Attribute: Returns TerrainLake's FILL_TO_LEVEL (0) or FILL_POURED (1)
+    */
+    action GetWaterFillMode returns integer
+        return waterFillMode
+    end
+
+    /*
+        Sets how Fill water fills: up to its level, wherever the hollow's rim
+        is, or as poured water, which stops at the rim.
+
+        Attribute: Parameter mode TerrainLake's FILL_TO_LEVEL (0) or FILL_POURED (1)
+    */
+    action SetWaterFillMode(integer mode)
+        if mode = 1
+            waterFillMode = 1
+        else
+            waterFillMode = 0
+        end
+    end
+
+    /*
+        Returns true if a river being drawn finishes when a point is put in
+        water, the sea or a lake.
+
+        Attribute: Returns True if it finishes in water
+    */
+    action IsRiverEndingInWater returns boolean
+        return riverEndsInWater
+    end
+
+    /*
+        Sets whether a river being drawn finishes when a point is put in
+        water.
+
+        Attribute: Parameter value True to finish in water
+    */
+    action SetRiverEndingInWater(boolean value)
+        riverEndsInWater = value
     end
 
     /*

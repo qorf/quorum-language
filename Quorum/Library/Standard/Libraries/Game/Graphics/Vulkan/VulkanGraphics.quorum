@@ -9,6 +9,7 @@ use Libraries.Game.Graphics.Vulkan.Commands.all
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgram
 use Libraries.Game.Graphics.Shaders.Programs.ShaderProgramStrategy
 use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
 use Libraries.Game.DesktopApplication
 use Libraries.Game.DesktopDisplay
 use Libraries.Compute.BitwiseOperations
@@ -372,6 +373,12 @@ some platforms return -1 instead of a reasonable value. In this case, we use thi
         graphicsTimer:Setup(device, GetPhysicalDeviceLimits():GetTimestampPeriod(), graphicsQueue:GetQueueFamily():GetTimestampValidBits())
 
         initialized = true
+
+        // computations made from now on share this device (GameStateManager:GetComputeDevice)
+        VulkanComputeDevice computeDevice
+        if computeDevice:Share(me)
+            gameState:SetComputeDevice(computeDevice)
+        end
         return true
     end
 

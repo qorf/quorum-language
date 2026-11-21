@@ -1,0 +1,383 @@
+package Libraries.Compute.Hardware.Vulkan
+
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareComputeLimits
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Containers.Array
+use Libraries.Game.GameStateManager
+use Libraries.Game.Graphics.GraphicsManager
+use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanUtilities
+use Libraries.Game.Graphics.Vulkan.VulkanInstance
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDeviceLimits
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+
+/*
+The VulkanComputeDevice class is a HardwareComputeDevice that computes with
+Vulkan: the instance, graphics card, device and descriptor set manager every
+VulkanCompute made from it shares.
+
+Start looks at the game's graphics. If a game is drawing with Vulkan, the
+device shares its instance, device and descriptor sets, so results could
+later be used for drawing too. If no game is drawing with Vulkan (no game
+at all, or one using OpenGL), it makes its own instance and device with no
+window and no surface, asking only for compute. Either way there is one per
+program (GameStateManager:GetComputeDevice), and it is never released: a device
+lives as long as the program, as a game's does.
+
+Shaders are compiled, and their modules freed, by the library's
+VulkanShaderManager with this device (CompileShader and DisposeShader take
+the device), so a headless device needs no game graphics.
+
+Attribute: Example
+
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+
+VulkanComputeDevice vulkan
+HardwareComputeDevice device = vulkan
+if device:Start()
+    HardwareCompute compute = device:CreateCompute()
+    compute:Dispose()
+end
+*/
+class VulkanComputeDevice is HardwareComputeDevice
+    VulkanConstants constants
+    boolean started = false
+    boolean headless = false
+
+    VulkanInstance instance = undefined
+    VulkanPhysicalDevice physicalDevice = undefined
+    VulkanDevice device = undefined
+    VulkanDescriptorSetManager descriptorSetManager = undefined
+    HardwareComputeLimits limits = undefined
+
+    /*
+    This action finds the graphics card: shares a Vulkan game's device, or
+    makes an instance and device of its own with no window. Calling it
+    again once it has started does nothing.
+
+    Attribute: Returns true if a graphics card can compute with Vulkan, false if there is none.
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action Start returns boolean
+        if started
+            return true
+        end
+        GameStateManager state
+        GraphicsManager graphics = state:GetGameGraphics()
+        if graphics not= undefined and graphics is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            if Share(vulkan)
+                return true
+            end
+        end
+        started = StartHeadless()
+        return started
+    end
+
+    /*
+    This action starts the device as a share of a game's Vulkan graphics:
+    its instance, graphics card, device and descriptor sets. VulkanGraphics
+    calls it when it has finished starting, and gives the result to
+    GameStateManager:SetComputeDevice, so computations use the game's
+    device from then on.
+
+    Attribute: Parameter graphics the game's graphics, initialized.
+
+    Attribute: Returns true if the graphics were initialized and are now shared, false if not.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Game.GameStateManager
+    use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+
+    GameStateManager manager
+    VulkanGraphics graphics = cast(VulkanGraphics, manager:GetGameGraphics())
+    VulkanComputeDevice device
+    if device:Share(graphics)
+        manager:SetComputeDevice(device)
+    end
+    */
+    action Share(VulkanGraphics graphics) returns boolean
+        if started
+            return true
+        end
+        if graphics = undefined or not graphics:IsInitialized()
+            return false
+        end
+        instance = graphics:GetInstance()
+        physicalDevice = graphics:GetPhysicalDevice()
+        device = graphics:GetDevice()
+        descriptorSetManager = graphics:GetDescriptorSetManager()
+        headless = false
+        started = true
+        return true
+    end
+
+    // A Vulkan instance and device of this device's own, with no window:
+    // only the extensions the platform needs (MoltenVK's portability ones
+    // on a Mac), no display or swapchain extensions.
+    private action StartHeadless returns boolean
+        VulkanUtilities utilities
+        Array<text> layers
+        Array<text> instanceExtensions
+        utilities:GetRequiredPlatformInstanceExtensions(instanceExtensions, false)
+        VulkanInstance madeInstance
+        if not madeInstance:Create("Quorum compute", 1, constants:DEFAULT_API_VERSION, layers, instanceExtensions)
+            return false
+        end
+
+        VulkanPhysicalDevice madePhysicalDevice
+        Array<text> noExtensions
+        if not madePhysicalDevice:Create(madeInstance, constants:QUEUE_COMPUTE_BIT, noExtensions)
+            return false
+        end
+
+        Array<text> deviceExtensions
+        utilities:GetRequiredPlatformDeviceExtensions(deviceExtensions, false)
+        deviceExtensions:Add(constants:DESCRIPTOR_INDEXING_EXTENSION)
+        VulkanDevice madeDevice
+        if not madeDevice:Create(madePhysicalDevice, deviceExtensions)
+            return false
+        end
+
+        VulkanDescriptorSetManager descriptors
+        descriptors:Initialize(madeDevice)
+
+        instance = madeInstance
+        physicalDevice = madePhysicalDevice
+        device = madeDevice
+        descriptorSetManager = descriptors
+        headless = true
+        return true
+    end
+
+    /*
+    This action says whether Start has succeeded.
+
+    Attribute: Returns true if the device is ready.
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action IsStarted returns boolean
+        return started
+    end
+
+    /*
+    This action returns the name of this graphics system.
+
+    Attribute: Returns "Vulkan".
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action GetSystemName returns text
+        return "Vulkan"
+    end
+
+    /*
+    This action says whether this device made its own instance and device,
+    with no window, rather than sharing a Vulkan game's.
+
+    Attribute: Returns true if the device is headless.
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action IsHeadless returns boolean
+        return headless
+    end
+
+    /*
+    This action returns the graphics card's limits for compute, read from
+    Vulkan's limits and features once and kept.
+
+    Attribute: Returns the limits, or undefined before Start.
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action GetLimits returns HardwareComputeLimits
+        if not started
+            return undefined
+        end
+        if limits = undefined
+            VulkanPhysicalDeviceLimits vulkanLimits = physicalDevice:GetLimits()
+            HardwareComputeLimits made
+            made:SetMaxWorkGroupThreads(vulkanLimits:GetMaxComputeWorkGroupInvocations())
+            made:SetMaxWorkGroupSize(vulkanLimits:GetMaxComputeWorkGroupSize(0), vulkanLimits:GetMaxComputeWorkGroupSize(1), vulkanLimits:GetMaxComputeWorkGroupSize(2))
+            made:SetMaxWorkGroupCount(vulkanLimits:GetMaxComputeWorkGroupCount(0), vulkanLimits:GetMaxComputeWorkGroupCount(1), vulkanLimits:GetMaxComputeWorkGroupCount(2))
+            made:SetMaxSharedMemoryBytes(vulkanLimits:GetMaxComputeSharedMemorySize())
+            // an unsigned 32-bit number; values past 2^31 - 1 arrive negative
+            number dataBytes = vulkanLimits:GetMaxStorageBufferRange()
+            if dataBytes < 0
+                dataBytes = dataBytes + 4294967296.0
+            end
+            made:SetMaxDataBytes(dataBytes)
+            made:SetHasNumber64(physicalDevice:GetFeatures():HasShaderFloat64())
+            limits = made
+        end
+        return limits
+    end
+
+    /*
+    This action makes a VulkanCompute on this device, with its own queue,
+    command pool, command buffer, program and data.
+
+    Attribute: Returns the new computation, or undefined if no queue on this device can compute.
+
+    Attribute: Example
+
+    See the same action in HardwareComputeDevice.
+    */
+    action CreateCompute returns HardwareCompute
+        if not started
+            alert("This VulkanComputeDevice isn't started: get one from the system (GameStateManager:GetComputeDevice) or call Start first.")
+        end
+        VulkanCompute made
+        if not made:Initialize(me)
+            return undefined
+        end
+        return made
+    end
+
+    /*
+    This action compiles a compute shader for this device: GLSL to SPIR-V
+    and the device's shader module. VulkanCompute calls it.
+
+    Attribute: Parameter shader the shader, named and with its source set.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeShader
+
+    VulkanComputeDevice device
+    if device:Start()
+        VulkanComputeShader shader
+        shader:SetName("Empty")
+        shader:SetCode("#version 450
+layout (local_size_x = 1) in;
+void main() {}
+")
+        device:Compile(shader)
+    end
+    */
+    action Compile(VulkanComputeShader shader)
+        VulkanShaderManager compiler
+        integer id = compiler:CompileShader(shader, device)
+    end
+
+    /*
+    This action frees a compute shader's module on this device, once
+    nothing still uses it. Pipelines made with it keep working.
+    VulkanCompute calls it.
+
+    Attribute: Parameter shader a shader compiled with Compile.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeShader
+
+    VulkanComputeDevice device
+    if device:Start()
+        VulkanComputeShader shader
+        shader:SetName("Empty")
+        shader:SetCode("#version 450
+layout (local_size_x = 1) in;
+void main() {}
+")
+        device:Compile(shader)
+        device:ReleaseShader(shader)
+    end
+    */
+    action ReleaseShader(VulkanComputeShader shader)
+        VulkanShaderManager compiler
+        compiler:DisposeShader(shader, device)
+    end
+
+    /*
+    This action returns the Vulkan device.
+
+    Attribute: Returns the device, or undefined before Start.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Game.Graphics.Vulkan.VulkanDevice
+
+    VulkanComputeDevice computeDevice
+    VulkanDevice device = computeDevice:GetDevice()
+    */
+    action GetDevice returns VulkanDevice
+        return device
+    end
+
+    /*
+    This action returns the descriptor set manager computations make their
+    descriptor sets with.
+
+    Attribute: Returns the manager, or undefined before Start.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+
+    VulkanComputeDevice computeDevice
+    VulkanDescriptorSetManager manager = computeDevice:GetDescriptorSetManager()
+    */
+    action GetDescriptorSetManager returns VulkanDescriptorSetManager
+        return descriptorSetManager
+    end
+
+    /*
+    This action returns the Vulkan graphics card.
+
+    Attribute: Returns the physical device, or undefined before Start.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Game.Graphics.Vulkan.VulkanPhysicalDevice
+
+    VulkanComputeDevice computeDevice
+    VulkanPhysicalDevice card = computeDevice:GetPhysicalDevice()
+    */
+    action GetPhysicalDevice returns VulkanPhysicalDevice
+        return physicalDevice
+    end
+
+    /*
+    This action returns the Vulkan instance.
+
+    Attribute: Returns the instance, or undefined before Start.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+    use Libraries.Game.Graphics.Vulkan.VulkanInstance
+
+    VulkanComputeDevice computeDevice
+    VulkanInstance vulkanInstance = computeDevice:GetInstance()
+    */
+    action GetInstance returns VulkanInstance
+        return instance
+    end
+end

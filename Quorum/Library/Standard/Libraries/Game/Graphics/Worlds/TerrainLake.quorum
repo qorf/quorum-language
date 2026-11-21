@@ -66,6 +66,27 @@ class TerrainLake
     // edge, below the level it was given (IsSpilled).
     boolean spilled = false
 
+    // How the lake is filled: up to its level, wherever the hollow's rim
+    // is, or as poured water, which stops at the rim. Kept so a refill
+    // fills the same way.
+    public constant integer FILL_TO_LEVEL = 0
+    public constant integer FILL_POURED = 1
+    integer fillMode = 1
+    // A poured fill ignores rims lower than this above the water, so tiny
+    // dips in the ground don't stop it.
+    constant number RIM_TOLERANCE = 0.25
+    // True if the last fill reached the terrain's edge, and where the last
+    // poured fill would spill (or reached the edge).
+    boolean reachedEdge = false
+    number spillX = 0
+    number spillZ = 0
+    // The bottom FindBottom found, as a cell.
+    integer bottomColumnFound = 0
+    integer bottomRowFound = 0
+    // The lowest cell FindLowestCell found, in the world.
+    number lowestFoundX = 0
+    number lowestFoundZ = 0
+
     // The cells waiting to be covered while Fill runs, as a heap by the
     // ground's height, lowest first.
     Array<number> heapHeights
@@ -312,22 +333,73 @@ class TerrainLake
     Attribute: Returns How many cells got water: 0 if none could hold any.
     */
     action Fill(TerrainData data, number startX, number startZ, number height) returns integer
+        return Fill(data, startX, startZ, height, FILL_POURED)
+    end
+
+    /*
+    This action makes the lake a grid of water cells from a point, either
+    up to a level or as poured water.
+
+    - FILL_TO_LEVEL: the water runs downhill to the bottom of its hollow,
+      then every connected cell whose ground is lower than the level gets
+      water, wherever the hollow's rim is. It stops at the level, and at the
+      terrain's edge (DidReachEdge).
+    - FILL_POURED: as Fill, it stops at the hollow's rim, the lowest place
+      on its edge, where more water would spill. Rims lower than a quarter
+      of a unit are ignored, so tiny dips don't stop it.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter startX Where the water is poured, along x.
+    Attribute: Parameter startZ Where the water is poured, along z.
+    Attribute: Parameter height The level.
+    Attribute: Parameter mode FILL_TO_LEVEL or FILL_POURED.
+    Attribute: Returns How many cells got water: 0 if none could hold any.
+    */
+    action Fill(TerrainData data, number startX, number startZ, number height, integer mode) returns integer
         followsGround = false
         spilled = false
+        reachedEdge = false
+        fillMode = mode
+        level = height
+        number bottom = FindBottom(data, startX, startZ)
+        integer bottomColumn = bottomColumnFound
+        integer bottomRow = bottomRowFound
+        if not HasGround(data, bottomColumn, bottomRow)
+            return 0
+        end
+        if bottom >= height
+            return 0
+        end
+        spillX = (bottomColumn + 0.5) * cellSize
+        spillZ = (bottomRow + 0.5) * cellSize
+        return FillFrom(data, bottomColumn, bottomRow, bottom, height, mode)
+    end
+
+    /*
+    This action returns where water poured at a place ends up: the height
+    of the bottom of its hollow. The water runs downhill from the place, but
+    at most MAXIMUM_DESCENT cells, so on a long slope it doesn't travel to a
+    distant valley. With no ground there, it returns the place's ground, or
+    0.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Parameter startX The place along x.
+    Attribute: Parameter startZ The place along z.
+    Attribute: Returns The bottom's height.
+    */
+    action FindBottom(TerrainData data, number startX, number startZ) returns number
         number spacing = data:GetVertexSpacing()
         if spacing <= 0
             spacing = 1
         end
         cellSize = spacing
-        level = height
         integer bottomColumn = GetColumnAt(startX)
         integer bottomRow = GetColumnAt(startZ)
+        bottomColumnFound = bottomColumn
+        bottomRowFound = bottomRow
         if not HasGround(data, bottomColumn, bottomRow)
             return 0
         end
-
-        // The water runs downhill to the bottom of its hollow, but only so
-        // far: on a long slope it doesn't travel to a distant valley.
         number bottom = GetGround(data, bottomColumn, bottomRow)
         integer steps = 0
         boolean moving = true
@@ -358,9 +430,15 @@ class TerrainLake
             end
             steps = steps + 1
         end
-        if bottom >= height
-            return 0
-        end
+        bottomColumnFound = bottomColumn
+        bottomRowFound = bottomRow
+        return bottom
+    end
+
+    /*
+    Fills the lake from its bottom cell, as Fill describes.
+    */
+    private action FillFrom(TerrainData data, integer bottomColumn, integer bottomRow, number bottom, number height, integer mode) returns integer
 
         // The water rises from the bottom: the lowest cell next to the
         // water is always covered next. When that cell is lower than the
@@ -382,14 +460,18 @@ class TerrainLake
             if cellHeight >= height
                 // Risen to the level given.
                 stopped = true
-            elseif cellHeight < rim
+            elseif mode = FILL_POURED and cellHeight < rim - RIM_TOLERANCE
                 // Over the rim and downhill: it would spill.
                 level = rim
                 spilled = true
                 stopped = true
+                spillX = (column + 0.5) * cellSize
+                spillZ = (row + 0.5) * cellSize
             else
                 HeapRemoveLowest()
-                rim = cellHeight
+                if cellHeight > rim
+                    rim = cellHeight
+                end
                 found:Add(column)
                 found:Add(row)
                 integer side = 0
@@ -401,12 +483,19 @@ class TerrainLake
                         seen:Add(key, true)
                         if HasGround(data, nextColumn, nextRow)
                             HeapAdd(GetGround(data, nextColumn, nextRow), nextColumn, nextRow)
-                        else
+                        elseif mode = FILL_POURED
                             // The water reached the terrain's edge and
                             // would run off it.
                             level = rim
                             spilled = true
                             stopped = true
+                            reachedEdge = true
+                            spillX = (column + 0.5) * cellSize
+                            spillZ = (row + 0.5) * cellSize
+                        else
+                            // Filling to a level, the lake stops at the
+                            // terrain's edge.
+                            reachedEdge = true
                         end
                     end
                     side = side + 1
@@ -415,7 +504,9 @@ class TerrainLake
         end
         if not stopped and heapHeights:GetSize() > 0
             // The most cells were searched: the water stops where it is.
-            level = rim
+            if mode = FILL_POURED
+                level = rim
+            end
             spilled = true
         end
         heapHeights:Empty()
@@ -477,6 +568,141 @@ class TerrainLake
     */
     action IsSpilled returns boolean
         return spilled
+    end
+
+    /*
+    This action returns how the lake is filled.
+
+    Attribute: Returns FILL_TO_LEVEL or FILL_POURED.
+    */
+    action GetFillMode returns integer
+        return fillMode
+    end
+
+    /*
+    This action sets how the lake is filled again (Refill).
+
+    Attribute: Parameter mode FILL_TO_LEVEL or FILL_POURED.
+    */
+    action SetFillMode(integer mode)
+        if mode = FILL_TO_LEVEL
+            fillMode = FILL_TO_LEVEL
+        else
+            fillMode = FILL_POURED
+        end
+    end
+
+    /*
+    This action returns true if the last fill reached the terrain's edge.
+
+    Attribute: Returns True if it reached the edge.
+    */
+    action DidReachEdge returns boolean
+        return reachedEdge
+    end
+
+    /*
+    This action returns where the last poured fill would spill over its
+    hollow's rim, or reached the terrain's edge, along x.
+
+    Attribute: Returns The place, in world units.
+    */
+    action GetSpillX returns number
+        return spillX
+    end
+
+    /*
+    This action returns where the last poured fill would spill, along z.
+
+    Attribute: Returns The place, in world units.
+    */
+    action GetSpillZ returns number
+        return spillZ
+    end
+
+    /*
+    This action returns the height of the lowest ground under a lake of
+    water cells, or the lake's level if it has none.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Returns The height.
+    */
+    action GetLowestGround(TerrainData data) returns number
+        if FindLowestCell(data)
+            return data:GetSurfaceHeight(lowestFoundX, lowestFoundZ)
+        end
+        return level
+    end
+
+    /*
+    This action returns how deep the water is at its deepest: its level
+    less the lowest ground under it.
+
+    Attribute: Parameter data The terrain's data.
+    Attribute: Returns The depth, or 0.
+    */
+    action GetDeepest(TerrainData data) returns number
+        if followsGround
+            return waterDepth
+        end
+        number deepest = level - GetLowestGround(data)
+        if deepest < 0
+            return 0
+        end
+        return deepest
+    end
+
+    /*
+    This action returns where the lowest ground under a lake of water cells
+    is, along x, as found by GetLowestGround.
+
+    Attribute: Returns The place, in world units.
+    */
+    action GetLowestX returns number
+        return lowestFoundX
+    end
+
+    /*
+    This action returns where the lowest ground under the lake is, along z.
+
+    Attribute: Returns The place, in world units.
+    */
+    action GetLowestZ returns number
+        return lowestFoundZ
+    end
+
+    /*
+    Finds the cell with the lowest ground, keeping its middle in
+    lowestFoundX and lowestFoundZ. Returns false if there is none.
+    */
+    private action FindLowestCell(TerrainData data) returns boolean
+        if not masked or data = undefined
+            return false
+        end
+        boolean any = false
+        number lowest = 0
+        integer row = 0
+        repeat while row < rows
+            integer column = 0
+            repeat while column < columns
+                if cells:Get(row * columns + column)
+                    number middleX = (firstColumn + column + 0.5) * cellSize
+                    number middleZ = (firstRow + row + 0.5) * cellSize
+                    if data:HasHeight(middleX, middleZ)
+                        number ground = data:GetSurfaceHeight(middleX, middleZ)
+                        if not any or ground < lowest
+                            any = true
+                            lowest = ground
+                            lowestFoundX = middleX
+                            lowestFoundZ = middleZ
+                        end
+                    end
+                end
+                column = column + 1
+            end
+            row = row + 1
+        end
+        return any
     end
 
     /*
@@ -968,6 +1194,7 @@ class TerrainLake
         level = other:GetLevel()
         followsGround = other:IsFollowingGround()
         waterDepth = other:GetWaterDepth()
+        fillMode = other:GetFillMode()
         levelSet = true
         masked = other:IsMasked()
         if masked
@@ -981,9 +1208,10 @@ class TerrainLake
 
     /*
     This action fills a lake of water cells again at a new level, as Fill
-    does, from its lowest cell: it spreads or shrinks to match the hollow,
-    and stops at the hollow's rim, so raising the level never leaves water
-    hanging over ground that falls away. The lake keeps its name. Nothing
+    does, from its lowest cell and the way it was filled (GetFillMode): it
+    spreads or shrinks to match the hollow, and a poured lake stops at the
+    hollow's rim, so raising the level never leaves water hanging over
+    ground that falls away. The lake keeps its name. Nothing
     changes if no cell could hold water at that level, or for a lake that
     is a rectangle or follows the ground.
 
@@ -995,36 +1223,13 @@ class TerrainLake
         if not masked or followsGround or data = undefined
             return 0
         end
-        boolean any = false
-        number lowest = 0
-        number lowestX = 0
-        number lowestZ = 0
-        integer row = 0
-        repeat while row < rows
-            integer column = 0
-            repeat while column < columns
-                if cells:Get(row * columns + column)
-                    number middleX = (firstColumn + column + 0.5) * cellSize
-                    number middleZ = (firstRow + row + 0.5) * cellSize
-                    if data:HasHeight(middleX, middleZ)
-                        number ground = data:GetSurfaceHeight(middleX, middleZ)
-                        if not any or ground < lowest
-                            any = true
-                            lowest = ground
-                            lowestX = middleX
-                            lowestZ = middleZ
-                        end
-                    end
-                end
-                column = column + 1
-            end
-            row = row + 1
-        end
-        if not any
+        if not FindLowestCell(data)
             return 0
         end
+        number lowestX = lowestFoundX
+        number lowestZ = lowestFoundZ
         TerrainLake trial
-        integer count = trial:Fill(data, lowestX, lowestZ, height)
+        integer count = trial:Fill(data, lowestX, lowestZ, height, fillMode)
         if count = 0
             return 0
         end
@@ -1032,6 +1237,9 @@ class TerrainLake
         CopyFrom(trial)
         name = keptName
         spilled = trial:IsSpilled()
+        reachedEdge = trial:DidReachEdge()
+        spillX = trial:GetSpillX()
+        spillZ = trial:GetSpillZ()
         return count
     end
 

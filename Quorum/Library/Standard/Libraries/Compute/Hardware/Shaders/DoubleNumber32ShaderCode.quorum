@@ -1,0 +1,148 @@
+package Libraries.Compute.Hardware.Shaders
+
+/*
+The DoubleNumber32ShaderCode class gives the GLSL a compute shader needs to
+work with Quorum's 64-bit numbers on any graphics card, in
+HardwareCompute's DOUBLE_NUMBER_32 format: each number as two 32-bit
+numbers, high and low (a vec2 in GLSL), about 48 bits. Graphics cards
+without 64-bit numbers, such as Apple's, get close to 64-bit precision this
+way.
+
+    GetBufferDeclaration   the storage buffer, "buff", as 32-bit numbers
+    GetLoadAndStore        loadNumber(i) and storeNumber(i, value): number
+                           i of the buffer, 32-bit numbers 2i and 2i + 1
+    GetArithmetic          multiplyNumbers(a, b) and addNumbers(a, b), and
+                           the error-free steps they are made of
+
+The arithmetic keeps each operation's rounding error: twoProduct uses fma,
+which gives a product's error exactly, and every sum is renormalized so the
+low part stays small. Every 32-bit number in it is marked precise (SPIR-V
+NoContraction), so a compiler running with fast math, as MoltenVK does for
+Metal, may not reorder, simplify or fuse it; without that, b - (s - a) can
+be "simplified" to 0 and the shader quietly loses half its precision.
+
+Attribute: Example
+
+use Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode
+
+// squares every number in the buffer
+DoubleNumber32ShaderCode pairs
+text code = "#version 450
+" + pairs:GetBufferDeclaration(0) + "
+layout (local_size_x = 64) in;
+" + pairs:GetLoadAndStore() + pairs:GetArithmetic() + "
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+    vec2 value = loadNumber(i);
+    storeNumber(i, multiplyNumbers(value, value));
+}
+"
+*/
+class DoubleNumber32ShaderCode
+    /*
+    This action returns the GLSL for the storage buffer the other actions'
+    code uses: named buff, read and written as 32-bit numbers (buff.data).
+
+    Attribute: Parameter binding the buffer's binding in descriptor set 0.
+
+    Attribute: Returns the GLSL declaration.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode
+
+    DoubleNumber32ShaderCode pairs
+    text declaration = pairs:GetBufferDeclaration(0)
+    */
+    action GetBufferDeclaration(integer binding) returns text
+        return "
+layout (std430, set=0, binding=" + binding + ") buffer srcBuf {
+    float data[];
+} buff;
+"
+    end
+
+    /*
+    This action returns the GLSL functions loadNumber(i), which reads
+    number i of the buffer as a vec2 (32-bit numbers 2i and 2i + 1, high
+    and low), and storeNumber(i, value), which writes one. It needs the
+    buffer from GetBufferDeclaration.
+
+    Attribute: Returns the GLSL functions.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode
+
+    DoubleNumber32ShaderCode pairs
+    text code = pairs:GetBufferDeclaration(0) + pairs:GetLoadAndStore()
+    */
+    action GetLoadAndStore returns text
+        return "
+vec2 loadNumber(uint index) {
+    return vec2(buff.data[2u * index], buff.data[2u * index + 1u]);
+}
+
+void storeNumber(uint index, vec2 value) {
+    buff.data[2u * index]      = value.x;
+    buff.data[2u * index + 1u] = value.y;
+}
+"
+    end
+
+    /*
+    This action returns the GLSL functions for arithmetic on numbers held
+    as two 32-bit numbers: multiplyNumbers(a, b) and addNumbers(a, b),
+    each taking and returning a vec2 (high, low), and the error-free steps
+    they are made of (quickTwoSum, twoSum, twoProduct). Each keeps its
+    rounding error, and every step is marked precise.
+
+    Attribute: Returns the GLSL functions.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode
+
+    DoubleNumber32ShaderCode pairs
+    text code = pairs:GetArithmetic()
+    */
+    action GetArithmetic returns text
+        return "
+// a + b as a sum and its exact rounding error, when |a| >= |b|
+vec2 quickTwoSum(float a, float b) {
+    precise float s = a + b;
+    precise float e = b - (s - a);
+    return vec2(s, e);
+}
+
+// a + b as a sum and its exact rounding error, for any a and b
+vec2 twoSum(float a, float b) {
+    precise float s = a + b;
+    precise float v = s - a;
+    precise float e = (a - (s - v)) + (b - v);
+    return vec2(s, e);
+}
+
+// a * b as a product and its exact rounding error
+vec2 twoProduct(float a, float b) {
+    precise float p = a * b;
+    precise float e = fma(a, b, -p);
+    return vec2(p, e);
+}
+
+vec2 multiplyNumbers(vec2 a, vec2 b) {
+    vec2 p = twoProduct(a.x, b.x);
+    precise float crossTerms = a.x * b.y + a.y * b.x;
+    precise float e = p.y + crossTerms;
+    return quickTwoSum(p.x, e);
+}
+
+vec2 addNumbers(vec2 a, vec2 b) {
+    vec2 s = twoSum(a.x, b.x);
+    precise float e = s.y + (a.y + b.y);
+    return quickTwoSum(s.x, e);
+}
+"
+    end
+end

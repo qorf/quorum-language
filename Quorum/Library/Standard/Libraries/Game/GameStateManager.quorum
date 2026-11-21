@@ -13,13 +13,22 @@ use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Game.Graphics.SharedTextureManager
 use Libraries.Game.Graphics.Shaders.ShaderManager
 use Libraries.Game.Graphics.Vulkan.VulkanGraphics
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
 
 /*
     The GameStateManager is an internal class, used by the game engine to
     communicate between Quorum and plugin code. Most users will never have to
     interface with this class directly.
+
+    The one exception is GetComputeDevice, which any program, with or
+    without a game, uses to run compute programs on the graphics card (see
+    Libraries.Compute.Hardware.HardwareCompute).
 */
 shared class GameStateManager 
+    // the program's one compute device, made the first time it is asked for
+    HardwareComputeDevice computeDevice = undefined
+    boolean lookedForComputeDevice = false
     
     /*
     This action is used by the engine to store a reference to the currently
@@ -260,4 +269,67 @@ shared class GameStateManager
         end
     end
     
+
+    /*
+    This action returns the program's compute device: a graphics card that
+    can run compute programs, shared by every computation in the program.
+    It is the running game's when a game is drawing with a graphics system
+    that can compute (Vulkan); otherwise the first call makes one with no
+    window, which later calls return. It doesn't depend on the graphics
+    system: under it is Vulkan on desktop, iOS and Android, and later
+    WebGPU on the web.
+
+    Attribute: Returns the device, or undefined if this system has no graphics card that can compute.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.HardwareComputeDevice
+    use Libraries.Compute.Hardware.HardwareCompute
+
+    GameStateManager manager
+    HardwareComputeDevice device = manager:GetComputeDevice()
+    if device not= undefined
+        HardwareCompute compute = device:CreateCompute()
+        // SetProgram, SetData, Run, GetValues
+        compute:Dispose()
+    end
+    */
+    action GetComputeDevice returns HardwareComputeDevice
+        if computeDevice = undefined and not lookedForComputeDevice
+            lookedForComputeDevice = true
+            // no compute on the web yet; WebGPU would go here
+            if not GetOperatingSystem():Contains("Web Browser")
+                VulkanComputeDevice vulkan
+                if vulkan:Start()
+                    computeDevice = vulkan
+                end
+            end
+        end
+        return computeDevice
+    end
+
+    /*
+    This action sets the program's compute device. VulkanGraphics calls it
+    when it has finished starting, with a device sharing the game's, so
+    computations made from then on use the game's device. Computations
+    made before keep the device they were made on.
+
+    Attribute: Parameter device the device, already started.
+
+    Attribute: Example
+
+    use Libraries.Game.GameStateManager
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+
+    GameStateManager manager
+    VulkanComputeDevice device
+    if device:Start()
+        manager:SetComputeDevice(device)
+    end
+    */
+    action SetComputeDevice(HardwareComputeDevice device)
+        computeDevice = device
+        lookedForComputeDevice = true
+    end
 end

@@ -1,0 +1,273 @@
+package Libraries.Compute.Hardware
+
+/*
+The HardwareComputeLimits class holds what a compute device allows, in
+terms that don't depend on the graphics system: how large a work group may
+be, how many work groups one run may have, how much shared memory a work
+group may use, how large a block of data may be, and whether the device
+has 64-bit numbers. A HardwareComputeDevice fills one in (GetLimits);
+programs read it to choose work group sizes that fit.
+
+Attribute: Example
+
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareComputeLimits
+
+GameStateManager manager
+HardwareComputeDevice device = manager:GetComputeDevice()
+if device not= undefined
+    HardwareComputeLimits limits = device:GetLimits()
+    output "Up to " + limits:GetMaxWorkGroupThreads() + " threads per work group"
+end
+*/
+class HardwareComputeLimits
+    integer maxWorkGroupThreads = 0
+    integer maxWorkGroupSizeX = 0
+    integer maxWorkGroupSizeY = 0
+    integer maxWorkGroupSizeZ = 0
+    integer maxWorkGroupCountX = 0
+    integer maxWorkGroupCountY = 0
+    integer maxWorkGroupCountZ = 0
+    integer maxSharedMemoryBytes = 0
+    number maxDataBytes = 0
+    boolean hasNumber64 = false
+
+    /*
+    This action returns the most threads one work group may have, in all
+    directions together.
+
+    Attribute: Returns the number of threads.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    output limits:GetMaxWorkGroupThreads()
+    */
+    action GetMaxWorkGroupThreads returns integer
+        return maxWorkGroupThreads
+    end
+
+    /*
+    This action sets the most threads one work group may have. The device
+    calls it.
+
+    Attribute: Parameter threads the number of threads.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetMaxWorkGroupThreads(1024)
+    */
+    action SetMaxWorkGroupThreads(integer threads)
+        maxWorkGroupThreads = threads
+    end
+
+    /*
+    This action returns how wide a work group may be in one direction.
+
+    Attribute: Parameter direction 0 across, 1 down, 2 deep.
+
+    Attribute: Returns the most threads in that direction.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    output limits:GetMaxWorkGroupSize(0)
+    */
+    action GetMaxWorkGroupSize(integer direction) returns integer
+        CheckDirection(direction)
+        if direction = 0
+            return maxWorkGroupSizeX
+        elseif direction = 1
+            return maxWorkGroupSizeY
+        end
+        return maxWorkGroupSizeZ
+    end
+
+    /*
+    This action sets how wide a work group may be in each direction. The
+    device calls it.
+
+    Attribute: Parameter x the most threads across.
+
+    Attribute: Parameter y the most threads down.
+
+    Attribute: Parameter z the most threads deep.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetMaxWorkGroupSize(1024, 1024, 64)
+    */
+    action SetMaxWorkGroupSize(integer x, integer y, integer z)
+        maxWorkGroupSizeX = x
+        maxWorkGroupSizeY = y
+        maxWorkGroupSizeZ = z
+    end
+
+    /*
+    This action returns how many work groups one run may have in one
+    direction.
+
+    Attribute: Parameter direction 0 across, 1 down, 2 deep.
+
+    Attribute: Returns the most work groups in that direction.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    output limits:GetMaxWorkGroupCount(0)
+    */
+    action GetMaxWorkGroupCount(integer direction) returns integer
+        CheckDirection(direction)
+        if direction = 0
+            return maxWorkGroupCountX
+        elseif direction = 1
+            return maxWorkGroupCountY
+        end
+        return maxWorkGroupCountZ
+    end
+
+    /*
+    This action sets how many work groups one run may have in each
+    direction. The device calls it.
+
+    Attribute: Parameter x the most work groups across.
+
+    Attribute: Parameter y the most work groups down.
+
+    Attribute: Parameter z the most work groups deep.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetMaxWorkGroupCount(65535, 65535, 65535)
+    */
+    action SetMaxWorkGroupCount(integer x, integer y, integer z)
+        maxWorkGroupCountX = x
+        maxWorkGroupCountY = y
+        maxWorkGroupCountZ = z
+    end
+
+    /*
+    This action returns how much shared memory one work group may use.
+
+    Attribute: Returns the size in bytes.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    output limits:GetMaxSharedMemoryBytes()
+    */
+    action GetMaxSharedMemoryBytes returns integer
+        return maxSharedMemoryBytes
+    end
+
+    /*
+    This action sets how much shared memory one work group may use. The
+    device calls it.
+
+    Attribute: Parameter bytes the size in bytes.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetMaxSharedMemoryBytes(32768)
+    */
+    action SetMaxSharedMemoryBytes(integer bytes)
+        maxSharedMemoryBytes = bytes
+    end
+
+    /*
+    This action returns how large one block of data a program reads and
+    writes may be. It is a number, since it can pass the largest integer.
+
+    Attribute: Returns the size in bytes.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    output limits:GetMaxDataBytes()
+    */
+    action GetMaxDataBytes returns number
+        return maxDataBytes
+    end
+
+    /*
+    This action sets how large one block of data may be. The device calls
+    it.
+
+    Attribute: Parameter bytes the size in bytes.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetMaxDataBytes(4294967295.0)
+    */
+    action SetMaxDataBytes(number bytes)
+        maxDataBytes = bytes
+    end
+
+    /*
+    This action says whether the device has real 64-bit numbers, which
+    HardwareCompute's NUMBER_64 format needs.
+
+    Attribute: Returns true if the device has 64-bit numbers.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    if not limits:HasNumber64()
+        output "Numbers are held as two 32-bit numbers each."
+    end
+    */
+    action HasNumber64 returns boolean
+        return hasNumber64
+    end
+
+    /*
+    This action sets whether the device has 64-bit numbers. The device
+    calls it.
+
+    Attribute: Parameter yes true if it has them.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetHasNumber64(false)
+    */
+    action SetHasNumber64(boolean yes)
+        hasNumber64 = yes
+    end
+
+    private action CheckDirection(integer direction)
+        if direction < 0 or direction > 2
+            alert("A direction needs to be 0 (across), 1 (down) or 2 (deep), not " + direction + ".")
+        end
+    end
+end

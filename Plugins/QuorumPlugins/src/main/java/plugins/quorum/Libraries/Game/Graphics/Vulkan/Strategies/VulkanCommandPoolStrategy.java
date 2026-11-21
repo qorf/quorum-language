@@ -10,4 +10,5 @@ public interface VulkanCommandPoolStrategy
 {
     boolean CreateNative(VulkanDevice_ quorumDevice, int flags, int queueFamilyIndex);
     long GetCommandPoolHandle();
+    void DisposeNative(VulkanDevice_ quorumDevice);
 }

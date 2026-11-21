@@ -38,5 +38,14 @@ public class NativeVulkanComputePipeline implements VulkanComputePipelineStrateg
         return pipelineHandle;
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (pipelineHandle == 0L)
+            return;
+        DestroyComputePipeline(NativeVulkan.DeviceHandle(quorumDevice), pipelineHandle);
+        pipelineHandle = 0L;
+    }
+
     private static native long CreateComputePipeline(long device, long cache, long layout, int stage, long module);
+    private static native void DestroyComputePipeline(long device, long pipeline);
 }

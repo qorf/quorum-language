@@ -15,6 +15,7 @@ import java.nio.LongBuffer;
 import static org.lwjgl.vulkan.VK10.VK_INCOMPLETE;
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 import static org.lwjgl.vulkan.VK10.vkCreatePipelineCache;
+import static org.lwjgl.vulkan.VK10.vkDestroyPipelineCache;
 import static org.lwjgl.vulkan.VK10.vkGetPipelineCacheData;
 
 public class DesktopVulkanPipelineCache implements VulkanPipelineCacheStrategy
@@ -106,5 +107,14 @@ public class DesktopVulkanPipelineCache implements VulkanPipelineCacheStrategy
 
     public long GetVulkanCacheHandle() {
         return vulkanCacheHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (vulkanCacheHandle == 0L)
+            return;
+        VulkanDevice pluginDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_;
+        vkDestroyPipelineCache(pluginDevice.GetDevice(), vulkanCacheHandle, null);
+        vulkanCacheHandle = 0L;
     }
 }

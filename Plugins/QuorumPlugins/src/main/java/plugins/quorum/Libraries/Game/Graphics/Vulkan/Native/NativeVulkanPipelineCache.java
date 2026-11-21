@@ -43,7 +43,16 @@ public class NativeVulkanPipelineCache implements VulkanPipelineCacheStrategy
         return cacheHandle;
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (cacheHandle == 0L)
+            return;
+        DestroyPipelineCache(NativeVulkan.DeviceHandle(quorumDevice), cacheHandle);
+        cacheHandle = 0L;
+    }
+
     private static native long CreatePipelineCache(long device);
+    private static native void DestroyPipelineCache(long device, long cache);
     // data may be null or empty, for an empty cache.
     private static native long CreatePipelineCacheWithData(long device, byte[] data);
     private static native byte[] GetPipelineCacheData(long device, long cache);

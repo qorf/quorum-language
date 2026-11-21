@@ -26,6 +26,11 @@ public class VulkanComputePipeline
         return strategy.GetPipelineHandle();
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        strategy.DisposeNative(quorumDevice);
+    }
+
     public VulkanComputePipelineStrategy GetStrategy()
     {
         return strategy;

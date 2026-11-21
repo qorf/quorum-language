@@ -50,6 +50,9 @@ class TerrainBrushMouseListener is MouseMovementListener
             // An edge or corner of the region tools' placeholder being
             // dragged follows the pointer.
             editor:DragRegionPlaceholder(event:GetX(), event:GetY())
+        elseif editor not= undefined and editor:IsDraggingLake()
+            // A chosen lake's handle being dragged raises or lowers it.
+            editor:DragLake(event:GetX(), event:GetY())
         elseif editor not= undefined and editor:IsDraggingItem()
             // A placed item being dragged follows the pointer.
             editor:DragItem(event:GetX(), event:GetY())

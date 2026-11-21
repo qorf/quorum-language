@@ -34,11 +34,100 @@ class VulkanShaderManager is ShaderManager
         return compiler
     end
 
+    /*
+    This action frees a shader's Vulkan module, on the game's device, and
+    forgets it. Pipelines already made with it keep working. Doing it to a
+    shader that isn't compiled does nothing.
+
+    Attribute: Parameter shader the shader to free.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+    use Libraries.Game.Graphics.Shaders.Shader
+
+    VulkanShaderManager manager
+    Shader shader
+    // after compiling it, and once nothing still uses it
+    manager:DisposeShader(shader)
+    */
     action DisposeShader(Shader shader)
-        alert("NYI")
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if graphics is VulkanGraphics
+            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+            DisposeShader(shader, vulkan:GetDevice())
+        end
     end
 
+    /*
+    This action frees a shader's Vulkan module on the device it was
+    compiled with, and forgets it. Pipelines already made with it keep
+    working. Doing it to a shader that isn't compiled does nothing.
+
+    Attribute: Parameter shader the shader to free.
+
+    Attribute: Parameter device the device the shader was compiled with.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+    use Libraries.Game.Graphics.Shaders.Shader
+    use Libraries.Game.Graphics.Vulkan.VulkanDevice
+
+    VulkanShaderManager manager
+    Shader shader
+    VulkanDevice device
+    // after compiling the shader with the device, and once nothing still uses it
+    manager:DisposeShader(shader, device)
+    */
+    action DisposeShader(Shader shader, VulkanDevice device)
+        DisposeShaderNative(shader, device)
+        text name = shader:GetName()
+        if HasShader(name)
+            if GetShader(name) = shader
+                RemoveShader(name)
+            end
+        end
+    end
+
+    private system action DisposeShaderNative(Shader shader, VulkanDevice device)
+
     action CompileShader(Shader shader) returns integer
+        GameStateManager manager
+        GraphicsManager graphics = manager:GetGameGraphics()
+        if not (graphics is VulkanGraphics)
+            alert("I can't compile the shader '" + shader:GetName() + "' because VulkanGraphics wasn't available!")
+        end
+        VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
+        return CompileShader(shader, vulkan:GetDevice())
+    end
+
+    /*
+    This action compiles a shader for a given device: GLSL to SPIR-V, then
+    the device's shader module. CompileShader(shader) calls it with the
+    game's device; computations with a device of their own, with no game,
+    call it with theirs.
+
+    Attribute: Parameter shader the shader, named and with its source set.
+
+    Attribute: Parameter device the device the shader will be used on.
+
+    Attribute: Returns the shader's ID.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Shaders.Vulkan.VulkanShaderManager
+    use Libraries.Game.Graphics.Shaders.Shader
+    use Libraries.Game.Graphics.Vulkan.VulkanDevice
+
+    VulkanShaderManager manager
+    Shader shader
+    VulkanDevice device
+    // with the shader's name, type and source set, and the device created
+    integer id = manager:CompileShader(shader, device)
+    */
+    action CompileShader(Shader shader, VulkanDevice device) returns integer
         if shader:IsCompiled()
             return shader:GetID()
         end
@@ -51,16 +140,9 @@ class VulkanShaderManager is ShaderManager
         SPIRVShaderCompiler compiler = GetCompiler()
         ByteArray bytes = compiler:Compile(name, shader:GetCode(), shader:GetType())
 
-        GameStateManager manager
-        GraphicsManager graphics = manager:GetGameGraphics()
-        if graphics is VulkanGraphics
-            VulkanGraphics vulkan = cast(VulkanGraphics, graphics)
-            boolean success = CompileShaderNative(shader, vulkan:GetDevice(), bytes)
-            if not success
-                alert("An error occurred while compiling the shader '" + name + "'")
-            end
-        else
-            alert("I can't compile the shader '" + name + "' because VulkanGraphics wasn't available!")
+        boolean success = CompileShaderNative(shader, device, bytes)
+        if not success
+            alert("An error occurred while compiling the shader '" + name + "'")
         end
 
         Register(name, shader)

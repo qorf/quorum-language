@@ -17,4 +17,44 @@ class VulkanCommandPool
 
     private system action CreateNative(VulkanDevice device, integer flags, integer queueFamilyIndex) returns boolean
 
+
+    /*
+    This action frees the command pool and every command buffer made from
+    it. None of them may be waiting to run or running. Doing it twice does
+    nothing.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanCommandPool
+
+    VulkanCommandPool pool
+    // after Create, and once the device has finished with its buffers
+    pool:Dispose()
+    */
+    action Dispose
+        if not initialized
+            return now
+        end
+        DisposeNative(device)
+        initialized = false
+    end
+
+    private system action DisposeNative(VulkanDevice device)
+
+    /*
+    This action returns true if the pool has been made and not freed.
+
+    Attribute: Returns True if the pool exists.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanCommandPool
+
+    VulkanCommandPool pool
+    output pool:IsInitialized()
+    */
+    action IsInitialized returns boolean
+        return initialized
+    end
+
 end

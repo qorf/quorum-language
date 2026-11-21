@@ -150,6 +150,7 @@ use Libraries.Game.Graphics.Worlds.TerrainWater
 use Libraries.Game.Graphics.Worlds.TerrainLake
 use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Interface.Controls.Scenes.Items.TerrainPathLine
+use Libraries.Interface.Controls.Scenes.Items.LakeLevelHandle
 use Libraries.Interface.Undo.SceneEditorRiverEdit
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainWaterPropertiesDialog
@@ -617,6 +618,34 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainRiver chosenRiver = undefined
     integer chosenRiverPoint = -1
     boolean riverDragging = false
+    // How many clicks the last press of the pointer was: 2 for the second
+    // click of a double-click (SetPointerClickCount).
+    integer pointerClickCount = 0
+    // Whether a river was being drawn last frame, and whether the status
+    // line shows the river's words, so the sections and the line follow
+    // when drawing starts and ends.
+    boolean riverDrawingShown = false
+    boolean riverStatusShown = false
+
+    // The lake chosen with the Fill water tool, to raise and lower: its
+    // terrain, its handle and where the handle stands, the spill point's
+    // marker, and the handle's drag: the level it is dragged to, whether it
+    // moved, the time since the water last filled again, and the water
+    // before the drag, for undo.
+    TerrainLake chosenLake = undefined
+    EditorTerrain chosenLakeTerrain = undefined
+    LakeLevelHandle lakeHandle = undefined
+    number lakeHandleX = 0
+    number lakeHandleZ = 0
+    TerrainPathLine spillMarker = undefined
+    boolean lakeDragging = false
+    boolean lakeDragMoved = false
+    number lakeDragLevel = 0
+    number lakeRefillSeconds = 0
+    WaterState lakeDragBefore = undefined
+    constant number LAKE_REFILL_SECONDS = 0.15
+    // How far Alt+] and Alt+[ raise and lower a chosen lake.
+    constant number LAKE_STEP = 0.5
     boolean riverDragMoved = false
     number riverDragX = 0
     number riverDragZ = 0
@@ -1164,6 +1193,12 @@ action Update(number seconds)
         UpdateRiverDrag()
         UpdateRegionDrag()
         UpdateItemDrag()
+        UpdateRiverDrawingShown()
+        UpdateLakeDrag(seconds)
+        // A chosen lake is let go once Fill water isn't the tool.
+        if chosenLake not= undefined and (brushTerrain = undefined or brushTerrain:GetToolNumber() not= brushTerrain:FILL_WATER_TOOL)
+            DropChosenLake()
+        end
         UpdateCameraKeys()
         UpdateFollowCamera()
         // The vehicle guides go wherever the car is, however it moved.
@@ -3770,6 +3805,10 @@ action Update(number seconds)
             PressRegionTool(terrain, x, y)
             return now
         end
+        // With Fill water, a press on the chosen lake's handle drags it.
+        if terrain not= undefined and terrain:GetToolNumber() = terrain:FILL_WATER_TOOL and BeginLakeDrag(x, y)
+            return now
+        end
         Vector3 hit = PickPointerGround(terrain, x, y)
         if hit = undefined
             return now
@@ -4302,34 +4341,377 @@ the foliage there is drawn again, the terrain is
             NotifyAccessibility(terrain, "There is no ground there to pour water on.")
             return now
         end
+        TerrainWater water = terrain:GetWater()
+        // A click on a lake's water chooses it, to raise or lower it.
+        TerrainLake clicked = water:GetLakeAt(x, z)
+        if clicked not= undefined and not clicked:IsFollowingGround()
+            ChooseLake(terrain, clicked)
+            return now
+        end
         WaterState before
         before:Copy(terrain)
-        TerrainWater water = terrain:GetWater()
-        number level = RoundTenth(data:GetSurfaceHeight(x, z) + terrain:GetWaterDepth())
-        TerrainLake existing = water:GetMaskedLakeAt(x, z)
-        text oldName = ""
-        if existing not= undefined
-            oldName = existing:GetName()
-        end
-        TerrainLake lake = water:FillLake(x, z, level)
+        // The water's depth is above the bottom of the hollow it runs to,
+        // so a click on a hollow's side or its floor gives the same lake.
+        TerrainLake probe
+        number bottom = probe:FindBottom(data, x, z)
+        number level = RoundTenth(bottom + terrain:GetWaterDepth())
+        integer mode = terrain:GetWaterFillMode()
+        TerrainLake lake = water:FillLake(x, z, level, mode)
         if lake = undefined
-            NotifyAccessibility(terrain, "There is no hollow here to hold water: the ground slopes away, so the water would run off.")
+            if mode = probe:FILL_POURED
+                NotifyAccessibility(terrain, "There is no hollow here to hold water: the ground slopes away, so the water would run off.")
+            else
+                NotifyAccessibility(terrain, "No ground here is lower than the water's level, so nothing filled.")
+            end
             return now
         end
         if lake:GetName() = ""
-            if oldName not= ""
-                lake:SetName(oldName)
-            else
-                lake:SetName("Lake " + water:GetLakeCount())
-            end
+            lake:SetName("Lake " + water:GetLakeCount())
         end
         terrain:WaterChanged()
-        text stoppedAt = "water at " + level
-        if water:DidLastFillSpill()
-            stoppedAt = "water at " + RoundTenth(lake:GetLevel()) + ", the hollow's rim"
+        text size = "" + lake:GetWaterCellCount() + " cells, about " + RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) +
+            ", deepest " + RoundTenth(lake:GetDeepest(data))
+        text message = "Filled " + lake:GetName() + " to height " + RoundTenth(lake:GetLevel()) + ": " + size + "."
+        HideSpillMarker()
+        if mode = probe:FILL_POURED and lake:IsSpilled()
+            if lake:DidReachEdge()
+                message = "The water reached the terrain's edge at height " + RoundTenth(lake:GetLevel()) + ", where it would run off: " + size + "."
+            else
+                message = "Stopped at the hollow's rim at height " + RoundTenth(lake:GetLevel()) + ", near " + RoundTenth(lake:GetSpillX()) + ", " +
+                    RoundTenth(lake:GetSpillZ()) + ", where it would spill: " + size + ". Raise the ground there, or choose To the level."
+            end
+            ShowSpillMarker(terrain, lake:GetSpillX(), lake:GetSpillZ())
+        elseif lake:DidReachEdge()
+            message = message + " The water reached the terrain's edge, so the lake stops there."
         end
-        RecordWaterChange(terrain, before, "fill " + lake:GetName(), "Filled the hollow: " + stoppedAt + ", " +
-            lake:GetWaterCellCount() + " cells, about " + RoundTenth(lake:GetWidth()) + " by " + RoundTenth(lake:GetDepth()) + ".")
+        RecordWaterChange(terrain, before, "fill " + lake:GetName(), message + " Alt+] and Alt+[ raise and lower it.")
+        ChooseLake(terrain, lake, false)
+    end
+
+    /*
+    This action sets how the Fill water tool fills: up to its level,
+    wherever the hollow's rim is, or as poured water, which stops at the
+    rim.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter mode TerrainLake's FILL_TO_LEVEL (0) or FILL_POURED (1)
+    */
+    action SetWaterFillMode(EditorTerrain terrain, integer mode)
+        if terrain = undefined
+            return now
+        end
+        terrain:SetWaterFillMode(mode)
+        TerrainBrushChanged(terrain)
+        if terrain:GetWaterFillMode() = 0
+            NotifyAccessibility(terrain, "Fill water: to the level.")
+        else
+            NotifyAccessibility(terrain, "Fill water: like poured water, stopping at the hollow's rim.")
+        end
+    end
+
+    /*
+    This action chooses a lake, to raise or lower its water with Alt+] and
+    Alt+[ or by dragging its handle, and says how to.
+
+    Attribute: Parameter terrain The lake's terrain
+    Attribute: Parameter lake The lake
+    */
+    action ChooseLake(EditorTerrain terrain, TerrainLake lake)
+        ChooseLake(terrain, lake, true)
+    end
+
+    /*
+    Chooses a lake, saying so if asked.
+    */
+    private action ChooseLake(EditorTerrain terrain, TerrainLake lake, boolean report)
+        chosenLake = lake
+        chosenLakeTerrain = terrain
+        PlaceLakeHandle()
+        if report and lake not= undefined
+            TerrainData data = terrain:GetWorldTerrain():GetData()
+            NotifyAccessibility(terrain, lake:GetName() + ", water at " + RoundTenth(lake:GetLevel()) + ", " + RoundTenth(lake:GetDeepest(data)) +
+                " deep. Alt+] and Alt+[ raise and lower it; drag its handle up or down.")
+        end
+    end
+
+    /*
+    This action lets go of the chosen lake, and hides its handle.
+
+    Attribute: Returns True if a lake was chosen
+    */
+    action DropChosenLake returns boolean
+        if chosenLake = undefined
+            return false
+        end
+        chosenLake = undefined
+        chosenLakeTerrain = undefined
+        lakeDragging = false
+        if lakeHandle not= undefined
+            lakeHandle:Hide()
+        end
+        HideSpillMarker()
+        return true
+    end
+
+    /*
+    Puts the chosen lake's handle at its lowest ground, up to its water.
+    */
+    private action PlaceLakeHandle
+        if chosenLake = undefined or chosenLakeTerrain = undefined
+            return now
+        end
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        if lakeHandle = undefined
+            LakeLevelHandle handle
+            handle:SetName("Lake Handle")
+            lakeHandle = handle
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(handle)
+        end
+        TerrainData data = chosenLakeTerrain:GetWorldTerrain():GetData()
+        number ground = chosenLake:GetLowestGround(data)
+        number handleX = chosenLake:GetLowestX()
+        number handleZ = chosenLake:GetLowestZ()
+        if not chosenLake:IsMasked()
+            handleX = chosenLake:GetX()
+            handleZ = chosenLake:GetZ()
+            if data:HasHeight(handleX, handleZ)
+                ground = data:GetSurfaceHeight(handleX, handleZ)
+            end
+        end
+        number level = chosenLake:GetLevel()
+        if lakeDragging
+            level = lakeDragLevel
+        end
+        lakeHandleX = handleX
+        lakeHandleZ = handleZ
+        lakeHandle:Place(handleX, ground, handleZ, level)
+        lakeHandle:Show()
+    end
+
+    /*
+    This action raises or lowers the chosen lake's water by an amount, as
+    one step to undo. Alt+] and Alt+[ call it, with the Fill water tool.
+
+    Attribute: Parameter change How much to raise it, or less than 0 to lower it
+    */
+    action StepLakeLevel(number change)
+        if chosenLake = undefined or not CanChangeWater(chosenLakeTerrain)
+            return now
+        end
+        EditorTerrain terrain = chosenLakeTerrain
+        WaterState before
+        before:Copy(terrain)
+        SetChosenLakeLevel(RoundTenth(chosenLake:GetLevel() + change))
+        text changeName = "raise " + chosenLake:GetName()
+        if change < 0
+            changeName = "lower " + chosenLake:GetName()
+        end
+        RecordWaterChange(terrain, before, changeName, DescribeChosenLake())
+    end
+
+    /*
+    Sets the chosen lake's level: a lake of water cells fills again at it
+    (in its own way, to the level or poured), and the handle follows.
+    */
+    private action SetChosenLakeLevel(number level)
+        if chosenLake = undefined
+            return now
+        end
+        TerrainWater water = chosenLakeTerrain:GetWater()
+        water:SetLake(chosenLake, chosenLake:GetX(), chosenLake:GetZ(), chosenLake:GetWidth(), chosenLake:GetDepth(), level)
+        chosenLakeTerrain:WaterChanged()
+        PlaceLakeHandle()
+    end
+
+    /*
+    Returns the chosen lake's level and depth, as words.
+    */
+    private action DescribeChosenLake returns text
+        TerrainData data = chosenLakeTerrain:GetWorldTerrain():GetData()
+        text result = chosenLake:GetName() + ": water at " + RoundTenth(chosenLake:GetLevel()) + ", " + RoundTenth(chosenLake:GetDeepest(data)) + " deep"
+        if chosenLake:IsSpilled() and chosenLake:GetFillMode() = chosenLake:FILL_POURED
+            result = result + ", stopped at its rim"
+        end
+        return result + "."
+    end
+
+    /*
+    This action starts dragging the chosen lake's handle, when the pointer
+    is pressed near it: dragging up or down raises or lowers the water.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    Attribute: Returns True if the press was on the handle
+    */
+    action BeginLakeDrag(number x, number y) returns boolean
+        if chosenLake = undefined or lakeHandle = undefined or not lakeHandle:IsShowing()
+            return false
+        end
+        Ray pickRay = GetPointerRay(x, y)
+        if pickRay = undefined
+            return false
+        end
+        // How close the ray passes to the handle's post, across the
+        // ground, at the point along it nearest the post.
+        Vector3 origin = pickRay:GetOrigin()
+        Vector3 direction = pickRay:GetDirection()
+        number flatLength = direction:GetX() * direction:GetX() + direction:GetZ() * direction:GetZ()
+        if flatLength < 0.000001
+            return false
+        end
+        number along = ((lakeHandleX - origin:GetX()) * direction:GetX() + (lakeHandleZ - origin:GetZ()) * direction:GetZ()) / flatLength
+        if along < 0
+            return false
+        end
+        number passX = origin:GetX() + direction:GetX() * along - lakeHandleX
+        number passZ = origin:GetZ() + direction:GetZ() * along - lakeHandleZ
+        number passY = origin:GetY() + direction:GetY() * along
+        number distance = math:SquareRoot(passX * passX + passZ * passZ)
+        number reach = math:MaximumOf(1.5, math:SquareRoot(flatLength) * along * 0.03)
+        TerrainData data = chosenLakeTerrain:GetWorldTerrain():GetData()
+        number ground = chosenLake:GetLowestGround(data)
+        if distance > reach or passY < ground - reach or passY > chosenLake:GetLevel() + reach
+            return false
+        end
+        lakeDragging = true
+        lakeDragMoved = false
+        lakeDragLevel = chosenLake:GetLevel()
+        lakeRefillSeconds = 0
+        WaterState before
+        before:Copy(chosenLakeTerrain)
+        lakeDragBefore = before
+        return true
+    end
+
+    /*
+    This action returns true while the chosen lake's handle is dragged.
+
+    Attribute: Returns True while dragging
+    */
+    action IsDraggingLake returns boolean
+        return lakeDragging
+    end
+
+    /*
+    This action follows the pointer while the lake's handle is dragged: the
+    water's level is where the pointer's ray meets an upright plane through
+    the handle, facing the camera. The handle follows at once; the water
+    fills again every so often, and when the drag ends.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action DragLake(number x, number y)
+        if not lakeDragging or chosenLake = undefined
+            return now
+        end
+        Ray pickRay = GetPointerRay(x, y)
+        if pickRay = undefined
+            return now
+        end
+        Vector3 origin = pickRay:GetOrigin()
+        Vector3 direction = pickRay:GetDirection()
+        // The plane's normal: the camera's way, level.
+        number normalX = lakeHandleX - origin:GetX()
+        number normalZ = lakeHandleZ - origin:GetZ()
+        number facing = direction:GetX() * normalX + direction:GetZ() * normalZ
+        if math:AbsoluteValue(facing) < 0.000001
+            return now
+        end
+        number along = (normalX * normalX + normalZ * normalZ) / facing
+        if along < 0
+            return now
+        end
+        lakeDragLevel = RoundTenth(origin:GetY() + direction:GetY() * along)
+        TerrainData data = chosenLakeTerrain:GetWorldTerrain():GetData()
+        number ground = chosenLake:GetLowestGround(data)
+        if lakeDragLevel < ground + 0.1
+            lakeDragLevel = RoundTenth(ground + 0.1)
+        end
+        lakeDragMoved = true
+        PlaceLakeHandle()
+    end
+
+    /*
+    While the lake's handle is dragged: the water fills again at most every
+    0.15 seconds, and once more when the button is let go, as one step to
+    undo.
+    */
+    private action UpdateLakeDrag(number seconds)
+        if not lakeDragging
+            return now
+        end
+        lakeRefillSeconds = lakeRefillSeconds + seconds
+        if strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+            if lakeDragMoved and lakeRefillSeconds >= LAKE_REFILL_SECONDS and lakeDragLevel not= chosenLake:GetLevel()
+                lakeRefillSeconds = 0
+                SetChosenLakeLevel(lakeDragLevel)
+            end
+            return now
+        end
+        lakeDragging = false
+        if not lakeDragMoved or chosenLake = undefined
+            return now
+        end
+        SetChosenLakeLevel(lakeDragLevel)
+        if lakeDragBefore not= undefined
+            RecordWaterChange(chosenLakeTerrain, lakeDragBefore, "change " + chosenLake:GetName(), DescribeChosenLake())
+        end
+        lakeDragBefore = undefined
+    end
+
+    /*
+    Returns the ray from the camera through a point on the screen, or
+    undefined outside a 3D layer.
+    */
+    private action GetPointerRay(number x, number y) returns Ray
+        EditorLayer selectedLayer = GetSelectedLayer()
+        if not (selectedLayer is EditorLayer3D)
+            return undefined
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, selectedLayer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // GetPickRay mirrors x across the view, so the pointer's x is
+        // mirrored first.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        return camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+    end
+
+    /*
+    Marks where poured water would spill over a hollow's rim.
+    */
+    private action ShowSpillMarker(EditorTerrain terrain, number x, number z)
+        EditorLayer layer = GetSelectedLayer()
+        if not (layer is EditorLayer3D)
+            return now
+        end
+        if spillMarker = undefined
+            TerrainPathLine marker
+            marker:SetName("Spill Point")
+            spillMarker = marker
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(marker)
+        end
+        Array<number> xs
+        Array<number> zs
+        xs:Add(x)
+        zs:Add(z)
+        spillMarker:Forget()
+        spillMarker:Place(terrain:GetWorldTerrain():GetData(), xs, zs, 0)
+        spillMarker:Show()
+    end
+
+    /*
+    Hides the spill point's marker.
+    */
+    private action HideSpillMarker
+        if spillMarker not= undefined
+            spillMarker:Hide()
+        end
     end
 
     /*
@@ -4583,7 +4965,13 @@ the foliage there is drawn again, the terrain is
             return now
         end
         if riverDrawing
-            AddRiverDraftPoint(terrain, x, z)
+            // A click on the last point, or the second click of a
+            // double-click, finishes the river.
+            if (byMouse and pointerClickCount >= 2) or (riverDraftX:GetSize() >= 2 and IsNearLastRiverPoint(x, z))
+                FinishRiverDrawing()
+            else
+                AddRiverDraftPoint(terrain, x, z)
+            end
             return now
         end
         TerrainWater water = terrain:GetWater()
@@ -4630,6 +5018,7 @@ the foliage there is drawn again, the terrain is
         end
         // Anywhere else: a new river starts here.
         riverDrawing = true
+        riverStatusShown = false
         riverTerrain = terrain
         riverDraftX:Empty()
         riverDraftZ:Empty()
@@ -4639,7 +5028,7 @@ the foliage there is drawn again, the terrain is
         chosenRiverPoint = -1
         ShowRiverLine(terrain, riverDraftX, riverDraftZ, 0)
         NotifyAccessibility(terrain, "Started a river at " + RoundTenth(x) + ", " + RoundTenth(z) + ", ground height " + RoundTenth(data:GetSurfaceHeight(x, z)) +
-            ". Click, or move the cursor and press Space, to add its next point. Press Enter to finish it, or Escape to stop.")
+            ". Click, or move the cursor and press Space, to add its next point. Double-click, click the last point again or press Enter to finish it, or Escape to stop.")
     end
 
     /*
@@ -4661,6 +5050,17 @@ the foliage there is drawn again, the terrain is
         riverDraftX:Add(x)
         riverDraftZ:Add(z)
         ShowRiverLine(terrain, riverDraftX, riverDraftZ, riverDraftX:GetSize() - 1)
+        riverStatusShown = false
+        // A point in the sea or a lake ends the river there, if the
+        // terrain is set to.
+        if terrain:IsRiverEndingInWater()
+            text waterName = GetWaterNameAt(terrain, x, z)
+            if waterName not= ""
+                NotifyAccessibility(terrain, "Point " + riverDraftX:GetSize() + " is in " + waterName + ", so the river ends there.")
+                FinishRiverDrawing()
+                return now
+            end
+        end
         number drop = data:GetSurfaceHeight(lastX, lastZ) - data:GetSurfaceHeight(x, z)
         text slope = "the ground drops " + RoundTenth(drop)
         if drop < 0
@@ -4668,7 +5068,99 @@ the foliage there is drawn again, the terrain is
         elseif drop = 0
             slope = "the ground is level"
         end
-        NotifyAccessibility(terrain, "Point " + riverDraftX:GetSize() + ", " + RoundTenth(apart) + " units from the last; " + slope + ". Press Enter to finish the river.")
+        NotifyAccessibility(terrain, "Point " + riverDraftX:GetSize() + ", " + RoundTenth(apart) + " units from the last; " + slope + ". Double-click, click this point again or press Enter to finish the river.")
+    end
+
+    /*
+    Returns the name of the water at a place, the sea or a lake, or "" if
+    it is dry.
+    */
+    private action GetWaterNameAt(EditorTerrain terrain, number x, number z) returns text
+        TerrainWater water = terrain:GetWater()
+        TerrainLake lake = water:GetLakeAt(x, z)
+        if lake not= undefined
+            if lake:GetName() = ""
+                return "a lake"
+            end
+            return lake:GetName()
+        end
+        TerrainData data = terrain:GetWorldTerrain():GetData()
+        if water:HasSea() and data:HasHeight(x, z) and data:GetSurfaceHeight(x, z) < water:GetSeaLevel()
+            return "the sea"
+        end
+        return ""
+    end
+
+    /*
+    Returns true if a place is near the last point of the river being drawn,
+    close enough to be a click on it.
+    */
+    private action IsNearLastRiverPoint(number x, number z) returns boolean
+        if riverDraftX:IsEmpty()
+            return false
+        end
+        integer last = riverDraftX:GetSize() - 1
+        number apartX = x - riverDraftX:Get(last)
+        number apartZ = z - riverDraftZ:Get(last)
+        return apartX * apartX + apartZ * apartZ <= RIVER_POINT_REACH * RIVER_POINT_REACH
+    end
+
+    /*
+    This action keeps how many clicks the last press of the pointer was, such
+    as 2 for the second click of a double-click. The 3D view's click
+    behavior sets it before the press is handled.
+
+    Attribute: Parameter count The click count
+    */
+    action SetPointerClickCount(integer count)
+        pointerClickCount = count
+    end
+
+    /*
+    This action sets whether a river being drawn finishes when a point is
+    put in water, the sea or a lake.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter value True to finish in water
+    */
+    action SetRiverEndingInWater(EditorTerrain terrain, boolean value)
+        if terrain = undefined
+            return now
+        end
+        terrain:SetRiverEndingInWater(value)
+        if value
+            NotifyAccessibility(terrain, "A river being drawn finishes when it reaches water.")
+        else
+            NotifyAccessibility(terrain, "A river being drawn doesn't finish in water.")
+        end
+    end
+
+    /*
+    Follows the river being drawn: the line above the palette says how many
+    points it has and how to finish it, and when drawing starts or ends,
+    the Brush and Water sections show or hide Finish river and Stop.
+    */
+    private action UpdateRiverDrawingShown
+        if riverDrawing and not riverStatusShown
+            riverStatusShown = true
+            ShowPlacementStatus("River: " + riverDraftX:GetSize() + " points. Double-click or click the last point to finish, or press Enter; Escape stops.")
+        elseif not riverDrawing and riverStatusShown
+            riverStatusShown = false
+            ShowPlacementStatus("")
+        end
+        if riverDrawing not= riverDrawingShown
+            riverDrawingShown = riverDrawing
+            EditorTerrain shown = brushTerrain
+            if riverTerrain not= undefined
+                shown = riverTerrain
+            end
+            if shown not= undefined
+                TerrainBrushChanged(shown)
+                if terrainWaterPropertiesDialog:IsShowing()
+                    terrainWaterPropertiesDialog:Refresh()
+                end
+            end
+        end
     end
 
     /*
@@ -8915,6 +9407,16 @@ The Brush section's "Describe the area" button calls it.
         // The strength is the brush's, as its size is, so it changes with or
         // without a tool chosen; the Brush section shows it either way.
         if terrain = undefined
+            return now
+        end
+        // With Fill water, which has no strength, the keys raise and lower
+        // the chosen lake.
+        if terrain:GetToolNumber() = terrain:FILL_WATER_TOOL and chosenLake not= undefined
+            if stronger
+                StepLakeLevel(LAKE_STEP)
+            else
+                StepLakeLevel(-LAKE_STEP)
+            end
             return now
         end
         TerrainBrush brush = terrain:GetBrush()

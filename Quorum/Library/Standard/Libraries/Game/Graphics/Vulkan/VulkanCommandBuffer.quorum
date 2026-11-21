@@ -31,9 +31,28 @@ class VulkanCommandBuffer
 
     private system action CreateNative(VulkanDevice device, VulkanCommandPool commandPool, integer level) returns boolean
 
+    /*
+    This action frees the command buffer, giving it back to its command
+    pool. It may not be waiting to run or running. Doing it twice does
+    nothing. Freeing the pool frees its buffers too.
+
+    Attribute: Example
+
+    use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+
+    VulkanCommandBuffer commands
+    // after Create, and once the device has finished with it
+    commands:Dispose()
+    */
     action Dispose
-        alert("NYI")
+        if not initialized
+            return now
+        end
+        DisposeNative(device, commandPool)
+        initialized = false
     end
+
+    private system action DisposeNative(VulkanDevice device, VulkanCommandPool commandPool)
 
     /*
     This action resets the command buffer, removing any recorded commands from the buffer. This will also instruct the

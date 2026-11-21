@@ -18,4 +18,7 @@ public interface VulkanPipelineCacheStrategy
     byte[] GetData();
 
     long GetVulkanCacheHandle();
+
+    // Frees the cache. Pipelines made with it keep working.
+    void DisposeNative(VulkanDevice_ quorumDevice);
 }

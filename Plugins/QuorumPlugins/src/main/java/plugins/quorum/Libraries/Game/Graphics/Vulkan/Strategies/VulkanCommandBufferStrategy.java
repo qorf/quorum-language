@@ -13,4 +13,5 @@ public interface VulkanCommandBufferStrategy
     boolean BeginRecording();
     boolean EndRecording();
     void Reset(boolean releaseResources);
+    void DisposeNative(VulkanDevice_ quorumDevice, VulkanCommandPool_ quorumPool);
 }

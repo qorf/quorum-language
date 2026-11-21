@@ -23,5 +23,13 @@ public class NativeVulkanShaders implements VulkanShadersStrategy
     }
 
     private static native byte[] CompileShader(String shaderName, String code, int shaderType);
+    public void DestroyShaderModule(VulkanDevice_ device, long module)
+    {
+        if (module == 0L)
+            return;
+        DestroyShaderModule(NativeVulkan.DeviceHandle(device), module);
+    }
+
     private static native long CreateShaderModule(long device, byte[] code);
+    private static native void DestroyShaderModule(long device, long module);
 }

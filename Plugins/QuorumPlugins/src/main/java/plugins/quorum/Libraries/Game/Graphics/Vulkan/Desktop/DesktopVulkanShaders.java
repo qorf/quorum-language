@@ -18,15 +18,30 @@ This is the code SPIRVShaderCompiler and VulkanShaderManager had.
 */
 public class DesktopVulkanShaders implements VulkanShadersStrategy
 {
+    /*
+    Starting a shaderc compiler costs about 50 ms (measured on a Mac), as much as the
+    compile itself for any shader, so one compiler serves every compile for the
+    program's life. shaderc allows one compiler to be used for many compiles, from
+    any thread. It is released when the program ends.
+    */
+    private static long compilerHandle = 0;
+
+    private static synchronized long GetCompiler()
+    {
+        if (compilerHandle == 0)
+            compilerHandle = Shaderc.shaderc_compiler_initialize();
+        return compilerHandle;
+    }
+
     public byte[] CompileToSPIRV(String shaderName, String code, int shaderType, boolean optimizeShaders)
     {
-        long compilerHandle = 0;
         long optionsHandle = 0;
+        long result = 0;
         byte[] compiledShader;
 
         try
         {
-            compilerHandle = Shaderc.shaderc_compiler_initialize();
+            long compiler = GetCompiler();
             optionsHandle = Shaderc.shaderc_compile_options_initialize();
 
             // For tricky shader debugging, disabling optimization can prevent the compiler from stripping out
@@ -34,7 +49,7 @@ public class DesktopVulkanShaders implements VulkanShadersStrategy
             if (!optimizeShaders)
                 Shaderc.shaderc_compile_options_set_optimization_level(optionsHandle, 0);
 
-            long result = Shaderc.shaderc_compile_into_spv(compilerHandle, code, shaderType, shaderName, "main", optionsHandle);
+            result = Shaderc.shaderc_compile_into_spv(compiler, code, shaderType, shaderName, "main", optionsHandle);
 
             if (Shaderc.shaderc_result_get_compilation_status(result) != Shaderc.shaderc_compilation_status_success)
             {
@@ -47,8 +62,10 @@ public class DesktopVulkanShaders implements VulkanShadersStrategy
         }
         finally
         {
+            // the result's bytes were copied out above, so it can go
+            if (result != 0)
+                Shaderc.shaderc_result_release(result);
             Shaderc.shaderc_compile_options_release(optionsHandle);
-            Shaderc.shaderc_compiler_release(compilerHandle);
         }
 
         return compiledShader;
@@ -76,5 +93,13 @@ public class DesktopVulkanShaders implements VulkanShadersStrategy
 
             return handleBuffer.get(0);
         }
+    }
+
+    public void DestroyShaderModule(VulkanDevice_ device, long module)
+    {
+        if (module == 0L)
+            return;
+        VkDevice vulkanDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)device).plugin_.GetDevice();
+        vkDestroyShaderModule(vulkanDevice, module, null);
     }
 }

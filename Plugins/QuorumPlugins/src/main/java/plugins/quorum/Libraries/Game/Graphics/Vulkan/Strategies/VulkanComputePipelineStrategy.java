@@ -10,4 +10,5 @@ public interface VulkanComputePipelineStrategy
 {
     boolean CreateNative(VulkanDevice_ quorumDevice, VulkanComputePipelineInfo_ quorumInfo);
     long GetPipelineHandle();
+    void DisposeNative(VulkanDevice_ quorumDevice);
 }

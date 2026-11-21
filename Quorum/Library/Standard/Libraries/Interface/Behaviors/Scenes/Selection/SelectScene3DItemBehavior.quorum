@@ -54,6 +54,8 @@ class SelectScene3DItemBehavior is Behavior
             return now
         end
         if editor:IsTerrainBrushActive()
+            // The River tool finishes a river on a double-click.
+            editor:SetPointerClickCount(mouse:GetClickCount())
             editor:PressTerrainCursor(mouse:GetX(), mouse:GetY())
             return now
         end

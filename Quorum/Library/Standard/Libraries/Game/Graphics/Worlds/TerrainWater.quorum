@@ -278,6 +278,23 @@ class TerrainWater
     Attribute: Returns The lake filled, or undefined if nothing could hold water there.
     */
     action FillLake(number x, number z, number level) returns TerrainLake
+        TerrainLake poured
+        return FillLake(x, z, level, poured:FILL_POURED)
+    end
+
+    /*
+    This action fills a hollow with water from a point, either up to a
+    level, wherever the hollow's rim is, or as poured water, which stops at
+    the rim (TerrainLake's Fill). Poured into a lake of water cells, that
+    lake is filled again.
+
+    Attribute: Parameter x Where the water is poured, along x.
+    Attribute: Parameter z Where the water is poured, along z.
+    Attribute: Parameter level The level.
+    Attribute: Parameter mode TerrainLake's FILL_TO_LEVEL or FILL_POURED.
+    Attribute: Returns The lake filled, or undefined if nothing could hold water there.
+    */
+    action FillLake(number x, number z, number level, integer mode) returns TerrainLake
         lastFillSpilled = false
         if data = undefined
             return undefined
@@ -285,7 +302,7 @@ class TerrainWater
         TerrainLake existing = GetMaskedLakeAt(x, z)
         if existing not= undefined
             TerrainLake trial
-            integer trialCells = trial:Fill(data, x, z, level)
+            integer trialCells = trial:Fill(data, x, z, level, mode)
             lastFillSpilled = trial:IsSpilled()
             if trialCells = 0
                 return undefined
@@ -295,7 +312,7 @@ class TerrainWater
             return existing
         end
         TerrainLake lake
-        integer cellCount = lake:Fill(data, x, z, level)
+        integer cellCount = lake:Fill(data, x, z, level, mode)
         lastFillSpilled = lake:IsSpilled()
         if cellCount = 0
             return undefined
@@ -1103,6 +1120,11 @@ class TerrainWater
                         lake:StartFollowingSaved(ReadNumber(item, "Water Depth"))
                     end
                     lake:SetRuns(ReadNumber(item, "Cell Size"), runs)
+                    // How it fills again; a lake saved without it was
+                    // poured.
+                    if item:HasValue("Fill") and item:GetValue("Fill") = "Level"
+                        lake:SetFillMode(lake:FILL_TO_LEVEL)
+                    end
                 end
                 lakes:Add(lake)
                 i = i + 1
@@ -1203,6 +1225,11 @@ class TerrainWater
                     item:Add("Water Depth", lake:GetWaterDepth())
                 end
                 item:Add("Cell Size", lake:GetCellSize())
+                if lake:GetFillMode() = lake:FILL_TO_LEVEL
+                    item:Add("Fill", "Level")
+                else
+                    item:Add("Fill", "Poured")
+                end
                 JavaScriptObjectNotation runList
                 runList:SetArray()
                 Array<integer> runs = lake:GetRuns()

@@ -1,0 +1,807 @@
+package Libraries.Compute.Hardware.Vulkan
+
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetManager
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Number64BitArray
+use Libraries.System.File
+use Libraries.System.DateTime
+use Libraries.Compute.BitwiseOperations
+use Libraries.Game.Graphics.Vulkan.VulkanConstants
+use Libraries.Game.Graphics.Vulkan.VulkanDevice
+use Libraries.Game.Graphics.Vulkan.VulkanQueueFamily
+use Libraries.Game.Graphics.Vulkan.VulkanQueue
+use Libraries.Game.Graphics.Vulkan.VulkanCommandPool
+use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanBuffer
+use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
+use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSet
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineLayout
+use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+use Libraries.Game.Graphics.Vulkan.VulkanComputePipelineInfo
+use Libraries.Game.Graphics.Vulkan.VulkanComputePipeline
+use Libraries.Game.Graphics.Vulkan.VulkanFence
+use Libraries.Game.Graphics.Vulkan.VulkanSubmitInfo
+use Libraries.Game.Graphics.Vulkan.VulkanSemaphore
+use Libraries.Game.Graphics.Vulkan.VulkanMemoryBarrier
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantRange
+use Libraries.Game.Graphics.Vulkan.VulkanPushConstantBuffer
+use Libraries.Game.Graphics.Vulkan.Commands.BindComputePipelineCommand
+use Libraries.Game.Graphics.Vulkan.Commands.BindDescriptorSetCommand
+use Libraries.Game.Graphics.Vulkan.Commands.ComputeShaderDispatchCommand
+use Libraries.Game.Graphics.Vulkan.Commands.PipelineBarrierCommand
+use Libraries.Game.Graphics.Vulkan.Commands.SetPushConstantsCommand
+
+/*
+The VulkanCompute class is one computation on a VulkanComputeDevice (see
+HardwareCompute): its own program, data and commands on the device every
+computation in the program shares. VulkanComputeDevice:CreateCompute makes
+it, ready for SetProgram; Dispose releases what it made and leaves the
+device.
+
+It makes its own queue, command pool, command buffer and fence, so it
+never records into or waits on a game's frame, even on a game's device.
+Everything runs on the calling thread, as the game does, so sharing the
+game's queue needs no locking: a run finishes (it waits on its own fence)
+before the game records its next frame.
+
+Runs added between BeginRuns and FinishRuns go into one command buffer,
+with a memory barrier between each and the next, so each run sees what the
+one before wrote; FinishRuns submits them once and waits once. A run's
+integers (SetRunIntegerCount) are Vulkan push constants: the program reads
+them as a push_constant block of uints.
+
+Attribute: Example
+
+use Libraries.Game.GameStateManager
+use Libraries.Compute.Hardware.HardwareComputeDevice
+use Libraries.Compute.Hardware.HardwareCompute
+use Libraries.Containers.Number64BitArray
+
+GameStateManager manager
+HardwareComputeDevice device = manager:GetComputeDevice()
+if device not= undefined
+    // a VulkanCompute when the device is Vulkan
+    HardwareCompute compute = device:CreateCompute()
+    compute:SetProgram("Doubler", shaderSource)
+    compute:SetData(numbers)
+    compute:Run(numbers:GetSize(), 1, 1)
+    Number64BitArray answer
+    answer:SetSize(numbers:GetSize())
+    compute:GetValues(0, answer)
+    compute:Dispose()
+end
+*/
+class VulkanCompute is HardwareCompute
+    VulkanConstants constants
+    boolean ready = false
+
+    // the device every computation shares, and its Vulkan parts
+    VulkanComputeDevice computeDevice = undefined
+    VulkanDevice device = undefined
+    VulkanDescriptorSetManager descriptorSetManager = undefined
+
+    // this computation's own way of sending work
+    VulkanQueue queue = undefined
+    VulkanCommandPool commandPool = undefined
+    VulkanCommandBuffer commandBuffer = undefined
+
+    // the program
+    VulkanComputeShader shader = undefined
+    VulkanDescriptorSetLayout layout = undefined
+    VulkanPipelineLayout pipelineLayout = undefined
+    VulkanPipelineCache cache = undefined
+    VulkanComputePipeline pipeline = undefined
+
+    // the data
+    VulkanBuffer buffer = undefined
+    VulkanNumber32BitMappedMemory mapping = undefined
+    VulkanDescriptorSet descriptorSet = undefined
+    integer dataSize = 0
+    // how many numbers the buffer holds; it is kept while data fits
+    integer capacity = 0
+
+    // the program last compiled, so the same one isn't compiled again
+    text programName = ""
+    text programCode = ""
+
+    // one fence, reset before each run
+    VulkanFence fence = undefined
+
+    // where the pipeline cache is kept between runs; "" for nowhere
+    text cacheFile = ""
+
+    // integers given to each run (push constants); 0 for none
+    integer runIntegerCount = 0
+    VulkanPushConstantRange pushRange = undefined
+    VulkanPushConstantBuffer pushBuffer = undefined
+
+    // a group of runs being recorded
+    boolean recording = false
+    integer runsAdded = 0
+
+    // how long the last compile and pipeline build took, in milliseconds
+    DateTime clock
+    number compileTime = 0
+    number pipelineTime = 0
+
+    /*
+    This action sets the computation up on a device: a queue that can
+    compute, and its own command pool and command buffer.
+    VulkanComputeDevice:CreateCompute calls it; programs don't need to.
+
+    Attribute: Parameter owner the started device to compute on.
+
+    Attribute: Returns true if the device has a queue that can compute.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Vulkan.VulkanCompute
+    use Libraries.Compute.Hardware.Vulkan.VulkanComputeDevice
+
+    VulkanComputeDevice owner
+    if owner:Start()
+        VulkanCompute compute
+        boolean made = compute:Initialize(owner)
+    end
+    */
+    action Initialize(VulkanComputeDevice owner) returns boolean
+        if ready
+            return true
+        end
+        computeDevice = owner
+        device = owner:GetDevice()
+        descriptorSetManager = owner:GetDescriptorSetManager()
+        ready = StartQueue()
+        return ready
+    end
+
+    /*
+    This action returns the device this computation runs on.
+
+    Attribute: Returns the VulkanComputeDevice, as a HardwareComputeDevice.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetDevice returns HardwareComputeDevice
+        return computeDevice
+    end
+
+    // A queue that can compute, with this computation's own pool and
+    // command buffer, so nothing is recorded into the game's.
+    private action StartQueue returns boolean
+        BitwiseOperations bits
+        integer i = 0
+        repeat while i < device:GetQueueFamilyCount() and queue = undefined
+            VulkanQueueFamily family = device:GetQueueFamily(i)
+            if bits:And(family:GetQueueFlags(), constants:QUEUE_COMPUTE_BIT) not= 0
+                VulkanQueue found
+                found:Create(device, family, 0)
+                queue = found
+            end
+            i = i + 1
+        end
+        if queue = undefined
+            return false
+        end
+        VulkanCommandPool pool
+        if not pool:Create(device, constants:COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, queue:GetQueueFamily():GetQueueFamilyIndex())
+            return false
+        end
+        commandPool = pool
+        VulkanCommandBuffer commands
+        if not commands:Create(device, commandPool)
+            return false
+        end
+        commandBuffer = commands
+        return true
+    end
+
+    /*
+    This action sets the program, a GLSL compute shader, and compiles it to
+    SPIR-V and a shader module. The same name and source as the last one
+    keep the compiled program and pipeline, so setting it again costs
+    nothing. The pipeline is built on the first run after it.
+
+    Attribute: Parameter name a name for the program, used in error messages.
+
+    Attribute: Parameter code the program's GLSL source.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action SetProgram(text name, text code)
+        RequireReady()
+        if shader not= undefined and name = programName and code = programCode
+            return now
+        end
+        // the old program's pipeline and shader module go first
+        ReleasePipeline()
+        ReleaseShader()
+        programName = name
+        programCode = code
+        VulkanComputeShader made
+        made:SetName(name)
+        made:SetCode(code)
+        number mark = clock:GetEpochTime()
+        computeDevice:Compile(made)
+        compileTime = clock:GetEpochTime() - mark
+        shader = made
+    end
+
+    /*
+    This action copies 32-bit numbers to the graphics card, as they are, in
+    one copy. The buffer, and the descriptor set pointing at it, are kept
+    while the numbers fit; more than fit grow it to at least twice its
+    size.
+
+    Attribute: Parameter data the numbers.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action SetData(Number32BitArray data)
+        RequireReady()
+        MakeRoom(data:GetSize())
+        // one native copy for the whole block, rather than a native call per number
+        mapping:Set(data)
+        dataSize = data:GetSize()
+    end
+
+    /*
+    This action copies Quorum's 64-bit numbers to the graphics card, held as
+    the number format says. With DOUBLE_NUMBER_32 each number is split into
+    a high 32-bit number (the number rounded) and a low one (the rest,
+    rounded). The split is a Quorum loop; measured, it costs a few
+    milliseconds at most on 2,048 x 2,048 matrices, so no native version is
+    needed. NUMBER_64 isn't written yet.
+
+    Attribute: Parameter data the numbers.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action SetData(Number64BitArray data)
+        RequireReady()
+        if GetNumberFormat() = parent:HardwareCompute:NUMBER_64
+            alert("The NUMBER_64 number format isn't written yet: it needs a graphics card with 64-bit numbers. Use DOUBLE_NUMBER_32.")
+        end
+        integer count = data:GetSize()
+        Number32BitArray pairs
+        pairs:SetSize(count * 2)
+        integer i = 0
+        repeat while i < count
+            number value = data:Get(i)
+            // the high part is the number rounded to a float (setting a
+            // float rounds it); the low part is the rest, rounded to a float
+            pairs:Set(2 * i, value)
+            pairs:Set(2 * i + 1, value - pairs:Get(2 * i))
+            i = i + 1
+        end
+        SetData(pairs)
+    end
+
+    // Keeps the buffer, and the descriptor set pointing at it, while the
+    // data fits; a bigger block grows it to at least twice its size.
+    private action MakeRoom(integer floatCount)
+        if buffer not= undefined and floatCount <= capacity
+            return now
+        end
+        if buffer not= undefined
+            buffer:Dispose()
+        end
+        integer count = floatCount
+        if count < capacity * 2
+            count = capacity * 2
+        end
+        integer size = count * 4
+        VulkanBuffer made
+        made:Create(device, size, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT + constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT + constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT,
+            constants:MEMORY_USAGE_AUTO,
+            constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+            constants:MEMORY_PROPERTY_HOST_COHERENT_BIT + constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+            0,
+            false)
+        buffer = made
+        mapping = buffer:MapToNumber32BitMemory()
+        capacity = count
+        descriptorSet = undefined
+    end
+
+    /*
+    This action runs the program over x by y by z work groups and waits for
+    it to finish: BeginRuns, one AddRun and FinishRuns.
+
+    Attribute: Parameter x the number of work groups across.
+
+    Attribute: Parameter y the number of work groups down.
+
+    Attribute: Parameter z the number of work groups deep.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action Run(integer x, integer y, integer z)
+        BeginRuns()
+        AddRun(x, y, z, undefined)
+        FinishRuns()
+    end
+
+    /*
+    This action sets how many integers each run is given, as Vulkan push
+    constants: count * 4 bytes, for the compute stage. Changing it makes
+    the pipeline layout, and so the pipeline, again on the next run.
+
+    Attribute: Parameter count how many integers each run is given; 0 for none.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action SetRunIntegerCount(integer count)
+        if count < 0
+            alert("A run's integer count needs to be 0 or more, not " + count + ".")
+        end
+        if recording
+            alert("VulkanCompute can't change the run integer count between BeginRuns and FinishRuns.")
+        end
+        if count = runIntegerCount
+            return now
+        end
+        runIntegerCount = count
+        // the pipeline layout holds the push constants' size, so it is made again
+        ReleasePipeline()
+    end
+
+    /*
+    This action starts recording a group of runs into the command buffer:
+    it makes the pipeline and descriptor set if they are needed, then binds
+    them.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action BeginRuns
+        RequireReady()
+        if recording
+            alert("VulkanCompute is already adding runs: call FinishRuns first.")
+        end
+        if shader = undefined
+            alert("VulkanCompute needs a program: call SetProgram before running.")
+        end
+        if buffer = undefined
+            alert("VulkanCompute needs data: call SetData before running.")
+        end
+        if pipeline = undefined
+            MakePipeline()
+        end
+        if descriptorSet = undefined
+            MakeDescriptorSet()
+        end
+
+        commandBuffer:BeginRecording()
+        BindComputePipelineCommand bindPipeline
+        bindPipeline:SetPipeline(pipeline)
+        commandBuffer:Record(bindPipeline)
+        BindDescriptorSetCommand bindData
+        bindData:SetPipelineLayout(pipelineLayout)
+        bindData:SetBindPoint(constants:PIPELINE_BIND_POINT_COMPUTE)
+        bindData:SetSetIndex(0)
+        bindData:SetDescriptorSet(descriptorSet)
+        commandBuffer:Record(bindData)
+        recording = true
+        runsAdded = 0
+    end
+
+    /*
+    This action records one run: after the first, a memory barrier (the
+    run before must finish writing before this one reads, and finish
+    reading before this one writes), then the run's push constants, then
+    the dispatch.
+
+    Attribute: Parameter x the number of work groups across.
+
+    Attribute: Parameter y the number of work groups down.
+
+    Attribute: Parameter z the number of work groups deep.
+
+    Attribute: Parameter runIntegers this run's integers: as many as SetRunIntegerCount said, or undefined when that is 0.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action AddRun(integer x, integer y, integer z, Array<integer> runIntegers)
+        if not recording
+            alert("VulkanCompute needs BeginRuns before AddRun.")
+        end
+        integer given = 0
+        if runIntegers not= undefined
+            given = runIntegers:GetSize()
+        end
+        if given not= runIntegerCount
+            alert("Each run needs " + runIntegerCount + " integers (SetRunIntegerCount), but this one has " + given + ".")
+        end
+
+        // the run before must finish writing before this one reads, and
+        // finish reading before this one writes over what it read
+        if runsAdded > 0
+            RecordBarrier(constants:PIPELINE_STAGE_COMPUTE_SHADER_BIT, constants:ACCESS_SHADER_READ_BIT + constants:ACCESS_SHADER_WRITE_BIT)
+        end
+
+        if runIntegerCount > 0
+            // copied into the command buffer as it is recorded, so one buffer serves every run
+            pushBuffer:ResetWritePosition()
+            integer i = 0
+            repeat while i < runIntegerCount
+                pushBuffer:AddInteger32Bit(runIntegers:Get(i))
+                i = i + 1
+            end
+            SetPushConstantsCommand push
+            push:SetData(pushBuffer)
+            push:SetPipelineLayout(pipelineLayout)
+            push:SetStageFlags(constants:SHADER_STAGE_COMPUTE_BIT)
+            push:SetOffset(0)
+            commandBuffer:Record(push)
+        end
+
+        ComputeShaderDispatchCommand dispatch
+        dispatch:SetX(x)
+        dispatch:SetY(y)
+        dispatch:SetZ(z)
+        commandBuffer:Record(dispatch)
+        runsAdded = runsAdded + 1
+    end
+
+    /*
+    This action ends the recording with a barrier that makes what the runs
+    wrote visible to reading it back, submits the command buffer once, and
+    waits once on the compute's fence (made on the first run, reset after).
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action FinishRuns
+        if not recording
+            alert("VulkanCompute needs BeginRuns before FinishRuns.")
+        end
+        // what the runs wrote is made visible to reading it back
+        RecordBarrier(constants:PIPELINE_STAGE_HOST_BIT, constants:ACCESS_HOST_READ_BIT)
+        commandBuffer:EndRecording()
+        recording = false
+
+        if fence = undefined
+            VulkanFence madeFence
+            madeFence:Create(device, false)
+            fence = madeFence
+        else
+            fence:Reset()
+        end
+        Array<VulkanCommandBuffer> commandBuffers
+        commandBuffers:Add(commandBuffer)
+        Array<VulkanSemaphore> signalSemaphores
+        Array<VulkanSemaphore> waitSemaphores
+        Array<integer> waitStages
+        VulkanSubmitInfo submit
+        submit:SetSignalSemaphores(signalSemaphores)
+        submit:SetWaitSemaphores(waitSemaphores)
+        submit:SetWaitDestinationStageMasks(waitStages)
+        submit:SetFence(fence)
+        submit:SetCommandBuffers(commandBuffers)
+        queue:SubmitCommands(submit)
+        fence:Wait()
+    end
+
+    // Waits for the compute shader's writes before the stage and access given.
+    private action RecordBarrier(integer destinationStage, integer destinationAccess)
+        VulkanMemoryBarrier memory
+        memory:SetSourceStageMask(constants:PIPELINE_STAGE_COMPUTE_SHADER_BIT)
+        memory:SetSourceAccessMask(constants:ACCESS_SHADER_WRITE_BIT)
+        memory:SetDestinationStageMask(destinationStage)
+        memory:SetDestinationAccessMask(destinationAccess)
+        PipelineBarrierCommand barrierCommand
+        barrierCommand:SetMemoryBarrier(memory)
+        commandBuffer:Record(barrierCommand)
+    end
+
+    /*
+    This action forgets the compiled program and its pipeline, so the next
+    SetProgram compiles again even for the same source. For measuring.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action ForgetProgram
+        if recording
+            alert("VulkanCompute can't forget its program between BeginRuns and FinishRuns.")
+        end
+        ReleasePipeline()
+        ReleaseShader()
+        programName = ""
+        programCode = ""
+    end
+
+    // Frees the pipeline and what was made for it: the pipeline cache, the
+    // pipeline layout and the descriptor set layout. The descriptor set
+    // goes back with its pool, which the device's descriptor set manager
+    // keeps. Nothing of this computation is running: every run waits.
+    private action ReleasePipeline
+        if pipeline not= undefined
+            pipeline:Dispose()
+            pipeline = undefined
+        end
+        if cache not= undefined
+            cache:Dispose()
+            cache = undefined
+        end
+        if pipelineLayout not= undefined
+            pipelineLayout:Dispose()
+            pipelineLayout = undefined
+        end
+        if layout not= undefined
+            layout:Dispose()
+            layout = undefined
+        end
+        descriptorSet = undefined
+    end
+
+    // Frees the program's shader module on the device.
+    private action ReleaseShader
+        if shader not= undefined
+            computeDevice:ReleaseShader(shader)
+            shader = undefined
+        end
+    end
+
+    /*
+    This action returns how long the last compile took: GLSL to SPIR-V,
+    and the shader module.
+
+    Attribute: Returns the time in milliseconds.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetCompileTime returns number
+        return compileTime
+    end
+
+    /*
+    This action returns how long the last vkCreateComputePipelines took,
+    where MoltenVK makes and compiles Metal on a Mac.
+
+    Attribute: Returns the time in milliseconds.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetPipelineTime returns number
+        return pipelineTime
+    end
+
+    // One storage buffer at binding 0, read and written by the program.
+    private action MakePipeline
+        ReleasePipeline()
+        VulkanDescriptorSetLayoutBinding binding
+        binding:SetBinding(0)
+        binding:SetDescriptorCount(1)
+        binding:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        binding:SetStageFlags(constants:SHADER_STAGE_COMPUTE_BIT)
+        Array<VulkanDescriptorSetLayoutBinding> bindings
+        bindings:Add(binding)
+        VulkanDescriptorSetLayout madeLayout
+        madeLayout:Create(device, bindings)
+        layout = madeLayout
+        Array<VulkanDescriptorSetLayout> layouts
+        layouts:Add(layout)
+
+        VulkanPipelineLayout madePipelineLayout
+        if runIntegerCount > 0
+            VulkanPushConstantRange range
+            range:SetStage(constants:SHADER_STAGE_COMPUTE_BIT)
+            range:SetOffset(0)
+            range:SetSize(runIntegerCount * 4)
+            range:Create()
+            pushRange = range
+            madePipelineLayout:SetPushConstants(range)
+            if pushBuffer not= undefined
+                pushBuffer:Dispose()
+            end
+            VulkanPushConstantBuffer madePushBuffer
+            madePushBuffer:Create(runIntegerCount * 4)
+            pushBuffer = madePushBuffer
+        end
+        madePipelineLayout:Create(device, layouts)
+        pipelineLayout = madePipelineLayout
+        VulkanPipelineCache madeCache
+        if cacheFile = ""
+            madeCache:Create(device)
+        else
+            File saved
+            saved:SetPath(cacheFile)
+            madeCache:Create(device, saved)
+        end
+        cache = madeCache
+
+        VulkanComputePipelineInfo info
+        info:SetShader(shader)
+        info:SetDescriptorSetLayouts(layouts)
+        info:SetPipelineLayout(pipelineLayout)
+        info:SetPipelineCache(cache)
+        if runIntegerCount > 0
+            info:SetPushConstants(pushRange)
+        end
+        VulkanComputePipeline madePipeline
+        number mark = clock:GetEpochTime()
+        madePipeline:Create(device, info)
+        pipelineTime = clock:GetEpochTime() - mark
+        pipeline = madePipeline
+        if cacheFile not= ""
+            File saved
+            saved:SetPath(cacheFile)
+            cache:Save(saved)
+        end
+    end
+
+    private action MakeDescriptorSet
+        VulkanDescriptorResourcesInfo resources
+        resources:SetDestinationBinding(0)
+        resources:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
+        resources:AddBufferInfo(buffer, 0, capacity * 4)
+        descriptorSet = descriptorSetManager:CreateDescriptorSet(layout, resources)
+    end
+
+    /*
+    This action returns one 32-bit number from the buffer.
+
+    Attribute: Parameter index which 32-bit number, from 0.
+
+    Attribute: Returns the number.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetValue(integer index) returns number
+        if mapping = undefined
+            alert("VulkanCompute has no data: call SetData and Run first.")
+        end
+        return mapping:Get(index)
+    end
+
+    /*
+    This action copies 32-bit numbers back from the buffer in one copy
+    (VulkanNumber32BitMappedMemory's bulk Get).
+
+    Attribute: Parameter start the first 32-bit number to copy, from 0.
+
+    Attribute: Parameter into where the numbers go; its size says how many.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetValues(integer start, Number32BitArray into)
+        if mapping = undefined
+            alert("VulkanCompute has no data: call SetData and Run first.")
+        end
+        // one native copy (VulkanNumber32BitMappedMemory's bulk Get)
+        mapping:Get(start, into, 0, into:GetSize())
+    end
+
+    /*
+    This action copies Quorum's 64-bit numbers back from the buffer, read as
+    the number format says. With DOUBLE_NUMBER_32 each number is its high
+    and low 32-bit numbers added, which is exact in a 64-bit number. The
+    joining is a Quorum loop, as cheap as the split in SetData.
+
+    Attribute: Parameter start the first number to copy, from 0, counted in 64-bit numbers.
+
+    Attribute: Parameter into where the numbers go; its size says how many.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action GetValues(integer start, Number64BitArray into)
+        if GetNumberFormat() = parent:HardwareCompute:NUMBER_64
+            alert("The NUMBER_64 number format isn't written yet: it needs a graphics card with 64-bit numbers. Use DOUBLE_NUMBER_32.")
+        end
+        integer count = into:GetSize()
+        Number32BitArray pairs
+        pairs:SetSize(count * 2)
+        GetValues(start * 2, pairs)
+        integer i = 0
+        repeat while i < count
+            into:Set(i, pairs:Get(2 * i) + pairs:Get(2 * i + 1))
+            i = i + 1
+        end
+    end
+
+    /*
+    This action sets a file for the Vulkan pipeline cache: each pipeline
+    starts from it and saves to it once built. On a Mac this saved nothing
+    (building a pipeline takes under a millisecond), so it is off unless
+    set.
+
+    Attribute: Parameter path the file's path; "" for none.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action SetProgramCacheFile(text path)
+        cacheFile = path
+    end
+
+    /*
+    This action waits until the device is idle, then releases what this
+    computation made: the pipeline, pipeline cache, pipeline layout,
+    descriptor set layout, shader module, buffer, fence, push constant
+    buffer, command buffer and command pool. The device is shared and
+    stays. After Dispose the computation can't be used again.
+
+    Attribute: Example
+
+    See the same action in HardwareCompute.
+    */
+    action Dispose
+        if not ready
+            return now
+        end
+        device:WaitUntilIdle()
+        ReleasePipeline()
+        ReleaseShader()
+        if buffer not= undefined
+            buffer:Dispose()
+            buffer = undefined
+        end
+        if fence not= undefined
+            fence:Dispose()
+            fence = undefined
+        end
+        if pushBuffer not= undefined
+            pushBuffer:Dispose()
+            pushBuffer = undefined
+        end
+        pushRange = undefined
+        recording = false
+        capacity = 0
+        programName = ""
+        programCode = ""
+        // the command buffer goes back to its pool, then the pool goes
+        if commandBuffer not= undefined
+            commandBuffer:Dispose()
+            commandBuffer = undefined
+        end
+        if commandPool not= undefined
+            commandPool:Dispose()
+            commandPool = undefined
+        end
+        queue = undefined
+        // the device is the program's, shared by every computation: it stays
+        ready = false
+    end
+
+    private action RequireReady
+        if not ready
+            alert("This VulkanCompute isn't ready: make it with a compute device's CreateCompute, and don't use it after Dispose.")
+        end
+    end
+end

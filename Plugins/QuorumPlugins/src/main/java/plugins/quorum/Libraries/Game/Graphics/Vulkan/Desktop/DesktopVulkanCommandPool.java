@@ -12,6 +12,7 @@ import java.nio.LongBuffer;
 
 import static org.lwjgl.vulkan.VK10.VK_SUCCESS;
 import static org.lwjgl.vulkan.VK10.vkCreateCommandPool;
+import static org.lwjgl.vulkan.VK10.vkDestroyCommandPool;
 
 public class DesktopVulkanCommandPool implements VulkanCommandPoolStrategy
 {
@@ -50,5 +51,14 @@ public class DesktopVulkanCommandPool implements VulkanCommandPoolStrategy
     public long GetCommandPoolHandle()
     {
         return commandPoolHandle;
+    }
+
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (commandPoolHandle == 0L)
+            return;
+        VkDevice vulkanDevice = ((quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice)quorumDevice).plugin_.GetDevice();
+        vkDestroyCommandPool(vulkanDevice, commandPoolHandle, null);
+        commandPoolHandle = 0L;
     }
 }

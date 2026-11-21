@@ -23,5 +23,14 @@ public class NativeVulkanCommandPool implements VulkanCommandPoolStrategy
         return commandPoolHandle;
     }
 
+    public void DisposeNative(VulkanDevice_ quorumDevice)
+    {
+        if (commandPoolHandle == 0L)
+            return;
+        DestroyCommandPool(NativeVulkan.DeviceHandle(quorumDevice), commandPoolHandle);
+        commandPoolHandle = 0L;
+    }
+
     private static native long CreateCommandPool(long device, int flags, int queueFamilyIndex);
+    private static native void DestroyCommandPool(long device, long pool);
 }

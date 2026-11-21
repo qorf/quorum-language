@@ -16,4 +16,6 @@ public interface VulkanShadersStrategy
 
     // Returns the shader module's handle, or 0 if it couldn't be made.
     long CreateShaderModule(VulkanDevice_ device, byte[] code);
+    // Frees a shader module made by CreateShaderModule. Pipelines made with it keep working.
+    void DestroyShaderModule(VulkanDevice_ device, long module);
 }

@@ -30,6 +30,16 @@ public class VulkanShaderManager
         return true;
     }
 
+    // Frees the shader's module, made by CompileShaderNative, and forgets it.
+    public void DisposeShaderNative(Shader_ quorumShader, VulkanDevice_ device)
+    {
+        long handle = GetVulkanShaderHandle(quorumShader);
+        if (handle == 0L)
+            return;
+        VulkanPlatform.GetShaders().DestroyShaderModule(device, handle);
+        RemoveVulkanShaderHandle(quorumShader);
+    }
+
     public static void AddVulkanShaderHandle(Shader_ quorumShader, long handle)
     {
         vulkanShaderHandles.put(quorumShader, handle);
