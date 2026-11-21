@@ -48,6 +48,16 @@ public class DesktopVulkanNumber32BitMappedMemory implements VulkanNumber32BitMa
         return floatBuffer.get(index);
     }
 
+    public void GetNative(int index, Number32BitArray_ quorumArray, int arrayOffset, int arrayItems)
+    {
+        float[] array = ((Number32BitArray)quorumArray).plugin_.floats;
+        // The reading partner of the bulk SetNative: one copy out of the mapped memory.
+        if (floatBuffer.position() != index)
+            floatBuffer.position(index);
+
+        floatBuffer.get(array, arrayOffset, arrayItems);
+    }
+
     public void Dispose()
     {
         /*

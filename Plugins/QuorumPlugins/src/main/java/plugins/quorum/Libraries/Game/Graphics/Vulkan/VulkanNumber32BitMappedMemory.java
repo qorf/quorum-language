@@ -37,6 +37,11 @@ public class VulkanNumber32BitMappedMemory
         return strategy.GetNative(index);
     }
 
+    public void GetNative(int index, Number32BitArray_ quorumArray, int arrayOffset, int arrayItems)
+    {
+        strategy.GetNative(index, quorumArray, arrayOffset, arrayItems);
+    }
+
     public void Dispose()
     {
         strategy.Dispose();

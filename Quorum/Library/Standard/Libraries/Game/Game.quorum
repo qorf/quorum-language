@@ -5517,15 +5517,17 @@ if gl20 is OpenGLManager
     end
     
     /*This action determines if the Game engine should use Vulkan, if it is supported on this platform.
-If Vulkan is requested but not available, the system will fall back to OpenGL. This must be set
-before calling StartGame().
+On a desktop computer, Vulkan is used by default; UseVulkan(false) draws with OpenGL instead.
+If Vulkan is requested but not available, the system will fall back to OpenGL. Some features,
+such as terrain, need Vulkan. This must be set before calling StartGame().
 
 Attribute: Example
 use Libraries.Game.Game
 
 class Main is Game
     action Main
-        UseVulkan(true)
+        // Draw with OpenGL instead of Vulkan.
+        UseVulkan(false)
         StartGame()
     end
 end

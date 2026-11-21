@@ -7,6 +7,7 @@ import quorum.Libraries.Game.Graphics.Vulkan.VulkanDevice_;
 public class NativeVulkanPipelineCache implements VulkanPipelineCacheStrategy
 {
     private long cacheHandle = 0L;
+    private long deviceHandle = 0L;
 
     public NativeVulkanPipelineCache(VulkanPipelineCache peer)
     {
@@ -14,8 +15,27 @@ public class NativeVulkanPipelineCache implements VulkanPipelineCacheStrategy
 
     public boolean CreateNative(VulkanDevice_ quorumDevice)
     {
-        cacheHandle = CreatePipelineCache(NativeVulkan.DeviceHandle(quorumDevice));
+        deviceHandle = NativeVulkan.DeviceHandle(quorumDevice);
+        cacheHandle = CreatePipelineCache(deviceHandle);
         return cacheHandle != 0L;
+    }
+
+    public boolean CreateNative(VulkanDevice_ quorumDevice, byte[] data)
+    {
+        deviceHandle = NativeVulkan.DeviceHandle(quorumDevice);
+        cacheHandle = CreatePipelineCacheWithData(deviceHandle, data);
+        return cacheHandle != 0L;
+    }
+
+    public byte[] GetData()
+    {
+        if (deviceHandle == 0L || cacheHandle == 0L)
+            return new byte[0];
+
+        byte[] data = GetPipelineCacheData(deviceHandle, cacheHandle);
+        if (data == null)
+            return new byte[0];
+        return data;
     }
 
     public long GetVulkanCacheHandle()
@@ -24,4 +44,7 @@ public class NativeVulkanPipelineCache implements VulkanPipelineCacheStrategy
     }
 
     private static native long CreatePipelineCache(long device);
+    // data may be null or empty, for an empty cache.
+    private static native long CreatePipelineCacheWithData(long device, byte[] data);
+    private static native byte[] GetPipelineCacheData(long device, long cache);
 }

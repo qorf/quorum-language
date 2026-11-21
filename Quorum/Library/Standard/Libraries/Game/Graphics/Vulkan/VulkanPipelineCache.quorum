@@ -1,5 +1,33 @@
 package Libraries.Game.Graphics.Vulkan
 
+use Libraries.Containers.ByteArray
+use Libraries.System.File
+use Libraries.System.BinaryFileReader
+
+/*
+The VulkanPipelineCache class holds what the graphics driver learned while
+building pipelines, chiefly their compiled shaders, so building the same
+pipeline again is quick. Its data can be saved to a file and given back
+when a cache is made in a later run, so even a program's first pipeline
+skips the driver's compile. (On Macs that compile is slow: MoltenVK turns
+each shader into Metal source and Metal compiles it.)
+
+A driver checks the data it is given and ignores data from another device
+or driver version, so an old or foreign file is safe: the cache simply
+starts empty.
+
+Attribute: Example
+
+    use Libraries.System.File
+    use Libraries.Game.Graphics.Vulkan.VulkanPipelineCache
+
+    File file
+    file:SetPath("pipelines.cache")
+    VulkanPipelineCache cache
+    cache:Create(device, file)          // starts from the file, if there is one
+    // ... build pipelines with the cache ...
+    cache:Save(file)                     // keeps what was learned for next time
+*/
 class VulkanPipelineCache
 
     VulkanDevice device = undefined
@@ -16,6 +44,83 @@ class VulkanPipelineCache
         return success
     end
 
+    /*
+    This action makes the cache starting from data saved earlier (see
+    GetData and Save).
+
+    Attribute: Parameter device The device the cache is for.
+    Attribute: Parameter data What a cache held before.
+    Attribute: Returns True if the cache was made.
+    */
+    action Create(VulkanDevice device, ByteArray data) returns boolean
+        if data = undefined or data:GetSize() = 0
+            return Create(device)
+        end
+        boolean success = CreateWithDataNative(device, data)
+
+        if success
+            me:device = device
+            initialized = true
+        end
+
+        return success
+    end
+
+    /*
+    This action makes the cache starting from a file saved earlier with
+    Save, or empty if the file isn't there.
+
+    Attribute: Parameter device The device the cache is for.
+    Attribute: Parameter file The file a cache was saved to.
+    Attribute: Returns True if the cache was made.
+    */
+    action Create(VulkanDevice device, File file) returns boolean
+        if file = undefined or not file:Exists()
+            return Create(device)
+        end
+        BinaryFileReader reader
+        reader:OpenForRead(file)
+        ByteArray data = reader:ReadBytes()
+        return Create(device, data)
+    end
+
+    /*
+    This action returns what the cache holds now, to give to Create in a
+    later run.
+
+    Attribute: Returns The cache's data.
+    */
+    action GetData returns ByteArray
+        if not initialized
+            alert("I can't get this pipeline cache's data because it hasn't been created! Use Create first.")
+        end
+        return GetDataNative()
+    end
+
+    /*
+    This action writes what the cache holds now to a file, replacing it,
+    for Create(VulkanDevice, File) in a later run.
+
+    Attribute: Parameter file Where to save.
+    Attribute: Returns True if it was saved.
+    */
+    action Save(File file) returns boolean
+        if not initialized
+            alert("I can't save this pipeline cache because it hasn't been created! Use Create first.")
+        end
+        return SaveNative(file:GetAbsolutePath())
+    end
+
+    action IsInitialized returns boolean
+        return initialized
+    end
+
     private system action CreateNative(VulkanDevice device) returns boolean
+
+    private system action CreateWithDataNative(VulkanDevice device, ByteArray data) returns boolean
+
+    private system action GetDataNative returns ByteArray
+
+    private system action SaveNative(text path) returns boolean
 
 end

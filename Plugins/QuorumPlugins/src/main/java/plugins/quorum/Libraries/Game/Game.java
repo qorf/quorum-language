@@ -149,6 +149,11 @@ public class Game
 
                 // If the Display can support Vulkan, try to create Vulkan graphics.
                 // This might fail at some point along the way. If it does, we'll fall back to OpenGL after.
+                // Asked for Vulkan, on a computer whose drivers don't offer it:
+                // say so, rather than switching to OpenGL silently.
+                if (!supportsVulkan && config.Get_Libraries_Game_DesktopConfiguration__useVulkan_())
+                    System.out.println("WARNING: This computer doesn't offer Vulkan, so this game draws with OpenGL.");
+
                 if (supportsVulkan && config.Get_Libraries_Game_DesktopConfiguration__useVulkan_())
                 {
                     VulkanGraphics vulkanGraphics = new VulkanGraphics();

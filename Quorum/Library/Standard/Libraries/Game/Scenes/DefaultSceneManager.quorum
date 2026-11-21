@@ -1143,7 +1143,9 @@ number restitution = 0
     private action LoadTerrain(JavaScriptObjectNotation json) returns Item3D
         SceneProperties properties
         if not (gameState:GetGameGraphics() is VulkanGraphics)
-            alert("This scene has a terrain, and a terrain needs Vulkan for now.")
+            // Vulkan is the desktop default, so this game either turned it
+            // off or couldn't start it.
+            alert("This scene has a terrain, and a terrain needs Vulkan, but this game is drawing with OpenGL. Either Main calls UseVulkan(false), or this computer couldn't start Vulkan; the lines printed before this say which.")
         end
         if not json:HasValue(properties:FILE)
             alert("A terrain in this scene doesn't say where its terrain.json file is.")

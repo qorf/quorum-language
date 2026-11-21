@@ -13,5 +13,6 @@ public interface VulkanNumber32BitMappedMemoryStrategy
     void SetNative(int index, double value);
     void SetNative(int index, Number32BitArray_ quorumArray, int arrayOffset, int arrayItems);
     double GetNative(int index);
+    void GetNative(int index, Number32BitArray_ quorumArray, int arrayOffset, int arrayItems);
     void Dispose();
 }

@@ -9,5 +9,13 @@ The platform-neutral part of VulkanPipelineCache: what the desktop (LWJGL) and n
 public interface VulkanPipelineCacheStrategy
 {
     boolean CreateNative(VulkanDevice_ quorumDevice);
+
+    // Starts the cache from data saved earlier (GetData). Null or empty data gives an empty cache.
+    // A driver ignores data from another device or driver version, which also gives an empty cache.
+    boolean CreateNative(VulkanDevice_ quorumDevice, byte[] data);
+
+    // What the cache holds now, to save and give back to CreateNative later. Never null.
+    byte[] GetData();
+
     long GetVulkanCacheHandle();
 }

@@ -80,6 +80,45 @@ class VulkanNumber32BitMappedMemory
     private system action GetNative(integer index) returns number
 
     /*
+    This action copies numbers out of the mapped memory into an array, in
+    one native copy: as many numbers as the array holds, starting at the
+    given index of the memory. It is the reading partner of
+    Set(integer, Number32BitArray), and much faster than calling Get for
+    each number.
+
+    Attribute: Parameter index Where in the memory to start, counting 32-bit numbers.
+    Attribute: Parameter array The array to fill; its size says how many numbers to copy.
+    */
+    action Get(integer index, Number32BitArray array)
+        Get(index, array, 0, array:GetSize())
+    end
+
+    /*
+    This action copies arrayItems numbers out of the mapped memory, starting
+    at the given index of the memory, into the array starting at
+    arrayOffset, in one native copy.
+
+    Attribute: Parameter index Where in the memory to start, counting 32-bit numbers.
+    Attribute: Parameter array The array to fill.
+    Attribute: Parameter arrayOffset Where in the array to put the first number.
+    Attribute: Parameter arrayItems How many numbers to copy.
+    */
+    action Get(integer index, Number32BitArray array, integer arrayOffset, integer arrayItems)
+        if not initialized
+            alert("I can't use this memory because it hasn't been initialized! Use Create(VulkanBuffer) first.")
+        end
+        if index < 0 or arrayItems < 0 or index + arrayItems > GetSize()
+            alert("I can't read " + arrayItems + " numbers starting at " + index + " because the memory holds " + GetSize() + ".")
+        end
+        if arrayOffset < 0 or arrayOffset + arrayItems > array:GetSize()
+            alert("I can't put " + arrayItems + " numbers at " + arrayOffset + " in an array of " + array:GetSize() + ".")
+        end
+        GetNative(index, array, arrayOffset, arrayItems)
+    end
+
+    private system action GetNative(integer index, Number32BitArray array, integer arrayOffset, integer arrayItems)
+
+    /*
     This action returns the size of the mapped memory as a count of 32-bit numbers. For example, if the memory
     is 20 bytes, then this would return size = 5 (because 4 32-bit numbers fit inside the memory).
     */
