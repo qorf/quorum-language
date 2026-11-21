@@ -57,6 +57,13 @@ class Vehicle is PhysicsBehavior3D
     Array<Suspension> wheels
     number currentSpeedKilometersPerHour = 0
     RayCastResult3D raycastResult
+
+    // The item drawn as the vehicle's body, such as a car model, its
+    // rotation on a chassis with no rotation, and where its origin sits from
+    // the chassis's middle, along the chassis's own axes.
+    Item3D bodyVisual = undefined
+    Matrix4 bodyVisualRest
+    Vector3 bodyVisualOffset
     
     /*
         This action adds a wheel setup to the end of the vehicle's list.
@@ -298,6 +305,7 @@ if timeStep <= 0 or chassis = undefined
         if chassis = undefined
             return now
         end
+        UpdateBodyVisual()
         integer i = 0
         repeat while i < wheels:GetSize()
             UpdateWheelVisual(wheels:Get(i))
@@ -895,5 +903,83 @@ chassis from the layer also removes the vehicle.*/
 */
     action SetChassis(Item3D chassis)
         me:chassis = chassis
+    end
+
+    /*
+    Sets the item drawn as the vehicle's body, such as a car model, so the
+    chassis can be a plain physics item that isn't drawn. Each frame, after
+    physics, the vehicle places the item where the chassis is drawn. Before
+    calling this action, turn the item as it should look on a chassis with
+    no rotation, with its front along the chassis's +Z. The item gets no
+    physics and isn't the chassis's child, so a model can be used as it is,
+    whichever way its file faces and wherever its origin is: the offset
+    says where its origin sits.
+
+    Attribute: Parameter visual The item drawn as the body, or undefined for none.
+    Attribute: Parameter offset Where the item's origin sits from the chassis's middle, along the chassis's own axes, in world units.
+
+    Attribute: Example
+    use Libraries.Game.Physics.Vehicles.Vehicle
+    use Libraries.Game.Graphics.Model
+    use Libraries.Compute.Vector3
+
+    Vehicle vehicle
+    Model car
+    car:Load("Car/ToyCar.gltf")
+    car:SetYawPitchRoll(180, 0, 0)
+    Vector3 offset
+    offset:Set(0, -0.2, 0)
+    vehicle:SetBodyVisual(car, offset)
+    */
+    action SetBodyVisual(Item3D visual, Vector3 offset)
+        bodyVisual = visual
+        bodyVisualOffset:Set(offset)
+        if visual not= undefined
+            bodyVisualRest:Set(visual:GetRotationTransform())
+        end
+    end
+
+    /*
+    Returns the item drawn as the vehicle's body, or undefined if there is
+    none.
+
+    Attribute: Returns The item set with SetBodyVisual.
+    */
+    action GetBodyVisual returns Item3D
+        return bodyVisual
+    end
+
+    /*
+    Returns where the body's item sits from the chassis's middle.
+
+    Attribute: Returns The offset, along the chassis's own axes.
+    */
+    action GetBodyVisualOffset returns Vector3
+        Vector3 copy
+        copy:Set(bodyVisualOffset)
+        return copy
+    end
+
+    /*
+    Places the body's item where the chassis is drawn, between the last two
+    physics steps, so the body and the wheels move together on screen.
+    */
+    private action UpdateBodyVisual
+        if bodyVisual = undefined
+            return now
+        end
+        PhysicsPosition3D drawnChassis = chassis:GetDrawnTransform()
+        Matrix3 drawnBasis = drawnChassis:GetBasis()
+        Vector3 place
+        place:Set(bodyVisualOffset)
+        TransformByChassisBasis(place, drawnBasis)
+        place:Add(drawnChassis:GetOrigin())
+        if place:GetY() <= -1000 or place:GetY() >= 1000
+            return now
+        end
+        bodyVisual:SetPosition(place)
+        Matrix4 rotation
+        ToVisualRotation(drawnBasis, bodyVisualRest, rotation)
+        bodyVisual:SetRotationTransform(rotation)
     end
 end

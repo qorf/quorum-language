@@ -58,6 +58,11 @@ class Item3DPropertiesDialog is PropertiesDialog
     TextField massField = undefined
     TextField frictionField = undefined
     TextField restitutionField = undefined
+    // A model with a controller gets its physics from the Controller
+    // section: its own Physics card is hidden and a note shown instead.
+    Control physicsCardPart = undefined
+    Control physicsNotePart = undefined
+    Label physicsNote = undefined
     // A new item's preview only: whether the arrow keys keep it at its
     // height above the ground.
     Control followGroundLine = undefined
@@ -176,7 +181,21 @@ class Item3DPropertiesDialog is PropertiesDialog
         focusArray:Add(overrideColorCheckbox)
         focusArray:Add(colorWell)
 
-        Control physicsCard = AddCard(panel, "Physics")
+        panel:Add(MakeCardTitle("Physics"))
+        Control physicsCard = MakeCard()
+        panel:Add(physicsCard)
+        physicsCardPart = physicsCard
+        Control noteCard = MakeCard()
+        Control noteLine = MakeCardLine()
+        Label note
+        physicsNote = note
+        physicsNote:SetText("Set by the Vehicle controller, in the Controller section: mass, the physics box, tires and driving.")
+        physicsNote:SetFocusable(true)
+        noteLine:Add(physicsNote)
+        noteCard:Add(noteLine)
+        panel:Add(noteCard)
+        physicsNotePart = noteCard
+        physicsNotePart:Hide()
         Control physicsLine = MakeCardLine()
         Checkbox physicsCheckbox
         physicsEnabledCheckbox = physicsCheckbox
@@ -485,6 +504,40 @@ class Item3DPropertiesDialog is PropertiesDialog
         massField:SetText("" + item:GetEditorMass())
         frictionField:SetText("" + item:GetEditorFriction())
         restitutionField:SetText("" + item:GetEditorRestitution())
+        ShowPhysicsPart(item)
+    end
+
+    /*
+        Shows the Physics card, or, for a model with a controller, the note
+        saying its physics is set in the Controller section, and puts the
+        shown controls in Tab order.
+    */
+    private action ShowPhysicsPart(EditorItem3D item)
+        boolean controlled = false
+        if item is ModelSelectionHighlight and GetSceneEditor() not= undefined
+            ModelSelectionHighlight highlight = cast(ModelSelectionHighlight, item)
+            controlled = GetSceneEditor():GetControllerSettings(highlight:GetEditorModel()) not= undefined
+        end
+        Control first = GetFirstFocus()
+        if controlled
+            physicsCardPart:Hide()
+            physicsNotePart:Show()
+            colorWell:SetNextFocus(physicsNote)
+            physicsNote:SetPreviousFocus(colorWell)
+            physicsNote:SetNextFocus(first)
+            first:SetPreviousFocus(physicsNote)
+            SetLastFocus(physicsNote)
+        else
+            physicsNotePart:Hide()
+            physicsCardPart:Show()
+            colorWell:SetNextFocus(physicsEnabledCheckbox)
+            physicsEnabledCheckbox:SetPreviousFocus(colorWell)
+            restitutionField:SetNextFocus(first)
+            first:SetPreviousFocus(restitutionField)
+            SetLastFocus(restitutionField)
+        end
+        physicsCardPart:RequestLayout()
+        physicsNotePart:RequestLayout()
     end
 
     /*
@@ -777,6 +830,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         EditorItem item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item:IsEditorPhysicsEnabled() not= enabled
             item:SetEditorPhysicsEnabled(enabled)
+            // An item with physics needs its layer's physics on in games.
+            if enabled
+                GetSceneEditor():TurnOnLayerPhysicsIfNeeded()
+            end
         end
     end
 

@@ -20,6 +20,13 @@ class SelectionCancelBehavior is Behavior
     Array<Item3D> emptyArray
 
     action Run(BehaviorEvent event)
+        // Escape during a mouse drag of a placed item puts it back first.
+        if event:GetItem() is EditorItem
+            EditorItem dragged = cast(EditorItem, event:GetItem())
+            if dragged:GetSceneEditor() not= undefined and dragged:GetSceneEditor():CancelItemDrag()
+                return now
+            end
+        end
         // Escape on a terrain always leaves it for the scene's own cursor,
         // at the same place on the ground, with or without a tool, in one
         // press. A stroke going on is canceled first. The terrain

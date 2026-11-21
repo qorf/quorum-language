@@ -1,0 +1,54 @@
+package Libraries.Interface.Behaviors.Scenes.Properties
+
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Dialogs.ControllerPropertiesDialog
+
+/*
+    The ControllerButtonBehavior is a button or checkbox in a model's
+    Controller section: Fit to model, or the Camera follows this checkbox.
+    It tells the section which was pressed.
+*/
+class ControllerButtonBehavior is Behavior
+    ControllerPropertiesDialog dialog = undefined
+    integer kind = 0
+    // True for a checkbox's behavior, which also passes on unchecking.
+    boolean checkbox = false
+
+    /*
+        Sets which section and button this is.
+
+        Attribute: Parameter dialog The Controller section
+        Attribute: Parameter kind One of the section's button kinds, such as FIT_TO_MODEL
+    */
+    action Setup(ControllerPropertiesDialog dialog, integer kind)
+        me:dialog = dialog
+        me:kind = kind
+    end
+
+    action Run(BehaviorEvent event)
+        if dialog not= undefined
+            dialog:ButtonActivated(kind)
+        end
+    end
+
+    /*
+        A checkbox runs its behavior only when it is checked, and calls
+        Dispose when it is unchecked, so unchecking is passed on the same
+        way. The section reads the checkbox's state, so it sees the change.
+    */
+    action Dispose
+        if checkbox and dialog not= undefined
+            dialog:ButtonActivated(kind)
+        end
+    end
+
+    /*
+        Marks the behavior as a checkbox's, so unchecking is passed on too.
+
+        Attribute: Parameter value True for a checkbox's behavior
+    */
+    action SetCheckbox(boolean value)
+        checkbox = value
+    end
+end

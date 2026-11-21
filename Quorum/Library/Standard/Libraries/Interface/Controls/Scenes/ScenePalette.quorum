@@ -63,6 +63,13 @@ class ScenePalette is Tree
 
     Array<AssetPack> loadedAssetPacks
 
+    // The group of the scene's models chosen with Custom Model, first in
+    // the palette; and, while the palette is built again, the tile wanted
+    // and the tile made for it, so it can be chosen.
+    constant text PROJECT_MODELS = "Project Models"
+    ItemBlueprint wantedBlueprint = undefined
+    ScenePaletteItem wantedTile = undefined
+
     // The words typed in the palette's search, in lower case, or "" to show
     // every item.
     text filterWords = ""
@@ -128,6 +135,20 @@ class ScenePalette is Tree
 
             Add(defaultItem)
         else
+            // The scene's own models, chosen with Custom Model, come first.
+            Array<ModelBlueprint> sceneModels = controller:GetCustomModels()
+            if not sceneModels:IsEmpty()
+                AssetPack sceneModelPack
+                sceneModelPack:SetName(PROJECT_MODELS)
+                integer modelCounter = 0
+                repeat while modelCounter < sceneModels:GetSize()
+                    ModelBlueprint sceneModel = sceneModels:Get(modelCounter)
+                    GiveCustomModelIcon(sceneModel)
+                    sceneModelPack:Add(sceneModel)
+                    modelCounter = modelCounter + 1
+                end
+                AddAssetsToTree(sceneModelPack)
+            end
             integer counter = 0
             repeat while counter < loadedAssetPacks:GetSize()
                 AddAssetsToTree(loadedAssetPacks:Get(counter))
@@ -503,7 +524,7 @@ class ScenePalette is Tree
 
             CustomModelBlueprint customModel
             customModel:SetName("Custom Model")
-            customModel:SetDescription("Load a custom model from an OBJ file")
+            customModel:SetDescription("Load a model from a file: .gltf, .glb, .fbx or .obj")
             customModel:SetScale(1, 1, 1)
             customModel:SetRotation(0, 0, 0)
             customModel:SetModelType(properties:CUSTOM)
@@ -632,6 +653,85 @@ class ScenePalette is Tree
     end
 
     /*
+        Asks for a model file for Custom Model and, if it loads, adds a tile
+        for it to Project Models and chooses the tile (AddProjectModel), so
+        it can be dragged into the scene or placed with Enter. The scene
+        editor says what happened either way. Clicking, choosing or dropping
+        Custom Model calls it.
+
+        Attribute: Parameter custom The palette's Custom Model blueprint
+    */
+    action AddModelFromFile(CustomModelBlueprint custom)
+        if controller = undefined or custom = undefined
+            return now
+        end
+        ModelBlueprint model = controller:ChooseModelFile(custom)
+        if model = undefined
+            return now
+        end
+        ScenePaletteItem tile = AddProjectModel(model)
+        if tile = undefined
+            controller:NotifyAccessibility(controller, "Added " + model:GetName() + " to Project Models. Clear the palette's search to see it.")
+        else
+            controller:NotifyAccessibility(tile, "Added " + model:GetName() + " to Project Models. Drag it into the scene, or press Enter to place it.")
+        end
+    end
+
+    /*
+        Adds a tile for a model chosen with Custom Model to the palette's
+        Project Models group, first in the palette, then chooses the tile,
+        so it can be dragged into the scene or placed with Enter. The
+        scene keeps the model in its file, so the tile is there whenever
+        the scene is open. A model of the same name already there is
+        replaced. A tile with no picture gets Custom Model's.
+
+        Attribute: Parameter model The model's blueprint, such as from the scene editor's ChooseModelFile
+        Attribute: Returns The tile, or undefined if the palette isn't showing a scene or its search leaves the tile out
+    */
+    action AddProjectModel(ModelBlueprint model) returns ScenePaletteItem
+        if model = undefined
+            return undefined
+        end
+        // The scene keeps the model (the scene editor's AddCustomModel),
+        // and the palette is built again, with the group open. A search
+        // that leaves the tile out leaves it unchosen, and this returns
+        // undefined.
+        if controller = undefined
+            return undefined
+        end
+        controller:AddCustomModel(model)
+        if not openKeys:Has(PROJECT_MODELS)
+            openKeys:Add(PROJECT_MODELS)
+        end
+        wantedBlueprint = model
+        wantedTile = undefined
+        SetSceneEditor(controller)
+        wantedBlueprint = undefined
+        if wantedTile not= undefined
+            wantedTile:Select()
+            Focus()
+        end
+        return wantedTile
+    end
+
+    /*
+        Gives a model chosen with Custom Model Custom Model's picture, if it
+        has none of its own.
+    */
+    private action GiveCustomModelIcon(ModelBlueprint model)
+        if model:GetPaletteIcon() not= undefined
+            return now
+        end
+        if customModelThumbnailLocation not= ""
+            Drawable thumbnail
+            thumbnail:Load(customModelThumbnailLocation)
+            model:SetPaletteIcon(thumbnail)
+        else
+            model:SetPaletteIcon(LoadDefaultIcon())
+        end
+    end
+
+    /*
         Adds assets to the palette from an asset pack object. Used internally to load defaults.
     */
     action LoadAssetPack(AssetPack pack)
@@ -654,6 +754,9 @@ class ScenePalette is Tree
             ItemBlueprint itemBlueprint = array:Get(counter)   
             if Matches(itemBlueprint)
                 ScenePaletteItem item
+                if itemBlueprint = wantedBlueprint
+                    wantedTile = item
+                end
                 item:SetItemBlueprint(itemBlueprint)
                 item:SetName(itemBlueprint:GetName())
                 item:SetBehavior(paletteActivationBehavior)

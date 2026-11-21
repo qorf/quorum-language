@@ -1,0 +1,382 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Game.Graphics.Models.Vulkan.ModelBlueprintVulkan
+use Libraries.Game.Scenes.VehicleControllerSettings
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.SceneConstants
+
+/*
+The VehicleGuides are the scene editor's lines over a model with a Vehicle
+controller, drawn while the model is selected: the outline of the physics
+box (light blue), an arrow out of the front, each wheel as a circle where
+it hangs with the car's weight on it (orange for the steering wheels,
+yellow for the others), each spring as a green line down its rest length
+from its mount, and, if the camera follows the car, a pink cross where
+the game's camera starts. They are an editor helper, not a scene item, and
+let clicks through.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.VehicleGuides
+use Libraries.Game.Scenes.VehicleControllerSettings
+use Libraries.Game.Graphics.Model
+
+Model car
+car:Load("Car/ToyCar.gltf")
+VehicleControllerSettings settings
+settings:FitToModel(car)
+VehicleGuides guides
+guides:Place(car, settings)
+*/
+class VehicleGuides is Model
+    SceneConstants constants
+    Math math
+    integer builds = 0
+
+    // How wide each line is, and how many pieces a wheel's circle has.
+    constant number LINE_WIDTH = 0.04
+    constant integer CIRCLE_PIECES = 20
+
+    // The model and a copy of the settings the guides were made for, and
+    // the settings as text when the lines were last made, so they are made
+    // again only when a setting changes. Moving the model only moves them.
+    Item3D placedModel = undefined
+    VehicleControllerSettings placedSettings = undefined
+    text builtSettings = ""
+
+    // The lines being made, one list of points (two for each line) per
+    // color: 0 the body, 1 the steering wheels, 2 the other wheels, 3 the
+    // springs, 4 the camera.
+    Array<Array<Vector3>> lines
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+    end
+
+    /*
+    This action draws the guides for a model and its vehicle settings. The
+    lines are made around the car's own middle, again only when a setting
+    changes, then put where the car is (Follow).
+
+    Attribute: Parameter model The model, placed and turned as in the scene
+    Attribute: Parameter settings Its Vehicle controller's settings
+    */
+    action Place(Item3D model, VehicleControllerSettings settings)
+        if model = undefined or settings = undefined
+            return now
+        end
+        placedModel = model
+        placedSettings = settings:Copy()
+        text settingsText = placedSettings:ToJson():ToText()
+        if settingsText not= builtSettings
+            builtSettings = settingsText
+            MakeLines(placedSettings)
+        end
+        Follow()
+    end
+
+    /*
+    This action puts the guides where the car's body is now and turns them
+    as it is, such as each frame while the model is moved or turned.
+    */
+    action Follow
+        if placedModel = undefined or placedSettings = undefined
+            return now
+        end
+        Vector3 place = placedSettings:GetBodyPosition(placedModel)
+        SetPosition(place:GetX(), place:GetY(), place:GetZ())
+        SetRotationTransform(placedSettings:GetBodyRotation(placedModel))
+    end
+
+    /*
+    Makes the lines around the car's own middle, along its own axes.
+    */
+    private action MakeLines(VehicleControllerSettings settings)
+        lines:Empty()
+        integer color = 0
+        repeat while color < 5
+            Array<Vector3> points
+            lines:Add(points)
+            color = color + 1
+        end
+
+        // The box's twelve edges.
+        number halfWidth = settings:GetSetting(settings:BOX_WIDTH) / 2
+        number halfHeight = settings:GetSetting(settings:BOX_HEIGHT) / 2
+        number halfLength = settings:GetSetting(settings:BOX_LENGTH) / 2
+        integer edge = 0
+        repeat while edge < 4
+            number sideX = halfWidth
+            number sideY = halfHeight
+            if edge mod 2 = 1
+                sideX = -halfWidth
+            end
+            if edge >= 2
+                sideY = -halfHeight
+            end
+            // Front to back, along each of the four long edges.
+            AddLine(0, sideX, sideY, -halfLength, sideX, sideY, halfLength)
+            edge = edge + 1
+        end
+        AddRectangle(0, halfWidth, halfHeight, halfLength)
+        AddRectangle(0, halfWidth, halfHeight, -halfLength)
+
+        // An arrow out of the front, along the top.
+        number arrowEnd = halfLength + 1
+        AddLine(0, 0, halfHeight, 0, 0, halfHeight, arrowEnd)
+        AddLine(0, 0, halfHeight, arrowEnd, -0.3, halfHeight, arrowEnd - 0.4)
+        AddLine(0, 0, halfHeight, arrowEnd, 0.3, halfHeight, arrowEnd - 0.4)
+
+        // Each wheel and its spring.
+        number restLength = settings:GetSetting(settings:REST_LENGTH)
+        number hanging = restLength - settings:GetRestingCompression()
+        number radius = settings:GetSetting(settings:WHEEL_RADIUS)
+        integer wheel = 0
+        repeat while wheel < 4
+            Vector3 mount = settings:GetWheelMount(wheel)
+            AddLine(3, mount:GetX(), mount:GetY(), mount:GetZ(), mount:GetX(), mount:GetY() - restLength, mount:GetZ())
+            integer wheelColor = 2
+            if wheel < 2
+                wheelColor = 1
+            end
+            AddCircle(wheelColor, mount:GetX(), mount:GetY() - hanging, mount:GetZ(), radius)
+            wheel = wheel + 1
+        end
+
+        // Where the following camera starts.
+        if settings:IsCameraFollowing()
+            // Behind the car, turned by the angle around it, as the
+            // game's camera is (VehicleControllerSettings' GetFollowPosition).
+            number behind = settings:GetSetting(settings:CAMERA_BEHIND)
+            number above = settings:GetSetting(settings:CAMERA_ABOVE)
+            number radians = math:DegreesToRadians(settings:GetSetting(settings:CAMERA_ANGLE))
+            number cameraX = behind * math:Sine(radians)
+            number cameraZ = -behind * math:Cosine(radians)
+            AddLine(4, cameraX - 0.4, above, cameraZ, cameraX + 0.4, above, cameraZ)
+            AddLine(4, cameraX, above - 0.4, cameraZ, cameraX, above + 0.4, cameraZ)
+            AddLine(4, cameraX, above, cameraZ - 0.4, cameraX, above, cameraZ + 0.4)
+        end
+
+        Build()
+    end
+
+    /*
+    This action puts the guides where the car is again, such as after the
+    model was moved.
+    */
+    action Refresh
+        Follow()
+    end
+
+    /*
+    Adds a line, from one point to another along the body's axes.
+    */
+    private action AddLine(integer color, number fromX, number fromY, number fromZ, number toX, number toY, number toZ)
+        Vector3 startPoint
+        startPoint:Set(fromX, fromY, fromZ)
+        Vector3 endPoint
+        endPoint:Set(toX, toY, toZ)
+        Array<Vector3> points = lines:Get(color)
+        points:Add(startPoint)
+        points:Add(endPoint)
+    end
+
+    /*
+    Adds the box's end at one distance along its length.
+    */
+    private action AddRectangle(integer color, number halfWidth, number halfHeight, number along)
+        AddLine(color, -halfWidth, -halfHeight, along, halfWidth, -halfHeight, along)
+        AddLine(color, -halfWidth, halfHeight, along, halfWidth, halfHeight, along)
+        AddLine(color, -halfWidth, -halfHeight, along, -halfWidth, halfHeight, along)
+        AddLine(color, halfWidth, -halfHeight, along, halfWidth, halfHeight, along)
+    end
+
+    /*
+    Adds a wheel's circle, upright and along the body's length.
+    */
+    private action AddCircle(integer color, number middleX, number middleY, number middleZ, number radius)
+        integer piece = 0
+        repeat while piece < CIRCLE_PIECES
+            number fromAngle = 2 * math:pi * piece / CIRCLE_PIECES
+            number toAngle = 2 * math:pi * (piece + 1) / CIRCLE_PIECES
+            AddLine(color, middleX, middleY + radius * math:Sine(fromAngle), middleZ + radius * math:Cosine(fromAngle),
+                middleX, middleY + radius * math:Sine(toAngle), middleZ + radius * math:Cosine(toAngle))
+            piece = piece + 1
+        end
+    end
+
+    /*
+    Makes the model from the lines: each line two thin strips crossing along
+    it, so it shows from any side.
+    */
+    private action Build
+        Array<MeshData> meshes
+        Array<Material> materials
+        integer color = 0
+        repeat while color < lines:GetSize()
+            Array<Vector3> points = lines:Get(color)
+            if points:GetSize() >= 2
+                meshes:Add(MakeMesh(points, materials:GetSize()))
+                materials:Add(MakeMaterial(color))
+            end
+            color = color + 1
+        end
+        if meshes:IsEmpty()
+            return now
+        end
+        builds = builds + 1
+        ModelData modelData
+        modelData:SetID("Vehicle guides " + GetHashCode() + " build " + builds)
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        ModelBlueprintVulkan schematic = manager:GetModelBlueprint(modelData)
+        Load(schematic)
+    end
+
+    /*
+    Makes one color's mesh from its lines.
+    */
+    private action MakeMesh(Array<Vector3> points, integer materialIndex) returns MeshData
+        // Two strips for each line, and two points for each line.
+        integer quads = points:GetSize()
+        Number32BitArray vertices
+        vertices:SetSize(quads * 4 * 3)
+        Number32BitArray normals
+        normals:SetSize(quads * 4 * 3)
+        Number32BitArray tangents
+        tangents:SetSize(quads * 4 * 3)
+        Number32BitArray bitangents
+        bitangents:SetSize(quads * 4 * 3)
+        Number32BitArray coordinates
+        coordinates:SetSize(quads * 4 * 2)
+        Integer32BitArray indices
+        indices:SetSize(quads * 6)
+
+        integer quad = 0
+        integer i = 0
+        repeat while i + 1 < points:GetSize()
+            Vector3 startPoint = points:Get(i)
+            Vector3 endPoint = points:Get(i + 1)
+            Vector3 along
+            along:Set(endPoint)
+            along:Subtract(startPoint)
+            if along:Length() < 0.000001
+                along:Set(0, 0, 1)
+            end
+            along:Normalize()
+            // Two directions across the line, at right angles to it and to
+            // each other.
+            Vector3 helper
+            helper:Set(0, 1, 0)
+            if math:AbsoluteValue(along:GetY()) > 0.9
+                helper:Set(1, 0, 0)
+            end
+            Vector3 across = Cross(along, helper)
+            across:Normalize()
+            Vector3 acrossToo = Cross(along, across)
+            acrossToo:Normalize()
+            AddStrip(vertices, normals, tangents, bitangents, coordinates, indices, quad, startPoint, endPoint, across)
+            quad = quad + 1
+            AddStrip(vertices, normals, tangents, bitangents, coordinates, indices, quad, startPoint, endPoint, acrossToo)
+            quad = quad + 1
+            i = i + 2
+        end
+
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(materialIndex)
+        return mesh
+    end
+
+    /*
+    Returns one vector crossed with another.
+    */
+    private action Cross(Vector3 a, Vector3 b) returns Vector3
+        Vector3 result
+        result:Set(a:GetY() * b:GetZ() - a:GetZ() * b:GetY(), a:GetZ() * b:GetX() - a:GetX() * b:GetZ(), a:GetX() * b:GetY() - a:GetY() * b:GetX())
+        return result
+    end
+
+    /*
+    Adds one thin strip from one point to another, as wide as a line across
+    one direction.
+    */
+    private action AddStrip(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
+            Number32BitArray coordinates, Integer32BitArray indices, integer quad, Vector3 startPoint, Vector3 endPoint, Vector3 across)
+        number half = LINE_WIDTH / 2
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4, startPoint:GetX() + across:GetX() * half, startPoint:GetY() + across:GetY() * half, startPoint:GetZ() + across:GetZ() * half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 1, startPoint:GetX() - across:GetX() * half, startPoint:GetY() - across:GetY() * half, startPoint:GetZ() - across:GetZ() * half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 2, endPoint:GetX() + across:GetX() * half, endPoint:GetY() + across:GetY() * half, endPoint:GetZ() + across:GetZ() * half)
+        SetCorner(vertices, normals, tangents, bitangents, coordinates, quad * 4 + 3, endPoint:GetX() - across:GetX() * half, endPoint:GetY() - across:GetY() * half, endPoint:GetZ() - across:GetZ() * half)
+        integer first = quad * 4
+        indices:Set(quad * 6, first)
+        indices:Set(quad * 6 + 1, first + 2)
+        indices:Set(quad * 6 + 2, first + 1)
+        indices:Set(quad * 6 + 3, first + 1)
+        indices:Set(quad * 6 + 4, first + 2)
+        indices:Set(quad * 6 + 5, first + 3)
+    end
+
+    /*
+    Sets one corner. The lines are unlit, so the normal is only a placeholder.
+    */
+    private action SetCorner(Number32BitArray vertices, Number32BitArray normals, Number32BitArray tangents, Number32BitArray bitangents,
+            Number32BitArray coordinates, integer vertex, number x, number y, number z)
+        vertices:Set(vertex * 3, x)
+        vertices:Set(vertex * 3 + 1, y)
+        vertices:Set(vertex * 3 + 2, z)
+        normals:Set(vertex * 3, 0)
+        normals:Set(vertex * 3 + 1, 1)
+        normals:Set(vertex * 3 + 2, 0)
+        tangents:Set(vertex * 3, 1)
+        tangents:Set(vertex * 3 + 1, 0)
+        tangents:Set(vertex * 3 + 2, 0)
+        bitangents:Set(vertex * 3, 0)
+        bitangents:Set(vertex * 3 + 1, 0)
+        bitangents:Set(vertex * 3 + 2, 1)
+        coordinates:Set(vertex * 2, 0)
+        coordinates:Set(vertex * 2 + 1, 0)
+    end
+
+    /*
+    Makes one color's material: unlit and seen from both sides, so the lines
+    show over any ground and in shadow.
+    */
+    private action MakeMaterial(integer color) returns Material
+        Vector4 shade
+        if color = 0
+            shade:Set(0.55, 0.85, 1, 1)
+        elseif color = 1
+            shade:Set(1, 0.55, 0.15, 1)
+        elseif color = 2
+            shade:Set(1, 0.9, 0.2, 1)
+        elseif color = 3
+            shade:Set(0.4, 1, 0.45, 1)
+        else
+            shade:Set(1, 0.45, 0.85, 1)
+        end
+        Material material
+        material:SetDiffuse(shade)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        return material
+    end
+end

@@ -1,0 +1,61 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Item3D
+use Libraries.Game.Scenes.VehicleControllerSettings
+
+/*
+    The SceneEditorControllerEdit is one change to a model's controller in
+    the scene editor's undo list: a controller chosen or taken away, or one
+    of its settings changed, such as a slider in the Controller section or
+    Fit to model. It holds the settings before and after (undefined for no
+    controller), and gives the model one or the other, then has the scene
+    editor show it and say what happened.
+*/
+class SceneEditorControllerEdit is Edit
+    SceneEditor controller = undefined
+    Item3D item = undefined
+    VehicleControllerSettings before = undefined
+    VehicleControllerSettings after = undefined
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter item The model whose controller changed
+        Attribute: Parameter before The settings before the change, or undefined for no controller
+        Attribute: Parameter after The settings after the change, or undefined for no controller
+        Attribute: Parameter changeName What changed, such as "change stiffness"
+    */
+    action Create(SceneEditor controller, Item3D item, VehicleControllerSettings before, VehicleControllerSettings after, text changeName)
+        me:controller = controller
+        me:item = item
+        if before not= undefined
+            me:before = before:Copy()
+        end
+        if after not= undefined
+            me:after = after:Copy()
+        end
+        name = changeName
+    end
+
+    action Undo
+        controller:PutController(item, before, "Undid " + name + ".")
+    end
+
+    action Redo
+        controller:PutController(item, after, "Redid " + name + ".")
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

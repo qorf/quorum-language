@@ -27,6 +27,8 @@ class CameraKeyBehavior is Behavior
     integer directionX = 0
     integer directionY = 0
     boolean starts = true
+    // The key that holds the move, or -1 if none is known.
+    integer heldKey = -1
 
     /*
         Sets which move, which way, and whether this behavior starts the
@@ -42,6 +44,16 @@ class CameraKeyBehavior is Behavior
         directionX = x
         directionY = y
         starts = starting
+    end
+
+    /*
+        Sets the key that holds the move, so the move stops once the key is
+        up however it is let go.
+
+        Attribute: Parameter key The key's code, such as KeyboardEvent's LEFT
+    */
+    action SetKey(integer key)
+        heldKey = key
     end
 
     action Run(BehaviorEvent event)
@@ -60,6 +72,11 @@ class CameraKeyBehavior is Behavior
         end
         if starts
             editor:StartCameraMove(move, directionX, directionY)
+            // The move also stops once this key is up, even if its release
+            // comes with other modifiers, such as Shift let go first.
+            if heldKey >= 0
+                editor:HoldCameraKey(heldKey, move, directionX, directionY)
+            end
         else
             editor:StopCameraMove(move, directionX, directionY)
         end

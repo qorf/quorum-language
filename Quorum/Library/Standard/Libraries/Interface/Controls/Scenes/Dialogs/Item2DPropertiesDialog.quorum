@@ -438,6 +438,10 @@ class Item2DPropertiesDialog is PropertiesDialog
         EditorItem item = GetSceneEditor():GetSelectedItem()
         if item not= undefined and item:IsEditorPhysicsEnabled() not= enabled
             item:SetEditorPhysicsEnabled(enabled)
+            // An item with physics needs its layer's physics on in games.
+            if enabled
+                GetSceneEditor():TurnOnLayerPhysicsIfNeeded()
+            end
         end
     end
 

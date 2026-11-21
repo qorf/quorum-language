@@ -3114,6 +3114,7 @@ connectorTable:Add(startDrag, dragBehavior)
     private action AddCameraKey(SceneEditorInputTable table, Array<InputTable> others, InputSet key, integer move, integer x, integer y)
         CameraKeyBehavior start
         start:Setup(move, x, y, true)
+        start:SetKey(key:GetInputValue())
         table:Add3D(key, start)
         InputSet released = key:Copy()
         released:SetInputTrigger(released:FINISH)

@@ -1,0 +1,55 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Item3D
+use Libraries.Compute.Vector3
+
+/*
+    The SceneEditorMoveEdit is one move of a placed 3D item in the scene
+    editor's undo list, such as dragging it with the mouse. It holds where
+    the item was before and after, and puts it at one or the other, then
+    has the scene editor show it and say what happened.
+*/
+class SceneEditorMoveEdit is Edit
+    SceneEditor controller = undefined
+    Item3D item = undefined
+    Vector3 before
+    Vector3 after
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter item The item that moved
+        Attribute: Parameter before Where it was
+        Attribute: Parameter after Where it is now
+        Attribute: Parameter changeName What changed, such as "move Car"
+    */
+    action Create(SceneEditor controller, Item3D item, Vector3 before, Vector3 after, text changeName)
+        me:controller = controller
+        me:item = item
+        me:before:Set(before)
+        me:after:Set(after)
+        name = changeName
+    end
+
+    action Undo
+        controller:PutItemPosition(item, before, "Undid " + name + ".")
+    end
+
+    action Redo
+        controller:PutItemPosition(item, after, "Redid " + name + ".")
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

@@ -1,0 +1,525 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Item
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Button
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Controls.ButtonGroup
+use Libraries.Interface.Controls.RadioButton
+use Libraries.Interface.Layouts.FlowLayout
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Selections.ButtonGroupSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Interface.Controls.Scenes.Items.Highlights.ModelSelectionHighlight
+use Libraries.Interface.Behaviors.Scenes.Properties.ControllerButtonBehavior
+use Libraries.Game.Graphics.Label
+use Libraries.Game.Scenes.VehicleControllerSettings
+
+/*
+    The ControllerPropertiesDialog is a model's Controller section: whether
+    the model drives as a car in a game (Vehicle) or not (None), and, for a
+    vehicle, every setting, with sliders:
+
+    - Model: which of its own sides the model's front faces, where its
+      origin sits from the physics body's middle, and Fit to model, which
+      sets the body and wheels from the model's shape;
+    - Body: mass, the physics box's size, friction and damping;
+    - Wheels: where the axles are, how far out and how high, their radius,
+      and which wheels the engine turns;
+    - Suspension: the springs and how the tires grip;
+    - Driving: engine, reverse and brake forces, steering, and how quickly
+      steering and throttle change;
+    - Camera: whether the game's camera follows the car, and from where.
+
+    The model's file never changes: the settings are kept in the scene's
+    Controller block. While it shows, the vehicle's guides are drawn over
+    the model (VehicleGuides). Every change is one step to undo.
+
+    It shows in the scene editor's Properties panel when a model is
+    selected.
+*/
+class ControllerPropertiesDialog is PropertiesDialog
+    public constant integer FIT_TO_MODEL = 0
+    public constant integer CAMERA_FOLLOWS = 1
+
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up.
+    constant number FIELD_LABEL_WIDTH = 130
+
+    ButtonGroup controllerGroup = undefined
+    ButtonGroup facesGroup = undefined
+    ButtonGroup driveGroup = undefined
+    Button fitButton = undefined
+    Checkbox cameraCheckbox = undefined
+
+    // Each number setting's field, and which setting it is.
+    Array<TextField> settingFields
+    Array<integer> settingNumbers
+
+    // The section's body, the parts shown only for a vehicle, and the
+    // controls in Tab order for a vehicle.
+    Control sectionBody = undefined
+    Array<Control> vehicleParts
+    Array<Control> vehicleChain
+
+    // The model shown, and its settings, or undefined for none.
+    EditorModel model = undefined
+    VehicleControllerSettings settings = undefined
+    VehicleControllerSettings names
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as the user choosing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Controller")
+        sectionBody = panel
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Controller")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        SetHeading(headingLabel)
+
+        Control choiceCard = AddCard(panel, "")
+        Control choiceLine = MakeCardLine()
+        controllerGroup = MakeGroup("Controller", choiceLine)
+        AddChoice(controllerGroup, "None", "No controller: the model stays where it is placed")
+        AddChoice(controllerGroup, "Vehicle", "The model drives as a car in a game, with W, S, A, D and Space")
+        choiceCard:Add(choiceLine)
+        focusArray:Add(controllerGroup)
+        vehicleChain:Add(controllerGroup)
+
+        // Model
+        Control modelCard = AddVehicleCard(panel, "Model")
+        Control facesLine = MakeCardLine()
+        Label facesLabel
+        facesLabel:SetText("Front faces the model's own:")
+        facesLine:Add(facesLabel)
+        modelCard:Add(facesLine)
+        Control facesGroupLine = MakeCardLine()
+        facesGroup = MakeGroup("Front faces", facesGroupLine)
+        AddChoice(facesGroup, "+Z", "The model's front is along its own +Z")
+        AddChoice(facesGroup, "-Z", "The model's front is along its own -Z")
+        AddChoice(facesGroup, "+X", "The model's front is along its own +X")
+        AddChoice(facesGroup, "-X", "The model's front is along its own -X")
+        modelCard:Add(facesGroupLine)
+        vehicleChain:Add(facesGroup)
+        AddSetting(modelCard, names:MODEL_OFFSET_X, "Offset across:", "How far the model's origin is from the body's middle, across the car", -10, 10, 0.01, 0.1, "units")
+        AddSetting(modelCard, names:MODEL_OFFSET_Y, "Offset up:", "How far the model's origin is above the body's middle", -10, 10, 0.01, 0.1, "units")
+        AddSetting(modelCard, names:MODEL_OFFSET_Z, "Offset forward:", "How far the model's origin is ahead of the body's middle", -10, 10, 0.01, 0.1, "units")
+        Control fitLine = MakeButtonRow()
+        Button fit
+        fitButton = fit
+        fitButton:SetName("Fit to model")
+        fitButton:SetDescription("Sets the offset, the physics box and the wheels from the model's shape, as a starting point")
+        ControllerButtonBehavior fitBehavior
+        fitBehavior:Setup(me, FIT_TO_MODEL)
+        fitButton:SetBehavior(fitBehavior)
+        fitLine:Add(fitButton)
+        modelCard:Add(fitLine)
+        vehicleChain:Add(fitButton)
+
+        // Body
+        Control bodyCard = AddVehicleCard(panel, "Body")
+        AddSetting(bodyCard, names:MASS, "Mass:", "How heavy the car is, in kilograms", 10, 5000, 10, 100, "kg")
+        AddSetting(bodyCard, names:BOX_WIDTH, "Box width:", "The physics box's width, across the car. It can be smaller than the model.", 0.1, 10, 0.05, 0.5, "units")
+        AddSetting(bodyCard, names:BOX_HEIGHT, "Box height:", "The physics box's height. A low box clears slopes better.", 0.1, 10, 0.05, 0.5, "units")
+        AddSetting(bodyCard, names:BOX_LENGTH, "Box length:", "The physics box's length. A short box clears the start and end of a slope better.", 0.1, 20, 0.05, 0.5, "units")
+        AddSetting(bodyCard, names:FRICTION, "Scrape friction:", "How the physics box grips the ground or a wall it scrapes against. The tires' grip is Tire grip, under Suspension.", 0, 2, 0.05, 0.25, "")
+        AddSetting(bodyCard, names:LINEAR_DAMPING, "Linear damping:", "The share of the car's speed that fades each second on its own", 0, 1, 0.01, 0.1, "")
+        AddSetting(bodyCard, names:ANGULAR_DAMPING, "Turn damping:", "The share of the car's turning and tipping speed that fades each second. Much more than 0.3 fights the tires in a turn.", 0, 1, 0.01, 0.1, "")
+
+        // Wheels
+        Control wheelsCard = AddVehicleCard(panel, "Wheels")
+        AddSetting(wheelsCard, names:FRONT_AXLE, "Front axle:", "How far ahead of the body's middle the front wheels are", -10, 10, 0.01, 0.1, "units")
+        AddSetting(wheelsCard, names:REAR_AXLE, "Rear axle:", "How far ahead of the body's middle the rear wheels are; behind is less than 0", -10, 10, 0.01, 0.1, "units")
+        AddSetting(wheelsCard, names:WHEEL_SIDE, "Wheels out:", "How far out from the middle each wheel is. Wider resists tipping.", 0, 5, 0.01, 0.1, "units")
+        AddSetting(wheelsCard, names:WHEEL_HEIGHT, "Wheel mounts:", "How high each spring is mounted from the body's middle", -5, 5, 0.01, 0.1, "units")
+        AddSetting(wheelsCard, names:WHEEL_RADIUS, "Wheel radius:", "How big the wheels are", 0.05, 2, 0.01, 0.1, "units")
+        Control driveLabelLine = MakeCardLine()
+        Label driveLabel
+        driveLabel:SetText("The engine turns:")
+        driveLabelLine:Add(driveLabel)
+        wheelsCard:Add(driveLabelLine)
+        Control driveLine = MakeCardLine()
+        driveGroup = MakeGroup("Driving wheels", driveLine)
+        AddChoice(driveGroup, "Front", "The engine turns the front wheels")
+        AddChoice(driveGroup, "Rear", "The engine turns the rear wheels")
+        AddChoice(driveGroup, "All", "The engine turns all four wheels")
+        wheelsCard:Add(driveLine)
+        vehicleChain:Add(driveGroup)
+
+        // Suspension
+        Control suspensionCard = AddVehicleCard(panel, "Suspension")
+        AddSetting(suspensionCard, names:REST_LENGTH, "Rest length:", "How long each spring is with no weight on it. The wheels can't drop further than this.", 0.05, 3, 0.01, 0.1, "units")
+        AddSetting(suspensionCard, names:STIFFNESS, "Stiffness:", "How hard the springs push back. Softer springs let the wheels follow dips and crests.", 1, 100, 0.5, 5, "")
+        AddSetting(suspensionCard, names:DAMPING_COMPRESSION, "Damping in:", "How much the springs resist being pressed, so the car doesn't bounce", 0, 10, 0.05, 0.5, "")
+        AddSetting(suspensionCard, names:DAMPING_RELAXATION, "Damping out:", "How much the springs resist stretching back", 0, 10, 0.05, 0.5, "")
+        AddSetting(suspensionCard, names:FRICTION_SLIP, "Tire grip:", "How hard the tires grip, as a share of the weight on them. About 1 is a real tire; more grips harder and slides more suddenly. The ground's own friction doesn't change it.", 0.1, 20, 0.1, 1, "")
+        AddSetting(suspensionCard, names:ROLL_INFLUENCE, "Roll influence:", "How much turning tips the car. 0 never tips it; 1 is as real.", 0, 1, 0.01, 0.1, "")
+
+        // Driving
+        Control drivingCard = AddVehicleCard(panel, "Driving")
+        AddSetting(drivingCard, names:ENGINE_FORCE, "Engine force:", "How hard each driving wheel pushes forward, in newtons", 0, 20000, 100, 1000, "N")
+        AddSetting(drivingCard, names:REVERSE_FORCE, "Reverse force:", "How hard each driving wheel pushes backward, in newtons", 0, 20000, 100, 1000, "N")
+        AddSetting(drivingCard, names:BRAKE_FORCE, "Brake force:", "How hard each wheel brakes, in newtons", 0, 20000, 100, 1000, "N")
+        AddSetting(drivingCard, names:MAXIMUM_STEERING, "Steering lock:", "How far the front wheels turn at most, in radians. 0.35 is about 20 degrees.", 0, 1.2, 0.01, 0.05, "radians")
+        AddSetting(drivingCard, names:STEERING_SPEED, "Steering speed:", "How quickly the wheels turn toward full lock: 3 takes a third of a second. 0 turns them at once.", 0, 20, 0.1, 1, "")
+        AddSetting(drivingCard, names:THROTTLE_SPEED, "Throttle speed:", "How quickly the engine reaches full force: 2 takes half a second. 0 is at once.", 0, 20, 0.1, 1, "")
+
+        // Camera
+        Control cameraCard = AddVehicleCard(panel, "Camera")
+        Control cameraLine = MakeCardLine()
+        Checkbox checkbox
+        cameraCheckbox = checkbox
+        cameraCheckbox:SetName("Camera follows this")
+        cameraCheckbox:SetDescription("In a game, the layer's camera follows the car from behind and above")
+        ControllerButtonBehavior cameraBehavior
+        cameraBehavior:Setup(me, CAMERA_FOLLOWS)
+        cameraBehavior:SetCheckbox(true)
+        cameraCheckbox:SetBehavior(cameraBehavior)
+        cameraLine:Add(cameraCheckbox)
+        cameraCard:Add(cameraLine)
+        vehicleChain:Add(cameraCheckbox)
+        AddSetting(cameraCard, names:CAMERA_BEHIND, "Behind:", "How far behind the car the camera follows", 0, 50, 0.5, 5, "units")
+        AddSetting(cameraCard, names:CAMERA_ABOVE, "Above:", "How far above the car the camera follows", 0, 30, 0.5, 2, "units")
+        AddSetting(cameraCard, names:CAMERA_ANGLE, "Angle:", "How far around the car the camera follows, from straight behind it", -180, 180, 1, 15, "degrees")
+        AddSetting(cameraCard, names:CAMERA_SMOOTHING, "Smoothing:", "How many seconds the camera takes to catch up. 0 keeps it fixed behind the car.", 0, 2, 0.05, 0.25, "seconds")
+
+        ShowParts()
+    end
+
+    /*
+        Adds a card shown only for a vehicle, with its title.
+    */
+    private action AddVehicleCard(Control panel, text title) returns Control
+        Label cardTitle = MakeCardTitle(title)
+        panel:Add(cardTitle)
+        vehicleParts:Add(cardTitle)
+        Control card = MakeCard()
+        panel:Add(card)
+        vehicleParts:Add(card)
+        return card
+    end
+
+    /*
+        Makes a group of choices in a line.
+    */
+    private action MakeGroup(text name, Control line) returns ButtonGroup
+        ButtonGroup group
+        group:SetName(name)
+        group:SetHorizontalLayoutMode(line:FILL)
+        group:SetVerticalLayoutMode(line:FIT_CONTENTS)
+        FlowLayout groupLayout
+        group:SetLayout(groupLayout)
+        group:AddSelectionListener(me)
+        line:Add(group)
+        return group
+    end
+
+    /*
+        Adds a radio button to a group, two to a row.
+    */
+    private action AddChoice(ButtonGroup group, text name, text description)
+        RadioButton button
+        button:SetName(name)
+        button:SetDescription(description)
+        group:AddToGrouping(button)
+        AddHalfWidth(group, button)
+    end
+
+    /*
+        Adds a number setting's slider to a card.
+    */
+    private action AddSetting(Control card, integer which, text label, text description, number minimum, number maximum, number step, number pageStep, text units)
+        text name = label
+        if name:EndsWith(":")
+            name = name:GetSubtext(0, name:GetSize() - 1)
+        end
+        SliderField slider = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, FIELD_LABEL_WIDTH)
+        if units not= ""
+            slider:SetUnits(units)
+        end
+        if step >= 1
+            slider:SetDecimalPlaces(0)
+        else
+            slider:SetDecimalPlaces(2)
+        end
+        card:Add(slider)
+        settingFields:Add(slider:GetField())
+        settingNumbers:Add(which)
+        ChainControl(vehicleChain, slider:GetField())
+    end
+
+    /*
+        Shows the vehicle's cards only for a vehicle, and puts the shown
+        controls in Tab order.
+    */
+    private action ShowParts
+        boolean vehicle = settings not= undefined
+        integer i = 0
+        repeat while i < vehicleParts:GetSize()
+            Control part = vehicleParts:Get(i)
+            if vehicle
+                part:Show()
+            else
+                part:Hide()
+            end
+            part:RequestLayout()
+            i = i + 1
+        end
+        if sectionBody not= undefined
+            sectionBody:RequestLayout()
+        end
+        if vehicle
+            i = 0
+            repeat while i < vehicleChain:GetSize() - 1
+                vehicleChain:Get(i):SetNextFocus(vehicleChain:Get(i + 1))
+                vehicleChain:Get(i + 1):SetPreviousFocus(vehicleChain:Get(i))
+                i = i + 1
+            end
+            SetLastFocus(vehicleChain:Get(vehicleChain:GetSize() - 1))
+        else
+            SetLastFocus(controllerGroup)
+        end
+    end
+
+    /*
+        This action shows the section when a model is selected, and hides it
+        otherwise. It also hears the section's choices.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if event:GetSelection() is ButtonGroupSelection
+            if updating or model = undefined
+                return now
+            end
+            ButtonGroupSelection choice = cast(ButtonGroupSelection, event:GetSelection())
+            integer index = choice:GetIndex()
+            if index < 0
+                return now
+            end
+            if choice:GetButtonGroup() = controllerGroup
+                ChooseController(index)
+            elseif choice:GetButtonGroup() = facesGroup and settings not= undefined
+                VehicleControllerSettings after = settings:Copy()
+                after:SetFaces(choice:GetButton():GetName())
+                if after:GetFaces() not= settings:GetFaces()
+                    Change(after, "change the front", "Front faces " + after:GetFaces() + ".")
+                end
+            elseif choice:GetButtonGroup() = driveGroup and settings not= undefined
+                VehicleControllerSettings after = settings:Copy()
+                after:SetDrive(choice:GetButton():GetName())
+                if after:GetDrive() not= settings:GetDrive()
+                    Change(after, "change the driving wheels", "The engine turns the " + after:GetDrive() + " wheels.")
+                end
+            end
+            return now
+        end
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        Item selectedItem = undefined
+        if selection:IsItemSelected()
+            selectedItem = selection:GetSelectedItem()
+        end
+        if selectedItem is ModelSelectionHighlight
+            ModelSelectionHighlight highlight = cast(ModelSelectionHighlight, selectedItem)
+            SetModel(highlight:GetEditorModel())
+            if not IsShowing()
+                Show()
+            end
+        else
+            model = undefined
+            settings = undefined
+            if GetSceneEditor() not= undefined
+                GetSceneEditor():HideVehicleGuides()
+            end
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        Chooses no controller (0) or a vehicle (1). A new vehicle is fitted
+        to the model at once, as a starting point.
+    */
+    private action ChooseController(integer index)
+        if index = 0
+            if settings not= undefined
+                Change(undefined, "remove the controller", "No controller.")
+            end
+        elseif index = 1
+            if settings = undefined
+                VehicleControllerSettings after
+                after:FitToModel(model)
+                Change(after, "add a vehicle", "Vehicle controller added and fitted to the model. The guides show its box, wheels and an arrow out of its front; if the arrow points out of the back, change Front faces.")
+            end
+        end
+    end
+
+    /*
+        This action is called by Fit to model and the Camera follows this
+        checkbox.
+
+        Attribute: Parameter kind FIT_TO_MODEL or CAMERA_FOLLOWS
+    */
+    action ButtonActivated(integer kind)
+        if updating or model = undefined or settings = undefined
+            return now
+        end
+        if kind = FIT_TO_MODEL
+            VehicleControllerSettings after = settings:Copy()
+            if after:FitToModel(model)
+                Change(after, "fit to model", "Fitted the offset, box and wheels to the model.")
+            else
+                GetSceneEditor():ControllerEdited(model, "The model has no shape to fit to.")
+            end
+        elseif kind = CAMERA_FOLLOWS
+            boolean follows = cameraCheckbox:GetToggleState()
+            if follows not= settings:IsCameraFollowing()
+                VehicleControllerSettings after = settings:Copy()
+                after:SetCameraFollowing(follows)
+                if follows
+                    Change(after, "follow with the camera", "The camera follows this car in a game.")
+                else
+                    Change(after, "stop following with the camera", "The camera doesn't follow this car.")
+                end
+            end
+        end
+    end
+
+    /*
+        This action is called when a slider's value was finally changed, or
+        a number typed in its field. Text that isn't a number is ignored.
+
+        Attribute: Parameter field The slider's number field
+    */
+    action SliderTaken(TextField field)
+        if updating or model = undefined or settings = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < settingFields:GetSize()
+            if settingFields:Get(i):Equals(field)
+                integer which = settingNumbers:Get(i)
+                number value = 0
+                check
+                    value = field:GetText():ParseNumber()
+                detect e is Error
+                    Refresh()
+                    return now
+                end
+                if value not= settings:GetSetting(which)
+                    VehicleControllerSettings after = settings:Copy()
+                    after:SetSetting(which, value)
+                    text settingName = after:GetSettingName(which)
+                    Change(after, "change " + settingName:ToLowerCase(), settingName + " " + value + ".")
+                end
+                return now
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        Gives the model new settings, or none, as one step to undo.
+    */
+    private action Change(VehicleControllerSettings after, text changeName, text message)
+        SceneEditor editor = GetSceneEditor()
+        if editor = undefined or model = undefined
+            return now
+        end
+        editor:ChangeController(model, after, changeName, message)
+    end
+
+    /*
+        This action sets the fields from a selected model's highlight.
+    */
+    action SetFields(EditorItem item)
+        if item is ModelSelectionHighlight
+            ModelSelectionHighlight highlight = cast(ModelSelectionHighlight, item)
+            SetModel(highlight:GetEditorModel())
+        end
+    end
+
+    /*
+        This action shows a model's controller, and draws its guides.
+
+        Attribute: Parameter model The model
+    */
+    action SetModel(EditorModel model)
+        me:model = model
+        settings = undefined
+        SceneEditor editor = GetSceneEditor()
+        if model not= undefined and editor not= undefined
+            settings = editor:GetControllerSettings(model)
+        end
+        updating = true
+        if settings = undefined
+            controllerGroup:GetButtonAt(0):SetToggleState(true)
+        else
+            controllerGroup:GetButtonAt(1):SetToggleState(true)
+            text faces = settings:GetFaces()
+            integer facesIndex = 0
+            if faces = "-Z"
+                facesIndex = 1
+            elseif faces = "+X"
+                facesIndex = 2
+            elseif faces = "-X"
+                facesIndex = 3
+            end
+            facesGroup:GetButtonAt(facesIndex):SetToggleState(true)
+            integer driveIndex = 1
+            if settings:GetDrive() = settings:DRIVE_FRONT
+                driveIndex = 0
+            elseif settings:GetDrive() = settings:DRIVE_ALL
+                driveIndex = 2
+            end
+            driveGroup:GetButtonAt(driveIndex):SetToggleState(true)
+            cameraCheckbox:SetToggleState(settings:IsCameraFollowing())
+            integer i = 0
+            repeat while i < settingFields:GetSize()
+                settingFields:Get(i):SetText("" + settings:GetSetting(settingNumbers:Get(i)))
+                i = i + 1
+            end
+        end
+        updating = false
+        ShowParts()
+        if editor not= undefined
+            if settings = undefined
+                editor:HideVehicleGuides()
+            else
+                editor:ShowVehicleGuides(model, settings)
+            end
+        end
+    end
+
+    /*
+        Shows the model's controller again, after it changed.
+    */
+    action Refresh
+        if model not= undefined
+            SetModel(model)
+        end
+    end
+
+    /*
+        Moves the focus to the controller choice.
+    */
+    action FocusField
+        controllerGroup:Focus()
+    end
+end

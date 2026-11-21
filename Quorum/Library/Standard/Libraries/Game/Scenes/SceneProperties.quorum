@@ -250,4 +250,18 @@ shared class SceneProperties
     public constant text DOPPLER_ENABLED = "Doppler"
     public constant text PLAY_ON_LOAD = "Play on Load"
 
+    /*
+    A model item's controller, such as a vehicle that drives it, as one
+    block of settings (VehicleControllerSettings). A game builds it when
+    the scene loads.
+    */
+    public constant text CONTROLLER = "Controller"
+
+    /*
+    The model files added to the scene editor's palette with Custom Model,
+    each with its name, file, starting scale and description, so the
+    palette shows them again when the scene opens. Games ignore them.
+    */
+    public constant text CUSTOM_MODELS = "Custom Models"
+
 end

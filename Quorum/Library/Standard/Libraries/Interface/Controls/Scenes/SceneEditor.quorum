@@ -12,6 +12,7 @@ use Libraries.Game.Graphics.Painter3D
 use Libraries.Game.Graphics.Vulkan.VulkanPainter3D
 use Libraries.Compute.Vector2
 use Libraries.Compute.Vector3
+use Libraries.Compute.Frustum
 use Libraries.Containers.Array
 use Libraries.Interface.Item
 use Libraries.Interface.Item2D
@@ -66,6 +67,9 @@ use Libraries.Interface.Controls.Scenes.Blueprints.Audio3DBlueprint
 use Libraries.Interface.Controls.Scenes.Items.Previews.Custom3DPrimitivePreview
 use Libraries.Interface.Controls.Scenes.Blueprints.Custom3DPrimitiveBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.CustomItemBlueprint
+use Libraries.Interface.Controls.FileChooser
+use Libraries.Interface.Controls.FileFilter
 use Libraries.Interface.Controls.Scenes.Blueprints.ModelBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 use Libraries.Interface.Controls.Scenes.Blueprints.DrawableBlueprint
@@ -94,6 +98,13 @@ use Libraries.Interface.Controls.Scenes.Dialogs.PointLightPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.Audio3DPropertiesDialog
 use Libraries.Interface.Controls.Scenes.Dialogs.SkyPropertiesDialog
 use Libraries.Interface.Undo.SceneEditorSkyEdit
+use Libraries.Interface.Undo.SceneEditorControllerEdit
+use Libraries.Interface.Undo.SceneEditorMoveEdit
+use Libraries.Interface.Undo.SceneEditorLayerPhysicsEdit
+use Libraries.Interface.Controls.Scenes.Dialogs.LayerPhysicsPropertiesDialog
+use Libraries.Game.Scenes.VehicleControllerSettings
+use Libraries.Interface.Controls.Scenes.Dialogs.ControllerPropertiesDialog
+use Libraries.Interface.Controls.Scenes.Items.VehicleGuides
 use Libraries.Interface.Undo.SceneEditorLinearLightingEdit
 use Libraries.Game.Graphics.Models.Vulkan.EnvironmentVulkan
 use Libraries.Game.Graphics.Skybox
@@ -111,6 +122,7 @@ use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Compute.Ray
 use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
 use Libraries.Containers.Iterator
+use Libraries.System.Logging.SharedLogger
 use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
 use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
 use Libraries.Interface.Controls.Scenes.Items.Highlights.TerrainSelectionHighlight
@@ -309,6 +321,62 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainGeneratePropertiesDialog terrainGeneratePropertiesDialog
     // The Stamp tool's settings, shown only while it is chosen.
     TerrainStampPropertiesDialog terrainStampPropertiesDialog
+    // A model's Controller section, such as a Vehicle, and the lines drawn
+    // over a selected vehicle: its box, wheels and springs.
+    ControllerPropertiesDialog controllerPropertiesDialog
+    // A layer's Physics section: physics in games, and gravity.
+    LayerPhysicsPropertiesDialog layerPhysicsPropertiesDialog
+
+    // A placed 3D item being dragged with the mouse: its highlight and
+    // item; whether it has moved yet; where the pointer was pressed, on
+    // screen; how far the item's origin is from the point picked under the
+    // pointer; where it started; and the ground's height under it then, if
+    // there was ground.
+    boolean itemDragging = false
+    boolean itemDragMoved = false
+    SelectionHighlight3D itemDragHighlight = undefined
+    Item3D itemDragItem = undefined
+    number itemDragStartX = 0
+    number itemDragStartY = 0
+    number itemDragOffsetX = 0
+    number itemDragOffsetZ = 0
+    Vector3 itemDragBefore
+    boolean itemDragHadGround = false
+    number itemDragGroundStart = 0
+    // How far, in pixels, the pointer moves before a press becomes a drag.
+    constant number ITEM_DRAG_THRESHOLD = 4
+    // The ground's height found by HasGroundAt.
+    number foundGroundHeight = 0
+
+    // The models added to the palette with Custom Model, kept in the
+    // scene's file (CUSTOM_MODELS) and shown first in the palette.
+    Array<ModelBlueprint> customModels
+    VehicleGuides vehicleGuides = undefined
+    // While the guides show, the car is drawn see-through, so the guides
+    // inside it show: the model, each part's own color to put back, and
+    // whether it was see-through before.
+    Model seeThroughModel = undefined
+    // The selection box drawn faint while a vehicle's guides show.
+    SelectionHighlight3D fadedBox = undefined
+    Array<Color> seeThroughColors
+    boolean seeThroughHadTransparency = false
+    constant number SEE_THROUGH_OPACITY = 0.35
+
+    // The keys holding camera moves, and each move's kind and direction, so
+    // a move stops once its key is up, however the key was let go
+    // (UpdateCameraKeys).
+    Array<integer> cameraHeldKeys
+    // A followed car's game camera being viewed (StartFollowCamera): the
+    // car, its layer, the camera's place last frame, and its place when its
+    // follow settings were last taken.
+    boolean followCameraActive = false
+    Item3D followCameraModel = undefined
+    EditorLayer3D followCameraLayer = undefined
+    Vector3 followCameraLast
+    Vector3 followCameraCommitted
+    Array<integer> cameraHeldMoves
+    Array<integer> cameraHeldX
+    Array<integer> cameraHeldY
 
     // Makes and changes terrain in bulk: presets, stamps, erosion and auto
     // paint.
@@ -713,6 +781,7 @@ class SceneEditor is Control, DefaultSceneManager
         scene:Load(file)
         SetName(file:GetPath())
         Load(scene)
+        LoadCustomModels(scene:GetData())
         SelectStartingLayer()
         savedText = GetComparableText()
     end
@@ -892,6 +961,8 @@ class SceneEditor is Control, DefaultSceneManager
             AddPropertiesDialog(terrainStampPropertiesDialog)
             AddPropertiesDialog(terrainGeneratePropertiesDialog)
             AddPropertiesDialog(terrainPhysicsPropertiesDialog)
+            AddPropertiesDialog(controllerPropertiesDialog)
+            AddPropertiesDialog(layerPhysicsPropertiesDialog)
         end
     end
 
@@ -1091,6 +1162,13 @@ action Update(number seconds)
         UpdatePointerHold(seconds)
         UpdateRiverDrag()
         UpdateRegionDrag()
+        UpdateItemDrag()
+        UpdateCameraKeys()
+        UpdateFollowCamera()
+        // The vehicle guides go wherever the car is, however it moved.
+        if vehicleGuides not= undefined and vehicleGuides:IsShowing()
+            vehicleGuides:Follow()
+        end
         UpdateTerrainGridPatch()
         // A click in the view gives the scene editor the focus; a preview
         // being placed takes it back, so Enter and the arrow keys reach it.
@@ -1406,7 +1484,9 @@ action Update(number seconds)
             if movedItem not= undefined and movedItem is EditorItem
                 UpdateActivePropertiesDialog(cast(EditorItem, movedItem))
                 // A new item's preview moves on its own; the camera stays.
-                if not (movedItem is ItemPreview3D)
+                // A placed item's camera follows only once the item leaves
+                // the view.
+                if not (movedItem is ItemPreview3D) and not IsInView(movedItem)
                     UpdateEditorCameraPosition()
                 end
             end
@@ -1687,6 +1767,281 @@ action Update(number seconds)
         return CreateItemPreview(schematic, undefined)
     end
 
+    /*
+        Asks for a model file for the palette's Custom Model, and makes a
+        palette tile for it if it loads, so it can be seen and placed like
+        any other model. ScenePalette's AddProjectModel shows the tile and
+        keeps it in the scene (AddCustomModel). It says what
+        happened if it can't: no file chosen, a file of the wrong kind, or
+        a file that couldn't be read. A model whose longest side is under
+        0.25 units or over 500 starts scaled so its longest side is 2 units,
+        so its placeholder can be seen; the tile's description says so. A
+        picture beside the file with the model's name, such as Car.png,
+        becomes the tile's picture.
+
+        Attribute: Parameter custom The palette's Custom Model blueprint
+        Attribute: Returns The new tile's blueprint, or undefined if there is none
+    */
+    action ChooseModelFile(CustomItemBlueprint custom) returns ModelBlueprint
+        if custom = undefined
+            return undefined
+        end
+        File project = GetProjectLocation()
+        FileChooser chooser
+        FileFilter filter
+        filter:Add("gltf")
+        filter:Add("glb")
+        filter:Add("fbx")
+        filter:Add("obj")
+        filter:Add("g3db")
+        filter:SetAcceptAll(false)
+        File file = chooser:OpenFileDialog(project, filter)
+        if file = undefined
+            NotifyAccessibility(me, "No file chosen, so nothing was added.")
+            return undefined
+        end
+        text fileName = file:GetFileName()
+
+        text relativePath = GetProjectPathToFile(file)
+        File result
+        result:SetWorkingDirectory(project:GetAbsolutePath())
+        result:SetPath(relativePath)
+        if not custom:IsFileValid(result)
+            NotifyAccessibility(me, fileName + " isn't a model file the scene editor can load. Choose a .gltf, .glb, .fbx, .obj or .g3db file.")
+            return undefined
+        end
+
+        // Loading it once checks it can be read; the loaded model is kept
+        // for the placeholder.
+        Model test
+        test:Load(result)
+        if test:GetModelBlueprint() = undefined
+            NotifyAccessibility(me, fileName + " couldn't be read as a model.")
+            return undefined
+        end
+
+        text name = fileName
+        text extension = file:GetFileExtension()
+        if extension not= "" and name:GetSize() > extension:GetSize() + 1
+            name = name:GetSubtext(0, name:GetSize() - extension:GetSize() - 1)
+        end
+        text description = "A model from " + relativePath + "."
+
+        number scale = 1
+        BoundingBox bounds = test:CalculateBoundingBox()
+        if bounds:IsValid()
+            number longest = math:MaximumOf(bounds:GetWidth(), math:MaximumOf(bounds:GetHeight(), bounds:GetDepth()))
+            if longest > 0 and (longest < 0.25 or longest > 500)
+                scale = 2 / longest
+                if scale >= 10
+                    scale = math:Round(scale, 0)
+                else
+                    scale = math:Round(scale, 2)
+                end
+                if scale > 1
+                    description = description + " It is " + math:Round(longest, 3) + " units long, so it starts " + scale + " times larger. Change Scale in Properties."
+                else
+                    description = description + " It is " + math:Round(longest, 0) + " units long, so it starts at " + scale + " of its size. Change Scale in Properties."
+                end
+            end
+        end
+        return MakeCustomModelTile(name, relativePath, scale, description)
+    end
+
+    /*
+        Makes the palette tile for a model file added with Custom Model. A
+        picture beside the file with the model's name, such as Car.png,
+        becomes its picture.
+
+        Attribute: Parameter name The tile's name
+        Attribute: Parameter path The model file, from the project's folder
+        Attribute: Parameter scale The scale a placed copy starts with
+        Attribute: Parameter description The tile's description
+        Attribute: Returns The tile's blueprint
+    */
+    action MakeCustomModelTile(text name, text path, number scale, text description) returns ModelBlueprint
+        File project = GetProjectLocation()
+        File modelFile
+        if project not= undefined
+            modelFile:SetWorkingDirectory(project:GetAbsolutePath())
+        end
+        modelFile:SetPath(path)
+
+        SceneProperties modelProperties
+        ModelBlueprint tile
+        tile:SetName(name)
+        tile:SetModelType(modelProperties:CUSTOM)
+        tile:SetModelFile(modelFile)
+        tile:SetDimensions(1, 1, 1)
+        tile:SetRotation(0, 0, 0)
+        tile:SetScale(scale, scale, scale)
+        tile:SetDescription(description)
+
+        File picture
+        picture:SetPath(modelFile:GetParentDirectory():GetAbsolutePath() + "/" + name + ".png")
+        if picture:Exists()
+            Drawable icon
+            icon:Load(picture)
+            tile:SetPaletteIcon(icon)
+            tile:SetPaletteIconFile(picture)
+        end
+        return tile
+    end
+
+    /*
+        Adds a model added with Custom Model to the scene's list, which is
+        saved in the scene's file and shown first in the palette. A model of
+        the same name replaces the one before.
+
+        Attribute: Parameter model The model's tile
+    */
+    action AddCustomModel(ModelBlueprint model)
+        if model = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < customModels:GetSize()
+            if customModels:Get(i):GetName() = model:GetName()
+                customModels:RemoveAt(i)
+            else
+                i = i + 1
+            end
+        end
+        customModels:Add(model)
+    end
+
+    /*
+        Returns the models added to this scene's palette with Custom Model.
+
+        Attribute: Returns The models' tiles
+    */
+    action GetCustomModels returns Array<ModelBlueprint>
+        return customModels
+    end
+
+    /*
+        Writes the scene's custom models: one entry each, by number, with
+        its name, file, starting scale and description.
+    */
+    private action SaveCustomModels returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        integer i = 0
+        repeat while i < customModels:GetSize()
+            ModelBlueprint model = customModels:Get(i)
+            JavaScriptObjectNotation entry
+            entry:Add(properties:NAME, model:GetName())
+            File modelFile = model:GetModelFile()
+            if modelFile not= undefined
+                entry:Add(properties:FILE, modelFile:GetPath())
+            end
+            entry:Add("Scale", model:GetScaleX())
+            entry:Add(properties:DESCRIPTION, model:GetDescription())
+            json:Add("" + i, entry)
+            i = i + 1
+        end
+        return json
+    end
+
+    /*
+        Reads the scene's custom models, as SaveCustomModels writes them. A
+        model whose file is gone is left out and logged.
+    */
+    private action LoadCustomModels(JavaScriptObjectNotation data)
+        customModels:Empty()
+        if data = undefined
+            return now
+        end
+        JavaScriptObjectNotation list = data:GetObject(properties:CUSTOM_MODELS)
+        if list = undefined
+            return now
+        end
+        Iterator<JavaScriptObjectNotation> entries = list:GetIterator()
+        repeat while entries:HasNext()
+            JavaScriptObjectNotation entry = entries:Next()
+            if entry:HasValue(properties:NAME) and entry:HasValue(properties:FILE)
+                text name = entry:GetValue(properties:NAME)
+                text path = entry:GetValue(properties:FILE)
+                number scale = 1
+                Iterator<JavaScriptObjectNotation> values = entry:GetIterator()
+                repeat while values:HasNext()
+                    JavaScriptObjectNotation value = values:Next()
+                    if value:GetKey() = "Scale"
+                        if value:IsInteger()
+                            scale = value:GetInteger()
+                        elseif value:IsNumber()
+                            scale = value:GetNumber()
+                        end
+                    end
+                end
+                text description = ""
+                if entry:HasValue(properties:DESCRIPTION)
+                    description = entry:GetValue(properties:DESCRIPTION)
+                end
+                ModelBlueprint tile = MakeCustomModelTile(name, path, scale, description)
+                if tile:GetModelFile():Exists()
+                    customModels:Add(tile)
+                else
+                    SharedLogger logger
+                    logger:Log("The scene's custom model " + name + " is at " + path + ", which wasn't found, so it is left out of the palette.")
+                end
+            end
+        end
+    end
+
+    /*
+        Asks for the file of a palette item that needs one, such as Custom
+        Model, and starts placing it, saying what happened either way: no
+        file chosen, a file of the wrong kind, a file that couldn't be read,
+        or the item being placed. For a model, the chooser lists only the
+        model files the loader reads.
+
+        Attribute: Parameter custom The palette item's blueprint
+        Attribute: Returns The placeholder being placed, or undefined if there is none
+    */
+    action AddCustomItem(CustomItemBlueprint custom) returns ItemPreview
+        if custom = undefined
+            return undefined
+        end
+        File project = GetProjectLocation()
+        FileChooser chooser
+        File file = undefined
+        if custom is CustomModelBlueprint
+            FileFilter filter
+            filter:Add("gltf")
+            filter:Add("glb")
+            filter:Add("fbx")
+            filter:Add("obj")
+            filter:Add("g3db")
+            filter:SetAcceptAll(false)
+            file = chooser:OpenFileDialog(project, filter)
+        else
+            file = chooser:OpenFileDialog(project)
+        end
+        if file = undefined
+            NotifyAccessibility(me, "No file chosen, so nothing was added.")
+            return undefined
+        end
+
+        text relativePath = GetProjectPathToFile(file)
+        File result
+        result:SetWorkingDirectory(project:GetAbsolutePath())
+        result:SetPath(relativePath)
+
+        if not custom:IsFileValid(result)
+            if custom is CustomModelBlueprint
+                NotifyAccessibility(me, file:GetFileName() + " isn't a model file the scene editor can load. Choose a .gltf, .glb, .fbx, .obj or .g3db file.")
+            else
+                NotifyAccessibility(me, file:GetFileName() + " can't be used for " + custom:GetName() + ".")
+            end
+            return undefined
+        end
+        ItemPreview preview = CreateItemPreview(custom, result)
+        if preview not= undefined
+            BeginPlacingCopies()
+        end
+        return preview
+    end
+
     action CreateItemPreview(ItemBlueprint schematic, File asset) returns ItemPreview
         // A placeholder already being placed ends first, so its settings,
         // such as its scale and color, are kept for this one. While the
@@ -1774,7 +2129,16 @@ action Update(number seconds)
                     ModelPreview modelPreview
                     preview = modelPreview
                     ModelBlueprint modelBlueprint = cast(ModelBlueprint, schematic)
+                    // A custom model needs its file first (AddCustomItem).
+                    if schematic is CustomModelBlueprint
+                        NotifyAccessibility(me, "Choose " + schematic:GetName() + " with a click or Enter to pick its file.")
+                        return undefined
+                    end
                     modelPreview:Load(me, modelBlueprint)
+                    if modelBlueprint:GetModelType() = properties:CUSTOM and modelPreview:GetModelBlueprint() = undefined
+                        NotifyAccessibility(me, schematic:GetName() + " couldn't be read as a model.")
+                        return undefined
+                    end
                 elseif schematic is PointLightBlueprint
                     PointLightPreview lightPreview
                     preview = lightPreview
@@ -1803,6 +2167,10 @@ action Update(number seconds)
                     ModelPreview modelPreview
                     preview = modelPreview
                     modelPreview:Load(me, newBlueprint)
+                    if modelPreview:GetModelBlueprint() = undefined
+                        NotifyAccessibility(me, asset:GetFileName() + " couldn't be read as a model.")
+                        return undefined
+                    end
                 end
             end
 
@@ -3992,6 +4360,209 @@ the foliage there is drawn again, the terrain is
     end
 
     /*
+    This action starts dragging the selected placed 3D item, when the left
+    button is pressed on it. Nothing moves until the pointer has moved a
+    few pixels, so a plain click only selects. The item keeps the same spot
+    under the pointer, and over a terrain its height above the ground.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action BeginItemDrag(number x, number y)
+        itemDragging = false
+        itemDragMoved = false
+        Item selected = GetSelectedItem()
+        if not (selected is SelectionHighlight3D)
+            return now
+        end
+        SelectionHighlight3D highlight = cast(SelectionHighlight3D, selected)
+        Item target = highlight:GetItem()
+        if not (target is Item3D) or target is EditorTerrain
+            return now
+        end
+        Item3D item = cast(Item3D, target)
+        Vector3 hit = PickDragPoint(x, y, item:GetY())
+        if hit = undefined
+            return now
+        end
+        itemDragHighlight = highlight
+        itemDragItem = item
+        itemDragStartX = x
+        itemDragStartY = y
+        itemDragOffsetX = item:GetX() - hit:GetX()
+        itemDragOffsetZ = item:GetZ() - hit:GetZ()
+        itemDragBefore:Set(item:GetX(), item:GetY(), item:GetZ())
+        itemDragHadGround = HasGroundAt(item:GetX(), item:GetZ())
+        itemDragGroundStart = foundGroundHeight
+        itemDragging = true
+    end
+
+    /*
+    This action returns true while a placed 3D item is being dragged.
+
+    Attribute: Returns True while dragging
+    */
+    action IsDraggingItem returns boolean
+        return itemDragging
+    end
+
+    /*
+    This action moves the item being dragged to follow the pointer.
+
+    Attribute: Parameter x The pointer's x on the screen
+    Attribute: Parameter y The pointer's y on the screen
+    */
+    action DragItem(number x, number y)
+        if not itemDragging or itemDragItem = undefined
+            return now
+        end
+        if not itemDragMoved
+            number movedX = x - itemDragStartX
+            number movedY = y - itemDragStartY
+            if movedX * movedX + movedY * movedY < ITEM_DRAG_THRESHOLD * ITEM_DRAG_THRESHOLD
+                return now
+            end
+            itemDragMoved = true
+        end
+        Vector3 hit = PickDragPoint(x, y, itemDragBefore:GetY())
+        if hit = undefined
+            return now
+        end
+        number newX = hit:GetX() + itemDragOffsetX
+        number newZ = hit:GetZ() + itemDragOffsetZ
+        number newY = itemDragBefore:GetY()
+        // Over a terrain, the item keeps its height above the ground.
+        if itemDragHadGround and HasGroundAt(newX, newZ)
+            newY = itemDragBefore:GetY() + foundGroundHeight - itemDragGroundStart
+        end
+        itemDragHighlight:Move(newX - itemDragItem:GetX(), newY - itemDragItem:GetY(), newZ - itemDragItem:GetZ())
+        UpdateActivePropertiesDialog(itemDragHighlight)
+    end
+
+    /*
+    This action puts the item being dragged back where it started, such as
+    when Escape is pressed during the drag.
+
+    Attribute: Returns True if a drag was canceled
+    */
+    action CancelItemDrag returns boolean
+        if not itemDragging
+            return false
+        end
+        itemDragging = false
+        if itemDragMoved and itemDragItem not= undefined
+            PutItemPosition(itemDragItem, itemDragBefore, "Move canceled.")
+        end
+        itemDragMoved = false
+        return true
+    end
+
+    /*
+    This action finishes a drag when the button is let go: if the item
+    moved, the move is one change that can be undone, and is announced.
+    */
+    private action UpdateItemDrag
+        if not itemDragging
+            return now
+        end
+        if strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT)
+            return now
+        end
+        itemDragging = false
+        if not itemDragMoved or itemDragItem = undefined
+            return now
+        end
+        itemDragMoved = false
+        Vector3 after
+        after:Set(itemDragItem:GetX(), itemDragItem:GetY(), itemDragItem:GetZ())
+        SceneEditorMoveEdit edit
+        edit:Create(me, itemDragItem, itemDragBefore, after, "move " + itemDragItem:GetName())
+        editManager:Add(edit)
+        PutItemPosition(itemDragItem, after, "Moved " + itemDragItem:GetName() + " to " + RoundTenth(after:GetX()) + ", " + RoundTenth(after:GetY()) + ", " + RoundTenth(after:GetZ()) + ".")
+    end
+
+    /*
+    This action puts a placed 3D item at a position, such as when a move is
+    undone, then moves its selection box over it, and shows and says the
+    change.
+
+    Attribute: Parameter item The item
+    Attribute: Parameter position Where its origin goes
+    Attribute: Parameter message What to say, or an empty text to say nothing
+    */
+    action PutItemPosition(Item3D item, Vector3 position, text message)
+        if item = undefined
+            return now
+        end
+        item:SetPosition(position:GetX(), position:GetY(), position:GetZ())
+        Item selected = GetSelectedItem()
+        if selected is SelectionHighlight3D
+            SelectionHighlight3D highlight = cast(SelectionHighlight3D, selected)
+            if item:Equals(highlight:GetItem())
+                highlight:PlaceOverItem()
+                UpdateActivePropertiesDialog(highlight)
+            end
+        end
+        if vehicleGuides not= undefined and vehicleGuides:IsShowing()
+            vehicleGuides:Refresh()
+        end
+        if message not= ""
+            NotifyAccessibility(me, message)
+        end
+    end
+
+    /*
+    Returns the point under the pointer that a dragged item follows: on a
+    terrain's ground, or, away from any terrain, on the level plane at a
+    height. Undefined if the pointer looks away from both.
+    */
+    private action PickDragPoint(number x, number y, number planeY) returns Vector3
+        Vector3 ground = PickGround(x, y)
+        if ground not= undefined
+            return ground
+        end
+        EditorLayer selectedLayer = GetSelectedLayer()
+        if not (selectedLayer is EditorLayer3D)
+            return undefined
+        end
+        EditorLayer3D layer3D = cast(EditorLayer3D, selectedLayer)
+        EditorCamera3D camera = layer3D:GetEditorCamera()
+        // GetPickRay mirrors x across the view, so the pointer's x is
+        // mirrored first, as the palette's drag does.
+        number mirroredX = 2 * GetGlobalX() + camera:GetWidth() - x
+        Ray pickRay = camera:GetPickRay(mirroredX, y, GetGlobalX(), GetGlobalY(), camera:GetWidth(), camera:GetHeight())
+        number directionY = pickRay:GetDirection():GetY()
+        if directionY = 0
+            return undefined
+        end
+        number along = (planeY - pickRay:GetOrigin():GetY()) / directionY
+        if along < 0
+            return undefined
+        end
+        Vector3 hit
+        hit:Set(pickRay:GetOrigin():GetX() + pickRay:GetDirection():GetX() * along, planeY, pickRay:GetOrigin():GetZ() + pickRay:GetDirection():GetZ() * along)
+        return hit
+    end
+
+    /*
+    Returns true if a terrain's ground is at a place, and keeps its height
+    in foundGroundHeight.
+    */
+    private action HasGroundAt(number x, number z) returns boolean
+        Array<EditorTerrain> terrains = GetEditorTerrains()
+        integer i = 0
+        repeat while i < terrains:GetSize()
+            TerrainData data = terrains:Get(i):GetWorldTerrain():GetData()
+            if data:HasHeight(x, z)
+                foundGroundHeight = data:GetSurfaceHeight(x, z)
+                return true
+            end
+            i = i + 1
+        end
+        return false
+    end
+
+    /*
     This action is a click with the River tool, or Space, at a place on the
     ground:
     - while a river is being drawn, it adds the next point there;
@@ -5167,6 +5738,365 @@ the foliage there is drawn again, the terrain is
     Attribute: Parameter layer The layer
     Attribute: Parameter message What happened, or an empty text to say nothing
     */
+    /*
+    This action returns the settings of an item's controller, read from its
+    Controller block, or undefined if it has none. Changing them changes
+    nothing until they are given back with ChangeController.
+
+    Attribute: Parameter item The item, such as a model
+    Attribute: Returns A copy of its Vehicle controller's settings, or undefined
+    */
+    action GetControllerSettings(Item3D item) returns VehicleControllerSettings
+        if item = undefined or not item:HasProperty(properties:CONTROLLER)
+            return undefined
+        end
+        JavaScriptObjectNotation block = item:GetProperty(properties:CONTROLLER)
+        if block = undefined or not block:HasValue("Type")
+            return undefined
+        end
+        VehicleControllerSettings settings
+        if block:GetValue("Type") not= settings:VEHICLE
+            return undefined
+        end
+        settings:FromJson(block)
+        return settings
+    end
+
+    /*
+    This action gives an item a controller's settings, or takes its
+    controller away, as one step to undo, then shows the change and says
+    what happened. The settings are saved in the scene's Controller block.
+
+    Attribute: Parameter item The item, such as a model
+    Attribute: Parameter settings The new settings, or undefined for no controller
+    Attribute: Parameter changeName What changed, for Undo and Redo, such as "change stiffness"
+    Attribute: Parameter message What to say, such as "Stiffness 10."
+    */
+    action ChangeController(Item3D item, VehicleControllerSettings settings, text changeName, text message)
+        if item = undefined
+            return now
+        end
+        // A vehicle needs physics in its layer in games.
+        if settings not= undefined
+            TurnOnLayerPhysicsIfNeeded()
+        end
+        VehicleControllerSettings before = GetControllerSettings(item)
+        SetControllerBlock(item, settings)
+        SceneEditorControllerEdit edit
+        edit:Create(me, item, before, settings, changeName)
+        editManager:Add(edit)
+        ControllerEdited(item, message)
+    end
+
+    /*
+    This action sets whether a game using the scene runs physics in a
+    layer, and its gravity, as one step to undo, then shows and says the
+    change. The editor itself never runs physics.
+
+    Attribute: Parameter layer The layer
+    Attribute: Parameter enabled True for physics in games
+    Attribute: Parameter gravity The gravity
+    Attribute: Parameter changeName What changed, for Undo and Redo, such as "change gravity"
+    Attribute: Parameter message What to say, such as "Gravity y -9.8."
+    */
+    action SetLayerGamePhysics(EditorLayer layer, boolean enabled, Vector3 gravity, text changeName, text message)
+        if layer = undefined
+            return now
+        end
+        boolean beforeEnabled = layer:IsGamePhysicsEnabled()
+        Vector3 beforeGravity = layer:GetGameGravity()
+        layer:SetGamePhysicsEnabled(enabled)
+        layer:SetGameGravity(gravity:GetX(), gravity:GetY(), gravity:GetZ())
+        SceneEditorLayerPhysicsEdit edit
+        edit:Create(me, layer, beforeEnabled, beforeGravity, enabled, gravity, changeName)
+        editManager:Add(edit)
+        LayerPhysicsEdited(layer, message)
+    end
+
+    /*
+    This action sets a layer's physics in games without a step to undo, such
+    as when a change is undone or redone.
+
+    Attribute: Parameter layer The layer
+    Attribute: Parameter enabled True for physics in games
+    Attribute: Parameter gravity The gravity
+    Attribute: Parameter message What to say
+    */
+    action PutLayerPhysics(EditorLayer layer, boolean enabled, Vector3 gravity, text message)
+        if layer = undefined
+            return now
+        end
+        layer:SetGamePhysicsEnabled(enabled)
+        layer:SetGameGravity(gravity:GetX(), gravity:GetY(), gravity:GetZ())
+        LayerPhysicsEdited(layer, message)
+    end
+
+    /*
+    This action is called after a layer's physics in games changed: its
+    Physics section follows, and the message is announced.
+
+    Attribute: Parameter layer The layer
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action LayerPhysicsEdited(EditorLayer layer, text message)
+        if layerPhysicsPropertiesDialog:IsShowing()
+            layerPhysicsPropertiesDialog:Refresh()
+        end
+        if message not= ""
+            NotifyAccessibility(me, message)
+        end
+    end
+
+    /*
+    This action turns on physics in games for the selected layer if it is
+    off, such as when an item in it is given physics or a Vehicle
+    controller, and says so. It is part of that change, not a step of its
+    own.
+    */
+    action TurnOnLayerPhysicsIfNeeded
+        EditorLayer layer = GetSelectedLayer()
+        if layer = undefined or layer:IsGamePhysicsEnabled()
+            return now
+        end
+        layer:SetGamePhysicsEnabled(true)
+        LayerPhysicsEdited(layer, "Physics in games turned on for " + layer:GetName() + ", so it moves in a game. Its gravity is in the layer's Physics section.")
+    end
+
+    /*
+    This action gives an item a controller's settings, or takes its
+    controller away, without a step to undo, such as when a change is undone
+    or redone.
+
+    Attribute: Parameter item The item
+    Attribute: Parameter settings The settings, or undefined for no controller
+    Attribute: Parameter message What to say
+    */
+    action PutController(Item3D item, VehicleControllerSettings settings, text message)
+        if item = undefined
+            return now
+        end
+        SetControllerBlock(item, settings)
+        ControllerEdited(item, message)
+    end
+
+    /*
+    Keeps an item's controller settings in its Controller block, or none.
+    */
+    private action SetControllerBlock(Item3D item, VehicleControllerSettings settings)
+        if settings = undefined
+            item:SetProperty(properties:CONTROLLER, undefined)
+        else
+            item:SetProperty(properties:CONTROLLER, settings:ToJson())
+        end
+    end
+
+    /*
+    This action is called after an item's controller changed, or a change
+    was undone or redone: the Controller section and the guides follow, and
+    the message is announced.
+
+    Attribute: Parameter item The item
+    Attribute: Parameter message What happened, or an empty text to say nothing
+    */
+    action ControllerEdited(Item3D item, text message)
+        if controllerPropertiesDialog:IsShowing()
+            controllerPropertiesDialog:Refresh()
+        end
+        // A followed car's game camera goes to its new follow place, such as
+        // after the change is undone.
+        if followCameraActive and followCameraModel not= undefined and item:Equals(followCameraModel)
+            VehicleControllerSettings followed = GetControllerSettings(item)
+            if followed not= undefined and followed:IsCameraFollowing()
+                PlaceFollowCamera(followed)
+            end
+        end
+        // The item's own Physics card shows or gives way to a note.
+        if item3dPropertiesDialog:IsShowing() and GetSelectedItem() is EditorItem3D
+            item3dPropertiesDialog:SetFields(cast(EditorItem3D, GetSelectedItem()))
+        end
+        if message not= ""
+            NotifyAccessibility(me, message)
+        end
+    end
+
+    /*
+    This action draws a vehicle's guides over its model: its physics box, an
+    arrow out of its front, its wheels and springs, and where the following
+    camera starts. They are an editor helper, not saved.
+
+    Attribute: Parameter item The model
+    Attribute: Parameter settings Its Vehicle controller's settings
+    */
+    action ShowVehicleGuides(Item3D item, VehicleControllerSettings settings)
+        EditorLayer layer = GetSelectedLayer()
+        if item = undefined or settings = undefined or not (layer is EditorLayer3D)
+            HideVehicleGuides()
+            return now
+        end
+        if vehicleGuides = undefined
+            VehicleGuides guides
+            guides:SetName("Vehicle Guides")
+            vehicleGuides = guides
+            EditorLayer3D layer3D = cast(EditorLayer3D, layer)
+            layer3D:Add(guides)
+        end
+        vehicleGuides:Place(item, settings)
+        vehicleGuides:Show()
+        MakeSeeThrough(item)
+        FadeSelectionBox()
+    end
+
+    /*
+    This action hides a vehicle's guides, and draws the car as it is again.
+    */
+    action HideVehicleGuides
+        if vehicleGuides not= undefined
+            vehicleGuides:Hide()
+        end
+        ClearSeeThrough()
+        if fadedBox not= undefined
+            fadedBox:SetFaint(false)
+            fadedBox = undefined
+        end
+    end
+
+    /*
+    Draws the selected item's box faint, so the vehicle guides inside it
+    show.
+    */
+    private action FadeSelectionBox
+        Item selected = GetSelectedItem()
+        if not (selected is SelectionHighlight3D)
+            return now
+        end
+        SelectionHighlight3D box = cast(SelectionHighlight3D, selected)
+        if fadedBox not= undefined and not fadedBox:Equals(box)
+            fadedBox:SetFaint(false)
+        end
+        box:SetFaint(true)
+        fadedBox = box
+    end
+
+    /*
+    Draws a model see-through, each part at SEE_THROUGH_OPACITY of its own
+    color, so the vehicle guides inside it show. Its colors are kept to put
+    back (ClearSeeThrough).
+    */
+    private action MakeSeeThrough(Item3D item)
+        if seeThroughModel not= undefined and item:Equals(seeThroughModel)
+            return now
+        end
+        ClearSeeThrough()
+        if not (item is Model)
+            return now
+        end
+        Model model = cast(Model, item)
+        if model:GetModelBlueprint() = undefined
+            return now
+        end
+        seeThroughColors:Empty()
+        seeThroughHadTransparency = model:HasTransparency()
+        integer parts = model:GetMeshCount()
+        if parts < 1
+            parts = 1
+        end
+        integer part = 0
+        repeat while part < parts
+            Color own = model:GetColor(part)
+            Color faded
+            if own = undefined
+                Color none = undefined
+                seeThroughColors:Add(none)
+                faded:SetColor(1, 1, 1, SEE_THROUGH_OPACITY)
+            else
+                seeThroughColors:Add(own:Copy())
+                faded:SetColor(own:GetRed(), own:GetGreen(), own:GetBlue(), own:GetAlpha() * SEE_THROUGH_OPACITY)
+            end
+            model:SetColor(part, faded)
+            part = part + 1
+        end
+        seeThroughModel = model
+    end
+
+    /*
+    Draws the see-through model with its own colors again.
+    */
+    private action ClearSeeThrough
+        if seeThroughModel = undefined
+            return now
+        end
+        Model model = seeThroughModel
+        seeThroughModel = undefined
+        integer part = 0
+        repeat while part < seeThroughColors:GetSize()
+            Color own = seeThroughColors:Get(part)
+            if own = undefined
+                Color white
+                white:SetColor(1, 1, 1, 1)
+                model:SetColor(part, white)
+            else
+                model:SetColor(part, own)
+            end
+            part = part + 1
+        end
+        seeThroughColors:Empty()
+        if not seeThroughHadTransparency
+            model:EnableTransparency(false)
+        end
+    end
+
+    /*
+    Returns true if a 3D item's position is in the editor camera's view.
+    */
+    private action IsInView(Item item) returns boolean
+        if not (item is Item3D) or not (GetSelectedLayer() is EditorLayer3D)
+            return false
+        end
+        Item3D item3D = cast(Item3D, item)
+        EditorLayer3D layer3D = cast(EditorLayer3D, GetSelectedLayer())
+        Frustum frustum = layer3D:GetEditorCamera():GetFrustum()
+        if frustum = undefined
+            return false
+        end
+        return frustum:PointInFrustum(item3D:GetGlobalX(), item3D:GetGlobalY(), item3D:GetGlobalZ())
+    end
+
+    /*
+    This action keeps the key that holds a camera move, so the move stops
+    once the key is up (UpdateCameraKeys). The key's release can come with
+    other modifiers than its press, such as Shift let go first, and then it
+    wouldn't stop the move itself. CameraKeyBehavior calls it.
+
+    Attribute: Parameter key The key, such as an arrow key's code
+    Attribute: Parameter move One of SceneConstants' CAMERA_ moves
+    Attribute: Parameter x The move's x direction
+    Attribute: Parameter y The move's y direction
+    */
+    action HoldCameraKey(integer key, integer move, integer x, integer y)
+        cameraHeldKeys:Add(key)
+        cameraHeldMoves:Add(move)
+        cameraHeldX:Add(x)
+        cameraHeldY:Add(y)
+    end
+
+    /*
+    Stops each camera move whose key is no longer held.
+    */
+    private action UpdateCameraKeys
+        integer i = 0
+        repeat while i < cameraHeldKeys:GetSize()
+            if strokeMonitor:IsKeyPressed(cameraHeldKeys:Get(i))
+                i = i + 1
+            else
+                StopCameraMove(cameraHeldMoves:Get(i), cameraHeldX:Get(i), cameraHeldY:Get(i))
+                cameraHeldKeys:RemoveAt(i)
+                cameraHeldMoves:RemoveAt(i)
+                cameraHeldX:RemoveAt(i)
+                cameraHeldY:RemoveAt(i)
+            end
+        end
+    end
+
     action SkyEdited(EditorLayer3D layer, text message)
         if skyPropertiesDialog:IsShowing()
             skyPropertiesDialog:Refresh()
@@ -8372,10 +9302,149 @@ The ring is one of the editor's own items: it isn't saved,
         end
         item:Load(layer:GetEditorCamera(), me)
         SetSelection(layer, item)
+        // A followed car's game camera starts where the game's would.
+        if game
+            StartFollowCamera(layer)
+        else
+            followCameraActive = false
+        end
         if moveFocus
             item:Focus()
         end
     end
+
+    /*
+    This action shows where the game's camera starts when a vehicle in a
+    layer has Camera follows this: the layer's game camera is put at the
+    car's follow place, looking at it. Moving it then changes where the car
+    is followed from (UpdateFollowCamera). A layer with no followed vehicle
+    keeps its game camera as it is.
+
+    Attribute: Parameter layer The layer whose game camera was selected
+    */
+    private action StartFollowCamera(EditorLayer3D layer)
+        followCameraActive = false
+        followCameraModel = undefined
+        Item3D followed = FindFollowedVehicle(layer)
+        if followed = undefined
+            return now
+        end
+        VehicleControllerSettings settings = GetControllerSettings(followed)
+        followCameraModel = followed
+        followCameraLayer = layer
+        followCameraActive = true
+        PlaceFollowCamera(settings)
+        NotifyAccessibility(me, "The game camera follows " + followed:GetName() + ": " + DescribeFollow(settings) + ". Move it to change where it follows.")
+    end
+
+    /*
+    Returns the first item in a layer with a Vehicle controller whose camera
+    follows it, or undefined.
+    */
+    private action FindFollowedVehicle(EditorLayer3D layer) returns Item3D
+        Iterator<Item3D> items = layer:GetIterator()
+        repeat while items:HasNext()
+            Item3D item = items:Next()
+            if not item:HasProperty(constants:EDITOR_TAG)
+                VehicleControllerSettings settings = GetControllerSettings(item)
+                if settings not= undefined and settings:IsCameraFollowing()
+                    return item
+                end
+            end
+        end
+        return undefined
+    end
+
+    /*
+    Puts the game camera at the followed car's follow place, looking at the
+    car, and its camera item with it.
+    */
+    private action PlaceFollowCamera(VehicleControllerSettings settings)
+        if followCameraLayer = undefined or followCameraModel = undefined
+            return now
+        end
+        EditorCamera3D camera = followCameraLayer:GetEditorCamera()
+        Vector3 place = settings:GetFollowPosition(followCameraModel)
+        camera:SetPosition(place)
+        AimFollowCamera(camera, settings)
+        camera:Update()
+        followCameraLast:Set(place)
+        followCameraCommitted:Set(place)
+        CameraItem3D item = followCameraLayer:GetCameraItem(true)
+        if item not= undefined
+            item:Load(camera, me)
+        end
+    end
+
+    /*
+    Turns the game camera to look at the followed car, as a following camera
+    does.
+    */
+    private action AimFollowCamera(EditorCamera3D camera, VehicleControllerSettings settings)
+        Vector3 aim = settings:GetBodyPosition(followCameraModel)
+        Vector3 look
+        look:Set(aim)
+        look:Subtract(camera:GetPosition())
+        if look:Length() > 0.001
+            camera:LookAlong(look)
+            camera:MatchView()
+        end
+    end
+
+    /*
+    Returns the follow settings as words, such as "12 behind, 5 above".
+    */
+    private action DescribeFollow(VehicleControllerSettings settings) returns text
+        text result = "" + settings:GetSetting(settings:CAMERA_BEHIND) + " behind, " + settings:GetSetting(settings:CAMERA_ABOVE) + " above"
+        number angle = settings:GetSetting(settings:CAMERA_ANGLE)
+        if angle not= 0
+            result = result + ", " + angle + " degrees around"
+        end
+        return result
+    end
+
+    /*
+    While the game camera of a followed car is viewed: after each move it
+    turns back to the car, and once a move ends (no camera key or mouse
+    button held), its place becomes the car's follow settings, as one step
+    to undo.
+    */
+    private action UpdateFollowCamera
+        if not followCameraActive
+            return now
+        end
+        EditorLayer selected = GetSelectedLayer()
+        if followCameraLayer = undefined or followCameraModel = undefined or selected = undefined or not selected:Equals(followCameraLayer) or not followCameraLayer:IsViewingGameCamera()
+            followCameraActive = false
+            return now
+        end
+        VehicleControllerSettings settings = GetControllerSettings(followCameraModel)
+        if settings = undefined or not settings:IsCameraFollowing()
+            followCameraActive = false
+            return now
+        end
+        EditorCamera3D camera = followCameraLayer:GetEditorCamera()
+        Vector3 place = camera:GetPosition()
+        if place:Distance(followCameraLast) > 0.0001
+            AimFollowCamera(camera, settings)
+            followCameraLast:Set(place)
+            return now
+        end
+        if place:Distance(followCameraCommitted) <= 0.01 or not cameraHeldKeys:IsEmpty()
+            return now
+        end
+        if strokeMonitor:IsMouseButtonPressed(mouseButtons:LEFT) or strokeMonitor:IsMouseButtonPressed(mouseButtons:RIGHT) or strokeMonitor:IsMouseButtonPressed(mouseButtons:MIDDLE)
+            return now
+        end
+        followCameraCommitted:Set(place)
+        VehicleControllerSettings after = settings:Copy()
+        after:SetFollowFrom(followCameraModel, place)
+        if after:GetSetting(after:CAMERA_BEHIND) = settings:GetSetting(settings:CAMERA_BEHIND) and after:GetSetting(after:CAMERA_ABOVE) = settings:GetSetting(settings:CAMERA_ABOVE) and after:GetSetting(after:CAMERA_ANGLE) = settings:GetSetting(settings:CAMERA_ANGLE)
+            return now
+        end
+        ChangeController(followCameraModel, after, "move the following camera", "Camera follows " + followCameraModel:GetName() + ": " + DescribeFollow(after) + ".")
+    end
+
 
     /*
         This action selects a 3D layer's game camera, where a game using the
@@ -9928,10 +10997,95 @@ The ring is one of the editor's own items: it isn't saved,
     This action returns the scene's file text as saving would write it.
     */
     private action GetSceneText returns text
+        // A car drawn see-through under its guides is saved with its own
+        // colors.
+        Model faded = seeThroughModel
+        if faded not= undefined
+            ClearSeeThrough()
+        end
         Array<EditorLayer> sceneLayers = GetSceneLayers()
         Scene scene = Save(sceneLayers)
+        if not customModels:IsEmpty()
+            scene:GetData():Add(properties:CUSTOM_MODELS, SaveCustomModels())
+        end
         scene:GetData():SetPrettyPrint(true)
-        return scene:GetData():ToText()
+        text result = scene:GetData():ToText()
+        if faded not= undefined
+            MakeSeeThrough(faded)
+        end
+        return result
+    end
+
+    /*
+    This action returns true if a layer is saved with physics on: its
+    Physics card's setting (EditorLayer's IsGamePhysicsEnabled). The editor
+    never runs physics itself.
+    */
+    private action LayerUsesPhysics(Layer layer) returns boolean
+        if layer is EditorLayer
+            EditorLayer editorLayer = cast(EditorLayer, layer)
+            return editorLayer:IsGamePhysicsEnabled()
+        end
+        return layer:PhysicsEnabled()
+    end
+
+    /*
+    The gravity a 3D layer is saved with: its Physics card's.
+    */
+    private action LayerGravity3D(Layer3D layer) returns Vector3
+        if layer is EditorLayer3D
+            EditorLayer3D editorLayer = cast(EditorLayer3D, layer)
+            return editorLayer:GetGameGravity()
+        end
+        return layer:GetGravity()
+    end
+
+    /*
+    The gravity a 2D layer is saved with: its Physics card's x and y.
+    */
+    private action LayerGravity2D(Layer2D layer) returns Vector2
+        if layer is EditorLayer2D
+            EditorLayer2D editorLayer = cast(EditorLayer2D, layer)
+            Vector3 gravity = editorLayer:GetGameGravity()
+            Vector2 flat
+            flat:Set(gravity:GetX(), gravity:GetY())
+            return flat
+        end
+        return layer:GetGravity()
+    end
+
+    /*
+    A layer's physics, as the scene saved it, goes to its Physics card's
+    settings, not to the layer: the editor never runs physics itself.
+    */
+    private action LoadPhysics3D(Layer3D layer, JavaScriptObjectNotation json)
+        LoadGamePhysics(layer, json)
+    end
+
+    private action LoadPhysics2D(Layer2D layer, JavaScriptObjectNotation json)
+        LoadGamePhysics(layer, json)
+    end
+
+    /*
+    Reads a layer's saved physics into its Physics card's settings.
+    */
+    private action LoadGamePhysics(Layer layer, JavaScriptObjectNotation json)
+        if not (layer is EditorLayer) or json = undefined
+            return now
+        end
+        EditorLayer editorLayer = cast(EditorLayer, layer)
+        if json:HasValue(properties:ENABLED)
+            editorLayer:SetGamePhysicsEnabled(json:GetBoolean(properties:ENABLED))
+        end
+        JavaScriptObjectNotation gravityJson = json:GetObject(properties:GRAVITY)
+        if gravityJson not= undefined
+            Number32BitArray gravity = ConvertToNumber32BitArray(gravityJson)
+            if gravity:GetSize() >= 3
+                editorLayer:SetGameGravity(gravity:Get(0), gravity:Get(1), gravity:Get(2))
+            elseif gravity:GetSize() = 2
+                editorLayer:SetGameGravity(gravity:Get(0), gravity:Get(1), 0)
+            end
+        end
     end
 
     // We override the particular save item calls to ignore items with the editor tag.
@@ -10097,6 +11251,14 @@ The ring is one of the editor's own items: it isn't saved,
                 // An error occurs if there was no value to get. In that case we return silently.
                 return false
             end
+        elseif key = properties:CONTROLLER
+            // Kept with the model for the Controller section and saving;
+            // the editor never builds it.
+            JavaScriptObjectNotation block = json:GetObject(key)
+            if block not= undefined
+                item:SetProperty(properties:CONTROLLER, CopyControllerBlock(block))
+            end
+            return true
         elseif key = constants:EULER_ANGLES
             
         end

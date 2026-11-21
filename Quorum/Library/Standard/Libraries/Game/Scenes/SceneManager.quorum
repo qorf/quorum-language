@@ -14,6 +14,19 @@ class SceneManager
 
     blueprint action Save(Array<Layer> layers) returns Scene
 
+    /*
+    This action returns the controller built for the item with a name when
+    a scene was loaded, such as a car from a model's Vehicle controller.
+    This manager builds none, so it returns undefined; DefaultSceneManager
+    builds them.
+
+    Attribute: Parameter name The item's name.
+    Attribute: Returns The controller, or undefined.
+    */
+    action GetController(text name) returns SceneController
+        return undefined
+    end
+
     private action ConvertToNumber32BitArray(JavaScriptObjectNotation json) returns Number32BitArray
         Number32BitArray array
         JavaScriptObjectNotation points = undefined

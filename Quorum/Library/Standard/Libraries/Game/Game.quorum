@@ -29,6 +29,7 @@ use Libraries.Game.FocusManager
 use Libraries.Game.Scenes.Scene
 use Libraries.Game.Scenes.SceneManager
 use Libraries.Game.Scenes.DefaultSceneManager
+use Libraries.Game.Scenes.SceneController
 use Libraries.Game.Graphics.OpenGL.WebOpenGL
 use Libraries.Game.Graphics.OpenGL.IOSOpenGL
 use Libraries.Game.Graphics.Painter2D
@@ -4878,6 +4879,38 @@ if gl20 is OpenGLManager
     */
     action GetSceneManager returns SceneManager
         return sceneManager
+    end
+
+    /*
+    This action returns the controller a loaded scene built for the item with
+    a name, such as a car made from a model given a Vehicle controller in
+    the scene editor. Use it to reset the car or change how it drives.
+
+    Attribute: Parameter name The item's name in the scene.
+    Attribute: Returns The controller, or undefined if no item of that name has one.
+
+    Attribute: Example
+    use Libraries.Game.Game
+    use Libraries.Game.Scenes.SceneController
+
+    class Main is Game
+        SceneController car = undefined
+
+        action Main
+            StartGame()
+        end
+
+        action CreateGame
+            LoadScene("Scenes/Scene.qs")
+            car = GetSceneController("Car")
+        end
+    end
+    */
+    action GetSceneController(text name) returns SceneController
+        if sceneManager = undefined
+            return undefined
+        end
+        return sceneManager:GetController(name)
     end
 
     /*

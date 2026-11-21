@@ -30,8 +30,8 @@ class CustomModelBlueprint is CustomItemBlueprint, ModelBlueprint
     /*
         Returns true if the given file is of a valid file type
         for this blueprint, or false otherwise. Since this is a model
-        blueprint this action will check for .obj and .g3db files since
-        those are currently supported by the system.
+        blueprint this action checks for the model files the loader reads:
+        .gltf, .glb, .fbx, .obj and .g3db.
 
         Attribute: Parameter file The file for the custom model
     */
@@ -41,7 +41,9 @@ class CustomModelBlueprint is CustomItemBlueprint, ModelBlueprint
         end
 
         text extension = file:GetFileExtension()
-        return extension:EqualsIgnoringCase("obj") or extension:EqualsIgnoringCase("g3db")
+        return extension:EqualsIgnoringCase("gltf") or extension:EqualsIgnoringCase("glb")
+            or extension:EqualsIgnoringCase("fbx") or extension:EqualsIgnoringCase("obj")
+            or extension:EqualsIgnoringCase("g3db")
     end
 
 end

@@ -23,6 +23,13 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     
     EditorModel item = undefined
 
+    // True while the box is drawn faint, such as over a vehicle whose
+    // guides show inside it, and whether it is selected now.
+    boolean faint = false
+    boolean selectedNow = false
+    constant number FAINT_SELECTED_OPACITY = 0.15
+    constant number FAINT_UNSELECTED_OPACITY = 0.1
+
     on create
         SetInputGroup("SelectionHighlight3D")
     end
@@ -38,6 +45,7 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         Color color = undefined
         SceneConstants constants = GetConstants()
 
+        selectedNow = IsFocused()
         if IsFocused()
             color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
         else
@@ -150,7 +158,8 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         is much brighter.
     */
     action GainedSelection
-        parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR)
+        selectedNow = true
+        ShowColor()
     end
 
     /*
@@ -158,7 +167,39 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         is much dimmer.
     */
     action LostSelection
-        parent:Model:SetColor(GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR)
+        selectedNow = false
+        ShowColor()
+    end
+
+    /*
+        This action draws the box faint, or as usual, such as so the vehicle
+        guides inside a selected car show. A faint box keeps its color, so it
+        still reads as selected or not.
+
+        Attribute: Parameter value True to draw the box faint
+    */
+    action SetFaint(boolean value)
+        faint = value
+        ShowColor()
+    end
+
+    /*
+        Gives the box its color: selected or not, and faint or not.
+    */
+    private action ShowColor
+        Color color = GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+        number opacity = FAINT_UNSELECTED_OPACITY
+        if selectedNow
+            color = GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR
+            opacity = FAINT_SELECTED_OPACITY
+        end
+        if faint
+            Color faded
+            faded:SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), opacity)
+            parent:Model:SetColor(faded)
+        else
+            parent:Model:SetColor(color)
+        end
     end
 
     // Overriding the Move calls below also overrides the SetX/Y/Z/Position calls, which use Move in their implementation.

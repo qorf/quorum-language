@@ -62,12 +62,24 @@ class DefaultSceneManager is SceneManager
     // rotations and 2D cameras converted to the left-handed world.
     boolean convertFromRightHanded = false
 
+    // The items with a controller in the layer being loaded, and their
+    // Controller blocks, built once the layer is loaded (BuildControllers);
+    // the layer's terrains, which a vehicle's body may need to stream
+    // around; and every controller built.
+    Array<Item3D> controllerItems
+    Array<JavaScriptObjectNotation> controllerBlocks
+    Array<TerrainItem> layerTerrains
+    Array<SceneController> controllers
+
     action Load(Scene scene)
         Game game = gameState:GetGame()
         SceneProperties properties
         loadedTerrainMaterials:Empty()
         loadedMaterials:Empty()
         loadedTerrainFiles:Empty()
+        controllerItems:Empty()
+        controllerBlocks:Empty()
+        controllers:Empty()
 
         number version = 1.0
         JavaScriptObjectNotation data = scene:GetData()
@@ -179,6 +191,9 @@ class DefaultSceneManager is SceneManager
                     integer i = 0
                     repeat while i < items:GetSize()
                         layer3D:Add(items:Get(i))
+                        if items:Get(i) is TerrainItem
+                            layerTerrains:Add(cast(TerrainItem, items:Get(i)))
+                        end
                         i = i + 1
                     end
                 end
@@ -215,6 +230,116 @@ class DefaultSceneManager is SceneManager
             counter = counter + 1
         end
 
+        // Controllers are built once the whole layer is loaded, since a
+        // vehicle needs the layer's physics, camera and terrains.
+        if layer is Layer3D
+            BuildControllers(cast(Layer3D, layer))
+        end
+        layerTerrains:Empty()
+    end
+
+    /*
+    This action builds the controllers of the items loaded into a layer,
+    such as a car from a model's Vehicle controller
+    (VehicleControllerSettings). If the layer has no physics yet, it is
+    turned on with Earth's gravity, since a vehicle needs it. A terrain that
+    streams, or collides only near moving bodies, follows the first
+    vehicle's body.
+    */
+    private action BuildControllers(Layer3D layer)
+        if controllerItems:IsEmpty()
+            return now
+        end
+        SharedLogger logger
+        if not layer:PhysicsEnabled()
+            layer:EnablePhysics(true)
+            layer:SetGravity(0, -9.8, 0)
+            logger:Log("The layer " + layer:GetName() + " has a vehicle, so its physics was turned on, with gravity of 9.8 down.")
+        end
+        Item3D followed = undefined
+        integer i = 0
+        repeat while i < controllerItems:GetSize()
+            Item3D item = controllerItems:Get(i)
+            JavaScriptObjectNotation block = controllerBlocks:Get(i)
+            text type = ""
+            if block:HasValue("Type")
+                type = block:GetValue("Type")
+            end
+            VehicleControllerSettings settings
+            if type = settings:VEHICLE
+                settings:FromJson(block)
+                SceneController controller = settings:Build(item, layer)
+                controllers:Add(controller)
+                if followed = undefined
+                    followed = controller:GetBody()
+                end
+            else
+                logger:Log("The item " + item:GetName() + " has a controller of a kind this program doesn't know, " + type + ", so it is left out.")
+            end
+            i = i + 1
+        end
+        controllerItems:Empty()
+        controllerBlocks:Empty()
+
+        if followed not= undefined
+            i = 0
+            repeat while i < layerTerrains:GetSize()
+                TerrainItem terrain = layerTerrains:Get(i)
+                // Collision mode 1 is only near moving bodies.
+                if terrain:IsStreaming() or terrain:GetCollisionMode() = 1
+                    terrain:SetFollowItem(followed)
+                    terrain:Update(0)
+                end
+                i = i + 1
+            end
+        end
+    end
+
+    /*
+    This action returns a new copy of a Controller block, made from its
+    settings, so it can be kept or saved without changing the block it came
+    from. A block of a kind this program doesn't know gives undefined.
+
+    Attribute: Parameter block The block.
+    Attribute: Returns The copy, or undefined.
+    */
+    action CopyControllerBlock(JavaScriptObjectNotation block) returns JavaScriptObjectNotation
+        if block = undefined or not block:HasValue("Type")
+            return undefined
+        end
+        VehicleControllerSettings settings
+        if block:GetValue("Type") = settings:VEHICLE
+            settings:FromJson(block)
+            return settings:ToJson()
+        end
+        return undefined
+    end
+
+    /*
+    This action returns the controller built for the item with a name, such
+    as a car built from a model's Vehicle controller.
+
+    Attribute: Parameter name The item's name.
+    Attribute: Returns The controller, or undefined if no item of that name has one.
+    */
+    action GetController(text name) returns SceneController
+        integer i = 0
+        repeat while i < controllers:GetSize()
+            if controllers:Get(i):GetName() = name
+                return controllers:Get(i)
+            end
+            i = i + 1
+        end
+        return undefined
+    end
+
+    /*
+    This action returns every controller built for the scenes loaded.
+
+    Attribute: Returns The controllers.
+    */
+    action GetControllers returns Array<SceneController>
+        return controllers
     end
 
     private action LoadCamera(Layer layer, JavaScriptObjectNotation json)
@@ -721,6 +846,14 @@ number restitution = 0
                 doppler = json:GetBoolean(key)
             elseif key = properties:PLAY_ON_LOAD
                 playOnLoad = json:GetBoolean(key)
+            elseif key = properties:CONTROLLER
+                // Kept with the item, and built once its layer is loaded.
+                JavaScriptObjectNotation block = json:GetObject(key)
+                if block not= undefined
+                    item:SetProperty(properties:CONTROLLER, CopyControllerBlock(block))
+                    controllerItems:Add(item)
+                    controllerBlocks:Add(block)
+                end
             end
 
             counter = counter + 1
@@ -1245,6 +1378,33 @@ number restitution = 0
         return json
     end
 
+    /*
+    This action returns true if a layer is saved with physics on. Here, it
+    is whether the layer's physics is on; the scene editor, which never
+    runs physics itself, also turns it on for a layer whose items use it.
+    */
+    private action LayerUsesPhysics(Layer layer) returns boolean
+        return layer:PhysicsEnabled()
+    end
+
+    /*
+    This action returns the gravity a 3D layer is saved with: here, the
+    layer's own; the scene editor saves the gravity set in its layer's
+    Physics card.
+    */
+    private action LayerGravity3D(Layer3D layer) returns Vector3
+        return layer:GetGravity()
+    end
+
+    /*
+    This action returns the gravity a 2D layer is saved with: here, the
+    layer's own; the scene editor saves the gravity set in its layer's
+    Physics card.
+    */
+    private action LayerGravity2D(Layer2D layer) returns Vector2
+        return layer:GetGravity()
+    end
+
     private action SaveLayer(Layer layer) returns JavaScriptObjectNotation
         SceneProperties properties
         Game game = gameState:GetGame()
@@ -1316,13 +1476,14 @@ number restitution = 0
 
         JavaScriptObjectNotation physicsJson
 
-        physicsJson:Add(properties:ENABLED, layer:PhysicsEnabled())
+        boolean physicsOn = LayerUsesPhysics(layer)
+        physicsJson:Add(properties:ENABLED, physicsOn)
 
+        // The gravity is saved even with physics off, so it is kept for
+        // when physics is turned on.
         if layer2D not= undefined
-            if layer:PhysicsEnabled()
-                Vector2 gravity = layer2D:GetGravity()
-                physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY()))
-            end
+            Vector2 gravity = LayerGravity2D(layer2D)
+            physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY()))
 
             json:Add(properties:PHYSICS, physicsJson)
 
@@ -1330,10 +1491,8 @@ number restitution = 0
                 json:Add(properties:ITEMS, SaveItem2Ds(layer2D))
             end
         elseif layer3D not= undefined
-            if layer:PhysicsEnabled()
-                Vector3 gravity = layer3D:GetGravity()
-                physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY(), gravity:GetZ()))
-            end
+            Vector3 gravity = LayerGravity3D(layer3D)
+            physicsJson:Add(properties:GRAVITY, NewJsonArray(gravity:GetX(), gravity:GetY(), gravity:GetZ()))
 
             json:Add(properties:PHYSICS, physicsJson)
 
@@ -1696,6 +1855,16 @@ number restitution = 0
         end
         if (not CustomSaveProperty3D(item, properties:RESTITUTION, json)) and physicsEnabled
             json:Add(properties:RESTITUTION, item:GetRestitution())
+        end
+        if (not CustomSaveProperty3D(item, properties:CONTROLLER, json)) and item:HasProperty(properties:CONTROLLER)
+            // A copy, so the item keeps its own.
+            JavaScriptObjectNotation block = item:GetProperty(properties:CONTROLLER)
+            if block not= undefined
+                JavaScriptObjectNotation copy = CopyControllerBlock(block)
+                if copy not= undefined
+                    json:Add(properties:CONTROLLER, copy)
+                end
+            end
         end
 
         return json

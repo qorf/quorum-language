@@ -1,6 +1,7 @@
 package Libraries.Game.Graphics.Models.Vulkan
 
 use Libraries.System.File
+use Libraries.System.Logging.SharedLogger
 use Libraries.Containers.HashTable
 use Libraries.Game.Graphics.Models.Data.ModelLoader
 use Libraries.Game.Graphics.Models.Data.ModelData
@@ -186,6 +187,13 @@ action GetModelBlueprint(File file) returns ModelBlueprintVulkan
             return cachedBlueprints:GetValue(filePath)
         else
             ModelData data = modelLoader:Load(file)
+            // A file the loader can't read gives nothing. It isn't kept, so
+            // the file can be tried again once it is fixed.
+            if data = undefined
+                SharedLogger logger
+                logger:Log("The model file " + filePath + " couldn't be read, so nothing was loaded.")
+                return undefined
+            end
             data:SetID(filePath)
             ModelBlueprintVulkan result = ConvertToBlueprint(data)
             cachedBlueprints:Add(filePath, result)

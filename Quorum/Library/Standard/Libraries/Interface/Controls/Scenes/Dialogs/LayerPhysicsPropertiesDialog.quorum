@@ -1,0 +1,252 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+use Libraries.Containers.Array
+use Libraries.Interface.Controls.Control
+use Libraries.Interface.Controls.Checkbox
+use Libraries.Interface.Controls.TextField
+use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Events.SelectionEvent
+use Libraries.Interface.Selections.SceneEditorSelection
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer2D
+use Libraries.Interface.Behaviors.Scenes.Properties.LayerPhysicsButtonBehavior
+use Libraries.Game.Graphics.Label
+use Libraries.Compute.Vector3
+
+/*
+    The LayerPhysicsPropertiesDialog is a layer's Physics section: whether a
+    game using the scene runs physics in the layer, and its gravity, with
+    sliders. Gravity starts at 9.8 down (y -9.8), as on Earth. A 2D layer
+    has no z. The scene editor itself never runs physics; these are saved
+    with the scene. Every change is one step to undo.
+
+    It shows in the scene editor's Properties panel when a layer, 2D or 3D,
+    is selected.
+*/
+class LayerPhysicsPropertiesDialog is PropertiesDialog
+    // How wide the fields' labels are, in pixels before the interface
+    // scale, so the fields line up.
+    constant number FIELD_LABEL_WIDTH = 110
+
+    Checkbox physicsCheckbox = undefined
+    SliderField gravityXSlider = undefined
+    SliderField gravityYSlider = undefined
+    SliderField gravityZSlider = undefined
+    TextField gravityXField = undefined
+    TextField gravityYField = undefined
+    TextField gravityZField = undefined
+
+    // The layer shown, or undefined.
+    EditorLayer layer = undefined
+
+    // True while the fields are being filled, so filling them isn't taken
+    // as the user choosing.
+    boolean updating = false
+
+    /*
+        Creates and adds the interface components for this dialog.
+    */
+    private action CreateInterface(Control panel, Array<Control> focusArray)
+        SetName("Layer Physics")
+
+        Label headingLabel
+        headingLabel:SetSize(18)
+        headingLabel:SetText("Physics")
+        headingLabel:SetLeftMargin(20)
+        panel:Add(headingLabel)
+        SetHeading(headingLabel)
+
+        Control card = AddCard(panel, "Physics in games")
+        Control checkLine = MakeCardLine()
+        Checkbox checkbox
+        physicsCheckbox = checkbox
+        physicsCheckbox:SetName("Physics in games")
+        physicsCheckbox:SetDescription("A game using the scene runs physics in this layer: items with physics fall and collide. The editor itself never runs it.")
+        LayerPhysicsButtonBehavior behavior
+        behavior:SetDialog(me)
+        physicsCheckbox:SetBehavior(behavior)
+        checkLine:Add(physicsCheckbox)
+        card:Add(checkLine)
+        focusArray:Add(physicsCheckbox)
+
+        // Gravity pulls each way, in units per second each second; Earth's
+        // is 9.8 down.
+        gravityXSlider = AddGravitySlider(card, "Gravity x:", "Gravity along x", "How hard gravity pulls along x, in units per second each second", focusArray)
+        gravityXField = gravityXSlider:GetField()
+        gravityYSlider = AddGravitySlider(card, "Gravity y:", "Gravity along y", "How hard gravity pulls along y, in units per second each second. Earth's is -9.8, down.", focusArray)
+        gravityYField = gravityYSlider:GetField()
+        gravityZSlider = AddGravitySlider(card, "Gravity z:", "Gravity along z", "How hard gravity pulls along z, in units per second each second", focusArray)
+        gravityZField = gravityZSlider:GetField()
+    end
+
+    /*
+        Adds one gravity slider to the card.
+    */
+    private action AddGravitySlider(Control card, text label, text name, text description, Array<Control> focusArray) returns SliderField
+        SliderField slider = MakeSliderField(label, name, description, -50, 50, 0.1, 1, FIELD_LABEL_WIDTH)
+        slider:SetDecimalPlaces(1)
+        card:Add(slider)
+        focusArray:Add(slider:GetSlider())
+        focusArray:Add(slider:GetField())
+        return slider
+    end
+
+    /*
+        This action shows the section when a layer is selected, with no
+        item, and hides it otherwise.
+    */
+    action SelectionChanged(SelectionEvent event)
+        if not (event:GetSelection() is SceneEditorSelection)
+            return now
+        end
+        SceneEditorSelection selection = cast(SceneEditorSelection, event:GetSelection())
+        EditorLayer selected = undefined
+        if selection:IsLayerSelected() and not selection:IsItemSelected()
+            selected = selection:GetSelectedLayer()
+        end
+        if selected not= undefined
+            SetLayer(selected)
+            if not IsShowing()
+                Show()
+            end
+        else
+            layer = undefined
+            if IsShowing()
+                Hide()
+            end
+        end
+    end
+
+    /*
+        This action has no item fields to set; the section follows the
+        selected layer.
+    */
+    action SetFields(EditorItem item)
+    end
+
+    /*
+        This action shows a layer's physics in games: whether it is on, and
+        its gravity. A 2D layer has no z.
+
+        Attribute: Parameter layer The layer
+    */
+    action SetLayer(EditorLayer layer)
+        me:layer = layer
+        if layer = undefined
+            return now
+        end
+        updating = true
+        physicsCheckbox:SetToggleState(layer:IsGamePhysicsEnabled())
+        Vector3 gravity = layer:GetGameGravity()
+        gravityXField:SetText("" + gravity:GetX())
+        gravityYField:SetText("" + gravity:GetY())
+        gravityZField:SetText("" + gravity:GetZ())
+        updating = false
+
+        // Tab goes through the shown controls only.
+        boolean flat = layer is EditorLayer2D
+        if flat
+            gravityZSlider:Hide()
+        else
+            gravityZSlider:Show()
+        end
+        gravityZSlider:RequestLayout()
+        Array<Control> chain
+        chain:Add(physicsCheckbox)
+        ChainControl(chain, gravityXField)
+        ChainControl(chain, gravityYField)
+        if not flat
+            ChainControl(chain, gravityZField)
+        end
+        integer i = 0
+        repeat while i < chain:GetSize() - 1
+            chain:Get(i):SetNextFocus(chain:Get(i + 1))
+            chain:Get(i + 1):SetPreviousFocus(chain:Get(i))
+            i = i + 1
+        end
+        SetLastFocus(chain:Get(chain:GetSize() - 1))
+    end
+
+    /*
+        Shows the layer's physics again, after it changed.
+    */
+    action Refresh
+        if layer not= undefined
+            SetLayer(layer)
+        end
+    end
+
+    /*
+        This action is called when the Physics in games checkbox is checked
+        or unchecked.
+    */
+    action CheckboxChanged
+        SceneEditor editor = GetSceneEditor()
+        if updating or layer = undefined or editor = undefined
+            return now
+        end
+        boolean enabled = physicsCheckbox:GetToggleState()
+        if enabled = layer:IsGamePhysicsEnabled()
+            return now
+        end
+        if enabled
+            editor:SetLayerGamePhysics(layer, true, layer:GetGameGravity(), "turn on physics in games", "Physics in games on for " + layer:GetName() + ".")
+        else
+            editor:SetLayerGamePhysics(layer, false, layer:GetGameGravity(), "turn off physics in games", "Physics in games off for " + layer:GetName() + ".")
+        end
+    end
+
+    /*
+        This action is called when a gravity slider's value was finally
+        changed, or a number typed in its field. Text that isn't a number is
+        ignored.
+
+        Attribute: Parameter field The slider's number field
+    */
+    action SliderTaken(TextField field)
+        SceneEditor editor = GetSceneEditor()
+        if updating or layer = undefined or editor = undefined
+            return now
+        end
+        number value = 0
+        check
+            value = field:GetText():ParseNumber()
+        detect e is Error
+            Refresh()
+            return now
+        end
+        Vector3 gravity = layer:GetGameGravity()
+        text axis = ""
+        if field:Equals(gravityXField)
+            if value = gravity:GetX()
+                return now
+            end
+            gravity:SetX(value)
+            axis = "x"
+        elseif field:Equals(gravityYField)
+            if value = gravity:GetY()
+                return now
+            end
+            gravity:SetY(value)
+            axis = "y"
+        elseif field:Equals(gravityZField)
+            if value = gravity:GetZ()
+                return now
+            end
+            gravity:SetZ(value)
+            axis = "z"
+        else
+            return now
+        end
+        editor:SetLayerGamePhysics(layer, layer:IsGamePhysicsEnabled(), gravity, "change gravity", "Gravity " + axis + " " + value + ".")
+    end
+
+    /*
+        Moves the focus to the Physics in games checkbox.
+    */
+    action FocusField
+        physicsCheckbox:Focus()
+    end
+end

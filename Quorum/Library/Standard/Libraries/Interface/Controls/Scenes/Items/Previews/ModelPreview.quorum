@@ -61,6 +61,11 @@ class ModelPreview is ItemPreview3D
             modelFile = schematic:GetModelFile()
 
             Load(modelFile)
+            // A file that couldn't be read leaves the preview empty, and
+            // the scene editor says so (CreateItemPreview).
+            if GetModelBlueprint() = undefined
+                return now
+            end
             SetColor(color)
 
             GameStateManager manager

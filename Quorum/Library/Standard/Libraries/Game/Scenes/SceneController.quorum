@@ -1,0 +1,166 @@
+package Libraries.Game.Scenes
+
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Physics.Vehicles.Vehicle
+use Libraries.Interface.Item3D
+use Libraries.Interface.Behaviors.Games.VehicleMovementBehavior
+
+/*
+A SceneController is what a scene's controller made when the scene was
+loaded, such as a car built from a model's Vehicle controller
+(VehicleControllerSettings): the model, the physics body it rides on, the
+vehicle and the behavior that drives it. A game gets it by the model's
+name, to reset the car or change how it drives.
+
+Attribute: Example
+use Libraries.Game.Game
+use Libraries.Game.Scenes.SceneController
+
+class Main is Game
+    SceneController car = undefined
+
+    action Main
+        StartGame()
+    end
+
+    action CreateGame
+        LoadScene("Scenes/Scene.qs")
+        car = GetSceneController("Car")
+    end
+end
+*/
+class SceneController
+    Item3D model = undefined
+    Item3D body = undefined
+    Vehicle vehicle = undefined
+    VehicleMovementBehavior driving = undefined
+    Camera camera = undefined
+    Vector3 startPosition
+    Matrix4 startRotation
+
+    /*
+    This action is called when a vehicle is built, to keep what was made and
+    where it started. Most programs never call it.
+
+    Attribute: Parameter model The model drawn as the vehicle.
+    Attribute: Parameter body The physics body the vehicle drives.
+    Attribute: Parameter vehicle The vehicle.
+    Attribute: Parameter driving The behavior that drives it.
+    Attribute: Parameter camera The camera that follows it, or undefined.
+    Attribute: Parameter position Where the body started.
+    Attribute: Parameter rotation How the body was turned at the start.
+    */
+    action SetupVehicle(Item3D model, Item3D body, Vehicle vehicle, VehicleMovementBehavior driving, Camera camera, Vector3 position, Matrix4 rotation)
+        me:model = model
+        me:body = body
+        me:vehicle = vehicle
+        me:driving = driving
+        me:camera = camera
+        startPosition:Set(position)
+        startRotation = rotation:Copy()
+    end
+
+    /*
+    This action returns the model's name, which the controller is known by.
+
+    Attribute: Returns The name.
+    */
+    action GetName returns text
+        if model = undefined
+            return ""
+        end
+        return model:GetName()
+    end
+
+    /*
+    This action returns the model the controller moves.
+
+    Attribute: Returns The model.
+    */
+    action GetModel returns Item3D
+        return model
+    end
+
+    /*
+    This action returns the item that moves with physics: a vehicle's body,
+    which the camera and a streaming terrain should follow.
+
+    Attribute: Returns The body, or the model if there is no body.
+    */
+    action GetBody returns Item3D
+        if body = undefined
+            return model
+        end
+        return body
+    end
+
+    /*
+    This action returns true if the controller is a vehicle.
+
+    Attribute: Returns True for a vehicle.
+    */
+    action IsVehicle returns boolean
+        return vehicle not= undefined
+    end
+
+    /*
+    This action returns the vehicle.
+
+    Attribute: Returns The vehicle, or undefined if the controller isn't one.
+    */
+    action GetVehicle returns Vehicle
+        return vehicle
+    end
+
+    /*
+    This action returns the behavior that drives the vehicle with the keys,
+    such as to change its keys or engine force.
+
+    Attribute: Returns The behavior, or undefined if the controller isn't a vehicle.
+    */
+    action GetVehicleBehavior returns VehicleMovementBehavior
+        return driving
+    end
+
+    /*
+    This action sets where Reset puts the vehicle, such as a checkpoint.
+
+    Attribute: Parameter position Where the body's middle goes.
+    */
+    action SetStartPosition(Vector3 position)
+        startPosition:Set(position)
+    end
+
+    /*
+    This action returns where Reset puts the vehicle.
+
+    Attribute: Returns Where the body's middle goes.
+    */
+    action GetStartPosition returns Vector3
+        Vector3 copy
+        copy:Set(startPosition)
+        return copy
+    end
+
+    /*
+    This action puts a vehicle back where it started, turned as it started
+    and stopped, such as after it rolls over or falls. The following camera
+    jumps to it.
+    */
+    action Reset
+        if body = undefined
+            return now
+        end
+        Vector3 stop
+        body:SetRotationTransform(startRotation)
+        body:SetPosition(startPosition)
+        body:SetLinearVelocity(stop)
+        body:SetAngularVelocity(stop)
+        body:Simulate(true)
+        if camera not= undefined
+            camera:JumpToFollowPosition()
+        end
+    end
+end

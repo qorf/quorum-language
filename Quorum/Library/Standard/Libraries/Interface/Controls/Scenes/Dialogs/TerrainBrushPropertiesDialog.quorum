@@ -70,6 +70,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     // list's names change, and a note on removing copies.
     Control foliageLabelPart = undefined
     Control foliagePart = undefined
+    // The Foliage brush's own card: paint or remove, and its note.
+    Control foliageModeLabelPart = undefined
+    Control foliageModePart = undefined
     ButtonGroup foliageGroup = undefined
     // What the Foliage brush does: paint, remove the chosen asset, or
     // remove every asset.
@@ -225,8 +228,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         takeHeightPart = takeLine
         focusArray:Add(takeButton)
 
-        // The Foliage tool's asset: a title, then a card
-        // with a button per asset and a note on removing copies.
+        // The Foliage tool's asset: a title, then a card with a button per
+        // asset. Below it, the Foliage Brush card: what the brush does, and a
+        // note on switching it.
         foliageLabelPart = MakeCardTitle("Foliage Asset")
         panel:Add(foliageLabelPart)
         Control foliageCard = MakeCard()
@@ -242,6 +246,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         foliageGroup:AddSelectionListener(me)
         foliageLine:Add(foliageGroup)
         foliageCard:Add(foliageLine)
+        panel:Add(foliageCard)
+        foliagePart = foliageCard
         // What the brush does, so removing needs no held key: on a Mac the
         // system takes Control and Space, and Control and a click.
         Control modeLine = MakeCardLine()
@@ -258,7 +264,10 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         AddFullWidthChoice(foliageModeGroup, "Remove every asset", "Remove every asset under the brush")
         foliageModeGroup:AddSelectionListener(me)
         modeLine:Add(foliageModeGroup)
-        foliageCard:Add(modeLine)
+        foliageModeLabelPart = MakeCardTitle("Foliage Brush")
+        panel:Add(foliageModeLabelPart)
+        Control modeCard = MakeCard()
+        modeCard:Add(modeLine)
         Control noteLine = MakeCardLine()
         Label note
         foliageNote = note
@@ -269,9 +278,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         foliageNote:SetPercentageWidth(1.0)
         foliageNote:SetFocusable(true)
         noteLine:Add(foliageNote)
-        foliageCard:Add(noteLine)
-        panel:Add(foliageCard)
-        foliagePart = foliageCard
+        modeCard:Add(noteLine)
+        panel:Add(modeCard)
+        foliageModePart = modeCard
         focusArray:Add(foliageGroup)
         focusArray:Add(foliageModeGroup)
         focusArray:Add(foliageNote)
@@ -314,6 +323,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         partsShown:Add(flattenPart)
         partsShown:Add(foliageLabelPart)
         partsShown:Add(foliagePart)
+        partsShown:Add(foliageModeLabelPart)
+        partsShown:Add(foliageModePart)
         partsShown:Add(waterLabelPart)
         partsShown:Add(waterPart)
         partsShown:Add(settingsLabelPart)
@@ -392,6 +403,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         if foliageTool
             wanted:Add(foliageLabelPart)
             wanted:Add(foliagePart)
+            wanted:Add(foliageModeLabelPart)
+            wanted:Add(foliageModePart)
             if foliageGroup:GetSize() > 0
                 chain:Add(foliageGroup)
             end

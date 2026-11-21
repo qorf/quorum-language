@@ -1,6 +1,7 @@
 package Libraries.Interface.Behaviors.Scenes.Palette
 
 use Libraries.Interface.Controls.Scenes.Blueprints.TerrainBlueprint
+use Libraries.Interface.Controls.Scenes.Blueprints.CustomModelBlueprint
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Events.DragAndDropEvent
 use Libraries.Interface.Item
@@ -103,6 +104,17 @@ end
                     palette:GetDraggedItem():Show()
                 end
                 editor:AddTerrain(cast(TerrainBlueprint, schematic))
+            end
+        elseif schematic is CustomModelBlueprint
+            // Custom Model has no file until one is chosen, so it has no
+            // preview to move around: dropping it asks for the file, as a
+            // click does, and a model that loads becomes a tile in Project
+            // Models, to drag in like any other.
+            if dropEvent:eventType = dropEvent:DROPPED
+                if palette:GetDraggedItem() not= undefined
+                    palette:GetDraggedItem():Show()
+                end
+                palette:AddModelFromFile(cast(CustomModelBlueprint, schematic))
             end
         elseif dropEvent:eventType = dropEvent:DRAGGED_OFF_DESTINATION
             if editor:GetSelectedLayer() is EditorLayer3D

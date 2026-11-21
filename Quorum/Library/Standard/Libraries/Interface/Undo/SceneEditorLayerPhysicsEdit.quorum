@@ -1,0 +1,62 @@
+package Libraries.Interface.Undo
+
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer
+use Libraries.Compute.Vector3
+
+/*
+    The SceneEditorLayerPhysicsEdit is one change to a layer's physics in
+    games, in the scene editor's undo list: physics turned on or off, or the
+    gravity changed in the layer's Physics section. It holds both before and
+    after, gives the layer one or the other, then has the scene editor show
+    it and say what happened.
+*/
+class SceneEditorLayerPhysicsEdit is Edit
+    SceneEditor controller = undefined
+    EditorLayer layer = undefined
+    boolean beforeEnabled = false
+    Vector3 beforeGravity
+    boolean afterEnabled = false
+    Vector3 afterGravity
+    text name = ""
+
+    /*
+        Sets up the edit.
+
+        Attribute: Parameter controller The scene editor
+        Attribute: Parameter layer The layer
+        Attribute: Parameter beforeEnabled Whether physics was on before
+        Attribute: Parameter beforeGravity The gravity before
+        Attribute: Parameter afterEnabled Whether physics is on after
+        Attribute: Parameter afterGravity The gravity after
+        Attribute: Parameter changeName What changed, such as "change gravity"
+    */
+    action Create(SceneEditor controller, EditorLayer layer, boolean beforeEnabled, Vector3 beforeGravity, boolean afterEnabled, Vector3 afterGravity, text changeName)
+        me:controller = controller
+        me:layer = layer
+        me:beforeEnabled = beforeEnabled
+        me:beforeGravity:Set(beforeGravity)
+        me:afterEnabled = afterEnabled
+        me:afterGravity:Set(afterGravity)
+        name = changeName
+    end
+
+    action Undo
+        controller:PutLayerPhysics(layer, beforeEnabled, beforeGravity, "Undid " + name + ".")
+    end
+
+    action Redo
+        controller:PutLayerPhysics(layer, afterEnabled, afterGravity, "Redid " + name + ".")
+    end
+
+    action GetUndoName returns text
+        return "Undo " + name
+    end
+
+    action GetRedoName returns text
+        return "Redo " + name
+    end
+
+    action Dispose
+    end
+end

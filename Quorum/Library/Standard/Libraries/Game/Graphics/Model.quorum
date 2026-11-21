@@ -371,6 +371,11 @@ based on its index.*/
         SceneProperties properties
         modelType = properties:CUSTOM
         ModelBlueprint schematic = GetCachedBlueprint(file)
+        // A file that couldn't be read leaves the model empty; the reason
+        // is logged where the file was read.
+        if schematic = undefined
+            return now
+        end
         Load(schematic)
 
         assetFile = file

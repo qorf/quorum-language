@@ -18,8 +18,60 @@ class EditorLayer is Layer
     Vector3 cameraEulerAngles
     SceneEditor editor = undefined
 
+    // Whether a game using the scene runs physics in this layer, and its
+    // gravity. The editor never runs physics itself, so these are kept
+    // here and saved, rather than set on the layer.
+    boolean gamePhysicsEnabled = false
+    Vector3 gameGravity
+
     on create
         cameraEulerAngles:Set(0, 0, 0)
+        gameGravity:Set(0, -9.8, 0)
+    end
+
+    /*
+        This action returns whether a game using the scene runs physics in
+        this layer. The editor itself never does.
+
+        Attribute: Returns True if physics is on in games
+    */
+    action IsGamePhysicsEnabled returns boolean
+        return gamePhysicsEnabled
+    end
+
+    /*
+        This action sets whether a game using the scene runs physics in this
+        layer. It is saved with the scene; the editor itself never runs
+        physics.
+
+        Attribute: Parameter enabled True for physics in games
+    */
+    action SetGamePhysicsEnabled(boolean enabled)
+        gamePhysicsEnabled = enabled
+    end
+
+    /*
+        This action returns the gravity a game using the scene gives this
+        layer. A 2D layer uses its x and y.
+
+        Attribute: Returns A copy of the gravity
+    */
+    action GetGameGravity returns Vector3
+        Vector3 copy
+        copy:Set(gameGravity)
+        return copy
+    end
+
+    /*
+        This action sets the gravity a game using the scene gives this layer.
+        A 2D layer uses its x and y. It is saved with the scene.
+
+        Attribute: Parameter x The gravity along x
+        Attribute: Parameter y The gravity along y, such as -9.8
+        Attribute: Parameter z The gravity along z
+    */
+    action SetGameGravity(number x, number y, number z)
+        gameGravity:Set(x, y, z)
     end
 
     /*

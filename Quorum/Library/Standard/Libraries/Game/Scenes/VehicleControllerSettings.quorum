@@ -1,0 +1,884 @@
+package Libraries.Game.Scenes
+
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.Compute.Math
+use Libraries.Compute.Vector3
+use Libraries.Compute.Matrix4
+use Libraries.Data.Formats.JavaScriptObjectNotation
+use Libraries.Game.BoundingBox
+use Libraries.Game.Layer3D
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Camera
+use Libraries.Game.Collision.Shapes.Box
+use Libraries.Game.Physics.Vehicles.Vehicle
+use Libraries.Game.Physics.Vehicles.Suspension
+use Libraries.Interface.Item3D
+use Libraries.Interface.Behaviors.Games.VehicleMovementBehavior
+
+/*
+VehicleControllerSettings holds every setting of a vehicle controller: a
+model in a scene that drives as a car. A scene keeps them in the model's
+Controller block, and the scene editor's Controller section changes them.
+When a game loads the scene, Build makes the car from them.
+
+The car is made of two parts. The body is a plain item with a physics box,
+which the vehicle drives; it isn't drawn and isn't saved. The model is
+drawn on the body, as it rides along, and never has physics, so the
+model's file is used as it is: the model's front can face any of its own
+four sides (SetFaces), and its origin can be anywhere, since an offset
+says where it sits from the body's middle. FitToModel works out a
+starting offset, box and wheels from the model's shape.
+
+Lengths are in world units, along the body's own axes: +X along the axles,
++Y up and +Z forward. They aren't scaled with the model.
+
+Attribute: Example
+use Libraries.Game.Scenes.VehicleControllerSettings
+use Libraries.Game.Graphics.Model
+
+VehicleControllerSettings settings
+Model car
+car:Load("Car/ToyCar.gltf")
+settings:SetFaces("-Z")
+settings:FitToModel(car)
+settings:SetSetting(settings:STIFFNESS, 12)
+output settings:ToJson():ToText()
+*/
+class VehicleControllerSettings
+    // Each number setting has a place in the list below.
+    public constant integer MODEL_OFFSET_X = 0
+    public constant integer MODEL_OFFSET_Y = 1
+    public constant integer MODEL_OFFSET_Z = 2
+    public constant integer MASS = 3
+    public constant integer BOX_WIDTH = 4
+    public constant integer BOX_HEIGHT = 5
+    public constant integer BOX_LENGTH = 6
+    public constant integer FRICTION = 7
+    public constant integer LINEAR_DAMPING = 8
+    public constant integer ANGULAR_DAMPING = 9
+    public constant integer FRONT_AXLE = 10
+    public constant integer REAR_AXLE = 11
+    public constant integer WHEEL_SIDE = 12
+    public constant integer WHEEL_HEIGHT = 13
+    public constant integer WHEEL_RADIUS = 14
+    public constant integer REST_LENGTH = 15
+    public constant integer STIFFNESS = 16
+    public constant integer DAMPING_COMPRESSION = 17
+    public constant integer DAMPING_RELAXATION = 18
+    public constant integer FRICTION_SLIP = 19
+    public constant integer ROLL_INFLUENCE = 20
+    public constant integer MAXIMUM_TRAVEL = 21
+    public constant integer MAXIMUM_FORCE = 22
+    public constant integer ENGINE_FORCE = 23
+    public constant integer REVERSE_FORCE = 24
+    public constant integer BRAKE_FORCE = 25
+    public constant integer MAXIMUM_STEERING = 26
+    public constant integer STEERING_SPEED = 27
+    public constant integer THROTTLE_SPEED = 28
+    public constant integer CAMERA_BEHIND = 29
+    public constant integer CAMERA_ABOVE = 30
+    public constant integer CAMERA_SMOOTHING = 31
+    public constant integer CAMERA_ANGLE = 32
+    public constant integer SETTING_COUNT = 33
+
+    // Which wheels the engine turns.
+    public constant text DRIVE_FRONT = "Front"
+    public constant text DRIVE_REAR = "Rear"
+    public constant text DRIVE_ALL = "All"
+
+    // The vehicle's type, as the Controller block names it.
+    public constant text VEHICLE = "Vehicle"
+
+    // The number settings, and the group and key each is saved under.
+    Array<number> values
+    Array<text> groups
+    Array<text> keys
+
+    // Which of its own sides the model's front faces: +Z, -Z, +X or -X.
+    text faces = "+Z"
+    text drive = "Rear"
+    boolean cameraFollows = true
+    Math math
+
+    on create
+        AddSetting("Model", "Offset X", 0)
+        AddSetting("Model", "Offset Y", 0)
+        AddSetting("Model", "Offset Z", 0)
+        // A small car: 800 kg, a box lower and shorter than its shape so it
+        // clears slopes, and 30% of its turning speed fading each second.
+        AddSetting("Body", "Mass", 800)
+        AddSetting("Body", "Box Width", 2.6)
+        AddSetting("Body", "Box Height", 0.6)
+        AddSetting("Body", "Box Length", 4.2)
+        AddSetting("Body", "Friction", 0.6)
+        AddSetting("Body", "Linear Damping", 0.05)
+        AddSetting("Body", "Angular Damping", 0.3)
+        AddSetting("Wheels", "Front Axle", 2.06)
+        AddSetting("Wheels", "Rear Axle", -1.58)
+        AddSetting("Wheels", "Side", 1.6)
+        AddSetting("Wheels", "Height", -0.24)
+        AddSetting("Wheels", "Radius", 0.4)
+        // Soft enough that the wheels can drop about 0.25 under the body.
+        AddSetting("Suspension", "Rest Length", 0.6)
+        AddSetting("Suspension", "Stiffness", 10)
+        AddSetting("Suspension", "Damping Compression", 1.8)
+        AddSetting("Suspension", "Damping Relaxation", 1.4)
+        AddSetting("Suspension", "Friction Slip", 3)
+        AddSetting("Suspension", "Roll Influence", 0)
+        AddSetting("Suspension", "Max Travel", 5)
+        AddSetting("Suspension", "Max Force", 6000)
+        // About three quarters of the pull of gravity from the rear
+        // wheels, and full lock reached over a third of a second.
+        AddSetting("Driving", "Engine Force", 3000)
+        AddSetting("Driving", "Reverse Force", 2000)
+        AddSetting("Driving", "Brake Force", 1500)
+        AddSetting("Driving", "Max Steering", 0.35)
+        AddSetting("Driving", "Steering Speed", 3)
+        AddSetting("Driving", "Throttle Speed", 2)
+        AddSetting("Camera", "Behind", 12)
+        AddSetting("Camera", "Above", 5)
+        AddSetting("Camera", "Smoothing", 0)
+        // Degrees around the car from straight behind it.
+        AddSetting("Camera", "Angle", 0)
+    end
+
+    /*
+    Adds a number setting to the list, with its group, key and default.
+    */
+    private action AddSetting(text group, text key, number value)
+        groups:Add(group)
+        keys:Add(key)
+        values:Add(value)
+    end
+
+    /*
+    This action returns a number setting, such as STIFFNESS.
+
+    Attribute: Parameter which The setting, such as STIFFNESS.
+    Attribute: Returns The value.
+    */
+    action GetSetting(integer which) returns number
+        if which < 0 or which >= values:GetSize()
+            return 0
+        end
+        return values:Get(which)
+    end
+
+    /*
+    This action sets a number setting, such as STIFFNESS.
+
+    Attribute: Parameter which The setting, such as STIFFNESS.
+    Attribute: Parameter value The new value.
+    */
+    action SetSetting(integer which, number value)
+        if which < 0 or which >= values:GetSize()
+            return now
+        end
+        values:Set(which, value)
+    end
+
+    /*
+    This action returns how many number settings there are.
+
+    Attribute: Returns SETTING_COUNT.
+    */
+    action GetSettingCount returns integer
+        return values:GetSize()
+    end
+
+    /*
+    This action returns a number setting's name, as it is saved, such as
+    "Stiffness".
+
+    Attribute: Parameter which The setting.
+    Attribute: Returns The name.
+    */
+    action GetSettingName(integer which) returns text
+        if which < 0 or which >= keys:GetSize()
+            return ""
+        end
+        return keys:Get(which)
+    end
+
+    /*
+    This action returns the group a number setting is saved in, such as
+    "Suspension".
+
+    Attribute: Parameter which The setting.
+    Attribute: Returns The group.
+    */
+    action GetSettingGroup(integer which) returns text
+        if which < 0 or which >= groups:GetSize()
+            return ""
+        end
+        return groups:Get(which)
+    end
+
+    /*
+    This action returns which of its own sides the model's front faces.
+
+    Attribute: Returns "+Z", "-Z", "+X" or "-X".
+    */
+    action GetFaces returns text
+        return faces
+    end
+
+    /*
+    This action sets which of its own sides the model's front faces, so the
+    model can be used as its file has it. Anything else is taken as +Z.
+
+    Attribute: Parameter side "+Z", "-Z", "+X" or "-X".
+    */
+    action SetFaces(text side)
+        if side = "-Z" or side = "+X" or side = "-X"
+            faces = side
+        else
+            faces = "+Z"
+        end
+    end
+
+    /*
+    This action returns which wheels the engine turns.
+
+    Attribute: Returns DRIVE_FRONT, DRIVE_REAR or DRIVE_ALL.
+    */
+    action GetDrive returns text
+        return drive
+    end
+
+    /*
+    This action sets which wheels the engine turns. Anything else is taken
+    as the rear wheels.
+
+    Attribute: Parameter wheels DRIVE_FRONT, DRIVE_REAR or DRIVE_ALL.
+    */
+    action SetDrive(text wheels)
+        if wheels = DRIVE_FRONT or wheels = DRIVE_ALL
+            drive = wheels
+        else
+            drive = DRIVE_REAR
+        end
+    end
+
+    /*
+    This action returns whether the game's camera follows the vehicle.
+
+    Attribute: Returns True if the camera follows it.
+    */
+    action IsCameraFollowing returns boolean
+        return cameraFollows
+    end
+
+    /*
+    This action sets whether the game's camera follows the vehicle, with the
+    CAMERA_BEHIND, CAMERA_ABOVE and CAMERA_SMOOTHING settings.
+
+    Attribute: Parameter follows True for the camera to follow it.
+    */
+    action SetCameraFollowing(boolean follows)
+        cameraFollows = follows
+    end
+
+    /*
+    This action returns a copy of these settings, such as to change them
+    without changing these.
+
+    Attribute: Returns The copy.
+    */
+    action Copy returns VehicleControllerSettings
+        VehicleControllerSettings copy
+        integer i = 0
+        repeat while i < values:GetSize()
+            copy:SetSetting(i, values:Get(i))
+            i = i + 1
+        end
+        copy:SetFaces(faces)
+        copy:SetDrive(drive)
+        copy:SetCameraFollowing(cameraFollows)
+        return copy
+    end
+
+    /*
+    This action writes the settings as a scene's Controller block.
+
+    Attribute: Returns The block.
+    */
+    action ToJson returns JavaScriptObjectNotation
+        JavaScriptObjectNotation json
+        json:Add("Type", VEHICLE)
+        Array<text> written
+        integer i = 0
+        repeat while i < groups:GetSize()
+            text group = groups:Get(i)
+            if not written:Has(group)
+                written:Add(group)
+                JavaScriptObjectNotation groupJson
+                if group = "Model"
+                    groupJson:Add("Faces", faces)
+                elseif group = "Wheels"
+                    groupJson:Add("Drive", drive)
+                elseif group = "Camera"
+                    groupJson:Add("Follows", cameraFollows)
+                end
+                integer j = i
+                repeat while j < groups:GetSize()
+                    if groups:Get(j) = group
+                        groupJson:Add(keys:Get(j), values:Get(j))
+                    end
+                    j = j + 1
+                end
+                json:Add(group, groupJson)
+            end
+            i = i + 1
+        end
+        return json
+    end
+
+    /*
+    This action reads the settings from a scene's Controller block. A
+    setting the block doesn't have keeps its value.
+
+    Attribute: Parameter json The block.
+    */
+    action FromJson(JavaScriptObjectNotation json)
+        if json = undefined
+            return now
+        end
+        integer i = 0
+        repeat while i < groups:GetSize()
+            JavaScriptObjectNotation groupJson = json:GetObject(groups:Get(i))
+            if groupJson not= undefined
+                values:Set(i, ReadNumber(groupJson, keys:Get(i), values:Get(i)))
+            end
+            i = i + 1
+        end
+        JavaScriptObjectNotation model = json:GetObject("Model")
+        if model not= undefined and model:HasValue("Faces")
+            SetFaces(model:GetValue("Faces"))
+        end
+        JavaScriptObjectNotation wheels = json:GetObject("Wheels")
+        if wheels not= undefined and wheels:HasValue("Drive")
+            SetDrive(wheels:GetValue("Drive"))
+        end
+        JavaScriptObjectNotation camera = json:GetObject("Camera")
+        if camera not= undefined
+            cameraFollows = ReadBoolean(camera, "Follows", cameraFollows)
+        end
+    end
+
+    /*
+    Returns a number in a block, whether it was written with a decimal point
+    or not, or a default if it isn't there.
+    */
+    private action ReadNumber(JavaScriptObjectNotation json, text key, number fallback) returns number
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key
+                if child:IsInteger()
+                    return child:GetInteger()
+                elseif child:IsNumber()
+                    return child:GetNumber()
+                end
+                return fallback
+            end
+        end
+        return fallback
+    end
+
+    /*
+    Returns a true or false value in a block, or a default if it isn't there.
+    */
+    private action ReadBoolean(JavaScriptObjectNotation json, text key, boolean fallback) returns boolean
+        Iterator<JavaScriptObjectNotation> children = json:GetIterator()
+        repeat while children:HasNext()
+            JavaScriptObjectNotation child = children:Next()
+            if child:GetKey() = key and child:IsBoolean()
+                return child:GetBoolean()
+            end
+        end
+        return fallback
+    end
+
+    /*
+    This action returns the way the model's front faces, along the model's
+    own axes, from SetFaces.
+
+    Attribute: Returns A direction of length 1.
+    */
+    action GetFacingDirection returns Vector3
+        Vector3 direction
+        if faces = "-Z"
+            direction:Set(0, 0, -1)
+        elseif faces = "+X"
+            direction:Set(1, 0, 0)
+        elseif faces = "-X"
+            direction:Set(-1, 0, 0)
+        else
+            direction:Set(0, 0, 1)
+        end
+        return direction
+    end
+
+    /*
+    This action returns how the body is turned for a model: upright, with
+    its +Z the way the model's front faces, level with the ground. Only the
+    rotation part is set.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Returns The body's rotation.
+    */
+    action GetBodyRotation(Item3D model) returns Matrix4
+        Matrix4 turn = model:GetRotationTransform()
+        Vector3 faceLocal = GetFacingDirection()
+        // The model's front in the world, kept level.
+        number forwardX = turn:row0column0 * faceLocal:GetX() + turn:row0column1 * faceLocal:GetY() + turn:row0column2 * faceLocal:GetZ()
+        number forwardZ = turn:row2column0 * faceLocal:GetX() + turn:row2column1 * faceLocal:GetY() + turn:row2column2 * faceLocal:GetZ()
+        number length = math:SquareRoot(forwardX * forwardX + forwardZ * forwardZ)
+        if length < 0.000001
+            forwardX = 0
+            forwardZ = 1
+        else
+            forwardX = forwardX / length
+            forwardZ = forwardZ / length
+        end
+        // Columns: the axle direction (up crossed with forward), up, and
+        // forward.
+        Matrix4 rotation
+        rotation:IdentityMatrix()
+        rotation:row0column0 = forwardZ
+        rotation:row1column0 = 0
+        rotation:row2column0 = -forwardX
+        rotation:row0column1 = 0
+        rotation:row1column1 = 1
+        rotation:row2column1 = 0
+        rotation:row0column2 = forwardX
+        rotation:row1column2 = 0
+        rotation:row2column2 = forwardZ
+        return rotation
+    end
+
+    /*
+    This action returns where the body's middle starts for a model: the
+    model's origin, less the offset along the body's axes.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Returns The body's middle, in world units.
+    */
+    action GetBodyPosition(Item3D model) returns Vector3
+        Matrix4 rotation = GetBodyRotation(model)
+        Vector3 offset = GetModelOffset()
+        Vector3 turned = RotateByMatrix(rotation, offset)
+        Vector3 place
+        place:Set(model:GetX() - turned:GetX(), model:GetY() - turned:GetY(), model:GetZ() - turned:GetZ())
+        return place
+    end
+
+    /*
+    This action returns where the model's origin sits from the body's middle,
+    along the body's axes.
+
+    Attribute: Returns The offset.
+    */
+    action GetModelOffset returns Vector3
+        Vector3 offset
+        offset:Set(GetSetting(MODEL_OFFSET_X), GetSetting(MODEL_OFFSET_Y), GetSetting(MODEL_OFFSET_Z))
+        return offset
+    end
+
+    /*
+    This action turns a point from the body's axes to the world's, as the
+    body is turned. The point isn't moved.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Parameter point A point along the body's axes, from its middle.
+    Attribute: Returns The point in the world.
+    */
+    action BodyToWorld(Item3D model, Vector3 point) returns Vector3
+        Matrix4 rotation = GetBodyRotation(model)
+        Vector3 turned = RotateByMatrix(rotation, point)
+        turned:Add(GetBodyPosition(model))
+        return turned
+    end
+
+    /*
+    Returns a vector turned by a matrix's rotation part.
+    */
+    private action RotateByMatrix(Matrix4 matrix, Vector3 vector) returns Vector3
+        Vector3 result
+        result:Set(matrix:row0column0 * vector:GetX() + matrix:row0column1 * vector:GetY() + matrix:row0column2 * vector:GetZ(),
+            matrix:row1column0 * vector:GetX() + matrix:row1column1 * vector:GetY() + matrix:row1column2 * vector:GetZ(),
+            matrix:row2column0 * vector:GetX() + matrix:row2column1 * vector:GetY() + matrix:row2column2 * vector:GetZ())
+        return result
+    end
+
+    /*
+    Returns a vector turned back by a matrix's rotation part (its transpose).
+    */
+    private action UnrotateByMatrix(Matrix4 matrix, Vector3 vector) returns Vector3
+        Vector3 result
+        result:Set(matrix:row0column0 * vector:GetX() + matrix:row1column0 * vector:GetY() + matrix:row2column0 * vector:GetZ(),
+            matrix:row0column1 * vector:GetX() + matrix:row1column1 * vector:GetY() + matrix:row2column1 * vector:GetZ(),
+            matrix:row0column2 * vector:GetX() + matrix:row1column2 * vector:GetY() + matrix:row2column2 * vector:GetZ())
+        return result
+    end
+
+    /*
+    This action sets the offset, box and wheels from a model's shape, as a
+    starting point: the body's middle at the middle of the model's shape,
+    a box lower and shorter than the shape so it clears slopes, and four
+    wheels near the shape's corners whose bottoms meet the shape's bottom
+    when the car's weight is on them. SetFaces should be set first. Other
+    settings are kept. A model with no shape changes nothing.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Returns True if the settings were fitted.
+    */
+    action FitToModel(Model model) returns boolean
+        if model = undefined or model:GetModelBlueprint() = undefined
+            return false
+        end
+        BoundingBox bounds = model:CalculateBoundingBox()
+        if not bounds:IsValid()
+            return false
+        end
+        Matrix4 transform = model:GetTransform()
+        Vector3 middle
+        middle:Set(bounds:GetCenter())
+        middle:Multiply(transform)
+
+        // How far the shape reaches from its middle along each of the
+        // body's axes, from the bounds' eight corners.
+        Matrix4 rotation = GetBodyRotation(model)
+        Vector3 low = bounds:GetMinimum()
+        Vector3 high = bounds:GetMaximum()
+        number halfWidth = 0
+        number halfHeight = 0
+        number halfLength = 0
+        integer corner = 0
+        repeat while corner < 8
+            Vector3 point
+            number x = low:GetX()
+            number y = low:GetY()
+            number z = low:GetZ()
+            if corner mod 2 = 1
+                x = high:GetX()
+            end
+            if corner mod 4 >= 2
+                y = high:GetY()
+            end
+            if corner >= 4
+                z = high:GetZ()
+            end
+            point:Set(x, y, z)
+            point:Multiply(transform)
+            point:Subtract(middle)
+            Vector3 along = UnrotateByMatrix(rotation, point)
+            halfWidth = math:MaximumOf(halfWidth, math:AbsoluteValue(along:GetX()))
+            halfHeight = math:MaximumOf(halfHeight, math:AbsoluteValue(along:GetY()))
+            halfLength = math:MaximumOf(halfLength, math:AbsoluteValue(along:GetZ()))
+            corner = corner + 1
+        end
+        if halfWidth <= 0 or halfHeight <= 0 or halfLength <= 0
+            return false
+        end
+
+        // The model's origin from the shape's middle, along the body's axes.
+        Vector3 fromMiddle
+        fromMiddle:Set(model:GetX() - middle:GetX(), model:GetY() - middle:GetY(), model:GetZ() - middle:GetZ())
+        Vector3 offset = UnrotateByMatrix(rotation, fromMiddle)
+        SetSetting(MODEL_OFFSET_X, offset:GetX())
+        SetSetting(MODEL_OFFSET_Y, offset:GetY())
+        SetSetting(MODEL_OFFSET_Z, offset:GetZ())
+
+        SetSetting(BOX_WIDTH, Round(halfWidth * 2 * 0.9))
+        SetSetting(BOX_HEIGHT, Round(halfHeight * 2 * 0.3))
+        SetSetting(BOX_LENGTH, Round(halfLength * 2 * 0.72))
+
+        number radius = Round(halfHeight * 0.4)
+        if radius < 0.05
+            radius = 0.05
+        end
+        SetSetting(WHEEL_RADIUS, radius)
+        SetSetting(WHEEL_SIDE, Round(halfWidth * 0.95))
+        SetSetting(FRONT_AXLE, Round(halfLength * 0.68))
+        SetSetting(REAR_AXLE, Round(-halfLength * 0.68))
+        SetSetting(WHEEL_HEIGHT, Round(GetFittedWheelHeight(halfHeight)))
+        return true
+    end
+
+    /*
+    Returns where the wheels are mounted so that, with the car's weight on
+    the springs, the wheels' bottoms meet the shape's bottom. Each spring
+    holds a quarter of the weight, so it is pressed by 9.8 / (4 x
+    stiffness), whatever the mass.
+    */
+    private action GetFittedWheelHeight(number halfHeight) returns number
+        number stiffness = GetSetting(STIFFNESS)
+        if stiffness <= 0
+            stiffness = 1
+        end
+        number pressed = 9.8 / (4 * stiffness)
+        number hanging = GetSetting(REST_LENGTH) - pressed
+        if hanging < 0
+            hanging = 0
+        end
+        return -halfHeight + hanging + GetSetting(WHEEL_RADIUS)
+    end
+
+    /*
+    Returns a number rounded to hundredths, so fitted values read simply.
+    */
+    private action Round(number value) returns number
+        return math:Round(value, 2)
+    end
+
+    /*
+    This action returns how far a wheel's spring is pressed while the car
+    stands still: a quarter of its weight over its stiffness.
+
+    Attribute: Returns The distance, in world units.
+    */
+    action GetRestingCompression returns number
+        number stiffness = GetSetting(STIFFNESS)
+        if stiffness <= 0
+            return GetSetting(REST_LENGTH)
+        end
+        number pressed = 9.8 / (4 * stiffness)
+        if pressed > GetSetting(REST_LENGTH)
+            return GetSetting(REST_LENGTH)
+        end
+        return pressed
+    end
+
+    /*
+    This action returns where the game's camera starts when it follows the
+    car: CAMERA_BEHIND behind the body's middle, turned CAMERA_ANGLE degrees
+    around it, and CAMERA_ABOVE above it, as Camera's Follow places it.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Returns The camera's place, in the world.
+    */
+    action GetFollowPosition(Item3D model) returns Vector3
+        Vector3 target = GetBodyPosition(model)
+        Vector3 face = GetFollowFacing(model, GetSetting(CAMERA_ANGLE))
+        Vector3 place
+        place:Set(target:GetX() - face:GetX() * GetSetting(CAMERA_BEHIND),
+            target:GetY() + GetSetting(CAMERA_ABOVE),
+            target:GetZ() - face:GetZ() * GetSetting(CAMERA_BEHIND))
+        return place
+    end
+
+    /*
+    This action sets CAMERA_BEHIND, CAMERA_ABOVE and CAMERA_ANGLE from a
+    place for the following camera, such as where the game camera was
+    moved to in the scene editor.
+
+    Attribute: Parameter model The model, placed and turned as in the scene.
+    Attribute: Parameter position The camera's place, in the world.
+    */
+    action SetFollowFrom(Item3D model, Vector3 position)
+        Vector3 target = GetBodyPosition(model)
+        number offsetX = position:GetX() - target:GetX()
+        number offsetZ = position:GetZ() - target:GetZ()
+        SetSetting(CAMERA_ABOVE, math:Round(position:GetY() - target:GetY(), 1))
+        number behind = math:SquareRoot(offsetX * offsetX + offsetZ * offsetZ)
+        SetSetting(CAMERA_BEHIND, math:Round(behind, 1))
+        if behind < 0.001
+            return now
+        end
+        // The camera looks along -offset; the angle turns the car's heading
+        // to that.
+        Vector3 heading = GetFollowFacing(model, 0)
+        number faceX = -offsetX / behind
+        number faceZ = -offsetZ / behind
+        number dot = heading:GetX() * faceX + heading:GetZ() * faceZ
+        if dot > 1
+            dot = 1
+        elseif dot < -1
+            dot = -1
+        end
+        number cross = heading:GetX() * faceZ - heading:GetZ() * faceX
+        number angle = math:RadiansToDegrees(math:InverseCosine(dot))
+        if cross < 0
+            angle = -angle
+        end
+        SetSetting(CAMERA_ANGLE, math:Round(angle, 0))
+    end
+
+    /*
+    Returns the level way the following camera looks: the body's forward,
+    turned some degrees about up, as Camera's UpdateFollow turns it.
+    */
+    private action GetFollowFacing(Item3D model, number degrees) returns Vector3
+        Matrix4 rotation = GetBodyRotation(model)
+        number headingX = rotation:row0column2
+        number headingZ = rotation:row2column2
+        number radians = math:DegreesToRadians(degrees)
+        number cosine = math:Cosine(radians)
+        number sine = math:Sine(radians)
+        Vector3 face
+        face:Set(headingX * cosine - headingZ * sine, 0, headingX * sine + headingZ * cosine)
+        return face
+    end
+
+    /*
+    This action returns a wheel's mount point, along the body's axes. The
+    wheels are 0 front left, 1 front right, 2 rear left and 3 rear right.
+
+    Attribute: Parameter wheel The wheel, from 0 to 3.
+    Attribute: Returns The point, from the body's middle.
+    */
+    action GetWheelMount(integer wheel) returns Vector3
+        number side = GetSetting(WHEEL_SIDE)
+        if wheel = 0 or wheel = 2
+            side = -side
+        end
+        number along = GetSetting(FRONT_AXLE)
+        if wheel >= 2
+            along = GetSetting(REAR_AXLE)
+        end
+        Vector3 mount
+        mount:Set(side, GetSetting(WHEEL_HEIGHT), along)
+        return mount
+    end
+
+    /*
+    This action returns true if the engine turns a wheel.
+
+    Attribute: Parameter wheel The wheel, from 0 to 3.
+    Attribute: Returns True if it drives.
+    */
+    action IsDriveWheel(integer wheel) returns boolean
+        if drive = DRIVE_ALL
+            return true
+        elseif drive = DRIVE_FRONT
+            return wheel < 2
+        end
+        return wheel >= 2
+    end
+
+    /*
+    This action makes the car for a model: its body, the vehicle with four
+    wheels, and the behavior that drives it with W, S, A, D and Space. The
+    body and vehicle go in the layer; the model is drawn on the body from
+    then on, and loses any physics of its own. If the camera follows, the
+    layer's camera follows the body.
+
+    Attribute: Parameter model The model, placed and turned as in the scene, in the layer.
+    Attribute: Parameter layer The model's layer.
+    Attribute: Returns What was made.
+    */
+    action Build(Item3D model, Layer3D layer) returns SceneController
+        Matrix4 bodyRotation = GetBodyRotation(model)
+        Vector3 bodyPosition = GetBodyPosition(model)
+
+        Item3D body
+        body:SetName(model:GetName() + " Body")
+        Box shape
+        shape:Set(GetSetting(BOX_WIDTH), GetSetting(BOX_HEIGHT), GetSetting(BOX_LENGTH))
+        body:SetDimensions(GetSetting(BOX_WIDTH), GetSetting(BOX_HEIGHT), GetSetting(BOX_LENGTH))
+        body:SetShape(shape)
+        body:EnablePhysics(true)
+        body:SetResponsive()
+        body:SetMass(GetSetting(MASS))
+        body:SetFriction(GetSetting(FRICTION))
+        body:SetRestitution(0)
+        body:SetLinearDamping(GetSetting(LINEAR_DAMPING))
+        body:SetAngularDamping(GetSetting(ANGULAR_DAMPING))
+        body:SetPosition(bodyPosition)
+        body:SetRotationTransform(bodyRotation)
+        layer:Add(body)
+
+        Vehicle vehicle
+        vehicle:SetChassis(body)
+        integer wheel = 0
+        repeat while wheel < 4
+            vehicle:Add(MakeWheel(wheel))
+            wheel = wheel + 1
+        end
+        layer:Add(vehicle)
+
+        // The model's turn on a body with no rotation: the body's turn
+        // taken back off the model's.
+        if model:IsPhysicsEnabled()
+            model:EnablePhysics(false)
+        end
+        Matrix4 modelTurn = model:GetRotationTransform():Copy()
+        Matrix4 rest
+        rest:IdentityMatrix()
+        rest:row0column0 = bodyRotation:row0column0 * modelTurn:row0column0 + bodyRotation:row1column0 * modelTurn:row1column0 + bodyRotation:row2column0 * modelTurn:row2column0
+        rest:row0column1 = bodyRotation:row0column0 * modelTurn:row0column1 + bodyRotation:row1column0 * modelTurn:row1column1 + bodyRotation:row2column0 * modelTurn:row2column1
+        rest:row0column2 = bodyRotation:row0column0 * modelTurn:row0column2 + bodyRotation:row1column0 * modelTurn:row1column2 + bodyRotation:row2column0 * modelTurn:row2column2
+        rest:row1column0 = bodyRotation:row0column1 * modelTurn:row0column0 + bodyRotation:row1column1 * modelTurn:row1column0 + bodyRotation:row2column1 * modelTurn:row2column0
+        rest:row1column1 = bodyRotation:row0column1 * modelTurn:row0column1 + bodyRotation:row1column1 * modelTurn:row1column1 + bodyRotation:row2column1 * modelTurn:row2column1
+        rest:row1column2 = bodyRotation:row0column1 * modelTurn:row0column2 + bodyRotation:row1column1 * modelTurn:row1column2 + bodyRotation:row2column1 * modelTurn:row2column2
+        rest:row2column0 = bodyRotation:row0column2 * modelTurn:row0column0 + bodyRotation:row1column2 * modelTurn:row1column0 + bodyRotation:row2column2 * modelTurn:row2column0
+        rest:row2column1 = bodyRotation:row0column2 * modelTurn:row0column1 + bodyRotation:row1column2 * modelTurn:row1column1 + bodyRotation:row2column2 * modelTurn:row2column1
+        rest:row2column2 = bodyRotation:row0column2 * modelTurn:row0column2 + bodyRotation:row1column2 * modelTurn:row1column2 + bodyRotation:row2column2 * modelTurn:row2column2
+        model:SetRotationTransform(rest)
+        vehicle:SetBodyVisual(model, GetModelOffset())
+        model:SetRotationTransform(modelTurn)
+
+        VehicleMovementBehavior movement
+        movement:SetVehicle(vehicle)
+        if drive not= DRIVE_ALL
+            wheel = 0
+            repeat while wheel < 4
+                if IsDriveWheel(wheel)
+                    movement:AddDriveWheel(wheel)
+                end
+                wheel = wheel + 1
+            end
+        end
+        movement:SetEngineForce(GetSetting(ENGINE_FORCE))
+        movement:SetReverseForce(GetSetting(REVERSE_FORCE))
+        movement:SetBrakeForce(GetSetting(BRAKE_FORCE))
+        movement:SetMaximumSteering(GetSetting(MAXIMUM_STEERING))
+        movement:SetSteeringSpeed(GetSetting(STEERING_SPEED))
+        movement:SetThrottleSpeed(GetSetting(THROTTLE_SPEED))
+        body:AddBehavior(movement)
+
+        Camera camera = undefined
+        if cameraFollows
+            camera = layer:GetCamera()
+            if camera not= undefined
+                camera:Follow(body, GetSetting(CAMERA_BEHIND), GetSetting(CAMERA_ABOVE))
+                camera:SetFollowSmoothing(GetSetting(CAMERA_SMOOTHING))
+                camera:SetFollowAngle(GetSetting(CAMERA_ANGLE))
+                camera:JumpToFollowPosition()
+            end
+        end
+
+        SceneController controller
+        controller:SetupVehicle(model, body, vehicle, movement, camera, bodyPosition, bodyRotation)
+        return controller
+    end
+
+    /*
+    Makes one wheel, from 0 to 3: a ray under its mount, straight down the
+    body, with a spring.
+    */
+    private action MakeWheel(integer wheel) returns Suspension
+        Suspension suspension
+        suspension:SetConnectionPoint(GetWheelMount(wheel))
+        Vector3 down
+        down:Set(0, -1, 0)
+        suspension:SetDirection(down)
+        Vector3 axle
+        axle:Set(1, 0, 0)
+        suspension:SetAxle(axle)
+        suspension:SetRestLength(GetSetting(REST_LENGTH))
+        suspension:SetRadius(GetSetting(WHEEL_RADIUS))
+        suspension:SetSteeringEnabled(wheel < 2)
+        suspension:SetSuspensionStiffness(GetSetting(STIFFNESS))
+        suspension:SetDampingCompression(GetSetting(DAMPING_COMPRESSION))
+        suspension:SetDampingRelaxation(GetSetting(DAMPING_RELAXATION))
+        suspension:SetFrictionSlip(GetSetting(FRICTION_SLIP))
+        suspension:SetRollInfluence(GetSetting(ROLL_INFLUENCE))
+        suspension:SetMaxSuspensionTravel(GetSetting(MAXIMUM_TRAVEL))
+        suspension:SetMaxSuspensionForce(GetSetting(MAXIMUM_FORCE))
+        return suspension
+    end
+end

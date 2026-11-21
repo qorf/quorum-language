@@ -149,6 +149,11 @@ class SelectScene3DItemBehavior is Behavior
             editor:SetKeepCameraOnSelection(true)
             editor:SetFilteredItems(result, true)
             editor:SetKeepCameraOnSelection(false)
+            // Holding the button and moving drags the item (SceneEditor's
+            // BeginItemDrag); a terrain stays where it is.
+            if not (result:Get(0) is TerrainItem)
+                editor:BeginItemDrag(mouse:GetX(), mouse:GetY())
+            end
         end
     end
     
