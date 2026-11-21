@@ -5,6 +5,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Number32BitArray
 use Libraries.Containers.Integer32BitArray
 use Libraries.Compute.Vector4
+use Libraries.Compute.Math
 use Libraries.Game.Graphics.Models.Data.ModelData
 use Libraries.Game.Graphics.Models.Data.MeshData
 use Libraries.Game.Graphics.Models.Data.Material
@@ -40,6 +41,8 @@ end
 */
 class WaterSurface is Model
     WaterShaderProgram waterProgram = undefined
+    // For a river's slope, along its flow.
+    Math waterMath
 
     // How many times LoadCells has built this surface, for unique names.
     integer cellBuilds = 0
@@ -319,6 +322,27 @@ class WaterSurface is Model
             number acrossX = -flowZ
             number acrossZ = flowX
             number half = river:GetSampleWidth(sample) / 2
+            // How fast the surface drops along the flow here, from the
+            // points before and after, so a steep stretch, such as a
+            // waterfall, faces downstream as well as up. The shader uses it
+            // to tell the sheet's front from its back.
+            integer before = sample - 1
+            if before < 0
+                before = 0
+            end
+            integer after = sample + 1
+            if after > samples - 1
+                after = samples - 1
+            end
+            number run = river:GetSampleDistance(after) - river:GetSampleDistance(before)
+            number slope = 0
+            if run > 0.0001
+                slope = (river:GetSampleSurface(after) - river:GetSampleSurface(before)) / run
+            end
+            number normalLength = waterMath:SquareRoot(1 + slope * slope)
+            number normalX = -slope * flowX / normalLength
+            number normalY = 1 / normalLength
+            number normalZ = -slope * flowZ / normalLength
             integer side = 0
             repeat while side < 2
                 // The first side is across the flow, the second opposite,
@@ -331,9 +355,9 @@ class WaterSurface is Model
                 vertices:Set(vertex * 3, river:GetSampleX(sample) + acrossX * half * sign - originX)
                 vertices:Set(vertex * 3 + 1, river:GetSampleSurface(sample))
                 vertices:Set(vertex * 3 + 2, river:GetSampleZ(sample) + acrossZ * half * sign - originZ)
-                normals:Set(vertex * 3, 0)
-                normals:Set(vertex * 3 + 1, 1)
-                normals:Set(vertex * 3 + 2, 0)
+                normals:Set(vertex * 3, normalX)
+                normals:Set(vertex * 3 + 1, normalY)
+                normals:Set(vertex * 3 + 2, normalZ)
                 tangents:Set(vertex * 3, acrossX)
                 tangents:Set(vertex * 3 + 1, 0)
                 tangents:Set(vertex * 3 + 2, acrossZ)

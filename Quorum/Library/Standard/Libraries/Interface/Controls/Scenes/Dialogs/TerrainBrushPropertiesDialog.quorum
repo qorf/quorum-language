@@ -71,6 +71,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
     Control foliageLabelPart = undefined
     Control foliagePart = undefined
     ButtonGroup foliageGroup = undefined
+    // What the Foliage brush does: paint, remove the chosen asset, or
+    // remove every asset.
+    ButtonGroup foliageModeGroup = undefined
     Label foliageNote = undefined
     Array<text> foliageNames
     // Each foliage button's asset number, since the buttons are in
@@ -239,12 +242,29 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         foliageGroup:AddSelectionListener(me)
         foliageLine:Add(foliageGroup)
         foliageCard:Add(foliageLine)
+        // What the brush does, so removing needs no held key: on a Mac the
+        // system takes Control and Space, and Control and a click.
+        Control modeLine = MakeCardLine()
+        ButtonGroup modeChoices
+        foliageModeGroup = modeChoices
+        foliageModeGroup:SetName("Foliage brush")
+        foliageModeGroup:SetDescription("What the Foliage brush does: paint the chosen asset, remove it, or remove every asset. The next layer key, Alt+L, switches it too")
+        foliageModeGroup:SetHorizontalLayoutMode(modeLine:FILL)
+        foliageModeGroup:SetVerticalLayoutMode(modeLine:FIT_CONTENTS)
+        FlowLayout modeLayout
+        foliageModeGroup:SetLayout(modeLayout)
+        AddFullWidthChoice(foliageModeGroup, "Paint", "Paint where the chosen asset grows")
+        AddFullWidthChoice(foliageModeGroup, "Remove this asset", "Remove the chosen asset under the brush")
+        AddFullWidthChoice(foliageModeGroup, "Remove every asset", "Remove every asset under the brush")
+        foliageModeGroup:AddSelectionListener(me)
+        modeLine:Add(foliageModeGroup)
+        foliageCard:Add(modeLine)
         Control noteLine = MakeCardLine()
         Label note
         foliageNote = note
         // One line, since a wrapped label draws outside its card.
-        foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
-        foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. Hold Ctrl while painting to thin this asset away, or Ctrl and Shift to thin every asset.")
+        foliageNote:SetText("Alt+L (Option+L) switches it.")
+        foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. To remove foliage, choose Remove this asset or Remove every asset above, or press Alt+L, Option+L on a Mac. On Windows, holding Ctrl, or Ctrl and Shift, as a stroke starts removes too.")
         foliageNote:SetHorizontalLayoutMode(foliageNote:parent:Control:STANDARD)
         foliageNote:SetPercentageWidth(1.0)
         foliageNote:SetFocusable(true)
@@ -253,6 +273,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         panel:Add(foliageCard)
         foliagePart = foliageCard
         focusArray:Add(foliageGroup)
+        focusArray:Add(foliageModeGroup)
         focusArray:Add(foliageNote)
 
         // The water tools' depth, in a card titled Water.
@@ -374,6 +395,7 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             if foliageGroup:GetSize() > 0
                 chain:Add(foliageGroup)
             end
+            chain:Add(foliageModeGroup)
             chain:Add(foliageNote)
         end
         // Inside their cards, the lines a tool doesn't use are hidden.
@@ -461,6 +483,24 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
         group:AddToGrouping(button)
         // Two to a row in the card.
         AddHalfWidth(group, button)
+    end
+
+    /*
+        Adds a radio button to a group on a row of its own, for choices whose
+        names are too long to go two to a row.
+    */
+    private action AddFullWidthChoice(ButtonGroup group, text name, text description)
+        RadioButton button
+        button:SetName(name)
+        button:SetDescription(description)
+        group:AddToGrouping(button)
+        FlowLayout layout
+        Control cell
+        cell:SetLayout(layout)
+        cell:SetPercentageWidth(1.0)
+        cell:SetVerticalLayoutMode(cell:FIT_CONTENTS)
+        cell:Add(button)
+        group:Add(cell)
     end
 
     /*
@@ -586,6 +626,13 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
                 end
                 return now
             end
+            if choice:GetButtonGroup() = foliageModeGroup
+                integer mode = choice:GetIndex()
+                if mode >= 0 and mode <= 2 and mode not= terrain:GetFoliageBrushMode()
+                    GetSceneEditor():SetFoliageBrushMode(terrain, mode)
+                end
+                return now
+            end
             if choice:GetButtonGroup() = foliageGroup
                 integer asset = -1
                 if choice:GetIndex() >= 0 and choice:GetIndex() < foliageOrder:GetSize()
@@ -672,6 +719,9 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             flattenGroup:GetButtonAt(1):SetToggleState(true)
         end
         ShowFoliageAssets()
+        if terrain:GetFoliageBrushMode() >= 0 and terrain:GetFoliageBrushMode() < foliageModeGroup:GetSize()
+            foliageModeGroup:GetButtonAt(terrain:GetFoliageBrushMode()):SetToggleState(true)
+        end
         SetFieldText(waterDepthField, terrain:GetWaterDepth())
         SetFieldText(flattenHeightField, brush:GetTargetHeight())
         SetFieldText(sizeField, brush:GetSize())
@@ -742,8 +792,8 @@ class TerrainBrushPropertiesDialog is PropertiesDialog
             foliageNote:SetDescription("Add them in the Foliage section, then choose one here.")
         else
             // One line, since a wrapped label draws outside its card.
-            foliageNote:SetText("Ctrl erases; Ctrl and Shift erase every asset.")
-            foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. Hold Ctrl while painting to thin this asset away, or Ctrl and Shift to thin every asset.")
+            foliageNote:SetText("Alt+L (Option+L) switches it.")
+            foliageNote:SetDescription("Painting sets where this asset grows. Strength sets how thick: the default strength or more is the asset's full density, less is sparser. To remove foliage, choose Remove this asset or Remove every asset above, or press Alt+L, Option+L on a Mac. On Windows, holding Ctrl, or Ctrl and Shift, as a stroke starts removes too.")
             integer chosen = terrain:GetFoliageAsset()
             integer button = 0
             repeat while button < foliageOrder:GetSize() and button < foliageGroup:GetSize()

@@ -76,6 +76,10 @@ class EditorTerrain is TerrainItem
     // foliage list, and whether the foliage list file has
     // changes the next save of the scene must write.
     integer foliageAsset = 0
+    // What the Foliage tool's brush does: 0 paints the asset, 1 removes the
+    // chosen asset, 2 removes every asset (FoliageStroke's ADD_COPIES,
+    // REMOVE_ASSET and REMOVE_ALL).
+    integer foliageBrushMode = 0
     boolean foliageListChanged = false
 
     // The ramp tool's two ends: set at the brush, each with the
@@ -333,6 +337,31 @@ class EditorTerrain is TerrainItem
     */
     action SetFoliageAsset(integer asset)
         foliageAsset = asset
+    end
+
+    /*
+        Returns what the Foliage tool's brush does: 0 paints the chosen
+        asset, 1 removes the chosen asset, and 2 removes every asset, the
+        same numbers as FoliageStroke's ADD_COPIES, REMOVE_ASSET and
+        REMOVE_ALL.
+
+        Attribute: Returns The mode, from 0 to 2
+    */
+    action GetFoliageBrushMode returns integer
+        return foliageBrushMode
+    end
+
+    /*
+        Sets what the Foliage tool's brush does: 0 paints the chosen asset,
+        1 removes the chosen asset, and 2 removes every asset.
+
+        Attribute: Parameter mode The mode, from 0 to 2
+    */
+    action SetFoliageBrushMode(integer mode)
+        if mode < 0 or mode > 2
+            alert("The Foliage brush's mode is from 0 to 2, but was given " + mode + ".")
+        end
+        foliageBrushMode = mode
     end
 
     /*

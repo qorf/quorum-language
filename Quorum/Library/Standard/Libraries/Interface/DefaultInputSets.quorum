@@ -1966,6 +1966,20 @@ InputSet shiftF10SetTextBox
         TerrainBrushUseBehavior terrainBrushUseBehavior
         terrainBrushUseBehavior:SetKey(brushUseSet:GetInputValue())
         selectionTable:Add(brushUseSet, terrainBrushUseBehavior)
+        // Ctrl, and Ctrl and Shift, held with the brush key start the same
+        // stroke, so the Foliage tool removes foliage: SceneEditor's
+        // BeginFoliageStroke reads Ctrl as the stroke starts. On a Mac the
+        // system usually takes Control+Space, so the Brush section's Foliage
+        // brush choice, or the next layer key, is the way there.
+        InputSet brushRemoveSet
+        brushRemoveSet:SetKeyboardInput(brushUseSet:GetInputValue())
+        brushRemoveSet:AddModifier(brushRemoveSet:CONTROL)
+        selectionTable:Add(brushRemoveSet, terrainBrushUseBehavior)
+        InputSet brushRemoveAllSet
+        brushRemoveAllSet:SetKeyboardInput(brushUseSet:GetInputValue())
+        brushRemoveAllSet:AddModifier(brushRemoveAllSet:CONTROL)
+        brushRemoveAllSet:AddModifier(brushRemoveAllSet:SHIFT)
+        selectionTable:Add(brushRemoveAllSet, terrainBrushUseBehavior)
 
         TerrainStrengthBehavior terrainStrengthUpBehavior
         terrainStrengthUpBehavior:SetStronger(true)

@@ -3779,6 +3779,34 @@ action Update(number seconds)
     end
 
     /*
+    This action sets what a terrain's Foliage brush does, and says it: 0
+    paints the chosen asset, 1 removes the chosen asset, and 2 removes every
+    asset. The Brush section and the next layer key call it.
+
+    Attribute: Parameter terrain The terrain
+    Attribute: Parameter mode The mode, from 0 to 2
+    */
+    action SetFoliageBrushMode(EditorTerrain terrain, integer mode)
+        if terrain = undefined or mode < 0 or mode > 2
+            return now
+        end
+        terrain:SetFoliageBrushMode(mode)
+        text assetName = "the chosen asset"
+        FoliageList list = terrain:GetFoliageList()
+        if list not= undefined and terrain:GetFoliageAsset() >= 0 and terrain:GetFoliageAsset() < list:GetAssetCount()
+            assetName = list:GetAsset(terrain:GetFoliageAsset()):GetName()
+        end
+        if mode = 0
+            NotifyAccessibility(terrain, "Foliage brush: paint " + assetName + ".")
+        elseif mode = 1
+            NotifyAccessibility(terrain, "Foliage brush: remove " + assetName + ".")
+        else
+            NotifyAccessibility(terrain, "Foliage brush: remove every asset.")
+        end
+        TerrainBrushChanged(terrain)
+    end
+
+    /*
     This action starts a Foliage tool stroke: it adds
     copies of the chosen foliage asset, or with Ctrl held removes them, or
     with Ctrl and Shift held removes every asset's copies under the brush.
@@ -3790,7 +3818,10 @@ action Update(number seconds)
         boolean control = strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_LEFT) or strokeMonitor:IsKeyPressed(modifierKeys:CONTROL_RIGHT)
         boolean shift = strokeMonitor:IsKeyPressed(modifierKeys:SHIFT_LEFT) or strokeMonitor:IsKeyPressed(modifierKeys:SHIFT_RIGHT)
         FoliageStroke stroke
-        integer mode = stroke:ADD_COPIES
+        // The brush's mode, chosen in the Brush section or with the next
+        // layer key; Ctrl held as the stroke starts removes too, where the
+        // system allows it.
+        integer mode = terrain:GetFoliageBrushMode()
         if control and shift
             mode = stroke:REMOVE_ALL
         elseif control
@@ -7610,6 +7641,12 @@ The file can be a material file, a texture set's color map,
     */
     action NextTerrainPaintLayer(EditorTerrain terrain)
         if terrain = undefined or not terrain:HasTool()
+            return now
+        end
+        // With the Foliage tool, the key cycles the brush between painting,
+        // removing the chosen asset, and removing every asset.
+        if terrain:GetToolNumber() = terrain:FOLIAGE_TOOL
+            SetFoliageBrushMode(terrain, (terrain:GetFoliageBrushMode() + 1) mod 3)
             return now
         end
         integer count = terrain:GetLayerCount()
