@@ -9624,9 +9624,15 @@ The ring is one of the editor's own items: it isn't saved,
     This action shows the beam and crosshair wherever the ring shows: at
     the brush of the terrain whose tool is chosen, or at the terrain cursor.
     They are sized for the camera's distance each frame, so they stay about
-    the same size on screen, and pulse as the settings say.
+    the same size on screen, and pulse as the settings say. While an item
+    from the palette is being placed, the beam follows its placeholder
+    instead, and the crosshair hides.
     */
     private action UpdateCursorMarks(number seconds)
+        // While an item from the palette is being placed, the beam stands on
+        // the placeholder instead, so even a very small item can be found
+        // from far away.
+        boolean onPreview = not IsTerrainBrushActive() and HasActivePreview() and GetSelectedLayer() is EditorLayer3D
         EditorTerrain shown = undefined
         if IsTerrainBrushActive()
             shown = brushTerrain
@@ -9636,17 +9642,28 @@ The ring is one of the editor's own items: it isn't saved,
             shown = cursorTerrain
         end
         EditorLayer layer = GetSelectedLayer()
-        if shown = undefined or not shown:IsBrushOnGround() or not (layer is EditorLayer3D)
+        if not onPreview and (shown = undefined or not shown:IsBrushOnGround() or not (layer is EditorLayer3D))
             HideCursorMarks()
             return now
         end
         EditorLayer3D layer3D = cast(EditorLayer3D, layer)
-        TerrainData data = shown:GetWorldTerrain():GetData()
-        number x = shown:GetBrushX()
-        number z = shown:GetBrushZ()
+        TerrainData data = undefined
+        number x = 0
+        number z = 0
         number ground = 0
-        if data:HasHeight(x, z)
-            ground = data:GetSurfaceHeight(x, z)
+        if onPreview
+            // The beam's foot is at the placeholder's origin, which is the
+            // base of most kit models.
+            x = activePreview:GetGlobalX()
+            z = activePreview:GetGlobalZ()
+            ground = activePreview:GetGlobalY()
+        else
+            data = shown:GetWorldTerrain():GetData()
+            x = shown:GetBrushX()
+            z = shown:GetBrushZ()
+            if data:HasHeight(x, z)
+                ground = data:GetSurfaceHeight(x, z)
+            end
         end
         Camera camera = layer3D:GetCamera()
         Vector3 eye = camera:GetPosition()
@@ -9704,7 +9721,7 @@ The ring is one of the editor's own items: it isn't saved,
             cursorBeamShown = false
         end
 
-        if cursorSettings:IsShowingCrosshair()
+        if cursorSettings:IsShowingCrosshair() and not onPreview
             if cursorCrosshair = undefined
                 TerrainCursorCrosshair crosshair
                 crosshair:SetName("Terrain Cursor Crosshair")
