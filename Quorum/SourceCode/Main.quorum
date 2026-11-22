@@ -13,7 +13,6 @@ use Libraries.System.Console
 use Libraries.Compute.Math
 use Libraries.Containers.HashTable
 use Libraries.Language.Errors.OutOfBoundsError
-use Libraries.Language.Compile.Test.CompilerTestSuite
 use Libraries.System.SystemHelper
 use Libraries.Language.Compile.Symbol.SymbolTable
 use Libraries.Language.Compile.Symbol.Class
@@ -40,7 +39,6 @@ class Main is NetworkExchangeListener
     public constant text PYTHON_FLAG = "-python"
     public constant text LIBRARY_FLAG = "-library"
     public constant text REGENERATE_STANDARD_LIBRARY = "-setup"
-    public constant text TEST_FLAG = "-test"
     public constant text HELP_FLAG = "-help"
     public constant integer DEFAULT_PORT = 1269
     private boolean isWebSetup = false
@@ -555,7 +553,7 @@ class Main is NetworkExchangeListener
         Flags are processed by Quorum in a particular order and within certain
         constraints. The -help flag overrides everything, so it is requested, 
         other flags are ignored. If -compile is requested, then -web cannot be. 
-        The converse is also true. If the -test flag is issued, there can be no other flags. 
+        The converse is also true.
         The name flag can be used in combination with either -web or -compile, 
         but not both.
     */
@@ -567,16 +565,6 @@ class Main is NetworkExchangeListener
             return now
         end
         
-
-        if flagValues:HasKey(TEST_FLAG)
-            if flagValues:GetSize() = 1
-                RunTestSuite()
-                return now
-            else
-                output "I noticed a -test flag was issued, but this flag can only be requested on its own, not with other flags."
-                return now
-            end
-        end
 
         if flagValues:HasKey(SERVER_FLAG)
             if flagValues:GetSize() = 1
@@ -864,11 +852,6 @@ class Main is NetworkExchangeListener
         end
     end
 
-    private action RunTestSuite
-        CompilerTestSuite suite
-        suite:Main()
-    end
-
     private action DisplayFlagValues
         Iterator<text> keys = flagValues:GetKeyIterator()
         repeat while keys:HasNext()
@@ -899,7 +882,6 @@ Valid Quorum Commands include:
     -compile This flag tells Quorum to compile a set of files. If no flag is passed, this is the default.
     -web This flag tells Quorum to convert to a server-side application
     -javascript This flag converts the source code to JavaScript, so it can be run in a browser.
-    -test This flag tells Quorum to run its test suite on itself.
     -library If a file path is passed to this flag, we can tell Quorum we have placed its standard library in a different folder.
     -server This flag tells Quorum to start itself as a web server on a particular port. If no parameter is specified, the port 1269 is used.
     -setup If a file path is passed to this flag, it tells Quorum to recompile its standard library. Generally, unless you have modified the standard library, this flag should not be used.
