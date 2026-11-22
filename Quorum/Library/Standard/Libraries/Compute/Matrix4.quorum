@@ -3185,7 +3185,7 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
 
     */
     action GetScaleX returns number
-        if row0column1 <= 0.000001 and row0column2 <= 0.000001                
+        if math:AbsoluteValue(row0column1) <= 0.000001 and math:AbsoluteValue(row0column2) <= 0.000001
             return math:AbsoluteValue(row0column0)
         end
 
@@ -3213,7 +3213,7 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
 
     */
     action GetScaleY returns number 
-       if row1column0 <= 0.000001 and row1column2 <= 0.000001                
+        if math:AbsoluteValue(row1column0) <= 0.000001 and math:AbsoluteValue(row1column2) <= 0.000001
             return math:AbsoluteValue(row1column1)
         end
 
@@ -3241,7 +3241,7 @@ result = result + "|" + row3column0 + ", " + row3column1 + ", " + row3column2 + 
 
     */
     action GetScaleZ returns number 
-       if row2column0 <= 0.000001 and row2column1 <= 0.000001                
+        if math:AbsoluteValue(row2column0) <= 0.000001 and math:AbsoluteValue(row2column1) <= 0.000001
             return math:AbsoluteValue(row2column2)
         end
 

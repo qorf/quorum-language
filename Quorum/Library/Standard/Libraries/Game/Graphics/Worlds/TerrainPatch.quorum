@@ -119,6 +119,10 @@ class TerrainPatch is Terrain
         terrainShape:SetTerrain(me)
         terrainShape:Set(GetWidth(), GetHeight(), GetDepth())
         SetShape(terrainShape)
+        // The heightmap is laid out from the patch's corner, where its mesh
+        // starts, so it takes no offset. Loading the mesh gave the plain box
+        // one, to the mesh's middle.
+        SetShapeOffset(0, 0, 0)
     end
 
     /*

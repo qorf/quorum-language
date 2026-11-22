@@ -427,6 +427,13 @@ on create
     action SetMass(number mass)
         me:mass = mass
         massSet = true
+        // Only a responsive body is moved by what hits it. An unmovable or
+        // non-responsive one keeps no mass, so the solver never pushes it;
+        // its mass is kept for when it becomes responsive
+        // (SetResponsiveness).
+        if type not= RESPONSIVE
+            return now
+        end
         if mass not= 0
             me:inverseMass = 1.0 / mass
         end

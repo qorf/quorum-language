@@ -1,0 +1,125 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Graphics.Color
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+use Libraries.Game.Physics.PhysicsProperties3D
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionBoxMesh
+
+/*
+The CollisionOutline is the scene editor's outline of an item's collision
+box: the box's twelve edges, where the box is when the game runs, colored
+by the item's responsiveness (light blue Unmovable, orange Non-responsive,
+green Responsive). It is an editor helper, not a scene item, and lets
+clicks through.
+
+It is made at the box's size in the world, so its edges look the same
+width at any scale. Boxes of the same size share one mesh
+(SelectionBoxMesh), and a new one is loaded only when the size changes, so
+following an item each frame is cheap.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.CollisionOutline
+use Libraries.Game.Graphics.Model
+use Libraries.Game.Physics.PhysicsProperties3D
+
+Model tent
+tent:Load("Models/Tent.obj")
+PhysicsProperties3D physics
+CollisionOutline outline
+outline:Follow(tent, physics:NON_RESPONSIVE)
+*/
+class CollisionOutline is Model
+    SceneConstants constants
+    PhysicsProperties3D physics
+    SelectionBoxMesh boxMesh
+    Math math
+
+    // The size the outline was last made at, and the responsiveness it
+    // was last colored for.
+    number shownWidth = -1
+    number shownHeight = -1
+    number shownDepth = -1
+    integer shownResponsiveness = -1
+
+    // How close two sizes are before the outline is made again.
+    constant number SIZE_TOLERANCE = 0.0001
+    // A box's least size, so a flat item's outline still shows.
+    constant number LEAST_SIZE = 0.02
+
+    on create
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAcceptsMouseInput(false)
+        SetCastsShadows(false)
+    end
+
+    /*
+    This action puts the outline over an item's collision box: its size is
+    the item's width, height and depth times its scale, its middle is the
+    item's shape offset (SetShapeOffset) placed through the item's
+    position, turn and scale, and it turns with the item.
+
+    Attribute: Parameter item The item whose collision box is shown
+    Attribute: Parameter responsiveness The item's responsiveness, from PhysicsProperties3D (UNMOVABLE, NON_RESPONSIVE or RESPONSIVE)
+    */
+    action Follow(Model item, integer responsiveness)
+        number width = Size(item:GetWidth() * item:GetScaleX())
+        number height = Size(item:GetHeight() * item:GetScaleY())
+        number depth = Size(item:GetDepth() * item:GetScaleZ())
+        if math:AbsoluteValue(width - shownWidth) > SIZE_TOLERANCE or math:AbsoluteValue(height - shownHeight) > SIZE_TOLERANCE or
+                math:AbsoluteValue(depth - shownDepth) > SIZE_TOLERANCE
+            Vector3 one
+            one:Set(1, 1, 1)
+            Load(boxMesh:GetBlueprint(width, height, depth, one))
+            // Part 0 is the box's fill; only the edges show.
+            if GetPartCount() >= 2
+                SetPartShown(0, false)
+            end
+            shownWidth = width
+            shownHeight = height
+            shownDepth = depth
+            shownResponsiveness = -1
+        end
+
+        if responsiveness not= shownResponsiveness
+            ShowColor(responsiveness)
+            shownResponsiveness = responsiveness
+        end
+
+        SetRotationTransform(item:GetRotationTransform())
+        Vector3 middle = item:GetShapeOffset()
+        middle:Multiply(item:GetTransform())
+        SetPosition(middle)
+    end
+
+    /*
+    Returns a box's size in the world: its size without its sign, and at
+    least LEAST_SIZE.
+    */
+    private action Size(number size) returns number
+        number shown = math:AbsoluteValue(size)
+        if shown < LEAST_SIZE
+            return LEAST_SIZE
+        end
+        return shown
+    end
+
+    /*
+    Colors the edges by responsiveness.
+    */
+    private action ShowColor(integer responsiveness)
+        Color color = constants:COLLISION_OUTLINE_UNMOVABLE
+        if responsiveness = physics:NON_RESPONSIVE
+            color = constants:COLLISION_OUTLINE_NON_RESPONSIVE
+        elseif responsiveness = physics:RESPONSIVE
+            color = constants:COLLISION_OUTLINE_RESPONSIVE
+        end
+        if GetPartCount() >= 2
+            SetColor(1, color)
+        else
+            SetColor(color)
+        end
+    end
+end

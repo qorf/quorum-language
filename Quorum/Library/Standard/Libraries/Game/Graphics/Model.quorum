@@ -2726,6 +2726,17 @@ end
         end
 
         SetDimensions(GetCachedDimensions(loader))
+
+        // The collision box goes over the model's mesh, not around its
+        // origin, which many model files put at the model's base.
+        BoundingBox bounds
+        bounds:Invalidate()
+        loader:ExtendBoundingBox(bounds)
+        if bounds:IsValid()
+            SetShapeOffset(bounds:GetCenterX(), bounds:GetCenterY(), bounds:GetCenterZ())
+        else
+            SetShapeOffset(0, 0, 0)
+        end
     end
 
     /*

@@ -146,8 +146,10 @@ class CollisionEvent3D
         boolean touching = false
         boolean wasTouching = touchingFlag
 
-        PhysicsPosition3D transformA = itemA:GetCollisionTransform()
-        PhysicsPosition3D transformB = itemB:GetCollisionTransform()
+        // Where each shape is, with its offset (contact points are still kept
+        // relative to each item's own transform).
+        PhysicsPosition3D transformA = itemA:GetShapeTransform()
+        PhysicsPosition3D transformB = itemB:GetShapeTransform()
 
         NarrowphaseEvaluation(collisionPoints, transformA, transformB)
         touching = collisionPoints:GetPointCount() > 0

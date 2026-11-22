@@ -984,6 +984,11 @@ number restitution = 0
 
         if physicsEnabled = true
             item:EnablePhysics(true)
+            // A scene saved without a responsiveness, or with one that isn't
+            // a kind, gets an unmovable item.
+            if responsiveness < 0 or responsiveness > 2
+                responsiveness = 0
+            end
             item:SetResponsiveness(responsiveness)
             item:SetMass(mass)
             item:SetFriction(friction)

@@ -1446,6 +1446,33 @@ class WorldTerrain
     end
 
     /*
+    This action returns true if a region is drawn in full detail: always
+    when not streaming, and while streaming, when its full model is in the
+    layer, within the draw radius. A region drawn by a far model, with
+    fewer heights, returns false.
+
+    Attribute: Parameter locationX The region location along x.
+    Attribute: Parameter locationZ The region location along z.
+    Attribute: Returns True if the region is drawn in full detail.
+
+    Attribute: Example
+    use Libraries.Game.Graphics.Worlds.WorldTerrain
+
+    WorldTerrain terrain
+    boolean full = terrain:IsRegionDrawnInFull(0, 0)
+    */
+    action IsRegionDrawnInFull(integer locationX, integer locationZ) returns boolean
+        if not streaming
+            return true
+        end
+        integer index = GetMapIndex(locationX, locationZ)
+        if index < 0 or index >= activeMap:GetSize()
+            return false
+        end
+        return activeMap:Get(index) = 1
+    end
+
+    /*
     This action returns where a region location is kept in modelMap and
     activeMap, the same place TerrainData's region map uses.
 

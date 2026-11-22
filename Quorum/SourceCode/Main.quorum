@@ -810,6 +810,10 @@ class Main is NetworkExchangeListener
             else
                 output result:compilerErrorManager:GetCompilerErrorsAsText()
             end
+            // A failed build exits with 1, so a script (such as the quorum
+            // command's -run) can tell it failed.
+            SystemHelper helper
+            helper:Exit(1)
         end
     end
 
@@ -859,6 +863,11 @@ Compile Hello.quorum and give the output the name MyProgram
 
 Compile two files, Hello.quorum and Goodbye.quorum
         java -jar Quorum.jar Hello.quorum Goodbye.quorum
+
+With Quorum installed from its installer, the quorum command runs this compiler on the Java it carries:
+        quorum Hello.quorum
+It also takes -run, which compiles to Java bytecode and then runs the program if it built:
+        quorum -run Hello.quorum
 
 Compile Hello.quorum and output the errors to JavaScriptObjectNotation (JSON) format.
         java -jar Quorum.jar -errors Hello.quorum

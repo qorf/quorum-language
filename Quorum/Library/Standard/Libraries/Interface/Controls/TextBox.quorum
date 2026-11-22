@@ -129,6 +129,17 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         Values used for when text is being selected by dragging the mouse.
     */
     boolean draggingInText = false
+    // Where a drag last was, in world coordinates, so a drag held past the
+    // text area's top or bottom keeps scrolling (ScrollHeldDrag).
+    number dragPointX = 0
+    number dragPointY = 0
+    // Lines owed to that scrolling, between frames.
+    number autoScrollCarry = 0
+    // The fewest and most lines a second a held drag scrolls, and how much
+    // faster it goes for each line's height past the edge.
+    constant number SLOWEST_DRAG_SCROLL = 4
+    constant number FASTEST_DRAG_SCROLL = 40
+    constant number DRAG_SCROLL_PER_LINE = 6
 
     /*
         An array of listeners which are notified when the text in this TextBox
@@ -2167,6 +2178,8 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     */
     action DraggedMouse(MouseEvent event)
         if draggingInText
+            dragPointX = event:GetX()
+            dragPointY = event:GetY()
             MousePositionCaret(event, true)
         end
     end
@@ -2182,6 +2195,9 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         if event:GetSource() not= undefined and event:GetSource() is Item2D
             if event:mouseButton = event:LEFT
                 draggingInText = true
+                dragPointX = event:GetX()
+                dragPointY = event:GetY()
+                autoScrollCarry = 0
                 MousePositionCaret(event, false)
             end
         end
@@ -2195,6 +2211,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     */
     action ReleasedMouse(MouseEvent event)
         draggingInText = false
+        autoScrollCarry = 0
     end
 
     /*
@@ -2207,6 +2224,9 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     action TouchBegan(TouchEvent event)
         Vector3 point = GetTouchPoint(event)
         draggingInText = true
+        dragPointX = point:GetX()
+        dragPointY = point:GetY()
+        autoScrollCarry = 0
         PositionCaretFromPoint(point:GetX(), point:GetY(), false)
     end
 
@@ -2219,6 +2239,8 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     action TouchMoved(TouchEvent event)
         if draggingInText
             Vector3 point = GetTouchPoint(event)
+            dragPointX = point:GetX()
+            dragPointY = point:GetY()
             PositionCaretFromPoint(point:GetX(), point:GetY(), true)
         end
     end
@@ -2230,6 +2252,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
     */
     action TouchEnded(TouchEvent event)
         draggingInText = false
+        autoScrollCarry = 0
     end
 
     /*
@@ -2271,7 +2294,17 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
         integer line = caretLine
         integer index = caretCharacter
 
-        PositionCaretFromCoordinates(pointX - background:GetGlobalX(), pointY - background:GetGlobalY())
+        number localX = pointX - background:GetGlobalX()
+        number localY = pointY - background:GetGlobalY()
+        // A drag past the text area's bottom or top selects to the line just
+        // past it, scrolling one line to show it.
+        if dragging and localY < 0
+            PositionCaretPastEdge(localX, true)
+        elseif dragging and localY > background:GetHeight()
+            PositionCaretPastEdge(localX, false)
+        else
+            PositionCaretFromCoordinates(localX, localY)
+        end
 
         integer caretPosition = GetCaretPosition()
         if caretPosition < selection:GetLockStart() or caretPosition > selection:GetLockEnd()
@@ -2305,6 +2338,99 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
             EmptySelectionEvent(false)
         end
         ResetCaretBlinkTimer()
+    end
+
+    /*
+    Scrolls one line down (or up) and puts the caret on the line that comes
+    into view at the bottom (or top), at the character nearest x. At the end
+    (or start) of the text, it stays on the last (or first) line.
+    */
+    private action PositionCaretPastEdge(number x, boolean below)
+        integer totalLines = textValue:GetLines():GetSize()
+        if totalLines = 0
+            return now
+        end
+        if below
+            ScrollByLines(1)
+        else
+            ScrollByLines(-1)
+        end
+        integer first = cast(integer, firstLine)
+        integer line = first
+        if below
+            line = first + cast(integer, VisibleLineCount()) - 1
+        end
+        if line < 0
+            line = 0
+        elseif line >= totalLines
+            line = totalLines - 1
+        end
+        caretLine = line
+        caretCharacter = GetNearestCharacter(line, x)
+        caretX = PositionCaret()
+    end
+
+    // Scrolls by whole lines, kept within the text.
+    private action ScrollByLines(number lines)
+        integer totalLines = textValue:GetLines():GetSize()
+        number visible = VisibleLineCount()
+        if totalLines <= visible
+            return now
+        end
+        number first = firstLine + lines
+        if first < 0
+            first = 0
+        elseif first > totalLines - visible
+            first = totalLines - visible
+        end
+        // firstLine follows the scroll position on the next layout too.
+        firstLine = first
+        RefreshPaneView(GetScrollPercentageX(), first / totalLines)
+    end
+
+    // How many lines fit in the text area.
+    private action VisibleLineCount returns number
+        return (GetHeight() - GetSharedSpaceOffset()) / GetLineHeight()
+    end
+
+    /*
+    While a drag is held past the text area's top or bottom, scrolls on and
+    extends the selection: a few lines a second just past the edge, faster
+    the farther past, up to FASTEST_DRAG_SCROLL. Update calls it each frame.
+    */
+    private action ScrollHeldDrag(number seconds)
+        if not draggingInText
+            return now
+        end
+        number localY = dragPointY - background:GetGlobalY()
+        number beyond = 0
+        if localY < 0
+            beyond = -localY
+        elseif localY > background:GetHeight()
+            beyond = localY - background:GetHeight()
+        end
+        if beyond = 0
+            autoScrollCarry = 0
+            return now
+        end
+
+        number linesPerSecond = SLOWEST_DRAG_SCROLL + (beyond / GetLineHeight()) * DRAG_SCROLL_PER_LINE
+        if linesPerSecond > FASTEST_DRAG_SCROLL
+            linesPerSecond = FASTEST_DRAG_SCROLL
+        end
+        autoScrollCarry = autoScrollCarry + linesPerSecond * seconds
+        repeat while autoScrollCarry >= 1
+            autoScrollCarry = autoScrollCarry - 1
+            PositionCaretFromPoint(dragPointX, dragPointY, true)
+        end
+
+        // Frames keep coming while it scrolls, on a display that draws only
+        // when needed.
+        GameStateManager manager
+        GameDisplay display = manager:GetGameDisplay()
+        if display not= undefined
+            display:RequestRendering()
+        end
     end
 
     /*
@@ -2503,6 +2629,7 @@ class TextBox is ScrollableLineControl, MouseMovementListener, FocusListener
                 end
             end
         end
+        ScrollHeldDrag(seconds)
     end
 
     /*

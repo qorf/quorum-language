@@ -106,6 +106,12 @@ class Item3D is Item
     boolean hasMoved = false
 
     PhysicsPosition3D collisionTransform        //projected position
+    // Where the collision shape's middle is from the item's origin, in the
+    // item's own units before its scale and turn (SetShapeOffset), and the
+    // shape's own transform, worked out when asked (GetShapeTransform).
+    Vector3 shapeOffset
+    boolean hasShapeOffset = false
+    PhysicsPosition3D shapeTransform
     PhysicsPosition3D collisionTransform0       //previous position
     PhysicsPosition3D interpolationTransform
     PhysicsPosition3D drawnTransform            //where the item is drawn, between the last two physics steps
@@ -1127,17 +1133,18 @@ class Item3D is Item
     physics body keeps its own copy of the rotation, which each physics step
     copies back to the item (SetScreenPositionFromPhysicsPosition), so
     anything that changes rotationMatrix calls this, or the change is undone.
-    The body's copy holds rotation without scale, so the shape's scaling is
-    taken out (Matrix3's SetWithoutScale).
+    The body's copy holds rotation without scale, so any scale in the
+    rotation matrix is taken out (Matrix3's SetWithoutScale).
     */
     private action CopyRotationToPhysics
         if not updateTransform or shape = undefined
             return now
         end
-        Vector3 scale
-        shape:GetLocalScaling(scale)
+        // rotationMatrix holds the item's turn; its scale is kept apart and
+        // given to the shape. Any scale a matrix given to
+        // SetRotationTransform carries is taken out by its own size.
         Matrix3 basis
-        basis:SetWithoutScale(rotationMatrix, scale)
+        basis:SetWithoutScale(rotationMatrix)
         collisionTransform:GetBasis():Set(basis)
         interpolationTransform:GetBasis():Set(basis)
         drawnTransform:GetBasis():Set(basis)
@@ -2611,11 +2618,14 @@ class Item3D is Item
         end
 
         if collidable
+            // The shape's box is where the shape is, with its offset.
+            PhysicsPosition3D placed
+            OffsetTransform(transform, placed)
             nodeCount = shape:GetChildCount()
             integer i = 0
             repeat while i < nodeCount
                 Item3DNode node
-                shape:ComputeBoundingBox(node:GetBoundingBox(), transform)
+                shape:ComputeBoundingBox(node:GetBoundingBox(), placed)
                 node:SetNodeID(broadphase:CreateNode(node:GetBoundingBox(), node))
                 node:SetItem(me)
                 node:SetChildIndex(i)
@@ -2656,8 +2666,13 @@ class Item3D is Item
             BoundingBox boundingBox1
             BoundingBox boundingBox2
 
-            shape:ComputeBoundingBox(boundingBox1, transform1)
-            shape:ComputeBoundingBox(boundingBox2, transform2)
+            // The shape's boxes are where the shape is, with its offset.
+            PhysicsPosition3D placed1
+            OffsetTransform(transform1, placed1)
+            PhysicsPosition3D placed2
+            OffsetTransform(transform2, placed2)
+            shape:ComputeBoundingBox(boundingBox1, placed1)
+            shape:ComputeBoundingBox(boundingBox2, placed2)
 
             Vector3 minimum = node:GetBoundingBox():GetMinimum()
             Vector3 maximum = node:GetBoundingBox():GetMaximum()
@@ -2750,6 +2765,90 @@ class Item3D is Item
 
     action GetCollisionTransform returns PhysicsPosition3D
         return collisionTransform
+    end
+
+    /*
+    This action sets where the item's collision shape sits from its
+    origin, in the item's own units, before its scale and turn. The shape
+    then turns and scales with the item around the item's origin, and the
+    item's physics still moves around its origin. A Model loaded from a
+    file sets this to the middle of its mesh, so its box sits over what is
+    drawn even when the file's origin is at the model's base.
+
+    Attribute: Parameter x The offset along the item's x
+    Attribute: Parameter y The offset along the item's y
+    Attribute: Parameter z The offset along the item's z
+
+    Attribute: Example
+    use Libraries.Interface.Item3D
+    Item3D crate
+    crate:SetDimensions(1, 1, 1)
+    // The crate's origin is at its base, so its box's middle is half a unit up.
+    crate:SetShapeOffset(0, 0.5, 0)
+    */
+    action SetShapeOffset(number x, number y, number z)
+        shapeOffset:Set(x, y, z)
+        hasShapeOffset = x not= 0 or y not= 0 or z not= 0
+        if layerSet and collidable and nodesSet
+            SynchronizeNodes()
+        end
+    end
+
+    /*
+    This action returns where the item's collision shape sits from its
+    origin, in the item's own units (SetShapeOffset).
+
+    Attribute: Returns A copy of the offset
+    */
+    action GetShapeOffset returns Vector3
+        Vector3 copy
+        copy:Set(shapeOffset)
+        return copy
+    end
+
+    /*
+    This action returns true if the item's collision shape is moved off its
+    origin.
+
+    Attribute: Returns True if it has an offset
+    */
+    action HasShapeOffset returns boolean
+        return hasShapeOffset
+    end
+
+    /*
+    This action returns where the item's collision shape is in the world:
+    the collision transform, moved by the shape's offset, scaled and turned
+    with the item. Collision tests and raycasts use it; the item's physics
+    moves around GetCollisionTransform.
+
+    Attribute: Returns The shape's transform
+    */
+    action GetShapeTransform returns PhysicsPosition3D
+        if not hasShapeOffset
+            return collisionTransform
+        end
+        OffsetTransform(collisionTransform, shapeTransform)
+        return shapeTransform
+    end
+
+    /*
+    Sets result to a transform moved by the shape's offset, scaled and
+    turned by the transform.
+    */
+    private action OffsetTransform(PhysicsPosition3D source, PhysicsPosition3D result)
+        result:Set(source)
+        if not hasShapeOffset
+            return now
+        end
+        Matrix3 basis = source:GetBasis()
+        number localX = shapeOffset:GetX() * scaleX
+        number localY = shapeOffset:GetY() * scaleY
+        number localZ = shapeOffset:GetZ() * scaleZ
+        Vector3 origin = result:GetOrigin()
+        origin:Set(source:GetOrigin():GetX() + basis:row0column0 * localX + basis:row0column1 * localY + basis:row0column2 * localZ,
+            source:GetOrigin():GetY() + basis:row1column0 * localX + basis:row1column1 * localY + basis:row1column2 * localZ,
+            source:GetOrigin():GetZ() + basis:row2column0 * localX + basis:row2column1 * localY + basis:row2column2 * localZ)
     end
 
     action GetInterpolationTransform returns PhysicsPosition3D

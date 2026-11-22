@@ -101,6 +101,12 @@ class TerrainItem is Item3D
     HashTable<text, FoliageCellItem> foliageItems
     HashTable<text, Texture> cardTextures
     boolean foliageChanged = false
+    // For a streaming terrain: the regions drawn in full whose foliage is
+    // worked out, by "x/z" and as two lists of locations, so the foliage
+    // follows regions as they stream in and out (FollowStreamedRegions).
+    HashTable<text, text> foliageRegionKeys
+    Array<integer> foliageRegionX
+    Array<integer> foliageRegionZ
     // How tall the tallest foliage reaches, for the render box.
     number foliageReach = 0
     // Cells are shown or hidden by their asset's draw distance a few times a
@@ -163,8 +169,10 @@ class TerrainItem is Item3D
         water:SetTerrainData(terrain:GetData())
         water:Load(GetFolder(file))
         // A streaming terrain loads its regions as it starts, on its first
-        // update in a layer.
+        // update in a layer. Its foliage follows them as they come and go
+        // (FollowStreamedRegions), so it only needs the terrain's data now.
         if streaming
+            foliage:SetTerrainData(terrain:GetData())
             return now
         end
         terrain:GetData():Load(GetFolder(file))
@@ -580,6 +588,79 @@ class TerrainItem is Item3D
         end
         foliageCheckTime = FOLIAGE_CHECK_SECONDS
         RefreshRenderBounds()
+    end
+
+    /*
+    For a streaming terrain: each region that came to be drawn in full gets
+    its foliage's coverage read and its copies worked out and drawn, and
+    each region that left, or is now drawn by a far model, lets go of its
+    foliage. A far model's ground has fewer heights, so foliage on it would
+    float or sink. The editor never streams, so this is only for games.
+    */
+    private action FollowStreamedRegions
+        if foliageList = undefined or terrainLocation = undefined
+            return now
+        end
+        TerrainData data = terrain:GetData()
+        File folder = GetFolder(terrainLocation)
+        boolean any = false
+        // The regions in memory and drawn in full now; those not seen
+        // before arrived.
+        HashTable<text, text> present
+        integer i = 0
+        repeat while i < data:GetRegionCount()
+            TerrainRegion region = data:GetRegionAtIndex(i)
+            integer regionX = region:GetLocationX()
+            integer regionZ = region:GetLocationZ()
+            // Foliage grows only where the ground is drawn in full. A far
+            // region's ground has fewer heights, so foliage there would
+            // float or sink.
+            if terrain:IsRegionDrawnInFull(regionX, regionZ)
+                text key = "" + regionX + "/" + regionZ
+                present:Add(key, "")
+                if not foliageRegionKeys:HasKey(key)
+                    foliageRegionKeys:Add(key, "")
+                    foliageRegionX:Add(regionX)
+                    foliageRegionZ:Add(regionZ)
+                    foliage:LoadRegion(folder, regionX, regionZ)
+                    Array<FoliageCell> made = foliage:GenerateRegion(foliageList, regionX, regionZ)
+                    integer cellIndex = 0
+                    repeat while cellIndex < made:GetSize()
+                        RefreshFoliageCell(made:Get(cellIndex))
+                        cellIndex = cellIndex + 1
+                    end
+                    any = true
+                end
+            end
+            i = i + 1
+        end
+        // The regions that left: their foliage and its drawing go.
+        i = foliageRegionX:GetSize() - 1
+        repeat while i >= 0
+            integer goneX = foliageRegionX:Get(i)
+            integer goneZ = foliageRegionZ:Get(i)
+            text goneKey = "" + goneX + "/" + goneZ
+            if not present:HasKey(goneKey)
+                Array<text> cellKeys = foliage:UnloadRegion(goneX, goneZ)
+                integer k = 0
+                repeat while k < cellKeys:GetSize()
+                    if foliageItems:HasKey(cellKeys:Get(k))
+                        FoliageCellItem old = foliageItems:RemoveKey(cellKeys:Get(k))
+                        old:Clear()
+                        boolean removed = Remove(old)
+                    end
+                    k = k + 1
+                end
+                text removedKey = foliageRegionKeys:RemoveKey(goneKey)
+                integer removedX = foliageRegionX:RemoveAt(i)
+                integer removedZ = foliageRegionZ:RemoveAt(i)
+                any = true
+            end
+            i = i - 1
+        end
+        if any
+            RefreshRenderBounds()
+        end
     end
 
     /*
@@ -1217,6 +1298,9 @@ without mipmaps, distant cards are read from the
     Attribute: Parameter seconds The time since this was last called.
     */
     private action UpdateWaterAndFoliage(Layer3D layer, number x, number z, number seconds)
+        if streaming and streamingStarted
+            FollowStreamedRegions()
+        end
         if water:Update(me, layer, x, z)
             RefreshRenderBounds()
         end

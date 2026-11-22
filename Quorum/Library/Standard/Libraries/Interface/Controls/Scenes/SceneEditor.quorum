@@ -151,6 +151,8 @@ use Libraries.Game.Graphics.Worlds.TerrainLake
 use Libraries.Game.Graphics.Worlds.TerrainRiver
 use Libraries.Interface.Controls.Scenes.Items.TerrainPathLine
 use Libraries.Interface.Controls.Scenes.Items.LakeLevelHandle
+use Libraries.Interface.Controls.Scenes.Items.CollisionOutline
+use Libraries.Game.Physics.PhysicsProperties3D
 use Libraries.Interface.Undo.SceneEditorRiverEdit
 use Libraries.Game.Graphics.Worlds.WaterShaderProgram
 use Libraries.Interface.Controls.Scenes.Dialogs.TerrainWaterPropertiesDialog
@@ -635,6 +637,12 @@ class SceneEditor is Control, DefaultSceneManager
     TerrainLake chosenLake = undefined
     EditorTerrain chosenLakeTerrain = undefined
     LakeLevelHandle lakeHandle = undefined
+    // The collision outlines over items with physics in the selected 3D
+    // layer, the layer they are in, and whether they show (the Show
+    // collision shapes checkbox in a layer's Physics section).
+    Array<CollisionOutline> collisionOutlines
+    EditorLayer3D collisionOutlineLayer = undefined
+    boolean showCollisionShapes = true
     number lakeHandleX = 0
     number lakeHandleZ = 0
     TerrainPathLine spillMarker = undefined
@@ -1205,6 +1213,7 @@ action Update(number seconds)
         if vehicleGuides not= undefined and vehicleGuides:IsShowing()
             vehicleGuides:Follow()
         end
+        UpdateCollisionOutlines()
         UpdateTerrainGridPatch()
         // A click in the view gives the scene editor the focus; a preview
         // being placed takes it back, so Enter and the arrow keys reach it.
@@ -11151,6 +11160,127 @@ The ring is one of the editor's own items: it isn't saved,
         return layer:GetGridUnitSize()
     end
 
+    /*
+    This action returns true if the scene editor shows the collision shapes
+    of items with physics in the selected 3D layer.
+
+    Attribute: Returns True if collision shapes show
+    */
+    action IsShowingCollisionShapes returns boolean
+        return showCollisionShapes
+    end
+
+    /*
+    This action shows or hides the collision shapes of items with physics:
+    an outline of each one's collision box, light blue for Unmovable,
+    orange for Non-responsive and green for Responsive. It is the editor's
+    own setting, not saved with the scene, and starts on.
+
+    Attribute: Parameter shown True to show them
+    */
+    action SetShowingCollisionShapes(boolean shown)
+        if shown = showCollisionShapes
+            return now
+        end
+        showCollisionShapes = shown
+        UpdateCollisionOutlines()
+        if shown
+            NotifyAccessibility(me, "Collision shapes shown: light blue Unmovable, orange Non-responsive, green Responsive.")
+        else
+            NotifyAccessibility(me, "Collision shapes hidden.")
+        end
+    end
+
+    /*
+    Keeps one outline over the collision box of each item with physics in
+    the selected 3D layer, and hides the rest. Outlines are kept and reused,
+    and a new mesh is made only when a box's size changes, so this is cheap
+    each frame. A vehicle shows none: its body's box comes from its
+    controller in a game.
+    */
+    private action UpdateCollisionOutlines
+        EditorLayer3D layer = undefined
+        if showCollisionShapes and GetSelectedLayer() is EditorLayer3D
+            layer = cast(EditorLayer3D, GetSelectedLayer())
+        end
+
+        // The outlines move to the selected layer.
+        if collisionOutlineLayer not= undefined and (layer = undefined or not layer:Equals(collisionOutlineLayer))
+            integer index = 0
+            repeat while index < collisionOutlines:GetSize()
+                collisionOutlineLayer:Remove(collisionOutlines:Get(index))
+                index = index + 1
+            end
+            collisionOutlines:Empty()
+            collisionOutlineLayer = undefined
+        end
+        if layer = undefined
+            return now
+        end
+        collisionOutlineLayer = layer
+
+        // The items are found first, since a new outline is added to the
+        // layer being looked through.
+        Array<Model> physicsItems
+        Iterator<Item3D> items = layer:GetIterator()
+        repeat while items:HasNext()
+            Item3D item = items:Next()
+            if item is Model and not item:HasProperty(constants:EDITOR_TAG) and IsEditorPhysicsOn(item) and
+                    GetControllerSettings(item) = undefined
+                physicsItems:Add(cast(Model, item))
+            end
+        end
+
+        integer used = 0
+        repeat while used < physicsItems:GetSize()
+            if used = collisionOutlines:GetSize()
+                CollisionOutline made
+                made:SetName("Collision Outline")
+                collisionOutlines:Add(made)
+                layer:Add(made)
+            end
+            Model physicsItem = physicsItems:Get(used)
+            CollisionOutline outline = collisionOutlines:Get(used)
+            outline:Follow(physicsItem, GetEditorResponsiveness(physicsItem))
+            if not outline:IsShowing()
+                outline:Show()
+            end
+            used = used + 1
+        end
+        repeat while used < collisionOutlines:GetSize()
+            CollisionOutline unused = collisionOutlines:Get(used)
+            if unused:IsShowing()
+                unused:Hide()
+            end
+            used = used + 1
+        end
+    end
+
+    /*
+    Returns an item's responsiveness as the scene editor stores it, from
+    PhysicsProperties3D, or Unmovable when it has none, as a game loads it.
+    */
+    private action GetEditorResponsiveness(Item3D item) returns integer
+        PhysicsProperties3D physics
+        if not item:HasProperty(properties:RESPONSIVENESS)
+            return physics:UNMOVABLE
+        end
+        JavaScriptObjectNotation value = item:GetProperty(properties:RESPONSIVENESS)
+        if value = undefined
+            return physics:UNMOVABLE
+        end
+        integer responsiveness = physics:UNMOVABLE
+        check
+            responsiveness = value:GetInteger()
+        detect e is Error
+            return physics:UNMOVABLE
+        end
+        if responsiveness < physics:UNMOVABLE or responsiveness > physics:RESPONSIVE
+            return physics:UNMOVABLE
+        end
+        return responsiveness
+    end
+
     action IsGridSnapping returns boolean
         EditorLayer layer = GetSelectedLayer()
         return layer:IsGridSnapping()
@@ -11858,6 +11988,20 @@ The ring is one of the editor's own items: it isn't saved,
         return false
     end
 
+    /*
+    Returns true if an item has Physics Enabled checked in the editor.
+    */
+    private action IsEditorPhysicsOn(Item3D item) returns boolean
+        if not item:HasProperty(properties:PHYSICS_ENABLED)
+            return false
+        end
+        JavaScriptObjectNotation enabled = item:GetProperty(properties:PHYSICS_ENABLED)
+        if enabled = undefined
+            return false
+        end
+        return enabled:GetBoolean()
+    end
+
     private action CustomSaveProperty3D(Item3D item, text key, JavaScriptObjectNotation json) returns boolean
         SceneConstants constants
         if key = properties:CLASS
@@ -11882,10 +12026,22 @@ The ring is one of the editor's own items: it isn't saved,
                 json:Add(key, value)
                 return true
             end
+            // An item with physics always has its responsiveness saved,
+            // Unmovable if it was never chosen, so a game loads the kind
+            // shown in the Physics card.
+            if IsEditorPhysicsOn(item)
+                json:Add(key, 0)
+                return true
+            end
         elseif key = properties:MASS or key = properties:FRICTION or key = properties:RESTITUTION
             if item:HasProperty(key)
                 number value = item:GetProperty(key):GetNumber()
                 json:Add(key, value)
+                return true
+            end
+            // Likewise its mass, friction and restitution, 0 if never set.
+            if IsEditorPhysicsOn(item)
+                json:Add(key, 0.0)
                 return true
             end
         elseif key = constants:EULER_ANGLES

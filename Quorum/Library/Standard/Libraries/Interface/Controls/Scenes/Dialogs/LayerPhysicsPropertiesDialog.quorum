@@ -22,6 +22,10 @@ use Libraries.Compute.Vector3
     has no z. The scene editor itself never runs physics; these are saved
     with the scene. Every change is one step to undo.
 
+    A 3D layer also has Show collision shapes, the editor's own setting (not
+    saved with the scene, and not a step to undo): an outline of each
+    physics item's collision box, colored by its responsiveness.
+
     It shows in the scene editor's Properties panel when a layer, 2D or 3D,
     is selected.
 */
@@ -31,6 +35,8 @@ class LayerPhysicsPropertiesDialog is PropertiesDialog
     constant number FIELD_LABEL_WIDTH = 110
 
     Checkbox physicsCheckbox = undefined
+    Checkbox shapesCheckbox = undefined
+    Control shapesCard = undefined
     SliderField gravityXSlider = undefined
     SliderField gravityYSlider = undefined
     SliderField gravityZSlider = undefined
@@ -79,6 +85,20 @@ class LayerPhysicsPropertiesDialog is PropertiesDialog
         gravityYField = gravityYSlider:GetField()
         gravityZSlider = AddGravitySlider(card, "Gravity z:", "Gravity along z", "How hard gravity pulls along z, in units per second each second", focusArray)
         gravityZField = gravityZSlider:GetField()
+
+        // The editor's own setting, for 3D layers.
+        shapesCard = AddCard(panel, "Collision shapes")
+        Control shapesLine = MakeCardLine()
+        Checkbox shapes
+        shapesCheckbox = shapes
+        shapesCheckbox:SetName("Show collision shapes")
+        shapesCheckbox:SetDescription("Outlines each physics item's collision box in the editor: light blue Unmovable, orange Non-responsive, green Responsive. It isn't saved with the scene.")
+        LayerPhysicsButtonBehavior shapesBehavior
+        shapesBehavior:SetDialog(me)
+        shapesCheckbox:SetBehavior(shapesBehavior)
+        shapesLine:Add(shapesCheckbox)
+        shapesCard:Add(shapesLine)
+        focusArray:Add(shapesCheckbox)
     end
 
     /*
@@ -139,6 +159,10 @@ class LayerPhysicsPropertiesDialog is PropertiesDialog
         end
         updating = true
         physicsCheckbox:SetToggleState(layer:IsGamePhysicsEnabled())
+        SceneEditor editor = GetSceneEditor()
+        if editor not= undefined
+            shapesCheckbox:SetToggleState(editor:IsShowingCollisionShapes())
+        end
         Vector3 gravity = layer:GetGameGravity()
         gravityXField:SetText("" + gravity:GetX())
         gravityYField:SetText("" + gravity:GetY())
@@ -149,16 +173,20 @@ class LayerPhysicsPropertiesDialog is PropertiesDialog
         boolean flat = layer is EditorLayer2D
         if flat
             gravityZSlider:Hide()
+            shapesCard:Hide()
         else
             gravityZSlider:Show()
+            shapesCard:Show()
         end
         gravityZSlider:RequestLayout()
+        shapesCard:RequestLayout()
         Array<Control> chain
         chain:Add(physicsCheckbox)
         ChainControl(chain, gravityXField)
         ChainControl(chain, gravityYField)
         if not flat
             ChainControl(chain, gravityZField)
+            chain:Add(shapesCheckbox)
         end
         integer i = 0
         repeat while i < chain:GetSize() - 1
@@ -179,12 +207,17 @@ class LayerPhysicsPropertiesDialog is PropertiesDialog
     end
 
     /*
-        This action is called when the Physics in games checkbox is checked
-        or unchecked.
+        This action is called when the Physics in games or Show collision
+        shapes checkbox is checked or unchecked.
     */
     action CheckboxChanged
         SceneEditor editor = GetSceneEditor()
         if updating or layer = undefined or editor = undefined
+            return now
+        end
+        boolean shown = shapesCheckbox:GetToggleState()
+        if shown not= editor:IsShowingCollisionShapes()
+            editor:SetShowingCollisionShapes(shown)
             return now
         end
         boolean enabled = physicsCheckbox:GetToggleState()

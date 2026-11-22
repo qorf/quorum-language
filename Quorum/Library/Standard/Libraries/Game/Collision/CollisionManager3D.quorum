@@ -133,7 +133,7 @@ class CollisionManager3D
             if item not= ignore
                 CollisionShape3D shape = item:GetShape()
                 if shape not= undefined
-                    if shape:RayCast(from, to, item:GetCollisionTransform(), result)
+                    if shape:RayCast(from, to, item:GetShapeTransform(), result)
                         // A shape does not know which item owns it, so the
                         // hit body is set here.
                         result:SetHitBody(item)

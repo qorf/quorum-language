@@ -557,6 +557,81 @@ class TerrainFoliage
     end
 
     /*
+    This action works out the copies of every asset in one region's cells,
+    such as when a streaming terrain loads the region. Its coverage should
+    be loaded first (LoadRegion).
+
+    Attribute: Parameter list The foliage list.
+    Attribute: Parameter locationX The region's location along x.
+    Attribute: Parameter locationZ The region's location along z.
+    Attribute: Returns The region's cells that have copies now.
+    */
+    action GenerateRegion(FoliageList list, integer locationX, integer locationZ) returns Array<FoliageCell>
+        Array<FoliageCell> made
+        if data = undefined or list = undefined
+            return made
+        end
+        integer cellsPerRegion = GetCellsPerRegion()
+        integer asset = 0
+        repeat while asset < list:GetAssetCount()
+            FoliageAsset settings = list:GetAsset(asset)
+            FoliageCoverage coverage = GetCoverageOf(asset, locationX, locationZ, false)
+            boolean grows = settings:GetGrowsOnLayer() > 0 or (coverage not= undefined and coverage:HasAny())
+            if grows
+                integer cellZ = locationZ * cellsPerRegion
+                repeat while cellZ < (locationZ + 1) * cellsPerRegion
+                    integer cellX = locationX * cellsPerRegion
+                    repeat while cellX < (locationX + 1) * cellsPerRegion
+                        GenerateCell(settings, asset, cellX, cellZ)
+                        text key = "" + asset + "/" + cellX + "/" + cellZ
+                        if cellTable:HasKey(key)
+                            made:Add(cellTable:GetValue(key))
+                        end
+                        cellX = cellX + 1
+                    end
+                    cellZ = cellZ + 1
+                end
+            end
+            asset = asset + 1
+        end
+        return made
+    end
+
+    /*
+    This action lets go of one region's coverage and cells, such as when a
+    streaming terrain unloads the region. Its coverage file is untouched;
+    LoadRegion reads it again when the region comes back.
+
+    Attribute: Parameter locationX The region's location along x.
+    Attribute: Parameter locationZ The region's location along z.
+    Attribute: Returns The keys ("asset/cellX/cellZ") of the cells let go, so their drawing can go too.
+    */
+    action UnloadRegion(integer locationX, integer locationZ) returns Array<text>
+        Array<text> gone
+        integer i = cells:GetSize() - 1
+        repeat while i >= 0
+            FoliageCell cell = cells:Get(i)
+            if GetRegionOfCell(cell:GetCellX()) = locationX and GetRegionOfCell(cell:GetCellZ()) = locationZ
+                text key = "" + cell:GetAsset() + "/" + cell:GetCellX() + "/" + cell:GetCellZ()
+                FoliageCell removedCell = cellTable:RemoveKey(key)
+                removedCell = cells:RemoveAt(i)
+                gone:Add(key)
+            end
+            i = i - 1
+        end
+        i = coverages:GetSize() - 1
+        repeat while i >= 0
+            FoliageCoverage coverage = coverages:Get(i)
+            if coverage:GetLocationX() = locationX and coverage:GetLocationZ() = locationZ
+                FoliageCoverage removedCoverage = coverageTable:RemoveKey("" + coverage:GetAsset() + "/" + locationX + "/" + locationZ)
+                removedCoverage = coverages:RemoveAt(i)
+            end
+            i = i - 1
+        end
+        return gone
+    end
+
+    /*
     This action works out the copies of every asset again in the cells a
     circle reaches, such as after the brush painted coverage there.
 

@@ -1166,6 +1166,46 @@ class Matrix3
         return me
     end
 
+    /*
+    This action sets this matrix to the upper left 3 by 3 part of a 4 by 4
+    matrix with its scale taken out: each row divided by its own length, so
+    a rotation with or without a scale becomes a pure rotation. A row of
+    length 0 is left as it is. See SetWithoutScale(Matrix4, Vector3) to take
+    out a known scale instead.
+
+    Attribute: Parameter matrix The 4 by 4 matrix to read. It isn't changed.
+    Attribute: Returns This matrix.
+
+    Attribute: Example
+    use Libraries.Compute.Matrix3
+    use Libraries.Compute.Matrix4
+
+    Matrix4 rotation
+    rotation:SetToRotation(0, 1, 0, 90)
+    rotation:Scale(2, 2, 2)
+    Matrix3 basis
+    basis:SetWithoutScale(rotation)
+    */
+    action SetWithoutScale(Matrix4 matrix) returns Matrix3
+        Vector3 scale
+        scale:Set(LengthOrOne(matrix:row0column0, matrix:row0column1, matrix:row0column2),
+            LengthOrOne(matrix:row1column0, matrix:row1column1, matrix:row1column2),
+            LengthOrOne(matrix:row2column0, matrix:row2column1, matrix:row2column2))
+        return SetWithoutScale(matrix, scale)
+    end
+
+    /*
+    Returns a row's length, or 1 for a row of length 0, so it can be
+    divided by.
+    */
+    private action LengthOrOne(number x, number y, number z) returns number
+        number length = math:SquareRoot(x * x + y * y + z * z)
+        if length = 0
+            return 1
+        end
+        return length
+    end
+
 
     /*
     This action adds a translational component to the matrix. This action is

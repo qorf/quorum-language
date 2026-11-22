@@ -230,6 +230,9 @@ Attribute: Parameter key This is a key used by the cache. If this is called from
         
         terrainShape:Set(GetWidth(), GetHeight(), GetDepth())
         SetShape(terrainShape)
+        // The heightmap is laid out from the terrain's corner, so it takes
+        // no offset.
+        SetShapeOffset(0, 0, 0)
         
         //Calculate the indices
         Integer32BitArray indices

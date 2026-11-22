@@ -132,6 +132,12 @@ class Layer3D is Layer
     // Items that reported a move since the rendering tree was last told.
     Array<Item3D> movedItems
 
+    // True while Update walks the rendering tree, and the items removed or
+    // resized during the walk, whose leaves are changed once it ends, so the
+    // walk's next leaf is never taken out from under it.
+    boolean walkingItems = false
+    Array<Item3D> deferredTreeChanges
+
     // The bounds given to items with no shape: a box of no size at the
     // item's own position, so every item is in the rendering tree.
     BoundingBox emptyBounds
@@ -553,6 +559,7 @@ class Layer3D is Layer
         grouped:Empty()
         changedBodies:Empty()
         movedItems:Empty()
+        deferredTreeChanges:Empty()
     end
 
     /*
@@ -610,7 +617,11 @@ class Layer3D is Layer
         end
 
         item:SetLayer(undefined)
-        renderTree:Remove(item)
+        if walkingItems
+            deferredTreeChanges:Add(item)
+        else
+            renderTree:Remove(item)
+        end
         RemoveBody(item)
         DisableItemLighting(item)
 
@@ -776,7 +787,9 @@ class Layer3D is Layer
     end
     */
     action Has(Item3D item) returns boolean
-        return renderTree:Has(item)
+        // An item removed during Update's walk stays in the tree until the
+        // walk ends, but is no longer on the layer.
+        return renderTree:Has(item) and item:GetLayer() = me
     end
 
     /*
@@ -836,9 +849,33 @@ class Layer3D is Layer
     Attribute: Parameter item The item whose size changed.
     */
     action ItemResized(Item3D item)
+        if walkingItems
+            if renderTree:Has(item)
+                deferredTreeChanges:Add(item)
+            end
+            return now
+        end
         if renderTree:Remove(item)
             AddToRenderTree(item)
         end
+    end
+
+    /*
+    Makes the rendering tree changes put off during Update's walk: an item
+    no longer on this layer is taken out, and one still on it is placed
+    again with its bounds now, such as after it was resized, or removed and
+    added back.
+    */
+    private action ApplyDeferredTreeChanges
+        integer i = 0
+        repeat while i < deferredTreeChanges:GetSize()
+            Item3D item = deferredTreeChanges:Get(i)
+            if renderTree:Remove(item) and item:GetLayer() = me
+                AddToRenderTree(item)
+            end
+            i = i + 1
+        end
+        deferredTreeChanges:Empty(false)
     end
 
     /*
@@ -882,13 +919,25 @@ class Layer3D is Layer
             ApplySafeRegion()
         end
 
-        // The next leaf is found before an item is updated, so an item can
-        // remove itself while it updates.
+        // The next leaf is found before an item is updated. While the walk
+        // is under way, removing or resizing an item leaves its leaf in the
+        // tree until the walk ends (DeferTreeChange), so the next leaf stays
+        // good. An item removed before its turn is skipped.
+        walkingItems = true
         RenderTreeNode3D leaf = renderTree:GetFirstLeaf()
         repeat while leaf not= undefined
             RenderTreeNode3D upcoming = renderTree:GetNextLeaf(leaf)
-            leaf:GetItem():UpdateAll(seconds)
+            // A leaf has no item if the layer was emptied during the walk;
+            // the walk then ends, since its leaves are no longer linked.
+            Item3D item = leaf:GetItem()
+            if item not= undefined and item:GetLayer() = me
+                item:UpdateAll(seconds)
+            end
             leaf = upcoming
+        end
+        walkingItems = false
+        if not deferredTreeChanges:IsEmpty()
+            ApplyDeferredTreeChanges()
         end
     end
 
