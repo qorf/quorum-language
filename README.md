@@ -33,7 +33,7 @@ The easiest way to build Quorum is in Quorum Studio. To build it, please follow 
 1. Inside of Quorum Studio, open Quorum, which is under quorum-language/Quorum
 1. Build the project
 
-We can also regenerate the standard library by running RunLibrary.quorum or run the test suite by running CompilerTestSuite.quorum. Note that running the test suite, by default, runs only on the Java Virtual Machine. To test Quorum's JavaScript transpiled mode, you need to install [Node JS](https://nodejs.org).
+We can also regenerate the standard library by running RunLibrary.quorum. The compiler's tests live in their own repository, quorum-test, which sits next to quorum-language. Open its QuorumTest project in Quorum Studio and run it, or run run.sh (macOS and Linux) or run.bat (Windows) from its QuorumTest folder after building it. It tests bytecode, JavaScript and Python, and downloads the Java and Node.js it needs the first time.
 
 
 ### Overriding the Standard Library in Quorum Studio ###

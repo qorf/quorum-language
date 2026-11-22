@@ -25,8 +25,7 @@ use Libraries.Containers.Support.ByteReader
     class Main is FileLoadListener
         action Main
             File file
-            file = file:GetParentDirectory():GetParentDirectory()
-            file:SetPath("Library/Tests/ByteArray/HourOfCode.png")
+            file:SetPath("HourOfCode.png")
             BinaryFileReader reader
             reader:OpenForRead(file, me)
         end
