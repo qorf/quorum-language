@@ -24,6 +24,29 @@ Everything for writing programs in Quorum is on
 Quorum programs compile to Java bytecode, JavaScript or Python. Not every
 library is available for every target.
 
+## Using Quorum from the console
+
+Quorum's own installer, for Mac and Windows, installs the compiler with a
+`quorum` command. It carries its own Java, so nothing else needs to be
+installed. After installing, open a new terminal window:
+
+- `quorum Hello.quorum` compiles `Hello.quorum` into `Run/Default.jar`.
+- `quorum -run Hello.quorum` compiles it and, if it built, runs it.
+- `quorum -help` lists the other flags, such as `-name`, `-javascript` and
+  `-python`.
+
+The first compile in a folder copies the compiled standard library (about
+290 MB) into that folder's `Run` folder.
+
+- **Mac:** Quorum installs into `/Library/Quorum`, and every user's PATH
+  gets `/Library/Quorum/bin` (through `/etc/paths.d/quorum`) in zsh and
+  bash. Shells that don't read `/etc/paths.d`, such as fish, need that
+  folder added by hand. macOS has no uninstaller for it: to remove Quorum,
+  delete `/Library/Quorum` and `/etc/paths.d/quorum`.
+- **Windows:** Quorum installs into `Program Files\Quorum`, and its `bin`
+  folder is added to the system PATH. Uninstall it from Windows' list of
+  installed apps, which also removes it from the PATH.
+
 ## Repositories
 
 Quorum is split across these repositories. Clone them into the same folder,
@@ -32,7 +55,8 @@ next to each other.
 - **[quorum-language](https://github.com/qorf/quorum-language)** (this one):
   the compiler and the standard library.
 - **[quorum-studio](https://github.com/qorf/quorum-studio)**: Quorum Studio,
-  the development environment.
+  the development environment, and InstallerBuilder, which makes Quorum
+  Studio's installers and Quorum's.
 - **[quorum-natives](https://github.com/qorf/quorum-natives)**: the native
   code the standard library uses on each platform.
 - **[quorum-test](https://github.com/qorf/quorum-test)**: the compiler's
