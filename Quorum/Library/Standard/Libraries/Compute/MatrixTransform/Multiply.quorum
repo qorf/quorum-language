@@ -73,7 +73,7 @@ boolean forceSoftware = false
 
     // the graphics card: one computation, kept between calls
     HardwareCompute compute = undefined
-    MatrixMultiplyShaderCode shaderCode
+    MatrixMultiplyShaderCode shaderCode = undefined
     boolean tiled = false
     integer requestedTileSize = 0
     integer tileSize = 16
@@ -274,6 +274,12 @@ Matrix newMatrix
             return InSoftwareBecause(matrix, "the matrices are larger than the graphics card's largest block of data")
         end
 
+        // made only for the graphics card, so multiplying in software never
+        // creates shader code (Python has no graphics card support)
+        if shaderCode = undefined
+            MatrixMultiplyShaderCode code
+            shaderCode = code
+        end
         compute:SetRunIntegerCount(shaderCode:RUN_INTEGER_COUNT)
         // the same source is compiled once and kept
         text kind = "Plain"

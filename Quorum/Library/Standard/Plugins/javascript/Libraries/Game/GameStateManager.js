@@ -136,6 +136,10 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetFocus = function()
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.focus;
     };
     
@@ -148,6 +152,10 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetApplication = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.application;
     };
     
@@ -160,6 +168,10 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetGameDisplay = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.display;
     };
     
@@ -173,12 +185,20 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetGameGraphics = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.graphics;
     };
     
     this.GetInput = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.input;
     };
     
@@ -197,6 +217,10 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetNativePath = function() 
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.nativePath;
     };
     
@@ -241,6 +265,10 @@ function plugins_quorum_Libraries_Game_GameStateManager_()
     this.GetMainThreadName = function()
     {
         var gameInfo = this.GetActiveGameInfo();
+        // no game is running, for example when only computing, as in a test
+        if (gameInfo == null) {
+            return null;
+        }
         return gameInfo.mainThreadID;
     };
 }

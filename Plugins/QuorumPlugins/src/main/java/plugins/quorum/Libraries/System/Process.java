@@ -41,41 +41,17 @@ public class Process {
     java.lang.Process process = null;
     int exit = -1;
     int wait = 0;
-    
+    // RunWithoutWaiting: where the output goes, and whether the current
+    // process was started that way (it has no watcher, so Cancel ends it)
+    private File_ outputFile = null;
+    private File_ errorFile = null;
+    private boolean runningWithoutWaiting = false;
+
     public void Run(String name, Array_ flags) {
         myProcess = (Process_) me_;
-        ProcessBuilder builder;
-        ArrayList<String> list = new ArrayList<>();
-        list.add(name);
-        for(int i = 0; i < flags.GetSize(); i++) {
-            Object_ o = flags.Get(i);
-            Text_ t = (Text_) o;
-            String text = t.GetValue();
-            list.add(text);
-        }
-
-
+        runningWithoutWaiting = false;
         try {
-            builder = new ProcessBuilder(list);
-
-            //set Environment Variables.
-            Map<String, String> map = builder.environment();
-            HashTable_ table = myProcess.GetEnvironment();
-            Iterator_ iterator = table.GetKeyIterator();
-            while(iterator.HasNext()) {
-                //get the  key
-                Object_ keyObject = iterator.Next();
-                Text_ keyTextObject = (Text_) keyObject;
-                String key = keyTextObject.GetValue();
-
-                //get the value
-                Object_ valueObject = table.GetValue(keyObject);
-                Text_ valueTextObject = (Text_) valueObject;
-                String value = valueTextObject.GetValue();
-                map.put(key, value);
-            }
-
-            builder.directory(new File(directory.GetAbsolutePath()));
+            ProcessBuilder builder = CreateBuilder(name, flags);
             myProcess.FireProcessStartedEvent();
             process = builder.start();
             // A local copy, since the watcher sets watch to null when it
@@ -94,6 +70,99 @@ public class Process {
         } catch (InterruptedException ex) {
             sendExceptionToStandardError(ex);
         }
+    }
+
+    /*
+        Starts the process and returns at once. The output goes straight to
+        files (or is thrown away), so no thread has to read it and the
+        process can't block on a full pipe. Standard input is closed, so a
+        program that reads it gets end of input instead of waiting forever.
+    */
+    public void RunWithoutWaiting(String name, Array_ flags) {
+        myProcess = (Process_) me_;
+        runningWithoutWaiting = true;
+        cancelled = false;
+        exit = -1;
+        try {
+            ProcessBuilder builder = CreateBuilder(name, flags);
+            builder.redirectOutput(GetRedirectFile(outputFile));
+            builder.redirectError(GetRedirectFile(errorFile));
+            process = builder.start();
+            process.getOutputStream().close();
+        } catch (IOException ex) {
+            process = null;
+            sendExceptionToStandardError(ex);
+        }
+    }
+
+    /*
+        The command (the program's name, then its flags), the environment
+        variables and the folder, shared by Run and RunWithoutWaiting.
+    */
+    private ProcessBuilder CreateBuilder(String name, Array_ flags) {
+        ArrayList<String> list = new ArrayList<>();
+        list.add(name);
+        for(int i = 0; i < flags.GetSize(); i++) {
+            Text_ t = (Text_) flags.Get(i);
+            list.add(t.GetValue());
+        }
+        ProcessBuilder builder = new ProcessBuilder(list);
+
+        //set Environment Variables.
+        Map<String, String> map = builder.environment();
+        HashTable_ table = myProcess.GetEnvironment();
+        Iterator_ iterator = table.GetKeyIterator();
+        while(iterator.HasNext()) {
+            Object_ keyObject = iterator.Next();
+            String key = ((Text_) keyObject).GetValue();
+            String value = ((Text_) table.GetValue(keyObject)).GetValue();
+            map.put(key, value);
+        }
+
+        builder.directory(new File(directory.GetAbsolutePath()));
+        return builder;
+    }
+
+    /*
+        The file for one output stream. With no file set, the output is
+        thrown away by sending it to the system's null device, since
+        Redirect.DISCARD needs Java 9 and the plugins build for Java 8.
+    */
+    private File GetRedirectFile(File_ file) {
+        if(file == null) {
+            boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
+            return new File(windows ? "NUL" : "/dev/null");
+        }
+        File result = new File(file.GetAbsolutePath());
+        File parent = result.getParentFile();
+        if(parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+        return result;
+    }
+
+    public void SetOutputFile(File_ file) {
+        outputFile = file;
+    }
+
+    public File_ GetOutputFile() {
+        return outputFile;
+    }
+
+    public void SetErrorFile(File_ file) {
+        errorFile = file;
+    }
+
+    public File_ GetErrorFile() {
+        return errorFile;
+    }
+
+    // -1 while running or if it never started; works for Run and RunWithoutWaiting
+    public int GetExitCode() {
+        if(process == null || process.isAlive()) {
+            return -1;
+        }
+        return process.exitValue();
     }
 
     public void sendExceptionToStandardError(Exception exception) {
@@ -131,6 +200,11 @@ public class Process {
     
     public void Cancel() {
         cancelled = true;
+        // Run's watcher ends its process when it sees cancelled. A process
+        // run without waiting has no watcher, so it is ended here.
+        if(runningWithoutWaiting && process != null) {
+            process.destroy();
+        }
     }
     
     public void SendInput(String value) {

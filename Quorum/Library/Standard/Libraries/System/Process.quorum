@@ -188,14 +188,57 @@ class Process
         The name of the program to be run and the flags passed are used to run the program, so these must be set before calling Run.       
     */
     action Run
-        //if no file is set, set this to run by default in the current
-        //working directory.
+        UseDefaultDirectoryIfNoneSet()
+        Run(name, flags)
+    end
+
+    /*
+        This action starts the process and returns at once, without waiting
+        for it to finish, so the program that started it keeps running.
+        Unlike Run, it sends no events to listeners while the process runs:
+        the process writes its standard output and standard error to the
+        files set with SetOutputFile and SetErrorFile, and output with no
+        file set is thrown away. Each file is replaced when the process
+        starts. Use IsAlive to find out whether the process is still
+        running, GetExitCode once it has stopped, and Cancel to end it.
+        If the program can't be started, listeners get an Error event, and
+        IsAlive returns false.
+
+        Attribute: Example
+
+        use Libraries.System.File
+        use Libraries.System.Process
+        use Libraries.Containers.Array
+
+        Process process
+        process:SetName("java")
+        Array<text> flags
+        flags:Add("-version")
+        process:SetParameters(flags)
+
+        File log
+        log:SetPath("Logs/java.txt")
+        process:SetOutputFile(log)
+        process:SetErrorFile(log)
+
+        process:RunWithoutWaiting()
+        output process:IsAlive()
+    */
+    action RunWithoutWaiting
+        UseDefaultDirectoryIfNoneSet()
+        RunWithoutWaiting(name, flags)
+    end
+
+    /*
+        If no folder is set, the process runs in the current working
+        directory, the default in the File class.
+    */
+    private action UseDefaultDirectoryIfNoneSet
         File file = GetDirectory()
         if file = undefined
             File default
             SetDirectory(default)
         end
-        Run(name, flags)
     end
 
     /*
@@ -207,6 +250,50 @@ class Process
 
     /* A private action to send down to the system. */
     private system action Run(text name, Array<text> flags)
+
+    /* A private action to send down to the system. */
+    private system action RunWithoutWaiting(text name, Array<text> flags)
+
+    /*
+        Sets the file a process begun with RunWithoutWaiting writes its
+        standard output to. Its folder is created if needed. It has no
+        effect on Run.
+
+        Attribute: Parameter file the file for standard output.
+    */
+    system action SetOutputFile(File file)
+
+    /*
+        Returns the file set with SetOutputFile, or undefined.
+
+        Attribute: Returns the file for standard output.
+    */
+    system action GetOutputFile returns File
+
+    /*
+        Sets the file a process begun with RunWithoutWaiting writes its
+        standard error to. It can be the same file as SetOutputFile. Its
+        folder is created if needed. It has no effect on Run.
+
+        Attribute: Parameter file the file for standard error.
+    */
+    system action SetErrorFile(File file)
+
+    /*
+        Returns the file set with SetErrorFile, or undefined.
+
+        Attribute: Returns the file for standard error.
+    */
+    system action GetErrorFile returns File
+
+    /*
+        Returns the exit code of the process once it has stopped, usually 0
+        when it succeeded. Returns -1 while it is still running, or if it
+        never started.
+
+        Attribute: Returns the exit code, or -1.
+    */
+    system action GetExitCode returns integer
 
     /*
         This action sends text to a running process on standard input.
