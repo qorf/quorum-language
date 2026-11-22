@@ -1,0 +1,90 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+
+/*
+The SelectionBoxBuilder collects quads for the SelectionBoxMesh: each quad is four
+corners, the first two along one side and the last two along the other.
+*/
+class SelectionBoxBuilder
+    Number32BitArray vertices
+    Number32BitArray normals
+    Number32BitArray tangents
+    Number32BitArray bitangents
+    Number32BitArray coordinates
+    Integer32BitArray indices
+    integer quad = 0
+
+    /*
+    Starts a mesh of a number of quads.
+
+    Attribute: Parameter quads How many quads it has
+    */
+    action Start(integer quads)
+        vertices:SetSize(quads * 4 * 3)
+        normals:SetSize(quads * 4 * 3)
+        tangents:SetSize(quads * 4 * 3)
+        bitangents:SetSize(quads * 4 * 3)
+        coordinates:SetSize(quads * 4 * 2)
+        indices:SetSize(quads * 6)
+        quad = 0
+    end
+
+    /*
+    Adds a quad from its four corners.
+    */
+    action AddQuad(number x0, number y0, number z0, number x1, number y1, number z1, number x2, number y2, number z2, number x3, number y3, number z3)
+        integer first = quad * 4
+        SetCorner(first, x0, y0, z0)
+        SetCorner(first + 1, x1, y1, z1)
+        SetCorner(first + 2, x2, y2, z2)
+        SetCorner(first + 3, x3, y3, z3)
+        indices:Set(quad * 6, first)
+        indices:Set(quad * 6 + 1, first + 2)
+        indices:Set(quad * 6 + 2, first + 1)
+        indices:Set(quad * 6 + 3, first + 1)
+        indices:Set(quad * 6 + 4, first + 2)
+        indices:Set(quad * 6 + 5, first + 3)
+        quad = quad + 1
+    end
+
+    /*
+    Sets one corner. The box is unlit, so the normal is only a placeholder.
+    */
+    private action SetCorner(integer vertex, number x, number y, number z)
+        vertices:Set(vertex * 3, x)
+        vertices:Set(vertex * 3 + 1, y)
+        vertices:Set(vertex * 3 + 2, z)
+        normals:Set(vertex * 3, 0)
+        normals:Set(vertex * 3 + 1, 1)
+        normals:Set(vertex * 3 + 2, 0)
+        tangents:Set(vertex * 3, 1)
+        tangents:Set(vertex * 3 + 1, 0)
+        tangents:Set(vertex * 3 + 2, 0)
+        bitangents:Set(vertex * 3, 0)
+        bitangents:Set(vertex * 3 + 1, 0)
+        bitangents:Set(vertex * 3 + 2, 1)
+        coordinates:Set(vertex * 2, 0)
+        coordinates:Set(vertex * 2 + 1, 0)
+    end
+
+    /*
+    Returns the mesh, with a material.
+
+    Attribute: Parameter materialIndex The material's number
+    Attribute: Returns The mesh
+    */
+    action Finish(integer materialIndex) returns MeshData
+        MeshData mesh
+        mesh:SetVertices(vertices)
+        mesh:SetIndices(indices)
+        mesh:SetNormals(normals)
+        mesh:SetTangents(tangents)
+        mesh:SetBitangents(bitangents)
+        mesh:SetTextureCoordinates(coordinates)
+        mesh:SetMaterialIndex(materialIndex)
+        return mesh
+    end
+end

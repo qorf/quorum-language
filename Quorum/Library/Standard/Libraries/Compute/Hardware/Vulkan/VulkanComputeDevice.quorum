@@ -230,6 +230,7 @@ class VulkanComputeDevice is HardwareComputeDevice
             end
             made:SetMaxDataBytes(dataBytes)
             made:SetHasNumber64(physicalDevice:GetFeatures():HasShaderFloat64())
+            made:SetHasInteger64(physicalDevice:GetFeatures():HasShaderInt64())
             limits = made
         end
         return limits

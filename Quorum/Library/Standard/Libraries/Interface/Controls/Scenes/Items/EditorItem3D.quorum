@@ -24,6 +24,21 @@ use Libraries.Interface.Controls.Scenes.Items.EditorModel
 class EditorItem3D is EditorItem, EditorModel
 
     /*
+        This action gets the item's friction as the scene editor stores it. A 3D
+        item with no friction saved has the 3D physics default, 0.5, which is
+        what a game gives it, so the properties panel shows that.
+
+        Attribute: Returns The coefficient of friction.
+    */
+    action GetEditorFriction returns number
+        SceneProperties properties
+        if HasProperty(properties:FRICTION)
+            return GetProperty(properties:FRICTION):GetNumber()
+        end
+        return 0.5
+    end
+
+    /*
         This action returns the nearest parent object that is accessible. This 
         can be anything that the programmer wants to be accessible, from user interface
         components in a 2D interface to 3D components relative in 3-space on screen. 

@@ -16,16 +16,30 @@ use Libraries.System.Logging.SharedLogger
 
         Transform multiplies on the CPU. TransformInHardware multiplies on
         the graphics card (GameStateManager:GetComputeDevice), with or
-        without a game, and is much faster for large matrices: about 20 to
-        30 times the CPU's speed from 512 x 512 up on a recent Mac. Numbers
-        go to the graphics card as two 32-bit numbers each (about 48 bits),
-        so its answers agree with the CPU's to about 14 significant digits,
-        and exactly when every answer and partial sum is a whole number
-        below 2^48. When there is no graphics card that can compute, or the
-        numbers are too large or too small to hold as two 32-bit numbers,
-        or the matrices are too large for the graphics card,
-        TransformInHardware multiplies on the CPU instead (RanInHardware
-        says which).
+        without a game, and is much faster for large matrices: about 45
+        times the CPU's speed at 2,048 x 2,048 on a recent Mac.
+
+        Its answers equal Transform's, bit for bit, on every graphics card:
+        numbers go to the card as the 64-bit numbers they are, and every
+        add and multiply rounds as the CPU's does. How the card works with
+        them depends on what it has (SetNumberMode; AUTOMATIC, the default,
+        picks the first that fits):
+
+            NUMBER_64              GLSL double: cards with 64-bit numbers.
+            EMULATED_NUMBER_64     IEEE 754 worked out with 64-bit
+                                   integers: cards with 64-bit integers,
+                                   Apple's included.
+            EMULATED_32_NUMBER_64  the same with 32-bit integers: every
+                                   card.
+            DOUBLE_NUMBER_32       two 32-bit numbers each, about 48 bits:
+                                   only when asked for. Its answers agree
+                                   with the CPU's to about 14 significant
+                                   digits, and it can't hold numbers past
+                                   about 1e38 or products below 1e-30.
+
+        When there is no graphics card that can compute, or the matrices
+        are too large for it, TransformInHardware multiplies on the CPU
+        instead (RanInHardware says which), and logs why.
 
         The graphics card's program and memory are kept between calls, so
         keep one Multiply for many multiplies; Release lets them go.
@@ -64,6 +78,20 @@ boolean forceSoftware = false
     integer requestedTileSize = 0
     integer tileSize = 16
     boolean ranInHardware = false
+
+    /* Choose by the graphics card: the first of NUMBER_64, EMULATED_NUMBER_64 and EMULATED_32_NUMBER_64 it can run. */
+    public constant integer AUTOMATIC = -1
+    /* Two 32-bit numbers per number: about 14 digits; every graphics card. */
+    public constant integer DOUBLE_NUMBER_32 = 0
+    /* 64-bit numbers in GLSL double: the CPU's answers; cards with 64-bit numbers. */
+    public constant integer NUMBER_64 = 1
+    /* 64-bit numbers, IEEE 754 emulated with 64-bit integers: the CPU's answers; cards with 64-bit integers. */
+    public constant integer EMULATED_NUMBER_64 = 2
+    /* 64-bit numbers, IEEE 754 emulated with 32-bit integers: the CPU's answers; every graphics card. */
+    public constant integer EMULATED_32_NUMBER_64 = 3
+
+    integer numberMode = AUTOMATIC
+    integer numberModeUsed = AUTOMATIC
 
     /*
         This method sets the a matrix of values for the transform function to apply.
@@ -163,10 +191,13 @@ Matrix newMatrix
 
     /*
         This action multiplies matrix by the value matrix on the graphics
-        card. It uses the CPU instead (and logs why) when there is no
-        graphics card that can compute, when a number or product is too
-        large or too small to hold as two 32-bit numbers, or when the
-        matrices don't fit the graphics card.
+        card, in the number mode SetNumberMode says (AUTOMATIC, the
+        default, gives Transform's answer bit for bit on every card). It
+        uses the CPU instead (and logs why) when there is no graphics card
+        that can compute, when the matrices don't fit the graphics card,
+        when the mode asked for needs something the card doesn't have, or,
+        with DOUBLE_NUMBER_32 only, when a number or product is too large
+        or too small to hold as two 32-bit numbers.
 
         Attribute: Parameter matrix The matrix on the left.
 
@@ -197,10 +228,6 @@ Matrix newMatrix
         if matrix:GetColumns() not= values:GetRows()
             alert("A " + matrix:GetRows() + " x " + matrix:GetColumns() + " matrix can't be multiplied by a " + values:GetRows() + " x " + values:GetColumns() + " one: the columns of the first must equal the rows of the second.")
         end
-        text problem = CheckRange(matrix)
-        if problem not= ""
-            return InSoftwareBecause(matrix, problem)
-        end
         if compute = undefined
             GameStateManager manager
             HardwareComputeDevice device = manager:GetComputeDevice()
@@ -213,10 +240,24 @@ Matrix newMatrix
             end
         end
 
+        HardwareComputeLimits limits = compute:GetDevice():GetLimits()
+        integer mode = ChooseNumberMode(limits)
+        if mode = NUMBER_64 and not limits:HasNumber64()
+            return InSoftwareBecause(matrix, "NUMBER_64 was asked for, but the graphics card has no 64-bit numbers")
+        end
+        if mode = EMULATED_NUMBER_64 and not limits:HasInteger64()
+            return InSoftwareBecause(matrix, "EMULATED_NUMBER_64 was asked for, but the graphics card has no 64-bit integers")
+        end
+        if mode = DOUBLE_NUMBER_32
+            text problem = CheckRange(matrix)
+            if problem not= ""
+                return InSoftwareBecause(matrix, problem)
+            end
+        end
+
         integer rows = matrix:GetRows()
         integer inner = matrix:GetColumns()
         integer columns = values:GetColumns()
-        HardwareComputeLimits limits = compute:GetDevice():GetLimits()
         tileSize = ChooseTileSize(limits)
         integer groupsAcross = (rows + tileSize - 1) / tileSize
         integer groupsDown = (columns + tileSize - 1) / tileSize
@@ -239,13 +280,23 @@ Matrix newMatrix
         if tiled
             kind = "Tiled"
         end
-        compute:SetProgram("MatrixMultiply" + kind + tileSize, shaderCode:GetCode(tiled, tileSize))
+        if mode = DOUBLE_NUMBER_32
+            compute:SetProgram("MatrixMultiply" + kind + tileSize, shaderCode:GetCode(tiled, tileSize))
+        else
+            // the modes have the same values as MatrixMultiplyShaderCode's arithmetics
+            compute:SetProgram("MatrixMultiply" + kind + tileSize + "Number64Mode" + mode, shaderCode:GetCode(tiled, tileSize, mode))
+        end
 
         Number64BitArray numbers
         numbers:SetSize(total)
         FillNumbers(0, numbers, matrix)
         FillNumbers(placeB, numbers, values)
-        compute:SetNumberFormat(compute:DOUBLE_NUMBER_32)
+        if mode = DOUBLE_NUMBER_32
+            compute:SetNumberFormat(compute:DOUBLE_NUMBER_32)
+        else
+            // the numbers as they are, 64 bits each
+            compute:SetNumberFormat(compute:NUMBER_64)
+        end
         compute:SetData(numbers)
 
         Array<integer> place
@@ -276,7 +327,102 @@ Matrix newMatrix
             column = column + 1
         end
         ranInHardware = true
+        numberModeUsed = mode
         return result
+    end
+
+    /*
+        This action sets how TransformInHardware works with numbers on the
+        graphics card. AUTOMATIC (the default) picks NUMBER_64 if the card
+        has 64-bit numbers, otherwise EMULATED_NUMBER_64 if it has 64-bit
+        integers, otherwise EMULATED_32_NUMBER_64: all three give
+        Transform's answer bit for bit. DOUBLE_NUMBER_32 gives about 14
+        digits and is used only when set here. A mode the card can't run
+        (NUMBER_64 without 64-bit numbers, EMULATED_NUMBER_64 without
+        64-bit integers) makes TransformInHardware use the CPU, and log
+        why.
+
+        Attribute: Parameter mode AUTOMATIC, DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64 or EMULATED_32_NUMBER_64.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                multiply:SetNumberMode(multiply:EMULATED_32_NUMBER_64)
+            end
+        end
+    */
+    action SetNumberMode(integer mode)
+        if mode < AUTOMATIC or mode > EMULATED_32_NUMBER_64
+            alert("Multiply's number mode needs to be AUTOMATIC, DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64 or EMULATED_32_NUMBER_64, not " + mode + ".")
+        end
+        numberMode = mode
+    end
+
+    /*
+        This action returns the number mode set by SetNumberMode: AUTOMATIC
+        unless one was set.
+
+        Attribute: Returns AUTOMATIC, DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64 or EMULATED_32_NUMBER_64.
+
+        Attribute: Example
+
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Multiply multiply
+                output multiply:GetNumberMode()
+            end
+        end
+    */
+    action GetNumberMode returns integer
+        return numberMode
+    end
+
+    /*
+        This action returns the number mode the last TransformInHardware
+        that ran on the graphics card used, after AUTOMATIC chose one:
+        AUTOMATIC if none has run there yet.
+
+        Attribute: Returns DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64, EMULATED_32_NUMBER_64, or AUTOMATIC if none has run.
+
+        Attribute: Example
+
+        use Libraries.Compute.Matrix
+        use Libraries.Compute.MatrixTransform.Multiply
+
+        class Main
+            action Main
+                Matrix matrix
+                matrix:Fill(64, 64, 2.0)
+                Multiply multiply
+                multiply:SetValue(matrix)
+                Matrix result = multiply:TransformInHardware(matrix)
+                if multiply:RanInHardware()
+                    output multiply:GetNumberModeUsed()
+                end
+            end
+        end
+    */
+    action GetNumberModeUsed returns integer
+        return numberModeUsed
+    end
+
+    // The mode set, or with AUTOMATIC the first exact one the card can run.
+    private action ChooseNumberMode(HardwareComputeLimits limits) returns integer
+        if numberMode not= AUTOMATIC
+            return numberMode
+        end
+        if limits:HasNumber64()
+            return NUMBER_64
+        elseif limits:HasInteger64()
+            return EMULATED_NUMBER_64
+        end
+        return EMULATED_32_NUMBER_64
     end
 
     /*

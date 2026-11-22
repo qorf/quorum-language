@@ -17,6 +17,7 @@ use Libraries.Game.Graphics.Vulkan.VulkanCommandPool
 use Libraries.Game.Graphics.Vulkan.VulkanCommandBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanBuffer
 use Libraries.Game.Graphics.Vulkan.VulkanNumber32BitMappedMemory
+use Libraries.Game.Graphics.Vulkan.VulkanNumber64BitMappedMemory
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorResourcesInfo
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayout
 use Libraries.Game.Graphics.Vulkan.VulkanDescriptorSetLayoutBinding
@@ -55,6 +56,10 @@ with a memory barrier between each and the next, so each run sees what the
 one before wrote; FinishRuns submits them once and waits once. A run's
 integers (SetRunIntegerCount) are Vulkan push constants: the program reads
 them as a push_constant block of uints.
+
+The buffer is mapped as 32-bit numbers (Number32BitArray data, and
+DOUBLE_NUMBER_32) or as 64-bit numbers (NUMBER_64), and is made again when
+the kind changes.
 
 Attribute: Example
 
@@ -101,9 +106,12 @@ class VulkanCompute is HardwareCompute
     // the data
     VulkanBuffer buffer = undefined
     VulkanNumber32BitMappedMemory mapping = undefined
+    // the same buffer mapped as 64-bit numbers, for NUMBER_64; one or the other
+    VulkanNumber64BitMappedMemory mapping64 = undefined
+    boolean mappedAs64 = false
     VulkanDescriptorSet descriptorSet = undefined
     integer dataSize = 0
-    // how many numbers the buffer holds; it is kept while data fits
+    // how many bytes the buffer holds; it is kept while data fits
     integer capacity = 0
 
     // the program last compiled, so the same one isn't compiled again
@@ -251,7 +259,7 @@ class VulkanCompute is HardwareCompute
     */
     action SetData(Number32BitArray data)
         RequireReady()
-        MakeRoom(data:GetSize())
+        MakeRoom(data:GetSize() * 4, false)
         // one native copy for the whole block, rather than a native call per number
         mapping:Set(data)
         dataSize = data:GetSize()
@@ -263,7 +271,8 @@ class VulkanCompute is HardwareCompute
     a high 32-bit number (the number rounded) and a low one (the rest,
     rounded). The split is a Quorum loop; measured, it costs a few
     milliseconds at most on 2,048 x 2,048 matrices, so no native version is
-    needed. NUMBER_64 isn't written yet.
+    needed. With NUMBER_64 the numbers are copied as they are, in one
+    native copy.
 
     Attribute: Parameter data the numbers.
 
@@ -274,7 +283,11 @@ class VulkanCompute is HardwareCompute
     action SetData(Number64BitArray data)
         RequireReady()
         if GetNumberFormat() = parent:HardwareCompute:NUMBER_64
-            alert("The NUMBER_64 number format isn't written yet: it needs a graphics card with 64-bit numbers. Use DOUBLE_NUMBER_32.")
+            // as they are: one native copy, no split
+            MakeRoom(data:GetSize() * 8, true)
+            mapping64:Set(data)
+            dataSize = data:GetSize()
+            return now
         end
         integer count = data:GetSize()
         Number32BitArray pairs
@@ -292,28 +305,35 @@ class VulkanCompute is HardwareCompute
     end
 
     // Keeps the buffer, and the descriptor set pointing at it, while the
-    // data fits; a bigger block grows it to at least twice its size.
-    private action MakeRoom(integer floatCount)
-        if buffer not= undefined and floatCount <= capacity
+    // data fits and is the same kind (32-bit or 64-bit numbers); otherwise
+    // makes it again, at least twice as large when it grows.
+    private action MakeRoom(integer byteCount, boolean as64)
+        if buffer not= undefined and byteCount <= capacity and mappedAs64 = as64
             return now
         end
         if buffer not= undefined
             buffer:Dispose()
         end
-        integer count = floatCount
-        if count < capacity * 2
+        integer count = byteCount
+        if mappedAs64 = as64 and count < capacity * 2
             count = capacity * 2
         end
-        integer size = count * 4
         VulkanBuffer made
-        made:Create(device, size, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT + constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT + constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT,
+        made:Create(device, count, constants:BUFFER_USAGE_STORAGE_BUFFER_BIT + constants:BUFFER_USAGE_TRANSFER_DESTINATION_BIT + constants:BUFFER_USAGE_TRANSFER_SOURCE_BIT,
             constants:MEMORY_USAGE_AUTO,
             constants:ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
             constants:MEMORY_PROPERTY_HOST_COHERENT_BIT + constants:MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             0,
             false)
         buffer = made
-        mapping = buffer:MapToNumber32BitMemory()
+        mapping = undefined
+        mapping64 = undefined
+        if as64
+            mapping64 = buffer:MapToNumber64BitMemory()
+        else
+            mapping = buffer:MapToNumber32BitMemory()
+        end
+        mappedAs64 = as64
         capacity = count
         descriptorSet = undefined
     end
@@ -663,14 +683,15 @@ class VulkanCompute is HardwareCompute
         VulkanDescriptorResourcesInfo resources
         resources:SetDestinationBinding(0)
         resources:SetDescriptorType(constants:DESCRIPTOR_TYPE_STORAGE_BUFFER)
-        resources:AddBufferInfo(buffer, 0, capacity * 4)
+        resources:AddBufferInfo(buffer, 0, capacity)
         descriptorSet = descriptorSetManager:CreateDescriptorSet(layout, resources)
     end
 
     /*
-    This action returns one 32-bit number from the buffer.
+    This action returns one number from the buffer: a 32-bit number, or,
+    with NUMBER_64 data, a 64-bit number.
 
-    Attribute: Parameter index which 32-bit number, from 0.
+    Attribute: Parameter index which number, from 0.
 
     Attribute: Returns the number.
 
@@ -679,6 +700,9 @@ class VulkanCompute is HardwareCompute
     See the same action in HardwareCompute.
     */
     action GetValue(integer index) returns number
+        if mapping64 not= undefined
+            return mapping64:Get(index)
+        end
         if mapping = undefined
             alert("VulkanCompute has no data: call SetData and Run first.")
         end
@@ -699,7 +723,7 @@ class VulkanCompute is HardwareCompute
     */
     action GetValues(integer start, Number32BitArray into)
         if mapping = undefined
-            alert("VulkanCompute has no data: call SetData and Run first.")
+            alert("VulkanCompute has no 32-bit data: call SetData with 32-bit numbers, or with DOUBLE_NUMBER_32, and Run first.")
         end
         // one native copy (VulkanNumber32BitMappedMemory's bulk Get)
         mapping:Get(start, into, 0, into:GetSize())
@@ -709,7 +733,9 @@ class VulkanCompute is HardwareCompute
     This action copies Quorum's 64-bit numbers back from the buffer, read as
     the number format says. With DOUBLE_NUMBER_32 each number is its high
     and low 32-bit numbers added, which is exact in a 64-bit number. The
-    joining is a Quorum loop, as cheap as the split in SetData.
+    joining is a Quorum loop, as cheap as the split in SetData. With
+    NUMBER_64 each number is read as it is (one native call per number for
+    now; about 12 ms for 4 million numbers).
 
     Attribute: Parameter start the first number to copy, from 0, counted in 64-bit numbers.
 
@@ -721,7 +747,15 @@ class VulkanCompute is HardwareCompute
     */
     action GetValues(integer start, Number64BitArray into)
         if GetNumberFormat() = parent:HardwareCompute:NUMBER_64
-            alert("The NUMBER_64 number format isn't written yet: it needs a graphics card with 64-bit numbers. Use DOUBLE_NUMBER_32.")
+            if mapping64 = undefined
+                alert("VulkanCompute has no 64-bit data: call SetData with NUMBER_64 and Run first.")
+            end
+            integer index = 0
+            repeat while index < into:GetSize()
+                into:Set(index, mapping64:Get(start + index))
+                index = index + 1
+            end
+            return now
         end
         integer count = into:GetSize()
         Number32BitArray pairs
@@ -783,6 +817,9 @@ class VulkanCompute is HardwareCompute
         pushRange = undefined
         recording = false
         capacity = 0
+        mapping = undefined
+        mapping64 = undefined
+        mappedAs64 = false
         programName = ""
         programCode = ""
         // the command buffer goes back to its pool, then the pool goes

@@ -24,6 +24,12 @@ class SceneConstants
     public constant number SELECTION_HIGHLIGHT_PADDING_2D = 5
     public constant Color SELECTION_HIGHLIGHT_SELECTED_COLOR
     public constant Color SELECTION_HIGHLIGHT_UNSELECTED_COLOR
+    // A 3D item's selection box: its see-through fill and its edges, when
+    // selected and when not (SelectionBoxMesh).
+    public constant Color SELECTION_BOX_SELECTED_FILL
+    public constant Color SELECTION_BOX_SELECTED_EDGES
+    public constant Color SELECTION_BOX_UNSELECTED_FILL
+    public constant Color SELECTION_BOX_UNSELECTED_EDGES
 
     public constant number CAMERA_PREVIEW_2D_DEFAULT_WIDTH = 800
     public constant number CAMERA_PREVIEW_2D_DEFAULT_HEIGHT = 600
@@ -131,6 +137,10 @@ class SceneConstants
     on create
         SELECTION_HIGHLIGHT_SELECTED_COLOR:SetColor(1, 1, 0.2, 0.75)
         SELECTION_HIGHLIGHT_UNSELECTED_COLOR:SetColor(0.8, 0.8, 0.8, 0.6)
+        SELECTION_BOX_SELECTED_FILL:SetColor(1, 0.85, 0.2, 0.2)
+        SELECTION_BOX_SELECTED_EDGES:SetColor(1, 0.75, 0.15, 1)
+        SELECTION_BOX_UNSELECTED_FILL:SetColor(0.85, 0.85, 0.85, 0.12)
+        SELECTION_BOX_UNSELECTED_EDGES:SetColor(0.85, 0.85, 0.85, 1)
         CAMERA_PREVIEW_2D_DEFAULT_COLOR:SetColor(0.5, 0.5, 0.5, 0.5)
 
         CURSOR_2D_COLOR:SetColor(0.7, 0.85, 1, 0.6)

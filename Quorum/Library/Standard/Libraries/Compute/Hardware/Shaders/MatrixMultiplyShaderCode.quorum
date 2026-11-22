@@ -2,11 +2,26 @@ package Libraries.Compute.Hardware.Shaders
 
 /*
 The MatrixMultiplyShaderCode class writes the GLSL compute shader that
-multiplies two matrices of Quorum numbers on the graphics card, in
-HardwareCompute's DOUBLE_NUMBER_32 format (see DoubleNumber32ShaderCode).
+multiplies two matrices of Quorum numbers on the graphics card, with one
+of four arithmetics (GetCode(tiled, size, arithmetic)):
 
-Every matrix is stored column by column, one number (two 32-bit numbers)
-per element. Where the matrices are, and their sizes, reach the shader with
+    DOUBLE_NUMBER_32       HardwareCompute's DOUBLE_NUMBER_32 format, two
+                           32-bit numbers each (DoubleNumber32ShaderCode):
+                           about 14 digits, every graphics card.
+    NUMBER_64              HardwareCompute's NUMBER_64 format in GLSL
+                           double: cards with 64-bit numbers.
+    EMULATED_NUMBER_64     NUMBER_64, IEEE 754 emulated with 64-bit
+                           integers: cards with 64-bit integers.
+    EMULATED_32_NUMBER_64  NUMBER_64, IEEE 754 emulated with 32-bit
+                           integers: every graphics card.
+
+The three NUMBER_64 arithmetics (Number64ShaderCode) round every step as
+the CPU does, and each thread adds its products in the CPU's order
+(k = 0, 1, 2 ..., tiled or not), so their answers equal the CPU's bit for
+bit.
+
+Every matrix is stored column by column, one number (two 32-bit numbers,
+or one 64-bit number) per element. Where the matrices are, and their sizes, reach the shader with
 each run, as RUN_INTEGER_COUNT integers (HardwareCompute's run integers,
 Vulkan push constants), in this order:
 
@@ -31,7 +46,9 @@ them. Two ways:
             memory together, then multiplies from there: each number is
             read from memory once per tile instead of once per answer.
             Needs 2 * size * size * 8 bytes of shared memory. Numbers past
-            an edge are loaded as zero, which adds nothing (exactly).
+            an edge are loaded as zero, which adds nothing (exactly); with
+            NUMBER_64 only the products inside the matrix are added at
+            all, so padding never changes a sum, not even a zero's sign.
 
 A GLSL work group's size is fixed when it is compiled, so the size is part
 of the source: each size is its own program.
@@ -84,6 +101,15 @@ class MatrixMultiplyShaderCode
     /* How many integers each run gives the shader, in the order above. */
     public constant integer RUN_INTEGER_COUNT = 6
 
+    /* Two 32-bit numbers per number: about 14 digits, every graphics card. */
+    public constant integer DOUBLE_NUMBER_32 = 0
+    /* 64-bit numbers in GLSL double: exact, cards with 64-bit numbers. */
+    public constant integer NUMBER_64 = 1
+    /* 64-bit numbers, IEEE 754 emulated with 64-bit integers: exact, cards with 64-bit integers. */
+    public constant integer EMULATED_NUMBER_64 = 2
+    /* 64-bit numbers, IEEE 754 emulated with 32-bit integers: exact, every graphics card. */
+    public constant integer EMULATED_32_NUMBER_64 = 3
+
     DoubleNumber32ShaderCode pairs
 
     /*
@@ -107,6 +133,38 @@ class MatrixMultiplyShaderCode
     text tiled = shaderCode:GetCode(true, 16)
     */
     action GetCode(boolean tiled, integer size) returns text
+        return GetCode(tiled, size, DOUBLE_NUMBER_32)
+    end
+
+    /*
+    This action returns the shader's GLSL source with the arithmetic given,
+    with size x size work groups, tiled or plain. DOUBLE_NUMBER_32 needs
+    HardwareCompute's DOUBLE_NUMBER_32 format; the other three need its
+    NUMBER_64 format. Run it with ceil(rowsA / size) by ceil(colsB / size)
+    by 1 work groups, giving each run RUN_INTEGER_COUNT integers.
+
+    Attribute: Parameter tiled true to multiply from tiles in shared memory, false to read from memory.
+
+    Attribute: Parameter size the work group's width and height: 16 is a good default, 1 is one thread per group.
+
+    Attribute: Parameter arithmetic DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64 or EMULATED_32_NUMBER_64.
+
+    Attribute: Returns the GLSL source.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.MatrixMultiplyShaderCode
+
+    MatrixMultiplyShaderCode shaderCode
+    text exact = shaderCode:GetCode(false, 16, shaderCode:EMULATED_32_NUMBER_64)
+    */
+    action GetCode(boolean tiled, integer size, integer arithmetic) returns text
+        if arithmetic < DOUBLE_NUMBER_32 or arithmetic > EMULATED_32_NUMBER_64
+            alert("A matrix multiply's arithmetic needs to be DOUBLE_NUMBER_32, NUMBER_64, EMULATED_NUMBER_64 or EMULATED_32_NUMBER_64, not " + arithmetic + ".")
+        end
+        if arithmetic not= DOUBLE_NUMBER_32
+            return GetNumber64Code(tiled, size, arithmetic)
+        end
         if size < 1
             alert("A matrix multiply's work group size needs to be 1 or more, not " + size + ".")
         end
@@ -208,6 +266,121 @@ void main()
         barrier();
 
         for (uint k = 0u; k < T; ++k) {
+            sum = addNumbers(sum, multiplyNumbers(tileA[lx][k], tileB[k][ly]));
+        }
+        memoryBarrierShared();
+        barrier();
+    }
+
+    if (row < rowsA && col < colsB) {
+        storeNumber(offsetC + row + col * rowsA, sum);
+    }
+}
+"
+    end
+
+    // The NUMBER_64 kernels, with Number64ShaderCode's arithmetic.
+    private action GetNumber64Code(boolean tiled, integer size, integer arithmetic) returns text
+        if size < 1
+            alert("A matrix multiply's work group size needs to be 1 or more, not " + size + ".")
+        end
+        Number64ShaderCode numbers
+        if arithmetic = NUMBER_64
+            numbers:SetArithmetic(numbers:NATIVE)
+        elseif arithmetic = EMULATED_NUMBER_64
+            numbers:SetArithmetic(numbers:WITH_INTEGER_64)
+        else
+            numbers:SetArithmetic(numbers:WITH_INTEGER_32)
+        end
+        text kind = numbers:GetNumberType()
+        text zero = numbers:GetZero()
+        text tile = "" + size
+        text code = "#version 450
+" + numbers:GetHeader() + numbers:GetBufferDeclaration(0) + "
+// this run's sizes, and where its matrices start, in numbers
+layout (push_constant) uniform MultiplyRun {
+    uint rowsA;
+    uint colsA;
+    uint colsB;
+    uint offsetA;
+    uint offsetB;
+    uint offsetC;
+} multiplyRun;
+
+layout (local_size_x = " + tile + ", local_size_y = " + tile + ") in;
+"
+        if tiled
+            code = code + "
+// one tile of each matrix
+shared " + kind + " tileA[" + tile + "][" + tile + "];
+shared " + kind + " tileB[" + tile + "][" + tile + "];
+"
+        end
+        code = code + numbers:GetLoadAndStore() + numbers:GetArithmetic()
+        if tiled
+            code = code + GetNumber64TiledMain(tile, kind, zero)
+        else
+            code = code + GetNumber64PlainMain(kind, zero)
+        end
+        return code
+    end
+
+    // One answer per thread, reading its row and column from memory, adding
+    // in the CPU's order.
+    private action GetNumber64PlainMain(text kind, text zero) returns text
+        return "
+void main()
+{" + GetSetup() + "
+    uint row = gl_GlobalInvocationID.x;
+    uint col = gl_GlobalInvocationID.y;
+
+    if (row < rowsA && col < colsB) {
+        " + kind + " sum = " + zero + ";
+        for (uint k = 0u; k < colsA; ++k) {
+            " + kind + " a = loadNumber(offsetA + row + k * rowsA);
+            " + kind + " b = loadNumber(offsetB + k + col * rowsB);
+            sum = addNumbers(sum, multiplyNumbers(a, b));
+        }
+        storeNumber(offsetC + row + col * rowsA, sum);
+    }
+}
+"
+    end
+
+    // One answer per thread, from tiles the work group loads together. Only
+    // the products inside the matrix are added, so padding adds nothing at
+    // all and the sum is the CPU's, bit for bit.
+    private action GetNumber64TiledMain(text tile, text kind, text zero) returns text
+        return "
+void main()
+{" + GetSetup() + "
+    uint T = " + tile + "u;
+    uint row = gl_GlobalInvocationID.x;
+    uint col = gl_GlobalInvocationID.y;
+    uint lx = gl_LocalInvocationID.x;
+    uint ly = gl_LocalInvocationID.y;
+
+    " + kind + " sum = " + zero + ";
+    uint tiles = (colsA + T - 1u) / T;
+    for (uint t = 0u; t < tiles; ++t) {
+        uint kA = t * T + ly;
+        if (row < rowsA && kA < colsA) {
+            tileA[lx][ly] = loadNumber(offsetA + row + kA * rowsA);
+        } else {
+            tileA[lx][ly] = " + zero + ";
+        }
+        uint kB = t * T + lx;
+        if (kB < rowsB && col < colsB) {
+            tileB[lx][ly] = loadNumber(offsetB + kB + col * rowsB);
+        } else {
+            tileB[lx][ly] = " + zero + ";
+        }
+        memoryBarrierShared();
+        barrier();
+
+        // only the products inside the matrix
+        uint count = min(T, colsA - t * T);
+        for (uint k = 0u; k < count; ++k) {
             sum = addNumbers(sum, multiplyNumbers(tileA[lx][k], tileB[k][ly]));
         }
         memoryBarrierShared();

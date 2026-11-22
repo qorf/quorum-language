@@ -99,9 +99,13 @@ class ModelSelectionHighlight is SelectionHighlight3D
         if item not= undefined
             item:Scale(vector)
         end
-        // The model scaled around its origin and the box around its own
-        // middle, so the box is put back over the model.
-        PlaceOverItem()
+        // The box is made again at the new scale, so its edges stay thin,
+        // and put back over the model, which scaled around its origin.
+        if item not= undefined
+            Load(item, GetSceneEditor())
+        else
+            PlaceOverItem()
+        end
     end
 
     /*
@@ -119,9 +123,13 @@ class ModelSelectionHighlight is SelectionHighlight3D
         if item not= undefined
             item:Scale(x, y, z)
         end
-        // The model scaled around its origin and the box around its own
-        // middle, so the box is put back over the model.
-        PlaceOverItem()
+        // The box is made again at the new scale, so its edges stay thin,
+        // and put back over the model, which scaled around its origin.
+        if item not= undefined
+            Load(item, GetSceneEditor())
+        else
+            PlaceOverItem()
+        end
     end
 
     /*
@@ -134,9 +142,13 @@ class ModelSelectionHighlight is SelectionHighlight3D
         if item not= undefined
             item:SetScaleX(scale)
         end
-        // The model scaled around its origin and the box around its own
-        // middle, so the box is put back over the model.
-        PlaceOverItem()
+        // The box is made again at the new scale, so its edges stay thin,
+        // and put back over the model, which scaled around its origin.
+        if item not= undefined
+            Load(item, GetSceneEditor())
+        else
+            PlaceOverItem()
+        end
     end
 
     /*
@@ -149,9 +161,13 @@ class ModelSelectionHighlight is SelectionHighlight3D
         if item not= undefined
             item:SetScaleY(scale)
         end
-        // The model scaled around its origin and the box around its own
-        // middle, so the box is put back over the model.
-        PlaceOverItem()
+        // The box is made again at the new scale, so its edges stay thin,
+        // and put back over the model, which scaled around its origin.
+        if item not= undefined
+            Load(item, GetSceneEditor())
+        else
+            PlaceOverItem()
+        end
     end
 
     /*
@@ -164,9 +180,13 @@ class ModelSelectionHighlight is SelectionHighlight3D
         if item not= undefined
             item:SetScaleZ(scale)
         end
-        // The model scaled around its origin and the box around its own
-        // middle, so the box is put back over the model.
-        PlaceOverItem()
+        // The box is made again at the new scale, so its edges stay thin,
+        // and put back over the model, which scaled around its origin.
+        if item not= undefined
+            Load(item, GetSceneEditor())
+        else
+            PlaceOverItem()
+        end
     end
 
     /*

@@ -32,6 +32,10 @@ use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesOverrideColorBehav
 use Libraries.Interface.Events.PropertiesColorWellListener
 use Libraries.Interface.Controls.ColorWell
 use Libraries.Interface.Controls.SliderField
+use Libraries.Interface.Forms.FormConstants
+use Libraries.Game.Graphics.ColorGroup
+use Libraries.Game.GameStateManager
+use Libraries.Interface.Options.InterfaceOptions
 use Libraries.Interface.Controls.Scenes.Items.EditorModel
 use Libraries.Interface.Behaviors.Scenes.Properties.PropertiesPartBehavior
 
@@ -60,6 +64,14 @@ class Item3DPropertiesDialog is PropertiesDialog
     TextField massField = undefined
     TextField frictionField = undefined
     TextField restitutionField = undefined
+    // The line under each physics slider, saying roughly what the value is
+    // like (PhysicsEquivalents).
+    Label massEquivalent = undefined
+    Label frictionEquivalent = undefined
+    Label restitutionEquivalent = undefined
+    PhysicsEquivalents equivalents
+    // The physics sliders' label column, before the interface scale.
+    constant number PHYSICS_LABEL_WIDTH = 96
     // A model with a controller gets its physics from the Controller
     // section: its own Physics card is hidden and a note shown instead.
     Control physicsCardPart = undefined
@@ -248,9 +260,14 @@ class Item3DPropertiesDialog is PropertiesDialog
         physicsCard:Add(responsivenessLine)
         focusArray:Add(responsivenessGroup)
 
-        massField = AddField(physicsCard, "Mass", "Mass", focusArray)
-        frictionField = AddField(physicsCard, "Friction", "Friction", focusArray)
-        restitutionField = AddField(physicsCard, "Restitution", "Restitution", focusArray)
+        // Mass spreads by ratio, from a pebble to an elephant; friction and
+        // restitution evenly. Numbers beyond each range can still be typed.
+        massField = AddPhysicsSlider(physicsCard, focusArray, "Mass (kg):", "Mass", "How heavy the item is, in kilograms. 0 is for items that don't move when hit.", 0.01, 10000, 1.1, 2, true)
+        massEquivalent = AddEquivalentLine(physicsCard)
+        frictionField = AddPhysicsSlider(physicsCard, focusArray, "Friction:", "Friction", "How grippy the item is. Two touching items' frictions are combined: multiplied in 3D.", 0, 2, 0.05, 0.25, false)
+        frictionEquivalent = AddEquivalentLine(physicsCard)
+        restitutionField = AddPhysicsSlider(physicsCard, focusArray, "Restitution:", "Restitution", "How bouncy the item is: 0 doesn't bounce, 1 bounces back to the same height.", 0, 2, 0.05, 0.25, false)
+        restitutionEquivalent = AddEquivalentLine(physicsCard)
     end
 
     /*
@@ -522,6 +539,7 @@ class Item3DPropertiesDialog is PropertiesDialog
         massField:SetText("" + item:GetEditorMass())
         frictionField:SetText("" + item:GetEditorFriction())
         restitutionField:SetText("" + item:GetEditorRestitution())
+        UpdatePhysicsEquivalents()
         ShowPartsCard(item)
         ShowPhysicsPart(item)
     end
@@ -663,6 +681,82 @@ class Item3DPropertiesDialog is PropertiesDialog
     end
 
     /*
+        Adds a physics slider to the Physics card: its label, a slider and a
+        field for exact numbers, both in the focus order, and under them a line
+        saying roughly what the value is like. A number beyond the slider's
+        range can still be typed. Returns the field, which the dialog listens to
+        as it does its other fields.
+    */
+    private action AddPhysicsSlider(Control card, Array<Control> focusArray, text label, text name, text description,
+            number minimum, number maximum, number step, number pageStep, boolean byRatio) returns TextField
+        SliderField sliderField = MakeSliderField(label, name, description, minimum, maximum, step, pageStep, PHYSICS_LABEL_WIDTH)
+        sliderField:SetAllowsValuesBeyondRange(true)
+        sliderField:SetDecimalPlaces(2)
+        if byRatio
+            sliderField:SetLogarithmic(true)
+        end
+        TextField field = sliderField:GetField()
+        field:AddTextChangeListener(me)
+        card:Add(sliderField)
+        focusArray:Add(sliderField:GetSlider())
+        focusArray:Add(field)
+        return field
+    end
+
+    // The line under a physics slider, lined up with the slider.
+    private action AddEquivalentLine(Control card) returns Label
+        Label line
+        FormConstants formConstants
+        line:SetSize(formConstants:SMALL_FONT_SIZE)
+        line:SetLeftMargin(12 + PHYSICS_LABEL_WIDTH)
+        line:SetRightMargin(12)
+        line:SetBottomMargin(6)
+        line:SetAccessibilityCode(line:parent:Item:NOT_ACCESSIBLE)
+        GameStateManager themeState
+        InterfaceOptions options = themeState:GetInterfaceOptions()
+        if options not= undefined
+            ColorGroup muted = options:GetFontColor("FieldCaption")
+            if muted not= undefined
+                line:SetFontColor(muted)
+            end
+        end
+        card:Add(line)
+        return line
+    end
+
+    /*
+        Updates the lines under the physics sliders from their fields, and puts
+        each line in its field's description, so a screen reader reads it with
+        the field. Text that isn't a number leaves its line as it was.
+    */
+    private action UpdatePhysicsEquivalents
+        if massEquivalent = undefined
+            return now
+        end
+        check
+            number mass = massField:GetText():Trim():ParseNumber()
+            text massWords = equivalents:DescribeMass(mass)
+            massEquivalent:SetText(massWords)
+            massField:SetDescription(massWords)
+        detect e is Error
+        end
+        check
+            number friction = frictionField:GetText():Trim():ParseNumber()
+            text frictionWords = equivalents:DescribeFriction(friction, true)
+            frictionEquivalent:SetText(frictionWords)
+            frictionField:SetDescription(frictionWords)
+        detect e is Error
+        end
+        check
+            number restitution = restitutionField:GetText():Trim():ParseNumber()
+            text restitutionWords = equivalents:DescribeRestitution(restitution)
+            restitutionEquivalent:SetText(restitutionWords)
+            restitutionField:SetDescription(restitutionWords)
+        detect e is Error
+        end
+    end
+
+    /*
         Updates the properties of the selected item as text is changed in any text field in the dialog.
         If the text is updated to any invalid values the text is ignored. 
     */
@@ -759,6 +853,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         elseif control:Equals(massField)
             check
                 number value = massField:GetText():ParseNumber()
+                // Below 0 can't be saved: a scene ignores it.
+                if value < 0
+                    value = 0
+                end
 
                 if value not= currentItem:GetEditorMass()
                     currentItem:SetEditorMass(value)
@@ -769,6 +867,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         elseif control:Equals(frictionField)
             check
                 number value = frictionField:GetText():ParseNumber()
+                // Below 0 can't be saved: a scene ignores it.
+                if value < 0
+                    value = 0
+                end
 
                 if value not= currentItem:GetEditorFriction()
                     currentItem:SetEditorFriction(value)
@@ -779,6 +881,10 @@ class Item3DPropertiesDialog is PropertiesDialog
         elseif control:Equals(restitutionField)
             check
                 number value = restitutionField:GetText():ParseNumber()
+                // Below 0 can't be saved: a scene ignores it.
+                if value < 0
+                    value = 0
+                end
 
                 if value not= currentItem:GetEditorRestitution()
                     currentItem:SetEditorRestitution(value)
@@ -787,6 +893,7 @@ class Item3DPropertiesDialog is PropertiesDialog
                 // Do nothing.
             end
         end
+        UpdatePhysicsEquivalents()
     end
 
     /*

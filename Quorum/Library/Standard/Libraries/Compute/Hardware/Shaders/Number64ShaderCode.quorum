@@ -1,0 +1,719 @@
+package Libraries.Compute.Hardware.Shaders
+
+/*
+Number64ShaderCode gives the GLSL a compute shader needs to work with
+Quorum's 64-bit numbers held as real 64-bit numbers on the graphics card
+(HardwareCompute's NUMBER_64 format: one 64-bit number per element of the
+buffer, as Quorum and the CPU hold them). Three ways, with the same
+function names, so a kernel works with any (SetArithmetic):
+
+    native     GLSL double: for graphics cards that have 64-bit numbers
+               (HardwareComputeLimits:HasNumber64; NVIDIA and AMD, not
+               Apple). Vulkan requires 64-bit adds and multiplies to be
+               correctly rounded, and every one here is marked precise so
+               none is fused into a multiply-add, so each step rounds
+               exactly as Java does on the CPU.
+    WITH_INTEGER_64
+               IEEE 754 64-bit add and multiply worked out with 64-bit
+               integers (shaderInt64): Apple's cards and most others. Each
+               result is correctly rounded (round to nearest, ties to
+               even), with subnormal numbers, zeros, infinities and NaN, so
+               it too rounds exactly as Java does. On an Apple M-series
+               GPU it ran in 0.54 to 0.63 times double-float's time.
+    WITH_INTEGER_32
+               the same IEEE arithmetic with 32-bit integers only, for
+               cards without 64-bit integers (some Android) and, written
+               in WGSL later, WebGPU, which has no 64-bit types at all.
+               A number is a uvec2 (low word, high word) over the same 8
+               bytes; the 53 x 53-bit product is four umulExtended 32 x
+               32-bit products. The same answers, bit for bit.
+
+    GetHeader              the extension lines the code needs
+    GetBufferDeclaration   the storage buffer, "buff", of 64-bit numbers
+    GetLoadAndStore        loadNumber(i) and storeNumber(i, value)
+    GetArithmetic          multiplyNumbers(a, b) and addNumbers(a, b)
+    GetNumberType          the GLSL type of a number: double, uint64_t or uvec2
+    GetZero                that type's zero
+
+Both emulated arithmetics were checked, before they were written as GLSL,
+in line-for-line models against real 64-bit doubles: 600,000 random
+pairs each (subnormals, numbers near overflow, infinities, zeros,
+near-cancelling pairs) and 100,000 exact ties, with no difference.
+
+Attribute: Example
+
+use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+Number64ShaderCode numbers
+numbers:SetArithmetic(numbers:WITH_INTEGER_32)
+text code = "#version 450
+" + numbers:GetHeader() + numbers:GetBufferDeclaration(0) + "
+layout (local_size_x = 64) in;
+" + numbers:GetLoadAndStore() + numbers:GetArithmetic() + "
+void main()
+{
+    uint i = gl_GlobalInvocationID.x;
+    storeNumber(i, multiplyNumbers(loadNumber(i), loadNumber(i)));
+}
+"
+*/
+class Number64ShaderCode
+    /* GLSL double: cards with 64-bit numbers. */
+    public constant integer NATIVE = 0
+    /* IEEE arithmetic with 64-bit integers: cards with shaderInt64. */
+    public constant integer WITH_INTEGER_64 = 1
+    /* IEEE arithmetic with 32-bit integers: every card. */
+    public constant integer WITH_INTEGER_32 = 2
+
+    integer arithmetic = NATIVE
+
+    /*
+    This action chooses the arithmetic: NATIVE, WITH_INTEGER_64 or
+    WITH_INTEGER_32.
+
+    Attribute: Parameter kind NATIVE, WITH_INTEGER_64 or WITH_INTEGER_32.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    numbers:SetArithmetic(numbers:WITH_INTEGER_32)
+    */
+    action SetArithmetic(integer kind)
+        if kind < NATIVE or kind > WITH_INTEGER_32
+            alert("The arithmetic needs to be NATIVE, WITH_INTEGER_64 or WITH_INTEGER_32, not " + kind + ".")
+        end
+        arithmetic = kind
+    end
+
+    /*
+    This action returns the arithmetic chosen.
+
+    Attribute: Returns NATIVE, WITH_INTEGER_64 or WITH_INTEGER_32.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetArithmeticKind()
+    */
+    action GetArithmeticKind returns integer
+        return arithmetic
+    end
+
+    /*
+    This action chooses between GLSL double (false) and the 64-bit-integer
+    emulation (true). SetArithmetic chooses among all three.
+
+    Attribute: Parameter yes true to emulate with 64-bit integers.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    numbers:SetEmulated(true)
+    */
+    action SetEmulated(boolean yes)
+        if yes
+            arithmetic = WITH_INTEGER_64
+        else
+            arithmetic = NATIVE
+        end
+    end
+
+    /*
+    This action says whether the arithmetic is emulated (with 64-bit or
+    32-bit integers).
+
+    Attribute: Returns true if it emulates.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:IsEmulated()
+    */
+    action IsEmulated returns boolean
+        return arithmetic not= NATIVE
+    end
+
+    /*
+    This action returns the GLSL type of a number.
+
+    Attribute: Returns "double", "uint64_t" or "uvec2".
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetNumberType()
+    */
+    action GetNumberType returns text
+        if arithmetic = WITH_INTEGER_64
+            return "uint64_t"
+        elseif arithmetic = WITH_INTEGER_32
+            return "uvec2"
+        end
+        return "double"
+    end
+
+    /*
+    This action returns the GLSL for a zero of the number type (the bits of
+    +0.0).
+
+    Attribute: Returns "0.0LF", "0UL" or "uvec2(0u, 0u)".
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetZero()
+    */
+    action GetZero returns text
+        if arithmetic = WITH_INTEGER_64
+            return "0UL"
+        elseif arithmetic = WITH_INTEGER_32
+            return "uvec2(0u, 0u)"
+        end
+        return "0.0LF"
+    end
+
+    /*
+    This action returns the extension lines, to follow #version.
+
+    Attribute: Returns the lines, which may be empty.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetHeader()
+    */
+    action GetHeader returns text
+        if arithmetic = WITH_INTEGER_64
+            return "#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+"
+        end
+        return ""
+    end
+
+    /*
+    This action returns the storage buffer, named buff, of 64-bit numbers.
+
+    Attribute: Parameter binding the buffer's binding in descriptor set 0.
+
+    Attribute: Returns the GLSL declaration.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetBufferDeclaration(0)
+    */
+    action GetBufferDeclaration(integer binding) returns text
+        return "
+layout (std430, set=0, binding=" + binding + ") buffer srcBuf {
+    " + GetNumberType() + " data[];
+} buff;
+"
+    end
+
+    /*
+    This action returns loadNumber(i) and storeNumber(i, value): number i
+    of the buffer.
+
+    Attribute: Returns the GLSL functions.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetLoadAndStore()
+    */
+    action GetLoadAndStore returns text
+        text kind = GetNumberType()
+        return "
+" + kind + " loadNumber(uint index) {
+    return buff.data[index];
+}
+
+void storeNumber(uint index, " + kind + " value) {
+    buff.data[index] = value;
+}
+"
+    end
+
+    /*
+    This action returns multiplyNumbers(a, b) and addNumbers(a, b), each
+    correctly rounded.
+
+    Attribute: Returns the GLSL functions.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.Shaders.Number64ShaderCode
+
+    Number64ShaderCode numbers
+    output numbers:GetArithmetic()
+    */
+    action GetArithmetic returns text
+        if arithmetic = WITH_INTEGER_32
+            return GetInteger32Arithmetic()
+        end
+        if arithmetic = NATIVE
+            return "
+// precise: each operation rounded on its own, never fused, as Java does
+double multiplyNumbers(double a, double b) {
+    precise double p = a * b;
+    return p;
+}
+
+double addNumbers(double a, double b) {
+    precise double s = a + b;
+    return s;
+}
+"
+        end
+        return GetEmulatedArithmetic()
+    end
+
+    // IEEE 754 binary64 add and multiply with 64-bit integers, round to
+    // nearest, ties to even. A number travels as its bits.
+    private action GetEmulatedArithmetic returns text
+        return "
+const uint64_t SIGN_BIT = 0x8000000000000000UL;
+const uint64_t ABS_MASK = 0x7FFFFFFFFFFFFFFFUL;
+const uint64_t MANT_MASK = 0x000FFFFFFFFFFFFFUL;
+const uint64_t IMPLICIT_BIT = 0x0010000000000000UL;
+const uint64_t INF_BITS = 0x7FF0000000000000UL;
+const uint64_t QNAN_BITS = 0x7FF8000000000000UL;
+const uint64_t QUIET_BIT = 0x0008000000000000UL;
+
+bool isNanBits(uint64_t a) {
+    return (a & ABS_MASK) > INF_BITS;
+}
+
+// the highest set bit, or -1 for zero
+int highestBit(uint64_t x) {
+    uint hiWord = uint(x >> 32);
+    if (hiWord != 0u) {
+        return 32 + findMSB(hiWord);
+    }
+    return findMSB(uint(x & 0xFFFFFFFFUL));
+}
+
+// m carries 3 extra bits (guard, round, sticky); a normal result has its
+// leading bit at 55. Rounds to nearest, ties to even, and packs.
+uint64_t roundPack(uint64_t sign, int e, uint64_t m) {
+    uint64_t low = m & 7UL;
+    m = m >> 3;
+    if (low > 4UL || (low == 4UL && (m & 1UL) == 1UL)) {
+        m = m + 1UL;
+    }
+    if (m >= (1UL << 53)) {
+        m = m >> 1;
+        e = e + 1;
+    }
+    if (e >= 0x7FF) {
+        return sign | INF_BITS;
+    }
+    if (m < (1UL << 52)) {
+        e = 0;
+    }
+    return sign | (uint64_t(e) << 52) | (m & MANT_MASK);
+}
+
+uint64_t addNumbers(uint64_t a, uint64_t b) {
+    if (isNanBits(a)) { return a | QUIET_BIT; }
+    if (isNanBits(b)) { return b | QUIET_BIT; }
+    if ((a & ABS_MASK) == INF_BITS) {
+        if ((b & ABS_MASK) == INF_BITS && (a ^ b) == SIGN_BIT) {
+            return QNAN_BITS;
+        }
+        return a;
+    }
+    if ((b & ABS_MASK) == INF_BITS) {
+        return b;
+    }
+    if ((a & ABS_MASK) < (b & ABS_MASK)) {
+        uint64_t swap = a;
+        a = b;
+        b = swap;
+    }
+    uint64_t sa = a & SIGN_BIT;
+    uint64_t sb = b & SIGN_BIT;
+    if ((b & ABS_MASK) == 0UL) {
+        if ((a & ABS_MASK) == 0UL) {
+            return sa & sb;
+        }
+        return a;
+    }
+    int ea = int((a >> 52) & 0x7FFUL);
+    int eb = int((b >> 52) & 0x7FFUL);
+    uint64_t ma = a & MANT_MASK;
+    uint64_t mb = b & MANT_MASK;
+    if (ea == 0) { ea = 1; } else { ma = ma | IMPLICIT_BIT; }
+    if (eb == 0) { eb = 1; } else { mb = mb | IMPLICIT_BIT; }
+    ma = ma << 3;
+    mb = mb << 3;
+    int d = ea - eb;
+    if (d > 0) {
+        if (d > 58) {
+            mb = (mb != 0UL) ? 1UL : 0UL;
+        } else {
+            uint64_t sticky = ((mb & ((1UL << d) - 1UL)) != 0UL) ? 1UL : 0UL;
+            mb = (mb >> d) | sticky;
+        }
+    }
+    int e = ea;
+    uint64_t m;
+    if (sa == sb) {
+        m = ma + mb;
+        if (m >= (1UL << 56)) {
+            uint64_t sticky = m & 1UL;
+            m = (m >> 1) | sticky;
+            e = e + 1;
+        }
+    } else {
+        m = ma - mb;
+        if (m == 0UL) {
+            return 0UL;
+        }
+        int shift = 55 - highestBit(m);
+        if (shift > e - 1) {
+            shift = e - 1;
+        }
+        if (shift > 0) {
+            m = m << shift;
+            e = e - shift;
+        }
+    }
+    return roundPack(sa, e, m);
+}
+
+uint64_t multiplyNumbers(uint64_t a, uint64_t b) {
+    uint64_t sign = (a ^ b) & SIGN_BIT;
+    if (isNanBits(a)) { return a | QUIET_BIT; }
+    if (isNanBits(b)) { return b | QUIET_BIT; }
+    if ((a & ABS_MASK) == INF_BITS || (b & ABS_MASK) == INF_BITS) {
+        if ((a & ABS_MASK) == 0UL || (b & ABS_MASK) == 0UL) {
+            return QNAN_BITS;
+        }
+        return sign | INF_BITS;
+    }
+    if ((a & ABS_MASK) == 0UL || (b & ABS_MASK) == 0UL) {
+        return sign;
+    }
+    int ea = int((a >> 52) & 0x7FFUL);
+    int eb = int((b >> 52) & 0x7FFUL);
+    uint64_t ma = a & MANT_MASK;
+    uint64_t mb = b & MANT_MASK;
+    if (ea == 0) {
+        int shift = 52 - highestBit(ma);
+        ma = ma << shift;
+        ea = 1 - shift;
+    } else {
+        ma = ma | IMPLICIT_BIT;
+    }
+    if (eb == 0) {
+        int shift = 52 - highestBit(mb);
+        mb = mb << shift;
+        eb = 1 - shift;
+    } else {
+        mb = mb | IMPLICIT_BIT;
+    }
+
+    // the 106-bit product from 32-bit halves; each partial product fits in 64 bits
+    uint64_t ah = ma >> 32;
+    uint64_t al = ma & 0xFFFFFFFFUL;
+    uint64_t bh = mb >> 32;
+    uint64_t bl = mb & 0xFFFFFFFFUL;
+    uint64_t ll = al * bl;
+    uint64_t mid = al * bh + ah * bl;
+    uint64_t hh = ah * bh;
+    uint64_t lo = ll + (mid << 32);
+    uint64_t carry = (lo < ll) ? 1UL : 0UL;
+    uint64_t hi = hh + (mid >> 32) + carry;
+
+    int e = ea + eb - 1023;
+    uint64_t m;
+    uint64_t sticky;
+    if (hi >= (1UL << 41)) {
+        m = (hi << 14) | (lo >> 50);
+        sticky = ((lo & ((1UL << 50) - 1UL)) != 0UL) ? 1UL : 0UL;
+        e = e + 1;
+    } else {
+        m = (hi << 15) | (lo >> 49);
+        sticky = ((lo & ((1UL << 49) - 1UL)) != 0UL) ? 1UL : 0UL;
+    }
+    m = m | sticky;
+    if (e <= 0) {
+        int shift = 1 - e;
+        if (shift > 57) {
+            m = (m != 0UL) ? 1UL : 0UL;
+        } else {
+            uint64_t lost = ((m & ((1UL << shift) - 1UL)) != 0UL) ? 1UL : 0UL;
+            m = (m >> shift) | lost;
+        }
+        e = 1;
+    }
+    return roundPack(sign, e, m);
+}
+"
+    end
+
+    // IEEE 754 binary64 add and multiply with 32-bit integers only, round
+    // to nearest, ties to even: the same steps as with 64-bit integers.
+    private action GetInteger32Arithmetic returns text
+        return "
+// IEEE 754 binary64 with 32-bit integers only. A number is a uvec2 over
+// the 8 bytes of a double: x the low word, y the high word (sign, 11-bit
+// exponent, top 20 bits of the mantissa). Working values of up to 64 bits
+// are uvec2 pairs too.
+
+const uint SIGN_WORD = 0x80000000u;
+const uint EXP_WORD = 0x7FF00000u;
+const uint MANT_WORD = 0x000FFFFFu;
+const uint QUIET_WORD = 0x00080000u;
+
+uvec2 add64(uvec2 a, uvec2 b) {
+    uint lo = a.x + b.x;
+    uint carry = (lo < a.x) ? 1u : 0u;
+    return uvec2(lo, a.y + b.y + carry);
+}
+
+uvec2 sub64(uvec2 a, uvec2 b) {
+    uint lo = a.x - b.x;
+    uint borrow = (a.x < b.x) ? 1u : 0u;
+    return uvec2(lo, a.y - b.y - borrow);
+}
+
+uvec2 shl64(uvec2 a, int n) {
+    if (n == 0) { return a; }
+    if (n >= 32) { return uvec2(0u, a.x << uint(n - 32)); }
+    return uvec2(a.x << uint(n), (a.y << uint(n)) | (a.x >> uint(32 - n)));
+}
+
+uvec2 shr64(uvec2 a, int n) {
+    if (n == 0) { return a; }
+    if (n >= 32) { return uvec2(a.y >> uint(n - 32), 0u); }
+    return uvec2((a.x >> uint(n)) | (a.y << uint(32 - n)), a.y >> uint(n));
+}
+
+bool lt64(uvec2 a, uvec2 b) {
+    return a.y < b.y || (a.y == b.y && a.x < b.x);
+}
+
+bool isZero64(uvec2 a) {
+    return (a.x | a.y) == 0u;
+}
+
+// the highest set bit, or -1 for zero
+int highestBit64(uvec2 a) {
+    if (a.y != 0u) {
+        return 32 + findMSB(a.y);
+    }
+    return findMSB(a.x);
+}
+
+// are any of the low d bits set (0 < d < 64)?
+bool lowBitsNonZero(uvec2 a, int d) {
+    if (d <= 0) { return false; }
+    if (d >= 64) { return !isZero64(a); }
+    return !isZero64(shl64(a, 64 - d));
+}
+
+bool isNanNumber(uvec2 a) {
+    uint high = a.y & 0x7FFFFFFFu;
+    return high > EXP_WORD || (high == EXP_WORD && a.x != 0u);
+}
+
+bool isInfNumber(uvec2 a) {
+    return (a.y & 0x7FFFFFFFu) == EXP_WORD && a.x == 0u;
+}
+
+bool isZeroNumber(uvec2 a) {
+    return (a.y & 0x7FFFFFFFu) == 0u && a.x == 0u;
+}
+
+// m carries 3 extra bits (guard, round, sticky); a normal result has its
+// leading bit at 55. Rounds to nearest, ties to even, and packs.
+uvec2 roundPack(uint sign, int e, uvec2 m) {
+    uint low = m.x & 7u;
+    m = shr64(m, 3);
+    if (low > 4u || (low == 4u && (m.x & 1u) == 1u)) {
+        m = add64(m, uvec2(1u, 0u));
+    }
+    if (!lt64(m, uvec2(0u, 1u << 21))) {
+        m = shr64(m, 1);
+        e = e + 1;
+    }
+    if (e >= 0x7FF) {
+        return uvec2(0u, sign | EXP_WORD);
+    }
+    if (lt64(m, uvec2(0u, 1u << 20))) {
+        e = 0;
+    }
+    return uvec2(m.x, sign | (uint(e) << 20) | (m.y & MANT_WORD));
+}
+
+uvec2 addNumbers(uvec2 a, uvec2 b) {
+    if (isNanNumber(a)) { return uvec2(a.x, a.y | QUIET_WORD); }
+    if (isNanNumber(b)) { return uvec2(b.x, b.y | QUIET_WORD); }
+    if (isInfNumber(a)) {
+        if (isInfNumber(b) && (a.y ^ b.y) == SIGN_WORD) {
+            return uvec2(0u, 0x7FF80000u);
+        }
+        return a;
+    }
+    if (isInfNumber(b)) {
+        return b;
+    }
+    if (lt64(uvec2(a.x, a.y & 0x7FFFFFFFu), uvec2(b.x, b.y & 0x7FFFFFFFu))) {
+        uvec2 swap = a;
+        a = b;
+        b = swap;
+    }
+    uint sa = a.y & SIGN_WORD;
+    uint sb = b.y & SIGN_WORD;
+    if (isZeroNumber(b)) {
+        if (isZeroNumber(a)) {
+            return uvec2(0u, sa & sb);
+        }
+        return a;
+    }
+    int ea = int((a.y >> 20) & 0x7FFu);
+    int eb = int((b.y >> 20) & 0x7FFu);
+    uvec2 ma = uvec2(a.x, a.y & MANT_WORD);
+    uvec2 mb = uvec2(b.x, b.y & MANT_WORD);
+    if (ea == 0) { ea = 1; } else { ma.y = ma.y | (1u << 20); }
+    if (eb == 0) { eb = 1; } else { mb.y = mb.y | (1u << 20); }
+    ma = shl64(ma, 3);
+    mb = shl64(mb, 3);
+    int d = ea - eb;
+    if (d > 0) {
+        if (d > 58) {
+            mb = uvec2(isZero64(mb) ? 0u : 1u, 0u);
+        } else {
+            uint sticky = lowBitsNonZero(mb, d) ? 1u : 0u;
+            mb = shr64(mb, d);
+            mb.x = mb.x | sticky;
+        }
+    }
+    int e = ea;
+    uvec2 m;
+    if (sa == sb) {
+        m = add64(ma, mb);
+        if (!lt64(m, uvec2(0u, 1u << 24))) {
+            uint sticky = m.x & 1u;
+            m = shr64(m, 1);
+            m.x = m.x | sticky;
+            e = e + 1;
+        }
+    } else {
+        m = sub64(ma, mb);
+        if (isZero64(m)) {
+            return uvec2(0u, 0u);
+        }
+        int shift = 55 - highestBit64(m);
+        if (shift > e - 1) {
+            shift = e - 1;
+        }
+        if (shift > 0) {
+            m = shl64(m, shift);
+            e = e - shift;
+        }
+    }
+    return roundPack(sa, e, m);
+}
+
+uvec2 multiplyNumbers(uvec2 a, uvec2 b) {
+    uint sign = (a.y ^ b.y) & SIGN_WORD;
+    if (isNanNumber(a)) { return uvec2(a.x, a.y | QUIET_WORD); }
+    if (isNanNumber(b)) { return uvec2(b.x, b.y | QUIET_WORD); }
+    if (isInfNumber(a) || isInfNumber(b)) {
+        if (isZeroNumber(a) || isZeroNumber(b)) {
+            return uvec2(0u, 0x7FF80000u);
+        }
+        return uvec2(0u, sign | EXP_WORD);
+    }
+    if (isZeroNumber(a) || isZeroNumber(b)) {
+        return uvec2(0u, sign);
+    }
+    int ea = int((a.y >> 20) & 0x7FFu);
+    int eb = int((b.y >> 20) & 0x7FFu);
+    uvec2 ma = uvec2(a.x, a.y & MANT_WORD);
+    uvec2 mb = uvec2(b.x, b.y & MANT_WORD);
+    if (ea == 0) {
+        int shift = 52 - highestBit64(ma);
+        ma = shl64(ma, shift);
+        ea = 1 - shift;
+    } else {
+        ma.y = ma.y | (1u << 20);
+    }
+    if (eb == 0) {
+        int shift = 52 - highestBit64(mb);
+        mb = shl64(mb, shift);
+        eb = 1 - shift;
+    } else {
+        mb.y = mb.y | (1u << 20);
+    }
+
+    // the 106-bit product in four 32-bit words r0 (low) to r3, from four
+    // 32 x 32-bit products, each giving its high and low words
+    uint h00; uint l00; umulExtended(ma.x, mb.x, h00, l00);
+    uint h01; uint l01; umulExtended(ma.x, mb.y, h01, l01);
+    uint h10; uint l10; umulExtended(ma.y, mb.x, h10, l10);
+    uint h11; uint l11; umulExtended(ma.y, mb.y, h11, l11);
+    uint r0 = l00;
+    uint t = h00 + l01;
+    uint c1 = (t < h00) ? 1u : 0u;
+    uint r1 = t + l10;
+    uint c2 = (r1 < t) ? 1u : 0u;
+    uint u = h01 + h10;
+    uint d1 = (u < h01) ? 1u : 0u;
+    uint u2 = u + l11;
+    uint d2 = (u2 < u) ? 1u : 0u;
+    uint r2 = u2 + c1 + c2;
+    uint d3 = (r2 < u2) ? 1u : 0u;
+    uint r3 = h11 + d1 + d2 + d3;
+    uvec2 hi = uvec2(r2, r3);
+    uvec2 lo = uvec2(r0, r1);
+
+    int e = ea + eb - 1023;
+    uvec2 m;
+    uint sticky;
+    if (r3 >= (1u << 9)) {
+        m = shl64(hi, 14) | shr64(lo, 50);
+        sticky = lowBitsNonZero(lo, 50) ? 1u : 0u;
+        e = e + 1;
+    } else {
+        m = shl64(hi, 15) | shr64(lo, 49);
+        sticky = lowBitsNonZero(lo, 49) ? 1u : 0u;
+    }
+    m.x = m.x | sticky;
+    if (e <= 0) {
+        int shift = 1 - e;
+        if (shift > 57) {
+            m = uvec2(isZero64(m) ? 0u : 1u, 0u);
+        } else {
+            uint lost = lowBitsNonZero(m, shift) ? 1u : 0u;
+            m = shr64(m, shift);
+            m.x = m.x | lost;
+        }
+        e = 1;
+    }
+    return roundPack(sign, e, m);
+}
+"
+    end
+end

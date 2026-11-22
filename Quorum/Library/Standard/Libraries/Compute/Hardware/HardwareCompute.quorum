@@ -33,13 +33,20 @@ Numbers can be given two ways:
                           have no 64-bit numbers. Numbers past the range of
                           a 32-bit number (above about 3.4e38, or below
                           about 1e-38) can't be held this way.
-        NUMBER_64         real 64-bit numbers, on cards that have them (not
-                          Apple's). Not written yet.
+        NUMBER_64         each number as it is, 64 bits, exactly as Quorum
+                          holds it. Storing them works on every graphics
+                          card; the program decides how to compute with
+                          them: GLSL double on cards with 64-bit numbers,
+                          or IEEE 754 arithmetic emulated with integers on
+                          any card, which gives the CPU's answers bit for
+                          bit.
 
 The program must be written for the format: with DOUBLE_NUMBER_32, number
 i is 32-bit numbers 2i (high) and 2i + 1 (low) of the buffer, and
 Libraries.Compute.Hardware.Shaders.DoubleNumber32ShaderCode reads and
-writes them.
+writes them; with NUMBER_64, number i is 64-bit number i, and
+Libraries.Compute.Hardware.Shaders.Number64ShaderCode reads, writes and
+computes with them.
 
 Several runs can also be sent together, in order, each seeing what the
 one before it wrote: BeginRuns, then AddRun for each, then FinishRuns,
@@ -83,7 +90,7 @@ end
 class HardwareCompute
     /* Each 64-bit number as two 32-bit numbers, high and low: every graphics card. */
     public constant integer DOUBLE_NUMBER_32 = 0
-    /* Each 64-bit number as a real 64-bit number: only graphics cards that have them. */
+    /* Each 64-bit number as it is, 64 bits: every graphics card (see Number64ShaderCode for computing with it). */
     public constant integer NUMBER_64 = 1
 
     integer numberFormat = DOUBLE_NUMBER_32
@@ -111,8 +118,8 @@ class HardwareCompute
 
     /*
     This action sets how Quorum's 64-bit numbers are held on the graphics
-    card: DOUBLE_NUMBER_32 (the default; every graphics card) or NUMBER_64
-    (graphics cards with 64-bit numbers). Set it before SetData, and give
+    card: DOUBLE_NUMBER_32 (the default) or NUMBER_64 (each number as it
+    is). Both work on every graphics card. Set it before SetData, and give
     a program written for the same format.
 
     Attribute: Parameter format DOUBLE_NUMBER_32 or NUMBER_64.

@@ -5,7 +5,7 @@ The HardwareComputeLimits class holds what a compute device allows, in
 terms that don't depend on the graphics system: how large a work group may
 be, how many work groups one run may have, how much shared memory a work
 group may use, how large a block of data may be, and whether the device
-has 64-bit numbers. A HardwareComputeDevice fills one in (GetLimits);
+has 64-bit numbers and 64-bit integers. A HardwareComputeDevice fills one in (GetLimits);
 programs read it to choose work group sizes that fit.
 
 Attribute: Example
@@ -32,6 +32,7 @@ class HardwareComputeLimits
     integer maxSharedMemoryBytes = 0
     number maxDataBytes = 0
     boolean hasNumber64 = false
+    boolean hasInteger64 = false
 
     /*
     This action returns the most threads one work group may have, in all
@@ -230,8 +231,10 @@ class HardwareComputeLimits
     end
 
     /*
-    This action says whether the device has real 64-bit numbers, which
-    HardwareCompute's NUMBER_64 format needs.
+    This action says whether the device has real 64-bit numbers, so a
+    program can compute with HardwareCompute's NUMBER_64 format in GLSL
+    double. Without them, NUMBER_64 can still be held and computed with
+    exactly by emulation (see HasInteger64).
 
     Attribute: Returns true if the device has 64-bit numbers.
 
@@ -263,6 +266,46 @@ class HardwareComputeLimits
     */
     action SetHasNumber64(boolean yes)
         hasNumber64 = yes
+    end
+
+    /*
+    This action says whether the device has 64-bit integers. Programs that
+    hold numbers as NUMBER_64 on a card without 64-bit numbers can still
+    compute with them exactly, emulating IEEE 754 64-bit arithmetic with
+    integers (Libraries.Compute.Hardware.Shaders.Number64ShaderCode): with
+    64-bit integers when the device has them, otherwise with 32-bit ones,
+    which every device has.
+
+    Attribute: Returns true if the device has 64-bit integers.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    if limits:HasInteger64()
+        output "64-bit numbers can be emulated with 64-bit integers."
+    end
+    */
+    action HasInteger64 returns boolean
+        return hasInteger64
+    end
+
+    /*
+    This action sets whether the device has 64-bit integers. The device
+    calls it.
+
+    Attribute: Parameter yes true if it has them.
+
+    Attribute: Example
+
+    use Libraries.Compute.Hardware.HardwareComputeLimits
+
+    HardwareComputeLimits limits
+    limits:SetHasInteger64(true)
+    */
+    action SetHasInteger64(boolean yes)
+        hasInteger64 = yes
     end
 
     private action CheckDirection(integer direction)

@@ -1,6 +1,7 @@
 package Libraries.Interface.Controls.Scenes.Items.Highlights
 
 use Libraries.Game.Scenes.SceneProperties
+use Libraries.Interface.Item
 use Libraries.Interface.Item3D
 use Libraries.Interface.Events.FocusEvent
 use Libraries.Game.Graphics.Color
@@ -22,13 +23,15 @@ use Libraries.Interface.Controls.Scenes.SceneEditor
 class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     
     EditorModel item = undefined
+    SelectionBoxMesh boxMesh
 
     // True while the box is drawn faint, such as over a vehicle whose
     // guides show inside it, and whether it is selected now.
     boolean faint = false
     boolean selectedNow = false
-    constant number FAINT_SELECTED_OPACITY = 0.15
-    constant number FAINT_UNSELECTED_OPACITY = 0.1
+    // How much of its color a faint box's fill and edges keep.
+    constant number FAINT_FILL_SHARE = 0.3
+    constant number FAINT_EDGE_SHARE = 0.5
 
     on create
         SetInputGroup("SelectionHighlight3D")
@@ -39,18 +42,29 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
     end
 
     /*
+        This action returns the selected item's friction as the scene editor
+        stores it. A 3D item with no friction saved has the 3D physics
+        default, 0.5, as EditorItem3D says. Both parents have this action,
+        so this class chooses: the selected item's value, with the 3D
+        default.
+
+        Attribute: Returns The coefficient of friction.
+    */
+    action GetEditorFriction returns number
+        SceneProperties properties
+        Item selected = GetItem()
+        if selected not= undefined and selected:HasProperty(properties:FRICTION)
+            return selected:GetProperty(properties:FRICTION):GetNumber()
+        end
+        return 0.5
+    end
+
+    /*
         Loads a box that is big enough to contain the entire selected item.
     */
     action Load(EditorModel item, SceneEditor controller)
-        Color color = undefined
         SceneConstants constants = GetConstants()
-
         selectedNow = IsFocused()
-        if IsFocused()
-            color = constants:SELECTION_HIGHLIGHT_SELECTED_COLOR
-        else
-            color = constants:SELECTION_HIGHLIGHT_UNSELECTED_COLOR
-        end
 
         number padding = constants:SELECTION_HIGHLIGHT_PADDING_3D
 
@@ -64,28 +78,16 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         number boxHeight = item:GetHeight() + padding / ScaleOrOne(item:GetScaleY())
         number boxDepth = item:GetDepth() + padding / ScaleOrOne(item:GetScaleZ())
 
-        boolean loadedShape = false
-        if item is Model
-            Model model = cast(Model, item)
-            integer type = model:GetModelType()
-            if type = properties:BOX
-                LoadBox(boxWidth, boxHeight, boxDepth, color)
-                loadedShape = true
-            elseif type = properties:SPHERE
-                LoadSphere(boxWidth, boxHeight, boxDepth, color)
-                loadedShape = true
-            elseif type = properties:CYLINDER
-                LoadCylinder(boxWidth, boxHeight, boxDepth, color)
-                loadedShape = true
-            elseif type = properties:PLANE
-                LoadBox(boxWidth, padding / ScaleOrOne(item:GetScaleY()), boxDepth, color)
-                loadedShape = true
-            end
+        // An unlit, see-through box with bright edges, the same in sun or
+        // shade (SelectionBoxMesh). A plane's box is thin.
+        number shownHeight = boxHeight
+        if item:GetModelType() = properties:PLANE
+            shownHeight = padding / ScaleOrOne(item:GetScaleY())
         end
-
-        if loadedShape = false
-            LoadBox(boxWidth, boxHeight, boxDepth, color)
-        end
+        Vector3 itemScale
+        itemScale:Set(item:GetScaleX(), item:GetScaleY(), item:GetScaleZ())
+        parent:Model:Load(boxMesh:GetBlueprint(boxWidth, shownHeight, boxDepth, itemScale))
+        ShowColor()
 
         SetRotationTransform(item:GetRotationTransform())
 
@@ -187,18 +189,26 @@ class SelectionHighlight3D is EditorItem3D, SelectionHighlight
         Gives the box its color: selected or not, and faint or not.
     */
     private action ShowColor
-        Color color = GetConstants():SELECTION_HIGHLIGHT_UNSELECTED_COLOR
-        number opacity = FAINT_UNSELECTED_OPACITY
+        SceneConstants constants = GetConstants()
+        Color fill = constants:SELECTION_BOX_UNSELECTED_FILL
+        Color edges = constants:SELECTION_BOX_UNSELECTED_EDGES
         if selectedNow
-            color = GetConstants():SELECTION_HIGHLIGHT_SELECTED_COLOR
-            opacity = FAINT_SELECTED_OPACITY
+            fill = constants:SELECTION_BOX_SELECTED_FILL
+            edges = constants:SELECTION_BOX_SELECTED_EDGES
         end
+        Color shownFill
+        shownFill:SetColor(fill:GetRed(), fill:GetGreen(), fill:GetBlue(), fill:GetAlpha())
+        Color shownEdges
+        shownEdges:SetColor(edges:GetRed(), edges:GetGreen(), edges:GetBlue(), edges:GetAlpha())
+        // Faint, such as over a vehicle whose guides show inside it.
         if faint
-            Color faded
-            faded:SetColor(color:GetRed(), color:GetGreen(), color:GetBlue(), opacity)
-            parent:Model:SetColor(faded)
-        else
-            parent:Model:SetColor(color)
+            shownFill:SetAlpha(fill:GetAlpha() * FAINT_FILL_SHARE)
+            shownEdges:SetAlpha(edges:GetAlpha() * FAINT_EDGE_SHARE)
+        end
+        // Part 0 is the fill, part 1 the edges (SelectionBoxMesh).
+        if parent:Model:GetPartCount() >= 2
+            parent:Model:SetColor(0, shownFill)
+            parent:Model:SetColor(1, shownEdges)
         end
     end
 

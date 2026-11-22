@@ -4,6 +4,7 @@ use Libraries.Interface.Layouts.SliderFieldLayout
 use Libraries.Game.Graphics.Label
 use Libraries.Interface.Events.SliderChangedEvent
 use Libraries.Interface.Events.SliderListener
+use Libraries.Containers.Array
 use Libraries.Interface.Events.SliderFieldFocusListener
 use Libraries.Interface.Events.SliderFieldTextListener
 
@@ -54,6 +55,9 @@ class SliderField is Control, SliderListener
     // True while the field holds such a number, which is beyondValue.
     boolean holdingBeyond = false
     number beyondValue = 0
+    // The listeners added with AddSliderListener, also told directly about a
+    // number typed beyond the range, which the slider can't hold.
+    Array<SliderListener> fieldListeners
 
     on create
         SetLayout(layout)
@@ -281,6 +285,7 @@ class SliderField is Control, SliderListener
     */
     action AddSliderListener(SliderListener listener)
         slider:AddSliderListener(listener)
+        fieldListeners:Add(listener)
     end
 
     /*
@@ -290,6 +295,7 @@ class SliderField is Control, SliderListener
     */
     action RemoveSliderListener(SliderListener listener)
         slider:RemoveSliderListener(listener)
+        boolean removed = fieldListeners:Remove(listener)
     end
 
     /*
@@ -320,12 +326,37 @@ class SliderField is Control, SliderListener
             HoldIfBeyond(typed)
             if holdingBeyond
                 // The field keeps the number; the slider rests at its end.
+                // The slider's value can't change to it, so the listeners
+                // are told here, as for any final change.
+                number oldValue = slider:GetValue()
                 slider:SetValue(typed)
+                TellBeyondValue(oldValue, typed)
                 return now
             end
             slider:ChangeValue(typed, true)
         end
         ShowNumber()
+    end
+
+    /*
+        Tells the listeners about a number typed beyond the range: a final
+        change to that number. GetValue returns it.
+    */
+    private action TellBeyondValue(number oldValue, number newValue)
+        if fieldListeners:IsEmpty()
+            return now
+        end
+        SliderChangedEvent event
+        event:SetSlider(slider)
+        event:SetOldValue(oldValue)
+        event:SetNewValue(newValue)
+        event:SetFinal(true)
+        Array<SliderListener> listeners = fieldListeners:CopyToArray()
+        integer i = 0
+        repeat while i < listeners:GetSize()
+            listeners:Get(i):SliderChanged(event)
+            i = i + 1
+        end
     end
 
     /*

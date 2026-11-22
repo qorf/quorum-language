@@ -1,0 +1,168 @@
+package Libraries.Interface.Controls.Scenes.Items.Highlights
+
+use Libraries.Game.Graphics.Models.ModelBlueprint
+use Libraries.Game.Graphics.Models.Data.ModelData
+use Libraries.Game.Graphics.Models.Data.MeshData
+use Libraries.Game.Graphics.Models.Data.Material
+use Libraries.Game.Graphics.Models.Vulkan.ModelManagerVulkan
+use Libraries.Containers.Array
+use Libraries.Containers.Number32BitArray
+use Libraries.Containers.Integer32BitArray
+use Libraries.Compute.Vector3
+use Libraries.Compute.Vector4
+use Libraries.Compute.Math
+
+/*
+The SelectionBoxMesh makes the scene editor's selection box: a see-through
+fill (part 0) and its twelve edges (part 1), each unlit, so the box looks
+the same in sun or shade, and seen from both sides. The box's colors are
+set on each part (Model's SetColor with a part number). The edges are made
+thinner by the item's scale, so they look about the same width whatever
+the scale. Boxes of the same size and scale share one mesh.
+
+Attribute: Example
+use Libraries.Interface.Controls.Scenes.Items.Highlights.SelectionBoxMesh
+use Libraries.Game.Graphics.Model
+use Libraries.Compute.Vector3
+
+SelectionBoxMesh maker
+Vector3 scale
+scale:Set(1, 1, 1)
+Model box
+box:Load(maker:GetBlueprint(2, 1, 3, scale))
+*/
+class SelectionBoxMesh
+    // How wide the edges look, in world units.
+    constant number EDGE_WIDTH = 0.04
+    Math math
+
+    /*
+    This action returns the box's blueprint, made once for each size and
+    scale.
+
+    Attribute: Parameter width The box's width, in the item's own units
+    Attribute: Parameter height The box's height
+    Attribute: Parameter depth The box's depth
+    Attribute: Parameter itemScale The item's scale, so the edges can be made thinner by it
+    Attribute: Returns The blueprint: part 0 the fill, part 1 the edges
+    */
+    action GetBlueprint(number width, number height, number depth, Vector3 itemScale) returns ModelBlueprint
+        number edgeX = EDGE_WIDTH / ScaleOrOne(itemScale:GetX())
+        number edgeY = EDGE_WIDTH / ScaleOrOne(itemScale:GetY())
+        number edgeZ = EDGE_WIDTH / ScaleOrOne(itemScale:GetZ())
+        Array<MeshData> meshes
+        meshes:Add(MakeFill(width / 2, height / 2, depth / 2))
+        meshes:Add(MakeEdges(width / 2, height / 2, depth / 2, edgeX, edgeY, edgeZ))
+        meshes:Get(1):SetMaterialIndex(1)
+
+        Array<Material> materials
+        materials:Add(MakeMaterial())
+        materials:Add(MakeMaterial())
+
+        ModelData modelData
+        modelData:SetID("Selection box " + math:Round(width, 5) + " " + math:Round(height, 5) + " " + math:Round(depth, 5) +
+            " " + math:Round(edgeX, 6) + " " + math:Round(edgeY, 6) + " " + math:Round(edgeZ, 6))
+        modelData:SetMeshes(meshes)
+        modelData:SetMaterials(materials)
+        ModelManagerVulkan manager
+        return manager:GetModelBlueprint(modelData)
+    end
+
+    /*
+    Returns a scale's size, or 1 for 0, so it can be divided by.
+    */
+    private action ScaleOrOne(number scale) returns number
+        number size = math:AbsoluteValue(scale)
+        if size = 0
+            return 1
+        end
+        return size
+    end
+
+    /*
+    Makes a white, unlit, two-sided material; the box's colors go on each
+    part.
+    */
+    private action MakeMaterial returns Material
+        Material material
+        Vector4 white
+        white:Set(1, 1, 1, 1)
+        material:SetDiffuse(white)
+        material:SetUnlit(true)
+        material:SetTwoSided(true)
+        return material
+    end
+
+    /*
+    Makes the fill: the box's six faces.
+    */
+    private action MakeFill(number x, number y, number z) returns MeshData
+        SelectionBoxBuilder builder
+        builder:Start(6)
+        builder:AddQuad(-x, -y, z, x, -y, z, -x, y, z, x, y, z)
+        builder:AddQuad(-x, -y, -z, x, -y, -z, -x, y, -z, x, y, -z)
+        builder:AddQuad(x, -y, -z, x, -y, z, x, y, -z, x, y, z)
+        builder:AddQuad(-x, -y, -z, -x, -y, z, -x, y, -z, -x, y, z)
+        builder:AddQuad(-x, y, -z, x, y, -z, -x, y, z, x, y, z)
+        builder:AddQuad(-x, -y, -z, x, -y, -z, -x, -y, z, x, -y, z)
+        return builder:Finish(0)
+    end
+
+    /*
+    Makes the edges: each of the twelve as two thin strips crossing along
+    it, so it shows from any side.
+    */
+    private action MakeEdges(number x, number y, number z, number edgeX, number edgeY, number edgeZ) returns MeshData
+        SelectionBoxBuilder builder
+        builder:Start(24)
+        number halfX = edgeX / 2
+        number halfY = edgeY / 2
+        number halfZ = edgeZ / 2
+        // Along x, at the four corners of a side.
+        integer i = 0
+        repeat while i < 4
+            number cornerY = y
+            number cornerZ = z
+            if i mod 2 = 1
+                cornerY = -y
+            end
+            if i >= 2
+                cornerZ = -z
+            end
+            builder:AddQuad(-x, cornerY - halfY, cornerZ, x, cornerY - halfY, cornerZ, -x, cornerY + halfY, cornerZ, x, cornerY + halfY, cornerZ)
+            builder:AddQuad(-x, cornerY, cornerZ - halfZ, x, cornerY, cornerZ - halfZ, -x, cornerY, cornerZ + halfZ, x, cornerY, cornerZ + halfZ)
+            i = i + 1
+        end
+        // Along y.
+        i = 0
+        repeat while i < 4
+            number cornerX = x
+            number cornerZ = z
+            if i mod 2 = 1
+                cornerX = -x
+            end
+            if i >= 2
+                cornerZ = -z
+            end
+            builder:AddQuad(cornerX - halfX, -y, cornerZ, cornerX + halfX, -y, cornerZ, cornerX - halfX, y, cornerZ, cornerX + halfX, y, cornerZ)
+            builder:AddQuad(cornerX, -y, cornerZ - halfZ, cornerX, -y, cornerZ + halfZ, cornerX, y, cornerZ - halfZ, cornerX, y, cornerZ + halfZ)
+            i = i + 1
+        end
+        // Along z.
+        i = 0
+        repeat while i < 4
+            number cornerX = x
+            number cornerY = y
+            if i mod 2 = 1
+                cornerX = -x
+            end
+            if i >= 2
+                cornerY = -y
+            end
+            builder:AddQuad(cornerX - halfX, cornerY, -z, cornerX + halfX, cornerY, -z, cornerX - halfX, cornerY, z, cornerX + halfX, cornerY, z)
+            builder:AddQuad(cornerX, cornerY - halfY, -z, cornerX, cornerY + halfY, -z, cornerX, cornerY - halfY, z, cornerX, cornerY + halfY, z)
+            i = i + 1
+        end
+        return builder:Finish(1)
+    end
+end

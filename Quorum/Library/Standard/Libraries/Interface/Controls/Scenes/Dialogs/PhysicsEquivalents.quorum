@@ -1,0 +1,131 @@
+package Libraries.Interface.Controls.Scenes.Dialogs
+
+/*
+    The PhysicsEquivalents class describes an item's mass, friction and
+    restitution in everyday terms, such as "Roughly a house cat" or "Roughly
+    ice on ice", for the lines under the physics sliders in the properties
+    panels. The descriptions are rough, from published values:
+
+    Mass: a tennis ball, 56 to 59.4 g (ITF); a size 7 basketball, 567 to 624
+    g; a healthy adult house cat, about 3.6 to 5.4 kg; a bowling ball, at most
+    7.26 kg; an adult person, 62 kg on average worldwide (Walpole et al.,
+    2012); an upright piano, about 194 to 302 kg (Yamaha, Steinway); a car,
+    about 1,400 to 1,900 kg; an African bush elephant, about 2,600 to 6,900 kg.
+    Each description covers the masses nearer to it than to its neighbors on
+    a logarithmic scale.
+
+    Friction, the coefficient between two surfaces: ice on ice, about 0.02 to
+    0.1; Teflon on Teflon, about 0.04; waxed wood on wet snow, 0.1 to 0.14;
+    wood on wood, 0.2 to 0.5; shoes on wood, 0.7 to 0.9; rubber on dry
+    concrete, 0.6 to 1.0. Two items' frictions are combined before this
+    applies: in 2D as the square root of their product, in 3D as their
+    product, at most 10. A description assumes both items have the value.
+
+    Restitution, how much of its speed a ball keeps in a bounce: a golf ball,
+    about 0.67 to 0.68; a tennis ball, about 0.73 to 0.76 (from the ITF's
+    rebound test); a basketball, about 0.73 to 0.80 (from FIBA's); a table
+    tennis ball, about 0.89 to 0.92 (from the ITTF's); a super ball, about 0.8
+    to 0.92. Two items bounce with the larger of their values, so a
+    description is of the item bouncing off something less bouncy.
+*/
+class PhysicsEquivalents
+
+    // The most two 3D items' combined friction can be.
+    constant number MOST_FRICTION_3D = 10
+
+    /*
+        This action describes a mass, in kilograms, as something about as heavy.
+
+        Attribute: Parameter mass The mass, in kilograms.
+        Attribute: Returns The description, such as "Roughly a house cat".
+    */
+    action DescribeMass(number mass) returns text
+        if mass <= 0
+            return "No mass: it doesn't move when hit"
+        elseif mass < 0.02
+            return "Lighter than a tennis ball"
+        elseif mass < 0.19
+            return "Roughly a tennis ball"
+        elseif mass < 1.6
+            return "Roughly a basketball"
+        elseif mass < 5.6
+            return "Roughly a house cat"
+        elseif mass < 21
+            return "Roughly a bowling ball"
+        elseif mass < 124
+            return "Roughly a grown-up person"
+        elseif mass < 630
+            return "Roughly an upright piano"
+        elseif mass < 2800
+            return "Roughly a car"
+        elseif mass < 15000
+            return "Roughly an elephant"
+        end
+        return "Heavier than an elephant"
+    end
+
+    /*
+        This action describes an item's friction as two surfaces with about the
+        same grip, when both touching items have this value.
+
+        Attribute: Parameter friction The item's friction.
+        Attribute: Parameter threeD True for a 3D item, false for a 2D one.
+        Attribute: Returns The description, such as "Roughly wood on wood".
+    */
+    action DescribeFriction(number friction, boolean threeD) returns text
+        if friction < 0
+            return "Less than no grip, which can't happen in real life"
+        end
+        // The friction between two items that both have this value.
+        number combined = friction
+        if threeD
+            combined = friction * friction
+            if combined >= MOST_FRICTION_3D
+                return "As grippy as Quorum allows"
+            end
+        end
+
+        if combined < 0.02
+            return "Almost no grip, slicker than wet ice"
+        elseif combined < 0.06
+            return "Roughly ice on ice, or Teflon on Teflon"
+        elseif combined < 0.15
+            return "Roughly a waxed sled on wet snow"
+        elseif combined < 0.5
+            return "Roughly wood on wood"
+        elseif combined < 0.8
+            return "Roughly a shoe on a wooden floor"
+        elseif combined < 1.1
+            return "Roughly a rubber tire on dry concrete"
+        end
+        return "Grippier than rubber on concrete, more than real surfaces"
+    end
+
+    /*
+        This action describes an item's restitution as a ball that bounces about
+        as much, when the item hits something less bouncy.
+
+        Attribute: Parameter restitution The item's restitution.
+        Attribute: Returns The description, such as "Roughly a golf ball on a hard floor".
+    */
+    action DescribeRestitution(number restitution) returns text
+        if restitution < 0
+            return "Less than no bounce, which can't happen in real life"
+        elseif restitution < 0.1
+            return "Barely bounces"
+        elseif restitution < 0.6
+            return "A weak bounce"
+        elseif restitution < 0.7
+            return "Roughly a golf ball on a hard floor"
+        elseif restitution < 0.82
+            return "Roughly a tennis ball or a basketball"
+        elseif restitution < 0.96
+            return "Roughly a ping-pong ball or a super ball"
+        elseif restitution < 0.995
+            return "Bouncier than any real ball"
+        elseif restitution <= 1.005
+            return "A perfect bounce, back to the same height"
+        end
+        return "Bounces higher each time, which can't happen in real life"
+    end
+end
