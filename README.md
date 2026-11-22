@@ -1,56 +1,86 @@
-# The Quorum Programming Language #
+# The Quorum Programming Language
 
-Quorum is a general purpose programming language designed for several purposes. First, we regularly run experiments with people at various age and experience ranges, investigating ways to make the language easier to use. Evidence gathered from these studies is filtered back into the design, making quorum an "evidence-based" programming language. Second, as our team is interested in issues of equity for all people, perhaps especially people with disabilities, we are careful to design libraries that are friendly to the broad population. This means many internal libraries in the language have support for accessibility.
+Quorum is an evidence-based programming language. Its design is shaped by
+studies of how people of many ages and experience levels learn and use it,
+and its libraries are built to be accessible, including to people with
+disabilities.
 
-# Available Libraries and Materials #
+## Learning and using Quorum
 
-Quorum has a mature and rich standard library for creating computer programs, in addition to a significant amount of documentation and [reference tutorials](https://quorumlanguage.com/reference.html). For high-school teachers, there is also a set of tracks available for the classroom, including [Computer Science Principles](https://quorumlanguage.com/lessons/code.html). The reference page provides an abridged list of all available libraries and tutorials supporting them. Roughly, this list includes features like:
+Everything for writing programs in Quorum is on
+[quorumlanguage.com](https://quorumlanguage.com):
 
-1. Sound Libraries (e.g., digital signal processing, playback)
-2. Graphics Libraries (e.g.,  2D, 3D, models, shaders, accessibility support)
-3. Physics support (e.g., 2D, 3D, joints)
-4. User Interface Libraries (e.g., buttons, trees, event systems)
-5. Data Science libraries (e.g., accessible charts, statistical tests)
-6. Compilation and Parsing (Quorum is self-hosted)
-7. LEGO robotics through EV3
-8. Database support
-9. Data type support (e.g., CSV, JSON)
+- **[Download](https://quorumlanguage.com/download.html):** Quorum Studio,
+  the development environment.
+- **[Learn](https://quorumlanguage.com/learn.html) and
+  [Reference](https://quorumlanguage.com/reference.html):** tutorials for the
+  language and its libraries.
+- **[Libraries](https://quorumlanguage.com/libraries.html):** every class in
+  the standard library.
+- **[Release notes](https://quorumlanguage.com/release.html)** and
+  **[Evidence](https://quorumlanguage.com/evidence.html)** (the research
+  behind the language).
 
-There are many other types of operations not listed here. For a complete list of currently supported standard library classes, see the [Standard Library Page](https://quorumlanguage.com/libraries.html). Note that Quorum can be run as Java Virtual Machine Bytecode or as JavaScript. Not all libraries are available for each language target.
+Quorum programs compile to Java bytecode, JavaScript or Python. Not every
+library is available for every target.
 
-### Developing in Quorum ###
+## Repositories
 
-The easiest way to develop for Quorum is to use the corresponding development environment, [Quorum Studio](https://github.com/qorf/quorum-studio). Quorum Studio provides many of the basic features of Quorum, like compiling and running programs. It can be downloaded from [The Quorum Download Page](https://quorumlanguage.com/download.html). Quorum can also be run online on the website and partners are encouraged to embed Quorum on their webpages.
+Quorum is split across these repositories. Clone them into the same folder,
+next to each other.
 
-### Building Quorum from Source ###
+- **[quorum-language](https://github.com/qorf/quorum-language)** (this one):
+  the compiler and the standard library.
+- **[quorum-studio](https://github.com/qorf/quorum-studio)**: Quorum Studio,
+  the development environment.
+- **[quorum-natives](https://github.com/qorf/quorum-natives)**: the native
+  code the standard library uses on each platform.
+- **[quorum-test](https://github.com/qorf/quorum-test)**: the compiler's
+  tests.
 
-The easiest way to build Quorum is in Quorum Studio. To build it, please follow these directions:
+## Building Quorum from source
 
-1. Visit the Github page to get the latest source code for Quorum: [Quorum Repository](https://github.com/qorf/quorum-language).
-1. Switch to the most current branch, if you wish (e.g., git checkout Quorum-10).
-1. Clone the repository using Git from the terminal. The command will look something like "git clone https://github.com/qorf/quorum-language.git"
-1. Open Quorum Studio 4.0 or above
-1. Inside of Quorum Studio, open Quorum, which is under quorum-language/Quorum
-1. Build the project
+You need [Quorum Studio](https://quorumlanguage.com/download.html) and Git.
 
-We can also regenerate the standard library by running RunLibrary.quorum. The compiler's tests live in their own repository, quorum-test, which sits next to quorum-language. Open its QuorumTest project in Quorum Studio and run it, or run run.sh (macOS and Linux) or run.bat (Windows) from its QuorumTest folder after building it. It tests bytecode, JavaScript and Python, and downloads the Java and Node.js it needs the first time.
+1. Clone the repository:
+   `git clone https://github.com/qorf/quorum-language.git`
+2. In Quorum Studio, open the project in `quorum-language/Quorum`.
+3. Build the project.
 
+## Changing the standard library
 
-### Overriding the Standard Library in Quorum Studio ###
-Sometimes we need to tell Quorum Studio that we are requesting a change to the standard library itself. This is similar to telling Java we want a different version of the java development kit than the one it has installed. The following allows us to issue a standard library override (Requires Quorum Studio 4.0 or above):
+The standard library's source is in `quorum-language/Quorum/Library/Standard`.
+To try your changes in Quorum Studio, rebuild the library and point Studio at it.
 
-1. Open the quorum compiler to the current version (Quorum-10 branch)
-1. Make any changes to the standard library we want.
-1. Call RunLibrary.quorum by doing "Set As Main" and running the project. This regenerates everything, so can take time.
-1. Close Quorum Studio.
-1. Open Quorum Studio's options file. This is usually located at
-   1. Mac: /Users/myusername/Library/Application Support/Quorum Studio/Options.json
-   1. PC: type %appdata% into explorer and find QuorumStudio/Options.json
-1. Change the JSON, to the following two lines:
+**Before you start:** rebuilding the library also builds its Java plugins with
+gradle, which needs the Android SDK with API 34 or later. If it isn't
+installed, the build stops and lists what to install.
 
-```
-Override Standard Library": true,
-"Library": "/Users/myusername/Repositories/quorum-language/Quorum/Library",
-```
+1. Make your changes in `Quorum/Library/Standard`.
+2. Run the Quorum project. It starts at `SourceCode/RunLibrary.quorum`, which
+   rebuilds the library into `Quorum/Library/Compiled`. This takes a while.
+3. Open **Edit > Edit Quorum Studio Properties** (Control+Alt+P; on a Mac,
+   Control+Option+P) and go to the **General** tab.
+4. In the **Library** card, check **Override Library**, and set
+   **Override Library Path** to the full path of your `Library` folder, the
+   one that holds `Standard` and `Compiled`. For example:
+   - Mac: `/Users/yourname/Repositories/quorum-language/Quorum/Library`
+   - Windows: `C:\Users\yourname\Repositories\quorum-language\Quorum\Library`
+5. Select **Ok**, then restart Quorum Studio. It reads the library only when
+   it starts.
 
-The actual library location is wherever our Quorum installation lives. We can then restart Quorum Studio and it will use our custom version of the standard library. Note that generally, overriding the standard library is only necessary if we are adjusting the standard library. For most users, it is not necessary. 
+If the path isn't an existing folder, Studio turns the override off without
+saying so. If your changes don't appear, reopen the dialog and check that
+**Override Library** is still checked.
+
+To go back to the library that came with Quorum Studio, uncheck
+**Override Library** and restart.
+
+## Testing
+
+The compiler's tests are in [quorum-test](https://github.com/qorf/quorum-test),
+which goes next to quorum-language. Open its `QuorumTest` project in Quorum
+Studio and run it. After it's built, you can also run `run.sh` (macOS and
+Linux) or `run.bat` (Windows) in its `QuorumTest` folder. It tests bytecode,
+JavaScript and Python, and downloads the Java and Node.js it needs the first
+time.

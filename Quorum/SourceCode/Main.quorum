@@ -34,7 +34,6 @@ class Main is NetworkExchangeListener
     public constant text DOCUMENT_LIBRARY = "-documentLibrary"
     public constant text ERRORS_FLAG = "-errors"
     public constant text SERVER_FLAG = "-server"
-    public constant text WEB_FLAG = "-web"
     public constant text JAVASCRIPT_FLAG = "-javascript"
     public constant text PYTHON_FLAG = "-python"
     public constant text LIBRARY_FLAG = "-library"
@@ -61,7 +60,7 @@ class Main is NetworkExchangeListener
 
         DateTime time
         File standardLibraryFolder = undefined //compiler:GetStandardLibraryFolder()
-        output compiler:GetVersion() + " Compile Test"
+        output compiler:GetVersion() + " Documentation Generator"
         Library library
 
         if flagValues:HasKey(LIBRARY_FLAG)
@@ -89,7 +88,6 @@ class Main is NetworkExchangeListener
         number start = time:GetEpochTime()
         
         library:SetCachingLibraryOpcodes(true)
-        library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
         library:Scan()
 
@@ -166,7 +164,6 @@ class Main is NetworkExchangeListener
         number start = time:GetEpochTime()
         
         library:SetCachingLibraryOpcodes(true)
-        library:SetLocation(standardLibraryFolder)
         library:SetOutputFolder(outputLocation)
         library:Scan()
         output "Writing Standard Library to HTML"
@@ -552,10 +549,8 @@ class Main is NetworkExchangeListener
     /*
         Flags are processed by Quorum in a particular order and within certain
         constraints. The -help flag overrides everything, so it is requested, 
-        other flags are ignored. If -compile is requested, then -web cannot be. 
-        The converse is also true.
-        The name flag can be used in combination with either -web or -compile, 
-        but not both.
+        other flags are ignored. The name flag can be used with -compile,
+        -javascript or -python.
     */
     private action DoFlagActions
         //first check if the help flag is in there
@@ -622,7 +617,7 @@ class Main is NetworkExchangeListener
                     return now
                 end
 
-                Compile(name, names, false, true)
+                Compile(name, names, true)
                 return now
             else
                 output "I noticed a -errors flag was issued, but this flag can only be requested on its own, not with other flags."
@@ -631,24 +626,14 @@ class Main is NetworkExchangeListener
         end
 
         if flagValues:HasKey(DOCUMENT_LIBRARY)
-            if flagValues:HasKey(WEB_FLAG)
-                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
-                return now
-            end
-
             GenerateDocumentation()
             return now
         end
 
-        //
-        if flagValues:HasKey(DOCUMENT_LIBRARY)
-            if flagValues:HasKey(WEB_FLAG)
-                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
-                return now
-            end
-            Array<text> names = flagValues:GetValue(COMPILE_FLAG)
+        if flagValues:HasKey(DOCUMENT_FLAG)
+            Array<text> names = flagValues:GetValue(DOCUMENT_FLAG)
             if names:IsEmpty()
-                output "I noticed you asked for a program to be compiled, but that no files were passed."
+                output "I noticed you asked for documentation, but that no files were passed."
                 output GetHelpText()
                 return now
             end
@@ -658,11 +643,6 @@ class Main is NetworkExchangeListener
         end
 
         if flagValues:HasKey(COMPILE_FLAG)
-            if flagValues:HasKey(WEB_FLAG)
-                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
-                return now
-            end
-
             Array<text> names = flagValues:GetValue(COMPILE_FLAG)
 
             if names:IsEmpty()
@@ -671,15 +651,15 @@ class Main is NetworkExchangeListener
                 return now
             end
 
-            Compile(name, names, false, false)
+            Compile(name, names, false)
             return now
         end
 
         if flagValues:HasKey(JAVASCRIPT_FLAG)
             Array<text> names = flagValues:GetValue(JAVASCRIPT_FLAG)
 
-            if flagValues:HasKey(WEB_FLAG) or flagValues:HasKey(COMPILE_FLAG)
-                output "I noticed the javascript flag was used with the compile flag or the web flag. Only one can be passed, otherwise I cannot determine how to package the program."
+            if flagValues:HasKey(COMPILE_FLAG)
+                output "I noticed the javascript flag was used with the compile flag. Only one can be passed, otherwise I cannot determine how to package the program."
                 return now
             end
 
@@ -689,15 +669,15 @@ class Main is NetworkExchangeListener
                 return now
             end
 
-            Compile(name, names, false, false)
+            Compile(name, names, false)
             return now
         end
 
         if flagValues:HasKey(PYTHON_FLAG)
             Array<text> names = flagValues:GetValue(PYTHON_FLAG)
 
-            if flagValues:HasKey(WEB_FLAG) or flagValues:HasKey(COMPILE_FLAG)
-                output "I noticed the python flag was used with the compile flag or the web flag. Only one can be passed, otherwise I cannot determine how to package the program."
+            if flagValues:HasKey(COMPILE_FLAG)
+                output "I noticed the python flag was used with the compile flag. Only one can be passed, otherwise I cannot determine how to package the program."
                 return now
             end
 
@@ -707,25 +687,7 @@ class Main is NetworkExchangeListener
                 return now
             end
 
-            Compile(name, names, false, false)
-            return now
-        end
-
-        if flagValues:HasKey(WEB_FLAG)
-            if flagValues:HasKey(COMPILE_FLAG)
-                output "I noticed the compile flag and the web flag were both used. Only one can be passed, otherwise I cannot determine how to package the program."
-                return now
-            end
-
-            Array<text> names = flagValues:GetValue(WEB_FLAG)
-
-            if names:IsEmpty()
-                output "I noticed you asked for a program to be compiled to the web, but that no files were passed."
-                output GetHelpText()
-                return now
-            end
-
-            Compile(name, names, true, false)
+            Compile(name, names, false)
             return now
         end
     end
@@ -769,7 +731,7 @@ class Main is NetworkExchangeListener
         output "Complete in " + seconds + " seconds." 
     end
 
-    private action Compile(text name, Array<text> fileNames, boolean isWebApplication, boolean errorsOnly)
+    private action Compile(text name, Array<text> fileNames, boolean errorsOnly)
         Array<File> files
         i = 0
         repeat fileNames:GetSize() times
@@ -834,7 +796,6 @@ class Main is NetworkExchangeListener
         File main = files:Get(0)
 
         request:main = main
-        request:isWebRequest = isWebApplication
         request:library = library
         request:files = files
 
@@ -880,8 +841,9 @@ class Main is NetworkExchangeListener
 Valid Quorum Commands include:
     -name This flag tells Quorum to change the name the file is outputs.
     -compile This flag tells Quorum to compile a set of files. If no flag is passed, this is the default.
-    -web This flag tells Quorum to convert to a server-side application
     -javascript This flag converts the source code to JavaScript, so it can be run in a browser.
+    -document This flag writes documentation pages for the classes in the files passed to it.
+    -documentLibrary This flag writes documentation pages for the standard library.
     -library If a file path is passed to this flag, we can tell Quorum we have placed its standard library in a different folder.
     -server This flag tells Quorum to start itself as a web server on a particular port. If no parameter is specified, the port 1269 is used.
     -setup If a file path is passed to this flag, it tells Quorum to recompile its standard library. Generally, unless you have modified the standard library, this flag should not be used.
