@@ -49,6 +49,16 @@ public class NativeVulkanNumber64BitMappedMemory implements VulkanNumber64BitMap
         return doubleBuffer.get(index);
     }
 
+    public void GetNative(int index, Number64BitArray_ quorumArray, int arrayOffset, int arrayItems)
+    {
+        double[] array = ((Number64BitArray)quorumArray).plugin_.doubles;
+        // The reading partner of the bulk SetNative: one copy out of the mapped memory.
+        if (doubleBuffer.position() != index)
+            doubleBuffer.position(index);
+
+        doubleBuffer.get(array, arrayOffset, arrayItems);
+    }
+
     public void Dispose()
     {
         /*
