@@ -234,6 +234,50 @@ class HashTable<Key, Value>
         return size
     end
 
+    /*
+        This action returns how many buckets the hash table has: the places
+        a key's hash code can lead to. The table adds buckets as it grows,
+        keeping no more than three items for every four buckets.
+
+        Attribute: Returns The number of buckets.
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        integer buckets = phoneBook:GetBucketCount()
+    */
+    action GetBucketCount returns integer
+        return arraySize
+    end
+
+    /*
+        This action returns how many buckets hold at least one item. Keys
+        with well spread hash codes fill many buckets; if most items share a
+        few buckets, finding a key means searching through many items, which
+        is slow.
+
+        Attribute: Returns The number of buckets in use.
+
+        Attribute: Example
+        use Libraries.Containers.HashTable
+        HashTable<text, integer> phoneBook
+        phoneBook:Add("Jane", 2626984)
+        phoneBook:Add("Kim", 5551234)
+        integer used = phoneBook:GetBucketsInUse()
+    */
+    action GetBucketsInUse returns integer
+        integer used = 0
+        integer i = 0
+        repeat while i < arraySize
+            if array:Get(i) not= undefined
+                used = used + 1
+            end
+            i = i + 1
+        end
+        return used
+    end
+
      /*
         This action sets the size of the hash table. If this table already has 
         entries, it forces it to resize, manually rehashing all objects. For this 
@@ -392,6 +436,9 @@ class HashTable<Key, Value>
                         node2:value = value
                         node:next = node2
                         size = size + 1
+                        //added, so stop: going on would walk the chain again
+                        //and compare the new key with itself
+                        node = undefined
                     else
                         node = node:next
                     end

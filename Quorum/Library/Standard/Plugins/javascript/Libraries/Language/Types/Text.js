@@ -145,6 +145,27 @@ String.prototype.GetTab = function() {
 String.prototype.GetDoubleQuote = function() {
     return String.fromCharCode(34);
 };
+// DoubleQuote, LineFeed and Tab for a primitive text: the same as the
+// actions in Text.quorum. An undefined value fails as UndefinedObjectError.
+function global_Text_Check_Content_(content) {
+    if (content === undefined || content === null) {
+        var error = new quorum_Libraries_Language_Errors_UndefinedObjectError_();
+        error.SetErrorMessage$quorum_text("The text to add was undefined.");
+        throw error;
+    }
+}
+String.prototype.DoubleQuote$quorum_text = function(content) {
+    global_Text_Check_Content_(content);
+    return this.valueOf() + String.fromCharCode(34) + content + String.fromCharCode(34);
+};
+String.prototype.LineFeed$quorum_text = function(content) {
+    global_Text_Check_Content_(content);
+    return this.valueOf() + String.fromCharCode(10) + content;
+};
+String.prototype.Tab$quorum_text = function(content) {
+    global_Text_Check_Content_(content);
+    return this.valueOf() + String.fromCharCode(9) + content;
+};
 String.prototype.GetUnicodeValue$quorum_integer = function(value) {
     return String.fromCharCode(value);
 };

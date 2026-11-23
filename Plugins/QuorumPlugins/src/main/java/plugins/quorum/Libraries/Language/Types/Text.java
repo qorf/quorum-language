@@ -532,6 +532,29 @@ public class Text {
         return "\"";
     }
     
+    // DoubleQuote, LineFeed and Tab for a primitive text: the same as the
+    // actions in Text.quorum. An undefined value fails as UndefinedObjectError.
+    public static String PrimitiveDoubleQuote(String self, String content) {
+        CheckContent(content);
+        return self + "\"" + content + "\"";
+    }
+    
+    public static String PrimitiveLineFeed(String self, String content) {
+        CheckContent(content);
+        return self + "\n" + content;
+    }
+    
+    public static String PrimitiveTab(String self, String content) {
+        CheckContent(content);
+        return self + "\t" + content;
+    }
+    
+    private static void CheckContent(String content) {
+        if (content == null) {
+            throw new NullPointerException("The text to add was undefined.");
+        }
+    }
+    
     public static String PrimitiveGetUnicodeValue(String self, int unicode) {//throws Error{
         if(self == null){
             throw(new RuntimeException());

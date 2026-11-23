@@ -123,6 +123,68 @@ class Text is Object
     system action GetDoubleQuote() returns text
 
     /*
+        This action returns this text followed by the given words in double
+        quotes. It doesn't change this text. Like LineFeed and Tab, it
+        returns text, so calls can be chained.
+
+        Attribute: Parameter content The words to put in double quotes.
+        Attribute: Returns This text, then the words in double quotes.
+
+        Attribute: Example
+        text message = "Quorum Studio says "
+        message = message:DoubleQuote("Placed"):LineFeed("Done")
+        output message
+    */
+    action DoubleQuote(text content) returns text
+        CheckContent(content)
+        text quote = GetDoubleQuote()
+        return value + quote + content + quote
+    end
+
+    /*
+        This action returns this text, a line feed, and then the given
+        words. It doesn't change this text. Use LineFeed("") to end a line.
+
+        Attribute: Parameter content The words that start the next line.
+        Attribute: Returns This text, a line feed, then the words.
+
+        Attribute: Example
+        text message = "First line"
+        message = message:LineFeed("Second line")
+        output message
+    */
+    action LineFeed(text content) returns text
+        CheckContent(content)
+        return value + GetLineFeed() + content
+    end
+
+    /*
+        This action returns this text, a tab, and then the given words. It
+        doesn't change this text.
+
+        Attribute: Parameter content The words after the tab.
+        Attribute: Returns This text, a tab, then the words.
+
+        Attribute: Example
+        text row = "Name"
+        row = row:Tab("Score"):Tab("Rank")
+        output row
+    */
+    action Tab(text content) returns text
+        CheckContent(content)
+        return value + GetTab() + content
+    end
+
+    /* The words added by DoubleQuote, LineFeed and Tab must be defined. */
+    private action CheckContent(text content)
+        if content = undefined
+            UndefinedObjectError error
+            error:SetErrorMessage("The text to add was undefined.")
+            alert(error)
+        end
+    end
+
+    /*
         This action gets a unicode symbol text value. This allows any unicode symbol to be
         added to a text variable without using the literal value.
 
