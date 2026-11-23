@@ -80,14 +80,15 @@ class ByteArray
 
     /*
     This action creates a new ByteArray that is a sub-array of an existing ByteArray,
-    starting at begin and ending at finish.
+    from begin up to, but not including, finish. A finish equal to the size of the
+    array takes the bytes to the end.
 
     Attribute: Parameter begin The index location to begin creating the new ByteArray.
 
     Attribute: Parameter finish The index location to finish creating the new ByteArray.
 
-    Attribute: Returns Returns a ByteArray containing all elements from the original ByteArray
-    between begin and finish, inclusive.
+    Attribute: Returns Returns a ByteArray containing the finish - begin elements from the
+    original ByteArray, starting at begin.
 
     Attribute: Example
     use Libraries.Containers.ByteArray

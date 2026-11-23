@@ -52,7 +52,7 @@ public class ByteArray {
         int size = finish - begin;
         byte[] newBytes = null;
         int j = 0;
-        if(size > 0 && begin >= 0 && finish < bytes.length) {
+        if(size > 0 && begin >= 0 && finish <= bytes.length) { // finish is not copied, so it may be the length
             newBytes = new byte[size];
             for(int i = begin; i < finish; i++) {
                 newBytes[j] = bytes[i];

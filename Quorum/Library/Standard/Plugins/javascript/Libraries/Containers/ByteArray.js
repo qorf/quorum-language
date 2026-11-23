@@ -104,15 +104,15 @@ function plugins_quorum_Libraries_Containers_ByteArray_() {
     this.GetSubArray$quorum_integer$quorum_integer = function(begin, finish){    
         var array = new quorum_Libraries_Containers_ByteArray_();
         var size = finish - begin;
-        var newBytes = new Int8Array(size);
+        var newBytes = new Int8Array(Math.max(size, 0));
         var j = 0;
-        if(size > 0 && begin >= 0 && finish < this.byteArray.length) {
+        if(size > 0 && begin >= 0 && finish <= this.byteArray.length) { // finish is not copied, so it may be the length
             for(var i = begin; i < finish; i++) {
                 newBytes[j] = this.byteArray[i];
                 j = j + 1;
             }
         } else {
-            newBytes = [];
+            newBytes = new Int8Array(0);
         }
         array.plugin_.byteArray = newBytes;
         return array;
