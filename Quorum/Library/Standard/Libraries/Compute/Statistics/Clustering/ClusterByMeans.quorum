@@ -23,8 +23,9 @@ use Libraries.Compute.Statistics.Calculations.Variance
 
     This implementation requires that any of the values in the DataFrame must be an integer or a number, or
     convertable as such, and that no undefined values exist. In either case, an error will be thrown 
-    when the algorithm processes the values. It also requires the cluster count to be greater than 0 and 
-    the number of clusters must be strictly less than the number of rows.
+    when the algorithm processes the values. It also requires the cluster count to be greater than 0 and
+    at most the number of rows (as many clusters as rows puts each row in its own cluster, as R's
+    kmeans and scikit-learn allow).
 
     Attribute: Author Andreas Stefik
 
@@ -550,8 +551,8 @@ class ClusterByMeans
             i = i + 1
         end
 
-        //now check if the number of clusters is strictly lower than 
-        //the number of points in the columns
+        //now check that there are no more clusters than points in the
+        //columns (as many as the points is allowed)
         if columnSize < clusterCount
             errorMessage = "Cannot calculate clustering, as the number of points in the 
                 columns, " + columnSize + ", must be greater than or equal to the 
@@ -559,7 +560,8 @@ class ClusterByMeans
             return false
         end
 
-        if clusterCount = 0
+        //0 or a negative count (a negative one used to pass)
+        if clusterCount <= 0
             errorMessage = "Cannot calculate clustering, as the number of clusters
                 must be greater than 0."
             return false

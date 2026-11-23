@@ -794,7 +794,7 @@ class ComplexNumber
         end
 
         ComplexNumber complex
-        complex:SetValue(math:NaturalLogarithm(me:AbsoluteValue()), math:InverseTangent2(imaginary, real))
+        complex:SetValue(math:NaturalLogarithm(me:AbsoluteValue()), math:InverseTangent(real, imaginary))
         return complex
     end
 

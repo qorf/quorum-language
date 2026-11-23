@@ -10,6 +10,11 @@ use Libraries.Compute.Math
 class CosineAction is UnivariateAction
     action Calculate(number x) returns number
         Math math
+        //the kernel is 0 outside -1 to 1 (its support), as its definition says;
+        //the formula alone gave other values there (even negative ones)
+        if math:AbsoluteValue(x) > 1
+            return 0
+        end
         number fraction1 = math:pi / 4
         number fraction2 = math:pi / 2
         number kernel = fraction1 * math:Cosine(fraction2 * x)

@@ -127,6 +127,44 @@ def Global_Wrap_Int(value):
 	value &= 0xFFFFFFFF
 	return value - 0x100000000 if value & 0x80000000 else value
 		
+
+# Integer division and remainder, as Java's int: by zero is a
+# DivideByZeroError, the quotient is cut toward zero (Python's // rounds
+# down) and wrapped to 32 bits, and a remainder takes the dividend's sign
+# (Python's % takes the divisor's). abs, // and % only, for MicroPython.
+def Global_Integer_Divide(left, right):
+	if right == 0:
+		raise quorum_Libraries_Language_Errors_DivideByZeroError_()
+	quotient = abs(left) // abs(right)
+	if (left < 0) != (right < 0):
+		quotient = -quotient
+	return Global_Wrap_Int(quotient)
+
+def Global_Integer_Modulo(left, right):
+	if right == 0:
+		raise quorum_Libraries_Language_Errors_DivideByZeroError_()
+	remainder = abs(left) % abs(right)
+	return -remainder if left < 0 else remainder
+
+# Number division and remainder, as Java's double: by zero gives Infinity,
+# -Infinity or NaN (Python raises), with -0.0 counting as negative, and a
+# remainder takes the dividend's sign (math.fmod, which MicroPython has).
+def Global_Number_Divide(left, right):
+	try:
+		return left / right
+	except ZeroDivisionError:
+		if left != left or left == 0:
+			return float("nan")
+		negative = (left < 0) != str(float(right)).startswith("-")
+		return float("-inf") if negative else float("inf")
+
+def Global_Number_Modulo(left, right):
+	import math
+	try:
+		return math.fmod(left, right)
+	except ValueError:
+		return float("nan")
+
 def Global_CheckCast(from_, to):
 	if (from_ is None or from_ == None):
 		return from_

@@ -162,7 +162,16 @@ class DocumentTypeDefinitionAttribute
 
             withCommaType = newType:Replace("|", ",") // This is a work-around because split action wouldn't work on "|" character
 
-            enumeratedAttributeValues = withCommaType:Split(",")
+            // Spaces around the | separators are not part of the values.
+            Array<text> pieces = withCommaType:Split(",")
+            Array<text> values
+            integer i = 0
+            repeat while i < pieces:GetSize()
+                text piece = pieces:Get(i)
+                values:Add(piece:Trim())
+                i = i + 1
+            end
+            enumeratedAttributeValues = values
 
             attributeType = ""
             return true
@@ -215,13 +224,36 @@ class DocumentTypeDefinitionAttribute
             sub = value:GetSubtext(0, 6)
             if sub:Equals("#FIXED")
                 isFixed = true
-                attributeValue = value:GetSubtext(7)
+                text fixedValue = value:GetSubtext(6)
+                attributeValue = RemoveQuotes(fixedValue:Trim())
             else
                 attributeValue = value:Replace(value:GetDoubleQuote(), "")
             end
         else
             attributeValue = value:Replace(value:GetDoubleQuote(), "")
         end
+    end
+
+    /*
+        This action removes one pair of matching quotes (single or double)
+        around a value, if it has them.
+    */
+    private action RemoveQuotes(text value) returns text
+        integer valueSize = value:GetSize()
+        if valueSize < 2
+            return value
+        end
+
+        text first = value:GetCharacter(0)
+        text last = value:GetCharacter(valueSize - 1)
+        if first = last
+            if first = "'"
+                return value:GetSubtext(1, valueSize - 1)
+            elseif first = value:GetDoubleQuote()
+                return value:GetSubtext(1, valueSize - 1)
+            end
+        end
+        return value
     end
 
     /*

@@ -78,12 +78,7 @@ class CommaSeparatedSaver is DataFrameSaver
         i = 0
         repeat while i < size
             DataFrameColumn column = frame:GetColumn(i)
-            text headerText = column:GetHeader()
-            if headerText:Contains(",")
-                header = header + dq + column:GetHeader() + dq
-            else
-                header = header + column:GetHeader()
-            end
+            header = header + Quote(column:GetHeader())
 
             if i = size - 1
                 header = header + lf
@@ -111,13 +106,7 @@ class CommaSeparatedSaver is DataFrameSaver
                 if row < column:GetSize()
                     text value = column:GetAsText(row)
                     if value not= undefined
-                        if not value:IsEmpty() and value:Contains(",")
-                            currentRow = currentRow + dq + value + dq
-                        elseif not value:IsEmpty() and value:Contains(lf)
-                            currentRow = currentRow + dq + value + dq
-                        else
-                            currentRow = currentRow + value
-                        end
+                        currentRow = currentRow + Quote(value)
                     end
                     hadRow = true
                 end
@@ -195,5 +184,30 @@ class CommaSeparatedSaver is DataFrameSaver
     */
     action ConvertToText(DataFrame frame) returns text
         return ConvertToText(frame, -1, true) //pass -1 if we aren't row limiting
+    end
+
+    /*
+        A value as a CSV field, as RFC 4180 writes it: in double quotes if it
+        holds a comma, a double quote, a line feed or a carriage return, with
+        each double quote inside doubled (say "hi" becomes "say ""hi""").
+        Values used to be quoted only for a comma or line feed, and quotes
+        weren't doubled, so the reader couldn't read them back.
+    */
+    private action Quote(text value) returns text
+        if value = undefined
+            return ""
+        end
+        text dq = value:GetDoubleQuote()
+        boolean needsQuotes = false
+        if value:Contains(",") or value:Contains(dq)
+            needsQuotes = true
+        end
+        if value:Contains(value:GetLineFeed()) or value:Contains(value:GetCarriageReturn())
+            needsQuotes = true
+        end
+        if needsQuotes
+            return dq + value:Replace(dq, dq + dq) + dq
+        end
+        return value
     end
 end

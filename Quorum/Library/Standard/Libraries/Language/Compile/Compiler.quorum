@@ -643,6 +643,13 @@ class Compiler
                 end
              
                 HashTable<text, Class> transitiveDependencies = MiniTransitiveDependency(classOpcodes)
+                //integer division and mod raise DivideByZeroError (Object.py's
+                //Global_Integer_Divide and Global_Integer_Modulo), so it's
+                //always included, as Error is
+                Class divideByZeroClass = table:GetClass("Libraries.Language.Errors.DivideByZeroError")
+                if divideByZeroClass not= undefined
+                    MiniTransitiveDependency(divideByZeroClass, transitiveDependencies)
+                end
                 Iterator<Class> iterator = transitiveDependencies:GetValueIterator()
                 repeat while iterator:HasNext()
                     Class cl = iterator:Next()

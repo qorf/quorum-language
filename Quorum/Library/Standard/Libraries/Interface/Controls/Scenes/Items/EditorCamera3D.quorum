@@ -123,7 +123,7 @@ class EditorCamera3D is PerspectiveCamera
         end
         // The inverse of UpdateCameraRotation, which looks along the yaw and
         // the negative pitch.
-        yaw = math:RadiansToDegrees(math:InverseTangent2(direction:GetX(), direction:GetZ()))
+        yaw = math:RadiansToDegrees(math:InverseTangent(direction:GetZ(), direction:GetX()))
         pitch = -math:RadiansToDegrees(math:InverseSine(directionY))
         calcQuaternion:SetEulerAngles(yaw, pitch, roll)
         rotationMatrix:Set(calcQuaternion)
@@ -364,7 +364,7 @@ class EditorCamera3D is PerspectiveCamera
     action LookBy(number yawChange, number pitchChange)
         Math math
         Vector3 look = GetDirection():Copy()
-        number turnYaw = math:InverseTangent2(look:GetX(), look:GetZ()) + yawChange
+        number turnYaw = math:InverseTangent(look:GetZ(), look:GetX()) + yawChange
         number turnPitch = math:InverseSine(ClampUnit(look:GetY())) + pitchChange
         turnPitch = ClampPitch(turnPitch)
         look:SetX(math:Cosine(turnPitch) * math:Sine(turnYaw))
@@ -409,7 +409,7 @@ class EditorCamera3D is PerspectiveCamera
         Vector3 position = GetPosition()
         Vector3 look = GetDirection()
         orbitDistance = GetViewDistance()
-        orbitYaw = math:InverseTangent2(look:GetX(), look:GetZ()) + math:pi
+        orbitYaw = math:InverseTangent(look:GetZ(), look:GetX()) + math:pi
         orbitPitch = -math:InverseSine(ClampUnit(look:GetY()))
         orbitPoint:SetX(position:GetX() + look:GetX() * orbitDistance)
         orbitPoint:SetY(position:GetY() + look:GetY() * orbitDistance)

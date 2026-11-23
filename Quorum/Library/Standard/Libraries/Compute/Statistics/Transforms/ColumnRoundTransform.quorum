@@ -42,7 +42,9 @@ class ColumnRoundTransform is DataFrameTransform
             if column:IsNumberColumn()
                 j = 0
                 repeat while j < column:GetSize()
-                    if not column:IsUndefined()
+                    //an undefined cell stays undefined (IsUndefined() asks
+                    //about the whole column), as R's round(NA) and pandas
+                    if not column:IsUndefined(j)
                         number value = column:GetAsNumber(j)
                         column:SetAsNumber(j, math:Round(value, decimalPlaceValue))
                     end

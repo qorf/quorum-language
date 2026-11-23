@@ -170,6 +170,60 @@ class DocumentTypeDefinition
     end
 
     /*
+        This action checks if an entity with the given name was declared.
+
+        Attribute: Parameter name The name of the entity.
+
+        Attribute: Returns True if the entity was declared, false otherwise.
+        
+        Attribute: Example
+        use Libraries.Data.Formats
+        
+        DocumentTypeDefinition MyDocumentTypeDefinition
+        MyDocumentTypeDefinition:Read("<!DOCTYPE note [<!ENTITY language 'Quorum'>]>")
+        boolean declared = MyDocumentTypeDefinition:HasEntity("language") // declared will be true
+    */
+    public action HasEntity(text name) returns boolean
+        Iterator<DocumentTypeDefinitionEntity> els = entities:GetIterator()
+        repeat while els:HasNext()
+            DocumentTypeDefinitionEntity e = els:Next()
+            entityName = e:GetName()
+            if entityName:Equals(name)
+                return true
+            end
+        end
+        return false
+    end
+
+    /*
+        This action gets the attributes declared (with ATTLIST) for the
+        element with the given name, in the order they were declared.
+
+        Attribute: Parameter elementName The name of the element.
+
+        Attribute: Returns A new array holding the attribute declarations.
+        
+        Attribute: Example
+        use Libraries.Data.Formats
+        use Libraries.Containers.Array
+        
+        DocumentTypeDefinition MyDocumentTypeDefinition
+        MyDocumentTypeDefinition:Read("<!DOCTYPE note [<!ATTLIST note type CDATA 'memo'>]>")
+        Array<DocumentTypeDefinitionAttribute> declared = MyDocumentTypeDefinition:GetAttributeDeclarations("note")
+    */
+    public action GetAttributeDeclarations(text elementName) returns Array<DocumentTypeDefinitionAttribute>
+        Array<DocumentTypeDefinitionAttribute> result
+        Iterator<DocumentTypeDefinitionAttribute> iterator = attributes:GetIterator()
+        repeat while iterator:HasNext()
+            DocumentTypeDefinitionAttribute declaration = iterator:Next()
+            if declaration:GetElementName() = elementName
+                result:Add(declaration)
+            end
+        end
+        return result
+    end
+
+    /*
         This action gets the data from the given file and parses the document 
         type definition in it.
         
@@ -185,8 +239,10 @@ class DocumentTypeDefinition
         MyDocumentTypeDefinition:Read(dtd)
     */
     public action Read(File file)
-        directory = file:GetWorkingDirectory()
-        sourceDirectory:SetWorkingDirectory(directory)
+        File folder = file:GetParentDirectory()
+        if folder not= undefined
+            sourceDirectory:SetWorkingDirectory(folder:GetWorkingDirectory())
+        end
         externalFileName = file:GetFileName()
         text result = file:Read()
         Read(result)
@@ -205,6 +261,12 @@ class DocumentTypeDefinition
         MyDocumentTypeDefinition:Read("<!DOCTYPE note [<!ENTITY language "Quorum">]>")
     */
     public action Read(text dtd)
+        // Carriage returns and carriage return, line feed pairs become line
+        // feeds first (XML 1.0 section 2.11).
+        text lineFeed = dtd:GetLineFeed()
+        text carriageReturn = dtd:GetCarriageReturn()
+        dtd = dtd:Replace(carriageReturn + lineFeed, lineFeed)
+        dtd = dtd:Replace(carriageReturn, lineFeed)
         size = dtd:GetSize()
         doubleQuote = dtd:GetDoubleQuote()
 
@@ -246,7 +308,7 @@ class DocumentTypeDefinition
             next = dtd:GetCharacter(i)
             trimmed = next:Trim()
 
-            if next = dtd:GetCarriageReturn() and inAttlist 
+            if next = lineFeed and inAttlist
                 if seenAttributeCarriageReturn
                     seenAttributeCarriageReturn = true
                 else
@@ -297,10 +359,24 @@ class DocumentTypeDefinition
                             value = ""   
                         end
                     elseif not setRootElement
-                        rootElement = value
+                        SetRootElement(value)
                         setRootElement = true
                         value = ""
                     end
+                end
+            end
+
+            // The root name can end at [ or > with no whitespace after it,
+            // as in <!DOCTYPE book>.
+            if not setRootElement and not inDefinition and not inDoubleQuote and not inSingleQuote
+                if next = "["
+                    SetRootElement(value)
+                    setRootElement = true
+                    value = ""
+                elseif next = ">"
+                    SetRootElement(value)
+                    setRootElement = true
+                    value = ""
                 end
             end
 
@@ -348,7 +424,7 @@ class DocumentTypeDefinition
                    
                    k = j
                    repeat while not foundNonWhiteSpace and k < size
-                        next = dtd:GetCharacter(j)
+                        next = dtd:GetCharacter(k)
                         nextTrimmed = next:Trim()
                         if not nextTrimmed:IsEmpty() 
                             foundNonWhiteSpace = true
@@ -514,39 +590,49 @@ class DocumentTypeDefinition
 
     end
 
-   /*
-        This action parses hexadecimal value and returns the integer value it represents.
+    /*
+        This action parses a hexadecimal number, with upper or lower case
+        digits, and returns the integer value it represents. It returns -1 if
+        the text is empty, has a character that isn't a hexadecimal digit, or
+        is larger than the largest Unicode character (10FFFF).
         
         Attribute: Parameter hex The text representing a hexadecimal number.
-    */
-    private action HexToDecimal(text hex) returns integer
-        total = 0
-        digit = ""
-        digitValue = 0
-        multiplier = 1
 
-        i = hex:GetSize() - 1
-        repeat while i >= 0 
-            digit = hex:GetCharacter(i)
-            if digit = "F"
-                digitValue = 15
-            elseif digit = "E"
-                digitValue = 14 
-            elseif digit = "D"
-                digitValue = 13  
-            elseif digit = "C"
-                digitValue = 12  
-            elseif digit = "B"
-                digitValue = 11  
-            elseif digit = "A"
-                digitValue = 10  
-            else
-                digitValue = digit:ParseInteger()
+        Attribute: Returns The value, or -1.
+
+        Attribute: Example
+        use Libraries.Data.Formats
+        
+        DocumentTypeDefinition MyDocumentTypeDefinition
+        integer value = MyDocumentTypeDefinition:HexToDecimal("2a") // value will be 42
+    */
+    public action HexToDecimal(text hex) returns integer
+        if hex:IsEmpty()
+            return -1
+        end
+
+        integer total = 0
+        integer i = 0
+        repeat while i < hex:GetSize()
+            integer code = hex:GetUnicodeInteger(i)
+            integer digitValue = -1
+            if code >= 48 and code <= 57
+                digitValue = code - 48
+            elseif code >= 65 and code <= 70
+                digitValue = code - 55
+            elseif code >= 97 and code <= 102
+                digitValue = code - 87
             end
 
-            total = total + (digitValue * multiplier)
-            multiplier = multiplier * 16
-            i = i - 1
+            if digitValue < 0
+                return -1
+            end
+
+            total = total * 16 + digitValue
+            if total > 1114111
+                return -1
+            end
+            i = i + 1
         end
 
         return total

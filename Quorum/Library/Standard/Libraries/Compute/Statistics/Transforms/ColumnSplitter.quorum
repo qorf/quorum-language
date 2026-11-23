@@ -95,13 +95,22 @@ class ColumnSplitter is DataFrameTransform
                 //sizing must match the header list, otherwise bail
                 i = 0
                 repeat while i < column:GetSize()
-                    if not column:IsUndefined()
+                    //an undefined cell (IsUndefined(i); IsUndefined() asks about
+                    //the whole column) puts an undefined value in each new
+                    //column, or is left out with SetIncludeUndefined(false)
+                    if column:IsUndefined(i)
+                        if IsIncludeUndefined()
+                            text missing = undefined
+                            j = 0
+                            repeat while j < newColumns:GetSize()
+                                DataFrameColumn missingCopy = newColumns:Get(j)
+                                missingCopy:Add(missing)
+                                j = j + 1
+                            end
+                        end
+                    else
                         text value = column:GetAsText(i)
-                        //if the value is undefined, we decide whether to ignore it
-
-                        //Only process it if isn't undefined or it is, but we allow that.
-                        if value = undefined and IsIncludeUndefined()
-                            or value not= undefined
+                        if value not= undefined
 
                             Array<text> values = SplitValue(value)
                             if values = undefined or values:GetSize() not= headers:GetSize()

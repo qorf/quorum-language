@@ -40,11 +40,22 @@ class NegateUnaryOpcode is UnaryOpcode
 
     action WritePython returns text
         QuorumOpcode op = me:GetOpcode()
+        //an integer wraps to 32 bits, as Java's int: -(-2147483648) is
+        //-2147483648
+        Type type = op:GetType()
+        if type not= undefined and type:IsInteger()
+            return "Global_Wrap_Int(-(" + op:WritePython() + "))"
+        end
         return "-" + op:WritePython()
     end
 
     action WriteJavaScript returns text
         QuorumOpcode op = me:GetOpcode()
+        //| 0 wraps an integer to 32 bits, as Java's int, and makes -0 into 0
+        Type type = op:GetType()
+        if type not= undefined and type:IsInteger()
+            return "(-(" + op:WriteJavaScript() + ") | 0)"
+        end
         return "-" + op:WriteJavaScript()
     end
 

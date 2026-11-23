@@ -88,18 +88,18 @@ class CustomizableJoint3D is Joint3D
     action MatrixToEulerXYZ(Matrix3 mat, Vector3 xyz) returns boolean
         if getMatrixElement(mat, 2) < 1.0 
             if getMatrixElement(mat, 2) > -1.0
-                xyz:SetX(math:InverseTangent2(-getMatrixElement(mat, 5), getMatrixElement(mat, 8))) 
+                xyz:SetX(math:InverseTangent(getMatrixElement(mat, 8), -getMatrixElement(mat, 5))) 
                 xyz:SetY(math:InverseSine(getMatrixElement(mat, 2)))
-                xyz:SetZ(math:InverseTangent2(-getMatrixElement(mat, 1), getMatrixElement(mat, 0))) 
+                xyz:SetZ(math:InverseTangent(getMatrixElement(mat, 0), -getMatrixElement(mat, 1))) 
                 return true
             else 
-                xyz:SetX(-math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) 
+                xyz:SetX(-math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3))) 
                 xyz:SetY(- 6.283185307179586232 * 0.25)  //1.5707963705062866
                 xyz:SetZ(0.0)
                 return false
             end
         else 
-            xyz:SetX(math:InverseTangent2(getMatrixElement(mat, 3), getMatrixElement(mat, 4))) //xyz:SetX(math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
+            xyz:SetX(math:InverseTangent(getMatrixElement(mat, 4), getMatrixElement(mat, 3)))
             xyz:SetY(6.283185307179586232 * 0.25)
             xyz:SetZ(0.0)
         end

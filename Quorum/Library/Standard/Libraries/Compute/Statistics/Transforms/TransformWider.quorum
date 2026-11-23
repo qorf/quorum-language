@@ -166,6 +166,8 @@ class TransformWider is DataFrameTransform
                 end
 
                 HashTable <text, number> meanDivisor // This will store the correct divisor for any mean resolutions.
+                text lineFeed = ""
+                lineFeed = lineFeed:GetLineFeed()
                 j = 0
                 repeat while j < column:GetSize()
                     // Find row index
@@ -209,16 +211,20 @@ class TransformWider is DataFrameTransform
                                             newFrame:GetColumn(colIndex):SetAsText(rowIndex, old+"_"+column:GetAsText(j))
                                         end
                                     elseif useMeanAsConflictResolution
+                                        //the count of values in this cell: keyed by the
+                                        //new column and the row (keyed by the row alone,
+                                        //each column's first value reset the others' count)
+                                        text divisorKey = colIndex + lineFeed + rowTextWithoutFactor
                                         if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)
                                             newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, numberCol:GetAsNumber(j)))
-                                            meanDivisor:Add(rowTextWithoutFactor, 1)
+                                            meanDivisor:Add(divisorKey, 1)
                                         else 
                                             number old = cast(number, newFrame:GetColumn(colIndex):GetAsText(rowIndex))
-                                            number oldDivisor = meanDivisor:GetValue(rowTextWithoutFactor)
+                                            number oldDivisor = meanDivisor:GetValue(divisorKey)
                                             number newDivisor = oldDivisor + 1
                                             number newValue = (old * oldDivisor + numberCol:GetAsNumber(j)) / newDivisor
                                             newFrame:GetColumn(colIndex):SetAsText(rowIndex, cast(text, newValue))
-                                            meanDivisor:Set(rowTextWithoutFactor, newDivisor)
+                                            meanDivisor:Set(divisorKey, newDivisor)
                                         end    
                                     elseif useSumAsConflictResolution
                                         if newFrame:GetColumn(colIndex):IsUndefined(rowIndex)

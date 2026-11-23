@@ -73,7 +73,10 @@ class TridiagonalDecomposition
             alert("TridiagonalDecomposition is only valid for square matrices.")
         end
         original = matrix
-        holder = original:Copy()
+        //Q starts as the identity: a 2 by 2 matrix needs no reflections, and
+        //starting from a copy of A made its Q equal to A (so its eigenvectors
+        //were A times the right ones)
+        holder = original:Identity()
         tridiagonal = undefined
         orthogonal = undefined
         orthogonalTransposed = undefined
@@ -104,20 +107,19 @@ class TridiagonalDecomposition
                 end
                 j = j - 1
             end
-            number s = 2.0 / w:GetSumOfSquares()
-
-            Matrix change = w:Multiply(s):Multiply(w:Transpose())
-
-            Matrix id = tridiagonal:Identity()
-            Matrix p = id:SubtractElements(change)
-
-            if i = 0
-                holder = p
-            else
+            //a column already zero below the subdiagonal needs no reflection:
+            //its vector has length 0, and 2 / 0 made every value NaN (for
+            //example with groups of variables that don't correlate)
+            number lengthSquared = w:GetSumOfSquares()
+            if lengthSquared > 0
+                number s = 2.0 / lengthSquared
+                Matrix change = w:Multiply(s):Multiply(w:Transpose())
+                Matrix id = tridiagonal:Identity()
+                Matrix p = id:SubtractElements(change)
+                //holder starts as the identity, so this is right for i = 0 too
                 holder = holder:Multiply(p)
+                tridiagonal = p:Transpose():Multiply(tridiagonal):Multiply(p):Round(12)
             end
-
-            tridiagonal = p:Transpose():Multiply(tridiagonal):Multiply(p):Round(12)
             i = i + 1
         end
 

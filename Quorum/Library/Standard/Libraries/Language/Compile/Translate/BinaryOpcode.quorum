@@ -269,8 +269,26 @@ class BinaryOpcode is QuorumOpcode
         text rightResult = right:WritePython() 
 
         boolean integers = leftType:IsInteger() and rightType:IsInteger()
+        //a number division or mod: one side a number, the other a number or
+        //an integer (separate checks: long and/or chains can compile wrongly)
+        boolean leftNumeric = leftType:IsNumber() or leftType:IsInteger()
+        boolean rightNumeric = rightType:IsNumber() or rightType:IsInteger()
+        boolean numbers = false
+        if not integers
+            if leftNumeric and rightNumeric
+                numbers = true
+            end
+        end
+        //division and mod as Java's: DivideByZeroError for integers,
+        //Infinity or NaN for numbers, the dividend's sign for mod
         if integers and current = op:DIVIDE
-            result = "Global_Cast_To_Int(" + leftResult + " " + operator + " " + rightResult + ")"
+            result = "Global_Integer_Divide(" + leftResult + ", " + rightResult + ")"
+        elseif integers and current = op:MODULUS
+            result = "Global_Integer_Modulo(" + leftResult + ", " + rightResult + ")"
+        elseif numbers and current = op:DIVIDE
+            result = "Global_Number_Divide(" + leftResult + ", " + rightResult + ")"
+        elseif numbers and current = op:MODULUS
+            result = "Global_Number_Modulo(" + leftResult + ", " + rightResult + ")"
         elseif integers and (current = op:PLUS or current = op:MINUS or current = op:TIMES)
             //wraps the result to a 32-bit integer, as Java's int does
             result = "Global_Wrap_Int(" + leftResult + " " + operator + " " + rightResult + ")"
@@ -342,7 +360,10 @@ class BinaryOpcode is QuorumOpcode
         //we have to take the floor, because JavaScript doesn't have integers
         boolean integers = leftType:IsInteger() and rightType:IsInteger()
         if integers and current = op:DIVIDE
-            result = result + "global_truncate_(" + leftResult + " " + operator + " " + rightResult + ")"
+            //DivideByZeroError, cut toward zero, wrapped to 32 bits, as Java
+            result = result + "global_integer_divide_(" + leftResult + ", " + rightResult + ")"
+        elseif integers and current = op:MODULUS
+            result = result + "global_integer_modulo_(" + leftResult + ", " + rightResult + ")"
         elseif integers and (current = op:PLUS or current = op:MINUS)
             //| 0 wraps the result to a 32-bit integer, as Java's int does
             result = result + "((" + leftResult + " " + operator + " " + rightResult + ") | 0)"

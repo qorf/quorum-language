@@ -76,6 +76,24 @@ function global_number_converter_(value) {
     return sign + digits.charAt(0) + "." + (digits.length > 1 ? digits.substring(1) : "0") + "E" + exponent;
 }
 
+// Integer division and remainder, as Java's int: by zero is a
+// DivideByZeroError (JavaScript gave Infinity or NaN), the result is cut
+// toward zero and wrapped to 32 bits (-2147483648 / -1 is -2147483648),
+// and a remainder takes the dividend's sign, never -0.
+function global_integer_divide_(left, right) {
+    if (right === 0) {
+        throw new quorum_Libraries_Language_Errors_DivideByZeroError_();
+    }
+    return Math.trunc(left / right) | 0;
+}
+
+function global_integer_modulo_(left, right) {
+    if (right === 0) {
+        throw new quorum_Libraries_Language_Errors_DivideByZeroError_();
+    }
+    return (left % right) | 0;
+}
+
 // Toward zero, as Java's (int) cast and integer division. + 0 turns -0
 // into 0 (Math.ceil(-0.2) is -0), since a Java integer is never -0.
 function global_truncate_(value) {

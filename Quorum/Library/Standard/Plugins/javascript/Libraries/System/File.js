@@ -1,6 +1,10 @@
 function plugins_quorum_Libraries_System_File_() {
-    // default to the root of the website
-    this.defaultWorkingDirectory = window.location.protocol + "//" + window.location.hostname;
+    // default to the root of the website; outside a browser (for example
+    // Node, which has no window) there is no website, so the default is empty
+    this.defaultWorkingDirectory = "";
+    if (typeof window !== "undefined") {
+        this.defaultWorkingDirectory = window.location.protocol + "//" + window.location.hostname;
+    }
     this.path = "";
     //
     this.GetLastModifiedNative = function () {
@@ -42,6 +46,9 @@ function plugins_quorum_Libraries_System_File_() {
     // default working directory, where writing a file downloads it. Computed
     // again, since SetWorkingDirectory changes defaultWorkingDirectory.
     this.GetStorageDirectoryNative = function () {
+        if (typeof window === "undefined") {
+            return "";
+        }
         return window.location.protocol + "//" + window.location.hostname;
     };
 

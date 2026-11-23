@@ -111,8 +111,9 @@ class CommaSeparatedLoader is DataFrameLoader
             else 
                 j = 0
                 //there was only so many columns in the header
-                //so add data just for those first
-                repeat while j < row:GetSize()
+                //so add data just for those first (cells past the header's
+                //columns are left out; this used to go on to them and fail)
+                repeat while j < row:GetSize() and j < newColumns:GetSize()
                     DataFrameColumn col = newColumns:Get(j)
                     col:Add(row:Get(j))
                     j = j + 1

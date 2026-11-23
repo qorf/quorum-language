@@ -22,6 +22,13 @@ public class Error {
             UndefinedObjectError error = new UndefinedObjectError();
             CaptureThrowableTrace(throwable.getStackTrace(), error);
             return error;
+        } else if(throwable instanceof ArithmeticException) {
+            // Integer division and remainder by zero (the JVM's only
+            // ArithmeticException in Quorum code), as DivideByZeroError's
+            // documentation shows.
+            quorum.Libraries.Language.Errors.DivideByZeroError error = new quorum.Libraries.Language.Errors.DivideByZeroError();
+            CaptureThrowableTrace(throwable.getStackTrace(), error);
+            return error;
         } else if(throwable instanceof ClassCastException) {
             CastError error = new CastError();
             CaptureThrowableTrace(throwable.getStackTrace(), error);

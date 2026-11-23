@@ -576,13 +576,16 @@ class PrincipalComponentAnalysis is StatisticalTest
             model's degrees of freedom and the empirical chi-squared statistic.
     */
     private action CalculateProbability(number degreesOfFreedom, number x2) returns number
-        ClassificationDistribution x2Distribution
-        x2Distribution:Setup(math:AbsoluteValue(degreesOfFreedom))
-        if degreesOfFreedom < 0
+        //with no degrees of freedom left (for example 3 variables and 1
+        //component) there is no p-value, as in R's psych::principal; the
+        //check comes first, since a chi-squared distribution with 0 degrees
+        //of freedom can't be made and stopped the whole analysis
+        if degreesOfFreedom <= 0
             return degreesOfFreedom:GetNotANumberValue()
-        else
-            return 1.0 - x2Distribution:CumulativeDistribution(x2)
         end
+        ClassificationDistribution x2Distribution
+        x2Distribution:Setup(degreesOfFreedom)
+        return 1.0 - x2Distribution:CumulativeDistribution(x2)
     end
 
     /* Will apply an oblique rotation (namely direct quartimin) to the component loadings */

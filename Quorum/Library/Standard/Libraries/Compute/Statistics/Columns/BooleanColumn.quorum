@@ -132,8 +132,18 @@ class BooleanColumn is DataFrameColumn
         rows:Set(index, value)
     end
 
+    /* A boolean column (this returned false, so DataFrame treated it as some other kind). */
     action IsBooleanColumn returns boolean
-        return false
+        return true
+    end
+
+    /* The value at the index; an undefined cell is an error, as GetAsNumber's is. */
+    action GetAsBoolean(integer index) returns boolean
+        Boolean value = rows:Get(index)
+        if value = undefined
+            alert("Cannot convert value at position " + index + " to a boolean, because it is undefined.")
+        end
+        return value:GetValue()
     end
 
     action SetSize(integer size)

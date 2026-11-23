@@ -83,13 +83,14 @@ class DocumentTypeDefinitionEntity
     public action SetValue(text value)
         value = value:Trim()
         if value:StartsWith("SYSTEM")
-            fileName = value:GetSubtext(6)
+            text written = value:GetSubtext(6)
+            text fileName = RemoveQuotes(written:Trim())
             File entity
             if sourceDirectory:Exists()
                 entity:SetWorkingDirectory(sourceDirectory:GetWorkingDirectory())
             end
 
-            entity:SetPath(fileName:Trim())
+            entity:SetPath(fileName)
             //output entity:GetAbsolutePath()
 
             if entity:Exists()
@@ -100,6 +101,28 @@ class DocumentTypeDefinitionEntity
         else
             entityValue = value:Trim()
         end
+    end
+
+    /*
+        This action removes one pair of matching quotes (single or double)
+        around a value, if it has them.
+    */
+    private action RemoveQuotes(text value) returns text
+        integer valueSize = value:GetSize()
+        if valueSize < 2
+            return value
+        end
+
+        text first = value:GetCharacter(0)
+        text last = value:GetCharacter(valueSize - 1)
+        if first = last
+            if first = "'"
+                return value:GetSubtext(1, valueSize - 1)
+            elseif first = value:GetDoubleQuote()
+                return value:GetSubtext(1, valueSize - 1)
+            end
+        end
+        return value
     end
 
     /*

@@ -103,7 +103,18 @@ class plugins_quorum_Libraries_Compute_Math_():
 
 
 	def RoundToNearestInteger__quorum_number (self, value):
-		return round(value)
+		# A midpoint goes to the even integer, as Java's Math.rint. Written out,
+		# since round() on MicroPython may not round halves the same way.
+		if value != value or math.isinf(value):
+			return value
+		below = math.floor(value)
+		difference = value - below
+		if difference > 0.5 or (difference == 0.5 and below % 2 == 1):
+			result = float(below + 1)
+		else:
+			result = float(below)
+		# a zero keeps the value's sign, as Java's: rint(-0.5) is -0.0
+		return math.copysign(result, value) if result == 0 else result
 
 
 	def RaiseToPower__quorum_number__quorum_number (self, value, power):

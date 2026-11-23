@@ -18,7 +18,9 @@ class BigIntegerColumn is DataFrameColumn
     Array<BigInteger> rows
 
     action Add(text value)
-        if value = undefined
+        //empty text is a missing value (JavaScript's big integer library read
+        //"" as 0; Java's raised an error, which also gave a missing value)
+        if value = undefined or value:IsEmpty()
             rows:Add(undefined)
             parent:DataFrameColumn:undefinedSize = GetUndefinedSize() + 1
             return now
@@ -189,15 +191,25 @@ class BigIntegerColumn is DataFrameColumn
         me:SetAsNumber(to,column:GetAsNumber(from))
     end
 
+    /*
+        BigInteger has no Equals(Object) or GetHashCode, so a HashTable of them
+        tells equal values apart. Values are matched by their text instead:
+        each value's text maps to the first BigInteger with that value.
+    */
     private action CalculateValueCount(Array<BigInteger> values) returns HashTable<BigInteger,integer>
+        HashTable<text, BigInteger> firstByText
         HashTable<BigInteger, integer> hash
         i = 0
-        repeat while i < rows:GetSize()
-            if rows:Get(i) not= undefined
-                if hash:HasKey(rows:Get(i))
-                    hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
+        repeat while i < values:GetSize()
+            BigInteger value = values:Get(i)
+            if value not= undefined
+                text key = value:GetText()
+                if firstByText:HasKey(key)
+                    BigInteger first = firstByText:GetValue(key)
+                    hash:Add(first, hash:GetValue(first) + 1)
                 else
-                    hash:Add(rows:Get(i), 1)
+                    firstByText:Add(key, value)
+                    hash:Add(value, 1)
                 end
             end
             i = i + 1
@@ -205,30 +217,47 @@ class BigIntegerColumn is DataFrameColumn
         return hash
     end
 
+    /* One of each value, in the order they first appear (counted by text, as above). */
     private action GetUnique(Array<BigInteger> array) returns Array<BigInteger>
         Array<BigInteger> set
-        HashTable<BigInteger,integer> hash = CalculateValueCount(array)
-        Iterator<BigInteger> iterator = hash:GetKeyIterator()
-        repeat while iterator:HasNext()
-            set:Add(iterator:Next())
+        HashTable<text, integer> seen
+        i = 0
+        repeat while i < array:GetSize()
+            BigInteger value = array:Get(i)
+            if value not= undefined
+                text key = value:GetText()
+                if not seen:HasKey(key)
+                    seen:Add(key, 1)
+                    set:Add(value)
+                end
+            end
+            i = i + 1
         end
         return set
     end
 
-
-
-    action CalculateValueCount returns HashTable<BigInteger,integer>
-        HashTable<BigInteger, integer> hash
-        i = 0
-        repeat while i < rows:GetSize()
-            if hash:HasKey(rows:Get(i))
-                hash:Add(rows:Get(i), hash:GetValue(rows:Get(i)) + 1)
-            else
-                hash:Add(rows:Get(i), 1)
-            end
-            i = i + 1
+    /*
+        Orders two cells by value, undefined first, as DataFrameColumn:Compare
+        does (its a:Compare(b) on BigIntegers compared hash codes).
+    */
+    action Compare(Object a, Object b) returns integer
+        if a = undefined and b = undefined
+            return 0
+        elseif a = undefined
+            return -1
+        elseif b = undefined
+            return 1
         end
-        return hash
+        BigInteger left = cast(BigInteger, a)
+        BigInteger right = cast(BigInteger, b)
+        return left:CompareResult(right)
+    end
+
+
+
+    /* How often each value appears, equal values counted together (by text). */
+    action CalculateValueCount returns HashTable<BigInteger,integer>
+        return CalculateValueCount(rows)
     end
 
     action GetUnique returns Array<BigInteger>

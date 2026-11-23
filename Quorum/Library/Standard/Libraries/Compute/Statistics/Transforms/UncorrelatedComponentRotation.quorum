@@ -192,7 +192,7 @@ class UncorrelatedComponentRotation is ComponentRotation
         end   
         number X = 2 * (rows * UV - U * V)
         number Y = rows * U2minusV2 - (U*U - V*V)
-        number phi = 0.25 * math:InverseTangent2(X,Y)
+        number phi = 0.25 * math:InverseTangent(Y, X)
         number cos = math:Cosine(phi)
         number sin = math:Sine(phi)
 

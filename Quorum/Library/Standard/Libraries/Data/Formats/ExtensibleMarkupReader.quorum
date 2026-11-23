@@ -1,9 +1,7 @@
 package Libraries.Data.Formats
 
 use Libraries.System.File
-use Libraries.System.FileReader
-use Libraries.Language.Errors.FileNotFoundError
-use Libraries.Containers.List
+use Libraries.Containers.Array
 use Libraries.Containers.Stack
 
 /*
@@ -25,396 +23,754 @@ File xml //then create a file
 xml:SetPath("Data.xml") //set its path to a file we've created
 reader:Read(xml) //read the xml file
 */
-class ExtensibleMarkupReader 
+class ExtensibleMarkupReader
     MarkupListener listener
     DocumentTypeDefinition dtd
 
     /*
+    The state of the document being read. Read sets all of it again, so a
+    reader can read several documents, one after another.
+    */
+    text document = ""
+    integer size = 0
+    integer position = 0
+    Stack<text> openElements
+    boolean rootSeen = false
+    boolean documentTypeSeen = false
+    text characterData = ""
+    text sourceFolder = ""
+    text doubleQuote = ""
+    text lineFeed = ""
+    text tab = ""
+
+    /*
         This action gets the data from the given file and parses the it as an XML document.
-        
+        A document type definition named with a relative SYSTEM identifier is
+        looked for in the file's own folder.
+
         Attribute: Parameter directory The file of the XML document.
 
         Attribute: Example
         use Libraries.System.File
         use Libraries.Data.Formats.ExtensibleMarkup
-        
-        ExtensibleMarkupReader reader 
+
+        ExtensibleMarkupReader reader
         //This file should be in the same folder as the executable for this script.
-        File xml 
+        File xml
         xml:SetPath("Data.xml")
         reader:Read(xml)
     */
     action Read(File file)
-        if file = undefined 
-            alert("The file " + file:GetAbsolutePath() + ", could not be found.")
+        if file = undefined
+            alert("The file could not be read, because it is undefined.")
         end
 
         if not file:Exists()
             alert("The file " + file:GetAbsolutePath() + ", does not exist.")
         end
-        
+
         text result = file:Read()
-        Read(result)
+        text folderPath = ""
+        check
+            File folder = file:GetParentDirectory()
+            if folder not= undefined
+                folderPath = folder:GetWorkingDirectory()
+            end
+        detect folderError
+            folderPath = ""
+        end
+        sourceFolder = folderPath
+        Parse(result)
+        sourceFolder = ""
     end
 
     /*
-        This action parses the given text as an XML document
-        
+        This action parses the given text as an XML document. The listener
+        receives StartElement and EndElement for each element, and Value for
+        each run of text between two pieces of markup (tags, comments and
+        processing instructions); entity references and CDATA sections are
+        part of the run. Runs holding only whitespace are not reported. Line
+        ends are reported as line feeds. A document that is not well formed
+        causes an error.
+
         Attribute: Parameter xml The text representing the XML to be parsed.
 
         Attribute: Example
         use Libraries.System.File
         use Libraries.Data.Formats.ExtensibleMarkup
-        
+
         DocumentTypeDefinition MyDocumentTypeDefinition
         MyDocumentTypeDefinition:Read("<root></root>")
     */
     action Read(text xml)
-        size = xml:GetSize()
+        sourceFolder = ""
+        Parse(xml)
+    end
+
+    /*
+        This action reads a whole document, one construct at a time: a tag,
+        a comment, a processing instruction, a CDATA section, a DOCTYPE, a
+        reference or a run of text.
+    */
+    private action Parse(text xml)
+        Start(xml)
+        repeat while position < size
+            text character = document:GetCharacter(position)
+            if character = "<"
+                ReadMarkup()
+            elseif character = "&"
+                RequireRoot("A reference")
+                characterData = characterData + ReadReference()
+            else
+                ReadText()
+            end
+        end
+        ReportText()
+
+        if not rootSeen
+            Fail("the document has no root element")
+        end
+
+        if not openElements:IsEmpty()
+            Fail("the element " + openElements:Peek() + " is never closed")
+        end
+    end
+
+    /*
+        This action sets up the state for a new document. Carriage returns
+        and carriage return, line feed pairs become line feeds first (XML 1.0
+        section 2.11).
+    */
+    private action Start(text xml)
+        DocumentTypeDefinition definition
+        dtd = definition
+        if sourceFolder not= ""
+            dtd:SetSourceDirectory(sourceFolder)
+        end
+
         doubleQuote = xml:GetDoubleQuote()
-        inElement = false
-        inDirective = false
-        seenQuestionMark = false
-        inEndElement = false
-        inDoubleQuote = false
-        inSingleQuote = false
-        betweenElements = false
-        elementName = ""
-        value = ""
-        
-        i = 0
-        repeat while i < size
-            char = xml:GetCharacter(i)
-            charTrimmed = char:Trim()
-            if charTrimmed:IsEmpty()
-                char = " "
+        lineFeed = xml:GetLineFeed()
+        tab = xml:GetTab()
+        text carriageReturn = xml:GetCarriageReturn()
+        document = xml:Replace(carriageReturn + lineFeed, lineFeed)
+        document = document:Replace(carriageReturn, lineFeed)
+        size = document:GetSize()
+        position = 0
+        openElements:Empty()
+        rootSeen = false
+        documentTypeSeen = false
+        characterData = ""
+    end
+
+    /*
+        This action reads the piece of markup that starts at a less-than sign.
+    */
+    private action ReadMarkup
+        if StartsHere("<!--")
+            ReportText()
+            ReadComment()
+        elseif StartsHere("<![CDATA[")
+            RequireRoot("A CDATA section")
+            ReadCharacterSection()
+        elseif StartsHere("<!DOCTYPE")
+            ReportText()
+            ReadDocumentType()
+        elseif StartsHere("<?")
+            ReportText()
+            ReadProcessingInstruction()
+        elseif StartsHere("</")
+            ReportText()
+            ReadEndTag()
+        else
+            ReportText()
+            ReadStartTag()
+        end
+    end
+
+    /*
+        This action reads plain text up to the next less-than sign or
+        ampersand. Outside the root element only whitespace is allowed.
+    */
+    private action ReadText
+        integer start = position
+        boolean reading = true
+        repeat while reading and position < size
+            text character = document:GetCharacter(position)
+            if character = "<"
+                reading = false
+            elseif character = "&"
+                reading = false
+            elseif character = "]"
+                if StartsHere("]]>")
+                    Fail("]]> is not allowed in text")
+                end
+                position = position + 1
+            else
+                position = position + 1
+            end
+        end
+
+        text run = document:GetSubtext(start, position)
+        if openElements:IsEmpty()
+            text trimmed = run:Trim()
+            if not trimmed:IsEmpty()
+                Fail("text is not allowed outside the root element")
+            end
+        else
+            characterData = characterData + run
+        end
+    end
+
+    /*
+        This action sends the text read since the last piece of markup to the
+        listener, unless it is only whitespace.
+    */
+    private action ReportText
+        text trimmed = characterData:Trim()
+        if not trimmed:IsEmpty()
+            listener:Value(characterData)
+        end
+        characterData = ""
+    end
+
+    /*
+        This action skips a comment.
+    */
+    private action ReadComment
+        integer finish = Find("-->", position + 4)
+        if finish < 0
+            Fail("a comment is never closed")
+        end
+        position = finish + 3
+    end
+
+    /*
+        This action skips a processing instruction, including the XML
+        declaration. The listener has no action for them.
+    */
+    private action ReadProcessingInstruction
+        integer finish = Find("?>", position + 2)
+        if finish < 0
+            Fail("a processing instruction is never closed")
+        end
+        position = finish + 2
+    end
+
+    /*
+        This action adds the contents of a CDATA section to the text, as written.
+    */
+    private action ReadCharacterSection
+        integer start = position + 9
+        integer finish = Find("]]>", start)
+        if finish < 0
+            Fail("a CDATA section is never closed")
+        end
+        characterData = characterData + document:GetSubtext(start, finish)
+        position = finish + 3
+    end
+
+    /*
+        This action reads a document type declaration, including any internal
+        subset in brackets, and hands it to the document type definition.
+    */
+    private action ReadDocumentType
+        if documentTypeSeen
+            Fail("a document can have only one DOCTYPE")
+        end
+
+        if rootSeen
+            Fail("the DOCTYPE must come before the root element")
+        end
+
+        integer start = position
+        position = position + 9
+        text quote = ""
+        integer depth = 0
+        boolean reading = true
+        repeat while reading and position < size
+            text character = document:GetCharacter(position)
+            if quote not= ""
+                if character = quote
+                    quote = ""
+                end
+                position = position + 1
+            elseif depth > 0 and StartsHere("<!--")
+                integer finish = Find("-->", position + 4)
+                if finish < 0
+                    Fail("a comment in the DOCTYPE is never closed")
+                end
+                position = finish + 3
+            else
+                if character = "'"
+                    quote = character
+                elseif character = doubleQuote
+                    quote = character
+                elseif character = "["
+                    depth = depth + 1
+                elseif character = "]"
+                    depth = depth - 1
+                elseif character = ">"
+                    if depth = 0
+                        reading = false
+                    end
+                end
+                position = position + 1
+            end
+        end
+
+        if reading
+            Fail("the DOCTYPE is never closed")
+        end
+
+        documentTypeSeen = true
+        dtd:Read(document:GetSubtext(start, position))
+    end
+
+    /*
+        This action reads a start tag or an empty-element tag with its
+        attributes, adds the attributes the document type definition gives
+        defaults for, and tells the listener.
+    */
+    private action ReadStartTag
+        if rootSeen and openElements:IsEmpty()
+            Fail("a document can have only one root element")
+        end
+
+        position = position + 1
+        text name = ReadName("an element")
+        ElementImplementation element
+        element:SetName(name)
+        Array<text> names
+        boolean selfClosing = false
+        boolean reading = true
+        repeat while reading
+            boolean spaced = SkipWhitespace()
+            if position >= size
+                Fail("the tag " + name + " is never closed")
             end
 
-            if char = "<" //start a new element
-                betweenElements = false
-                inElement = true
-
-                text valueTrimmed = value:Trim()
-                if not valueTrimmed:IsEmpty()
-                    listener:Value(value)
-                    value = ""
+            if StartsHere(">")
+                position = position + 1
+                reading = false
+            elseif StartsHere("/>")
+                position = position + 2
+                selfClosing = true
+                reading = false
+            elseif not spaced
+                Fail("the attributes of " + name + " must be separated by whitespace")
+            else
+                text attributeName = ReadName("an attribute")
+                if names:Has(attributeName)
+                    Fail("the attribute " + attributeName + " appears twice in " + name)
                 end
 
-                if i + 1 < size
-                    next = xml:GetCharacter(i + 1)
-                    if next = "?" and not inDoubleQuote and not inSingleQuote 
-                        inDirective = true
-                        seenQuestionMark = false
-                        i = i + 1 //skip the question mark
-                    elseif next = "/" and not inDoubleQuote and not inSingleQuote
-                        inEndElement = true
-                        i = i + 1 //skip the /
-                    elseif  next = "!" and not inDoubleQuote and not inSingleQuote
-                        if i + 8 < size and
-                           xml:GetCharacter(i + 2) = "D" and
-                           xml:GetCharacter(i + 3) = "O" and
-                           xml:GetCharacter(i + 4) = "C" and
-                           xml:GetCharacter(i + 5) = "T" and
-                           xml:GetCharacter(i + 6) = "Y" and
-                           xml:GetCharacter(i + 7) = "P" and
-                           xml:GetCharacter(i + 8) = "E" // check for DTD
-
-                                inDTD = true
-                                inElement = false
-                                j = i + 9
-                                
-                                definition = xml:GetSubtext(i, i+9)
-                                inDTDBrackets = false
-                                inDTDElement = false
-                                inDTDSingleQuote = false
-                                inDTDDoubleQuote = false
-                                repeat while inDTD and j < size
-                                     nextDTD = xml:GetCharacter(j)
-                                     definition = definition + nextDTD
-                                     if nextDTD = doubleQuote and not inDTDSingleQuote
-                                        inDTDDoubleQuote = not inDTDDoubleQuote
-                                     elseif nextDTD = "'" and not inDTDDoubleQuote
-                                        inDTDSingleQuote = not inDTDSingleQuote
-                                     elseif nextDTD = "<" and not inDTDDoubleQuote and not inDTDSingleQuote
-                                         inDTDElement = true
-                                     elseif nextDTD = ">" and inDTDElement and not inDTDDoubleQuote and not inDTDSingleQuote
-                                         inDTDElement = false
-                                     elseif nextDTD = ">" and not inDTDElement and not inDTDDoubleQuote and not inDTDSingleQuote
-                                         inDTD = false
-                                         dtd:Read(definition)
-                                         i = j + 1
-                                     end
-                                     j = j + 1
-                               end
-                        elseif i + 3 < size and
-                            xml:GetCharacter(i + 2) = "-" and
-                            xml:GetCharacter(i + 3) = "-" // check for comment
-
-                             isComment = true
-                             inElement = false
-                             inDirective = false
-                             j = i + 4
-
-                             repeat while isComment and j + 2 < size
-                                 if xml:GetCharacter(j) = "-" and
-                                    xml:GetCharacter(j + 1) = "-" and
-                                    xml:GetCharacter(j + 2) = ">"
-
-                                    isComment = false
-                                    i = j + 2
-
-                                 end
-                                 j = j + 1
-                             end                       
-                        end
-                    end
+                SkipWhitespace()
+                if not StartsHere("=")
+                    Fail("the attribute " + attributeName + " has no value")
                 end
-            elseif char = "&" and not inElement
-                name = ""
-                isName = true
-                j = i
-                repeat while isName and (j + 1) < size
-                    j = j + 1
-                    if xml:GetCharacter(j) = ";"
-                        //figure out value to replace it with
-                        if name = "lt"
-                            value = value + "<"
-                        elseif name = "gt"
-                            value = value + ">"
-                        elseif name = "amp"
-                            value = value + "&"
-                        elseif name = "apos"
-                            value = value + "'"
-                        elseif name = "quot"
-                            value = value + doubleQuote
-                        elseif name:StartsWith("#x")
-                            name = name:GetSubtext(2)
-                            unicode = HexToDecimal(name)
-                            value = value + name:GetUnicodeValue(unicode)
-                        elseif name:StartsWith("#")
-                            name = name:GetSubtext(1)
-                            unicode = name:ParseInteger()
-                            value = value + name:GetUnicodeValue(unicode)
-                        else
-                            value = value + dtd:GetEntityValue(name)
-                        end
-                        isName = false
-                    else
-                        name = name + xml:GetCharacter(j)
-                    end      
-                end 
-                i = j 
-            elseif inElement and char = "?" and not inDoubleQuote and not inSingleQuote //ending the declaraction soon
-               seenQuestionMark = true
-               if i + 1 < size
-                    next = xml:GetCharacter(i + 1)
-                    if next = ">"
-                        //inDirective = false
-                        seenQuestionMark = false
-                        elementName = ""
-                        inElement = false
-                    end
-                    i = i + 1
-               end
-            elseif inElement and char = ">" and not inDoubleQuote and not inSingleQuote //ending the element
-                inElement = false
+                position = position + 1
+                SkipWhitespace()
 
-                if inDirective and seenQuestionMark // don't send notification for PI
-                    elementName = elementName + char
-                    inElement = true
-                    inDirective = false
-                else
-                    last = xml:GetCharacter(i - 1)
-                    if last = "/" // self closing element
-                        elementName = elementName:Replace("/", "")
-                        Element startEl = GetElement(elementName)
-                        listener:StartElement(startEl)
-                        Element endEl = GetElement(startEl:GetName())
-                        listener:EndElement(endEl)
-                    else
-                        Element el = GetElement(elementName)
-                        if not inEndElement
-                            listener:StartElement(el)
-                            betweenElements = true
-                        else
-                            inEndElement = false
-                            listener:EndElement(el)
-                        end 
-                    end
-                end
-                elementName = ""
-                
-            elseif inElement
-                if char = doubleQuote and not inSingleQuote
-                    inDoubleQuote = not inDoubleQuote
-                elseif char = "'" and not inDoubleQuote
-                    inSingleQuote = not inSingleQuote
-                end
-                elementName = elementName + char
-            elseif not inElement
-                value = value + char
+                Attribute attribute
+                attribute:name = attributeName
+                attribute:value = ReadAttributeValue(attributeName)
+                element:Add(attribute)
+                names:Add(attributeName)
+            end
+        end
+
+        AddDefaultAttributes(element, names)
+        rootSeen = true
+        listener:StartElement(element)
+        if selfClosing
+            ElementImplementation endElement
+            endElement:SetName(name)
+            listener:EndElement(endElement)
+        else
+            openElements:Push(name)
+        end
+    end
+
+    /*
+        This action adds the attributes the document type definition declares
+        for the element with a default or fixed value, when the tag doesn't
+        give them (XML 1.0 section 3.3.2).
+    */
+    private action AddDefaultAttributes(ElementImplementation element, Array<text> names)
+        Array<DocumentTypeDefinitionAttribute> declarations = dtd:GetAttributeDeclarations(element:GetName())
+        integer i = 0
+        repeat while i < declarations:GetSize()
+            DocumentTypeDefinitionAttribute declaration = declarations:Get(i)
+            text attributeName = declaration:GetAttributeName()
+            boolean hasDefault = true
+            if declaration:IsRequiredValue()
+                hasDefault = false
+            elseif declaration:IsImpliedValue()
+                hasDefault = false
+            elseif attributeName = ""
+                hasDefault = false
+            elseif names:Has(attributeName)
+                hasDefault = false
+            end
+
+            if hasDefault
+                Attribute attribute
+                attribute:name = attributeName
+                attribute:value = declaration:GetValue()
+                element:Add(attribute)
+                names:Add(attributeName)
             end
             i = i + 1
         end
     end
 
     /*
-        This action parses hexadecimal value and returns the integer value it represents.
-        
-        Attribute: Parameter hex The text representing a hexadecimal number.
+        This action reads a quoted attribute value. References are replaced,
+        and each tab or line feed becomes a space (XML 1.0 section 3.3.3).
     */
-    private action HexToDecimal(text hex) returns integer
-        total = 0
-        digit = ""
-        digitValue = 0
-        multiplier = 1
-
-        i = hex:GetSize() - 1
-        repeat while i >= 0 
-            digit = hex:GetCharacter(i)
-            if digit = "F"
-                digitValue = 15
-            elseif digit = "E"
-                digitValue = 14 
-            elseif digit = "D"
-                digitValue = 13  
-            elseif digit = "C"
-                digitValue = 12  
-            elseif digit = "B"
-                digitValue = 11  
-            elseif digit = "A"
-                digitValue = 10  
-            else
-                digitValue = digit:ParseInteger()
-            end
-
-            total = total + (digitValue * multiplier)
-            multiplier = multiplier * 16
-            i = i - 1
+    private action ReadAttributeValue(text attributeName) returns text
+        if position >= size
+            Fail("the attribute " + attributeName + " has no value")
         end
 
+        text quote = document:GetCharacter(position)
+        if quote not= "'" and quote not= doubleQuote
+            Fail("the value of the attribute " + attributeName + " must be in quotes")
+        end
+        position = position + 1
+
+        text result = ""
+        boolean reading = true
+        repeat while reading
+            if position >= size
+                Fail("the value of the attribute " + attributeName + " is never closed")
+            end
+
+            text character = document:GetCharacter(position)
+            if character = quote
+                position = position + 1
+                reading = false
+            elseif character = "<"
+                Fail("< is not allowed in the value of the attribute " + attributeName)
+            elseif character = "&"
+                result = result + ReadReference()
+            elseif character = lineFeed
+                result = result + " "
+                position = position + 1
+            elseif character = tab
+                result = result + " "
+                position = position + 1
+            else
+                result = result + character
+                position = position + 1
+            end
+        end
+        return result
+    end
+
+    /*
+        This action reads an end tag and checks that it closes the element
+        opened last.
+    */
+    private action ReadEndTag
+        position = position + 2
+        text name = ReadName("an end tag")
+        SkipWhitespace()
+        if not StartsHere(">")
+            Fail("the end tag " + name + " is never closed")
+        end
+        position = position + 1
+
+        if openElements:IsEmpty()
+            Fail("the end tag " + name + " has no start tag")
+        end
+
+        text expected = openElements:Pop()
+        if expected not= name
+            Fail("the end tag " + name + " does not match the start tag " + expected)
+        end
+
+        ElementImplementation element
+        element:SetName(name)
+        listener:EndElement(element)
+    end
+
+    /*
+        This action reads an entity or character reference that starts at an
+        ampersand and returns the text it stands for: one of the five
+        predefined entities, a character by number, or an entity from the
+        document type definition.
+    */
+    private action ReadReference returns text
+        integer finish = Find(";", position + 1)
+        if finish < 0
+            Fail("& must start a reference that ends with ;, such as &amp;")
+        end
+
+        text name = document:GetSubtext(position + 1, finish)
+        if name = "lt"
+            position = finish + 1
+            return "<"
+        elseif name = "gt"
+            position = finish + 1
+            return ">"
+        elseif name = "amp"
+            position = finish + 1
+            return "&"
+        elseif name = "apos"
+            position = finish + 1
+            return "'"
+        elseif name = "quot"
+            position = finish + 1
+            return doubleQuote
+        elseif name:StartsWith("#x")
+            integer hexadecimal = dtd:HexToDecimal(name:GetSubtext(2))
+            text hexadecimalCharacter = GetCharacterFor(hexadecimal, name)
+            position = finish + 1
+            return hexadecimalCharacter
+        elseif name:StartsWith("#")
+            integer decimal = DecimalToInteger(name:GetSubtext(1))
+            text decimalCharacter = GetCharacterFor(decimal, name)
+            position = finish + 1
+            return decimalCharacter
+        elseif not IsName(name)
+            Fail("& must start a reference that ends with ;, such as &amp;")
+        elseif not dtd:HasEntity(name)
+            Fail("the entity " + name + " is not defined")
+        end
+
+        position = finish + 1
+        return dtd:GetEntityValue(name)
+    end
+
+    /*
+        This action returns the character with the given code, failing for a
+        code XML does not allow (XML 1.0 production [2] Char).
+    */
+    private action GetCharacterFor(integer code, text reference) returns text
+        boolean allowed = false
+        if code = 9
+            allowed = true
+        elseif code = 10
+            allowed = true
+        elseif code = 13
+            allowed = true
+        elseif code >= 32 and code <= 55295
+            allowed = true
+        elseif code >= 57344 and code <= 65533
+            allowed = true
+        elseif code >= 65536 and code <= 1114111
+            allowed = true
+        end
+
+        if not allowed
+            Fail("&" + reference + "; is not a character XML allows")
+        end
+
+        text helper = ""
+        if code < 65536
+            return helper:GetUnicodeValue(code)
+        end
+
+        // Characters past 65535 are written as a surrogate pair.
+        integer offset = code - 65536
+        integer low = offset mod 1024
+        integer high = (offset - low) / 1024
+        return helper:GetUnicodeValue(55296 + high) + helper:GetUnicodeValue(56320 + low)
+    end
+
+    /*
+        This action returns the value of a run of decimal digits, or -1 if
+        the text is empty, has anything else in it, or is too large.
+    */
+    private action DecimalToInteger(text digits) returns integer
+        if digits:IsEmpty()
+            return -1
+        end
+
+        integer total = 0
+        integer i = 0
+        repeat while i < digits:GetSize()
+            integer code = digits:GetUnicodeInteger(i)
+            if code < 48 or code > 57
+                return -1
+            end
+            total = total * 10 + (code - 48)
+            if total > 1114111
+                return -1
+            end
+            i = i + 1
+        end
         return total
     end
 
     /*
-        This action parses the given text as an element start tag. It parses 
-        the name and attributes from the text and returns them as a element.
-        
-        Attribute: Parameter value The text representing the XML element start tag.
-
-        Attribute: Returns The element representation of the text given.
+        This action reads a name, failing if there is none here.
     */
-    private action GetElement(text value) returns Element
-        //output value
-        ElementImplementation element
-        size = value:GetSize()
-        doubleQuote = value:GetDoubleQuote()
-        name = ""
-        attributeName = ""
-        attributeValue = ""
-        Attribute attribute
-        nameFinished = false
-        seenFirstWhiteSpace = false
-        inDoubleQuote = false
-        inSingleQuote = false
+    private action ReadName(text what) returns text
+        if position >= size
+            Fail("expected the name of " + what)
+        end
 
-        inAttributeName = false
-        inAttributeValue = false
-        i = 0
-        repeat while i < size
-            char = value:GetCharacter(i)
-            trimmed = char:Trim()
-            //this is white space
-            if trimmed:IsEmpty() and not inAttributeValue
-                if not seenFirstWhiteSpace
-                    element:SetName(name)
-                end
-                seenFirstWhiteSpace = true
-            elseif trimmed:IsEmpty()
-                attributeValue = attributeValue + " "
-            else 
-                if not seenFirstWhiteSpace
-                    name = name + char
-                elseif char = "&" 
-                    name = ""
-                    isName = true
-                    j = i
-                    repeat while isName and (j + 1) < size
-                        j = j + 1
-                        if value:GetCharacter(j) = ";"
-                            //figure out value to replace it with
-                            if name = "lt"
-                                attributeValue = attributeValue + "<"
-                            elseif name = "gt"
-                                attributeValue = attributeValue + ">"
-                            elseif name = "amp"
-                                attributeValue = attributeValue + "&"
-                            elseif name = "apos"
-                                attributeValue = attributeValue + "'"
-                            elseif name = "quot"
-                                attributeValue = attributeValue + doubleQuote
-                            elseif name:StartsWith("#x")
-                                name = name:GetSubtext(2)
-                                unicode = HexToDecimal(name)
-                                attributeValue = attributeValue + name:GetUnicodeValue(unicode)
-                            elseif name:StartsWith("#")
-                                name = name:GetSubtext(1)
-                                unicode = name:ParseInteger()
-                                attributeValue = attributeValue + name:GetUnicodeValue(unicode)
-                            else
-                                attributeValue = attributeValue + dtd:GetEntityValue(name)
-                            end
-                            isName = false
-                        else
-                            name = name + value:GetCharacter(j)
-                        end 
-                    end
-                    i = j
-                elseif char = "="
-                    inAttributeName = false
-                    inAttributeValue = false
-                    attribute:name = attributeName
-                    attributeName = ""
-                elseif char = doubleQuote and not inSingleQuote
-                    inDoubleQuote = not inDoubleQuote
-                    if inAttributeValue
-                        attribute:value = attributeValue //the end so add it
-                        attributeValue = ""
-                        element:Add(attribute)
-                        Attribute attribute2
-                        attribute = attribute2
-                    end
-                    inAttributeValue = not inAttributeValue
-                elseif char = "'" and not inDoubleQuote
-                    inSingleQuote = not inSingleQuote
-                    if inAttributeValue
-                        attribute:value = attributeValue //the end so add it
-                        attributeValue = ""
-                        element:Add(attribute)
-                        Attribute attribute2
-                        attribute = attribute2
-                    end
-                    inAttributeValue = not inAttributeValue
-                else
-                    if seenFirstWhiteSpace and not inAttributeValue
-                        inAttributeName = true
-                    end
+        if not IsNameStart(document:GetCharacter(position))
+            Fail("expected the name of " + what)
+        end
 
-                    if inAttributeName
-                        attributeName = attributeName + char
-                    elseif inAttributeValue
-                        attributeValue = attributeValue + char
-                    end
-                end
+        integer start = position
+        position = position + 1
+        boolean reading = true
+        repeat while reading and position < size
+            if IsNameCharacter(document:GetCharacter(position))
+                position = position + 1
+            else
+                reading = false
+            end
+        end
+        return document:GetSubtext(start, position)
+    end
+
+    /*
+        This action checks a whole text is a name.
+    */
+    private action IsName(text name) returns boolean
+        if name:IsEmpty()
+            return false
+        end
+
+        if not IsNameStart(name:GetCharacter(0))
+            return false
+        end
+
+        integer i = 1
+        repeat while i < name:GetSize()
+            if not IsNameCharacter(name:GetCharacter(i))
+                return false
             end
             i = i + 1
         end
+        return true
+    end
 
-        if not seenFirstWhiteSpace
-            element:SetName(name)
+    /*
+        This action checks if a character can start a name: a letter, _ or :.
+        Every character past the ASCII range is accepted, except the
+        multiplication and division signs.
+    */
+    private action IsNameStart(text character) returns boolean
+        integer code = character:GetUnicodeInteger(0)
+        if code >= 97 and code <= 122
+            return true
+        elseif code >= 65 and code <= 90
+            return true
+        elseif code = 95
+            return true
+        elseif code = 58
+            return true
+        elseif code = 215
+            return false
+        elseif code = 247
+            return false
+        elseif code >= 192
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action checks if a character can be inside a name: a character
+        that can start one, a digit, - or .
+    */
+    private action IsNameCharacter(text character) returns boolean
+        if IsNameStart(character)
+            return true
         end
 
-        return element
+        integer code = character:GetUnicodeInteger(0)
+        if code >= 48 and code <= 57
+            return true
+        elseif code = 45
+            return true
+        elseif code = 46
+            return true
+        elseif code = 183
+            return true
+        end
+        return false
+    end
+
+    /*
+        This action skips spaces, tabs and line feeds, and returns true if
+        there were any.
+    */
+    private action SkipWhitespace returns boolean
+        integer start = position
+        boolean reading = true
+        repeat while reading and position < size
+            text character = document:GetCharacter(position)
+            if character = " "
+                position = position + 1
+            elseif character = tab
+                position = position + 1
+            elseif character = lineFeed
+                position = position + 1
+            else
+                reading = false
+            end
+        end
+        return position > start
+    end
+
+    /*
+        This action checks if the document has the given text at the current
+        position.
+    */
+    private action StartsHere(text prefix) returns boolean
+        integer finish = position + prefix:GetSize()
+        if finish > size
+            return false
+        end
+        text found = document:GetSubtext(position, finish)
+        return found = prefix
+    end
+
+    /*
+        This action finds text in the document from the given position, and
+        returns -1 if it isn't there.
+    */
+    private action Find(text target, integer from) returns integer
+        if from >= size
+            return -1
+        end
+        return document:IndexOf(target, from)
+    end
+
+    /*
+        This action fails unless the reader is inside the root element.
+    */
+    private action RequireRoot(text what)
+        if openElements:IsEmpty()
+            Fail(what + " must be inside the root element")
+        end
+    end
+
+    /*
+        This action raises an error naming the line and column of the
+        current position.
+    */
+    private action Fail(text message)
+        integer line = 1
+        integer column = 1
+        integer i = 0
+        repeat while i < position and i < size
+            if document:GetCharacter(i) = lineFeed
+                line = line + 1
+                column = 1
+            else
+                column = column + 1
+            end
+            i = i + 1
+        end
+        alert("The XML is not well formed at line " + line + ", column " + column + ": " + message + ".")
     end
 
     /*

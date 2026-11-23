@@ -1,3 +1,9 @@
+// A date's local year, month and day as yyyy-MM-dd.
+function global_DateTime_Date_Text_(d) {
+    var two = function (n) { return (n < 10 ? "0" : "") + n; };
+    return String(d.getFullYear()).padStart(4, "0") + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate());
+}
+
 function plugins_quorum_Libraries_System_DateTime_() {
     
     this.date = new Date();
@@ -95,16 +101,26 @@ function plugins_quorum_Libraries_System_DateTime_() {
         return Date.now();
     };
     
+    // Local date and time in ISO form, as the Java plugin's
+    // ISO_LOCAL_DATE_TIME: 2015-03-14T09:26:53 (milliseconds only when not 0).
+    // toISOString gave UTC with ".000Z".
     this.GetTimestamp = function () {
-        return this.date.toISOString();
+        var d = this.date;
+        var two = function (n) { return (n < 10 ? "0" : "") + n; };
+        var result = global_DateTime_Date_Text_(d) + "T" + two(d.getHours()) + ":" + two(d.getMinutes()) + ":" + two(d.getSeconds());
+        if (d.getMilliseconds() !== 0) {
+            result = result + "." + String(d.getMilliseconds()).padStart(3, "0");
+        }
+        return result;
     };
 
     this.ToText = function () {
         return this.date.toString();
     };
 
+    // yyyy-MM-dd, as the Java plugin's ISO_LOCAL_DATE (was the locale's form).
     this.DateToText = function () {
-        return this.date.toLocaleDateString();
+        return global_DateTime_Date_Text_(this.date);
     };
 
     this.TimeToText = function () {
@@ -162,7 +178,13 @@ function plugins_quorum_Libraries_System_DateTime_() {
     this.ParseDate$quorum_text = function (value) {
         this.now = false;
         value = value.trim();
-        this.date = new Date(Date.parse(value));
+        // A local date from its parts: Date.parse reads "2015-03-14" as UTC
+        // midnight, which is the 13th in time zones west of UTC.
+        var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        this.date = parts ? new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])) : new Date(NaN);
+        if (parts && (this.date.getMonth() !== Number(parts[2]) - 1 || this.date.getDate() !== Number(parts[3]))) {
+            this.date = new Date(NaN);
+        }
 
         if(isNaN(this.date))
         {
@@ -209,11 +231,13 @@ function plugins_quorum_Libraries_System_DateTime_() {
         throw exceptionInstance_;
     };
 
-    this.IsBefore$quorum_Libraries_System_DateTime_ = function (value) {
+    // The names the compiled library calls (they had a trailing "_", so
+    // IsBefore, IsAfter and with them Compare and sorting failed on the web).
+    this.IsBefore$quorum_Libraries_System_DateTime = function (value) {
         return this.date < value.plugin_.date;
     };
 
-    this.IsAfter$quorum_Libraries_System_DateTime_ = function () {
+    this.IsAfter$quorum_Libraries_System_DateTime = function (value) {
         return this.date > value.plugin_.date;
     };
 

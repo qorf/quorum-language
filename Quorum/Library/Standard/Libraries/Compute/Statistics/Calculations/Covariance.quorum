@@ -47,48 +47,50 @@ class Covariance
         if column1:GetSize() < 2 or column2:GetSize() < 2
             alert("Columns must have 2 or more entries. Not enough data for a covariance calculation.")
         end
+        integer size = column1:GetSize()
 
-        size = column1:GetSize()
+        // Rows where either cell is undefined are left out, pair by pair, as
+        // pandas' DataFrame.cov does (missing cells used to count as 0).
+        number sum1 = 0
+        number sum2 = 0
+        integer count = 0
+        integer i = 0
+        repeat while i < size
+            if not column1:IsUndefined(i) and not column2:IsUndefined(i)
+                sum1 = sum1 + column1:GetAsNumber(i)
+                sum2 = sum2 + column2:GetAsNumber(i)
+                count = count + 1
+            end
+            i = i + 1
+        end
+        if count < 2
+            alert("There must be 2 or more rows with both values defined. Not enough data for a covariance calculation.")
+        end
         if not mean1Set
-            Mean meanCalc
-            column1:Calculate(meanCalc)
-            mean1 = meanCalc:GetMean()
+            mean1 = sum1 / count
         end
         if not mean2Set
-            Mean meanCalc
-            column2:Calculate(meanCalc)
-            mean2 = meanCalc:GetMean()
-        end    
+            mean2 = sum2 / count
+        end
 
         number result = 0
-        // Any undefined values will be treated as 0
         i = 0
-        repeat while i < size     
-            number dev1 = 0
-            number dev2 = 0
-            if column1:IsUndefined(i)
-                dev1 = 0 - mean1
-            else
-                dev1 = column1:GetAsNumber(i) - mean1
-            end
-            if column2:IsUndefined(i)
-                dev2 = 0 - mean2
-            else
-                dev2 = column2:GetAsNumber(i) - mean2
-            end
-
-            if population
-                result = result + (dev1 * dev2) / cast(number, size)
-            elseif sample
-                result = result + (dev1 * dev2) / cast(number, size - 1)
+        repeat while i < size
+            if not column1:IsUndefined(i) and not column2:IsUndefined(i)
+                result = result + (column1:GetAsNumber(i) - mean1) * (column2:GetAsNumber(i) - mean2)
             end
             i = i + 1
         end
 
-        if biasCorrected
-            covariance = result * (size / (size - 1))
+        // One division: by n for the population covariance, by n - 1 for
+        // the sample covariance, as R's cov, NumPy, pandas and the
+        // NIST/SEMATECH e-Handbook define them. A second correction,
+        // n / (n - 1), used to follow; in integer arithmetic it was 1 for 3
+        // or more rows, but it doubled the result for 2 rows.
+        if population
+            covariance = result / count
         else
-            covariance = result
+            covariance = result / (count - 1)
         end
     end
    
@@ -104,7 +106,9 @@ class Covariance
     end
 
     /*
-        Returns the sample covariance.
+        Returns the covariance from the last Calculate: the sample
+        covariance (divided by n - 1) or, with UsePopulation(true), the
+        population covariance (divided by n).
     */
     action GetCovariance returns number
         return covariance
@@ -148,7 +152,10 @@ class Covariance
     end
 
     /*
-        Sets the bias corrected boolean. True if correction is applied.
+        Sets the bias corrected boolean. This is kept so older programs
+        compile, but has no effect: UseSample (dividing by n - 1, the
+        unbiased estimate) and UsePopulation (dividing by n) choose the
+        calculation.
     */
     action BiasCorrected(boolean biasCorrected)
         me:biasCorrected = biasCorrected
