@@ -56,10 +56,13 @@ class Form is Game, FormPrimitiveContainer
     FormDelayedAssetLoader delayedLoader
 
     on create
+        // A form is mostly still, but scrolling and dragging move every
+        // frame, so frames come often enough for them to feel smooth: 60 a
+        // second on a desktop, 20 on the web.
         DesktopConfiguration desktop = GetDesktopConfiguration()
-        desktop:targetFramesPerSecond = 10
+        desktop:targetFramesPerSecond = 60
         WebConfiguration web = GetWebConfiguration()
-        web:framesPerSecondLimit = 10
+        web:framesPerSecondLimit = 20
         // An app's screen is still most of the time: iOS draws only when
         // something changes (IOSConfiguration's drawOnlyWhenNeeded).
         IOSConfiguration ios = GetIOSConfiguration()
