@@ -10,7 +10,12 @@ class HashTableKeyIterator<Key, Value> is Iterator<Key>
     public HashTableIterator<Key, Value> iterator = undefined
 
     action GetCurrent returns Key
-        return iterator:GetCurrent()
+        //the key of the node Next returned (GetCurrent gave the next node itself)
+        HashNode<Key, Value> node = iterator:GetCurrentNode()
+        if node = undefined
+            return undefined
+        end
+        return node:key
     end
 
     action HasNext returns boolean

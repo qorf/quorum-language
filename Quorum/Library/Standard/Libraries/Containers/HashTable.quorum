@@ -63,9 +63,13 @@ class HashTable<Key, Value>
         integer value = phoneBook:GetValue("Jane")
     */
     action GetValue(Key key) returns Value
+        //checked before the hash code, which an undefined key doesn't have
+        if key = undefined
+            return undefined
+        end
         integer index = ComputeIndex(key)
         HashNode<Key, Value> node = array:Get(index)
-        if node = undefined or key = undefined
+        if node = undefined
             return undefined
         end 
 
@@ -99,11 +103,15 @@ class HashTable<Key, Value>
         text key = phoneBook:GetKey(2626984)
     */
     action GetKey(Value value) returns Key
+        //undefined is never found, and undefined values are passed over
+        if value = undefined
+            return undefined
+        end
         integer i = 0
         repeat array:GetSize() times
             HashNode<Key, Value> node = array:Get(i)
             repeat until node = undefined
-                if value:Equals(node:value)
+                if node:value not= undefined and value:Equals(node:value)
                     return node:key
                 end
                 node = node:next
@@ -495,9 +503,12 @@ class HashTable<Key, Value>
         phoneBook:HasKey("Jane")
     */
     action HasKey(Key key) returns boolean
+        if key = undefined
+            return false
+        end
         integer index = ComputeIndex(key)
         HashNode<Key, Value> node = array:Get(index)
-        if node = undefined or key = undefined
+        if node = undefined
             return false
         end 
 
@@ -530,6 +541,9 @@ class HashTable<Key, Value>
         integer value = phoneBook:RemoveKey("Jane")
     */
     action RemoveKey(Key key) returns Value
+        if key = undefined
+            return undefined
+        end
         integer index = ComputeIndex(key)
         HashNode<Key, Value> node = array:Get(index)
 
@@ -577,11 +591,11 @@ class HashTable<Key, Value>
     end
 
     /*
-        This action removes all instances of a key-value pair given a key. As 
-        the HashTable class requires all values are unique, this only
-        removes at most one value.
+        This action removes every key-value pair whose value is the given
+        value. Several keys can hold the same value, and all of them are
+        removed.
 
-        Attribute: Parameter key The key of the key-value pair to be removed.
+        Attribute: Parameter value The value of the key-value pairs to be removed.
         
         Attribute: Returns True if any key-value pairs were removed and false
         if none were removed.
@@ -593,12 +607,15 @@ class HashTable<Key, Value>
         boolean removed = phoneBook:RemoveAllValues(2626984)
     */
     action RemoveAllValues(Value value) returns boolean
+        //RemoveValue removes the first key with the value; repeat until none
+        //is left (it used to stop after one)
+        boolean removed = false
         Key key = RemoveValue(value)
-        if key = undefined
-            return false
-        else 
-            return true
+        repeat while key not= undefined
+            removed = true
+            key = RemoveValue(value)
         end
+        return removed
     end
 
     /*

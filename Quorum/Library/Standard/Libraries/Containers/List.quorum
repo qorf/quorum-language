@@ -251,7 +251,8 @@ class List <Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type)
+            //undefined is never found, and undefined items are passed over
+            if value not= undefined and type not= undefined and value:Equals(type)
                 current = undefined
                 found = true
             else
@@ -289,7 +290,8 @@ class List <Type>
         ListNode<Type> current = tail
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type)
+            //undefined is never found, and undefined items are passed over
+            if value not= undefined and type not= undefined and value:Equals(type)
                 current = undefined
                 found = true
             else
@@ -402,7 +404,8 @@ class List <Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type)
+            //undefined is never found, and undefined items are passed over
+            if value not= undefined and type not= undefined and value:Equals(type)
                 return true
             end
             current = current:next
@@ -445,7 +448,8 @@ class List <Type>
         ListNode<Type> current = head
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type)
+            //undefined is never found, and undefined items are passed over
+            if value not= undefined and type not= undefined and value:Equals(type)
                 RemoveNode(current)
                 return true
             end
@@ -474,7 +478,8 @@ class List <Type>
         boolean wasRemoved = false
         repeat while current not= undefined
             Type type = current:value
-            if value:Equals(type)
+            //undefined is never found, and undefined items are passed over
+            if value not= undefined and type not= undefined and value:Equals(type)
                 RemoveNode(current)
                 wasRemoved = true
             end

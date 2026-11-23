@@ -27,7 +27,8 @@ class plugins_quorum_Libraries_Containers_Array_:
 
 	def CheckCapacity_(self):
 		if self.GetSize() + 1 > self.capacity and self.resizable:
-			self.capacity = self.capacity * self.DEFAULT_RESIZE
+			# At least the default: doubling 0 (after SetSize(0)) stayed 0.
+			self.capacity = max(self.capacity * self.DEFAULT_RESIZE, self.DEFAULT_CAPACITY)
 		elif self.GetSize() + 1 > self.capacity and not self.resizable:
 			raise Exception("Cannot add to a non-resizable array with a max size of " + str(self.capacity))
 			

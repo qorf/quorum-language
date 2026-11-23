@@ -104,8 +104,10 @@ class Array <Type>
 
     /*
         This action sets the number of items that can be stored in the 
-        array(max size). The max size can only be increased, any value that is
-        lower will leave the array with the same max size it had.
+        array(max size). A lower max size than the array has makes it smaller:
+        if it holds more items than the new max size, the items past it are
+        removed. Code that needs a small array uses this, for example to hold
+        a fixed number of collision points.
 
         Attribute: Parameter size The max size to set for the array. 
 
@@ -621,11 +623,16 @@ class Array <Type>
         boolean result = myArray:Has(33)
     */
     action Has(Type value) returns boolean
+        //undefined is never found, and undefined items are passed over, as in
+        //GetFirstLocation (Equals on undefined fails)
+        if value = undefined
+            return false
+        end
         integer count = 0
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item)
+            if item not= undefined and value:Equals(item)
                 return true
             end
             count = count + 1
@@ -651,11 +658,14 @@ class Array <Type>
         boolean result = myArray:Remove(22)
     */
     action Remove(Type value) returns boolean
+        if value = undefined
+            return false
+        end
         integer count = 0
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item)
+            if item not= undefined and value:Equals(item)
                 RemoveAt(count)
                 return true
             end
@@ -683,11 +693,14 @@ class Array <Type>
     */
     action RemoveAll(Type value) returns boolean
         boolean hasRemoved = false
+        if value = undefined
+            return false
+        end
         integer count = 0
         integer size = GetSize()
         repeat while count < size
             Type item = Get(count)
-            if value:Equals(item)
+            if item not= undefined and value:Equals(item)
                 RemoveAt(count)
                 hasRemoved = true
                 size = size - 1

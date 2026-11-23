@@ -42,10 +42,12 @@ class plugins_quorum_Libraries_Containers_Array_ {
         this.SetSizeNative$quorum_integer(size); //should this be the same in JS mode?
     };
     
+    // Full means size = capacity (size + 1 >= capacity refused the last
+    // place), and growing gives at least the default (doubling 0 stayed 0).
     AddNative$quorum_integer$quorum_Libraries_Language_Object(index, value) {
-        if(this.size + 1 >= this.capacity && this.resizable) {
-            this.capacity = this.capacity * this.DEFAULT_RESIZE;
-        } else if(this.size + 1 >= this.capacity && !this.resizable) {
+        if(this.size >= this.capacity && this.resizable) {
+            this.capacity = Math.max(this.capacity * this.DEFAULT_RESIZE, this.DEFAULT_CAPACITY);
+        } else if(this.size >= this.capacity && !this.resizable) {
             throw "Array Index Out of Bounds at " + index;
         }
         this.size = this.size + 1;
@@ -54,7 +56,7 @@ class plugins_quorum_Libraries_Containers_Array_ {
 
     AddNative$quorum_Libraries_Language_Object(value) {
         if(this.size >= this.capacity && this.resizable) {
-            this.capacity = this.capacity * this.DEFAULT_RESIZE;
+            this.capacity = Math.max(this.capacity * this.DEFAULT_RESIZE, this.DEFAULT_CAPACITY);
         }
         
         if (this.array_.length <= this.size)
@@ -129,6 +131,13 @@ class plugins_quorum_Libraries_Containers_Array_ {
     };
 };
 
+// The error the fixed-size arrays give for a place outside the array.
+function global_Fixed_Array_Location_Error_(index) {
+    var error = new quorum_Libraries_Language_Errors_InvalidLocationError_();
+    error.SetErrorMessage$quorum_text("Index out of range, " + index);
+    return error;
+}
+
 class plugins_quorum_Libraries_Containers_Number32BitArray_ {
     constructor() {
         // Empty until SetSize, so GetSize of a new array is 0.
@@ -137,11 +146,17 @@ class plugins_quorum_Libraries_Containers_Number32BitArray_ {
 
     Get$quorum_integer(index)
     {
+        // Outside the array is an error, as in Java (a typed array gave
+        // undefined, and writes there were silently dropped).
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         return this.array_[index];
     };
 
     Set$quorum_integer$quorum_number(index, value) 
     {
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         this.array_[index] = value;
     };
 
@@ -152,7 +167,10 @@ class plugins_quorum_Libraries_Containers_Number32BitArray_ {
     
     SetSize$quorum_integer(size)
     {
-        this.array_ = new Float32Array(size);
+        // As documented: the items that fit are kept, and new places are 0.
+        var next = new Float32Array(size);
+        next.set(this.array_.subarray(0, Math.min(this.array_.length, size)));
+        this.array_ = next;
     };
 
 };
@@ -165,11 +183,17 @@ class plugins_quorum_Libraries_Containers_Number64BitArray_ {
 
     Get$quorum_integer(index)
     {
+        // Outside the array is an error, as in Java (a typed array gave
+        // undefined, and writes there were silently dropped).
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         return this.array_[index];
     };
 
     Set$quorum_integer$quorum_number(index, value) 
     {
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         this.array_[index] = value;
     };
 
@@ -180,7 +204,10 @@ class plugins_quorum_Libraries_Containers_Number64BitArray_ {
     
     SetSize$quorum_integer(size)
     {
-        this.array_ = new Float64Array(size);
+        // As documented: the items that fit are kept, and new places are 0.
+        var next = new Float64Array(size);
+        next.set(this.array_.subarray(0, Math.min(this.array_.length, size)));
+        this.array_ = next;
     };
 };
 
@@ -192,11 +219,17 @@ class plugins_quorum_Libraries_Containers_Integer32BitArray_ {
 
     Get$quorum_integer(index)
     {
+        // Outside the array is an error, as in Java (a typed array gave
+        // undefined, and writes there were silently dropped).
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         return this.array_[index];
     };
 
     Set$quorum_integer$quorum_integer(index, value) 
     {
+        if (index < 0 || index >= this.array_.length)
+            throw global_Fixed_Array_Location_Error_(index);
         this.array_[index] = value;
     };
 
@@ -207,6 +240,9 @@ class plugins_quorum_Libraries_Containers_Integer32BitArray_ {
     
     SetSize$quorum_integer(size)
     {
-        this.array_ = new Int32Array(size);
+        // As documented: the items that fit are kept, and new places are 0.
+        var next = new Int32Array(size);
+        next.set(this.array_.subarray(0, Math.min(this.array_.length, size)));
+        this.array_ = next;
     };
 };

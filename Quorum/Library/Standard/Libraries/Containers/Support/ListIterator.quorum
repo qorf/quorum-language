@@ -84,6 +84,10 @@ class ListIterator<Type> is Iterator<Type>
 
     */
     action GetCurrent returns Type
+        //undefined before the first Next and after Rewind, as ArrayIterator
+        if current = undefined
+            return undefined
+        end
         return current:value
     end
 

@@ -39,6 +39,12 @@ public class Number32BitArray {
     }
     
     public void SetSize(int size) {
-        floats = new float[size];
+        // As documented: the items that fit are kept, and new places are 0.
+        // (A new array used to replace them all with zeros.)
+        if(floats == null) {
+            floats = new float[size];
+        } else {
+            floats = java.util.Arrays.copyOf(floats, size);
+        }
     }
 }

@@ -6,7 +6,7 @@ def _Number64BitArray_Location_Error(index):
 
 class plugins_quorum_Libraries_Containers_Number64BitArray_:
 	# A fixed-size array of numbers, as Java's Number64BitArray: SetSize
-	# makes a new array of zeros.
+	# keeps the items that fit.
 	def __init__(self):
 		self.array_ = []
 		return
@@ -25,4 +25,8 @@ class plugins_quorum_Libraries_Containers_Number64BitArray_:
 		return len(self.array_)
 
 	def SetSize__quorum_integer(self, size):
-		self.array_ = [0.0] * size
+		# As documented: the items that fit are kept, and new places are 0.
+		if size <= len(self.array_):
+			self.array_ = self.array_[0:size]
+		else:
+			self.array_ = self.array_ + [0.0] * (size - len(self.array_))

@@ -39,6 +39,12 @@ public class Number64BitArray {
     }
     
     public void SetSize(int size) {
-        doubles = new double[size];
+        // As documented: the items that fit are kept, and new places are 0.
+        // (A new array used to replace them all with zeros.)
+        if(doubles == null) {
+            doubles = new double[size];
+        } else {
+            doubles = java.util.Arrays.copyOf(doubles, size);
+        }
     }
 }

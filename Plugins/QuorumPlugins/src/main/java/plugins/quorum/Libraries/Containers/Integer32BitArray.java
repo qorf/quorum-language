@@ -39,6 +39,12 @@ public class Integer32BitArray {
     }
     
     public void SetSize(int size) {
-        ints = new int[size];
+        // As documented: the items that fit are kept, and new places are 0.
+        // (A new array used to replace them all with zeros.)
+        if(ints == null) {
+            ints = new int[size];
+        } else {
+            ints = java.util.Arrays.copyOf(ints, size);
+        }
     }
 }

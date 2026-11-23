@@ -159,7 +159,7 @@ class MultipleLineText
                     // Don't add the last line if it's empty and we're not
                     // explicitly asked to keep it.
                 else
-                    rightChild = rightChild:Concatenate(newNode)
+                    rightChild = rightChild:Join(newNode)
                 end
             end
 
@@ -567,6 +567,50 @@ class MultipleLineText
     output result:GetText()
     */
     action Concatenate(MultipleLineText textTree) returns MultipleLineText
+        // A last line with no line separator continues on textTree's first
+        // line: they're one line, so that line is joined into this tree's
+        // last leaf and textTree's other lines follow. (They used to stay
+        // two lines, though GetText was right.)
+        // Nothing to add: joining an empty tree added an empty line.
+        if textTree = undefined or textTree:GetSize() = 0
+            return me
+        end
+        if not EndsWithLineSeparator()
+            Array<MultipleLineText> lines = textTree:GetLines()
+            MultipleLineText first = lines:Get(0)
+            MultipleLineText result = RecursiveConcatenate(first:GetText())
+            integer i = 1
+            repeat while i < lines:GetSize()
+                result = result:Join(lines:Get(i))
+                i = i + 1
+            end
+            return result
+        end
+        return Join(textTree)
+    end
+
+    /*
+    True if the last leaf ends with a line separator. Only the right side is
+    followed down, so this takes time in proportion to the tree's depth.
+    */
+    private action EndsWithLineSeparator returns boolean
+        if IsLeaf()
+            if characters = undefined
+                return false
+            end
+            return characters:EndsWith(lineSeparator)
+        end
+        if right = undefined
+            return left:EndsWithLineSeparator()
+        end
+        return right:EndsWithLineSeparator()
+    end
+
+    /*
+    Puts the two trees side by side as one, without joining lines (what
+    Concatenate did before). The other tree's first line starts a new line.
+    */
+    private action Join(MultipleLineText textTree) returns MultipleLineText
         MultipleLineText newRoot
 
         /* 
@@ -612,7 +656,7 @@ class MultipleLineText
             MultipleLineText newLine
             newLine:Initialize("", maxLeafSize, fibonacciArray, false)
             
-            result = result:Concatenate(newLine)
+            result = result:Join(newLine)
         end
 
         return result
@@ -685,7 +729,7 @@ class MultipleLineText
             current = trees:Get(counter)
             if current not= undefined
                 if result not= undefined
-                    result = current:Concatenate(result)
+                    result = current:Join(result)
                 else
                     result = current
                 end
@@ -716,7 +760,7 @@ class MultipleLineText
                     if progress = undefined
                         progress = current
                     else
-                        progress = current:Concatenate(progress)
+                        progress = current:Join(progress)
                     end
                     trees:Set(counter, undefined)
                 end
@@ -734,7 +778,7 @@ class MultipleLineText
         if progress not= undefined
             // Reinsert the concatenated tree into the structure. This can
             // possibly cascade into further concatenations.
-            AddTree(progress:Concatenate(tree), trees, counter)
+            AddTree(progress:Join(tree), trees, counter)
         else
             // No tree was found at the final index, so place the tree there.
             trees:Set(counter, tree)

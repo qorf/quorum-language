@@ -55,9 +55,10 @@ public class Array {
     }
     
     public void AddNative(int location, Object_ value) {
-        //do a custom resize for speed.
-        if(size + 1 >= array.length && this.resizable) {
-            Object_[] newArray = new Object_[array.length * DEFAULT_RESIZE];
+        //do a custom resize for speed. Full means size = length: with
+        //size + 1 >= length, a fixed-size array refused its last place.
+        if(size >= array.length && this.resizable) {
+            Object_[] newArray = new Object_[GetGrownLength()];
             //copy up to the new location
             for(int i = 0; i < location; i++) {
                 newArray[i] = array[i];
@@ -67,7 +68,7 @@ public class Array {
                 newArray[i+1] = array[i];
             }
             array = newArray;
-        } else if(size + 1 >= array.length && !this.resizable) {
+        } else if(size >= array.length && !this.resizable) {
             throw new ArrayIndexOutOfBoundsException();
         } else {
             for(int i = size - 1; i >= location; i--) {
@@ -86,8 +87,16 @@ public class Array {
         size = size + 1;
     }
     
+    /*
+        The length to grow to: doubled, and at least the default, since
+        doubling a length of 0 (after SetSize(0)) stayed 0.
+    */
+    private int GetGrownLength() {
+        return Math.max(array.length * DEFAULT_RESIZE, DEFAULT_CAPACITY);
+    }
+
     private void resize(int factor) {
-        Object_[] newArray = new Object_[array.length * factor];
+        Object_[] newArray = new Object_[Math.max(array.length * factor, DEFAULT_CAPACITY)];
         copy(array, newArray);
         array = newArray;
     }

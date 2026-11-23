@@ -9,6 +9,8 @@ class HashTableIterator<Key, Value>// is Iterator<HashNode<Key, Value>>
     Array<HashNode<Key, Value>> array = undefined
     integer position = 0
     HashNode<Key, Value> node = undefined
+    //the node Next returned last, undefined before the first Next
+    HashNode<Key, Value> current = undefined
     
     
     action GetCurrent returns HashNode<Key, Value>
@@ -43,6 +45,7 @@ class HashTableIterator<Key, Value>// is Iterator<HashNode<Key, Value>>
 
     action Next returns HashNode<Key, Value>
         HashNode<Key, Value> returnedNode = node
+        current = returnedNode
         GoToNextNode()
         return returnedNode
     end
@@ -50,7 +53,13 @@ class HashTableIterator<Key, Value>// is Iterator<HashNode<Key, Value>>
     action Rewind
         position = -1
         node = undefined
+        current = undefined
         GoToNextNode()
+    end
+
+    /* The node Next returned last, or undefined if Next hasn't been called. */
+    action GetCurrentNode returns HashNode<Key, Value>
+        return current
     end
 
     action GetArray returns Array<HashNode<Key, Value>>

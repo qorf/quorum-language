@@ -9,8 +9,13 @@ use Libraries.Containers.Array
 class HashTableValueIterator<Key, Value> is Iterator<Value>
     public HashTableIterator<Key, Value> iterator = undefined
 
-    action GetCurrent returns Key
-        return iterator:GetCurrent()
+    action GetCurrent returns Value
+        //the value of the node Next returned (GetCurrent gave the next node itself)
+        HashNode<Key, Value> node = iterator:GetCurrentNode()
+        if node = undefined
+            return undefined
+        end
+        return node:value
     end
 
     action HasNext returns boolean
