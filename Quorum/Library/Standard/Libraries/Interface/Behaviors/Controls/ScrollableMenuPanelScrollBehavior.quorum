@@ -9,30 +9,21 @@ use Libraries.Interface.Events.MouseEvent
 class ScrollableMenuPanelScrollBehavior is Behavior
 
     Math math
-    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+    // How many items one unit of the wheel scrolls, as for other controls.
+    constant number ITEMS_PER_WHEEL_UNIT = 3
+    // The part of an item scrolled but not yet moved, since a menu moves
+    // whole items: small amounts add up instead of being lost.
+    number carry = 0
 
     action Run(BehaviorEvent event)
         if event:GetItem() is ScrollableMenuPanel
             ScrollableMenuPanel menu = cast(ScrollableMenuPanel, event:GetItem())
             MouseEvent mouseEvent = event:GetMouseEvent()
             if mouseEvent not= undefined
-                number y = mouseEvent:scrollAmount
-                boolean positive = true
-                if y < 0
-                    positive = false
-                    y = y * -1
-                end
-
-                y = y + 1
-                y = math:SquareRoot(math:Logarithm(y))
-                number lines = cast(integer, y / liner)
-                if lines <= 1
-                    lines = 1
-                end
-                
-                if not positive
-                    lines = lines * -1
-                end
+                carry = carry + mouseEvent:scrollAmount * ITEMS_PER_WHEEL_UNIT
+                // Whole items, toward zero; the rest waits for the next turn.
+                integer lines = cast(integer, carry)
+                carry = carry - lines
 
                 menu:SetScrollIndex(menu:GetScrollIndex() - lines)
             end

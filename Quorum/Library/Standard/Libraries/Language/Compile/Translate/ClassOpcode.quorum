@@ -164,8 +164,8 @@ class ClassOpcode is QuorumOpcode
         text link = ""
         text key = from:GetStaticKey()
         text parentKey = theParent:GetStaticKey()
-        Array<text> fromSplit = key:Split("\.")
-        Array<text> parentSplit = parentKey:Split("\.")
+        Array<text> fromSplit = key:Split(".", false)
+        Array<text> parentSplit = parentKey:Split(".", false)
         if fromSplit not= undefined and parentSplit not= undefined
             integer i = 0
             repeat fromSplit:GetSize() - 1 times
@@ -192,8 +192,8 @@ class ClassOpcode is QuorumOpcode
         text link = ""
         text key = from:GetStaticKey()
         text parentKey = theParent:GetStaticKey()
-        Array<text> fromSplit = key:Split("\.")
-        Array<text> parentSplit = parentKey:Split("\.")
+        Array<text> fromSplit = key:Split(".", false)
+        Array<text> parentSplit = parentKey:Split(".", false)
         if fromSplit not= undefined and parentSplit not= undefined
             integer i = 0
             repeat fromSplit:GetSize() - 1 times
@@ -755,7 +755,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         dq = dq:GetDoubleQuote()
 
         text key = me:GetStaticKey()
-        Array<text> split = key:Split("\.")
+        Array<text> split = key:Split(".", false)
         integer val = split:GetSize() - 1
 
         text path = ""
@@ -771,7 +771,7 @@ actLink:SetClassAttribute("hover:underline text-sm")
         dq = dq:GetDoubleQuote()
 
         text key = me:GetStaticKey()
-        Array<text> split = key:Split("\.")
+        Array<text> split = key:Split(".", false)
         integer val = split:GetSize() - 1
 
         text path = ""

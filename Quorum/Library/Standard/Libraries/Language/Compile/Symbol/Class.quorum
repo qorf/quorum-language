@@ -1433,7 +1433,7 @@ class Class is Symbol
 
     private action GetClass(text key, SymbolTable table, CompilerErrorManager errors) returns Class
         Class clazz = undefined
-        Array<text> split = key:Split("\.")
+        Array<text> split = key:Split(".", false)
 
         //first check if this is a full name in the symbol table. 
         //be careful to check the default package only if this class

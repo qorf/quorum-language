@@ -1217,7 +1217,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
                 path = folder:GetPath() + "/Plugins/python/"
 
                 key = clazz:GetStaticKey()
-                Array<text> keys = key:Split("\.")
+                Array<text> keys = key:Split(".", false)
                 i = 0
                 repeat keys:GetSize() times
                     newKey = keys:Get(i)
@@ -1261,7 +1261,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
                         path = folder:GetPath() + "/Plugins/javascript/"
         
                         key = clazz:GetStaticKey()
-                        Array<text> keys = key:Split("\.")
+                        Array<text> keys = key:Split(".", false)
                         i = 0
                         repeat keys:GetSize() times
                             newKey = keys:Get(i)
@@ -1304,7 +1304,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
                 path = folder:GetPath() + "/Plugins/javascript/"
 
                 key = clazz:GetStaticKey()
-                Array<text> keys = key:Split("\.")
+                Array<text> keys = key:Split(".", false)
                 i = 0
                 repeat keys:GetSize() times
                     newKey = keys:Get(i)
@@ -1829,7 +1829,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
         File file
         file:SetWorkingDirectory(loc2)
 
-        Array<text> values = key:Split("\.")
+        Array<text> values = key:Split(".", false)
 
         text location = "/"
         Iterator<text> it = values:GetIterator()
@@ -1850,7 +1850,7 @@ There are many ways to load canvases and this is provided only as an exemplar.
     end
 
     action GetStandardLibraryFile(text key, text fromPackage) returns File
-        Array<text> values = key:Split("\.")
+        Array<text> values = key:Split(".", false)
         if standardLibraryFolder = undefined
             File build
             build:SetPath(DEFAULT_STANDARD_LIBRARY_FOLDER)

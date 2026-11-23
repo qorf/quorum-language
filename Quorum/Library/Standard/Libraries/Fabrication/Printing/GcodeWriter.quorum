@@ -1278,9 +1278,7 @@ class GcodeWriter
     end
 
     private action SplitLines(text contents) returns Array<text>
-        text lineFeed = ""
-        lineFeed = lineFeed:GetLineFeed()
-        return contents:Split(lineFeed)
+        return contents:SplitIntoLines()
     end
 
     // The name used for a start or end G-code file in comments and warnings.

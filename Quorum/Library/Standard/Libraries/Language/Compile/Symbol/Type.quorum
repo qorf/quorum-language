@@ -198,7 +198,7 @@ class Type
 
     action GetName returns text
         text result = ""
-        Array<text> split = staticKey:Split("\.")
+        Array<text> split = staticKey:Split(".", false)
         if split not= undefined
             if not split:IsEmpty()
                 result = split:Get(split:GetSize() - 1)
@@ -209,7 +209,7 @@ class Type
 
     action GetNameWithGenerics returns text
         text result = ""
-        Array<text> split = staticKey:Split("\.")
+        Array<text> split = staticKey:Split(".", false)
         if split not= undefined
             if not split:IsEmpty()
                 result = split:Get(split:GetSize() - 1)

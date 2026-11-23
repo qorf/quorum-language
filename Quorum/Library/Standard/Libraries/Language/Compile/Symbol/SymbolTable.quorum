@@ -189,8 +189,8 @@ class SymbolTable
             text pack = it:Next()
             if pack:StartsWith(parentPackage + ".")
                 //now split the pack
-                Array<text> splitChild = pack:Split("\.")
-                Array<text> splitParent = parentPackage:Split("\.")
+                Array<text> splitChild = pack:Split(".", false)
+                Array<text> splitParent = parentPackage:Split(".", false)
                 if splitChild:GetSize() = splitParent:GetSize() + 1
                     subpacks:Add(pack)
                 end

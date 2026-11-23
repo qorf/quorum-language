@@ -770,10 +770,10 @@ class SceneEditor is Control, DefaultSceneManager
 
         Array<text> start = undefined
         Array<text> goal = undefined
-        // The "Contains" action can correctly test for backslashes, but the "Split" command requires the escape character "\\", or it crashes
+        // Split(delimiter, false) splits on the literal backslash on every back end
         if projectPath:Contains("\")
-            start = projectPath:Split("\\")
-            goal = goalPath:Split("\\")
+            start = projectPath:Split("\", false)
+            goal = goalPath:Split("\", false)
         else
             start = projectPath:Split("/")
             goal = goalPath:Split("/")

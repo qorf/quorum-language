@@ -126,12 +126,6 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 	def StartsWithNative__quorum_text__quorum_text(self, left, right):
 		return left.startswith(right)
  
-	def SplitIntoLines(self):
-		lines = self.text.splitlines()
-		array = quorum_Libraries_Containers_Array_()
-		for line in lines:
-			array.Add__quorum_Libraries_Language_Object(Text_(line))
-		return array
 
 	def IndexOfNative__quorum_text__quorum_text(self, left, right):
 		try:
@@ -202,25 +196,3 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 			raise _Text_Location_Error(endIndex)
 		return self.text[startIndex:endIndex]
 
-	def Split__quorum_text__quorum_boolean(self, delimiter, include):
-		# As Java's PrimitiveSplit(self, delimiter, keep), which splits on the
-		# literal delimiter: with include, every piece; without, trailing empty
-		# pieces are dropped. Empty text, or no match, gives the whole text.
-		text = self.text
-		if len(text) == 0:
-			pieces = [""]
-		elif delimiter == "":
-			pieces = list(text)
-			if include:
-				pieces.append("")
-		elif delimiter not in text:
-			pieces = [text]
-		else:
-			pieces = text.split(delimiter)
-			if not include:
-				while len(pieces) > 0 and pieces[-1] == "":
-					pieces.pop()
-		array = quorum_Libraries_Containers_Array_()
-		for piece in pieces:
-			array.Add__quorum_Libraries_Language_Object(Text_(piece))
-		return array

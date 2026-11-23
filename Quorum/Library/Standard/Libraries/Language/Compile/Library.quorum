@@ -420,7 +420,7 @@ text result = ""
             path = folder:GetPath() + "/Plugins/python/"
 
             key = clazz:GetStaticKey()
-            Array<text> keys = key:Split("\.")
+            Array<text> keys = key:Split(".", false)
             i = 0
             repeat keys:GetSize() times
                 newKey = keys:Get(i)
@@ -453,7 +453,7 @@ text result = ""
             path = folder:GetPath() + "/Plugins/javascript/"
 
             key = clazz:GetStaticKey()
-            Array<text> keys = key:Split("\.")
+            Array<text> keys = key:Split(".", false)
             i = 0
             repeat keys:GetSize() times
                 newKey = keys:Get(i)

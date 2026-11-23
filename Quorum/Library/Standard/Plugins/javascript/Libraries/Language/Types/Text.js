@@ -64,9 +64,6 @@ class plugins_quorum_Libraries_Language_Types_Text_ {
     StartsWithNative$quorum_text$quorum_text(left, right) {
         return this.text.StartsWithNative$quorum_text$quorum_text(left, right);
     };
-    SplitIntoLines() {
-        return this.text.SplitIntoLines();
-    };
     IndexOfNative$quorum_text$quorum_text(left, right) {
         return this.text.IndexOfNative$quorum_text$quorum_text(left, right);
     };
@@ -105,9 +102,6 @@ class plugins_quorum_Libraries_Language_Types_Text_ {
     };
     GetSubtext$quorum_integer$quorum_integer(startIndex, endIndex) {
         return this.text.GetSubtext$quorum_integer$quorum_integer(startIndex, endIndex);
-    };
-    Split$quorum_text$quorum_boolean(delimiter, include) {
-        return this.text.Split$quorum_text$quorum_boolean(delimiter, include);
     };
 }
 String.prototype.GetCharacterNative$quorum_integer = function(index) {
@@ -180,10 +174,15 @@ String.prototype.IndexOfNative$quorum_text$quorum_text$quorum_integer = function
 String.prototype.IsEmptyNative$quorum_text = function(left) {
     return left.length === 0;
 };
-// The same as Text:SplitIntoLines, Split(line feed), as Java's
-// PrimitiveSplitIntoLines does.
+// Split and SplitIntoLines are written once, in Text.quorum; a primitive
+// text hands them a Text, as Java's PrimitiveSplit does.
+function global_Text_Of_(value) {
+    var result = new quorum_Libraries_Language_Types_Text_();
+    result.SetValue$quorum_text(value);
+    return result;
+}
 String.prototype.SplitIntoLines = function() {
-    return this.valueOf().Split$quorum_text(String.fromCharCode(10));
+    return global_Text_Of_(this.valueOf()).SplitIntoLines();
 };
 // Every match, as Java's String.replace. The replacement is passed through
 // a function so $ characters in it aren't treated as patterns.
@@ -289,48 +288,9 @@ String.prototype.GetCharacter$quorum_integer = function(value) {
     if (value < 0 || value >= text.length) throw global_Text_Location_Error_(value);
     return text.charAt(value);
 };
-// As Java's PrimitiveSplit(self, delimiter, keep), which splits on the
-// literal delimiter: with keep, every piece; without, trailing empty pieces
-// are dropped. Empty text, or no match, gives the whole text, as Java does.
 String.prototype.Split$quorum_text$quorum_boolean = function(value, keep) {
-    var text = this.valueOf();
-    var pieces;
-    if (text.length === 0) {
-        pieces = [""];
-    } else if (value === "") {
-        pieces = text.split("");
-        if (keep) pieces.push("");
-    } else if (text.indexOf(value) < 0) {
-        pieces = [text];
-    } else {
-        pieces = text.split(value);
-        if (!keep) {
-            while (pieces.length > 0 && pieces[pieces.length - 1] === "") pieces.pop();
-        }
-    }
-    var resultArray = new quorum_Libraries_Containers_Array_();
-    for (var i = 0; i < pieces.length; i++) {
-        resultArray.Add$quorum_Libraries_Language_Object(new quorum_Libraries_Language_Types_Text_(false, pieces[i]));
-    }
-    return resultArray;
+    return global_Text_Of_(this.valueOf()).Split$quorum_text$quorum_boolean(value, keep);
 };
-// The same pieces as Text:Split(delimiter) in Text.quorum: empty pieces in
-// the middle are kept, one empty piece after a final delimiter is dropped,
-// empty text gives one empty piece, and an empty delimiter the whole text.
 String.prototype.Split$quorum_text = function(value) {
-    var text = this.valueOf();
-    var pieces;
-    if (value.length === 0) {
-        pieces = [text];
-    } else if (text.length === 0) {
-        pieces = [""];
-    } else {
-        pieces = text.split(value);
-        if (pieces.length > 1 && pieces[pieces.length - 1] === "") pieces.pop();
-    }
-    var resultArray = new quorum_Libraries_Containers_Array_();
-    for (var i = 0; i < pieces.length; i++) {
-        resultArray.Add$quorum_Libraries_Language_Object(new quorum_Libraries_Language_Types_Text_(false, pieces[i]));
-    }
-    return resultArray;
+    return global_Text_Of_(this.valueOf()).Split$quorum_text(value);
 };

@@ -149,7 +149,7 @@ availableWebFonts:Add("FiraSans-BoldItalic")
         //Choose the other directory if 15 or higher. For whatever reason
         //OS 11 shows up as 10.16
         check
-            Array<text> split = version:Split("\.")
+            Array<text> split = version:Split(".", false)
             if split not= undefined and split:GetSize() >= 2
                 integer left = cast(integer, split:Get(0))
 
@@ -382,17 +382,8 @@ availableWebFonts:Add("FiraSans-BoldItalic")
 
             Array<text> fontValues = undefined
 
-            /*
-            On desktop platforms which are using Java, we need to pass the "\"
-            character in order to correctly process the delimiter due to how
-            Java handles escape characters in its Split call. For Javascript (on
-            the web) this isn't necessary.
-            */
-            if gameStateManager:GetOperatingSystem() = "Web Browser"
-                fontValues = key:Split(FONT_DELIMITER)
-            else
-                fontValues = key:Split("\" + FONT_DELIMITER)
-            end
+            //Split(delimiter, false) splits on the literal delimiter on every platform
+            fontValues = key:Split(FONT_DELIMITER, false)
 
             strategy:SetSize(cast(integer, fontValues:Get(2)))
             strategy:SetAngle(cast(number, fontValues:Get(3)))

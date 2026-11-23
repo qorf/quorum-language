@@ -47,7 +47,8 @@ class ScrollableControl is Control
 
     // Values used for mouse wheel scrolling.
     Math math
-    constant number liner = math:SquareRoot(math:Logarithm(1.1))
+    // How many lines one unit of the wheel scrolls, about what a browser does.
+    constant number LINES_PER_WHEEL_UNIT = 3
 
     // How thick the scroll bars are, before the interface scale.
     integer barThickness = 12
@@ -652,25 +653,11 @@ class ScrollableControl is Control
         Attribute: Parameter event The mouse event that says how far the wheel turned.
     */
     action ScrolledMouse(MouseEvent event)
-        number y = event:scrollAmount
-        boolean positive = true
-        if y < 0
-            positive = false
-            y = y * -1
-        end
-
-        y = y + 1
-        y = math:SquareRoot(math:Logarithm(y))
-        number lines = cast(integer, y / liner)
-        if lines <= 1
-            lines = 1
-        end
-
+        // In proportion to how far the wheel moved, as a browser scrolls: a
+        // flick goes far, and a slight touch on a trackpad moves a little.
+        // A positive amount moves toward the top.
+        number lines = event:scrollAmount * LINES_PER_WHEEL_UNIT
         number heightChange = -GetScrollIncrement() * lines
-
-        if not positive
-            heightChange = heightChange * -1
-        end
 
         RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
     end

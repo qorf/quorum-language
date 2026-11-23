@@ -771,10 +771,10 @@ class Material
         text splitter = "/"
         if folder:Contains("\")
             separator = "\"
-            splitter = "\\"
+            splitter = "\"
         end
-        Array<text> start = folder:Split(splitter)
-        Array<text> goal = target:Split(splitter)
+        Array<text> start = folder:Split(splitter, false)
+        Array<text> goal = target:Split(splitter, false)
         integer common = 0
         repeat while common < start:GetSize() and common < goal:GetSize() and start:Get(common) = goal:Get(common)
             common = common + 1

@@ -38,7 +38,7 @@ class CodeCompletionHandler
         end
 
         trim = trim:Trim()
-        Array<text> values = trim:Split("\.")
+        Array<text> values = trim:Split(".", false)
         result:SetUsage(true)
 
         integer filterSize = 0

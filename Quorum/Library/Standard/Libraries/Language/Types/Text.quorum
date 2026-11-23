@@ -268,9 +268,39 @@ class Text is Object
         end
     */
     action SplitIntoLines returns Array<text>
-        text lf = GetLineFeed()
-        Array<text> result = Split(lf)
-        return result
+        // A line ends at a line feed, or at a carriage return and line feed,
+        // so a file gives the same lines whichever machine saved it. A final
+        // line ending ends the last line; it doesn't start an empty one. A
+        // lone carriage return is not a line ending. One pass, as SplitText.
+        Array<text> lines
+        integer length = GetSize()
+        if length = 0
+            lines:Add(value)
+            return lines
+        end
+        text lineFeed = GetLineFeed()
+        text carriageReturn = GetCarriageReturn()
+        integer start = 0
+        integer found = IndexOfNative(value, lineFeed, 0)
+        repeat while found >= 0
+            integer finish = found
+            if finish > start
+                if GetCharacterNative(finish - 1) = carriageReturn
+                    finish = finish - 1
+                end
+            end
+            lines:Add(GetSubtext(start, finish))
+            start = found + 1
+            if start < length
+                found = IndexOfNative(value, lineFeed, start)
+            else
+                found = -1
+            end
+        end
+        if start < length
+            lines:Add(GetSubtext(start, length))
+        end
+        return lines
     end
 
     private system action IndexOfNative(text left, text prefix, integer index) returns integer
@@ -588,80 +618,94 @@ class Text is Object
     system action GetSubtext(integer startIndex, integer endIndex) returns text
 
     /*
-        This action splits the string based on the given non-empty delimiter.
-        The delimiter can be of any length. The string will be split by the
-        given delimiter and an array of text objects will be returned, without
-        the delimiter.
-        
-        Attribute: Parameter delimiter The non-empty delimiter to use.
-        Attribute: Parameter include Include any trailing values after the delimiter, including the empty string.
-        Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
+        This action splits the text at every place the delimiter appears and
+        returns the pieces, without the delimiter. The delimiter is plain text
+        of any length, never a pattern. Pieces are found from left to right
+        and don't overlap, so "aaa" split by "aa" gives "" and "a". Empty
+        pieces between two delimiters are kept. An empty delimiter gives the
+        whole text as one piece, and an empty text gives one empty piece.
+
+        Attribute: Parameter delimiter The delimiter to split by.
+        Attribute: Parameter include True to keep the empty pieces at the end
+        (after a final delimiter); false to leave them out, so a text made only
+        of delimiters gives no pieces.
+        Attribute: Returns An array of the pieces.
 
         Attribute: Example
         use Libraries.Language.Types.Text
         use Libraries.Containers.Array
         Text a
-        a:SetValue("hello world")
-        Array<Text> values = a:Split("l")
+        a:SetValue("a,b,,")
+        Array<text> all = a:Split(",", true)
+        Array<text> some = a:Split(",", false)
+        output all:GetSize() + " " + some:GetSize()
     */
-    system action Split(text delimiter, boolean include) returns Array<text>
+    action Split(text delimiter, boolean include) returns Array<text>
+        return SplitText(delimiter, include)
+    end
 
     /*
-        This action splits the string based on the given non-empty delimiter.
-        The delimiter can be of any length. The string will be split by the
-        given delimiter and an array of text objects will be returned, without
-        the delimiter.
-        
-        Attribute: Parameter delimiter The non-empty delimiter to use.
-        Attribute: Returns An array of text objects corresponding to the splits by the delimiter.
+        This action splits the text at every place the delimiter appears and
+        returns the pieces, without the delimiter. It is the same as
+        Split(delimiter, false): the delimiter is plain text, empty pieces in
+        the middle are kept, and empty pieces at the end are left out.
+
+        Attribute: Parameter delimiter The delimiter to split by.
+        Attribute: Returns An array of the pieces.
 
         Attribute: Example
         use Libraries.Language.Types.Text
         use Libraries.Containers.Array
         Text a
         a:SetValue("hello world")
-        Array<Text> values = a:Split("l")
+        Array<text> values = a:Split("l")
     */
     action Split(text delimiter) returns Array<text>
-        // Each delimiter is found with IndexOf and each piece is taken with
-        // one GetSubtext, so the work grows with the text's length. The old
-        // version joined text a character at a time, which grew with the
-        // square of each piece's length. The results are the same for one-character
-        // delimiters: empty pieces between delimiters are kept, and one
-        // empty piece after a final delimiter is not added.
+        return SplitText(delimiter, false)
+    end
+
+    /*
+        The one Split. Each delimiter is found by the native IndexOf, starting
+        after the last one, and each piece is copied once by the native
+        GetSubtext, so the text is scanned once and each piece costs one
+        search, one copy and one Add. IndexOfNative is called directly: the
+        loop keeps the start inside the text, so IndexOf's checks aren't needed.
+    */
+    private action SplitText(text delimiter, boolean keepTrailing) returns Array<text>
+        if delimiter = undefined
+            UndefinedObjectError error
+            error:SetErrorMessage("Split needs a delimiter, but it was undefined.")
+            alert(error)
+        end
         Array<text> results
-        integer length = me:GetSize()
+        integer length = GetSize()
         // Measured through a Text, as the old version did, inside this class.
-        Text delim
-        delim:SetValue(delimiter)
-        integer delimLength = delim:GetSize()
-        if delimLength = 0
-            // Nothing to split on: the whole text.
-            results:Add(me:GetValue())
+        Text measure
+        measure:SetValue(delimiter)
+        integer delimiterLength = measure:GetSize()
+        if delimiterLength = 0 or length = 0
+            results:Add(value)
             return results
         end
 
         integer start = 0
-        integer found = -1
-        if length > 0
-            found = me:IndexOf(delimiter, 0)
-        end
+        integer found = IndexOfNative(value, delimiter, 0)
         repeat while found >= 0
-            results:Add(me:GetSubtext(start, found))
-            start = found + delimLength
-            found = -1
-            // IndexOf needs a start inside the text.
+            results:Add(GetSubtext(start, found))
+            start = found + delimiterLength
             if start < length
-                found = me:IndexOf(delimiter, start)
+                found = IndexOfNative(value, delimiter, start)
+            else
+                found = -1
             end
         end
+        // The piece after the last delimiter: empty if the text ends with one.
+        results:Add(GetSubtext(start, length))
 
-        // The piece after the last delimiter. A text ending with the
-        // delimiter has none; an empty text gives one empty piece.
-        if start < length
-            results:Add(me:GetSubtext(start, length))
-        elseif length = 0
-            results:Add("")
+        if not keepTrailing
+            repeat while not results:IsEmpty() and results:Get(results:GetSize() - 1) = ""
+                text removed = results:RemoveFromEnd()
+            end
         end
         return results
     end
