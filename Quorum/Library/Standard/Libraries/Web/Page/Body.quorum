@@ -30,7 +30,7 @@ end
 */
 class Body is WebTag, WindowAttributeAccepter
     action Generate returns text
-        text result = "<body "
+        text result = "<body"
         result = result + GenerateAttributes()
         result = result + ">"
         result = result + me:GenerateNestedTags()

@@ -32,7 +32,7 @@ end
 */
 class TableHeader is WebTag
     action Generate returns text
-        text result = "<thead " 
+        text result = "<thead" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -28,7 +28,7 @@ end
 */
 class DefinitionTerm is WebTag, FlowContent
     action Generate returns text
-        text result = "<dfn " 
+        text result = "<dfn" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

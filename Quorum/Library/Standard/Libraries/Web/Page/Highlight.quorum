@@ -27,7 +27,7 @@ end
 */
 class Highlight is WebTag, FlowContent
     action Generate returns text
-        text result = "<mark " 
+        text result = "<mark" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

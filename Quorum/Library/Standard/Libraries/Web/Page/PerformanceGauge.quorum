@@ -186,7 +186,7 @@ class PerformanceGauge is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<meter " 
+        text result = "<meter" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -76,10 +76,16 @@ class WavefrontObjectParser
     private action UseMaterial
         listener:EnterUseMaterial()
         if currentToken < lexer:GetSize()
+            // A material's name is the rest of the line, so it may have
+            // spaces or digits in it ("usemtl my red paint").
             ModelToken token = lexer:GetToken(currentToken)
-            if token:tokenID = lexer:ID
-                listener:VisitID(token)
-            end
+            ModelToken name
+            name:value = lexer:GetRestOfLine(currentToken)
+            name:tokenID = lexer:ID
+            name:startLine = token:startLine
+            name:startColumn = token:startColumn
+            name:startIndex = token:startIndex
+            listener:VisitID(name)
         end
         listener:ExitUseMaterial()
     end
@@ -152,21 +158,20 @@ class WavefrontObjectParser
                 if token:tokenID = lexer:NUMBER
                     listener:VisitNumber(token)
 
-                    //now there must be a slash, then another number
-                    currentToken = currentToken + 1
-                    if currentToken < lexer:GetSize()
-                        //this must be a number, otherwise it is an error
-                        token = lexer:GetToken(currentToken)
-                        if token:tokenID = lexer:FORWARD_SLASH
-                            listener:VisitForwardSlash(token)
-                        end
-
-                        currentToken = currentToken + 1
-                        if currentToken < lexer:GetSize()
-                            //this must be a number, otherwise it is an error
-                            token = lexer:GetToken(currentToken)
-                            if token:tokenID = lexer:NUMBER
-                                listener:VisitNumber(token)
+                    // A slash and a normal may follow, as in 5/5/5. Only
+                    // what belongs to this corner is read: in 1/2 2/3 the
+                    // next corner starts right after the texture number.
+                    if currentToken + 1 < lexer:GetSize()
+                        ModelToken after = lexer:GetToken(currentToken + 1)
+                        if after:tokenID = lexer:FORWARD_SLASH
+                            currentToken = currentToken + 1
+                            listener:VisitForwardSlash(after)
+                            if currentToken + 1 < lexer:GetSize()
+                                ModelToken normalToken = lexer:GetToken(currentToken + 1)
+                                if normalToken:tokenID = lexer:NUMBER
+                                    currentToken = currentToken + 1
+                                    listener:VisitNumber(normalToken)
+                                end
                             end
                         end
                     end

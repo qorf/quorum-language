@@ -30,7 +30,7 @@ end
 */
 class Ruby is WebTag, FlowContent
     action Generate returns text
-        text result = "<ruby " 
+        text result = "<ruby" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

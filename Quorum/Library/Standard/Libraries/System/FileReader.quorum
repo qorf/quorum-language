@@ -172,7 +172,7 @@ class FileReader is FileReaderBlueprint
         after opening a file will read the entire file. If we perform some other reading action,
         such as ReadLine(), and then call this action, we will receive all file contents after
         the point where we have read. If the end of file has already been reached before
-        calling this action, an EndOfFileError will be raised.
+        calling this action, it returns an empty text, as it does for an empty file.
 
         Attribute: Returns the file contents from our current position to the end of the file.
 

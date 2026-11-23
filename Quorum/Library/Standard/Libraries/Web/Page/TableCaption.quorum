@@ -39,7 +39,7 @@ end
 class TableCaption is WebTag
 
     action Generate returns text
-        text result = "<caption " 
+        text result = "<caption" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

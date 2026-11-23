@@ -286,6 +286,37 @@ class JavaScriptObjectNotationLexer
                         string = ""
                         j = value:GetSize() + 1
                         tokens:Add(token)
+                    elseif char2 = "\" and j + 1 < value:GetSize()
+                        //an escape (RFC 8259 section 7): a backslash before " \ / b f n r t
+                        //and \u with four hexadecimal digits stand for one character.
+                        //Any other backslash is kept as written.
+                        text next = value:GetCharacter(j + 1)
+                        integer skip = 1
+                        if next = quote or next = "\" or next = "/"
+                            string = string + next
+                        elseif next = "n"
+                            string = string + value:GetLineFeed()
+                        elseif next = "t"
+                            string = string + value:GetTab()
+                        elseif next = "r"
+                            string = string + value:GetCarriageReturn()
+                        elseif next = "b"
+                            string = string + value:GetUnicodeValue(8)
+                        elseif next = "f"
+                            string = string + value:GetUnicodeValue(12)
+                        elseif next = "u" and j + 5 < value:GetSize()
+                            integer code = ParseHexadecimal(value:GetSubtext(j + 2, j + 6))
+                            if code >= 0
+                                string = string + value:GetUnicodeValue(code)
+                                skip = 5
+                            else
+                                string = string + char2 + next
+                            end
+                        else
+                            string = string + char2 + next
+                        end
+                        currentColumn = currentColumn + skip
+                        j = j + skip
                     else 
                         string = string + char2
                     end
@@ -526,6 +557,23 @@ class JavaScriptObjectNotationLexer
     action Read(File file)
         text value = file:Read()
         Read(value)
+    end
+
+    /* The value of four hexadecimal digits, or -1 if they aren't. */
+    private action ParseHexadecimal(text digits) returns integer
+        text lower = digits:ToLowerCase()
+        text known = "0123456789abcdef"
+        integer result = 0
+        integer k = 0
+        repeat while k < lower:GetSize()
+            integer digit = known:IndexOf(lower:GetCharacter(k))
+            if digit < 0
+                return -1
+            end
+            result = result * 16 + digit
+            k = k + 1
+        end
+        return result
     end
 
     /* Private helper action for determining if a value is a digit. */

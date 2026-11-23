@@ -17,7 +17,7 @@ use Libraries.Web.Page.WindowAttributeAccepter
 
 class body is WindowAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<body "
+        text result = "<body"
         result = result + GenerateAttributes()
         result = result + ">
 "

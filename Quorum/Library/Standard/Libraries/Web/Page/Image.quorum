@@ -266,7 +266,7 @@ class Image is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<img "
+        text result = "<img"
         result = result + me:GenerateAttributes()
         result = result+ ">"
         return result

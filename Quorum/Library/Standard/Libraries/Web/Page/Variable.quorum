@@ -26,7 +26,7 @@ end
 */
 class Variable is WebTag, FlowContent
     action Generate returns text
-        text result = "<var " 
+        text result = "<var" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

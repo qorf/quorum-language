@@ -26,7 +26,7 @@ end
 */
 class SampleOutput is WebTag, FlowContent
     action Generate returns text
-        text result = "<samp " 
+        text result = "<samp" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

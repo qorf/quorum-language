@@ -16,7 +16,7 @@ use Libraries.Web.Page.KeyboardAttributeAccepter
 
 class Input is KeyboardAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<input " 
+        text result = "<input" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

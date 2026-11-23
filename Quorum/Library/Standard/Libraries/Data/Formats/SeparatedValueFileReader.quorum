@@ -128,50 +128,57 @@ class SeparatedValueFileReader is FileReader
     end
 
     private action ReadNextLine returns text
-        size = total:GetSize()
         isInDoubleQuote = false
         myTotal = total //temporary fix to possible compiler bug with using autoboxed primitives in fields.
-        
-        line = ""
+
         dq = myTotal:GetDoubleQuote()
         text lineFeed = myTotal:GetLineFeed()
-        text newline = myTotal:GetCarriageReturn()
-        
+        text carriageReturn = myTotal:GetCarriageReturn()
+
         integer totalSize = myTotal:GetSize()
         integer lineStart = currentCharacter
-        integer lineEnd = 0
+        if lineStart >= totalSize
+            return undefined
+        end
+
         repeat while currentCharacter < totalSize
-            char = myTotal:GetCharacter(currentCharacter)
+            text char = myTotal:GetCharacter(currentCharacter)
             if char = dq
                 isInDoubleQuote = not isInDoubleQuote
             end
 
-            //Check to see if it's a carriage return, a line feed, or a carriage return line feed. Seems like not all of 
-            //the CSV files out there actually follow a reasonable spec, so we have to do stuff like this.
-            if (char = lineFeed and not isInDoubleQuote) or (char = newline and not isInDoubleQuote)
-                or (currentCharacter = (size - 1))
-
-                //if it's a newline and the next character is a linefeed, include it
-                if char = newline and myTotal:GetCharacter(currentCharacter + 1) = lineFeed
-                    //we need to skip a character, because this is a carriage return, line feed
-                    currentCharacter = currentCharacter + 1
+            //A line ends at a line feed, a carriage return and line feed pair,
+            //or a lone carriage return, outside double quotes (not all CSV
+            //files follow the spec). The line ending is never part of the
+            //returned line: it used to keep the carriage return of a pair and
+            //a final line feed, and a carriage return as the last character
+            //crashed, because the next character was read without a bounds check.
+            boolean isLineBreak = false
+            if not isInDoubleQuote
+                if char = lineFeed
+                    isLineBreak = true
+                elseif char = carriageReturn
+                    isLineBreak = true
                 end
+            end
 
-                //if it's the last character, keep it
-                if currentCharacter = size - 1
-                    currentCharacter = currentCharacter + 1
-                end
-                lineEnd = currentCharacter
-                text value = myTotal:GetSubtext(lineStart, lineEnd)
-                lineStart = currentCharacter + 1
+            if isLineBreak
+                text value = myTotal:GetSubtext(lineStart, currentCharacter)
                 currentCharacter = currentCharacter + 1
+                //skip the line feed of a carriage return and line feed pair
+                if char = carriageReturn and currentCharacter < totalSize
+                    if myTotal:GetCharacter(currentCharacter) = lineFeed
+                        currentCharacter = currentCharacter + 1
+                    end
+                end
                 return value
             end
 
             currentCharacter = currentCharacter + 1
         end
 
-        return undefined
+        //the text ended without a line break: the rest is the last line
+        return myTotal:GetSubtext(lineStart, totalSize)
     end
 
     /*

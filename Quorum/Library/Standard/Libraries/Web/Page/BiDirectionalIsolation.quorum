@@ -35,7 +35,7 @@ end
 class BiDirectionalIsolation is WebTag, FlowContent
 
     action Generate returns text
-        text result = "<bdi " 
+        text result = "<bdi" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

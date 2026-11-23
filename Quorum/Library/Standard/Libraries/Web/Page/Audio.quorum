@@ -261,7 +261,7 @@ class Audio is WebTag, MediaAttributeAccepter, FlowContent
     end
 
     action Generate returns text
-        text result = "<audio " 
+        text result = "<audio" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

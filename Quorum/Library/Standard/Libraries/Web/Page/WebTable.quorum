@@ -408,7 +408,7 @@ tableBody = body
 
     action Generate returns text
         validateTags()
-        text result = "<table " 
+        text result = "<table" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -71,7 +71,7 @@ class ColumnGroup is WebTag
     end
         
     action Generate returns text
-        text result = "<colgroup " 
+        text result = "<colgroup" 
         result = result + GenerateAttributes() + ">"
         result = result + me:GenerateNestedTags()
         result = result + "</colgroup>"

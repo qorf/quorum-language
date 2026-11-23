@@ -110,7 +110,7 @@ class Canvas is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<canvas " 
+        text result = "<canvas" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

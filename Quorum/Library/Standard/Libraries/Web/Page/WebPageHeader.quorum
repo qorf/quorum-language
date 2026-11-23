@@ -313,7 +313,7 @@ class WebPageHeader is WebGenerator, GlobalAttributeAccepter
     end
 
     action Generate returns text
-        text result = "<head " + me:GenerateAttributes() + ">" 
+        text result = "<head" + me:GenerateAttributes() + ">" 
 
         if title not= undefined
             result = result + title:Generate()

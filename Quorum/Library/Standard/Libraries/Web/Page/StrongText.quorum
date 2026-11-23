@@ -24,7 +24,7 @@ end
 */
 class StrongText is WebTag, FlowContent
     action Generate returns text
-        text result = "<strong " 
+        text result = "<strong" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

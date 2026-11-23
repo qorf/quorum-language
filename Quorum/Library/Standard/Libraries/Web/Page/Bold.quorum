@@ -1,6 +1,7 @@
 package Libraries.Web.Page
 
 use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.Attributes
 
 /*
 The Bold class represents HTML's (Hypertext Markup Language) b tag which 
@@ -24,7 +25,8 @@ end
 */
 class Bold is WebTag, FlowContent
     action Generate returns text
-        return "<b>" + GenerateNestedTags() + "</b>"
+        Attributes attributes = parent:WebTag:GetAttributes()
+        return "<b" + attributes:Generate() + ">" + GenerateNestedTags() + "</b>"
     end
 
     /*

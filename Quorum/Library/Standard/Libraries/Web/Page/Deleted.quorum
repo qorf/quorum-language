@@ -105,7 +105,7 @@ class Deleted is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<del " 
+        text result = "<del" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

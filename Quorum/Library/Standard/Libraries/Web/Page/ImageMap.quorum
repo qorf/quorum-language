@@ -66,7 +66,7 @@ class ImageMap is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<map " 
+        text result = "<map" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

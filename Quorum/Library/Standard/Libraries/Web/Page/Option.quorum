@@ -167,7 +167,7 @@ class Option is WebTag
     end
 
     action Generate returns text
-        text result = "<option " 
+        text result = "<option" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

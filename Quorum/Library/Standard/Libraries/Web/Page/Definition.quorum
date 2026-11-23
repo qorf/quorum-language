@@ -31,7 +31,7 @@ end
 */
 class Definition is WebTag, FlowContent
     action Generate returns text
-        text result = "<dd " 
+        text result = "<dd" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

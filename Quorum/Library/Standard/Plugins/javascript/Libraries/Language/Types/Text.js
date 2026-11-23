@@ -136,12 +136,8 @@ String.prototype.ParseNumber = function() {
     return Number(text.replace(/[fFdD]$/, ""));
 };
 String.prototype.ParseBoolean = function() {
-    if (this.valueOf() == "true")
-        return true;
-    else if (this.valueOf() == "false")
-        return false;
-    else
-        return false;
+    // As Java's Boolean.parseBoolean: "true" in any letter case.
+    return this.valueOf().toLowerCase() === "true";
 };
 String.prototype.GetLineFeed = function() {
     return String.fromCharCode(10);

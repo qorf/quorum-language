@@ -359,7 +359,7 @@ class Form is WebTag, FormAttributeAccepter, FlowContent
     end
    
     action Generate returns text
-        text result = "<form " 
+        text result = "<form" 
         result = result + me:GenerateAttributes() + ">"
         result = result + me:GenerateNestedTags()
         result = result + "</form>"

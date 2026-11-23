@@ -245,9 +245,9 @@ class Script is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<script " 
+        text result = "<script" 
         if IsAsync()
-            result = result + async + " "
+            result = result + " " + async
         end
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()

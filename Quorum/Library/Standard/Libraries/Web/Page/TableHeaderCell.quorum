@@ -185,7 +185,7 @@ class TableHeaderCell is WebTag
 
     
     action Generate returns text
-        text result = "<th " 
+        text result = "<th" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

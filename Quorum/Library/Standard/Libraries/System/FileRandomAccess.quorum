@@ -109,6 +109,13 @@ class FileRandomAccess is FileRandomAccessBlueprint
         ra:Close()
      */
     action OpenForRandomAccess(File file)
+        //As documented: a missing file is an error. The native open would
+        //otherwise create an empty file there.
+        if not file:Exists()
+            FileNotFoundError error
+            error:SetErrorMessage("The file " + file:GetAbsolutePath() + " was not found.")
+            alert(error)
+        end
         OpenForRandomAccessNative(file:GetAbsolutePath())
     end
 

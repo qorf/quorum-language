@@ -25,7 +25,7 @@ end
 */
 class KeyboardInput is WebTag, FlowContent
     action Generate returns text
-        text result = "<kbd " 
+        text result = "<kbd" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

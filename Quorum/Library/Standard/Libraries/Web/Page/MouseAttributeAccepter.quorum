@@ -17,7 +17,7 @@ use Libraries.Web.Page.MouseAttributeAccepter
 
 class audio is MouseAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<button " 
+        text result = "<button" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

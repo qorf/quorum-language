@@ -49,8 +49,6 @@ class SeparatedValue
     */
     action Read(File file)
         SeparatedValueFileReader reader
-        numberColumns = -1
-        conistent = true
 
         if not file:Exists()
             FileNotFoundError error
@@ -64,6 +62,12 @@ class SeparatedValue
     end
 
     private action Read(SeparatedValueFileReader reader)
+        //Each Read replaces what an earlier Read found: the rows used to add
+        //up, and Read(text) kept the old column count and consistency flag.
+        table:Empty()
+        numberColumns = -1
+        conistent = true
+
         count = 1
         done = false
         repeat until done
@@ -248,6 +252,10 @@ class SeparatedValue
         columns = csvReader:GetNumberOfColumns()
     */
     action GetNumberOfColumns returns integer
+        //-1 only marks that no row has been read yet; there are 0 columns then
+        if numberColumns < 0
+            return 0
+        end
         return numberColumns
     end
 
@@ -289,7 +297,9 @@ isInDoubleQuotes = not isInDoubleQuotes
             count = count + 1
         end
 
-        current = current:Trim()
+        //Spaces are part of a field (RFC 4180), so the last field is no longer
+        //trimmed. The trim used to remove line endings the line reader left in,
+        //which it now drops itself, and made the last field unlike the others.
         row:Add(current)
         return row
     end

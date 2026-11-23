@@ -124,6 +124,8 @@ class OptionGroup is WebTag
     */
     action AddOption(Option option)
         options:Add(option)
+        // Also nests the option, so Generate writes it.
+        parent:WebTag:tags:Add(option)
     end
 
     /*
@@ -146,6 +148,7 @@ class OptionGroup is WebTag
     */
     action RemoveOption(Option option)
         options:Remove(option)
+        Remove(option)
     end
 
     /*
@@ -166,7 +169,7 @@ class OptionGroup is WebTag
     end
 
     action Generate returns text
-        text result = "<optgroup " 
+        text result = "<optgroup" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -26,7 +26,7 @@ end
 class Italic is WebTag, FlowContent
 
     action Generate returns text
-        text result = "<i " 
+        text result = "<i" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

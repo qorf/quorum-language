@@ -65,6 +65,16 @@ class MaterialListener
 
     action VisitID(ModelToken token) end
 
+    /*
+    This action is called for a statement without a rule of its own, such
+    as "Pr 0.25" or "map_bump bumps.png", with its keyword and the rest of
+    its line (a texture's file name, without its options).
+
+    Attribute: Parameter key The keyword.
+    Attribute: Parameter value The rest of the line.
+    */
+    action VisitValue(text key, text value) end
+
     action VisitNumber(ModelToken terminal) end
 
     action VisitError(ModelError error) 

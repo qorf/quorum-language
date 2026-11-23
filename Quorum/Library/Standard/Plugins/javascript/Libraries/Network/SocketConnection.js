@@ -12,7 +12,7 @@ function plugins_quorum_Libraries_Network_SocketConnection_() {
         throw exceptionInstance_;
     };
 
-    this.WriteBytes$quorum_Libraries_Containers_ByteArray_ = function () {
+    this.WriteBytes$quorum_Libraries_Containers_ByteArray = function () {
         let exceptionInstance_ = new quorum_Libraries_Language_Errors_Error_();
         exceptionInstance_.SetErrorMessage$quorum_text("The Socket library is not available on the web");
         throw exceptionInstance_;

@@ -268,7 +268,8 @@ class Select is WebTag, FlowContent
         
     */
     action AddOption(Option option)
-        //Add(option)
+        // Nests the option, as Add(Option) does, so Generate writes it.
+        parent:WebTag:tags:Add(option)
     end
 
     /*
@@ -310,7 +311,8 @@ class Select is WebTag, FlowContent
         
     */
     action AddOptionGroup(OptionGroup optionGroup)
-        //Add(optionGroup)
+        // Nests the group, as Add(OptionGroup) does, so Generate writes it.
+        parent:WebTag:tags:Add(optionGroup)
     end
 
     /*
@@ -337,7 +339,7 @@ class Select is WebTag, FlowContent
     
 
     action Generate returns text
-        text result = "<select " 
+        text result = "<select" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

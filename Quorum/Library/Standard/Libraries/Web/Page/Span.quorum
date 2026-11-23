@@ -19,7 +19,7 @@ end
 */
 class Span is WebTag, FlowContent
     action Generate returns text
-        return "<span " + GenerateAttributes() + ">"
+        return "<span" + GenerateAttributes() + ">"
             + me:GenerateNestedTags() + "</span>"
     end
 

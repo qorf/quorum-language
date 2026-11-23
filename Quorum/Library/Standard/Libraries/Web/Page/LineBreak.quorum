@@ -1,6 +1,7 @@
 package Libraries.Web.Page
 
 use Libraries.Web.Page.WebTag
+use Libraries.Web.Page.Attributes
 /*
 The LineBreak class represents HTML's (Hypertext Markup Language) br tag which 
 creates a new line. 
@@ -23,6 +24,7 @@ end
 */
 class LineBreak is WebTag, FlowContent
     action Generate() returns text
-        return "<br>"
+        Attributes attributes = parent:WebTag:GetAttributes()
+        return "<br" + attributes:Generate() + ">"
     end
 end

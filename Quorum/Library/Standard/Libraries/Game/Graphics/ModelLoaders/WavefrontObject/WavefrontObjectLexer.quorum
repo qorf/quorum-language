@@ -24,11 +24,15 @@ class WavefrontObjectLexer
     public constant integer MATERIAL_LIBRARY = 17
     public constant integer OBJECT = 18
     public constant integer VERTEX_TEXTURE = 19
-    public constant integer FORWARD_SLASH = 19
+    // Each kind of token has its own number; a slash shared 19 with
+    // VERTEX_TEXTURE.
+    public constant integer FORWARD_SLASH = 21
     public constant integer USE_MATERIAL = 20
 
     Array<ModelToken> tokens
     WavefrontObjectListener listener = undefined
+    // The line read last, with any line it continues (GetRestOfLine).
+    text lineText = ""
 
     action GetListener returns WavefrontObjectListener
         return listener
@@ -55,12 +59,24 @@ class WavefrontObjectLexer
         Read(value)
     end
 
-    action Read(text value)
-        text quote = value:GetDoubleQuote()
-        text line = value:GetCarriageReturn() + value:GetLineFeed()
-        if line:IsEmpty()
-            return now
+    action Read(text original)
+        text value = original
+        // A line ending in a backslash continues on the next line, as in
+        // Assimp's reader: the listener keeps it until then.
+        if listener not= undefined
+            text continued = listener:GetContinuedLine()
+            if continued not= ""
+                value = continued + " " + value
+                listener:SetContinuedLine("")
+            end
+            text trimmed = value:Trim()
+            if trimmed:EndsWith("\")
+                listener:SetContinuedLine(trimmed:GetSubtext(0, trimmed:GetSize() - 1))
+                return now
+            end
         end
+        lineText = value
+        text quote = value:GetDoubleQuote()
         integer currentLine = 0
         integer currentColumn = -1
         text string = ""
@@ -89,14 +105,25 @@ class WavefrontObjectLexer
                     j = j + 1
                 end
                 i = j
-                token:tokenID = COMMENT
-                token:value = string
-                tokens:Add(token)
-            elseif char = "-" or IsDigit(char)
+                // A comment after a statement ends the line; only a line
+                // that is all comment is kept as one.
+                if tokens:IsEmpty()
+                    token:tokenID = COMMENT
+                    token:value = string
+                    tokens:Add(token)
+                end
+            elseif char = "-" or char = "+" or IsDigit(char) or (char = "." and StartsDigit(value, i + 1))
                 string = char
                 j = i + 1
                 digitCount = 0
                 if IsDigit(char)
+                    digitCount = 1
+                end
+                // A number may start with a point (.25), or with a sign
+                // followed by one (-.5), with no digits before it.
+                if char = "."
+                    digitCount = 1
+                elseif StartsPointNumber(value, j)
                     digitCount = 1
                 end
 
@@ -187,6 +214,10 @@ class WavefrontObjectLexer
                 else
                     i = j - 1
                     token:tokenID = NUMBER
+                    // A plus sign isn't part of the number's text.
+                    if string:StartsWith("+")
+                        string = string:GetSubtext(1)
+                    end
                     token:value = string
                     tokens:Add(token)
                 end
@@ -242,6 +273,43 @@ class WavefrontObjectLexer
             token:endIndex = i
             i = i + 1
         end
+    end
+
+    /*
+    This action returns the rest of the line from a token on, without spaces
+    around it or a comment after it, such as a material name with spaces
+    in it ("usemtl my red paint").
+
+    Attribute: Parameter index The token to start at.
+    Attribute: Returns The rest of the line, or "" if there is no such token.
+    */
+    action GetRestOfLine(integer index) returns text
+        if index < 0 or index >= tokens:GetSize()
+            return ""
+        end
+        ModelToken token = tokens:Get(index)
+        text rest = lineText:GetSubtext(token:startIndex)
+        integer comment = rest:IndexOf("#")
+        if comment >= 0
+            rest = rest:GetSubtext(0, comment)
+        end
+        return rest:Trim()
+    end
+
+    /* Returns true if the character at the index is a digit. */
+    private action StartsDigit(text value, integer index) returns boolean
+        if index < 0 or index >= value:GetSize()
+            return false
+        end
+        return IsDigit(value:GetCharacter(index))
+    end
+
+    /* Returns true if a point followed by a digit starts at the index. */
+    private action StartsPointNumber(text value, integer index) returns boolean
+        if index < 0 or index >= value:GetSize()
+            return false
+        end
+        return value:GetCharacter(index) = "." and StartsDigit(value, index + 1)
     end
 
     private action IsDigit(text char) returns boolean

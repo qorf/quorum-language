@@ -24,7 +24,7 @@ end
 */
 class Article is WebTag
     action Generate returns text
-        text result = "<article "
+        text result = "<article"
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

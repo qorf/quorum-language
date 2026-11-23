@@ -72,7 +72,7 @@ class Time is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<time " 
+        text result = "<time" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

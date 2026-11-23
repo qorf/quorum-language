@@ -412,12 +412,12 @@ class Area is WebTag, FlowContent
 
 
     action Generate returns text
-        text result = "<area " 
+        text result = "<area" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
         result = result + me:GenerateNestedTags()
-        result = result + "</area>"
+        // A void element: HTML forbids an end tag.
         return result
     end
 end

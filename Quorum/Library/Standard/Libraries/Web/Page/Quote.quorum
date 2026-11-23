@@ -65,7 +65,7 @@ class Quote is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<q " 
+        text result = "<q" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

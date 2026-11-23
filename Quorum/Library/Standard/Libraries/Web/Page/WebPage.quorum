@@ -411,7 +411,7 @@ class WebPage is WebGenerator, GlobalAttributeAccepter, ServerResponder
 
     action Generate returns text
         text result = documentType:Generate()
-        result = result + "<html "
+        result = result + "<html"
         Attributes attributes = me:GetAttributes()
         result = result + attributes:Generate()
         result = result + ">"

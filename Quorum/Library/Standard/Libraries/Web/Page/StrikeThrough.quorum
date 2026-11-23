@@ -26,7 +26,7 @@ end
 */
 class StrikeThrough is WebTag, FlowContent
     action Generate returns text
-        text result = "<s " 
+        text result = "<s" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

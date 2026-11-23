@@ -17,7 +17,7 @@ use Libraries.Web.Page.AttributeAccepter
 
 class MyNewTag is AttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<myTagName " 
+        text result = "<myTagName" 
         Attributes attributes = GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

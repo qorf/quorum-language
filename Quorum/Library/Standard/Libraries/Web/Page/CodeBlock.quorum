@@ -27,7 +27,7 @@ end
 */
 class CodeBlock is WebTag, FlowContent
     action Generate returns text
-        text result = "<code " 
+        text result = "<code" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

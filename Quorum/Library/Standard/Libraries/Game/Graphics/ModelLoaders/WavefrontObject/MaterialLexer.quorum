@@ -26,10 +26,14 @@ class MaterialLexer
     public constant integer OFF = 19
     public constant integer OPTICAL_DENSITY = 20
     public constant integer EMISSIVE_LIGHTING = 21
-    public constant integer DISSOLVE = 21
+    // Each kind of token has its own number; DISSOLVE shared 21 with
+    // EMISSIVE_LIGHTING, so "d" lines were read as emissive colors.
+    public constant integer DISSOLVE = 22
 
     Array<ModelToken> tokens
     MaterialListener listener = undefined
+    // The line read last (GetRestOfLine).
+    text lineText = ""
 
     action GetListener returns MaterialListener
         return listener
@@ -57,11 +61,8 @@ class MaterialLexer
     end
 
     action Read(text value)
+        lineText = value
         text quote = value:GetDoubleQuote()
-        text line = value:GetCarriageReturn() + value:GetLineFeed()
-        if line:IsEmpty()
-            return now
-        end
         integer currentLine = 0
         integer currentColumn = -1
         text string = ""
@@ -90,9 +91,13 @@ class MaterialLexer
                     j = j + 1
                 end
                 i = j
-                token:tokenID = COMMENT
-                token:value = string
-                tokens:Add(token)
+                // A comment after a statement ends the line; only a line
+                // that is all comment is kept as one.
+                if tokens:IsEmpty()
+                    token:tokenID = COMMENT
+                    token:value = string
+                    tokens:Add(token)
+                end
             elseif char = "-" or IsDigit(char)
                 string = char
                 j = i + 1
@@ -296,6 +301,27 @@ class MaterialLexer
             token:endIndex = i
             i = i + 1
         end
+    end
+
+    /*
+    This action returns the rest of the line from a token on, without spaces
+    around it or a comment after it, such as a material name with spaces
+    ("newmtl my red paint") or a texture with its options.
+
+    Attribute: Parameter index The token to start at.
+    Attribute: Returns The rest of the line, or "" if there is no such token.
+    */
+    action GetRestOfLine(integer index) returns text
+        if index < 0 or index >= tokens:GetSize()
+            return ""
+        end
+        ModelToken token = tokens:Get(index)
+        text rest = lineText:GetSubtext(token:startIndex)
+        integer comment = rest:IndexOf("#")
+        if comment >= 0
+            rest = rest:GetSubtext(0, comment)
+        end
+        return rest:Trim()
     end
 
     private action IsDigit(text char) returns boolean

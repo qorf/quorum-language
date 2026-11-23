@@ -15,7 +15,7 @@ use Libraries.Web.Page.GlobalAttributeAccepter
 
 class WebTag is GlobalAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<button " 
+        text result = "<button" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
@@ -452,7 +452,12 @@ class GlobalAttributeAccepter is AttributeAccepter
         accept:SetHidden(false)
     */
     action SetHidden(boolean value)
-        AddAttribute(hidden, "" + value)
+        // hidden is a boolean attribute: any value, even "false", hides, so false removes it.
+        if value
+            AddAttribute(hidden, "" + value)
+        else
+            RemoveAttribute(hidden)
+        end
     end
 
     /*

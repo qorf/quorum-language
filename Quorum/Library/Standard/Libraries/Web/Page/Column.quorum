@@ -70,7 +70,7 @@ class Column is WebTag
     end
 
     action Generate() returns text
-        text result = "<col " 
+        text result = "<col" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

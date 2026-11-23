@@ -80,7 +80,7 @@ class Details is WebTag
     end
 
     action Generate returns text
-        text result = "<details " 
+        text result = "<details" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -1,8 +1,12 @@
 package Libraries.Game.Graphics.ModelLoaders.WavefrontObject
 use Libraries.Compute.Vector3
+use Libraries.Containers.HashTable
 
 class Material 
     text name = ""
+    // Values by their .mtl keyword, for those without an action of their
+    // own, such as map_Ke, map_bump, norm or Pr (SetValue).
+    HashTable<text, text> values
     Vector3 ambientColor
     boolean hasAmbientColor = false
     Vector3 diffuseColor
@@ -88,7 +92,7 @@ class Material
         return hasEmissiveColor
     end
 
-    action SetHasEmissiveColor(boolean hasSpecularColor)
+    action SetHasEmissiveColor(boolean hasEmissiveColor)
         me:hasEmissiveColor = hasEmissiveColor
     end
 
@@ -245,5 +249,43 @@ class Material
 
     action HasAntiAlias returns boolean
         return hasAntiAlias
+    end
+
+    /*
+    This action keeps a value from the .mtl file by its keyword, for values
+    without an action of their own, such as "map_Ke", "map_bump", "bump",
+    "norm", "disp", "refl", "Pr", "Pm", "Ps", "Pc", "Pcr" or "aniso". A
+    texture's value is its file name, without the options before it.
+
+    Attribute: Parameter key The keyword, such as "Pr".
+    Attribute: Parameter value The value, as written in the file.
+    */
+    action SetValue(text key, text value)
+        values:Add(key, value)
+    end
+
+    /*
+    This action returns a value from the .mtl file by its keyword (see
+    SetValue), or "" if the material has none.
+
+    Attribute: Parameter key The keyword, such as "Pr".
+    Attribute: Returns The value, or "".
+    */
+    action GetValue(text key) returns text
+        if values:HasKey(key)
+            return values:GetValue(key)
+        end
+        return ""
+    end
+
+    /*
+    This action returns true if the material has a value for the keyword
+    (see SetValue).
+
+    Attribute: Parameter key The keyword, such as "Pr".
+    Attribute: Returns True if it has one.
+    */
+    action HasValue(text key) returns boolean
+        return values:HasKey(key)
     end
 end

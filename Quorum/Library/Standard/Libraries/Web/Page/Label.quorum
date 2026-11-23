@@ -114,7 +114,7 @@ class Label is WebTag, FormAttributeAccepter, MouseAttributeAccepter, FlowConten
 
 
     action Generate returns text
-        text result = "<label " 
+        text result = "<label" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

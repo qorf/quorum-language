@@ -25,7 +25,7 @@ end
 */
 class Emphasize is WebTag, FlowContent
     action Generate returns text
-        text result = "<em " 
+        text result = "<em" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

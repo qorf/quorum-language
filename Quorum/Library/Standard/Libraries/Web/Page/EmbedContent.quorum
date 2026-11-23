@@ -254,7 +254,7 @@ class EmbedContent is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<object " 
+        text result = "<object" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

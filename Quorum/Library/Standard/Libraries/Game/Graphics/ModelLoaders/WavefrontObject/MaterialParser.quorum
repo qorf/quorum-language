@@ -65,6 +65,15 @@ class MaterialParser
             TextureAntiAlias()
         elseif token:tokenID = lexer:TRANSMISSION_FILTER
             TransmissionFilter()
+        elseif token:tokenID = lexer:TEXTURE_DISSOLVE or token:tokenID = lexer:ID
+            // A statement without a rule of its own, such as map_d, map_Ke,
+            // map_bump, bump, norm, disp, refl, Pr, Pm, Ps, Pc, Pcr or
+            // aniso, is kept by its keyword, as Assimp's reader does.
+            text value = lexer:GetRestOfLine(currentToken)
+            if IsTextureKeyword(token:value)
+                value = GetTextureFile(value)
+            end
+            listener:VisitValue(token:value, value)
         else 
             ThrowError(token, undefined, "I can only begin reading files that are members of a group, vertex, vertex normal, vertex texture, face, or object, but found a " + token:value)
         end
@@ -73,8 +82,120 @@ class MaterialParser
 
     action NewMaterial
         listener:EnterNewMaterial()
-        ID()
+        // A material's name is the rest of the line, so it may have spaces
+        // ("newmtl my red paint").
+        if currentToken < lexer:GetSize()
+            listener:VisitID(MakeToken(lexer:GetRestOfLine(currentToken)))
+            currentToken = lexer:GetSize()
+        end
         listener:ExitNewMaterial()
+    end
+
+    /*
+    Reads a texture's file name: the rest of the line, after any options
+    such as -bm 0.5, -o 1 2 3, -s 2 2 2 or -clamp on.
+    */
+    private action TextureFile
+        if currentToken < lexer:GetSize()
+            text file = GetTextureFile(lexer:GetRestOfLine(currentToken))
+            if file not= ""
+                listener:VisitID(MakeToken(file))
+            end
+            currentToken = lexer:GetSize()
+        end
+    end
+
+    /* Makes a name token with the given text. */
+    private action MakeToken(text value) returns ModelToken
+        ModelToken token
+        token:tokenID = lexer:ID
+        token:value = value
+        return token
+    end
+
+    /* Returns true if a keyword names a texture, whose value is a file. */
+    private action IsTextureKeyword(text key) returns boolean
+        return key:StartsWith("map_") or key = "bump" or key = "norm" or key = "disp" or key = "refl" or key = "decal"
+    end
+
+    /*
+    Returns a texture's file name from the rest of its line, skipping the
+    options before it, as Assimp's reader does: -blendu, -blendv, -boost,
+    -cc, -clamp, -imfchan, -texres, -type and -bm take one value; -mm takes
+    two; -o, -s and -t take up to three numbers.
+    */
+    private action GetTextureFile(text rest) returns text
+        integer index = 0
+        integer size = rest:GetSize()
+        repeat while index < size
+            index = SkipSpaces(rest, index)
+            if index >= size
+                return ""
+            end
+            integer wordEnd = EndOfWord(rest, index)
+            text word = rest:GetSubtext(index, wordEnd)
+            if not word:StartsWith("-")
+                return rest:GetSubtext(index):Trim()
+            end
+            index = wordEnd
+            if word = "-mm"
+                index = SkipWords(rest, index, 2)
+            elseif word = "-o" or word = "-s" or word = "-t"
+                integer count = 0
+                boolean numbers = true
+                repeat while count < 3 and numbers
+                    integer start = SkipSpaces(rest, index)
+                    if start < size and IsNumberWord(rest:GetSubtext(start, EndOfWord(rest, start)))
+                        index = EndOfWord(rest, start)
+                        count = count + 1
+                    else
+                        numbers = false
+                    end
+                end
+            else
+                index = SkipWords(rest, index, 1)
+            end
+        end
+        return ""
+    end
+
+    private action SkipSpaces(text value, integer index) returns integer
+        integer position = index
+        repeat while position < value:GetSize() and (value:GetCharacter(position) = " " or value:GetCharacter(position) = value:GetTab())
+            position = position + 1
+        end
+        return position
+    end
+
+    private action EndOfWord(text value, integer index) returns integer
+        integer position = index
+        repeat while position < value:GetSize() and value:GetCharacter(position) not= " " and value:GetCharacter(position) not= value:GetTab()
+            position = position + 1
+        end
+        return position
+    end
+
+    private action SkipWords(text value, integer index, integer count) returns integer
+        integer position = index
+        integer skipped = 0
+        repeat while skipped < count
+            position = EndOfWord(value, SkipSpaces(value, position))
+            skipped = skipped + 1
+        end
+        return position
+    end
+
+    private action IsNumberWord(text word) returns boolean
+        if word:IsEmpty()
+            return false
+        end
+        check
+            number value = cast(number, word)
+            return true
+        detect e
+            return false
+        end
+        return false
     end
 
     /*
@@ -189,25 +310,25 @@ class MaterialParser
 
     action TextureAmbient
         listener:EnterTextureAmbient()
-        ID()
+        TextureFile()
         listener:ExitTextureAmbient()
     end
 
     action TextureSpecular
         listener:EnterTextureSpecular()
-        ID()
+        TextureFile()
         listener:ExitTextureSpecular()
     end
 
     action TextureDiffuse
         listener:EnterTextureDiffuse()
-        ID()
+        TextureFile()
         listener:ExitTextureDiffuse()
     end
 
     action TextureSpecularExponent
         listener:EnterTextureSpecularExponent()
-        ID()
+        TextureFile()
         listener:ExitTextureSpecularExponent()
     end
 

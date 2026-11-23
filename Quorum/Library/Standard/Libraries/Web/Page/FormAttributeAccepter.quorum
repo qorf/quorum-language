@@ -16,7 +16,7 @@ use Libraries.Web.Page.FormAttributeAccepter
 
 class Button is FormAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<button " 
+        text result = "<button" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

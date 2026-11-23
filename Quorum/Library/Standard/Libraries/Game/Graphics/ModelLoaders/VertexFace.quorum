@@ -1,11 +1,16 @@
 package Libraries.Game.Graphics.ModelLoaders
 
+use Libraries.Compute.Vector3
+
 class VertexFace 
     integer position = 0
     integer texture = 0
     boolean hasTexture = false
     boolean hasNormal = false
     integer normal = 0
+    // A normal made from the faces when the file gives none
+    // (WavefrontConverterListener:GetFaces), or undefined.
+    Vector3 madeNormal = undefined
 
     action GetPosition returns integer
         return position
@@ -37,7 +42,43 @@ class VertexFace
         return hasTexture
     end
     
+    /*
+    This action returns true if the corner has a normal: one from the file,
+    by its index (GetNormal), or one made from the faces when the file has
+    none (GetMadeNormal).
+
+    Attribute: Returns True if the corner has a normal.
+    */
     action HasNormal returns boolean
+        return hasNormal or madeNormal not= undefined
+    end
+
+    /*
+    This action returns true if the corner's normal is one of the file's,
+    by its index (GetNormal).
+
+    Attribute: Returns True if the file gave the corner a normal.
+    */
+    action HasNormalIndex returns boolean
         return hasNormal
+    end
+
+    /*
+    This action returns the normal made for the corner from the faces when
+    the file gives none, or undefined.
+
+    Attribute: Returns The made normal, or undefined.
+    */
+    action GetMadeNormal returns Vector3
+        return madeNormal
+    end
+
+    /*
+    This action sets the normal made for the corner from the faces.
+
+    Attribute: Parameter normal The normal.
+    */
+    action SetMadeNormal(Vector3 normal)
+        madeNormal = normal
     end
 end

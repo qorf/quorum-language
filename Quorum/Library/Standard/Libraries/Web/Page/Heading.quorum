@@ -47,7 +47,8 @@ class Heading is WebTag
         
     */
     action SetScale(integer value)
-        if scale > 6 or scale < 1
+        // Checks the new value, not the old scale.
+        if value > 6 or value < 1
              alert("Headings must be between the ranges of 1 - 6.")
         end
 
@@ -73,7 +74,7 @@ class Heading is WebTag
     end
 
     action Generate returns text
-        text result = "<h"+scale+" "
+        text result = "<h"+scale
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

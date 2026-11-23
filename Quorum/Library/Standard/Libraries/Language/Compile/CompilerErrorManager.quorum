@@ -279,7 +279,6 @@ class CompilerErrorManager
         repeat while value:IndexOf(dq) > 0
             value = value:Replace(dq, sq)
         end
-        value = value:Replace("'\'", "'\\'")
         return value
     end
 

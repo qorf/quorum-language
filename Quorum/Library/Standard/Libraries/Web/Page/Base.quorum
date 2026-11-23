@@ -116,12 +116,12 @@ class Base is WebTag
     end
 
     action Generate returns text
-        text result = "<base " 
+        text result = "<base" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
         result = result + me:GenerateNestedTags()
-        result = result + "</base>"
+        // A void element: HTML forbids an end tag.
         return result
     end
 

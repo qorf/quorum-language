@@ -149,7 +149,7 @@ class Style is WebTag
     end
 
     action Generate returns text
-        text result = "<style " 
+        text result = "<style" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

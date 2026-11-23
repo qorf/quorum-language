@@ -65,7 +65,7 @@ class Abbreviation is PhrasingContentAccepter
 
 
     action Generate returns text
-        text result = "<abbr " 
+        text result = "<abbr" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

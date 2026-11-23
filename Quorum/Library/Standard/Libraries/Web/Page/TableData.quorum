@@ -159,7 +159,7 @@ class TableData is WebTag
 //    end
 
     action Generate returns text
-        text result = "<td " 
+        text result = "<td" 
         result = result + GenerateAttributes() + ">"
         result = result + me:GenerateNestedTags()
         result = result + "</td>"

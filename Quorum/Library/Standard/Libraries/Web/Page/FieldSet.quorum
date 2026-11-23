@@ -146,7 +146,7 @@ class FieldSet is WebTag, FlowContent
     end
     
     action Generate returns text
-        text result = "<fieldset " 
+        text result = "<fieldset" 
         result = result + GenerateAttributes() + ">"
         result = result + me:GenerateNestedTags()
         result = result + "</fieldset>"

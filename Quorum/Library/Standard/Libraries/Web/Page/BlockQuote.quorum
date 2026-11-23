@@ -68,7 +68,7 @@ class BlockQuote is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<blockquote " 
+        text result = "<blockquote" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

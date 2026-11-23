@@ -166,12 +166,12 @@ class Embed is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<embed " 
+        text result = "<embed" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
         result = result + me:GenerateNestedTags()
-        result = result + "</embed>"
+        // A void element: HTML forbids an end tag.
         return result
     end
 end

@@ -26,7 +26,7 @@ end
 */
 class NoScript is WebTag, FlowContent
     action Generate returns text
-        text result = "<noscript " 
+        text result = "<noscript" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

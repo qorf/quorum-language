@@ -173,7 +173,7 @@ class MetaData is WebTag
     end
 
     action Generate returns text
-        text result = "<meta " 
+        text result = "<meta" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -63,7 +63,7 @@ class ListItem is WebTag
     end
 
     action Generate returns text
-        text result = "<li " 
+        text result = "<li" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

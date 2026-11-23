@@ -18,7 +18,7 @@ use Libraries.Web.Page.MediaAttributeAccepter
 
 class audio is MediaAttributeAccepter, WebGenerator
     action Generate returns text
-        text result = "<audio " 
+        text result = "<audio" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -1076,7 +1076,7 @@ class JavaScriptObjectNotation
             i = 0
             repeat array:GetSize() times
                 if array:Get(i):IsText()
-                    result = result + dq + array:Get(i):GetValue() + dq
+                    result = result + Quote(array:Get(i):GetValue())
                 else
                     result = result + array:Get(i):GetValue()
                 end
@@ -1885,6 +1885,45 @@ class JavaScriptObjectNotation
     end
     */
 
+    /*
+        Returns the text in double quotes, with the escapes RFC 8259 section 7
+        requires: a double quote, backslash, line feed, carriage return and
+        tab as a backslash and ", \, n, r and t, and every other control
+        character (below 32) as \u and four hexadecimal digits.
+    */
+    private action Quote(text value) returns text
+        text dq = ""
+        dq = dq:GetDoubleQuote()
+        text backslash = "\"
+        if value = undefined
+            return dq + dq
+        end
+        text result = dq
+        integer i = 0
+        repeat while i < value:GetSize()
+            text character = value:GetCharacter(i)
+            integer code = value:GetUnicodeInteger(i)
+            if character = dq
+                result = result + backslash + dq
+            elseif character = backslash
+                result = result + backslash + backslash
+            elseif code = 10
+                result = result + backslash + "n"
+            elseif code = 13
+                result = result + backslash + "r"
+            elseif code = 9
+                result = result + backslash + "t"
+            elseif code < 32
+                text digits = "0123456789abcdef"
+                result = result + backslash + "u00" + digits:GetCharacter(code / 16) + digits:GetCharacter(code mod 16)
+            else
+                result = result + character
+            end
+            i = i + 1
+        end
+        return result + dq
+    end
+
     action ToText returns text
         return ToText(0)
     end
@@ -1902,12 +1941,12 @@ class JavaScriptObjectNotation
         if IsParent() or level = 0
             result = result + "{"
             if IsArray() 
-                result = result + dq + key + dq + ": [" 
+                result = result + Quote(key) + ": [" 
             elseif HasKey()
                 if IsArrayObject()
-                    result = result + dq + key + dq + ": " 
+                    result = result + Quote(key) + ": " 
                 else
-                    result = result + dq + key + dq + ": {" 
+                    result = result + Quote(key) + ": {" 
                 end
             end
             if IsPrettyPrint()
@@ -1920,9 +1959,9 @@ class JavaScriptObjectNotation
                 end
                 if not IsArrayItem() or (IsArrayItem() and HasKey())
                     if IsArrayObject()
-                        result = result + dq + key + dq + ": "
+                        result = result + Quote(key) + ": "
                     else
-                        result = result + dq + key + dq + ": {"
+                        result = result + Quote(key) + ": {"
                     end
                 end
                 if IsPrettyPrint()
@@ -1933,13 +1972,13 @@ class JavaScriptObjectNotation
                     if IsPrettyPrint()
                         result = result + space
                     end
-                    result = result + dq + key + dq + ": "
+                    result = result + Quote(key) + ": "
                 end
 
                 if IsArray() 
                     result = result + "["
                 elseif IsText()
-                    result = result + dq + textValue + dq
+                    result = result + Quote(textValue)
                 elseif IsBoolean()
                     result = result + booleanValue
                 elseif IsNumber()

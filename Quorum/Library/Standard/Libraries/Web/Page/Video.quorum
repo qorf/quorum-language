@@ -398,7 +398,7 @@ class Video is WebTag, FlowContent
 
 
     action Generate returns text
-        text result = "<video " 
+        text result = "<video" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

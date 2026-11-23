@@ -28,7 +28,7 @@ end
 */
 class Summary is WebTag
     action Generate returns text
-        text result = "<summary " 
+        text result = "<summary" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

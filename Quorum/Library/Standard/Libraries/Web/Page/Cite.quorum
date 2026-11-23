@@ -28,7 +28,7 @@ end
 */
 class Cite is WebTag, FlowContent
     action Generate returns text
-        text result = "<cite " 
+        text result = "<cite" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

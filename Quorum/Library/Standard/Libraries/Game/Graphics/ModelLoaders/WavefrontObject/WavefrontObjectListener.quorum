@@ -5,6 +5,29 @@ use Libraries.Containers.Iterator
 
 class WavefrontObjectListener
     Array<ModelError> errors
+    // The start of a line that ended in a backslash, which continues on
+    // the next line (WavefrontObjectLexer), or "".
+    text continuedLine = ""
+
+    /*
+    This action returns the start of a line that ended in a backslash, so
+    the next line continues it, or "".
+
+    Attribute: Returns The line so far.
+    */
+    action GetContinuedLine returns text
+        return continuedLine
+    end
+
+    /*
+    This action keeps the start of a line that ended in a backslash, for
+    the next line to continue.
+
+    Attribute: Parameter line The line so far, without its backslash.
+    */
+    action SetContinuedLine(text line)
+        continuedLine = line
+    end
     action EnterStart end
     action ExitStart end
 

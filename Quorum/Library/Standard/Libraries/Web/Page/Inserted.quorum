@@ -101,7 +101,7 @@ class Inserted is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<ins " 
+        text result = "<ins" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

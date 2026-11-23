@@ -124,13 +124,14 @@ class ModelReader
         end
 
         ModelBlueprintOpenGL schematic = ConstructWavefrontObject(listener:GetPositions(), listener:GetTextures(), listener:GetNormals(),
-            listener:GetFaces(), materialsList, listener:GetUseMaterialIndices(), listener:GetUseMaterialNames(), file)
+            listener:GetFaces(), materialsList, listener:GetUseMaterialIndices(), listener:GetUseMaterialNames(), file, listener)
 
         return schematic
     end
 
     private action ConstructWavefrontObject(Array<VertexNumbers> positions, Array<VertexNumbers> textures, Array<VertexNumbers> normals, 
-        Table<VertexFace> faces, Array<Material> materials, Array<integer> materialIndices, Array<text> materialNames, File file) returns ModelBlueprintOpenGL
+        Table<VertexFace> faces, Array<Material> materials, Array<integer> materialIndices, Array<text> materialNames, File file,
+        WavefrontConverterListener listener) returns ModelBlueprintOpenGL
             
         integer startIndex = 0
         integer endIndex = -1
@@ -143,6 +144,15 @@ class ModelReader
         modelBuilder:Begin()
 
         if materials:GetSize() > 0
+            // Faces before the first usemtl are kept, with the default
+            // material, as Assimp's reader does.
+            integer firstUse = faces:GetNumberOfRows()
+            if materialIndices:GetSize() > 0
+                firstUse = materialIndices:Get(0)
+            end
+            if firstUse > 0
+                AddDefaultPart(positions, normals, textures, faces, 0, firstUse, listener)
+            end
             repeat while counter < materialIndices:GetSize()
                 text currentMaterialAlias = materialNames:Get(counter)
                 integer materialCounter = 0
@@ -158,8 +168,16 @@ class ModelReader
                     end
                 end
 
+                // A usemtl naming a material that isn't in the .mtl files gets
+                // the default material, as Assimp's reader does, instead of
+                // stopping the read.
                 if currentMaterial = undefined
-                    alert("I could not find a material named " + currentMaterialAlias + " in the materials (.mtl) file.")
+                    Material missing
+                    missing:SetName(currentMaterialAlias)
+                    missing:SetHasDiffuseColor(true)
+                    Vector3 missingColor = missing:GetDiffuseColor()
+                    missingColor:Set(1.0, 0, 1.0)
+                    currentMaterial = missing
                 end
 
                 Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
@@ -275,11 +293,10 @@ class ModelReader
                 end
 
 
+                // Every corner has a normal: the file's, or one made from
+                // the faces (WavefrontConverterListener:GetFaces).
                 integer mask = vertexAttributes:POSITION
-
-                if normals:GetSize() > 0
-                    mask = bits:Or(mask, vertexAttributes:NORMAL)
-                end
+                mask = bits:Or(mask, vertexAttributes:NORMAL)
 
                 if isTextured
                     mask = bits:Or(mask, vertexAttributes:TEXTURE_COORDINATES)
@@ -293,36 +310,41 @@ class ModelReader
                     endIndex = faces:GetNumberOfRows()
                 end
 
-                AddToWavefrontModel(materialNames:Get(counter), mask, graphicsMaterial, positions, normals, textures, faces, startIndex, endIndex)
+                AddToWavefrontModel(materialNames:Get(counter), mask, graphicsMaterial, positions, normals, textures, faces, startIndex, endIndex, listener)
 
                 counter = counter + 1
             end
-        else
-            Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
-
-            ColorAttribute attribute
-            Color color
-            color:SetColor(1.0, 0, 1.0, 1.0)
-            attribute:SetAttribute(attribute:GetDiffuseValue(), color)
-            graphicsMaterial:Add(attribute)
-
-            integer mask = vertexAttributes:POSITION
-
-            if normals:GetSize() > 0
-                mask = bits:Or(mask, vertexAttributes:NORMAL)
-            end
-
-            if textures:GetSize() > 0
-                mask = bits:Or(mask, vertexAttributes:TEXTURE_COORDINATES)
-            end
-
-            startIndex = 0
-            endIndex = faces:GetNumberOfRows()
-
-            AddToWavefrontModel("Default", mask, graphicsMaterial, positions, normals, textures, faces, startIndex, endIndex)
+        elseif faces:GetNumberOfRows() > 0
+            // Without materials, the whole model is one part with the
+            // default material. A file with no faces gives no parts.
+            AddDefaultPart(positions, normals, textures, faces, 0, faces:GetNumberOfRows(), listener)
         end
 
         return modelBuilder:End()
+    end
+
+    /*
+    Adds a part with the default material, magenta so it shows, for faces
+    with no material of their own.
+    */
+    private action AddDefaultPart(Array<VertexNumbers> positions, Array<VertexNumbers> normals, Array<VertexNumbers> textures,
+            Table<VertexFace> faces, integer startIndex, integer endIndex, WavefrontConverterListener listener)
+        BitwiseOperations bits
+        VertexAttributes vertexAttributes
+        Libraries.Game.Graphics.Models.OpenGL.Attributes.Material graphicsMaterial
+
+        ColorAttribute attribute
+        Color color
+        color:SetColor(1.0, 0, 1.0, 1.0)
+        attribute:SetAttribute(attribute:GetDiffuseValue(), color)
+        graphicsMaterial:Add(attribute)
+
+        integer mask = vertexAttributes:POSITION
+        mask = bits:Or(mask, vertexAttributes:NORMAL)
+        if textures:GetSize() > 0
+            mask = bits:Or(mask, vertexAttributes:TEXTURE_COORDINATES)
+        end
+        AddToWavefrontModel("Default", mask, graphicsMaterial, positions, normals, textures, faces, startIndex, endIndex, listener)
     end
 
     private action GenerateTextureDescriptor(File file) returns TextureDescriptor
@@ -344,7 +366,8 @@ class ModelReader
     end
 
     private action AddToWavefrontModel(text name, integer attributesMask, Libraries.Game.Graphics.Models.OpenGL.Attributes.Material material, Array<VertexNumbers> positions,
-        Array<VertexNumbers> normals, Array<VertexNumbers> textures, Table<VertexFace> faces, integer startIndex, integer endIndex)
+        Array<VertexNumbers> normals, Array<VertexNumbers> textures, Table<VertexFace> faces, integer startIndex, integer endIndex,
+        WavefrontConverterListener listener)
 
         MeshBuilder meshBuilder = modelBuilder:AddPart(name, modelBuilder:TRIANGLES, attributesMask, material)
 
@@ -353,68 +376,47 @@ class ModelReader
         VertexSchematic schematic3
 
         integer counter = startIndex
-
-        Array<VertexFace> vertexFaces = undefined
-
         repeat while counter < endIndex
-            vertexFaces = faces:GetRow(counter)
-
-            // The counter starts at 2 because the first two face parts are initialized before entering the loop.
-            integer facePartCounter = 2
-
-            meshBuilder:EnsureVertices(vertexFaces:GetSize())
-            meshBuilder:EnsureTriangleIndices(vertexFaces:GetSize() - 2)
-
-            VertexFace startPoint = vertexFaces:Get(0)
-            VertexFace oldPoint = undefined
-            VertexFace newPoint = vertexFaces:Get(1)
-
-            schematic1:Set(positions:Get(startPoint:GetPosition() - 1):GetVector(), undefined, undefined, undefined)
-
-            if startPoint:HasNormal()
-                schematic1:SetNormal(normals:Get(startPoint:GetNormal() - 1):GetVector())
-            end
-
-            if startPoint:HasTexture()
-                schematic1:SetTextureCoordinates(textures:Get(startPoint:GetTexture() - 1):GetVector():GetX(), textures:Get(startPoint:GetTexture() - 1):GetVector():GetY())
-            end
-
-            repeat while facePartCounter < vertexFaces:GetSize()
-                oldPoint = newPoint
-                newPoint = vertexFaces:Get(facePartCounter)
-
-                schematic2:Set(positions:Get(oldPoint:GetPosition() - 1):GetVector(), undefined, undefined, undefined)
-                schematic3:Set(positions:Get(newPoint:GetPosition() - 1):GetVector(), undefined, undefined, undefined)
-
-                if oldPoint:HasNormal()
-                    schematic2:SetNormal(normals:Get(oldPoint:GetNormal() - 1):GetVector())
-                end
-
-                if oldPoint:HasTexture()
-                    schematic2:SetTextureCoordinates(textures:Get(oldPoint:GetTexture() - 1):GetVector():GetX(), textures:Get(oldPoint:GetTexture() - 1):GetVector():GetY())
-                end
-
-                if newPoint:HasNormal()
-                    schematic3:SetNormal(normals:Get(newPoint:GetNormal() - 1):GetVector())
-                end
-
-                if newPoint:HasTexture()
-                    schematic3:SetTextureCoordinates(textures:Get(newPoint:GetTexture() - 1):GetVector():GetX(), textures:Get(newPoint:GetTexture() - 1):GetVector():GetY())
-                end
+            // Each face is split into triangles inside its outline, so a
+            // concave face is drawn as it is shaped.
+            Array<VertexFace> triangles = listener:Triangulate(faces:GetRow(counter))
+            meshBuilder:EnsureVertices(triangles:GetSize())
+            meshBuilder:EnsureTriangleIndices(triangles:GetSize() / 3)
+            integer corner = 0
+            repeat while corner + 2 < triangles:GetSize()
+                SetSchematic(schematic1, triangles:Get(corner), positions, normals, textures)
+                SetSchematic(schematic2, triangles:Get(corner + 1), positions, normals, textures)
+                SetSchematic(schematic3, triangles:Get(corner + 2), positions, normals, textures)
 
                 // Flipping z on load leaves the file's front faces winding
                 // counterclockwise on screen. Swapping the second and third
                 // corners makes them clockwise, the front in the left-handed
                 // world.
                 meshBuilder:AddTriangle(schematic1, schematic3, schematic2)
-
-                facePartCounter = facePartCounter + 1
+                corner = corner + 3
             end
-
             counter = counter + 1
         end
     end
-    
+
+    /*
+    Sets a corner's point, normal (the file's, or one made from the faces)
+    and texture coordinates.
+    */
+    private action SetSchematic(VertexSchematic schematic, VertexFace corner, Array<VertexNumbers> positions,
+            Array<VertexNumbers> normals, Array<VertexNumbers> textures)
+        schematic:Set(positions:Get(corner:GetPosition() - 1):GetVector(), undefined, undefined, undefined)
+        if corner:HasNormalIndex()
+            schematic:SetNormal(normals:Get(corner:GetNormal() - 1):GetVector())
+        elseif corner:GetMadeNormal() not= undefined
+            schematic:SetNormal(corner:GetMadeNormal())
+        end
+        if corner:HasTexture()
+            Vector3 coordinates = textures:Get(corner:GetTexture() - 1):GetVector()
+            schematic:SetTextureCoordinates(coordinates:GetX(), coordinates:GetY())
+        end
+    end
+
     private action GetFileReader returns FileReaderBlueprint
         GameStateManager manager
         if manager:GetOperatingSystem():Contains("Android")

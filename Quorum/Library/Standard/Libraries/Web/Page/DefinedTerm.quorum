@@ -27,7 +27,7 @@ use Libraries.Web.Page.Attributes
 */
 class DefinedTerm is WebTag, FlowContent
     action Generate returns text
-        text result = "<dfn "
+        text result = "<dfn"
         Attributes attributes = parent:WebTag:GetAttributes()
         text attributeText = attributes:Generate()
         result = result + attributeText + ">"

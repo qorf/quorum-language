@@ -485,7 +485,7 @@ class Button is WebTag, FormAttributeAccepter, MouseAttributeAccepter, FlowConte
     end
 
     action Generate returns text
-        text result = "<button " 
+        text result = "<button" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

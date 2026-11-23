@@ -247,12 +247,12 @@ class Track is WebTag
     end
 
     action Generate returns text
-        text result = "<track " 
+        text result = "<track" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
         result = result + me:GenerateNestedTags()
-        result = result + "</track>"
+        // A void element: HTML forbids an end tag.
         return result
     end
 end

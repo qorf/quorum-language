@@ -27,7 +27,7 @@ end
 */
 class TableRow is WebTag
     action Generate returns text
-        text result = "<tr " 
+        text result = "<tr" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

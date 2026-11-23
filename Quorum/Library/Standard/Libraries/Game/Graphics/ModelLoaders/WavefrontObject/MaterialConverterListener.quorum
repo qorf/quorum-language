@@ -62,7 +62,7 @@ class MaterialConverterListener is MaterialListener
     action EnterEmissiveLighting 
         state:Push(lexer:EMISSIVE_LIGHTING)
         positions:Add(lexer:EMISSIVE_LIGHTING, 0)
-        material:SetHasSpecularColor(true)
+        material:SetHasEmissiveColor(true)
     end
 
     action ExitEmissiveLighting 
@@ -187,6 +187,16 @@ class MaterialConverterListener is MaterialListener
         elseif state:Peek() = lexer:TEXTURE_DISSOLVE
             material:SetTextureDissolve(token:value)
         end
+    end
+
+    action VisitValue(text key, text value)
+        if material = undefined
+            return now
+        end
+        if key = "map_d"
+            material:SetTextureDissolve(value)
+        end
+        material:SetValue(key, value)
     end
 
     action VisitNumber(ModelToken token) 

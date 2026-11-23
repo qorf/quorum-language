@@ -29,7 +29,7 @@ end
 */
 class HiddenContent is WebTag
     action Generate returns text
-        text result = "<template "
+        text result = "<template"
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

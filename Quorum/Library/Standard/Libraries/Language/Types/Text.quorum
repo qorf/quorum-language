@@ -57,9 +57,10 @@ class Text is Object
     system action ParseNumber returns number
 
     /*
-        This action parses a text value and translates it into a boolean if the
-        text value is a valid boolean value. If the text value is not a boolean
-        then the user will be alerted by an Error.
+        This action parses a text value and translates it into a boolean. The
+        text "true", in any mix of upper and lower case, gives true; any other
+        text gives false, including "false", "yes", "1", " true" and the empty
+        text. It never alerts an error.
 
         Attribute: Returns The boolean value contained in the text value.
 
@@ -312,7 +313,8 @@ class Text is Object
 
     /*
         This action gets a subtext value between the given start index and the end. This includes the value at the 
-        start index.
+        start index. A start index equal to the size of the text gives an empty text; one past
+        it, or below 0, raises an InvalidLocationError.
 
         Attribute: Parameter startIndex The start of the subtext.
 
@@ -326,7 +328,10 @@ class Text is Object
     */
     action GetSubtext(integer startIndex) returns text
         integer size = GetSize()
-        if startIndex < size and startIndex >= 0
+        if startIndex = size
+            // The end of the text: nothing is left, as GetSubtext(size, size).
+            return ""
+        elseif startIndex < size and startIndex >= 0
             return GetSubtextNative(value, startIndex)
         else
             InvalidLocationError error

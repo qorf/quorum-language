@@ -119,7 +119,7 @@ class CalculationOutput is WebTag
     end
 
     action Generate returns text
-        text result = "<output " 
+        text result = "<output" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

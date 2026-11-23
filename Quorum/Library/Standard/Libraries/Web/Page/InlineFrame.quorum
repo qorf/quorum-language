@@ -248,7 +248,7 @@ class InlineFrame is WebTag, FlowContent
     end
 
     action Generate returns text
-        text result = "<iframe " 
+        text result = "<iframe" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

@@ -39,7 +39,7 @@ end
 */
 class NoRuby is WebTag
     action Generate returns text
-        text result = "<rp " 
+        text result = "<rp" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

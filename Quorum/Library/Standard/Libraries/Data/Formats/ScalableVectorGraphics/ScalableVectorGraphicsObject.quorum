@@ -367,7 +367,8 @@ private HashTable<text, text> dataAttributes
         This action will give the ScalableVectorGraphicsObject a tab index. A non-negative tab index 
         attribute will allow the element to be focusable and it can define the relative order for 
         sequential navigation with the tab key. If two objects have the same tab index then whichever
-        was added first is first in the naviagation. Default is 0 which means the item is focusable.
+        was added first is first in the naviagation. Default is -1, which means the item is not a stop
+        in tab navigation, so a chart's many shapes don't each become one.
 
         Attribute: Parameter tabIndex The index of the object in the tab navigation.
 

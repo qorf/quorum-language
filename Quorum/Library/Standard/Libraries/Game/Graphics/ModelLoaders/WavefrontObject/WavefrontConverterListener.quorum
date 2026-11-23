@@ -6,6 +6,7 @@ use Libraries.Containers.Array
 use Libraries.Containers.Table
 use Libraries.Game.Graphics.ModelLoaders.VertexFace
 use Libraries.Game.Graphics.ModelLoaders.VertexNumbers
+use Libraries.Compute.Math
 
 class WavefrontConverterListener is WavefrontObjectListener
     boolean isVertex = false
@@ -38,6 +39,17 @@ class WavefrontConverterListener is WavefrontObjectListener
     Array<integer> useMaterialIndices
     text groupName = undefined
     VertexFace currentFace
+
+    // A point's color, from "v x y z r g b", one per point once any point
+    // has one (undefined for points without); empty if none do.
+    Array<Vector3> colors
+    // The fourth to sixth numbers of the point being read.
+    number extraFirst = 0
+    number extraSecond = 0
+    number extraThird = 0
+    // True once normals have been made from the faces (GetFaces).
+    boolean normalsMade = false
+    Math math
 
     action EnterStart
     end
@@ -93,6 +105,17 @@ class WavefrontConverterListener is WavefrontObjectListener
     end
 
     action ExitFacePart
+        // A negative index counts back from the last one read so far, as in
+        // Assimp's reader: -1 is the last point.
+        if currentFace:GetPosition() < 0
+            currentFace:SetPosition(positions:GetSize() + currentFace:GetPosition() + 1)
+        end
+        if currentFace:HasTexture() and currentFace:GetTexture() < 0
+            currentFace:SetTexture(textures:GetSize() + currentFace:GetTexture() + 1)
+        end
+        if currentFace:HasNormalIndex() and currentFace:GetNormal() < 0
+            currentFace:SetNormal(normals:GetSize() + currentFace:GetNormal() + 1)
+        end
         faceArray:Add(currentFace)
         VertexFace face
         currentFace = face
@@ -107,6 +130,24 @@ class WavefrontConverterListener is WavefrontObjectListener
 
     action ExitVertex 
         isVertex = false
+        // "v x y z w" has a weight; "v x y z r g b" a color.
+        if positionIndex = 4
+            currentPosition:SetWidth(extraFirst)
+        end
+        if positionIndex >= 6
+            if colors:IsEmpty()
+                integer earlier = 0
+                repeat while earlier < positions:GetSize()
+                    colors:Add(undefined)
+                    earlier = earlier + 1
+                end
+            end
+            Vector3 color
+            color:Set(extraFirst, extraSecond, extraThird)
+            colors:Add(color)
+        elseif not colors:IsEmpty()
+            colors:Add(undefined)
+        end
         positions:Add(currentPosition)
         VertexNumbers vertex
         currentPosition = vertex
@@ -165,7 +206,11 @@ class WavefrontConverterListener is WavefrontObjectListener
                 Vector3 vector = currentPosition:GetVector()
                 vector:SetZ(-1 * cast(number, terminal:value))
             elseif positionIndex = 3
-                currentPosition:SetWidth(cast(number, terminal:value))
+                extraFirst = cast(number, terminal:value)
+            elseif positionIndex = 4
+                extraSecond = cast(number, terminal:value)
+            elseif positionIndex = 5
+                extraThird = cast(number, terminal:value)
             end
             positionIndex = positionIndex + 1
         elseif isVertexNormal
@@ -223,8 +268,248 @@ class WavefrontConverterListener is WavefrontObjectListener
         return textures
     end
 
+    /*
+    This action returns the faces, each a row of corners. If the file has no
+    normals, each corner is given a smooth normal made from the faces
+    around its point (VertexFace:GetMadeNormal), as Assimp's reader does.
+
+    Attribute: Returns The faces.
+    */
     action GetFaces returns Table<VertexFace>
+        if not normalsMade and normals:IsEmpty() and faces:GetNumberOfRows() > 0
+            MakeNormals()
+        end
+        normalsMade = true
         return faces
+    end
+
+    /*
+    This action returns each point's color, from lines like "v x y z r g b",
+    in the order of the points (undefined for a point without one), or an
+    empty array if no point has a color.
+
+    Attribute: Returns The colors.
+    */
+    action GetColors returns Array<Vector3>
+        return colors
+    end
+
+    /*
+    This action splits a face into triangles, each three corners in the
+    face's own winding. A face of three corners is itself. A larger face
+    is cut into ears, so a concave face (an L or an arrowhead) is split
+    inside its outline, as Assimp's reader does; a face too bent to cut
+    falls back to a fan from its first corner.
+
+    Attribute: Parameter face The face's corners.
+    Attribute: Returns The triangles' corners, three for each triangle.
+    */
+    action Triangulate(Array<VertexFace> face) returns Array<VertexFace>
+        Array<VertexFace> result
+        integer count = face:GetSize()
+        if count < 3
+            return result
+        end
+        if count = 3
+            result:Add(face:Get(0))
+            result:Add(face:Get(1))
+            result:Add(face:Get(2))
+            return result
+        end
+
+        // The face's normal, by Newell's method, picks the flat view.
+        number normalX = 0
+        number normalY = 0
+        number normalZ = 0
+        integer i = 0
+        repeat while i < count
+            Vector3 current = GetPoint(face:Get(i))
+            Vector3 following = GetPoint(face:Get((i + 1) mod count))
+            normalX = normalX + (current:GetY() - following:GetY()) * (current:GetZ() + following:GetZ())
+            normalY = normalY + (current:GetZ() - following:GetZ()) * (current:GetX() + following:GetX())
+            normalZ = normalZ + (current:GetX() - following:GetX()) * (current:GetY() + following:GetY())
+            i = i + 1
+        end
+        number sizeX = math:AbsoluteValue(normalX)
+        number sizeY = math:AbsoluteValue(normalY)
+        number sizeZ = math:AbsoluteValue(normalZ)
+
+        Array<number> flatX
+        Array<number> flatY
+        i = 0
+        repeat while i < count
+            Vector3 point = GetPoint(face:Get(i))
+            if sizeZ >= sizeX and sizeZ >= sizeY
+                flatX:Add(point:GetX())
+                flatY:Add(point:GetY())
+            elseif sizeX >= sizeY
+                flatX:Add(point:GetY())
+                flatY:Add(point:GetZ())
+            else
+                flatX:Add(point:GetZ())
+                flatY:Add(point:GetX())
+            end
+            i = i + 1
+        end
+
+        // Which way the outline turns in that view.
+        number area = 0
+        i = 0
+        repeat while i < count
+            integer forward = (i + 1) mod count
+            area = area + flatX:Get(i) * flatY:Get(forward) - flatX:Get(forward) * flatY:Get(i)
+            i = i + 1
+        end
+        number turn = 1
+        if area < 0
+            turn = -1
+        end
+
+        Array<integer> remaining
+        i = 0
+        repeat while i < count
+            remaining:Add(i)
+            i = i + 1
+        end
+        boolean cutting = true
+        repeat while remaining:GetSize() > 3 and cutting
+            boolean found = false
+            integer k = 0
+            integer size = remaining:GetSize()
+            repeat while k < size and not found
+                integer previous = remaining:Get((k + size - 1) mod size)
+                integer corner = remaining:Get(k)
+                integer after = remaining:Get((k + 1) mod size)
+                number cross = (flatX:Get(corner) - flatX:Get(previous)) * (flatY:Get(after) - flatY:Get(previous)) -
+                    (flatY:Get(corner) - flatY:Get(previous)) * (flatX:Get(after) - flatX:Get(previous))
+                if cross * turn > 0
+                    boolean blocked = false
+                    integer m = 0
+                    repeat while m < size and not blocked
+                        integer other = remaining:Get(m)
+                        if other not= previous and other not= corner and other not= after
+                            if IsInTriangle(flatX:Get(other), flatY:Get(other), flatX:Get(previous), flatY:Get(previous),
+                                    flatX:Get(corner), flatY:Get(corner), flatX:Get(after), flatY:Get(after), turn)
+                                blocked = true
+                            end
+                        end
+                        m = m + 1
+                    end
+                    if not blocked
+                        result:Add(face:Get(previous))
+                        result:Add(face:Get(corner))
+                        result:Add(face:Get(after))
+                        integer removed = remaining:RemoveAt(k)
+                        found = true
+                    end
+                end
+                k = k + 1
+            end
+            if not found
+                cutting = false
+            end
+        end
+        // The last triangle, or a fan of what's left if no ear could be cut.
+        integer last = 1
+        repeat while last + 1 < remaining:GetSize()
+            result:Add(face:Get(remaining:Get(0)))
+            result:Add(face:Get(remaining:Get(last)))
+            result:Add(face:Get(remaining:Get(last + 1)))
+            last = last + 1
+        end
+        return result
+    end
+
+    /* Returns true if a point is inside a triangle, or on its edge, in the flat view. */
+    private action IsInTriangle(number x, number y, number ax, number ay, number bx, number by, number cx, number cy, number turn) returns boolean
+        number first = ((bx - ax) * (y - ay) - (by - ay) * (x - ax)) * turn
+        number second = ((cx - bx) * (y - by) - (cy - by) * (x - bx)) * turn
+        number third = ((ax - cx) * (y - cy) - (ay - cy) * (x - cx)) * turn
+        return first >= 0 and second >= 0 and third >= 0
+    end
+
+    /* Returns a corner's point. */
+    private action GetPoint(VertexFace corner) returns Vector3
+        VertexNumbers position = positions:Get(corner:GetPosition() - 1)
+        return position:GetVector()
+    end
+
+    /*
+    Gives every corner a smooth normal: the average of the normals of the
+    faces around its point. Points are kept with z flipped, which mirrors
+    the faces, so each face's normal is turned back the other way.
+    */
+    private action MakeNormals
+        Array<Vector3> sums
+        integer i = 0
+        repeat while i < positions:GetSize()
+            Vector3 sum
+            sums:Add(sum)
+            i = i + 1
+        end
+        integer row = 0
+        repeat while row < faces:GetNumberOfRows()
+            Array<VertexFace> face = faces:GetRow(row)
+            if FaceUsable(face)
+                number normalX = 0
+                number normalY = 0
+                number normalZ = 0
+                integer count = face:GetSize()
+                i = 0
+                repeat while i < count
+                    Vector3 current = GetPoint(face:Get(i))
+                    Vector3 following = GetPoint(face:Get((i + 1) mod count))
+                    normalX = normalX + (current:GetY() - following:GetY()) * (current:GetZ() + following:GetZ())
+                    normalY = normalY + (current:GetZ() - following:GetZ()) * (current:GetX() + following:GetX())
+                    normalZ = normalZ + (current:GetX() - following:GetX()) * (current:GetY() + following:GetY())
+                    i = i + 1
+                end
+                number length = math:SquareRoot(normalX * normalX + normalY * normalY + normalZ * normalZ)
+                if length > 0
+                    i = 0
+                    repeat while i < count
+                        Vector3 total = sums:Get(face:Get(i):GetPosition() - 1)
+                        total:Set(total:GetX() - normalX / length, total:GetY() - normalY / length, total:GetZ() - normalZ / length)
+                        i = i + 1
+                    end
+                end
+            end
+            row = row + 1
+        end
+        row = 0
+        repeat while row < faces:GetNumberOfRows()
+            Array<VertexFace> rowCorners = faces:GetRow(row)
+            if FaceUsable(rowCorners)
+                i = 0
+                repeat while i < rowCorners:GetSize()
+                    VertexFace corner = rowCorners:Get(i)
+                    Vector3 average = sums:Get(corner:GetPosition() - 1)
+                    number averageLength = math:SquareRoot(average:GetX() * average:GetX() + average:GetY() * average:GetY() + average:GetZ() * average:GetZ())
+                    Vector3 normal
+                    if averageLength > 0
+                        normal:Set(average:GetX() / averageLength, average:GetY() / averageLength, average:GetZ() / averageLength)
+                    else
+                        normal:Set(0, 1, 0)
+                    end
+                    corner:SetMadeNormal(normal)
+                    i = i + 1
+                end
+            end
+            row = row + 1
+        end
+    end
+
+    /* Returns true if every corner of a face names a point that exists. */
+    private action FaceUsable(Array<VertexFace> face) returns boolean
+        integer i = 0
+        repeat while i < face:GetSize()
+            integer position = face:Get(i):GetPosition()
+            if position < 1 or position > positions:GetSize()
+                return false
+            end
+            i = i + 1
+        end
+        return true
     end
 
     action GetMaterialLibraries returns Array<text> 

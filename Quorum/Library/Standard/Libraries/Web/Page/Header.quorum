@@ -27,7 +27,7 @@ class Header is WebTag
     text description = ""
 
     action Generate returns text
-        text result = "<header " 
+        text result = "<header" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"

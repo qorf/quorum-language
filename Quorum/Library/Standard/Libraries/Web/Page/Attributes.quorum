@@ -28,7 +28,8 @@ class Attributes is WebGenerator
 
         repeat while iterator:HasNext() 
             Attribute attribute = iterator:Next()
-            result = result + attribute:Generate() + " "
+            // A space before each attribute, so a tag with none is written <b>, not <b >.
+            result = result + " " + attribute:Generate()
         end
         return result
     end

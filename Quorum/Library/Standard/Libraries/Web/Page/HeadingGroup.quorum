@@ -28,7 +28,7 @@ end
 */
 class HeadingGroup is WebTag
     action Generate returns text
-        text result = "<hgroup " 
+        text result = "<hgroup" 
         Attributes attributes = parent:WebTag:GetAttributes()
         attributeText = attributes:Generate()
         result = result + attributeText + ">"
