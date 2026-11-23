@@ -23,7 +23,7 @@ public class Number64BitArray {
     }
     
     public void Set(int index, double value) throws InvalidLocationError {
-        if(doubles == null || index > doubles.length || index < 0) {
+        if(doubles == null || index >= doubles.length || index < 0) {
             throw new InvalidLocationError();
         }
         doubles[index] = value;
@@ -31,6 +31,10 @@ public class Number64BitArray {
     
     
     public int GetSize() {
+        // A new array has no items until SetSize.
+        if(doubles == null) {
+            return 0;
+        }
         return doubles.length;
     }
     

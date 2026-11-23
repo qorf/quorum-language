@@ -23,7 +23,7 @@ public class Integer32BitArray {
     }
     
     public void Set(int index, int value) throws InvalidLocationError {
-        if(ints == null || index > ints.length || index < 0) {
+        if(ints == null || index >= ints.length || index < 0) {
             throw new InvalidLocationError();
         }
         ints[index] = (int) value;
@@ -31,6 +31,10 @@ public class Integer32BitArray {
     
     
     public int GetSize() {
+        // A new array has no items until SetSize.
+        if(ints == null) {
+            return 0;
+        }
         return ints.length;
     }
     

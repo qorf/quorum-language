@@ -24,7 +24,7 @@ public class DataEncoder
     {
         File file = new File(quorumFile.GetAbsolutePath());
         String fileExtension = GetFileExtension(file);
-        String result = "data:image/" + fileExtension + ";base64,";
+        String result = "data:image/" + GetImageSubtype(fileExtension) + ";base64,";
 
         try
         {
@@ -43,6 +43,21 @@ public class DataEncoder
         }
 
         return result;
+    }
+
+    /*
+        The media type's subtype for an image extension: the registered names
+        for .jpg and .svg (image/jpeg and image/svg+xml); others, such as png
+        and gif, are their own names.
+    */
+    private String GetImageSubtype(String extension) {
+        String lower = extension.toLowerCase();
+        if (lower.equals("jpg") || lower.equals("jpeg")) {
+            return "jpeg";
+        } else if (lower.equals("svg")) {
+            return "svg+xml";
+        }
+        return extension;
     }
 
     private String GetFileExtension(File file)

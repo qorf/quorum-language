@@ -173,8 +173,11 @@ class MultipleLineText
             return false
         end
 
-        // For monospaced fonts. This check differs for other conditions.
-        return value:GetSize() <= maxLeafSize
+        // A single line is kept in one leaf whatever its length: line
+        // wrapping isn't supported yet (see SplitIntoLines), so a line
+        // longer than the leaf size can't be split, and trying to split it
+        // called Initialize on the same text without end.
+        return true
     end
 
     private action SplitIntoLines(text value) returns Array<text>

@@ -105,7 +105,9 @@ public class QuorumFileReader {
                 // Reached end of file. Don't raise an exception this time.
                 atEOF = true;
             }
-            return String.valueOf(buffer);
+            // Only what was read: near the end the buffer isn't full, and the
+            // rest of it held NUL characters.
+            return new String(buffer, 0, numRead);
         }
         else
         {
@@ -132,28 +134,22 @@ public class QuorumFileReader {
     }
     
     public String ReadLinesNative() throws EOFException, IOException {
-        String line = null;
-        String lines = "";
+        if (atEOF) {
+            throw new EOFException();
+        }
         String newLine = System.getProperty("line.separator");
-        
-        do {
+        StringBuilder lines = new StringBuilder();
+        String line = bufferedReader.readLine();
+        // The loop used to go on after the end and then throw, so ReadLines
+        // always failed; it now stops at the end and returns the lines.
+        while (line != null) {
+            lines.append(line).append(newLine);
+            readSoFar += line.length() + newLine.length(); // newline is consumed.
             line = bufferedReader.readLine();
-
-            if (line == null) {
-                if (atEOF) {
-                    throw new EOFException();
-                }
-
-                atEOF = true;
-                line = "";
-                readSoFar = fileSize;
-            } else {
-                lines += line + newLine;
-                readSoFar += line.length() + System.getProperty("line.separator").length(); // newline is consumed.
-            }
-        } while (line != null);
-
-        return lines;
+        }
+        atEOF = true;
+        readSoFar = fileSize;
+        return lines.toString();
     }
     
     public boolean IsAtEndOfFile() {

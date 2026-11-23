@@ -123,7 +123,7 @@ function plugins_quorum_Libraries_System_DateTime_() {
         return this.date.toLocaleString('default', { weekday : 'long'});
     }
 
-    this.GetShortDayOfWeekName = function () {
+    this.GetShortDayofWeekName = function () {
         return this.date.toLocaleString('default', { weekday : 'short'});
     }
     // Parsing

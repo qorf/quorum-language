@@ -76,11 +76,13 @@ function global_number_converter_(value) {
     return sign + digits.charAt(0) + "." + (digits.length > 1 ? digits.substring(1) : "0") + "E" + exponent;
 }
 
+// Toward zero, as Java's (int) cast and integer division. + 0 turns -0
+// into 0 (Math.ceil(-0.2) is -0), since a Java integer is never -0.
 function global_truncate_(value) {
     if(value > 0) {
-        return Math.floor(value);
+        return Math.floor(value) + 0;
     } else {
-        return Math.ceil(value);
+        return Math.ceil(value) + 0;
     }
 }
 

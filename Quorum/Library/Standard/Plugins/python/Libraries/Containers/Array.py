@@ -15,7 +15,11 @@ class plugins_quorum_Libraries_Containers_Array_:
 		return self.array_[index]
 
 	def SetSizeNative__quorum_integer(self, size):
-		self.array_ = [None] * size
+		# As Java's: the items that fit are kept, and new places are undefined.
+		if size <= len(self.array_):
+			self.array_ = self.array_[0:size]
+		else:
+			self.array_ = self.array_ + [None] * (size - len(self.array_))
 		self.capacity = size
 
 	def SetSizeNoFillNative__quorum_integer(self, size):
@@ -63,7 +67,12 @@ class plugins_quorum_Libraries_Containers_Array_:
 		return self.GetSize() == 0
 
 	def ClearContents__quorum_integer__quorum_integer(self, start, stop):
-		self.array_ = []
+		# Undefined from start up to stop, as Java's; it used to empty the
+		# whole array. Places past the end (after Empty(false)) are skipped.
+		i = start
+		while i < stop and i < len(self.array_):
+			self.array_[i] = None
+			i = i + 1
 		return
 
 	def Empty(self):
@@ -71,7 +80,6 @@ class plugins_quorum_Libraries_Containers_Array_:
 		self.size = 0
 
 	def Empty__quorum_boolean(self, value):
-		if value:
-			self.Empty()
-		else:
-			self.size = 0
+		# Python's list keeps no separate size, so Empty(false) empties it too;
+		# keeping old items for reuse, as Java does, isn't needed here.
+		self.Empty()

@@ -113,7 +113,7 @@ private HashTable<text, text> dataAttributes
             result = result + " stroke="+dq+stroke+dq
         end
         if strokeOpacity not= ""
-            result = result + " stroke-opacity="+dq+fillOpacity+dq
+            result = result + " stroke-opacity="+dq+strokeOpacity+dq
         end
         if strokeWidth not= ""
             result = result + " stroke-width="+dq+strokeWidth+dq
@@ -158,7 +158,7 @@ private HashTable<text, text> dataAttributes
             Iterator<text> iter = dataAttributes:GetKeyIterator()
             repeat while iter:HasNext()
                 text attribute = iter:Next()
-                result = result + " data-"+attribute + "="+dq+dataAttributes:GetValue(attribute)+dq 
+                result = result + " data-"+attribute + "="+dq+ConvertReservedCharacters(dataAttributes:GetValue(attribute))+dq 
             end
         end
         return result
@@ -1067,7 +1067,7 @@ me:rotate = "rotate(" + angle + ", " + x + ", " + y + ")"
     end
 
     action SetSkewYTransform(number degrees)
-        me:skewX = "skewY(" + degrees + ")"
+        me:skewY = "skewY(" + degrees + ")"
     end
 
     action SetScaleTransform(number x)

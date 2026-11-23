@@ -97,7 +97,11 @@ public class DateTime {
 
     public void SetTimeZone(int timeZoneOffset) {
         timezone = new SimpleTimeZone(timeZoneOffset * 1000 * 60 *60, "custom time zone");
-        zoneId = timezone.toZoneId();
+        // A fixed offset in hours. SimpleTimeZone's toZoneId() treated
+        // "custom time zone" as a region name and always threw.
+        zoneId = ZoneOffset.ofHours(timeZoneOffset);
+        // A time already set stays the same moment, shown in the new zone.
+        zDateTime = zDateTime.withZoneSameInstant(zoneId);
     }
 
     public double Now() {
@@ -148,7 +152,7 @@ public class DateTime {
         return zDateTime.format(formatter);
     }
 
-    public String GetShortDayOfWeekName() {
+    public String GetShortDayofWeekName() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE");
         return zDateTime.format(formatter);
     }
@@ -173,6 +177,8 @@ public class DateTime {
     }
 
     public void ParseTime(String time, boolean keepDate) {
+        // A parsed time is a set time, as with the other Parse actions.
+        now = false;
         LocalTime temp = LocalTime.parse(time, DateTimeFormatter.ISO_LOCAL_TIME);
         LocalDate date;
         if (keepDate) {
@@ -194,7 +200,8 @@ public class DateTime {
             zDateTime = ZonedDateTime.now(zoneId);
         if (dt.now)
             compared = ZonedDateTime.now(zoneId);
-        return zDateTime.isBefore(dt.zDateTime);
+        // compared, not dt.zDateTime: a clock-following DateTime is now.
+        return zDateTime.isBefore(compared);
     }
 
     public boolean IsAfter(quorum.Libraries.System.DateTime_ dateTime) {
@@ -207,7 +214,7 @@ public class DateTime {
             zDateTime = ZonedDateTime.now(zoneId);
         if (dt.now)
             compared = ZonedDateTime.now(zoneId);
-        return zDateTime.isAfter(dt.zDateTime);
+        return zDateTime.isAfter(compared);
     }
 
     // math functions

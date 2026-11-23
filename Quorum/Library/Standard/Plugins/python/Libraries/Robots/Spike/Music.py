@@ -8,4 +8,4 @@ class plugins_quorum_Libraries_Robots_Spike_Music_:
         music.play_drum(drum)
 
     def PlayInstrumentNative(self, instrument, note, duration):
-        music.play_instrument(instrument, note duration)
+        music.play_instrument(instrument, note, duration)

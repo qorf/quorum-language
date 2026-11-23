@@ -74,9 +74,22 @@ def Global_Cast_Number_To_Text(value):
 	# Java prints the smallest double with two digits.
 	if size == 5e-324:
 		return sign + "4.9E-324"
-	mantissa, _, power = repr(size).partition("e")
-	exponent = int(power) if power else 0
-	whole, _, fraction = mantissa.partition(".")
+	# find and slices, not partition, which some MicroPython builds lack.
+	written = repr(size)
+	marker = written.find("e")
+	if marker >= 0:
+		mantissa = written[:marker]
+		exponent = int(written[marker + 1:])
+	else:
+		mantissa = written
+		exponent = 0
+	point = mantissa.find(".")
+	if point >= 0:
+		whole = mantissa[:point]
+		fraction = mantissa[point + 1:]
+	else:
+		whole = mantissa
+		fraction = ""
 	if whole != "0":
 		exponent = exponent + len(whole) - 1
 	else:
@@ -84,7 +97,8 @@ def Global_Cast_Number_To_Text(value):
 	digits = (whole + fraction).strip("0")
 	if 1e-3 <= size < 1e7:
 		if exponent >= 0:
-			digits = digits.ljust(exponent + 1, "0")
+			if len(digits) < exponent + 1:
+				digits = digits + "0" * (exponent + 1 - len(digits))
 			rest = digits[exponent + 1:]
 			return sign + digits[:exponent + 1] + "." + (rest if rest else "0")
 		return sign + "0." + "0" * (-exponent - 1) + digits

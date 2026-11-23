@@ -458,10 +458,15 @@ class File
         file:SetPath("sodbeans.exe")
         output file:GetGetNameNoExtension() // will output  "sodbeans". (on any system)
      */
-action GetNameNoExtension returns text
-text name = GetFileName()
-text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():GetSize() - 1)
-        return nameNoExtension
+    action GetNameNoExtension returns text
+        text name = GetFileName()
+        text extension = GetFileExtension()
+        //with no extension the name is whole (it used to lose its last
+        //character); otherwise the extension and its period come off
+        if extension:IsEmpty()
+            return name
+        end
+        return name:GetSubtext(0, name:GetSize() - extension:GetSize() - 1)
     end
 
     /*
@@ -507,6 +512,11 @@ text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():Get
         repeat while i >= 0
             integer ch = value:GetUnicodeInteger(i)
             //text ch = value:GetCharacter(i)
+            //A slash or backslash (47, 92) ends the file's name: a period
+            //before it is in a folder's name, so there's no extension.
+            if ch = 47 or ch = 92
+                return ""
+            end
             //The ASCII value for the period, which is a small memory optimization.
             if ch = 46
                 if i + 1 < value:GetSize()
@@ -780,7 +790,8 @@ text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():Get
         end
      */
     action Delete(boolean recursive)
-        Delete(true, me)
+        //the flag was ignored, so Delete(false) deleted a folder's contents
+        Delete(recursive, me)
     end
 
     /*
@@ -962,8 +973,10 @@ text nameNoExtension = name:GetSubtext(0, name:GetSize()- GetFileExtension():Get
                 newLocation:SetPath(f:GetPath())
                 
                 
-                f:Copy(newLocation, recursive)
-                
+                //any copy that fails makes the whole copy fail
+                if not f:Copy(newLocation, recursive)
+                    isTrue = false
+                end
             end
             return isTrue
         else

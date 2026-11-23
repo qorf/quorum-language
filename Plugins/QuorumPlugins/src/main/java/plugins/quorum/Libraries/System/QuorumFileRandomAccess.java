@@ -83,7 +83,8 @@ public class QuorumFileRandomAccess {
 
         if (numRead > 0) {
             totalReadBytes += numRead;
-            stringBuff.append(new String(byteBuff));
+            // Only the bytes read: near the end the buffer isn't full.
+            stringBuff.append(new String(byteBuff, 0, numRead));
         }
         else if (numRead == 0 || numRead == -1) {
             // We are at the end of the file. Let the uesr know this time.
@@ -118,25 +119,19 @@ public class QuorumFileRandomAccess {
     }
     
     public String ReadLinesNative() throws EOFException, IOException {
-        String line = null;
-        String lines = "";
+        if (atEOF) {
+            throw new EOFException();
+        }
         String newLine = System.getProperty("line.separator");
-        do {
+        StringBuilder lines = new StringBuilder();
+        String line = randomAccess.readLine();
+        // Stops at the end and returns the lines (it used to go on and throw).
+        while (line != null) {
+            lines.append(line).append(newLine);
             line = randomAccess.readLine();
-
-            if (line == null) {
-                if (atEOF) {
-                    throw new EOFException();
-                }
-
-                atEOF = true;
-                line = "";
-            } else {
-                lines += line + newLine;
-            }
-        } while (line != null);
-
-        return lines;
+        }
+        atEOF = true;
+        return lines.toString();
     }
 
     public void WriteNative(String textToWrite) throws IOException {

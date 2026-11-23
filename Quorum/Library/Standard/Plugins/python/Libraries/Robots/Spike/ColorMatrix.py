@@ -24,7 +24,7 @@ class plugins_quorum_Libraries_Robots_Spike_ColorMatrix_:
         pixel = (color, intensity)
         color_matrix.set_pixel(self.port, x, y, pixel)
 
-    def ShowColorsNative__quorum_Libraries_Containers_Array__quorum_Libraries_Containers_Array(self, color_values, intensity_values)
+    def ShowColorsNative__quorum_Libraries_Containers_Array__quorum_Libraries_Containers_Array(self, color_values, intensity_values):
         py_color_values = []
         py_intensity_values = []
         for i in range(color_values.GetSize()):

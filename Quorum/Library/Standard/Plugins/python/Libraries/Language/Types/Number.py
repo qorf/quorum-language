@@ -51,19 +51,32 @@ class plugins_quorum_Libraries_Language_Types_Number_:
 			return "Infinity"
 		if value == -float('inf'):
 			return "-Infinity"
-		mantissa, exponent = float.hex(value).split('p')
-		whole, fraction = mantissa.split('.')
-		fraction = fraction.rstrip('0') or '0'
-		return whole + '.' + fraction + 'p' + str(int(exponent))
+		# From the bits, in two 32-bit halves: MicroPython has no float.hex,
+		# and may not have integers wider than 64 bits.
+		import struct
+		high, low = struct.unpack('>II', struct.pack('>d', value))
+		sign = "-" if high & 0x80000000 else ""
+		exponent = (high >> 20) & 0x7FF
+		fraction = "%05x" % (high & 0xFFFFF) + "%08x" % low
+		fraction = fraction.rstrip('0')
+		if fraction == "":
+			fraction = "0"
+		if exponent == 0:
+			if fraction == "0":
+				return sign + "0x0.0p0"
+			return sign + "0x0." + fraction + "p-1022"
+		return sign + "0x1." + fraction + "p" + str(exponent - 1023)
 
 	def GetHashCode(self):
 		# Java's Double.hashCode: the high 32 bits XORed with the low 32 bits,
 		# with every NaN as the canonical NaN, as a signed 32-bit integer.
+		# Two 32-bit halves, not one 64-bit value, for MicroPython.
 		import struct
 		value = self.number
 		if value != value:
-			bits = 0x7ff8000000000000
+			high = 0x7ff80000
+			low = 0
 		else:
-			bits = struct.unpack('>Q', struct.pack('>d', value))[0]
-		result = (bits ^ (bits >> 32)) & 0xFFFFFFFF
+			high, low = struct.unpack('>II', struct.pack('>d', value))
+		result = (high ^ low) & 0xFFFFFFFF
 		return result - 0x100000000 if result & 0x80000000 else result

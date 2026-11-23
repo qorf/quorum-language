@@ -628,7 +628,28 @@ class HashTable<Key, Value>
 
     action Copy returns Object
         HashTable<Key, Value> copy
-        Array<HashNode<Key, Value>> newArray = cast(Array<HashNode<Key, Value>>, array:Copy())
+        //new nodes, so changing a value in the copy doesn't change the
+        //original (the keys and values themselves are shared, as Java's)
+        Array<HashNode<Key, Value>> newArray
+        newArray:SetSize(array:GetSize())
+        integer i = 0
+        repeat while i < array:GetSize()
+            HashNode<Key, Value> node = array:Get(i)
+            HashNode<Key, Value> previous = undefined
+            repeat while node not= undefined
+                HashNode<Key, Value> newNode
+                newNode:key = node:key
+                newNode:value = node:value
+                if previous = undefined
+                    newArray:Set(i, newNode)
+                else
+                    previous:next = newNode
+                end
+                previous = newNode
+                node = node:next
+            end
+            i = i + 1
+        end
         copy:array = newArray
         copy:arraySize = me:arraySize
         copy:maxItemsBeforeResize = me:maxItemsBeforeResize

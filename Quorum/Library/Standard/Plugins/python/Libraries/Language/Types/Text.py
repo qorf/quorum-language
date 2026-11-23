@@ -15,6 +15,46 @@ def _Text_Parse_Error(kind):
 	error.SetErrorMessage__quorum_text("Parse Error: The text value could not be converted to " + kind + ".")
 	return error
 
+def _Text_All_Digits(text):
+	# True for one or more ASCII digits and nothing else.
+	if text == "":
+		return False
+	for character in text:
+		if character < "0" or character > "9":
+			return False
+	return True
+
+def _Text_Is_Java_Number(text):
+	# The forms Java's Double.parseDouble accepts: a sign, then NaN, Infinity,
+	# or digits with an optional point (at least one digit) and an optional
+	# exponent, then an optional f, F, d or D. By hand, without re.
+	if text[0:1] in ("+", "-"):
+		text = text[1:]
+	if text == "NaN" or text == "Infinity":
+		return True
+	if text[-1:] in ("f", "F", "d", "D"):
+		text = text[:-1]
+	exponentAt = -1
+	for marker in ("e", "E"):
+		if text.find(marker) >= 0:
+			exponentAt = text.find(marker)
+	mantissa = text
+	if exponentAt >= 0:
+		mantissa = text[:exponentAt]
+		exponent = text[exponentAt + 1:]
+		if exponent[0:1] in ("+", "-"):
+			exponent = exponent[1:]
+		if not _Text_All_Digits(exponent):
+			return False
+	point = mantissa.find(".")
+	if point >= 0:
+		whole = mantissa[:point]
+		fraction = mantissa[point + 1:]
+		if whole == "" and fraction == "":
+			return False
+		return (whole == "" or _Text_All_Digits(whole)) and (fraction == "" or _Text_All_Digits(fraction))
+	return _Text_All_Digits(mantissa)
+
 class plugins_quorum_Libraries_Language_Types_Text_:
 	def __init__(self, value = ""):
 		self.text = value
@@ -31,10 +71,12 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 	def ParseInteger(self):
 		# As Java's Integer.parseInt: an optional sign and ASCII digits only,
 		# within the integer range (int() also allows spaces and 1_000).
-		import re
-		if re.fullmatch(r"[+-]?[0-9]+", self.text) is None:
+		# Checked by hand: MicroPython's re has no fullmatch (and may be absent).
+		text = self.text
+		start = 1 if text[0:1] in ("+", "-") else 0
+		if not _Text_All_Digits(text[start:]):
 			raise _Text_Parse_Error("an integer")
-		value = int(self.text)
+		value = int(text)
 		if value < -2147483648 or value > 2147483647:
 			raise _Text_Parse_Error("an integer")
 		return value
@@ -43,9 +85,8 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		# As Java's Double.parseDouble: surrounding spaces are ignored; a sign,
 		# digits with an optional point and exponent, NaN or Infinity, and an
 		# optional f/F/d/D suffix (float() also allows 1_000, inf and nan).
-		import re
 		text = self.text.strip("".join(chr(c) for c in range(33)))
-		if re.fullmatch(r"[+-]?(NaN|Infinity|(([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?)[fFdD]?)", text) is None:
+		if not _Text_Is_Java_Number(text):
 			raise _Text_Parse_Error("a number")
 		text = text.rstrip("fFdD")
 		return float(text.replace("Infinity", "inf").replace("NaN", "nan"))

@@ -106,10 +106,10 @@ class plugins_quorum_Libraries_System_DateTime_():
 		dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 		return monthNames[timeStruct.tm_wday]
 		
-	def GetShortDayOfWeekName(self):
+	def GetShortDayofWeekName(self):
 		timeStruct = time.gmtime()
 		dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-		return monthNames[timeStruct.tm_wday]
+		return dayNames[timeStruct.tm_wday]
 		
 	def ParseTimestamp__quorum_text(self, value):
 		pass #There is likely a way to do it, but not supported in this version

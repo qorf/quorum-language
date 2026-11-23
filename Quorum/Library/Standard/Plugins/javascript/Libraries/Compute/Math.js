@@ -78,7 +78,9 @@ function plugins_quorum_Libraries_Compute_Math_() {
     };
 
     this.Round$quorum_number = function (value) {
-        return Math.round(value);
+        // + 0 turns -0 into 0: Math.round(-0.4) is -0 in JavaScript, but
+        // Java's Math.round gives a whole number, which is never -0.
+        return Math.round(value) + 0;
     };
 
     this.RoundToNearestInteger$quorum_number = function (value) {

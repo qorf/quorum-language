@@ -122,7 +122,7 @@ class plugins_quorum_Libraries_Containers_Array_ {
     
     Empty$quorum_boolean(value) {
         if(value) {
-            Empty();
+            this.Empty();
         } else {
             this.size = 0;
         }
@@ -131,7 +131,8 @@ class plugins_quorum_Libraries_Containers_Array_ {
 
 class plugins_quorum_Libraries_Containers_Number32BitArray_ {
     constructor() {
-        this.array_ = null;
+        // Empty until SetSize, so GetSize of a new array is 0.
+        this.array_ = new Float32Array(0);
     }
 
     Get$quorum_integer(index)
@@ -158,7 +159,8 @@ class plugins_quorum_Libraries_Containers_Number32BitArray_ {
 
 class plugins_quorum_Libraries_Containers_Number64BitArray_ {
     constructor() {
-        this.array_ = null;
+        // Empty until SetSize, so GetSize of a new array is 0.
+        this.array_ = new Float64Array(0);
     }
 
     Get$quorum_integer(index)
@@ -184,7 +186,8 @@ class plugins_quorum_Libraries_Containers_Number64BitArray_ {
 
 class plugins_quorum_Libraries_Containers_Integer32BitArray_ {
     constructor() {
-        this.array_ = null;
+        // Empty until SetSize, so GetSize of a new array is 0.
+        this.array_ = new Int32Array(0);
     }
 
     Get$quorum_integer(index)

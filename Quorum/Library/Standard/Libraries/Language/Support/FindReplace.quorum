@@ -29,16 +29,28 @@ class FindReplace
         return value
     end
 
+    /*
+        Whether a character ends a word: anything but a letter, a digit or
+        an underscore. Characters beyond ASCII count as part of a word, so
+        accented letters don't split one.
+    */
     private action IsWholeWordCharacter(text value) returns boolean
-        text break = "
-"
-        if (value = " ") or (value = ".") or (value = "/")
-            or (value = "*") or (value = "(") or (value = ")") or (value = "+") 
-            or (value = "-") or (value = ">") or (value = "<") or (value = "=") 
-            or (value = break) or (value = ",") or (value = ":")
+        if value = undefined or value:IsEmpty()
             return true
         end
-        return false
+        integer code = value:GetUnicodeInteger(0)
+        //separate checks: a long chain of "or" with these comparisons
+        //compiles wrongly on bytecode (see NewTests.md, 2026-11-23)
+        if code >= 48 and code <= 57
+            return false
+        elseif code >= 65 and code <= 90
+            return false
+        elseif code >= 97 and code <= 122
+            return false
+        elseif code = 95 or code >= 128
+            return false
+        end
+        return true
     end
 
     action Find(text find) returns Array<Pair<integer>>

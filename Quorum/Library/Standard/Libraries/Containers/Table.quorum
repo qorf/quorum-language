@@ -653,14 +653,13 @@ class Table<Type>
         boolean hasRemoved = false
         integer count = 0
         integer size = table:GetSize()
+        //every row; rows stay, even when emptied
         repeat while count < size
             Array<Type> item = table:Get(count)
             if item:RemoveAll(value)
                 hasRemoved = true
-                size = size - 1
-            else
-                count = count + 1
             end
+            count = count + 1
         end
         return hasRemoved
     end
