@@ -673,7 +673,8 @@ class SingularValueDecomposition
     action GetInverse returns Matrix
         if pseudoInverse = undefined and singularValues not= undefined
             // Get psuedo-inverse for sigma
-            Matrix sInv = GetDiagonalMatrix()
+            //a copy, so the diagonal matrix itself isn't inverted
+            Matrix sInv = GetDiagonalMatrix():Copy()
             i = 0
             repeat while i < sInv:GetRows()
                 if math:AbsoluteValue(sInv:Get(i,i)) > tolerance

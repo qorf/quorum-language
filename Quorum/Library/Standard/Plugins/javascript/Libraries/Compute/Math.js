@@ -64,7 +64,9 @@ function plugins_quorum_Libraries_Compute_Math_() {
     };
 
     this.Logarithm$quorum_number = function (value) {
-        return Math.log(value) / Math.LN10;
+        // Math.log10 is exact for powers of 10, as Java's Math.log10;
+        // dividing by Math.LN10 gave 2.9999999999999996 for 1000.
+        return Math.log10(value);
     };
 
     this.NaturalLogarithm$quorum_number = function (value) {

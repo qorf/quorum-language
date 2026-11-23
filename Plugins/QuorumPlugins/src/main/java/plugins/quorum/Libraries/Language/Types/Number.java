@@ -99,7 +99,7 @@ public class Number {
         return Double.POSITIVE_INFINITY;
     }
     
-    public double GetNumberOfBits(){
+    public int GetNumberOfBits(){
         return Double.SIZE;
     }
     
@@ -164,7 +164,7 @@ public class Number {
         return (int)(returnMe^(returnMe>>>32));
     }
     
-    public int PrimitiveGetHashCode(double self) {
+    public static int PrimitiveGetHashCode(double self) {
         long returnMe = Double.doubleToLongBits(self);
         return (int)(returnMe^(returnMe>>>32));
     }

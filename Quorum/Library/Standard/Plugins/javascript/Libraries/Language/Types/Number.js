@@ -68,15 +68,16 @@ Number.prototype.GetMinimumValue$NumberPrimitive = function() {
 };
 //system action GetMinimumPositiveValue returns number
 Number.prototype.GetMinimumPositiveValue$NumberPrimitive = function() {
-       Number.MIN_VALUE;
-};  
+    return Number.MIN_VALUE;
+};
 //system action GetPositiveInfinityValue returns number
 Number.prototype.GetPositiveInfinityValue$NumberPrimitive = function() {
   return Number.POSITIVE_INFINITY;
 };
 //system action GetNumberOfBits returns integer
+// A number is a 64-bit floating point value, as in Java (Double.SIZE).
 Number.prototype.GetNumberOfBits$NumberPrimitive = function() {
-  return 0;
+  return 64;
 };
 //system action GetNegativeInfinityValue returns number
 Number.prototype.GetNegativeInfinityValue$NumberPrimitive = function() {
@@ -87,29 +88,56 @@ Number.prototype.GetNotANumberValue$NumberPrimitive = function() {
   return Number.NaN;
 };
 //system action IsInfinite() returns boolean
+// True only for positive and negative infinity, as Java's Double.isInfinite.
+// isFinite is also false for NaN, which is not infinite.
 Number.prototype.IsInfinite$NumberPrimitive = function() {
-    return !isFinite(this.valueOf());
+    var value = this.valueOf();
+    return value === Infinity || value === -Infinity;
 };
 //system action IsNotANumber() returns boolean
 Number.prototype.IsNotANumber$NumberPrimitive = function() {
   return isNaN(this.valueOf());
 };
 //system action GetHex() returns text
+// The format of Java's Double.toHexString: 1.0 gives 0x1.0p0, -2.5 gives
+// -0x1.4p1, and subnormal values keep the 0x0. form (0x0.0000000000001p-1022).
 Number.prototype.GetHex$NumberPrimitive = function() {
-  return this.valueOf().toString(16);
+    var value = this.valueOf();
+    if (isNaN(value)) return "NaN";
+    if (value === Infinity) return "Infinity";
+    if (value === -Infinity) return "-Infinity";
+    var view = new DataView(new ArrayBuffer(8));
+    view.setFloat64(0, value);
+    var high = view.getUint32(0), low = view.getUint32(4);
+    var sign = (high >>> 31) ? "-" : "";
+    var exponent = (high >>> 20) & 0x7ff;
+    var fraction = ((high & 0xfffff).toString(16).padStart(5, "0") + low.toString(16).padStart(8, "0")).replace(/0+$/, "");
+    if (fraction === "") fraction = "0";
+    if (exponent === 0) {
+        if (fraction === "0") return sign + "0x0.0p0";
+        return sign + "0x0." + fraction + "p-1022";
+    }
+    return sign + "0x1." + fraction + "p" + (exponent - 1023);
 };
 //system action GetHashCode() returns integer
+// Java's Double.hashCode: the high 32 bits XORed with the low 32 bits, with
+// every NaN treated as the canonical NaN (0x7ff8000000000000), as Java does.
 Number.prototype.GetHashCode$NumberPrimitive = function() {
-  return Math.floor(this.valueOf());
+    var value = this.valueOf();
+    if (isNaN(value)) return 0x7ff80000 | 0;
+    var view = new DataView(new ArrayBuffer(8));
+    view.setFloat64(0, value);
+    return view.getInt32(0) ^ view.getInt32(4);
 };
 
+// The same as cast(integer, value): drops the fraction toward zero, as
+// Java's (int) cast does (-2.5 gives -2). Math.floor rounded down instead.
 Number.prototype.GetInteger$NumberPrimitive = function() {
-  return Math.floor(this.valueOf());
+  return global_truncate_(this.valueOf());
 };
+// The same text as output and concatenation give, as Java's Double.toString.
 Number.prototype.GetText$NumberPrimitive = function() {
-  var illegal_ = this.valueOf();
-  var res = (illegal_ % 1 == 0 ? illegal_.toFixed(1) : illegal_);
-  return res;
+  return global_number_converter_(this.valueOf());
 };
 Number.prototype.Compare$quorum_Libraries_Language_Object$NumberPrimitive = function(value) {
     var b = global_CheckCast(value, "Libraries.Language.Types.Number");

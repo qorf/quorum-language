@@ -428,7 +428,9 @@ shared class Math
         if roundUp
             return Round(value)
         else
-            number remains = AbsoluteValue(value) mod 1.0
+            //the distance above the integer below, so a negative value
+            //rounds the same way: -2.7 to -3, -2.2 to -2, -2.5 down to -3
+            number remains = value - Floor(value)
             if remains > 0.5
                 return Ceiling(value)
             else
@@ -493,7 +495,7 @@ shared class Math
         end
         
         if decimalPlace = 0
-            return cast(number, me:Round(value, true))
+            return cast(number, me:Round(value, roundUp))
         elseif decimalPlace > 15
             decimalPlace = 15
         end
@@ -576,7 +578,8 @@ shared class Math
         if value < 0
             return value * -1
         else
-            return value
+            //adding 0.0 turns -0.0 into 0.0, as Java's Math.abs
+            return value + 0.0
         end
     end
 

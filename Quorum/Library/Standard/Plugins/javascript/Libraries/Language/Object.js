@@ -50,12 +50,30 @@ function global_cast_text_to_boolean(value) {
 	}
 }
 
+// A number as text, as Java's Double.toString: plain from 0.001 up to 10
+// million, otherwise d.dddE±n. toExponential() gives the shortest digits
+// that read back as the same number, which Java (19 and later) also uses.
 function global_number_converter_(value) {
-    var result = value % 1 == 0 ? value.toFixed(1) : value;
-    result = result + "";
-    result = result.replace("e+", "E");
-    result = result.replace("e-", "E-");
-    return result;
+    if (value !== value) return "NaN";
+    if (value === Infinity) return "Infinity";
+    if (value === -Infinity) return "-Infinity";
+    if (value === 0) return (1 / value < 0) ? "-0.0" : "0.0";
+    var sign = value < 0 ? "-" : "";
+    var size = Math.abs(value);
+    // Java prints the smallest double with two digits.
+    if (size === 5e-324) return sign + "4.9E-324";
+    var parts = size.toExponential().split("e");
+    var digits = parts[0].replace(".", "");
+    var exponent = parseInt(parts[1], 10);
+    if (size >= 1e-3 && size < 1e7) {
+        if (exponent >= 0) {
+            while (digits.length <= exponent) digits = digits + "0";
+            var fraction = digits.substring(exponent + 1);
+            return sign + digits.substring(0, exponent + 1) + "." + (fraction === "" ? "0" : fraction);
+        }
+        return sign + "0." + "0".repeat(-exponent - 1) + digits;
+    }
+    return sign + digits.charAt(0) + "." + (digits.length > 1 ? digits.substring(1) : "0") + "E" + exponent;
 }
 
 function global_truncate_(value) {

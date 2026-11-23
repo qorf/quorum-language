@@ -24,7 +24,8 @@ function plugins_quorum_Libraries_Compute_BitwiseOperations_() {
     };
     
     this.ShiftRightPositive$quorum_integer$quorum_integer = function (value, amount) {
-        return value >>> amount;
+        // | 0 gives Java's signed int: -1 >>> 0 is -1, not 4294967295.
+        return (value >>> amount) | 0;
     };
     
 }

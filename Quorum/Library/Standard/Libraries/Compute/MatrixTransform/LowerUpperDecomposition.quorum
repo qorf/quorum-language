@@ -48,7 +48,9 @@ class LowerUpperDecomposition
     Integer32BitArray pivot = undefined
 
     /* Parity of the permutation associated with the LU decomposition. */
-    boolean even = false  
+    //true while an even number of rows have been swapped, as in Apache
+    //Commons; the determinant's sign comes from it
+    boolean even = true
     boolean singular = false
 
     constant number DEFAULT_TOO_SMALL = 0.00000000001
@@ -85,6 +87,9 @@ class LowerUpperDecomposition
         output value:ToText()
     */
     action Calculate(Matrix matrix)
+        //a decomposition can be reused for another matrix
+        even = true
+        singular = false
         Integer32BitArray newPivot
         integer m = matrix:GetColumns()
         newPivot:SetSize(m)

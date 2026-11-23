@@ -121,7 +121,7 @@ public class Boolean {
         }
     }
     
-    public int PrimitiveGetHashCode(boolean self) {
+    public static int PrimitiveGetHashCode(boolean self) {
         if(self) {
             return trueHash;
         } else {

@@ -187,7 +187,7 @@ public class Integer {
         return integer;
     }
     
-    public int PrimitiveGetHashCode(int self) {
+    public static int PrimitiveGetHashCode(int self) {
         return self;
     }
 }

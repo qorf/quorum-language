@@ -4,6 +4,17 @@ def Text_(value):
 	return val
 
 
+def _Text_Location_Error(index):
+	# The error Text raises for a position outside the text, as Text.quorum does.
+	error = quorum_Libraries_Language_Errors_InvalidLocationError_()
+	error.SetErrorMessage__quorum_text("Text index out of range, " + str(index))
+	return error
+
+def _Text_Parse_Error(kind):
+	error = quorum_Libraries_Language_Errors_ParseError_()
+	error.SetErrorMessage__quorum_text("Parse Error: The text value could not be converted to " + kind + ".")
+	return error
+
 class plugins_quorum_Libraries_Language_Types_Text_:
 	def __init__(self, value = ""):
 		self.text = value
@@ -18,16 +29,30 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return self.text[startIndex:endIndex]
 
 	def ParseInteger(self):
-		return int(self.text)
+		# As Java's Integer.parseInt: an optional sign and ASCII digits only,
+		# within the integer range (int() also allows spaces and 1_000).
+		import re
+		if re.fullmatch(r"[+-]?[0-9]+", self.text) is None:
+			raise _Text_Parse_Error("an integer")
+		value = int(self.text)
+		if value < -2147483648 or value > 2147483647:
+			raise _Text_Parse_Error("an integer")
+		return value
 
 	def ParseNumber(self):
-		return float(self.text)
+		# As Java's Double.parseDouble: surrounding spaces are ignored; a sign,
+		# digits with an optional point and exponent, NaN or Infinity, and an
+		# optional f/F/d/D suffix (float() also allows 1_000, inf and nan).
+		import re
+		text = self.text.strip("".join(chr(c) for c in range(33)))
+		if re.fullmatch(r"[+-]?(NaN|Infinity|(([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?)[fFdD]?)", text) is None:
+			raise _Text_Parse_Error("a number")
+		text = text.rstrip("fFdD")
+		return float(text.replace("Infinity", "inf").replace("NaN", "nan"))
 
 	def ParseBoolean(self):
-		if self.text == "True" or self.text == "true":
-			return True
-		else:
-			return False
+		# As Java's Boolean.parseBoolean: "true" in any letter case.
+		return self.text.lower() == "true"
 			
 	def GetLineFeed(self):
 		return "\n"
@@ -45,12 +70,16 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return chr(value)
 
 	def GetUnicodeInteger__quorum_integer(self, value):
+		# Fails outside the text, as Java's charAt (Python indexes from the end
+		# for negative values).
+		if value < 0 or value >= len(self.text):
+			raise _Text_Location_Error(value)
 		return ord(self.text[value])
 
 	def ContainsNative__quorum_text__quorum_text(self, left, right):
 		return right in left
 
-	def EndsWith__quorum_text(self, left, right):
+	def EndsWithNative__quorum_text__quorum_text(self, left, right):
 		return left.endswith(right)
 
 	def StartsWithNative__quorum_text__quorum_text(self, left, right):
@@ -118,14 +147,39 @@ class plugins_quorum_Libraries_Language_Types_Text_:
 		return len(self.text)
 
 	def GetHashCode(self):
-		theString = self.text
-		size = len(theString)
+		# Java's String.hashCode, kept to 32 bits, as a signed integer.
 		h = 0
-		i = 0
-		while(i < size):
-			h = 31 * h + ord(theString[i])
-			i = i + 1
-		return h
+		for character in self.text:
+			h = (31 * h + ord(character)) & 0xFFFFFFFF
+		return h - 0x100000000 if h & 0x80000000 else h
 
 	def GetSubtext__quorum_integer__quorum_integer(self, startIndex, endIndex):
+		# Java's substring rules (Python slices never fail).
+		if startIndex < 0:
+			raise _Text_Location_Error(startIndex)
+		if endIndex > len(self.text) or startIndex > endIndex:
+			raise _Text_Location_Error(endIndex)
 		return self.text[startIndex:endIndex]
+
+	def Split__quorum_text__quorum_boolean(self, delimiter, include):
+		# As Java's PrimitiveSplit(self, delimiter, keep), which splits on the
+		# literal delimiter: with include, every piece; without, trailing empty
+		# pieces are dropped. Empty text, or no match, gives the whole text.
+		text = self.text
+		if len(text) == 0:
+			pieces = [""]
+		elif delimiter == "":
+			pieces = list(text)
+			if include:
+				pieces.append("")
+		elif delimiter not in text:
+			pieces = [text]
+		else:
+			pieces = text.split(delimiter)
+			if not include:
+				while len(pieces) > 0 and pieces[-1] == "":
+					pieces.pop()
+		array = quorum_Libraries_Containers_Array_()
+		for piece in pieces:
+			array.Add__quorum_Libraries_Language_Object(Text_(piece))
+		return array

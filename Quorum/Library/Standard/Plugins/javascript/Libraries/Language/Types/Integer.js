@@ -67,79 +67,75 @@ Number.prototype.GetHashCode$IntegerPrimitive = function () {
     return this.valueOf();
 };
 //system action BitCount returns integer
+// The one bits of the 32-bit value, as Java's Integer.bitCount.
 Number.prototype.BitCount$IntegerPrimitive = function() {
-    var text = Number(this.valueOf()).toString(2);
-    var count = 0;
-    for(i = 0; i < text.length; i++) {
-        var char2 = text.charAt(i);
-        if(char2 == "1") {
-            count++;
-        }
-    }
-    return count;
+    var n = this.valueOf() | 0;
+    n = n - ((n >>> 1) & 0x55555555);
+    n = (n & 0x33333333) + ((n >>> 2) & 0x33333333);
+    return Math.imul((n + (n >>> 4)) & 0x0F0F0F0F, 0x01010101) >>> 24;
 };
 //system action HighestOneBit returns integer
+// The integer with only the highest one bit set, as Java's
+// Integer.highestOneBit: 0 for 0, and the minimum integer for any
+// negative value (its highest one bit is the sign bit).
 Number.prototype.HighestOneBit$IntegerPrimitive = function () {
-    var num = this.valueOf();
-    var position = 0;
-    while (num != 0) {
-        position++;
-        num = num >> 1;
-    }
-    return Math.pow(2,position-1);
+    var num = this.valueOf() | 0;
+    return num & (0x80000000 >>> Math.clz32(num));
 };
 //system action LowestOneBit returns integer
+// As Java's Integer.lowestOneBit (i & -i): 0 for 0, a signed result.
 Number.prototype.LowestOneBit$IntegerPrimitive = function () {
-    var num = this.valueOf();
-    var position = 0;
-    while (num != 0) {
-        if (num & 1 == 1) break;
-        position++;
-        num = num >> 1;
-    }
-    return Math.pow(2,position);
+    var num = this.valueOf() | 0;
+    return num & -num;
 };
 //system action LeadingZeros returns integer
+// Math.clz32 counts leading zeros of the 32-bit value (32 for 0), as Java.
 Number.prototype.LeadingZeros$IntegerPrimitive = function () {
-    return 32 - this.valueOf().toString(2).length;
+    return Math.clz32(this.valueOf());
 };
 //system action TrailingZeros returns integer
+// As Java's Integer.numberOfTrailingZeros (32 for 0).
 Number.prototype.TrailingZeros$IntegerPrimitive = function () {
-    var num = this.valueOf();
-    var position = 0;
-    while (num != 0) {
-        if (num & 1 == 1) break;
-        position++;
-        num = num >> 1;
-    }
-    return position;
+    var num = this.valueOf() | 0;
+    if (num === 0) return 32;
+    return 31 - Math.clz32(num & -num);
 };
 //system action Reverse returns integer
+// The 32 bits in reverse order, as Java's Integer.reverse.
 Number.prototype.Reverse$IntegerPrimitive = function () {
-    var str = this.valueOf().toString(2);
-    while (str.length < 32) str = "0" + str;
-    str = str.split('').reverse().join('');
-    return parseInt(str,2) >> 0;
+    var num = this.valueOf() | 0, result = 0;
+    for (var i = 0; i < 32; i++) {
+        result = (result << 1) | (num & 1);
+        num >>>= 1;
+    }
+    return result | 0;
 };
 //system action RotateLeft(integer value) returns integer
+// >>> brings in zeros, as Java's Integer.rotateLeft. Shift counts are taken
+// mod 32, so 0, 32 and negative distances match Java.
 Number.prototype.RotateLeft$quorum_integer$IntegerPrimitive = function (value) {
-    return (this.valueOf() >> (32-value) | this.valueOf() << value);
+    var num = this.valueOf() | 0;
+    return (num << value) | (num >>> (32 - value));
 };
 //system action RotateRight(integer value) returns integer
+// As Java's Integer.rotateRight (see RotateLeft).
 Number.prototype.RotateRight$quorum_integer$IntegerPrimitive = function (value) {
-    return (this.valueOf() << (32-value) | this.valueOf() >> value);
+    var num = this.valueOf() | 0;
+    return (num >>> value) | (num << (32 - value));
 };
 //system action GetBinary returns text
+// The unsigned 32-bit value (>>> 0), as Java's toBinaryString, toHexString
+// and toOctalString: -8 gives 11111111111111111111111111111000.
 Number.prototype.GetBinary$IntegerPrimitive = function() {
-    return this.valueOf().toString(2);
+    return (this.valueOf() >>> 0).toString(2);
 };
 //system action GetHex returns text
 Number.prototype.GetHex$IntegerPrimitive = function () {
-    return this.valueof().toString(16);
+    return (this.valueOf() >>> 0).toString(16);
 };
 //system action GetOctal returns text
 Number.prototype.GetOctal$IntegerPrimitive = function () {
-    return this.valueOf().toString(8);
+    return (this.valueOf() >>> 0).toString(8);
 };
 
 Number.prototype.GetNumber$IntegerPrimitive = function() {

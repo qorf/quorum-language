@@ -1710,7 +1710,9 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
     integer value = largeNumber:ToInteger()
     */
     this.ToInteger = function() {
-        return this.value.valueOf();
+        // The low 32 bits, as Java's intValue: the remainder by 2^32 is exact
+        // as a JavaScript number, and | 0 makes it a signed 32-bit integer.
+        return this.value.mod(bigInt("4294967296")).toJSNumber() | 0;
         /*
         var integerArray = this.value.toArray(4294967296);
         console.log(integerArray);
@@ -1805,7 +1807,10 @@ function plugins_quorum_Libraries_Compute_BigInteger_() {
         if (temp.lt(0))
             throw "Modulus not Positive";
         else
+            // bigInt's mod keeps the dividend's sign; Java's mod is never negative.
             temp = this.value.mod(temp);
+            if (temp.isNegative())
+                temp = temp.add(bigInt(val, b));
             var quorumTemp = new quorum_Libraries_Compute_BigInteger_();
             quorumTemp.SetValue$quorum_text(temp.toString(b));
             return quorumTemp;   

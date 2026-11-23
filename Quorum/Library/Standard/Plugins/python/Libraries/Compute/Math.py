@@ -1,5 +1,16 @@
 import math
 
+# Java's Math gives NaN or an infinity where Python's math raises an error;
+# these helpers do as Java does.
+def _Math_Nan_On_Error(function, value):
+	try:
+		return function(value)
+	except (ValueError, OverflowError):
+		return float("nan")
+
+def _Math_Odd_Integer(power):
+	return math.isfinite(power) and power == int(power) and int(power) % 2 == 1
+
 class plugins_quorum_Libraries_Compute_Math_():
 	def Floor__quorum_number (self, value):
 		return math.floor(value)
@@ -34,11 +45,11 @@ class plugins_quorum_Libraries_Compute_Math_():
 
 
 	def InverseSine__quorum_number (self, value):
-		return math.asin(value)
+		return _Math_Nan_On_Error(math.asin, value)
 
 
 	def InverseCosine__quorum_number (self, value):
-		return math.acos(value)
+		return _Math_Nan_On_Error(math.acos, value)
 
 
 	def InverseTangent__quorum_number (self, value):
@@ -62,19 +73,33 @@ class plugins_quorum_Libraries_Compute_Math_():
 
 
 	def Logarithm__quorum_number (self, value):
-		return math.log10(value)
+		# As Java: -Infinity for 0, NaN below 0.
+		if value == 0:
+			return float("-inf")
+		return _Math_Nan_On_Error(math.log10, value)
 
 
 	def NaturalLogarithm__quorum_number (self, value):
-		return math.log(value)
+		if value == 0:
+			return float("-inf")
+		return _Math_Nan_On_Error(math.log, value)
 
 
 	def SquareRoot__quorum_number (self, value):
-		return math.sqrt(value)
+		return _Math_Nan_On_Error(math.sqrt, value)
 
 
 	def Round__quorum_number (self, value):
-		return round(value)
+		# As Java's Math.round: halves round up (Python's round goes to the
+		# even neighbor), NaN gives 0, and the result is a whole number.
+		if value != value:
+			return 0.0
+		if math.isinf(value):
+			return math.copysign(9.223372036854776e18, value)
+		below = math.floor(value)
+		if value - below >= 0.5:
+			return float(below + 1)
+		return float(below)
 
 
 	def RoundToNearestInteger__quorum_number (self, value):
@@ -82,7 +107,20 @@ class plugins_quorum_Libraries_Compute_Math_():
 
 
 	def RaiseToPower__quorum_number__quorum_number (self, value, power):
-		return math.pow(value, power)
+		# As Java's Math.pow: an infinity on overflow or for 0 to a negative
+		# power, and NaN for a negative number to a fraction.
+		try:
+			return math.pow(value, power)
+		except OverflowError:
+			if value < 0 and _Math_Odd_Integer(power):
+				return float("-inf")
+			return float("inf")
+		except ValueError:
+			if value == 0:
+				if math.copysign(1.0, value) < 0 and _Math_Odd_Integer(power):
+					return float("-inf")
+				return float("inf")
+			return float("nan")
 
 
 	def DegreesToRadians__quorum_number (self, degrees):

@@ -268,8 +268,12 @@ class BinaryOpcode is QuorumOpcode
 
         text rightResult = right:WritePython() 
 
-        if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
+        boolean integers = leftType:IsInteger() and rightType:IsInteger()
+        if integers and current = op:DIVIDE
             result = "Global_Cast_To_Int(" + leftResult + " " + operator + " " + rightResult + ")"
+        elseif integers and (current = op:PLUS or current = op:MINUS or current = op:TIMES)
+            //wraps the result to a 32-bit integer, as Java's int does
+            result = "Global_Wrap_Int(" + leftResult + " " + operator + " " + rightResult + ")"
         else
             result = "(" + leftResult + " " + operator + " " + rightResult + ")"
         end
@@ -336,8 +340,16 @@ class BinaryOpcode is QuorumOpcode
         end
 
         //we have to take the floor, because JavaScript doesn't have integers
-        if leftType:IsInteger() and rightType:IsInteger() and current = op:DIVIDE
+        boolean integers = leftType:IsInteger() and rightType:IsInteger()
+        if integers and current = op:DIVIDE
             result = result + "global_truncate_(" + leftResult + " " + operator + " " + rightResult + ")"
+        elseif integers and (current = op:PLUS or current = op:MINUS)
+            //| 0 wraps the result to a 32-bit integer, as Java's int does
+            result = result + "((" + leftResult + " " + operator + " " + rightResult + ") | 0)"
+        elseif integers and current = op:TIMES
+            //Math.imul multiplies as 32-bit integers; a plain * loses the
+            //low bits once the product passes 2^53
+            result = result + "Math.imul(" + leftResult + ", " + rightResult + ")"
         else
             result = result + "(" + leftResult + " " + operator + " " + rightResult + ")"
         end

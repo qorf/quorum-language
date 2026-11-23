@@ -57,10 +57,38 @@ def Global_Cast_Integer_To_Text(value):
 	return str(value)
 	
 def Global_Cast_Number_To_Text(value):
-	value = str(float(value))
-	value = value.replace("e+", "E")
-	value = value.replace("e-", "E-")
-	return value
+	# A number as text, as Java's Double.toString: plain from 0.001 up to 10
+	# million, otherwise d.dddE±n. repr gives the shortest digits that read
+	# back as the same number, which Java (19 and later) also uses.
+	value = float(value)
+	if value != value:
+		return "NaN"
+	if value == float("inf"):
+		return "Infinity"
+	if value == float("-inf"):
+		return "-Infinity"
+	if value == 0:
+		return "-0.0" if str(value).startswith("-") else "0.0"
+	sign = "-" if value < 0 else ""
+	size = abs(value)
+	# Java prints the smallest double with two digits.
+	if size == 5e-324:
+		return sign + "4.9E-324"
+	mantissa, _, power = repr(size).partition("e")
+	exponent = int(power) if power else 0
+	whole, _, fraction = mantissa.partition(".")
+	if whole != "0":
+		exponent = exponent + len(whole) - 1
+	else:
+		exponent = exponent - (len(fraction) - len(fraction.lstrip("0"))) - 1
+	digits = (whole + fraction).strip("0")
+	if 1e-3 <= size < 1e7:
+		if exponent >= 0:
+			digits = digits.ljust(exponent + 1, "0")
+			rest = digits[exponent + 1:]
+			return sign + digits[:exponent + 1] + "." + (rest if rest else "0")
+		return sign + "0." + "0" * (-exponent - 1) + digits
+	return sign + digits[0] + "." + (digits[1:] if len(digits) > 1 else "0") + "E" + str(exponent)
 	
 def Global_Cast_Integer_To_Number(value):
 	return float(value)
@@ -79,6 +107,11 @@ def Global_GetValue_(value, type):
 		
 def Global_Cast_To_Int(value):
 	return int(value)
+
+def Global_Wrap_Int(value):
+	# The 32-bit signed integer Java's int arithmetic would give.
+	value &= 0xFFFFFFFF
+	return value - 0x100000000 if value & 0x80000000 else value
 		
 def Global_CheckCast(from_, to):
 	if (from_ is None or from_ == None):

@@ -3,6 +3,10 @@ def Integer_(value):
 	val.SetValue__quorum_integer(value)
 	return val
 
+def _signed32(value):
+	# The 32-bit pattern value as a signed integer, as Java's int.
+	return value - 0x100000000 if value & 0x80000000 else value
+
 class plugins_quorum_Libraries_Language_Types_Integer_:
 	def __init__(self, value = 0):
 		self.integer = value
@@ -14,38 +18,33 @@ class plugins_quorum_Libraries_Language_Types_Integer_:
 		return hash(self.integer)
     
 	def BitCount(self):
-		return bin(self.integer).count("1")
+		return bin(self.integer & 0xFFFFFFFF).count("1")
 
 	def HighestOneBit(self):
-		if self.integer == 0:
-			return -1 
-
-		return 2 ** (self.integer.bit_length() - 1)
+		# As Java's Integer.highestOneBit, on the 32-bit two's complement value:
+		# 0 for 0, and the minimum integer for any negative value.
+		value = self.integer & 0xFFFFFFFF
+		if value == 0:
+			return 0
+		result = 1 << (value.bit_length() - 1)
+		if result & 0x80000000:
+			return result - 0x100000000
+		return result
 		
 	def LowestOneBit(self):
-		if self.integer == 0:
-			return -1  # Special case for zero
-
-		position = 0
-		while self.integer & 1 == 0:
-			self.integer >>= 1
-			position += 1
-
-		return 2 ** position
+		# As Java's Integer.lowestOneBit (i & -i), without changing the value.
+		value = self.integer & 0xFFFFFFFF
+		return _signed32(value & -value)
 		
 	def LeadingZeros(self):
-		return 32 - self.integer.bit_length()
+		return 32 - (self.integer & 0xFFFFFFFF).bit_length()
 
 	def TrailingZeros(self):
-		if self.integer == 0:
-			return self.integer.bit_length()  # Special case for zero
-
-		count = 0
-		while self.integer & 1 == 0:
-			self.integer >>= 1
-			count += 1
-
-		return count
+		# As Java's Integer.numberOfTrailingZeros (32 for 0), without changing the value.
+		value = self.integer & 0xFFFFFFFF
+		if value == 0:
+			return 32
+		return (value & -value).bit_length() - 1
 
 	def Reverse(self):
 		binary = format(self.integer & 0xFFFFFFFF, '032b')
@@ -58,17 +57,23 @@ class plugins_quorum_Libraries_Language_Types_Integer_:
 		return result
 
 	def RotateLeft__quorum_integer(self, value):
-		return  self.integer << value
+		# As Java's Integer.rotateLeft, on the 32-bit value.
+		distance = value & 31
+		bits = self.integer & 0xFFFFFFFF
+		return _signed32(((bits << distance) | (bits >> (32 - distance))) & 0xFFFFFFFF)
 		        
 	def RotateRight__quorum_integer(self, value):
-		bits = 32
-		return ((self.integer >> value) | (self.integer << (bits - value))) & ((1 << bits) - 1)
+		# As Java's Integer.rotateRight, on the 32-bit value.
+		distance = value & 31
+		bits = self.integer & 0xFFFFFFFF
+		return _signed32(((bits >> distance) | (bits << (32 - distance))) & 0xFFFFFFFF)
 		
 	def GetBinary(self):
-		return bin(self.integer)[2:]
+		# The unsigned 32-bit value with no prefix, as Java's toBinaryString.
+		return format(self.integer & 0xFFFFFFFF, 'b')
 
 	def GetHex(self):
-		return hex(self.integer)
+		return format(self.integer & 0xFFFFFFFF, 'x')
 		
 	def GetOctal(self):
-		return oct(self.integer)[2:]
+		return format(self.integer & 0xFFFFFFFF, 'o')
