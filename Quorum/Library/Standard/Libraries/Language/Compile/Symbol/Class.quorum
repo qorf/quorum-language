@@ -1878,6 +1878,14 @@ class Class is Symbol
         return validUsesFullyQualified:GetValueIterator()
     end
 
+    /*
+        Returns every class this class's code names and that was resolved,
+        including classes from its own package, which need no use statement.
+    */
+    action GetDependencies returns Iterator<Class>
+        return dependencies:GetValueIterator()
+    end
+
     action Add(Variable variable) returns CompilerError
         if fields:HasKey(variable:GetStaticKey())
             CompilerError error

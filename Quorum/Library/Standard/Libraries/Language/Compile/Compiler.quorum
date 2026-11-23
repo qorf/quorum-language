@@ -709,6 +709,15 @@ class Compiler
                 MiniTransitiveDependency(dependency, ops)
             end
         end
+
+        //classes named without a use statement, such as ones from the same package
+        Iterator<Class> named = clazz:GetDependencies()
+        repeat while named:HasNext()
+            Class namedDependency = named:Next()
+            if not ops:HasKey(namedDependency:GetStaticKey())
+                MiniTransitiveDependency(namedDependency, ops)
+            end
+        end
     end
 
     private action ReadPythonFile(Library library, Class cl, TextBuilder builder)
