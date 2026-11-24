@@ -694,6 +694,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterCheckStatement(CheckContext context) 
         CheckDetectOpcode ch
+        ch:SetOuterCheck(GetCheckForReturn())
         ch:SetCheckLabelInteger(checkCount)
         ch:SetMethodWriter(methodWriter)
         checkCount = checkCount + 1
@@ -839,6 +840,24 @@ class QuorumBytecodeListener is QuorumSourceListener
 
     action EnterAlwaysStatement(AlwaysStatementContext context)
         isInAlwaysBlock = true
+        //a return in this always block belongs to the checks outside it
+        CheckDetectOpcode checkOp = checkStack:Peek()
+        checkOp:SetInAlwaysPart(true)
+    end
+
+    /*
+        The innermost check whose check or detect blocks we are inside, or
+        undefined. Inside a check's always block, that check does not count.
+    */
+    private action GetCheckForReturn returns CheckDetectOpcode
+        if checkStack:IsEmpty()
+            return undefined
+        end
+        CheckDetectOpcode top = checkStack:Peek()
+        if top:IsInAlwaysPart()
+            return top:GetOuterCheck()
+        end
+        return top
     end
 
     action ExitAlwaysStatement(AlwaysStatementContext context) 
@@ -2653,6 +2672,7 @@ class QuorumBytecodeListener is QuorumSourceListener
 
             ReturnOpcode opcode = cast(ReturnOpcode, result:GetQuorumOpcode())
             opcode:SetBlock(currentBlockOpcode)
+            opcode:SetEnclosingCheck(GetCheckForReturn())
             opcode:SetLocation(context:GetLocation())
             opcode:SetReturnValue(right)
             opcode:SetMethodWriter(methodWriter)
@@ -2678,6 +2698,7 @@ class QuorumBytecodeListener is QuorumSourceListener
             end
             ReturnOpcode opcode
             opcode:SetBlock(currentBlockOpcode)
+            opcode:SetEnclosingCheck(GetCheckForReturn())
             opcode:SetLocation(context:GetLocation())
             opcode:SetType(type)
             opcode:SetMethodWriter(methodWriter)

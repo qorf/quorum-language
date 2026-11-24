@@ -8,6 +8,7 @@ use Libraries.Containers.List
 use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Symbol.Class
 use Libraries.Language.Compile.Symbol.Variable
+use Libraries.Language.Compile.Symbol.Action
 use Libraries.Containers.HashTable
 
 class CheckDetectOpcode is QuorumOpcode
@@ -22,6 +23,16 @@ class CheckDetectOpcode is QuorumOpcode
     DetectBlockOpcode errorBlock = undefined
     HashTable<text, DetectBlockOpcode> types
     Class errorClass = undefined
+
+    //The check around this one whose check or detect blocks it is in.
+    CheckDetectOpcode outerCheck = undefined
+    //True once the compiler is reading this check's always block.
+    boolean inAlwaysPart = false
+    //Where returns inside this check go to run the always block first.
+    //A new label is made each time this check is written.
+    JavaBytecodeLabel returnPath = undefined
+    boolean hasReturnPath = false
+    Type returnType = undefined
 
     action SetErrorClass(Class clazz)
         errorClass = clazz
@@ -123,6 +134,10 @@ class CheckDetectOpcode is QuorumOpcode
     end
 
     action Write 
+        JavaBytecodeLabel newReturnPath
+        returnPath = newReturnPath
+        hasReturnPath = false
+
         JavaBytecodeLabel checkStart
         JavaBytecodeLabel checkEnd
         JavaBytecodeLabel fullEnd
@@ -165,7 +180,8 @@ class CheckDetectOpcode is QuorumOpcode
 
         integer detectBlockExceptionLocation = 0
         JavaBytecodeLabel detectStart
-        if not detectBlocks:IsEmpty() and not isCheckEmpty
+        boolean hasDetects = not detectBlocks:IsEmpty() and not isCheckEmpty
+        if hasDetects
             methodWriter:VisitLabel(detectStart)
             ErrorBlockLabels detectLabels
             detectLabels:left = checkStart
@@ -182,11 +198,20 @@ class CheckDetectOpcode is QuorumOpcode
             Variable except = block:GetExceptionVariable()
             detectBlockExceptionLocation = except:GetBytecodeLocation()
             methodWriter:VisitVariable(opcodes:GetObjectStore(), except:GetBytecodeLocation())
+        elseif alwaysBlock not= undefined and not isCheckEmpty
+            //There is no detect variable to hold the error above, so start from
+            //the first slot the blocks around this check are not using, as a
+            //detect variable would.
+            detectBlockExceptionLocation = GetFirstFreeSlot()
         end
 
         JavaBytecodeLabel alwaysStart
         boolean hasCatchAll = false
-        if not isCheckEmpty
+        //The detect blocks, the rethrow when none match, and the copy of the
+        //always block they jump to only exist when there are detect blocks.
+        //Without them, the handler at finalAlways below runs the always block
+        //and passes the error on.
+        if hasDetects
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
             repeat while it:HasNext()
                 DetectBlockOpcode det = it:Next()
@@ -249,8 +274,116 @@ class CheckDetectOpcode is QuorumOpcode
             alwaysValues:Add(labels)
         end
 
+        //This comes after the always handler's athrow, so nothing falls into it.
+        if hasReturnPath
+            WriteReturnPath()
+        end
         WriteExceptionTable()
         methodWriter:VisitLabel(fullEnd)
+    end
+
+    /*
+        The first local variable slot that the blocks around this check are not
+        using. A detect block's error variable is put in this slot, and the
+        check block's own variables start here, so nothing that is still in use
+        after the check block ends is stored at or above it.
+    */
+    private action GetFirstFreeSlot returns integer
+        Block checkBlock = block:GetBlock()
+        Block enclosingBlock = checkBlock:GetParentBlock()
+        if enclosingBlock not= undefined
+            return enclosingBlock:GetBytecodeLocation()
+        end
+        Action parentAction = checkBlock:GetParentAction()
+        return parentAction:GetBytecodeLocation()
+    end
+
+    action SetOuterCheck(CheckDetectOpcode value)
+        outerCheck = value
+    end
+
+    action GetOuterCheck returns CheckDetectOpcode
+        return outerCheck
+    end
+
+    action SetInAlwaysPart(boolean value)
+        inAlwaysPart = value
+    end
+
+    action IsInAlwaysPart returns boolean
+        return inAlwaysPart
+    end
+
+    /*
+        The innermost check, from this one outward, that has an always block,
+        or undefined. A return inside this check has to run that always block
+        before it leaves the action.
+    */
+    action GetReturnTarget returns CheckDetectOpcode
+        if alwaysBlock not= undefined
+            return me
+        elseif outerCheck not= undefined
+            return outerCheck:GetReturnTarget()
+        end
+        return undefined
+    end
+
+    /*
+        The label a return inside this check jumps to. Asking for it means the
+        return path will be written at the end of this check.
+    */
+    action GetReturnPath(Type type) returns JavaBytecodeLabel
+        hasReturnPath = true
+        returnType = type
+        return returnPath
+    end
+
+    /*
+        Where a returned value is held while always blocks run. It must be
+        above every variable in the action, including the always blocks'
+        variables, which the error handler moves up by about the largest slot
+        again, so it goes above twice the largest slot.
+    */
+    action GetReturnValueSlot returns integer
+        Block top = block:GetBlock()
+        repeat while top:GetParentBlock() not= undefined
+            top = top:GetParentBlock()
+        end
+        return 2 * GetLargestSlot(top) + 2
+    end
+
+    private action GetLargestSlot(Block value) returns integer
+        integer largest = value:GetBytecodeLocation()
+        Iterator<Block> children = value:GetBlocks()
+        repeat while children:HasNext()
+            integer child = GetLargestSlot(children:Next())
+            if child > largest
+                largest = child
+            end
+        end
+        return largest
+    end
+
+    /*
+        Runs the always block for a return, then goes on to the next always
+        block outside this check, or gives the value back.
+    */
+    private action WriteReturnPath
+        JavaBytecodeMethodWriter methodWriter = GetMethodWriter()
+        methodWriter:VisitLabel(returnPath)
+        alwaysBlock:Write()
+        CheckDetectOpcode next = undefined
+        if outerCheck not= undefined
+            next = outerCheck:GetReturnTarget()
+        end
+        if next not= undefined
+            methodWriter:VisitJump(opcodes:GetGoto(), next:GetReturnPath(returnType))
+        elseif returnType:IsVoid()
+            methodWriter:VisitInstruction(opcodes:GetReturn())
+        else
+            methodWriter:VisitVariable(opcodes:GetLoadOpcode(returnType), GetReturnValueSlot())
+            methodWriter:VisitInstruction(opcodes:GetReturnOpcode(returnType))
+        end
     end
 
     private action WriteDetectBlock(DetectBlockOpcode det, Class clazz, JavaBytecodeLabel fullEnd, JavaBytecodeLabel alwaysStart)
@@ -295,14 +428,6 @@ class CheckDetectOpcode is QuorumOpcode
         methodWriter:VisitTryCatchBlock(labels:left, labels:middle, labels:right, labels:type)
     end
 
-    action GetPythonCleanupVariableName returns text
-        if block not= undefined
-            return "finallyCleanup" + block:GetHashCode() + "_"
-        else 
-            return "finallyCleanup" + "_" //not sure here
-        end
-    end
-
     action WritePython returns text
         TranslateConstants constants
         text tabs = constants:GetTabText()
@@ -318,10 +443,6 @@ class CheckDetectOpcode is QuorumOpcode
 
         constant text checkExceptionName = "e" + GetCheckLabelInteger() + "_"
 
-        text cleanupName = GetPythonCleanupVariableName()
-        //Python is weird. Make a cleanup variable, so finally can bail sometimes
-        cleanupStatement =  cleanupName + " = True" + EOL
-        result = result + tabs + cleanupStatement + EOL
         text null = undefined
         if not isCheckEmpty
             result = result + tabs + "try:" + EOL
@@ -402,11 +523,8 @@ class CheckDetectOpcode is QuorumOpcode
 
         if alwaysBlock not= undefined
             result = result + tabs + "finally:" + EOL
-            result = result + tabs + tab + "if " + cleanupName + ":" + EOL
-            constants:IncreaseTab()
             constants:IncreaseTab()
             result = result + alwaysBlock:WritePython() + EOL
-            constants:DecreaseTab()
             constants:DecreaseTab()
         end
 
@@ -436,7 +554,9 @@ class CheckDetectOpcode is QuorumOpcode
         end
 
         boolean hasCatchAll = false
-        if not isCheckEmpty //if the block is empty, there's no need to write detect blocks
+        //With no detect blocks there is nothing to catch: the error goes on to
+        //the caller after the finally block runs.
+        if not isCheckEmpty and not detectBlocks:IsEmpty()
             Iterator<DetectBlockOpcode> it = detectBlocks:GetIterator()
             integer detectAmount = 0
             

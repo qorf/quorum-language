@@ -261,6 +261,20 @@ shared class JavaBytecodeOpcodes
         return ALOAD
     end
 
+    /*
+      Generates the appropriate opcode for storing an item from the stack
+      into a local variable, from a given Quorum type descriptor.
+     */
+    action GetStoreOpcode(Type type) returns integer
+        if type:IsInteger() or type:IsBoolean()
+            return ISTORE
+        elseif type:IsNumber()
+            return DSTORE
+        end
+
+        return ASTORE
+    end
+
     action GetObjectThrow returns integer
         return ATHROW
     end

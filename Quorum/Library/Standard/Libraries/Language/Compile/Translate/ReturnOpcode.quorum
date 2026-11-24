@@ -11,6 +11,7 @@ class ReturnOpcode is QuorumOpcode
     integer opcode = -1
     integer opcode2 = -1
     BlockOpcode block = undefined
+    CheckDetectOpcode enclosingCheck = undefined
 
     action SetBytecodeWriteOffsetToAllChildren(integer offset)
         SetBytecodeWriteOffset(offset)
@@ -58,6 +59,24 @@ class ReturnOpcode is QuorumOpcode
             returnValue:Write()
         end
 
+        CheckDetectOpcode target = undefined
+        if enclosingCheck not= undefined
+            target = enclosingCheck:GetReturnTarget()
+        end
+        if target not= undefined
+            //An always block has to run first: hold the value and go to the
+            //check's return path instead of returning here.
+            if not type:IsVoid()
+                if opcode2 not= -1
+                    //the first opcode turns an integer into a number
+                    methodWriter:VisitInstruction(opcode)
+                end
+                methodWriter:VisitVariable(opcodes:GetStoreOpcode(type), target:GetReturnValueSlot())
+            end
+            methodWriter:VisitJump(opcodes:GetGoto(), target:GetReturnPath(type))
+            return now
+        end
+
         if type:IsVoid()
             integer op = opcodes:GetReturnOpcode(type)
             methodWriter:VisitInstruction(op)
@@ -78,12 +97,6 @@ class ReturnOpcode is QuorumOpcode
         EOL = EOL:GetCarriageReturn() + EOL:GetLineFeed()
         TranslateConstants constants
         text tabs = constants:GetTabText()
-
-        if block not= undefined and block:IsDetectBlock() and block:GetCheckDetectOpcode() not= undefined
-            CheckDetectOpcode checkOp = block:GetCheckDetectOpcode()
-            text name = checkOp:GetPythonCleanupVariableName()
-            result = tabs + name + " = False" + EOL
-        end
 
         Type type = GetType()
         if not type:IsVoid()
@@ -129,6 +142,18 @@ class ReturnOpcode is QuorumOpcode
 
     action GetBlock returns BlockOpcode
         return block
+    end
+
+    /*
+        The innermost check whose check or detect blocks this return is in,
+        or undefined.
+    */
+    action SetEnclosingCheck(CheckDetectOpcode value)
+        enclosingCheck = value
+    end
+
+    action GetEnclosingCheck returns CheckDetectOpcode
+        return enclosingCheck
     end
 
     action SetBlock(BlockOpcode block)
