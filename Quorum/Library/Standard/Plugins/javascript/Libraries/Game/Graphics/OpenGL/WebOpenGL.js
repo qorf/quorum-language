@@ -171,7 +171,7 @@ function plugins_quorum_Libraries_Game_Graphics_OpenGL_WebOpenGL_()
     
     this.GetMaximumTextureCount = function()
     {
-        this.glGetIntegerv(gl.MAX_TEXTURE_IMAGE_UNITS);
+        return this.glGetIntegerv(gl.MAX_TEXTURE_IMAGE_UNITS);
     };
     
     this.SetActiveTextureID$quorum_integer = function(id)
