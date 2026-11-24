@@ -200,69 +200,30 @@ class BinaryAndOrOpcode is QuorumOpcode
         return result
     end
 
+    /*
+        Where to jump when the left side ends this and/or early: an and
+        whose left side is false is false, and an or whose left side is true
+        is true. That value travels up the tree. On the right of the node
+        above, it is that node's value too. On the left of an and, false
+        ends that and as well, but true means its right side decides, so the
+        jump goes there; on the left of an or, the same with true and false
+        swapped. At the top, the value picks the true or false label.
+    */
     private action CalculateJumpPoint
-        if not hasParent
-            if isAnd
-                jumpLabel = falseLabel
-            else
-                jumpLabel = trueLabel
-            end
-            return now
-        end
-
-        boolean onRight = not isOnLeft
-        QuorumOpcode op = opcodeParent
-        BinaryAndOrOpcode currentParent = undefined
-        BinaryAndOrOpcode currentChild = me
-        if op = undefined
-            return now
-        end
-
-        if op is BinaryAndOrOpcode
-            currentParent = cast(BinaryAndOrOpcode, op)
-        end
-
-        repeat while currentParent not= undefined
-            if currentParent:IsAnd() and currentChild:IsOnLeft() and not currentChild:IsAnd()
-                jumpLabel = currentParent:GetRightHandSideLabel()
-                return now
-            elseif currentParent:IsAnd() and currentChild:IsOnLeft() and currentChild:IsAnd()
-                jumpLabel = currentParent:GetJumpLabel()
-                return now
-            elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and currentChild:IsAnd()
-                jumpLabel = currentParent:GetRightHandSideLabel()
+        boolean outcome = not isAnd
+        BinaryAndOrOpcode child = me
+        repeat while child:hasParent and child:opcodeParent not= undefined
+            BinaryAndOrOpcode above = child:opcodeParent
+            if child:IsOnLeft() and above:IsAnd() = outcome
+                jumpLabel = above:GetRightHandSideLabel()
                 return now
             end
-
-
-            QuorumOpcode parentParent = currentParent:opcodeParent
-            if parentParent not= undefined and parentParent is BinaryAndOrOpcode
-                currentChild = currentParent
-                currentParent = cast(BinaryAndOrOpcode, parentParent)
-            else //terminate the loop, we're done
-                if currentParent:IsAnd() and currentChild:IsOnLeft()
-                    jumpLabel = falseLabel
-                elseif currentParent:IsAnd() and not currentChild:IsOnLeft() and isAnd
-                    jumpLabel = falseLabel
-                elseif currentParent:IsAnd() and not currentChild:IsOnLeft() and not isAnd
-                    jumpLabel = trueLabel
-                elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and not onRight
-                    jumpLabel = trueLabel
-                elseif not currentParent:IsAnd() and currentChild:IsOnLeft() and onRight
-                    jumpLabel = currentParent:GetRightHandSideLabel()
-
-                /*
-                    These cases account for when the topmost parent is an OR and we
-                    are on the right hand side. If it is an and, it should jump to the 
-                    false label, otherwise it should go to the true condition
-                */
-                elseif not currentParent:IsAnd() and not currentChild:IsOnLeft() and isAnd
-                    jumpLabel = falseLabel
-                elseif not currentParent:IsAnd() and not currentChild:IsOnLeft() and not isAnd
-                    jumpLabel = trueLabel
-                end
-                currentParent = undefined
-            end
+            child = above
+        end
+        if outcome
+            jumpLabel = trueLabel
+        else
+            jumpLabel = falseLabel
         end
     end
 
