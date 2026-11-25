@@ -1,0 +1,214 @@
+package Libraries.Multitasking
+
+/*
+The Task class is a piece of work that waits its turn in a line. To make a
+task, write a class that is a Task and give it a Run action, which does the
+work, and if needed a Then action, which runs right after Run, on the same
+line. Lines:LineUp puts a task in line.
+
+A task hands back its results through its own actions. Give the task fields
+for its results, set them in Run, and add actions that return them. Wait
+for the task first, then ask it: the results are only there once the task
+is done, and waiting is also what makes them safe to read from another line.
+
+While a task runs, it should only change its own fields.
+
+Wait for your tasks before the program finishes. When Main ends, tasks
+that are still waiting or running may be stopped part way on some
+computers, or keep going on others.
+
+Attribute: Example
+
+use Libraries.Multitasking.Task
+use Libraries.Multitasking.Lines
+
+class CountTask is Task
+    integer count = 0
+
+    action Run
+        repeat 100 times
+            count = count + 1
+        end
+    end
+
+    action GetCount returns integer
+        return count
+    end
+end
+
+class Main
+    action Main
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        output "Main keeps going"
+        counter:Wait()
+        output "Counted to " + counter:GetCount()
+    end
+end
+*/
+class Task
+    /*
+        This action does the task's work. It runs on the line the task was
+        lined up on, when the task's turn comes. Classes that are a Task
+        replace it with their own.
+
+        Attribute: Example
+        use Libraries.Multitasking.Task
+
+        class HelloTask is Task
+            action Run
+                output "Hello from Run"
+            end
+        end
+    */
+    action Run
+    end
+
+    /*
+        This action runs right after Run, on the same line, before the next
+        task in that line starts. It sees everything Run did. If Run stops
+        with an error, Then does not run. Classes that are a Task may replace
+        it with their own.
+
+        Attribute: Example
+        use Libraries.Multitasking.Task
+
+        class HelloTask is Task
+            action Run
+                output "Hello from Run"
+            end
+
+            action Then
+                output "Hello again from Then"
+            end
+        end
+    */
+    action Then
+    end
+
+    /*
+        This action waits until the task is done: its Run and its Then, or
+        its Run stopped with an error. If Run stopped with an error, Wait
+        passes that error on, so a check and detect around Wait can handle
+        it. A task that was never lined up has nothing to wait for, so Wait
+        returns right away. If the main program is the one waiting, it runs
+        the main line's tasks while it waits.
+
+        A task must not wait for itself, from its own Run or Then.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        counter:Wait()
+        output "Counted to " + counter:GetCount()
+    */
+    system action Wait
+
+    /*
+        This action waits until the task is done, but gives up after a
+        number of milliseconds. If the task is done and its Run stopped with
+        an error, Wait passes that error on.
+
+        Attribute: Parameter milliseconds How long to wait at most.
+
+        Attribute: Returns True if the task is done, false if the time ran out.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        if counter:Wait(1000)
+            output "Counted to " + counter:GetCount()
+        else
+            output "Still counting"
+        end
+    */
+    system action Wait(number milliseconds) returns boolean
+
+    /*
+        This action returns whether the task is done: its Run and its Then,
+        or its Run stopped with an error. It does not wait. It is false
+        before the task is lined up, and while Run and Then are running.
+
+        Attribute: Returns True if the task is done.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        boolean finished = counter:IsFinished()
+    */
+    system action IsFinished returns boolean
+
+    /*
+        This action returns whether the task's Run or Then is running right
+        now. It is false while the task waits its turn and once it is done.
+
+        Attribute: Returns True while the task runs.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        if counter:IsRunning()
+            output "Counting now"
+        end
+    */
+    system action IsRunning returns boolean
+
+    /*
+        This action pauses the task's Run for a number of milliseconds,
+        without stopping the rest of the program. Use it instead of a sleep
+        inside a task: in a web browser a sleep would freeze the page, while
+        Pause lets everything else keep going. The pause lasts at least
+        this long.
+
+        Attribute: Parameter milliseconds How long to pause.
+
+        Attribute: Example
+        use Libraries.Multitasking.Task
+
+        class BlinkTask is Task
+            action Run
+                repeat 3 times
+                    output "On"
+                    Pause(500)
+                    output "Off"
+                    Pause(500)
+                end
+            end
+        end
+    */
+    system action Pause(number milliseconds)
+
+    /*
+        This action gets the line the task is in: the line it is waiting
+        in, running on, or last ran on. A task in the general line gets the
+        general line, whose name is "general". A task that was never lined
+        up has no line, so this returns undefined.
+
+        Attribute: Returns The task's line, or undefined.
+
+        Attribute: Example
+        use Libraries.Multitasking.Task
+        use Libraries.Multitasking.Line
+
+        class WhereTask is Task
+            action Run
+                Line line = GetLine()
+                output "Running on " + line:GetName()
+            end
+        end
+    */
+    system action GetLine returns Line
+end

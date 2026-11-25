@@ -1,0 +1,536 @@
+package Libraries.Multitasking
+
+/*
+The Lines class takes tasks and runs them alongside the rest of the
+program, several at once where the computer can. Each task it is given
+waits its turn in a line, then runs its Run and its Then. To know when a
+task is done, wait for it (Task:Wait), for every task this object was
+given (Wait), or for a line (Line:Wait).
+
+There are three kinds of line:
+
+1. The general line, for tasks that don't need a particular line:
+   LineUp(task). It works like a bank: one line, served by several
+   counters, and the next task goes to whichever counter is free first.
+   Tasks start in the order they lined up, but several can run at once:
+   at most GetMaximumAtOnce of them, which SetMaximumAtOnce changes. Each kind of
+   computer has its own limit; in a web browser and in Python it is one.
+2. A line of your own, for tasks that must run one at a time, in order:
+   make a Line and use LineUp(task, line). Nobody cuts in line.
+3. The main line, for tasks that must run on the main program, such as
+   ones that change what is on the screen: LineUp(task, lines:GetMain()).
+   Its tasks wait their turn until the main program waits, for example in
+   Wait or in Task:Wait.
+
+Wait for your tasks before the program finishes. When Main ends, tasks
+that are still waiting or running may be stopped part way on desktop
+computers, or keep going in a web browser. Calling Wait at the end of Main
+makes every computer behave the same.
+
+Tasks on different lines, or on the general line, may run at the same time,
+so they should not change the same objects. To give a result to another
+line, wait for the task and then ask it, or line up a task on that line.
+
+Attribute: Example
+
+use Libraries.Multitasking.Task
+use Libraries.Multitasking.Lines
+use Libraries.Multitasking.Line
+
+class HelloTask is Task
+    text name = ""
+
+    action SetName(text name)
+        me:name = name
+    end
+
+    action Run
+        output "Hello from " + name
+    end
+end
+
+class Main
+    action Main
+        Lines lines
+        HelloTask first
+        first:SetName("the general line")
+        lines:LineUp(first)
+
+        Line mine
+        HelloTask second
+        second:SetName("a line of my own")
+        lines:LineUp(second, mine)
+
+        output "Main keeps going"
+        lines:Wait()
+    end
+end
+*/
+class Lines
+    /*
+        This action puts a task in the general line and returns right away.
+        The task never runs inside LineUp; the next free counter runs it
+        when its turn comes. Use the task's Wait to know when it is done.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        hello:Wait()
+    */
+    system action LineUp(Task task)
+
+    /*
+        This action puts a task at the end of a particular line and returns
+        right away. The line runs its tasks one at a time, in the order they
+        lined up. Any line may line up tasks on any other line.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Parameter line The line to put the task in.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        HelloTask first
+        HelloTask second
+        Lines lines
+        Line mine
+        lines:LineUp(first, mine)
+        lines:LineUp(second, mine)
+    */
+    system action LineUp(Task task, Line line)
+
+    /*
+        This action gets the main line. Its tasks run on the main program,
+        while the main program waits. There is one main line for the whole
+        program, and this always returns the same Line.
+
+        Attribute: Returns The main line.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello, lines:GetMain())
+        lines:Wait()
+    */
+    system action GetMain returns Line
+
+    /*
+        This action gets one of the lines this object has put tasks in, by
+        its location, like an Array: 0 is the first line it used. Every kind
+        of line counts, the main line and the general line too. Each line is
+        listed once, however many tasks went into it.
+
+        Attribute: Parameter location Which line, from 0 to GetSize() - 1.
+
+        Attribute: Returns The line at that location.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        HelloTask first
+        HelloTask second
+        Lines lines
+        Line mine
+        lines:LineUp(first)
+        lines:LineUp(second, mine)
+        integer i = 0
+        repeat while i < lines:GetSize()
+            Line line = lines:GetLine(i)
+            output line:GetName()
+            i = i + 1
+        end
+    */
+    system action GetLine(integer location) returns Line
+
+    /*
+        This action gets how many lines this object has put tasks in.
+
+        Attribute: Returns The number of lines, for GetLine.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        output "Lines used: " + lines:GetSize()
+    */
+    system action GetSize returns integer
+
+    /*
+        This action waits until every task this object was given is done, on
+        any line. If the main program is the one waiting, it runs the main
+        line's tasks while it waits.
+
+        If any of those tasks stopped with an error, Wait passes the first
+        such error on, so a check and detect around Wait can handle it. Each
+        error is passed on once: a later Wait doesn't pass it on again.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        lines:Wait()
+    */
+    system action Wait
+
+    /*
+        This action waits until every task this object was given is done,
+        but gives up after a number of milliseconds. If the tasks are done
+        and one stopped with an error, it passes the first such error on,
+        as Wait does.
+
+        Attribute: Parameter milliseconds How long to wait at most.
+
+        Attribute: Returns True if the tasks are done, false if the time ran out.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        boolean done = lines:Wait(1000)
+    */
+    system action Wait(number milliseconds) returns boolean
+
+    /*
+        This action returns whether every task this object was given is done.
+        It does not wait.
+
+        Attribute: Returns True if none of its tasks is still waiting or running.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        boolean finished = lines:IsFinished()
+    */
+    system action IsFinished returns boolean
+
+    /*
+        This action gets how many of the tasks this object was given are
+        done. A task that stopped with an error counts as done. A task
+        lined up again counts each time it finishes. Useful for showing
+        progress.
+
+        Attribute: Returns How many tasks are done.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        Lines lines
+        repeat 10 times
+            HelloTask hello
+            lines:LineUp(hello)
+        end
+        output lines:GetFinishedCount() + " of 10 done"
+    */
+    system action GetFinishedCount returns integer
+
+    /*
+        This action waits for the next of this object's tasks to finish, and
+        returns it. Each finished task is returned once, in the order they
+        finished, so calling it again gives the next one. When every task
+        this object was given has been returned, it returns undefined.
+
+        It does not pass on errors. Call the task's Wait to find out whether
+        it stopped with one.
+
+        Attribute: Returns The next task to finish, or undefined if none are left.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Task
+
+        HelloTask first
+        HelloTask second
+        Lines lines
+        lines:LineUp(first)
+        lines:LineUp(second)
+        Task done = lines:WaitForAny()
+        repeat while done not= undefined
+            output "A task finished"
+            done = lines:WaitForAny()
+        end
+    */
+    system action WaitForAny returns Task
+
+    /*
+        This action waits for the next of this object's tasks to finish, but
+        gives up after a number of milliseconds.
+
+        Attribute: Parameter milliseconds How long to wait at most.
+
+        Attribute: Returns The next task to finish, or undefined if the time ran out or none are left.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Task
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello)
+        Task done = lines:WaitForAny(1000)
+        if done = undefined
+            output "Nothing finished yet"
+        end
+    */
+    system action WaitForAny(number milliseconds) returns Task
+
+    /*
+        This action puts a task in the general line after a number of
+        milliseconds, and returns right away. Until then the task counts as
+        waiting, so Wait, Task:Wait and IsFinished include it.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Parameter milliseconds How long to wait before lining it up.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUpAfter(hello, 2000)
+        output "Hello comes in two seconds"
+        lines:Wait()
+    */
+    system action LineUpAfter(Task task, number milliseconds)
+
+    /*
+        This action puts a task in a particular line after a number of
+        milliseconds, and returns right away.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Parameter line The line to put the task in.
+
+        Attribute: Parameter milliseconds How long to wait before lining it up.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUpAfter(hello, lines:GetMain(), 2000)
+        lines:Wait()
+    */
+    system action LineUpAfter(Task task, Line line, number milliseconds)
+
+    /*
+        This action puts a task in the general line once another task is
+        done, and returns right away. Until then the task counts as
+        waiting, so Wait, Task:Wait and IsFinished include it. If the other
+        task stops with an error, this task does not run: it counts as done,
+        with an error saying why, which Wait passes on.
+
+        Tasks in one line of your own already run in order; this is for
+        order across lines. The other task must be lined up at some point,
+        or this one waits forever.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Parameter before The task that must be done first.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask download
+        HelloTask unzip
+        Lines lines
+        lines:LineUp(download)
+        lines:LineUpWhenDone(unzip, download)
+        lines:Wait()
+    */
+    system action LineUpWhenDone(Task task, Task before)
+
+    /*
+        This action puts a task in a particular line once another task is
+        done, as LineUpWhenDone(task, before) does.
+
+        Attribute: Parameter task The task to line up.
+
+        Attribute: Parameter line The line to put the task in.
+
+        Attribute: Parameter before The task that must be done first.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask download
+        HelloTask show
+        Lines lines
+        lines:LineUp(download)
+        lines:LineUpWhenDone(show, lines:GetMain(), download)
+        lines:Wait()
+    */
+    system action LineUpWhenDone(Task task, Line line, Task before)
+
+    /*
+        This action puts a task in the general line again and again, every
+        number of milliseconds, until StopRepeating. The first time is after
+        one interval. If the task from the last time is still waiting or
+        running, that time is skipped, so the task never runs twice at once.
+
+        Between times the task is done, so Wait doesn't wait forever; it
+        waits for a time that is in line or running.
+
+        Attribute: Parameter task The task to line up again and again.
+
+        Attribute: Parameter milliseconds How often to line it up.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUpEvery(hello, 1000)
+        lines:Pause(5000)
+        lines:StopRepeating(hello)
+        lines:Wait()
+    */
+    system action LineUpEvery(Task task, number milliseconds)
+
+    /*
+        This action puts a task in a particular line again and again, every
+        number of milliseconds, until StopRepeating. For example, a task
+        that updates what is on the screen can repeat on the main line.
+
+        Attribute: Parameter task The task to line up again and again.
+
+        Attribute: Parameter line The line to put the task in.
+
+        Attribute: Parameter milliseconds How often to line it up.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUpEvery(hello, lines:GetMain(), 1000)
+        lines:Pause(5000)
+        lines:StopRepeating(hello)
+    */
+    system action LineUpEvery(Task task, Line line, number milliseconds)
+
+    /*
+        This action stops lining a task up again, after LineUpEvery. If the
+        task is already in line or running, that time still finishes.
+
+        Attribute: Parameter task The repeating task to stop.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUpEvery(hello, 1000)
+        lines:Pause(3000)
+        lines:StopRepeating(hello)
+    */
+    system action StopRepeating(Task task)
+
+    /*
+        This action pauses for a number of milliseconds without stopping the
+        rest of the program. If the main program pauses, the main line's
+        tasks run meanwhile. Use it instead of a sleep: in a web browser a
+        sleep would freeze the page. The pause lasts at least this long.
+
+        Attribute: Parameter milliseconds How long to pause.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        HelloTask hello
+        Lines lines
+        lines:LineUp(hello, lines:GetMain())
+        lines:Pause(100)
+    */
+    system action Pause(number milliseconds)
+
+    /*
+        This action sets how many tasks from the general line may run at
+        once, for the whole program. Each kind of computer caps it:
+
+        1. On desktop computers (Java), any number from 1 up. It starts at
+           one fewer than the computer's processor cores, at least 1. More
+           than the number of cores rarely makes work finish sooner, but it
+           can help when many tasks mostly wait, for example on the
+           network.
+        2. In a web browser (JavaScript) and in Python, the cap is 1: the
+           general line runs one task at a time, and this action keeps it
+           at 1 whatever it is given.
+
+        A number below 1 counts as 1. Lines of your own and the main line
+        are not affected: they always run one task at a time.
+
+        Attribute: Parameter count The most tasks to run at once.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        Lines lines
+        lines:SetMaximumAtOnce(4)
+        output "At most " + lines:GetMaximumAtOnce() + " at once"
+    */
+    system action SetMaximumAtOnce(integer count)
+
+    /*
+        This action gets how many tasks from the general line may run at
+        once. On desktop computers it starts at one fewer than the
+        computer's processor cores (at least 1); in a web browser and in
+        Python it is always 1. If SetMaximumAtOnce was given more than the
+        computer allows, this returns what is actually used.
+
+        Attribute: Returns The most tasks the general line runs at once.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        Lines lines
+        output "At most " + lines:GetMaximumAtOnce() + " at once"
+    */
+    system action GetMaximumAtOnce returns integer
+
+    /*
+        This action gets the most tasks from the general line that this kind
+        of computer can run at once, whatever SetMaximumAtOnce is given:
+
+        1. On desktop computers (Java), there is no cap, so it returns the
+           largest integer, 2147483647.
+        2. In a web browser (JavaScript) and in Python, it returns 1: there
+           is one thread, so the general line runs one task at a time.
+
+        Use it to tell whether tasks can truly run at the same time, for
+        example in a test that expects several tasks running at once only
+        where that is possible.
+
+        Attribute: Returns The most tasks this kind of computer can run at once.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        Lines lines
+        if lines:GetPlatformMaximumAtOnce() > 1
+            output "Tasks can run at the same time here."
+        else
+            output "Tasks take turns here."
+        end
+    */
+    system action GetPlatformMaximumAtOnce returns integer
+end

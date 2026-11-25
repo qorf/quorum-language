@@ -1,0 +1,114 @@
+package Libraries.Multitasking.Types
+
+use Libraries.Multitasking.Key
+
+/*
+The IntegerInSync class holds one integer that tasks on different lines may use at the
+same time. Each action is one step: no other line can change the value in
+the middle of it. Use it to count across lines: Add, Increase and Decrease never lose an update, unlike getting the value, adding, and setting it back.
+
+Attribute: Example
+
+use Libraries.Multitasking.Types.IntegerInSync
+class Main
+    action Main
+        IntegerInSync common
+        common:Set(10)
+        output common:Get()
+    end
+end
+*/
+class IntegerInSync
+    integer value = 0
+    Key valueKey
+
+    /*
+        This action gets the value.
+
+        Attribute: Returns The value.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.IntegerInSync
+
+        IntegerInSync common
+        integer current = common:Get()
+    */
+    action Get returns integer
+        valueKey:Take()
+        integer result = value
+        valueKey:Return()
+        return result
+    end
+
+    /*
+        This action sets the value.
+
+        Attribute: Parameter value The new value.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.IntegerInSync
+
+        IntegerInSync common
+        common:Set(10)
+    */
+    action Set(integer value)
+        valueKey:Take()
+        me:value = value
+        valueKey:Return()
+    end
+
+    /*
+        This action adds an amount to the value, as one step, and returns
+        the new value. Several lines adding at once never lose an addition.
+
+        Attribute: Parameter amount How much to add; may be negative.
+
+        Attribute: Returns The value after adding.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.IntegerInSync
+
+        IntegerInSync total
+        total:Add(5)
+        integer current = total:Add(2)
+    */
+    action Add(integer amount) returns integer
+        valueKey:Take()
+        value = value + amount
+        integer result = value
+        valueKey:Return()
+        return result
+    end
+
+    /*
+        This action adds one to the value, as one step, and returns the new
+        value.
+
+        Attribute: Returns The value after adding one.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.IntegerInSync
+
+        IntegerInSync count
+        count:Increase()
+    */
+    action Increase returns integer
+        return Add(1)
+    end
+
+    /*
+        This action takes one from the value, as one step, and returns the
+        new value.
+
+        Attribute: Returns The value after taking one away.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.IntegerInSync
+
+        IntegerInSync count
+        count:Decrease()
+    */
+    action Decrease returns integer
+        return Add(-1)
+    end
+end

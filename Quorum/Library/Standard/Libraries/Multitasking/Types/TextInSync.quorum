@@ -1,0 +1,87 @@
+package Libraries.Multitasking.Types
+
+use Libraries.Multitasking.Key
+
+/*
+The TextInSync class holds one text that tasks on different lines may use
+at the same time. Each action is one step: no other line can change the
+text in the middle of it. Use it when several lines build one text, such as
+a report or a log: Append never loses what another line added, unlike
+getting the text, adding to it, and setting it back.
+
+Attribute: Example
+
+use Libraries.Multitasking.Types.TextInSync
+class Main
+    action Main
+        TextInSync report
+        report:Set("Results:")
+        report:Append(" all done")
+        output report:Get()
+    end
+end
+*/
+class TextInSync
+    text value = ""
+    Key valueKey
+
+    /*
+        This action gets the text.
+
+        Attribute: Returns The text.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.TextInSync
+
+        TextInSync common
+        text current = common:Get()
+    */
+    action Get returns text
+        valueKey:Take()
+        text result = value
+        valueKey:Return()
+        return result
+    end
+
+    /*
+        This action sets the text.
+
+        Attribute: Parameter value The new text.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.TextInSync
+
+        TextInSync common
+        common:Set("Ready")
+    */
+    action Set(text value)
+        valueKey:Take()
+        me:value = value
+        valueKey:Return()
+    end
+
+    /*
+        This action adds text to the end, as one step, and returns the whole
+        text after adding. Several lines appending at once never lose an
+        addition, though which line's text comes first depends on which gets
+        there first.
+
+        Attribute: Parameter more The text to add to the end.
+
+        Attribute: Returns The text after adding.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.TextInSync
+
+        TextInSync log
+        log:Append("Started. ")
+        text current = log:Append("Finished.")
+    */
+    action Append(text more) returns text
+        valueKey:Take()
+        value = value + more
+        text result = value
+        valueKey:Return()
+        return result
+    end
+end

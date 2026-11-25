@@ -1,0 +1,165 @@
+package Libraries.Multitasking
+
+/*
+The Line class is one line that tasks wait in. Making a Line makes a new
+line of your own: its tasks run one at a time, first come, first served,
+each task's Run and then its Then before the next task starts. Nobody cuts
+in line. On desktop computers it runs on a thread of its own while the rest
+of the program keeps going.
+
+Tasks are lined up with Lines:LineUp(task, line). Lines:GetMain gives the
+main line, Lines:GetLine the lines a Lines object has used, and
+Task:GetLine the line a task is in. Each line is one Line object, so two
+lines can be compared with =.
+
+Attribute: Example
+
+use Libraries.Multitasking.Task
+use Libraries.Multitasking.Lines
+use Libraries.Multitasking.Line
+
+class NumberTask is Task
+    integer value = 0
+
+    action SetNumber(integer value)
+        me:value = value
+    end
+
+    action Run
+        output "Task " + value
+    end
+end
+
+class Main
+    action Main
+        Lines lines
+        Line mine
+        integer i = 1
+        repeat while i <= 3
+            NumberTask task
+            task:SetNumber(i)
+            lines:LineUp(task, mine)
+            i = i + 1
+        end
+        mine:Wait()
+    end
+end
+*/
+class Line
+    /*
+        This action gets the line's name: "main" for the main line,
+        "general" for the general line, or a name such as "line-2" for a
+        line of your own.
+
+        Attribute: Returns The line's name.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        Lines lines
+        Line mainLine = lines:GetMain()
+        output mainLine:GetName()
+    */
+    system action GetName returns text
+
+    /*
+        This action returns whether this is the main line.
+
+        Attribute: Returns True for the main line.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        NumberTask task
+        task:SetNumber(1)
+        Lines lines
+        lines:LineUp(task)
+        Line line = task:GetLine()
+        boolean onMain = line:IsMain()
+    */
+    system action IsMain returns boolean
+
+    /*
+        This action waits until every task in this line is done, whoever
+        lined it up. If the main program is the one waiting, it runs the
+        main line's tasks while it waits.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        NumberTask task
+        task:SetNumber(1)
+        Lines lines
+        Line mine
+        lines:LineUp(task, mine)
+        mine:Wait()
+    */
+    system action Wait
+
+    /*
+        This action waits until every task in this line is done, but gives
+        up after a number of milliseconds.
+
+        Attribute: Parameter milliseconds How long to wait at most.
+
+        Attribute: Returns True if the tasks are done, false if the time ran out.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        NumberTask task
+        task:SetNumber(1)
+        Lines lines
+        Line mine
+        lines:LineUp(task, mine)
+        boolean done = mine:Wait(1000)
+    */
+    system action Wait(number milliseconds) returns boolean
+
+    /*
+        This action returns whether every task in this line is done. It does
+        not wait.
+
+        Attribute: Returns True if no task in the line is still waiting or running.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        NumberTask task
+        task:SetNumber(1)
+        Lines lines
+        Line mine
+        lines:LineUp(task, mine)
+        boolean finished = mine:IsFinished()
+    */
+    system action IsFinished returns boolean
+
+    /*
+        This action gets how many tasks are waiting in this line: lined up,
+        but not started. A task that is running doesn't count. For the main
+        and general lines, this counts every task waiting there, whoever
+        lined it up.
+
+        Attribute: Returns How many tasks are waiting.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+        use Libraries.Multitasking.Line
+
+        NumberTask first
+        first:SetNumber(1)
+        NumberTask second
+        second:SetNumber(2)
+        Lines lines
+        Line mine
+        lines:LineUp(first, mine)
+        lines:LineUp(second, mine)
+        output "Waiting: " + mine:GetSize()
+    */
+    system action GetSize returns integer
+end

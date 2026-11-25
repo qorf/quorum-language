@@ -1,0 +1,112 @@
+package Libraries.Multitasking
+
+/*
+The Key class lets one line at a time into a piece of code, like a single
+restroom key behind a counter. Take waits until no other line has the key,
+then takes it. Return gives it back, so the next waiting line can take it.
+
+In-sync containers, such as HashTableInSync, use a Key inside, so the people
+using them don't have to. A Key is for code that needs several steps to
+happen as one: no other line holding the same key can run in between.
+
+Put the code between Take and Return in a check, and return the key in the
+detect block too, so the key comes back even if the code has an error.
+(Not in an always block: today the compiler crashes on a check that has an
+always block but no detect block.)
+
+The same line may take the key more than once, for example when one action
+holding the key calls another. Each Take needs its own Return. Everything a
+line did before Return is seen by the next line that takes the key.
+
+Attribute: Example
+
+use Libraries.Multitasking.Key
+class Counter
+    Key key
+    integer count = 0
+
+    action Increase
+        key:Take()
+        check
+            count = count + 1
+        detect problem
+            key:Return()
+            alert(problem)
+        end
+        key:Return()
+    end
+end
+*/
+class Key
+    /*
+        This action waits until no other line has the key, then takes it.
+        If this line already has the key, it takes it again right away; it
+        then needs one more Return.
+
+        Attribute: Example
+        use Libraries.Multitasking.Key
+
+        Key key
+        key:Take()
+        // only one line at a time gets here
+        key:Return()
+    */
+    system action Take
+
+    /*
+        This action gives the key back, so the next waiting line can take
+        it. Only the line that has the key may return it.
+
+        Attribute: Example
+        use Libraries.Multitasking.Key
+
+        Key key
+        key:Take()
+        // only one line at a time gets here
+        key:Return()
+    */
+    system action Return
+
+    /*
+        This action gives the key back, waits until another line has taken
+        it and returned it, then takes it again. Use it when a line holding
+        the key finds it can't go on yet, for example a queue that is
+        empty: it lets other lines in to change things, and comes back to
+        look again. Always check again after it returns, in a loop, since
+        the other line may have changed something else.
+
+        The line must have the key. If it took the key more than once, it
+        gives all of it back, and takes it back as many times.
+
+        Attribute: Example
+        use Libraries.Multitasking.Key
+
+        Key key
+        key:Take()
+        repeat while not IsReady()
+            key:ReturnAndWait()
+        end
+        // the key is held again here
+        key:Return()
+    */
+    system action ReturnAndWait
+
+    /*
+        This action gives the key back and waits, as ReturnAndWait does, but
+        gives up after a number of milliseconds. Either way, the line has
+        the key again when it returns.
+
+        Attribute: Parameter milliseconds How long to wait at most.
+
+        Attribute: Returns True if another line used the key, false if the time ran out.
+
+        Attribute: Example
+        use Libraries.Multitasking.Key
+
+        Key key
+        key:Take()
+        boolean used = key:ReturnAndWait(1000)
+        key:Return()
+    */
+    system action ReturnAndWait(number milliseconds) returns boolean
+end

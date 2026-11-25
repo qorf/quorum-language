@@ -1,0 +1,59 @@
+package Libraries.Multitasking.Types
+
+use Libraries.Multitasking.Key
+
+/*
+The BooleanInSync class holds one boolean that tasks on different lines may use at the
+same time. Each action is one step: no other line can change the value in
+the middle of it. Use it as a flag several lines can see, for example to tell tasks to stop, or to say something was found.
+
+Attribute: Example
+
+use Libraries.Multitasking.Types.BooleanInSync
+class Main
+    action Main
+        BooleanInSync common
+        common:Set(true)
+        output common:Get()
+    end
+end
+*/
+class BooleanInSync
+    boolean value = false
+    Key valueKey
+
+    /*
+        This action gets the value.
+
+        Attribute: Returns The value.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.BooleanInSync
+
+        BooleanInSync common
+        boolean current = common:Get()
+    */
+    action Get returns boolean
+        valueKey:Take()
+        boolean result = value
+        valueKey:Return()
+        return result
+    end
+
+    /*
+        This action sets the value.
+
+        Attribute: Parameter value The new value.
+
+        Attribute: Example
+        use Libraries.Multitasking.Types.BooleanInSync
+
+        BooleanInSync common
+        common:Set(true)
+    */
+    action Set(boolean value)
+        valueKey:Take()
+        me:value = value
+        valueKey:Return()
+    end
+end

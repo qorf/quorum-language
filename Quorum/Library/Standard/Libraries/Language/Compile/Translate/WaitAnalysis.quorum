@@ -56,6 +56,7 @@ use Libraries.Language.Compile.Location
 */
 class WaitAnalysis
     CompilerErrorCodes codes
+    HashTable<text, boolean> programClasses
     constant text TASK = "Libraries.Multitasking.Task"
     constant text LINES = "Libraries.Multitasking.Lines"
     constant text LINE = "Libraries.Multitasking.Line"
@@ -235,17 +236,20 @@ class WaitAnalysis
         This action collects every action the program's classes declare,
         their constructors included, into one array, so Mark can go through
         them several times without walking the classes each time. The
-        standard library's actions aren't included.
+        standard library's actions aren't included. It also records which
+        classes are the program's (see IsLibrary).
 
         Attribute: Parameter classOpcodes The program's classes.
         Attribute: Returns An array of the program's actions.
     */
     private action GetActions(Array<ClassOpcode> classOpcodes) returns Array<Action>
         Array<Action> actions
+        programClasses:Empty()
         integer i = 0
         repeat while i < classOpcodes:GetSize()
             ClassOpcode opcode = classOpcodes:Get(i)
             Class clazz = opcode:GetClass()
+            programClasses:Set(clazz:GetStaticKey(), true)
             Iterator<Action> owned = clazz:GetActions()
             repeat while owned:HasNext()
                 actions:Add(owned:Next())
@@ -356,18 +360,19 @@ class WaitAnalysis
     /*
         This action returns whether a class belongs to the standard library,
         which is compiled before any program and calls a program's overrides
-        without waiting. That is a class compiled apart from the program, or
-        one in the library's Libraries namespace, as multitasking is while
-        it is compiled together with a program, before it joins the library.
+        without waiting. That is a class that isn't one of the program's
+        (GetActions records them), or one in the library's Libraries
+        namespace compiled together with a program, as some library classes
+        are before they join the library.
 
         Attribute: Parameter clazz The class.
         Attribute: Returns true for a standard library class.
     */
     private action IsLibrary(Class clazz) returns boolean
-        if not clazz:IsUserCode()
+        text key = clazz:GetStaticKey()
+        if not programClasses:HasKey(key)
             return true
         end
-        text key = clazz:GetStaticKey()
         return key:StartsWith("Libraries.")
     end
 

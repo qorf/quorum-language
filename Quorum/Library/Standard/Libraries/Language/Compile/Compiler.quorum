@@ -496,6 +496,18 @@ class Compiler
         end
         
         boolean isMissingBuildFile = false
+
+        //mark the actions that can wait, and report those that wait where
+        //they can't (see Libraries.Language.Compile.Translate.WaitAnalysis).
+        //This needs every action's calls, so it runs now, before any code is
+        //written, and an error stops the build.
+        if errors:IsCompilationErrorFree() and
+            (request:GetOutputType() = JAVA_BYTECODE or request:GetOutputType() = JAVASCRIPT)
+            Array<ClassOpcode> programOpcodes = theOpcodes:CopyToValueArray()
+            WaitAnalysis waiting
+            waiting:Mark(programOpcodes, table, errors)
+        end
+
         //at this point, if the build is compilation free, it 
         //is guaranteed to not have compile errors, as no errors
         //can be issues in the bytecode writing stage.
@@ -605,16 +617,10 @@ class Compiler
                     i = i + 1
                 end
 
-                //mark the actions that can wait, which are written async; stop
-                //if some wait where they can't. This needs every action's
-                //calls, so it runs now, before any JavaScript is written.
-                WaitAnalysis waiting
-                if waiting:Mark(classOpcodes, table, errors)
-                    convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
-                    result:convertedJavaScript = convertedJavaScript
-                    if request:writeJavaScriptToDisk
-                        WriteJavaScript(convertedJavaScript, request)
-                    end
+                convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
+                result:convertedJavaScript = convertedJavaScript
+                if request:writeJavaScriptToDisk
+                    WriteJavaScript(convertedJavaScript, request)
                 end
             elseif request:GetOutputType() = PYTHON
                 //This is now general purpose and calculates the transitive dependencies                
