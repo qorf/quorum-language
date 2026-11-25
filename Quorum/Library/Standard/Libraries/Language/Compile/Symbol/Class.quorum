@@ -23,6 +23,7 @@ use Libraries.Language.Compile.CompilerErrorCodes
 class Class is Symbol
     QualifiedName packageName
     HashTable<text, Action> actions
+    List<ActionCallResolution> fieldActionCalls
     HashTable<text, Action> virtualActions
     HashTable<text, Action> parentActions
     HashTable<text, Array<Type>> parentGenerics
@@ -1993,6 +1994,20 @@ class Class is Symbol
 
     action GetActions returns Iterator<Action>
         return actions:GetValueIterator()
+    end
+
+    /*
+        Calls made in this class's fields' starting values, which run while
+        an object is made, outside any action. Kept apart from the
+        constructor's calls (Libraries.Language.Compile.Symbol.Action's
+        GetActionCalls), which Quorum Studio reads.
+    */
+    action AddFieldActionCall(ActionCallResolution call)
+        fieldActionCalls:Add(call)
+    end
+
+    action GetFieldActionCalls returns Iterator<ActionCallResolution>
+        return fieldActionCalls:GetIterator()
     end
 
     action HasAction(text key) returns boolean

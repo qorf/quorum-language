@@ -27,6 +27,8 @@ class Action is Symbol
     HashTable<text, List<Location>> callLocationHash
     List<ActionCallResolution> actionCalls
     CompilerErrorCodes codes
+    boolean canWait = false
+    boolean overrideMayWait = false
 
     action AddCallLocation(Location location) 
         File file = location:GetFile()
@@ -85,6 +87,84 @@ class Action is Symbol
 
     action GetActionCalls returns Iterator<ActionCallResolution>
         return actionCalls:GetIterator()
+    end
+
+    /*
+        Whether this action can wait: a library action that waits, an action
+        that calls one that can wait, or an action that a subclass overrides
+        with one that can wait (a call to it may reach the override).
+
+        What that means depends on the target. In JavaScript, such an action
+        is written async and every call to it is awaited. Python mode will
+        need the same, and already makes every program action async. On
+        Java nothing changes, since waiting just blocks the thread.
+
+        Set by Libraries.Language.Compile.Translate.WaitAnalysis.
+    */
+    action CanWait returns boolean
+        return canWait
+    end
+
+    action SetCanWait(boolean canWait)
+        me:canWait = canWait
+    end
+
+    /*
+        Whether a subclass's override of this library action may wait.
+
+        Waiting only works if whatever calls the action waits for it too,
+        all the way up. In JavaScript, and in Python mode, an action that
+        waits is async and each caller awaits it. On Java, the calling
+        thread blocks until the wait is over. The standard library is
+        compiled before any program, without knowing which of a program's
+        overrides will wait, so the library's own code calls every action
+        as one that doesn't wait.
+
+        The exceptions are the few library actions the library is built to
+        wait for. The compiler knows them by name, as a built-in rule with
+        no special syntax, and sets this to true for them. Today they are
+        Libraries.Multitasking.Task's Run and Then. For every other library
+        action this is false, and an override that can wait is reported as
+        an error. Set by Libraries.Language.Compile.Translate.WaitAnalysis.
+
+        Allowed: a task's Run or Then that waits. Tasks are designed this
+        way: the multitasking library calls Run, waits for it to finish,
+        then calls Then and waits for that too, on the task's line. So the
+        compiler knows a call to either may wait, and lets an override
+        wait. Here Run waits for another task:
+
+            class DownloadTask is Task
+                Task part
+                action Run
+                    Lines lines
+                    lines:LineUp(part)
+                    part:Wait()
+                end
+            end
+
+        Not allowed: a Compare that waits. Libraries.Language.Object's
+        Compare isn't one of the actions the library waits for: Sort calls
+        Compare as an ordinary action, in the middle of sorting, and uses
+        the answer at once. In JavaScript or Python, Sort would get an
+        unfinished promise or coroutine instead of a number, and sort
+        wrongly. On Java, Sort's thread would block, which works there, but
+        the same program would then compile on Java and fail on the web. So
+        this is an error:
+
+            class Ranked
+                Task check
+                action Compare(Object object) returns integer
+                    check:Wait()
+                    return 0
+                end
+            end
+    */
+    action OverrideMayWait returns boolean
+        return overrideMayWait
+    end
+
+    action SetOverrideMayWait(boolean mayWait)
+        overrideMayWait = mayWait
     end
 
     action GetReturnLocation returns Location

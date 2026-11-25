@@ -1909,6 +1909,21 @@ class QuorumBytecodeListener is QuorumSourceListener
             actionCall:SetIsActionCall(true)
             actionCall:SetCallingClass(currentClass)
             actionCall:SetActionCallResolution(resolved)
+            
+            /* 
+No current action means this call is in a field's starting
+value, which runs while an object is made. Keep it on the class
+(Libraries.Language.Compile.Symbol.Class's AddFieldActionCall),
+so Libraries.Language.Compile.Translate.WaitAnalysis can report a
+field whose starting value can wait: in JavaScript fields are
+set inside the constructor, which can't be async. It isn't added
+to the constructor's own calls
+(Libraries.Language.Compile.Symbol.Action's GetActionCalls),
+because Quorum Studio reads those for "go to declaration".
+*/
+            if currentAction = undefined and currentClass not= undefined
+                currentClass:AddFieldActionCall(resolved)
+            end
 
             Action act = resolved:resolvedAction
             Class classToMakeCallOn = resolved:classToMakeCallOn

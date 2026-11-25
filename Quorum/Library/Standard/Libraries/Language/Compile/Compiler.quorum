@@ -9,6 +9,7 @@ use Libraries.Containers.Iterator
 use Libraries.Language.Compile.Translate.JarGenerator
 use Libraries.Containers.List
 use Libraries.Language.Compile.Translate.ClassOpcode
+use Libraries.Language.Compile.Translate.WaitAnalysis
 use Libraries.System.DateTime
 use Libraries.Language.Compile.Documentation.DocumentationGenerator
 use Libraries.Language.Compile.Parsing.QuorumLexer
@@ -604,10 +605,16 @@ class Compiler
                     i = i + 1
                 end
 
-                convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
-                result:convertedJavaScript = convertedJavaScript
-                if request:writeJavaScriptToDisk
-                    WriteJavaScript(convertedJavaScript, request)
+                //mark the actions that can wait, which are written async; stop
+                //if some wait where they can't. This needs every action's
+                //calls, so it runs now, before any JavaScript is written.
+                WaitAnalysis waiting
+                if waiting:Mark(classOpcodes, table, errors)
+                    convertedJavaScript = CompileToJavaScript(classOpcodes, request, m)
+                    result:convertedJavaScript = convertedJavaScript
+                    if request:writeJavaScriptToDisk
+                        WriteJavaScript(convertedJavaScript, request)
+                    end
                 end
             elseif request:GetOutputType() = PYTHON
                 //This is now general purpose and calculates the transitive dependencies                

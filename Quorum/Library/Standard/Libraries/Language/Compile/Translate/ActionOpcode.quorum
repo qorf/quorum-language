@@ -279,6 +279,11 @@ class ActionOpcode is QuorumOpcode
 
     action WriteJavaScript returns text
         text result = method:ConvertActionToJavaScriptName() + "("
+        //an action that can wait (see
+        //Libraries.Language.Compile.Translate.WaitAnalysis) is async in JavaScript
+        if method:CanWait()
+            result = "async " + result
+        end
         
         EOL = result:GetCarriageReturn() + result:GetLineFeed()
         Iterator<Variable> parameters = method:GetParameterIterator()

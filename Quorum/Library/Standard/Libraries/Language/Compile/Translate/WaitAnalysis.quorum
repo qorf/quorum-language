@@ -1,0 +1,525 @@
+package Libraries.Language.Compile.Translate
+
+use Libraries.Containers.Array
+use Libraries.Containers.HashTable
+use Libraries.Containers.Iterator
+use Libraries.Language.Compile.Symbol.Class
+use Libraries.Language.Compile.Symbol.Action
+use Libraries.Language.Compile.Symbol.ActionCallResolution
+use Libraries.Language.Compile.Symbol.SymbolTable
+use Libraries.Language.Compile.CompilerError
+use Libraries.Language.Compile.CompilerErrorType
+use Libraries.Language.Compile.CompilerErrorCodes
+use Libraries.Language.Compile.CompilerErrorManager
+use Libraries.Language.Compile.Location
+
+/*
+    Works out which of a program's actions can wait (Action:CanWait), and
+    reports the places that can't wait. Waiting comes from multitasking
+    (Libraries.Multitasking): a task's actions and the lines that run them.
+
+    An action that waits needs every caller to wait for it too, all the way
+    up. How depends on the target: in JavaScript, and in Python mode, such
+    actions are written async and every call to them is awaited; on Java
+    the calling thread blocks, so nothing changes. The code writers read
+    what it works out (Libraries.Language.Compile.Translate.ActionOpcode and
+    Libraries.Language.Compile.Translate.ChainedActionCallOpcode read
+    Action:CanWait).
+
+    It works in three steps.
+
+    1. It marks the multitasking library's actions (MarkLibraryActions):
+       - The actions that wait: Libraries.Multitasking.Task's Wait and
+         Pause; Libraries.Multitasking.Lines' Wait, WaitForAny and Pause;
+         Libraries.Multitasking.Line's Wait; and Libraries.Multitasking.Key's
+         ReturnAndWait. Wait, WaitForAny and ReturnAndWait come with and
+         without a time limit; Pause always has one.
+       - Libraries.Multitasking.Task's Run and Then. The multitasking library
+         calls a task's Run, waits for it, then calls Then and waits for
+         that, so a task's overrides of them may wait
+         (Action:OverrideMayWait), and a call to either is awaited.
+    2. It marks the program's actions that can wait: an action that calls one
+       that can wait, and an action that a subclass overrides with one that
+       can wait (a call through the parent's type may reach the override).
+       This needs every action's calls, so it runs after the listener has
+       gone through the whole program, and before any code is written. It
+       walks outward from the actions that wait, so each action and each
+       call is handled once.
+    3. It reports the places that can't wait:
+       - making an object: on create, and fields' starting values (a
+         JavaScript constructor can't be async);
+       - an override of a library action that the library calls without
+         waiting (Action:OverrideMayWait is false), such as Compare.
+
+    All of this is kept on the actions themselves, set in this one sweep
+    before any code is written, so the writers only read it.
+*/
+class WaitAnalysis
+    CompilerErrorCodes codes
+    constant text TASK = "Libraries.Multitasking.Task"
+    constant text LINES = "Libraries.Multitasking.Lines"
+    constant text LINE = "Libraries.Multitasking.Line"
+    constant text KEY = "Libraries.Multitasking.Key"
+
+    /*
+        This action marks which of a program's actions can wait, then
+        reports the places that wait where they can't, in the three steps
+        the class describes. It runs once per compile, after the listener
+        has gone through every class and before any code is written.
+
+        A program's flags are cleared first, because symbols can outlive a
+        compile: Quorum Studio starts each build from the last one's symbol
+        table, so an action that waited before an edit might not now.
+
+        Attribute: Parameter classOpcodes The program's classes.
+        Attribute: Parameter table The compile's symbol table, which also holds the standard library's classes.
+        Attribute: Parameter errors Where errors are reported.
+        Attribute: Returns false if it reported an error, so no code should be written, and true otherwise.
+    */
+    action Mark(Array<ClassOpcode> classOpcodes, SymbolTable table, CompilerErrorManager errors) returns boolean
+        Array<Action> actions = GetActions(classOpcodes)
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            act:SetCanWait(false)
+            act:SetOverrideMayWait(false)
+            i = i + 1
+        end
+        MarkLibraryActions(table)
+
+        // Who calls each action, and the program's parent actions each
+        // action overrides, found once.
+        HashTable<text, Array<Action>> callers
+        HashTable<text, Array<Action>> overridden
+        Array<Action> work
+
+        i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            Iterator<ActionCallResolution> calls = act:GetActionCalls()
+            repeat while calls:HasNext()
+                ActionCallResolution call = calls:Next()
+                Action called = call:resolvedAction
+                if called not= undefined
+                    AddTo(callers, GetStaticKey(called), act)
+                    if called:CanWait() and not act:CanWait()
+                        act:SetCanWait(true)
+                        work:Add(act)
+                    end
+                end
+            end
+
+            Class owner = act:GetParentClass()
+            Iterator<Class> parents = owner:GetParentClasses()
+            repeat while parents:HasNext()
+                Class parentClass = parents:Next()
+                Action parentAction = OverriddenAction(parentClass, act)
+                if parentAction not= undefined and not IsLibrary(parentClass)
+                    AddTo(overridden, GetStaticKey(act), parentAction)
+                end
+            end
+            i = i + 1
+        end
+
+        repeat while not work:IsEmpty()
+            Action done = work:RemoveFromEnd()
+            text key = GetStaticKey(done)
+            MarkAll(callers, key, work)
+            MarkAll(overridden, key, work)
+        end
+
+        boolean fine = true
+        i = 0
+        repeat while i < classOpcodes:GetSize()
+            ClassOpcode opcode = classOpcodes:Get(i)
+            Class clazz = opcode:GetClass()
+            if not CheckMaking(clazz, errors)
+                fine = false
+            end
+            i = i + 1
+        end
+        i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            if act:CanWait() and not CheckLibraryOverrides(act, errors)
+                fine = false
+            end
+            i = i + 1
+        end
+        return fine
+    end
+
+    /*
+        This action marks the multitasking library's actions (step 1 in the
+        class's description): the actions that wait get CanWait, and a
+        task's Run and Then get both CanWait and OverrideMayWait. The
+        library's actions that wait call only each other, never a program's
+        actions, so none of this depends on the program. When multitasking
+        is in the standard library, these flags are set on the library's
+        own Action objects, which every compile shares; they stay set,
+        which is right, since they never change.
+
+        Attribute: Parameter table The compile's symbol table, where the multitasking classes are found.
+    */
+    private action MarkLibraryActions(SymbolTable table)
+        MarkWaits(table, TASK, "Wait")
+        MarkWaits(table, TASK, "Wait:number")
+        MarkWaits(table, TASK, "Pause:number")
+        MarkWaits(table, LINES, "Wait")
+        MarkWaits(table, LINES, "Wait:number")
+        MarkWaits(table, LINES, "WaitForAny")
+        MarkWaits(table, LINES, "WaitForAny:number")
+        MarkWaits(table, LINES, "Pause:number")
+        MarkWaits(table, LINE, "Wait")
+        MarkWaits(table, LINE, "Wait:number")
+        MarkWaits(table, KEY, "ReturnAndWait")
+        MarkWaits(table, KEY, "ReturnAndWait:number")
+        MarkOverrideMayWait(table, TASK, "Run")
+        MarkOverrideMayWait(table, TASK, "Then")
+    end
+
+    /*
+        This action marks one library action as one that waits, so every
+        call to it is awaited and every action that calls it can wait. If
+        the program doesn't use the action's class, there is nothing to
+        mark.
+
+        Attribute: Parameter table The compile's symbol table.
+        Attribute: Parameter classKey The static key of the action's class, such as Libraries.Multitasking.Task.
+        Attribute: Parameter actionKey The action's static key: its name and its parameters' types, joined by colons, such as Wait:number.
+    */
+    private action MarkWaits(SymbolTable table, text classKey, text actionKey)
+        Action act = Find(table, classKey, actionKey)
+        if act not= undefined
+            act:SetCanWait(true)
+        end
+    end
+
+    /*
+        This action marks one library action that the library calls and
+        waits for, such as a task's Run. A program's override of it may wait
+        (OverrideMayWait), and since a call to it may reach such an
+        override, every call to it is awaited (CanWait).
+
+        Attribute: Parameter table The compile's symbol table.
+        Attribute: Parameter classKey The static key of the action's class.
+        Attribute: Parameter actionKey The action's static key.
+    */
+    private action MarkOverrideMayWait(SymbolTable table, text classKey, text actionKey)
+        Action act = Find(table, classKey, actionKey)
+        if act not= undefined
+            act:SetCanWait(true)
+            act:SetOverrideMayWait(true)
+        end
+    end
+
+    /*
+        This action finds an action by its class's static key and its own,
+        in the compile's symbol table.
+
+        Attribute: Parameter table The compile's symbol table.
+        Attribute: Parameter classKey The static key of the action's class.
+        Attribute: Parameter actionKey The action's static key.
+        Attribute: Returns The action, or undefined if the class isn't in the table or doesn't declare the action.
+    */
+    private action Find(SymbolTable table, text classKey, text actionKey) returns Action
+        Class clazz = table:GetClass(classKey)
+        if clazz = undefined or not clazz:HasAction(actionKey)
+            return undefined
+        end
+        return clazz:GetAction(actionKey)
+    end
+
+    /*
+        This action collects every action the program's classes declare,
+        their constructors included, into one array, so Mark can go through
+        them several times without walking the classes each time. The
+        standard library's actions aren't included.
+
+        Attribute: Parameter classOpcodes The program's classes.
+        Attribute: Returns An array of the program's actions.
+    */
+    private action GetActions(Array<ClassOpcode> classOpcodes) returns Array<Action>
+        Array<Action> actions
+        integer i = 0
+        repeat while i < classOpcodes:GetSize()
+            ClassOpcode opcode = classOpcodes:Get(i)
+            Class clazz = opcode:GetClass()
+            Iterator<Action> owned = clazz:GetActions()
+            repeat while owned:HasNext()
+                actions:Add(owned:Next())
+            end
+            Action constructor = clazz:GetConstructor()
+            if constructor not= undefined
+                actions:Add(constructor)
+            end
+            i = i + 1
+        end
+        return actions
+    end
+
+    /*
+        This action returns a static key that names an action across the
+        whole program: its class's static key and its own, joined by a bar,
+        such as Libraries.Multitasking.Task|Wait:number. An action's own
+        static key is only unique within its class, so the class's is
+        needed too. The tables in Mark are keyed by it.
+
+        Attribute: Parameter act The action.
+        Attribute: Returns The action's static key across the program.
+    */
+    private action GetStaticKey(Action act) returns text
+        Class owner = act:GetParentClass()
+        if owner = undefined
+            return act:GetStaticKey()
+        end
+        return owner:GetStaticKey() + "|" + act:GetStaticKey()
+    end
+
+    /*
+        This action adds an action to the array a table keeps under a key,
+        making the array the first time the key is used. Mark's tables list,
+        for each action, the actions that call it, or the program's parent
+        actions it overrides.
+
+        Attribute: Parameter table The table to add to.
+        Attribute: Parameter key The key to add under (see GetStaticKey).
+        Attribute: Parameter act The action to add.
+    */
+    private action AddTo(HashTable<text, Array<Action>> table, text key, Action act)
+        Array<Action> list = undefined
+        if table:HasKey(key)
+            list = table:GetValue(key)
+        else
+            Array<Action> made
+            list = made
+            table:Add(key, list)
+        end
+        list:Add(act)
+    end
+
+    /*
+        This action is one step of the walk outward from the actions that
+        wait. It marks every action a table keeps under a key as one that can
+        wait (for example, every action that calls the action just marked),
+        and adds each one it newly marks to the work still to do, so its own
+        callers are marked in turn. An action already marked is skipped, so
+        each is handled once.
+
+        Attribute: Parameter table The table to read (callers, or overridden actions).
+        Attribute: Parameter key The static key of the action just marked (see GetStaticKey).
+        Attribute: Parameter work The actions marked but not yet followed.
+    */
+    private action MarkAll(HashTable<text, Array<Action>> table, text key, Array<Action> work)
+        if not table:HasKey(key)
+            return now
+        end
+        Array<Action> list = table:GetValue(key)
+        integer i = 0
+        repeat while i < list:GetSize()
+            Action act = list:Get(i)
+            if not act:CanWait()
+                act:SetCanWait(true)
+                work:Add(act)
+            end
+            i = i + 1
+        end
+    end
+
+    /*
+        This action finds the action a parent class declares that the given
+        action overrides: one with the same static key. A class can have
+        several parents, and a parent's parents are its parents too
+        (Class:GetParentClasses lists every one), so callers ask each in
+        turn; more than one may declare the action, and each is found. A
+        parent that only inherits the action doesn't count, since the parent
+        that declares it is asked too.
+
+        Attribute: Parameter parentClass One of the class's parents.
+        Attribute: Parameter act The action that may override it.
+        Attribute: Returns The parent's own action that act overrides, or undefined if the parent doesn't declare one.
+    */
+    private action OverriddenAction(Class parentClass, Action act) returns Action
+        text key = act:GetStaticKey()
+        if not parentClass:HasAction(key)
+            return undefined
+        end
+        Action parentAction = parentClass:GetAction(key)
+        Class declaredIn = parentAction:GetParentClass()
+        if declaredIn = undefined or declaredIn:GetStaticKey() not= parentClass:GetStaticKey()
+            return undefined
+        end
+        return parentAction
+    end
+
+    /*
+        This action returns whether a class belongs to the standard library,
+        which is compiled before any program and calls a program's overrides
+        without waiting. That is a class compiled apart from the program, or
+        one in the library's Libraries namespace, as multitasking is while
+        it is compiled together with a program, before it joins the library.
+
+        Attribute: Parameter clazz The class.
+        Attribute: Returns true for a standard library class.
+    */
+    private action IsLibrary(Class clazz) returns boolean
+        if not clazz:IsUserCode()
+            return true
+        end
+        text key = clazz:GetStaticKey()
+        return key:StartsWith("Libraries.")
+    end
+
+    /*
+        This action finds the first call an action makes to an action that
+        can wait, so an error can say why the action can wait ("it calls
+        Wait, which can wait").
+
+        Attribute: Parameter act The action.
+        Attribute: Returns The first such call, or undefined if there is none.
+    */
+    private action FirstWaitingCall(Action act) returns ActionCallResolution
+        Iterator<ActionCallResolution> calls = act:GetActionCalls()
+        repeat while calls:HasNext()
+            ActionCallResolution call = calls:Next()
+            Action called = call:resolvedAction
+            if called not= undefined and called:CanWait()
+                return call
+            end
+        end
+        return undefined
+    end
+
+    /*
+        This action reports waiting while an object of a class is made,
+        which can't wait: a JavaScript constructor can't be async. It checks
+        the class's on create (its constructor), and the calls in its
+        fields' starting values (Class:GetFieldActionCalls), which are set
+        inside the constructor. Each call to an action that can wait is an
+        error, reported where the call is.
+
+        Attribute: Parameter clazz The class.
+        Attribute: Parameter errors Where errors are reported.
+        Attribute: Returns false if it reported an error, and true otherwise.
+    */
+    private action CheckMaking(Class clazz, CompilerErrorManager errors) returns boolean
+        boolean fine = true
+        Action constructor = clazz:GetConstructor()
+        if constructor not= undefined and constructor:CanWait()
+            ActionCallResolution call = FirstWaitingCall(constructor)
+            Location where = constructor:GetHeaderLocation()
+            text called = "an action that can wait"
+            if call not= undefined
+                where = call:location
+                Action calledAction = call:resolvedAction
+                called = calledAction:GetName() + ", which can wait"
+            end
+            Report(errors, where, "This calls " + called + ", but it runs while a "
+                + clazz:GetName() + " is made, which can't wait. Call it from an action instead.")
+            fine = false
+        end
+        Iterator<ActionCallResolution> calls = clazz:GetFieldActionCalls()
+        repeat while calls:HasNext()
+            ActionCallResolution call = calls:Next()
+            Action calledAction = call:resolvedAction
+            if calledAction not= undefined and calledAction:CanWait()
+                Report(errors, call:location, "A field's starting value can't come from "
+                    + calledAction:GetName() + ", which can wait: fields are set while a "
+                    + clazz:GetName() + " is made, which can't wait. Set it in an action instead.")
+                fine = false
+            end
+        end
+        return fine
+    end
+
+    /*
+        This action checks one of the program's actions that can wait, to
+        see whether it overrides a library action that the library calls
+        without waiting. If it does, that is an error.
+
+        Why: the standard library is compiled before any program, so its
+        code calls a program's overrides as ordinary actions and uses what
+        they return right away. It can't wait for an override that waits: in
+        JavaScript, it would get an unfinished promise instead of the
+        result. Only the library actions the library is built to wait for,
+        a task's Run and Then (Action:OverrideMayWait), may be overridden by
+        actions that wait.
+
+        An example. Here Ranked's Compare can wait, because it calls Wait:
+
+            class Ranked
+                Task check
+                action Compare(Object object) returns integer
+                    check:Wait()
+                    return 0
+                end
+            end
+
+        Ranked's parents include Libraries.Language.Object, a library class
+        that declares the Compare that Ranked's Compare overrides. That
+        Compare doesn't allow waiting, because Sort calls it in the middle of
+        sorting and needs the answer at once. So this reports an error at
+        Ranked's Compare. By contrast, if Ranked were a task (Ranked is
+        Task) and the action that waits were its Run, the Run it overrides
+        is Libraries.Multitasking.Task's, which allows waiting, so nothing
+        would be reported.
+
+        How: it goes through every parent of the action's class. For each
+        library parent that declares the action this one overrides
+        (OverriddenAction), it checks whether that action allows waiting,
+        and reports the first that doesn't, once, at the action's header.
+        Library classes' own actions aren't checked: the library's code is
+        written to wait where it needs to.
+
+        Attribute: Parameter act One of the program's actions that can wait.
+        Attribute: Parameter errors Where errors are reported.
+        Attribute: Returns false if it reported an error, and true otherwise.
+    */
+    private action CheckLibraryOverrides(Action act, CompilerErrorManager errors) returns boolean
+        Class owner = act:GetParentClass()
+        if IsLibrary(owner)
+            return true
+        end
+        Iterator<Class> parents = owner:GetParentClasses()
+        repeat while parents:HasNext()
+            Class parentClass = parents:Next()
+            Action parentAction = OverriddenAction(parentClass, act)
+            if parentAction not= undefined and IsLibrary(parentClass)
+                and not parentAction:OverrideMayWait()
+                text why = "it waits"
+                ActionCallResolution call = FirstWaitingCall(act)
+                if call not= undefined
+                    Action calledAction = call:resolvedAction
+                    why = "it calls " + calledAction:GetName() + ", which can wait"
+                end
+                Report(errors, act:GetHeaderLocation(), act:GetName() + " can wait, because " + why
+                    + ". It overrides " + parentClass:GetStaticKey() + "'s " + act:GetName()
+                    + ", which the library calls without waiting, so it may not wait. Start the work"
+                    + " with a Lines object's LineUp, and collect the result in a task's Then or by"
+                    + " checking IsFinished.")
+                return false
+            end
+        end
+        return true
+    end
+
+    /*
+        This action adds an error for waiting where it can't, with this
+        class's error code (CompilerErrorCodes:WAIT_WHERE_IT_CANNOT_WAIT).
+
+        Attribute: Parameter errors Where the error is reported.
+        Attribute: Parameter location Where in the program the problem is.
+        Attribute: Parameter message What is wrong, and what to do instead.
+    */
+    private action Report(CompilerErrorManager errors, Location location, text message)
+        CompilerError error
+        error:SetCode(codes:WAIT_WHERE_IT_CANNOT_WAIT)
+        error:SetLocation(location)
+        error:SetErrorMessage(message)
+        CompilerErrorType errorType
+        errorType:SetCurrentType(errorType:OTHER)
+        error:SetCompilerErrorType(errorType)
+        errors:Add(error)
+    end
+end

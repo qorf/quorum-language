@@ -233,12 +233,25 @@ class ChainedActionCallOpcode is QuorumOpcode
                 end
             end
 
+            //a call to an action that can wait (see
+            //Libraries.Language.Compile.Translate.WaitAnalysis) is awaited
+            //before anything is done with its result: unboxing, or the next
+            //call in the chain
+            text call = result + op:WriteJavaScript()
+            ActionCallResolution resolution = op:GetActionCallResolution()
+            if resolution not= undefined and resolution:resolvedAction not= undefined
+                Action called = resolution:resolvedAction
+                if called:CanWait()
+                    call = "(await " + call + ")"
+                end
+            end
+
             if wrapGetValue
                 text DQ = ""
                 DQ = DQ:GetDoubleQuote()
-                result = "global_GetValue_(" + result + op:WriteJavaScript() + ", " + DQ + GetType():GetStaticKey() + DQ + ")"
+                result = "global_GetValue_(" + call + ", " + DQ + GetType():GetStaticKey() + DQ + ")"
             else
-                result = result + op:WriteJavaScript()
+                result = call
             end
         end
         if isSoloCall

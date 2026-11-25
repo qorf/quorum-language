@@ -2460,8 +2460,11 @@ actLink:SetClassAttribute("hover:underline text-sm")
                     clazz:ConvertStaticKeyToUnderScore() + "();" + EOL)
             end
             
-            convertedSource:Append("$starter.Main();" + EOL)
+            //Main can wait (it is then async): hand its promise to whoever
+            //started the program, so it can wait for Main to finish
+            convertedSource:Append("var $finished = $starter.Main();" + EOL)
             convertedSource:Append(OUTPUT_VARIABLE + ";" + EOL)
+            convertedSource:Append("return $finished;" + EOL)
             convertedSource:Append("}" + EOL)
 
             convertedSource:Append("function Stop(){" + EOL)
