@@ -12,7 +12,7 @@ use Libraries.Containers.Array
     Port port
     DistanceSensor ds
     ds:SetPort(port:A)
-    integer currentDistance = ds:GetDistance
+    integer currentDistance = ds:GetDistance()
 */
 class DistanceSensor
     /*
@@ -65,7 +65,7 @@ class DistanceSensor
         Port port
         DistanceSensor ds
         ds:SetPort(port:A)
-        integer currentDistance = ds:GetDistance
+        integer currentDistance = ds:GetDistance()
     */
     action GetDistance returns integer
         return GetDistanceNative()

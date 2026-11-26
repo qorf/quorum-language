@@ -9,9 +9,10 @@ use Libraries.Containers.Array
     Attribute: Example
     use Libraries.Robots.Spike.Device
     use Libraries.Robots.Spike.Port
+    use Libraries.Containers.Array
     Device dv
     Port port
-    integer raw_data_of_port_A = dv:GetDataFromPort(port:A)
+    Array<integer> raw_data_of_port_A = dv:GetDataFromPort(port:A)
 */
 class Device
     public constant integer MOTOR_MEDIUM_ID = 48
@@ -101,7 +102,7 @@ class Device
         Device dv
         Hub hb
         LightMatrix lights
-        repeat until IsPortReady(port:A)
+        repeat until dv:IsPortReady(port:A)
             hb:Sleep(1)
         end
         lights:Write("Device at Port A is READY!!!")

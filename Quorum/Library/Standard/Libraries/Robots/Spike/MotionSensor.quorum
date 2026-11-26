@@ -164,7 +164,7 @@ class MotionSensor
 
         use Libraries.Robots.Spike.MotionSensor
         MotionSensor ms
-        integer yaw_face = ms:SetYawFace(ms:FRONT)
+        boolean yaw_face_set = ms:SetYawFace(ms:FRONT)
     */
     action SetYawFace(integer upface) returns boolean
         return SetYawFaceNative(upface)
@@ -219,6 +219,7 @@ class MotionSensor
         Attribute: Example
 
         use Libraries.Robots.Spike.MotionSensor
+        use Libraries.Containers.Array
         Array<integer> angles
         MotionSensor ms
         angles = ms:GetTiltAngles()

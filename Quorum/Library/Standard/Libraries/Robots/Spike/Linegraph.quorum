@@ -10,6 +10,7 @@ use Libraries.Multitasking.Task
     Attribute: Example
     
     use Libraries.Robots.Spike.Linegraph
+    use Libraries.Robots.Spike.Color
     Linegraph lg
     Color color
     lg:Plot(color:RED, 0, 0)
@@ -25,6 +26,7 @@ class Linegraph
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
         Linegraph lg
         Color color
         lg:Plot(color:RED, 0, 0)
@@ -43,6 +45,7 @@ private system action ClearNative(integer color)
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
         Linegraph lg
         Color color
         lg:Plot(color:RED, 0, 0)
@@ -66,6 +69,8 @@ private system action ClearAllNative()
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Hub
         Linegraph lg
         Color color
         Hub hb
@@ -103,6 +108,8 @@ private system action GetAverageNative(integer color, Task waiting)
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Hub
         Linegraph lg
         Color color
         Hub hb
@@ -140,6 +147,8 @@ private system action GetLastNative(integer color, Task waiting)
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Hub
         Linegraph lg
         Color color
         Hub hb
@@ -177,6 +186,8 @@ private system action GetMaxNative(integer color, Task waiting)
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
+        use Libraries.Robots.Spike.Hub
         Linegraph lg
         Color color
         Hub hb
@@ -211,10 +222,10 @@ private system action GetMinNative(integer color, Task waiting)
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
         use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.Color
         Hub hb
         Color color
         Linegraph lg
-        Color color
         lg:Plot(color:RED, 0, 0)
         lg:Plot(color:RED, 2, 4)
         lg:Plot(color:RED, 4, 4)
@@ -238,6 +249,7 @@ private system action HideNative()
 
         Attribute: Example
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
         Linegraph lg
         Color color
         lg:Plot(color:RED, 0, 0)
@@ -259,6 +271,7 @@ private system action PlotNative(integer color, number x, number y)
         Attribute: Example
 
         use Libraries.Robots.Spike.Linegraph
+        use Libraries.Robots.Spike.Color
         Linegraph lg
         Color color
         lg:Plot(color:RED, 0, 0)

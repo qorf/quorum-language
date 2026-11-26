@@ -14,10 +14,10 @@ use Libraries.Containers.Array
     use Libraries.Robots.Spike.LightMatrix
     ColorSensor cs
     Color color
-    LighMatrix lights
+    LightMatrix lights
     Port port
     cs:SetPort(port:A)
-    if cs:GetColorInteger = color:RED
+    if cs:GetColorInteger() = color:RED
         lights:Write("Red Detected!")
     end
 */
@@ -68,10 +68,10 @@ class ColorSensor
         use Libraries.Robots.Spike.LightMatrix
         ColorSensor cs
         Color color
-        LighMatrix lights
+        LightMatrix lights
         Port port
         cs:SetPort(port:A)
-        if cs:GetColorInteger = color:RED
+        if cs:GetColorInteger() = color:RED
             lights:Write("Red Detected!")
         end
     */

@@ -9,6 +9,7 @@ use Libraries.Multitasking.Task
     Attribute: Example
     
     use Libraries.Robots.Spike.Bargraph
+    use Libraries.Robots.Spike.Color
     Bargraph bg
     Color color
     bg:SetValue(color:RED, 0.5)
@@ -24,6 +25,7 @@ class Bargraph
         Attribute: Example
 
         use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Color color
         bg:SetValue(color:RED, 0.5)
@@ -42,6 +44,7 @@ private system action ChangeNative(integer color, number value)
 
         Attribute: Example
         use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Color color
         bg:SetValue(color:RED, 0.5)
@@ -64,6 +67,7 @@ private system action ClearAllNative()
 
         Attribute: Example
         use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Color color
         bg:SetValue(color:RED, 0.5)
@@ -94,6 +98,7 @@ private system action GetValueNative(integer color, Task waiting)
         Attribute: Example
         use Libraries.Robots.Spike.Bargraph
         use Libraries.Robots.Spike.Hub
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Hub hb
         Color color
@@ -115,6 +120,7 @@ private system action HideNative()
         Attribute: Example
 
         use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Color color
         bg:SetValue(color:RED, 0.5)
@@ -134,6 +140,7 @@ private system action SetValueNative(integer color, number value)
         Attribute: Example
 
         use Libraries.Robots.Spike.Bargraph
+        use Libraries.Robots.Spike.Color
         Bargraph bg
         Color color
         bg:SetValue(color:RED, 0.5)

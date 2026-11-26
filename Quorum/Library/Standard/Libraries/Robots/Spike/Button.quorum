@@ -15,7 +15,7 @@ package Libraries.Robots.Spike
     repeat until btn:IsLeftPressed()
         hb:Sleep(1)
     end
-    lights:Write("Left Button Pressed!)
+    lights:Write("Left Button Pressed!")
 */
 class Button
     public constant integer LEFT = 0
@@ -36,7 +36,7 @@ class Button
         repeat until btn:IsLeftPressed()
             hb:Sleep(1)
         end
-        lights:Write("Left Button Pressed!)
+        lights:Write("Left Button Pressed!")
     */
     action IsLeftPressed() returns boolean
         return IsLeftPressedNative()
@@ -59,7 +59,7 @@ class Button
         repeat until btn:IsRightPressed()
             hb:Sleep(1)
         end
-        lights:Write("Right Button Pressed!)
+        lights:Write("Right Button Pressed!")
     */
     action IsRightPressed() returns boolean
         return IsRightPressedNative()

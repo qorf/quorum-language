@@ -87,7 +87,7 @@ class Motor
 
         use Libraries.Robots.Spike.Motor
         Motor wheel
-        integer currentPWM = wheel:GetDutyCyle()
+        integer currentPWM = wheel:GetDutyCycle()
     */
     action GetDutyCycle returns integer
         return GetDutyCycleNative()
