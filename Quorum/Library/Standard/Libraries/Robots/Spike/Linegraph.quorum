@@ -1,5 +1,7 @@
 package Libraries.Robots.Spike
 
+use Libraries.Multitasking.Task
+
 /*
     The Linegraph library is used to graph and display linegraphs in the SPIKE App. 
     The linegraph is graphed by plotting points using x and y coordinates, and different lines
@@ -75,7 +77,22 @@ private system action ClearAllNative()
         number averageValue = lg:GetAverage(color:RED)
     */
 
-system action GetAverage(integer color) returns number
+action GetAverage(integer color) returns number
+    Task waiting
+    GetAverageNative(color, waiting)
+    waiting:Wait()
+    return GetResultNative(waiting)
+end
+
+/*
+    This action starts GetAverage's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; GetAverage then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter color The color constant whose average will be calculated (see Color)
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action GetAverageNative(integer color, Task waiting)
 
 
     /*
@@ -98,7 +115,22 @@ system action GetAverage(integer color) returns number
         number lastValue = lg:GetLast(color:RED)
     */
 
-system action GetLast(integer color) returns number
+action GetLast(integer color) returns number
+    Task waiting
+    GetLastNative(color, waiting)
+    waiting:Wait()
+    return GetResultNative(waiting)
+end
+
+/*
+    This action starts GetLast's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; GetLast then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter color The color constant whose last value will be determined (see Color)
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action GetLastNative(integer color, Task waiting)
 
     /*
         Gets the maximum of the plotted values in the linegraph
@@ -120,7 +152,22 @@ system action GetLast(integer color) returns number
         number maxValue = lg:GetMax(color:RED)
     */
 
-system action GetMax(integer color) returns number
+action GetMax(integer color) returns number
+    Task waiting
+    GetMaxNative(color, waiting)
+    waiting:Wait()
+    return GetResultNative(waiting)
+end
+
+/*
+    This action starts GetMax's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; GetMax then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter color The color constant whose maximum will be calculated (see Color)
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action GetMaxNative(integer color, Task waiting)
 
     /*
         Gets the minimum of the plotted values in the linegraph
@@ -141,7 +188,22 @@ system action GetMax(integer color) returns number
         hb:Sleep(1000)
         number minValue = lg:GetMin(color:RED)
     */
-system action GetMin(integer color) returns number
+action GetMin(integer color) returns number
+    Task waiting
+    GetMinNative(color, waiting)
+    waiting:Wait()
+    return GetResultNative(waiting)
+end
+
+/*
+    This action starts GetMin's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; GetMin then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter color The color constant whose minimum will be calculated (see Color)
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action GetMinNative(integer color, Task waiting)
 
     /*
         Hides the currently displayed linegraph in the App.
@@ -212,4 +274,13 @@ end
 
 private system action ShowNative(boolean fullscreen)
 
+
+/*
+    This action returns what the hub gave back for the work a task waited
+    for, such as a value read from the hub.
+
+    Attribute: Parameter waiting The task that waited for the work.
+    Attribute: Returns The value the hub gave back.
+*/
+private system action GetResultNative(Task waiting) returns number
 end

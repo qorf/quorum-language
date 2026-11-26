@@ -1,6 +1,14 @@
 package Libraries.Multitasking
 
 /*
+    Key's Python plugin uses the scheduler, which is in the Python plugin of
+    Libraries.Multitasking.Task. This use statement makes a Python program
+    that uses a Key, such as one with an IntegerInSync, include Task's
+    plugin too.
+*/
+use Libraries.Multitasking.Task
+
+/*
 The Key class lets one line at a time into a piece of code, like a single
 restroom key behind a counter. Take waits until no other line has the key,
 then takes it. Return gives it back, so the next waiting line can take it.

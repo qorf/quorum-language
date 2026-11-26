@@ -10,17 +10,17 @@ class plugins_quorum_Libraries_Robots_Spike_Linegraph_:
 	def ClearAllNative(self):
 		linegraph.clear_all()
 
-	async def GetAverage__quorum_integer(self, color):
-		return (await linegraph.get_average(color))
+	def GetAverageNative__quorum_integer__quorum_Libraries_Multitasking_Task(self, color, waiting):
+		_MT_WaitFor(linegraph.get_average(color), waiting)
 	
-	async def GetLast__quorum_integer(self, color):
-		return (await linegraph.get_last(color))
+	def GetLastNative__quorum_integer__quorum_Libraries_Multitasking_Task(self, color, waiting):
+		_MT_WaitFor(linegraph.get_last(color), waiting)
 	
-	async def GetMax__quorum_integer(self, color):
-		return (await linegraph.get_max(color))
+	def GetMaxNative__quorum_integer__quorum_Libraries_Multitasking_Task(self, color, waiting):
+		_MT_WaitFor(linegraph.get_max(color), waiting)
 	
-	async def GetMin__quorum_integer(self, color):
-		return (await linegraph.get_min(color))
+	def GetMinNative__quorum_integer__quorum_Libraries_Multitasking_Task(self, color, waiting):
+		_MT_WaitFor(linegraph.get_min(color), waiting)
 
 	def HideNative(self):
 		linegraph.hide()
@@ -30,3 +30,6 @@ class plugins_quorum_Libraries_Robots_Spike_Linegraph_:
 
 	def ShowNative__quorum_boolean(self, fullscreen):
 		linegraph.show(fullscreen)
+
+	def GetResultNative__quorum_Libraries_Multitasking_Task(self, waiting):
+		return _MT_ResultOf(waiting)

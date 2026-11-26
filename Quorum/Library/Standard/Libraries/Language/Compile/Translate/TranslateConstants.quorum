@@ -45,10 +45,25 @@ shared class TranslateConstants
         me:clazz = clazz
     end
 
+    /*
+        This action returns the setting SetUserCodeAsynchronous sets. The
+        Python writer no longer reads it: which actions are async comes from
+        Libraries.Language.Compile.Translate.WaitAnalysis (Action:CanWait),
+        the same for every program. It is kept so code that sets it still
+        compiles.
+
+        Attribute: Returns The setting.
+    */
     action IsUserCodeAsynchronous returns boolean
         return isUserCodeAsync
     end
 
+    /*
+        This action sets whether every action in a program was written async
+        in Python. Nothing reads it any more (see IsUserCodeAsynchronous).
+
+        Attribute: Parameter isUserCodeAsync The setting.
+    */
     action SetUserCodeAsynchronous(boolean isUserCodeAsync)
         me:isUserCodeAsync = isUserCodeAsync
     end

@@ -180,7 +180,7 @@ class LoopOpcode is QuorumOpcode
 
         constants:IncreaseTab()
         if block:IsEmpty()
-result = result + constants:GetTabText() + "pass"
+result = result + constants:GetTabText() + "pass" + EOL
         else
 result = result + block:WritePython()
         end

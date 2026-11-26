@@ -1,5 +1,7 @@
 package Libraries.Robots.Spike
 
+use Libraries.Multitasking.Task
+
 /*
     The hub library provides basic functionalities to get information about the hub
     as well as pause the hub's actions for a specified time in milliseconds. The information
@@ -22,7 +24,10 @@ class Hub
         Hub hb
         hb:Sleep(1000)
     */
-    system action Sleep(integer value)
+    action Sleep(integer value)
+        Task waiting
+        waiting:Pause(value)
+    end
 
     /*
         Returns a string of the device id.

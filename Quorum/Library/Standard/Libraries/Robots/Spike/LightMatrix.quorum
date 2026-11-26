@@ -1,5 +1,6 @@
 package Libraries.Robots.Spike
 use Libraries.Containers.Array
+use Libraries.Multitasking.Task
 
 /*
     The light matrix controls a 5 x5 set of pixels on the Spike robot. The 
@@ -94,7 +95,21 @@ class LightMatrix
         LightMatrix lights
         lights:Write("Hi!")
     */
-    system action Write(text value)
+    action Write(text value)
+        Task waiting
+        WriteNative(value, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts Write's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; Write then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter value The text to display
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action WriteNative(text value, Task waiting)
 
     /*
         Gets the intensity, between 0 and 100, of a particular pixel on the display. 

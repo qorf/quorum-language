@@ -1,5 +1,7 @@
 package Libraries.Robots.Spike
 
+use Libraries.Multitasking.Task
+
 /*
     The Bargraph library is used to graph and display bargraphs in the SPIKE App. 
     The categories in the bargraph are the different color values from the Color library.
@@ -68,7 +70,22 @@ private system action ClearAllNative()
         number redValue = bg:GetValue(color:RED)
     */
 
-system action GetValue(integer color) returns number
+action GetValue(integer color) returns number
+    Task waiting
+    GetValueNative(color, waiting)
+    waiting:Wait()
+    return GetResultNative(waiting)
+end
+
+/*
+    This action starts GetValue's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; GetValue then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter color The color constant whose value will be returned (see Color)
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action GetValueNative(integer color, Task waiting)
 
 
     /*
@@ -128,4 +145,13 @@ end
 
 private system action ShowNative(boolean fullscreen)
 
+
+/*
+    This action returns what the hub gave back for the work a task waited
+    for, such as a value read from the hub.
+
+    Attribute: Parameter waiting The task that waited for the work.
+    Attribute: Returns The value the hub gave back.
+*/
+private system action GetResultNative(Task waiting) returns number
 end

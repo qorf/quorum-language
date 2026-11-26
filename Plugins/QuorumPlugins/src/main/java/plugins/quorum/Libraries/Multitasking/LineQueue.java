@@ -333,10 +333,14 @@ final class LineQueue {
             if (helpWith != null && helpWith.RunNext()) {
                 continue;
             }
-            long remaining = (deadline - System.nanoTime()) / 1_000_000;
-            if (remaining <= 0) {
+            // Counted in nanoseconds and rounded up to whole milliseconds, so
+            // a wait never ends early: rounding down would stop with up to a
+            // millisecond still to go.
+            long remainingNanos = deadline - System.nanoTime();
+            if (remainingNanos <= 0) {
                 return false;
             }
+            long remaining = (remainingNanos + 999_999) / 1_000_000;
             synchronized (changed) {
                 // Checked again inside the lock: adding or finishing a task
                 // notifies inside this lock, so it can't slip in between this

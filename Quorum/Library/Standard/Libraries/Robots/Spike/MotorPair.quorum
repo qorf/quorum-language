@@ -1,5 +1,7 @@
 package Libraries.Robots.Spike
 
+use Libraries.Multitasking.Task
+
 /*
     A motor pair represents a grouping of two motors, which are external devices that connect to the hub on separate ports.
     Using a motor pair makes it easy to synchronize movements between two motors at the same time, such as the wheels on a car.
@@ -150,7 +152,22 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720)
     */
-    system action RunForDegrees(integer steering, integer degrees)
+    action RunForDegrees(integer steering, integer degrees)
+        Task waiting
+        RunForDegreesNative(steering, degrees, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunForDegrees's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunForDegrees then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter degrees The number of degrees to rotate the motors
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunForDegreesNative(integer steering, integer degrees, Task waiting)
 
     /*
         Runs the motors for this motor pair a provided number of degrees with the provided values
@@ -179,7 +196,26 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForDegrees(0, 720, 360, motor:BRAKE, 5400, 5400)
     */
-    system action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+    action RunForDegrees(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+        Task waiting
+        RunForDegreesNative(steering, degrees, velocity, brakingMode, acceleration, deceleration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunForDegrees's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunForDegrees then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter degrees The number of degrees to rotate the motors
+        Attribute: Parameter velocity The velocity of the motors in degrees/sec
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunForDegreesNative(integer steering, integer degrees, integer velocity, integer brakingMode, integer acceleration, integer deceleration, Task waiting)
 
     /*
         Runs the motors for this motor pair with the provided steering value for the provided duration, in milliseconds
@@ -196,7 +232,22 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000)
     */
-    system action RunForTime(integer steering, integer duration)
+    action RunForTime(integer steering, integer duration)
+        Task waiting
+        RunForTimeNative(steering, duration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunForTime's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunForTime then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunForTimeNative(integer steering, integer duration, Task waiting)
 
     /*
         Runs the motors for this motor pair for a given time, in milliseconds, with the provided values
@@ -225,7 +276,26 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunForTime(0, 2000, 360, motor:BRAKE, 5400, 5400)
     */
-    system action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+    action RunForTime(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration)
+        Task waiting
+        RunForTimeNative(steering, duration, velocity, brakingMode, acceleration, deceleration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunForTime's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunForTime then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter steering The steering value for the motor pair, in the range -100 to 100
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter velocity The velocity of the motors in degrees/sec
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunForTimeNative(integer steering, integer duration, integer velocity, integer brakingMode, integer acceleration, integer deceleration, Task waiting)
 
     /*
         Runs the left and right motors with the provided velocities and acceleration
@@ -273,7 +343,23 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720)
     */
-    system action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
+    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees)
+        Task waiting
+        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunTankForDegrees's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunTankForDegrees then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter degrees The number of degrees to turn each motor
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees, Task waiting)
 
     /*
         Runs the left and right motors for the given degrees with the provided values
@@ -302,7 +388,26 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForDegrees(360, 360, 720, motor:BRAKE, 5400, 5400)
     */
-    system action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
+    action RunTankForDegrees(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration)
+        Task waiting
+        RunTankForDegreesNative(leftVelocity, rightVelocity, degrees, brakingMode, acceleration, deceleration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunTankForDegrees's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunTankForDegrees then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter degrees The number of degrees to turn each motor
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunTankForDegreesNative(integer leftVelocity, integer rightVelocity, integer degrees, integer brakingMode, integer acceleration, integer deceleration, Task waiting)
 
     /*
         Runs the left and right motors for the given time, in milliseconds, with the provided velocities
@@ -324,7 +429,23 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000)
     */
-    system action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
+    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration)
+        Task waiting
+        RunTankForTimeNative(leftVelocity, rightVelocity, duration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunTankForTime's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunTankForTime then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration, Task waiting)
 
     /*
         Runs the left and right motors for the given time, in milliseconds, with the provided values
@@ -353,7 +474,26 @@ class MotorPair
         wheels:SetPorts(port:A, port:B)
         wheels:RunTankForTime(360, 360, 2000, motor:BRAKE, 5400, 5400)
     */
-    system action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
+    action RunTankForTime(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration)
+        Task waiting
+        RunTankForTimeNative(leftVelocity, rightVelocity, duration, brakingMode, acceleration, deceleration, waiting)
+        waiting:Wait()
+    end
+
+    /*
+        This action starts RunTankForTime's work on the hub and hands it to the
+        multitasking library, which runs it until it is done; RunTankForTime then
+        waits for the given task (Libraries.Multitasking.Task's Wait).
+
+        Attribute: Parameter leftVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter rightVelocity The velocity of the left motor in degrees/sec
+        Attribute: Parameter duration The number of milliseconds to run the motors for
+        Attribute: Parameter brakingMode The braking mode to use when stopping the motor
+        Attribute: Parameter acceleration The acceleration of the motors in degrees/sec^2
+        Attribute: Parameter deceleration The deceleration of the motors in degrees/sec^2
+        Attribute: Parameter waiting The task that runs until the work is done.
+    */
+    private system action RunTankForTimeNative(integer leftVelocity, integer rightVelocity, integer duration, integer brakingMode, integer acceleration, integer deceleration, Task waiting)
 
 
     /*

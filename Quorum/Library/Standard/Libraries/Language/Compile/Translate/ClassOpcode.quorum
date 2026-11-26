@@ -2104,8 +2104,20 @@ actLink:SetClassAttribute("hover:underline text-sm")
         //in the case where there are no parents or fields, make this a dummy action
         convertedSource:Append(tab + tab + "return" + EOL)
 
-        boolean async = constants:IsUserCodeAsynchronous()
         if clazz:IsProgramStartingClass()
+            //If Main can wait (see
+            //Libraries.Language.Compile.Translate.WaitAnalysis), it is async
+            //and runs through multitasking's _MT_Run, from the Python plugin
+            //of Libraries.Multitasking.Task: it runs Main with the
+            //scheduler beside it, on runloop (a LEGO SPIKE hub's, or a
+            //stand-in on a desktop computer). Main can only wait through
+            //multitasking, so a program whose Main waits always has that
+            //plugin. Otherwise Main is plain and is called directly.
+            boolean async = false
+            if clazz:HasAction("Main")
+                Action mainAction = clazz:GetAction("Main")
+                async = mainAction:CanWait()
+            end
 
             if async
                 convertedSource:Append(EOL + EOL + "async def SuperMain():" + EOL)
@@ -2128,13 +2140,10 @@ actLink:SetClassAttribute("hover:underline text-sm")
                 convertedSource:Append(tab + "starter_______.Main()" + EOL + EOL)
             end
 
-            if async
-                convertedSource:Append("import runloop" + EOL)
-            end
             convertedSource:Append("if __name__ == '__main__':" + EOL)
             if async
-                convertedSource:Append(tab + "runloop.run(SuperMain())" + EOL)
-            else 
+                convertedSource:Append(tab + "_MT_Run(SuperMain())" + EOL)
+            else
                 convertedSource:Append(tab + "SuperMain()" + EOL)
             end
         end

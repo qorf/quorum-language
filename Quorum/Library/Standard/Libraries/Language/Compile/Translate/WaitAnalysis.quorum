@@ -39,8 +39,10 @@ use Libraries.Language.Compile.Location
          that, so a task's overrides of them may wait
          (Action:OverrideMayWait), and a call to either is awaited.
     2. It marks the program's actions that can wait: an action that calls one
-       that can wait, and an action that a subclass overrides with one that
-       can wait (a call through the parent's type may reach the override).
+       that can wait, an action that a subclass overrides with one that can
+       wait (a call through the parent's type may reach the override), and
+       an action that overrides one that can wait (in Python every call to
+       the parent's action is awaited, so the override must be async too).
        This needs every action's calls, so it runs after the listener has
        gone through the whole program, and before any code is written. It
        walks outward from the actions that wait, so each action and each
@@ -50,6 +52,17 @@ use Libraries.Language.Compile.Location
          JavaScript constructor can't be async);
        - an override of a library action that the library calls without
          waiting (Action:OverrideMayWait is false), such as Compare.
+
+    The standard library's own actions can wait too, when they call one
+    that can wait: for example, Libraries.Robots.Spike.Motor's RunForTime
+    waits for a task (Task:Wait) while the motor turns. MarkLibrary marks
+    them once, when the library is scanned
+    (Libraries.Language.Compile.Library's Scan), before the library or any
+    program is written, with steps 1 and 2 over the whole library. A
+    library action can only call library actions, so what it marks doesn't
+    depend on any program; the flags stay set on the library's Action
+    objects, which every compile shares, and Mark reads them like any
+    other.
 
     All of this is kept on the actions themselves, set in this one sweep
     before any code is written, so the writers only read it.
@@ -80,55 +93,20 @@ class WaitAnalysis
     action Mark(Array<ClassOpcode> classOpcodes, SymbolTable table, CompilerErrorManager errors) returns boolean
         Array<Action> actions = GetActions(classOpcodes)
 
+        // A class's actions may include ones it inherits from the library,
+        // whose flags MarkLibrary set and which no program changes.
         integer i = 0
         repeat while i < actions:GetSize()
             Action act = actions:Get(i)
-            act:SetCanWait(false)
-            act:SetOverrideMayWait(false)
+            Class owner = act:GetParentClass()
+            if owner = undefined or programClasses:HasKey(owner:GetStaticKey())
+                act:SetCanWait(false)
+                act:SetOverrideMayWait(false)
+            end
             i = i + 1
         end
         MarkLibraryActions(table)
-
-        // Who calls each action, and the program's parent actions each
-        // action overrides, found once.
-        HashTable<text, Array<Action>> callers
-        HashTable<text, Array<Action>> overridden
-        Array<Action> work
-
-        i = 0
-        repeat while i < actions:GetSize()
-            Action act = actions:Get(i)
-            Iterator<ActionCallResolution> calls = act:GetActionCalls()
-            repeat while calls:HasNext()
-                ActionCallResolution call = calls:Next()
-                Action called = call:resolvedAction
-                if called not= undefined
-                    AddTo(callers, GetStaticKey(called), act)
-                    if called:CanWait() and not act:CanWait()
-                        act:SetCanWait(true)
-                        work:Add(act)
-                    end
-                end
-            end
-
-            Class owner = act:GetParentClass()
-            Iterator<Class> parents = owner:GetParentClasses()
-            repeat while parents:HasNext()
-                Class parentClass = parents:Next()
-                Action parentAction = OverriddenAction(parentClass, act)
-                if parentAction not= undefined and not IsLibrary(parentClass)
-                    AddTo(overridden, GetStaticKey(act), parentAction)
-                end
-            end
-            i = i + 1
-        end
-
-        repeat while not work:IsEmpty()
-            Action done = work:RemoveFromEnd()
-            text key = GetStaticKey(done)
-            MarkAll(callers, key, work)
-            MarkAll(overridden, key, work)
-        end
+        Spread(actions, false)
 
         boolean fine = true
         i = 0
@@ -149,6 +127,120 @@ class WaitAnalysis
             i = i + 1
         end
         return fine
+    end
+
+    /*
+        This action marks which of the standard library's actions can wait,
+        with steps 1 and 2 over the whole library (see the class's
+        description). It runs once, when the library is scanned
+        (Libraries.Language.Compile.Library's Scan), after the listener has
+        gone through every library class and before anything is written.
+        Nothing is reported: the library's code is written to wait only
+        where it can.
+
+        Attribute: Parameter table The library's symbol table.
+    */
+    action MarkLibrary(SymbolTable table)
+        programClasses:Empty()
+        Array<Action> actions
+        Iterator<Class> classes = table:GetClasses()
+        repeat while classes:HasNext()
+            Class clazz = classes:Next()
+            Iterator<Action> owned = clazz:GetActions()
+            repeat while owned:HasNext()
+                actions:Add(owned:Next())
+            end
+            Action constructor = clazz:GetConstructor()
+            if constructor not= undefined
+                actions:Add(constructor)
+            end
+        end
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            act:SetCanWait(false)
+            act:SetOverrideMayWait(false)
+            i = i + 1
+        end
+        MarkLibraryActions(table)
+        Spread(actions, true)
+    end
+
+    /*
+        This action is step 2 in the class's description: it marks the
+        actions, of those given, that can wait. That is an action that calls
+        one that can wait; an action that a subclass overrides with one that
+        can wait (a call through the parent's type may reach the override);
+        and an action that overrides one that can wait. The last is for
+        Python: every call to the parent's action is awaited, and a call
+        through the parent's type may reach the override, so the override
+        must be one that can be awaited (async), even if it doesn't wait.
+        JavaScript can await anything, and Java doesn't await. It walks
+        outward from the actions that wait, so each action and each call is
+        handled once.
+
+        For a program, only the program's own parent actions are marked
+        through overrides: a library action that a program overrides with one
+        that waits is an error instead (CheckLibraryOverrides), and the
+        library's flags don't depend on any program. For the library, its own
+        parent actions are marked.
+
+        Attribute: Parameter actions The actions to mark, with their constructors.
+        Attribute: Parameter libraryParents true to mark library parent actions through overrides (for the library), false for only the program's (for a program).
+    */
+    private action Spread(Array<Action> actions, boolean libraryParents)
+        // Who calls each action, the parent actions each action overrides,
+        // and the actions that override each parent action, found once.
+        HashTable<text, Array<Action>> callers
+        HashTable<text, Array<Action>> overridden
+        HashTable<text, Array<Action>> overriders
+        Array<Action> work
+
+        integer i = 0
+        repeat while i < actions:GetSize()
+            Action act = actions:Get(i)
+            Iterator<ActionCallResolution> calls = act:GetActionCalls()
+            repeat while calls:HasNext()
+                ActionCallResolution call = calls:Next()
+                Action called = call:resolvedAction
+                if called not= undefined
+                    AddTo(callers, GetStaticKey(called), act)
+                    if called:CanWait() and not act:CanWait()
+                        act:SetCanWait(true)
+                        work:Add(act)
+                    end
+                end
+            end
+
+            Class owner = act:GetParentClass()
+            if owner not= undefined
+                Iterator<Class> parents = owner:GetParentClasses()
+                repeat while parents:HasNext()
+                    Class parentClass = parents:Next()
+                    Action parentAction = OverriddenAction(parentClass, act)
+                    if parentAction not= undefined
+                        if libraryParents or not IsLibrary(parentClass)
+                            AddTo(overridden, GetStaticKey(act), parentAction)
+                        end
+                        AddTo(overriders, GetStaticKey(parentAction), act)
+                        if parentAction:CanWait() and not act:CanWait()
+                            act:SetCanWait(true)
+                            work:Add(act)
+                        end
+                    end
+                end
+            end
+            i = i + 1
+        end
+
+        repeat while not work:IsEmpty()
+            Action done = work:RemoveFromEnd()
+            text key = GetStaticKey(done)
+            MarkAll(callers, key, work)
+            MarkAll(overridden, key, work)
+            MarkAll(overriders, key, work)
+        end
     end
 
     /*
@@ -448,8 +540,10 @@ class WaitAnalysis
         they return right away. It can't wait for an override that waits: in
         JavaScript, it would get an unfinished promise instead of the
         result. Only the library actions the library is built to wait for,
-        a task's Run and Then (Action:OverrideMayWait), may be overridden by
-        actions that wait.
+        a task's Run and Then (Action:OverrideMayWait), and library actions
+        that can wait themselves, such as
+        Libraries.Robots.Spike.Motor's RunForTime (every call to them is
+        awaited already), may be overridden by actions that wait.
 
         An example. Here Ranked's Compare can wait, because it calls Wait:
 
@@ -491,7 +585,7 @@ class WaitAnalysis
             Class parentClass = parents:Next()
             Action parentAction = OverriddenAction(parentClass, act)
             if parentAction not= undefined and IsLibrary(parentClass)
-                and not parentAction:OverrideMayWait()
+                and not parentAction:OverrideMayWait() and not parentAction:CanWait()
                 text why = "it waits"
                 ActionCallResolution call = FirstWaitingCall(act)
                 if call not= undefined

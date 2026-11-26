@@ -10,8 +10,8 @@ class plugins_quorum_Libraries_Robots_Spike_Bargraph_:
 	def ClearAllNative(self):
 		bargraph.clear_all()
 
-	async def GetValue__quorum_integer(self, color):
-		return (await bargraph.get_value(color))
+	def GetValueNative__quorum_integer__quorum_Libraries_Multitasking_Task(self, color, waiting):
+		_MT_WaitFor(bargraph.get_value(color), waiting)
 
 	def HideNative(self):
 		bargraph.hide()
@@ -21,3 +21,6 @@ class plugins_quorum_Libraries_Robots_Spike_Bargraph_:
 
 	def ShowNative__quorum_boolean(self, fullscreen):
 		bargraph.show(fullscreen)
+
+	def GetResultNative__quorum_Libraries_Multitasking_Task(self, waiting):
+		return _MT_ResultOf(waiting)

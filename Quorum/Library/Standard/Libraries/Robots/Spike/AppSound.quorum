@@ -1,5 +1,7 @@
 package Libraries.Robots.Spike
 
+use Libraries.Multitasking.Task
+
 /*
     The AppSound library is used to play sounds in the SPIKE App.
 
@@ -19,7 +21,22 @@ class AppSound
         AppSound aSound
         aSound:Play("Alert")
     */
-system action Play(text soundName)
+action Play(text soundName)
+    Task waiting
+    PlayNative(soundName, waiting)
+    waiting:Wait()
+end
+
+/*
+    This action starts Play's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; Play then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter text Name of sound from SPIKE App
+    Attribtue: Example
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action PlayNative(text soundName, Task waiting)
 
 
     /*
@@ -38,7 +55,25 @@ system action Play(text soundName)
         AppSound aSound
         aSound:Play("Alert", 100, 2, -100)
     */
-system action Play(text soundName, integer volume, integer pitch, integer pan)
+action Play(text soundName, integer volume, integer pitch, integer pan)
+    Task waiting
+    PlayNative(soundName, volume, pitch, pan, waiting)
+    waiting:Wait()
+end
+
+/*
+    This action starts Play's work on the hub and hands it to the
+    multitasking library, which runs it until it is done; Play then
+    waits for the given task (Libraries.Multitasking.Task's Wait).
+
+    Attribute: Parameter text Name of sound from SPIKE App
+    Attribute: Parameter volume The volume intensity of the sound from 0 to 100
+    Attribute: Parameter pitch The pitch of the sound
+    Attribute: Parameter pan Value that determines which speaker is emitting the sound, with "-100"
+    being only the left speaker, "0" being normal, and "100" being only the right speaker.
+    Attribute: Parameter waiting The task that runs until the work is done.
+*/
+private system action PlayNative(text soundName, integer volume, integer pitch, integer pan, Task waiting)
 
 
     /*

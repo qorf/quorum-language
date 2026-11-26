@@ -4,8 +4,8 @@ class plugins_quorum_Libraries_Robots_Spike_LightMatrix_:
 	def __init__(self):
 		pass
 		
-	async def Write__quorum_text(self, value):
-		await light_matrix.write(value)
+	def WriteNative__quorum_text__quorum_Libraries_Multitasking_Task(self, value, waiting):
+		_MT_WaitFor(light_matrix.write(value), waiting)
 
 	def GetPixelNative__quorum_integer__quorum_integer(self, x, y):
 		return light_matrix.get_pixel(x, y)

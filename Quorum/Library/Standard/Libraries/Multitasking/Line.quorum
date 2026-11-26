@@ -1,6 +1,13 @@
 package Libraries.Multitasking
 
 /*
+    Line's Python plugin uses the scheduler, which is in the Python plugin of
+    Libraries.Multitasking.Task. This use statement makes a Python program
+    that uses a Line include Task's plugin too.
+*/
+use Libraries.Multitasking.Task
+
+/*
 The Line class is one line that tasks wait in. Making a Line makes a new
 line of your own: its tasks run one at a time, first come, first served,
 each task's Run and then its Then before the next task starts. Nobody cuts

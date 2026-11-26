@@ -502,7 +502,8 @@ class Compiler
         //This needs every action's calls, so it runs now, before any code is
         //written, and an error stops the build.
         if errors:IsCompilationErrorFree() and
-            (request:GetOutputType() = JAVA_BYTECODE or request:GetOutputType() = JAVASCRIPT)
+            (request:GetOutputType() = JAVA_BYTECODE or request:GetOutputType() = JAVASCRIPT
+            or request:GetOutputType() = PYTHON)
             Array<ClassOpcode> programOpcodes = theOpcodes:CopyToValueArray()
             WaitAnalysis waiting
             waiting:Mark(programOpcodes, table, errors)

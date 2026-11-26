@@ -28,29 +28,29 @@ class plugins_quorum_Libraries_Robots_Spike_Motor_:
 	def RunNative__quorum_integer__quorum_integer(self, velocity, acceleration):
 		motor.run(self.port, velocity, acceleration=acceleration)
 		
-	async def RunForTime__quorum_integer__quorum_integer(self, time, velocity):
-		await motor.run_for_time(self.port, time, velocity)
+	def RunForTimeNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, time, velocity, waiting):
+		_MT_WaitFor(motor.run_for_time(self.port, time, velocity), waiting)
 
-	async def RunForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, time, velocity, braking_mode, acceleration, deceleration):
-		await motor.run_for_time(self.port, time, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, time, velocity, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor.run_for_time(self.port, time, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
-	async def RunForDegrees__quorum_integer__quorum_integer(self, degrees, velocity):
-		await motor.run_for_degrees(self.port, degrees, velocity)
+	def RunForDegreesNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, degrees, velocity, waiting):
+		_MT_WaitFor(motor.run_for_degrees(self.port, degrees, velocity), waiting)
 	
-	async def RunForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, degrees, velocity, braking_mode, acceleration, deceleration):
-		await motor.run_for_degrees(self.port, degrees, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, degrees, velocity, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor.run_for_degrees(self.port, degrees, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
-	async def RunToAbsolutePosition__quorum_integer__quorum_integer(self, position, velocity):
-		await motor.run_to_absolute_position(self.port, position, velocity)
+	def RunToAbsolutePositionNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, position, velocity, waiting):
+		_MT_WaitFor(motor.run_to_absolute_position(self.port, position, velocity), waiting)
 		
-	async def RunToAbsolutePosition__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, position, velocity, direction, braking_mode, acceleration, deceleration):
-		await motor.run_to_absolute_position(self.port, position, velocity, direction=direction, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunToAbsolutePositionNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, position, velocity, direction, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor.run_to_absolute_position(self.port, position, velocity, direction=direction, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
-	async def RunToRelativePosition__quorum_integer__quorum_integer(self, position, velocity):
-		await motor.run_to_relative_position(self.port, position, velocity)
+	def RunToRelativePositionNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, position, velocity, waiting):
+		_MT_WaitFor(motor.run_to_relative_position(self.port, position, velocity), waiting)
 
-	async def RunToRelativePosition__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, position, velocity, braking_mode, acceleration, deceleration):
-		await motor.run_to_relative_position(self.port, position, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunToRelativePositionNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, position, velocity, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor.run_to_relative_position(self.port, position, velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 		
 	def SetDutyCycleNative__quorum_integer(self, position):
 		return motor.set_duty_cycle(self.port, position)

@@ -206,10 +206,11 @@ class ActionOpcode is QuorumOpcode
         text tabs = constants:GetTabText()
         text tab = tabs:GetTab()
 
-        boolean async = constants:IsUserCodeAsynchronous()
-        boolean userCode = clazz:IsUserCode()
+        //an action that can wait (see
+        //Libraries.Language.Compile.Translate.WaitAnalysis) is async in Python
+        boolean async = method:CanWait()
 
-        if async and userCode
+        if async
             result = tabs + "async def " + method:ConvertActionToPythonName() + "(self"
         else
             result = tabs + "def " + method:ConvertActionToPythonName() + "(self"
@@ -242,7 +243,14 @@ class ActionOpcode is QuorumOpcode
 
         if method:IsSystem() //write to a Javascript plugin
             if not clazz:IsObject()
-                result = result + tabs + tab + "return self." + clazz:GetPluginName() + "." + method:ConvertActionToPythonName() 
+                //a plugin's action that waits is a coroutine, and Python,
+                //unlike JavaScript, doesn't unwrap one returned from an
+                //async action, so it is awaited here
+                text returned = "return self."
+                if async
+                    returned = "return await self."
+                end
+                result = result + tabs + tab + returned + clazz:GetPluginName() + "." + method:ConvertActionToPythonName()
                     + "("
                 parameters = method:GetParameterIterator()
                 repeat while parameters:HasNext()
@@ -260,17 +268,7 @@ class ActionOpcode is QuorumOpcode
                 end
             end
         elseif method:IsBlueprint()
-            result = result + tabs + tab + "return "// + "this.prototype." + method:ConvertActionToJavaScriptName() 
-                //+ "("
-//            parameters = method:GetParameterIterator()
-//            repeat while parameters:HasNext()
-//                Variable param = parameters:Next()
-//                result = result + param:GetJavaScriptName()
-//                if parameters:HasNext()
-//                    result = result + ", "
-//                end
-//            end
-//            result = result + ");" + EOL
+            result = result + tabs + tab + "return "
         end
         result = result + EOL
 

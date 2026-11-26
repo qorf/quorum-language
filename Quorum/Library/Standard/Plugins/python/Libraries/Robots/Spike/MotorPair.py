@@ -23,32 +23,32 @@ class plugins_quorum_Libraries_Robots_Spike_MotorPair_:
 	def RunNative__quorum_integer__quorum_integer__quorum_integer(self, steering, velocity, acceleration):
 		motor_pair.move(self.pair, steering, velocity=velocity, acceleration=acceleration)
 
-	async def RunForDegrees__quorum_integer__quorum_integer(self, steering, degrees):
-		await motor_pair.move_for_degrees(self.pair, degrees, steering)
+	def RunForDegreesNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, steering, degrees, waiting):
+		_MT_WaitFor(motor_pair.move_for_degrees(self.pair, degrees, steering), waiting)
 
-	async def RunForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, degrees, velocity, braking_mode, acceleration, deceleration):
-		await motor_pair.move_for_degrees(self.pair, degrees, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, steering, degrees, velocity, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor_pair.move_for_degrees(self.pair, degrees, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
-	async def RunForTime__quorum_integer__quorum_integer(self, steering, duration):
-		await motor_pair.move_for_time(self.pair, duration, steering)
+	def RunForTimeNative__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, steering, duration, waiting):
+		_MT_WaitFor(motor_pair.move_for_time(self.pair, duration, steering), waiting)
 
-	async def RunForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, steering, duration, velocity, braking_mode, acceleration, deceleration):
-		await motor_pair.move_for_time(self.pair, duration, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, steering, duration, velocity, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor_pair.move_for_time(self.pair, duration, steering, velocity=velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
 	def RunTankNative__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, acceleration):
 		motor_pair.move_tank(self.pair, left_velocity, right_velocity, acceleration=acceleration)
 
-	async def RunTankForDegrees__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees):
-		await motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity)
+	def RunTankForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, left_velocity, right_velocity, degrees, waiting):
+		_MT_WaitFor(motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity), waiting)
 
-	async def RunTankForDegrees__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, degrees, braking_mode, acceleration, deceleration):
-		await motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunTankForDegreesNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, left_velocity, right_velocity, degrees, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor_pair.move_tank_for_degrees(self.pair, degrees, left_velocity, right_velocity, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
-	async def RunTankForTime__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration):
-		await motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration)
+	def RunTankForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, left_velocity, right_velocity, duration, waiting):
+		_MT_WaitFor(motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration), waiting)
 
-	async def RunTankForTime__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer(self, left_velocity, right_velocity, duration, braking_mode, acceleration, deceleration):
-		await motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration, stop=braking_mode, acceleration=acceleration, deceleration=deceleration)
+	def RunTankForTimeNative__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_integer__quorum_Libraries_Multitasking_Task(self, left_velocity, right_velocity, duration, braking_mode, acceleration, deceleration, waiting):
+		_MT_WaitFor(motor_pair.move_tank_for_time(self.pair, left_velocity, right_velocity, duration, stop=braking_mode, acceleration=acceleration, deceleration=deceleration), waiting)
 
 	def StopNative(self):
 		motor_pair.stop(self.pair)
