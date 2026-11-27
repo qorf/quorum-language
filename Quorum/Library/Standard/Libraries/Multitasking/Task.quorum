@@ -167,6 +167,31 @@ class Task
     system action IsRunning returns boolean
 
     /*
+        This action returns whether the task is done and its Run or Then
+        stopped with an error. It does not wait, so code that may not wait,
+        such as a Behavior's Run or Update or a game's Update, can check a
+        task: first IsFinished, then HasError. It is false before the task
+        is done.
+
+        Attribute: Returns True if the task is done and stopped with an error.
+
+        Attribute: Example
+        use Libraries.Multitasking.Lines
+
+        CountTask counter
+        Lines lines
+        lines:LineUp(counter)
+        check
+            counter:Wait()
+        detect problem
+        end
+        if counter:HasError()
+            output "Counting failed"
+        end
+    */
+    system action HasError returns boolean
+
+    /*
         This action pauses the task's Run for a number of milliseconds,
         without stopping the rest of the program. Use it instead of a sleep
         inside a task: in a web browser a sleep would freeze the page, while

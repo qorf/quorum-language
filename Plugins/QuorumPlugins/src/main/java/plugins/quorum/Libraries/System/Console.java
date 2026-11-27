@@ -16,7 +16,21 @@ import java.io.InputStreamReader;
 public class Console {
     public java.lang.Object me_ = null;
     public static String[] commandLineArguments = new String[0];
-  
+
+    /*
+        The program's starting thread, for multitasking. The generated
+        main(String[]) stores the command line arguments here before any
+        Quorum code runs, and storing a static field sets this class up on
+        that thread, so this runs on the starting thread (desktop, and iOS,
+        which starts from the program's jar). Multitasking never looks for
+        it; the platform tells it (Lines.SetStartingThread, where the first
+        notice wins). Android skips main(String[]) and tells Lines from
+        AndroidApplication.SetActivity instead.
+    */
+    static {
+        plugins.quorum.Libraries.Multitasking.Lines.SetStartingThread(Thread.currentThread());
+    }
+
     public Console() {
 
     }

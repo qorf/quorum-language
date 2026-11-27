@@ -894,6 +894,18 @@ class List is ScrollableLineControl, FirstLetterNavigator
     end
 
     /*
+    This action returns true: the list places its entries on screen itself
+    when it scrolls (Libraries.Interface.Controls.ListRenderer's
+    RefreshContents), so a scroll only lays out the scroll bars, never every
+    entry.
+
+    Attribute: Returns True.
+    */
+    action IsPlacingContentOnScroll returns boolean
+        return true
+    end
+
+    /*
     This action occurs just after the scroll positions are updated and just before Resizing occurs.
     It can be used to adjust any layout properties that need to be modified on the scrollable region
     before processing a resize.

@@ -426,8 +426,16 @@ public class AndroidApplication
         return this.handler;
     }
     
+    /*
+        The activity calls this in onCreate, on Android's UI thread, just
+        before it calls the program's Main (Android skips main(String[])). So
+        this is where Android tells multitasking its starting thread; the
+        first notice wins, so a recreated activity calling this again changes
+        nothing.
+    */
     public static void SetActivity(Activity activity)
     {
+        plugins.quorum.Libraries.Multitasking.Lines.SetStartingThread(Thread.currentThread());
         androidActivity = activity;
     }
     

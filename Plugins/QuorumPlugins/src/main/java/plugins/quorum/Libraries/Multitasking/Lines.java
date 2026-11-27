@@ -21,6 +21,28 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Lines {
     public java.lang.Object me_ = null;
 
+    /*
+        The main program's thread: the one that runs Main. Multitasking never
+        looks for it; each platform's start-up code tells it (Contract.md
+        promise 7): Console's static setup, which the generated
+        main(String[]) sets off before any Quorum code (desktop, iOS), and
+        Android's AndroidApplication.SetActivity, just before the activity
+        calls Main. The first notice wins, so a later, lazy setup of Console
+        on another thread changes nothing. Until something tells it, every
+        thread the scheduler didn't start counts as the main program, as
+        before.
+    */
+    private static final AtomicReference<Thread> startingThread = new AtomicReference<>();
+
+    public static void SetStartingThread(Thread thread) {
+        startingThread.compareAndSet(null, thread);
+    }
+
+    // The main program's thread, or null if nothing has told Lines yet.
+    static Thread GetMainThread() {
+        return startingThread.get();
+    }
+
     // One timer thread for the whole program, for LineUpAfter and
     // LineUpEvery. It only lines tasks up; it never runs them.
     private static final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(work -> {

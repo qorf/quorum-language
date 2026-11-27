@@ -12,7 +12,10 @@ import java.util.function.BooleanSupplier;
 
     - The main line. Nothing serves it on its own: the main program's thread
       runs its tasks only while it waits (Lines:Wait, Line:Wait,
-      Task:Wait).
+      Task:Wait). Which thread that is, the platform tells Lines
+      (Lines.SetStartingThread). Another thread with
+      no line, one the scheduler didn't start, is then "outside": it waits
+      by blocking and runs no line's tasks.
     - A named line (a Line the program made). One task at a time, in order,
       on a thread of its own. The thread starts when a task arrives and
       stops when the line is empty, so idle lines cost no thread.
@@ -95,11 +98,38 @@ final class LineQueue {
         return new LineQueue(Kind.NAMED, "line-" + namedCount.incrementAndGet());
     }
 
-    // The line the calling code is running on: the main line for the main
-    // program, which is not running any line's task.
+    // Whether the calling thread is the main program's: the one the platform
+    // told Lines (see Lines.SetStartingThread), or any thread while nothing
+    // has told it.
+    static boolean OnMainProgramThread() {
+        Thread main = Lines.GetMainThread();
+        return main == null || main == Thread.currentThread();
+    }
+
+    // The line the calling code is running on: its task's line; the main line
+    // for the main program, which is not running any line's task; or null
+    // for an outside thread, one the scheduler didn't start that isn't the
+    // main program's.
     static LineQueue Current() {
         LineQueue line = currentLine.get();
-        return line == null ? mainLine : line;
+        if (line != null) {
+            return line;
+        }
+        return OnMainProgramThread() ? mainLine : null;
+    }
+
+    // The line a waiting thread may run tasks from: its own, except a named
+    // line's thread, which just blocks, and an outside thread, which helps no
+    // line. Asked on every pass of a wait, since the platform may tell Lines
+    // the main thread while a thread is already waiting.
+    private static LineQueue HelpWith(LineQueue here) {
+        if (here == null || here.kind == Kind.NAMED) {
+            return null;
+        }
+        if (here == mainLine && !OnMainProgramThread()) {
+            return null;
+        }
+        return here;
     }
 
     // One fewer counter than the computer has processor cores, leaving one
@@ -321,15 +351,19 @@ final class LineQueue {
         - the main program (and a main-line task) runs main-line tasks;
         - a counter runs general-line tasks, so counters that all wait on
           other general-line tasks can't stall the line;
-        - a named line's thread just blocks.
+        - a named line's thread just blocks;
+        - an outside thread (see Current) just blocks.
     */
     static boolean WaitUntil(BooleanSupplier done, double milliseconds) {
         LineQueue here = Current();
-        LineQueue helpWith = here.kind == Kind.NAMED ? null : here;
         long deadline = milliseconds < 0 ? Long.MAX_VALUE
                 : System.nanoTime() + (long) (milliseconds * 1_000_000);
 
         while (!done.getAsBoolean()) {
+            // The same answer for the help below and the check for work in
+            // the lock, so a thread that may not help never spins on work it
+            // won't run.
+            LineQueue helpWith = HelpWith(here);
             if (helpWith != null && helpWith.RunNext()) {
                 continue;
             }

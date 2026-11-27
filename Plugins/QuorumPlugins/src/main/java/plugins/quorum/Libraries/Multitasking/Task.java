@@ -125,6 +125,13 @@ public class Task {
         return state == DONE;
     }
 
+    // Whether the task is done and stopped with an error. "state" is read
+    // first: the error is set before the task is marked done, so once it
+    // reads as done the error is there to see.
+    public boolean HasError() {
+        return state == DONE && error != null;
+    }
+
     // Waits until the task is done. A task that was never lined up has
     // nothing to wait for. An error in the task's Run is passed on.
     public void Wait() throws quorum.Libraries.Language.Errors.Error {

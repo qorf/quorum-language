@@ -105,6 +105,12 @@ class ListRenderer is Control
     box, are hidden. The rest are shown, laid out if needed, set just inside
     the box's left and right edges, and remembered as the entries to draw.
     The List calls it when its scroll position or size changes.
+
+    Each entry's place is the one List:GetLineY gives, but worked out in one
+    pass: the total height once, and a running height of the entries above.
+    (GetLineY adds up every entry's height on each call, so calling it for
+    each entry on screen made a scroll of a long list cost the number of
+    entries on screen times the number of entries.)
     */
     action RefreshContents
         drawnItems:Empty()
@@ -124,6 +130,14 @@ class ListRenderer is Control
         if width < 0
             width = 0
         end
+
+        // What GetLineY uses: the list's height, how far it is scrolled, and
+        // the height of every entry; "above" is the height of the entries
+        // before the current one.
+        number listHeight = list:GetHeight()
+        number scrolled = list:GetScrollPercentageY()
+        number totalHeight = list:GetTotalContentHeight()
+        number above = 0
         integer i = 0
 
         repeat while i < list:GetLineCount()
@@ -131,25 +145,36 @@ class ListRenderer is Control
 
             if i < firstLine or lastItem = true
                 item:Hide()
+                if not lastItem
+                    above = above + list:GetLineHeight(i)
+                end
             else
                 item:Show()
 
                 if item:GetDefaultLayoutProperties():NeedsRendering()
                     item:LoadGraphics(item:GetDefaultLayoutProperties())
                 end
-    
+
                 if item:NeedsLayout()
                     item:Resize()
                 end
-    
-                number y = list:GetLineY(i)
+
+                number height = list:GetLineHeight(i)
+                number y = listHeight - (above + height) + scrolled * totalHeight
                 if y < 0
                     lastItem = true
                 end
-    
+
                 drawnItems:Add(item)
                 item:SetPosition(x, y)
                 item:SetWidth(width)
+
+                // A new width can change the entry's height (wrapped text).
+                // GetLineY would count the new height from the next entry on,
+                // so this does too.
+                number newHeight = list:GetLineHeight(i)
+                totalHeight = totalHeight + newHeight - height
+                above = above + newHeight
             end
 
             i = i + 1

@@ -482,8 +482,9 @@ function plugins_quorum_Libraries_Multitasking_Task_(quorumTask) {
         error = failure;
     };
 
+    // Whether the task is done and stopped with an error (Task:HasError).
     this.HasError = function () {
-        return error !== null;
+        return state === DONE && error !== null;
     };
 
     this.SetDone = function () {

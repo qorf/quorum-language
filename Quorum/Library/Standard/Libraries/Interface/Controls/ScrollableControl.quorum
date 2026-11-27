@@ -227,7 +227,7 @@ class ScrollableControl is Control
     of the way through the scrollable area. 
     */
     action SetScrollPercentageX(number scrollPercentageX)
-        RefreshPaneView(scrollPercentageX, GetScrollPercentageY())
+        RefreshPaneView(scrollPercentageX, GetScrollPercentageY(), false)
     end
 
     /*
@@ -253,7 +253,7 @@ class ScrollableControl is Control
     of the way through the scrollable area. 
     */
     action SetScrollPercentageY(number scrollPercentageY)
-        RefreshPaneView(GetScrollPercentageX(), scrollPercentageY)
+        RefreshPaneView(GetScrollPercentageX(), scrollPercentageY, false)
     end
 
     /*
@@ -374,7 +374,7 @@ class ScrollableControl is Control
         end
 
         // The RefreshPaneView action will call the parent resize, so layouts will be applied then.
-        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY())
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY(), false)
 
         /*
         It's possible that refreshing the pane view can result in a change to total content width/height due to scroll region resizing.
@@ -427,6 +427,19 @@ class ScrollableControl is Control
     end
 
     /*
+        This action scrolls the view to a position and lays out the whole
+        control: RefreshPaneView with scrolling false. Libraries.Interface.Controls.TextBox
+        calls it.
+
+        Attribute: Parameter percentX How far across to scroll, from 0 up to 1 minus the share of the content's width that can be seen.
+
+        Attribute: Parameter percentY How far down to scroll, from 0 up to 1 minus the share of the content's height that can be seen.
+    */
+    private action RefreshPaneView(number percentX, number percentY)
+        RefreshPaneView(percentX, percentY, false)
+    end
+
+    /*
         This action scrolls the view to a position. It keeps each value within the
         range the content allows, moves the scroll bars' handles to match, and then
         refreshes the scrolled content and the gutter.
@@ -434,8 +447,10 @@ class ScrollableControl is Control
         Attribute: Parameter percentX How far across to scroll, from 0 up to 1 minus the share of the content's width that can be seen.
 
         Attribute: Parameter percentY How far down to scroll, from 0 up to 1 minus the share of the content's height that can be seen.
+
+        Attribute: Parameter scrolling True when the user scrolled (the mouse wheel, dragging, paging). Then a control that places its own content (IsPlacingContentOnScroll) lays out only its scroll bars. False lays out the whole control, as Resize needs.
     */
-    private action RefreshPaneView(number percentX, number percentY)
+    private action RefreshPaneView(number percentX, number percentY, boolean scrolling)
         if percentX > (1.0 - horizontalViewRatio)
             percentX = 1.0 - horizontalViewRatio
         elseif percentX < 0.0
@@ -454,10 +469,34 @@ class ScrollableControl is Control
         scrollPercentageX = percentX
         scrollPercentageY = percentY
 
-        parent:Control:Resize()
+        if scrolling and IsPlacingContentOnScroll()
+            // A scroll by the user only moves the handles, so only the bars
+            // are laid out. Laying out the whole control would set the
+            // content region's position and size again, which goes through
+            // every item in it. Resize and the SetScrollPercentage actions
+            // still lay out everything: this is how the control is laid out.
+            verticalBar:Resize()
+            horizontalBar:Resize()
+        else
+            parent:Control:Resize()
+        end
 
         RefreshScrollableRegion()
         RefreshGutterRegion()
+    end
+
+    /*
+        This action returns whether this control places its own content when it
+        scrolls (in RefreshScrollableRegion), so a scroll only needs its scroll
+        bars laid out, not the whole control. It is false here, so the whole
+        control is laid out again, as a Libraries.Interface.Controls.ScrollPane
+        needs, since it scrolls by resizing. Libraries.Interface.Controls.List
+        returns true.
+
+        Attribute: Returns True if scrolling only needs the scroll bars laid out.
+    */
+    action IsPlacingContentOnScroll returns boolean
+        return false
     end
 
     /*
@@ -593,7 +632,7 @@ class ScrollableControl is Control
         if up
             change = -change
         end
-        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + change)
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + change, true)
     end
 
     /*
@@ -607,7 +646,7 @@ class ScrollableControl is Control
         if left
             change = -change
         end
-        RefreshPaneView(GetScrollPercentageX() + change, GetScrollPercentageY())
+        RefreshPaneView(GetScrollPercentageX() + change, GetScrollPercentageY(), true)
     end
 
     /*
@@ -640,7 +679,7 @@ class ScrollableControl is Control
             return now
         end
         number totalHeight = GetHeight() / verticalViewRatio
-        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + distanceY / totalHeight)
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + distanceY / totalHeight, true)
     end
 
     /*
@@ -659,7 +698,7 @@ class ScrollableControl is Control
         number lines = event:scrollAmount * LINES_PER_WHEEL_UNIT
         number heightChange = -GetScrollIncrement() * lines
 
-        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange)
+        RefreshPaneView(GetScrollPercentageX(), GetScrollPercentageY() + heightChange, true)
     end
 
     /*

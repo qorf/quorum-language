@@ -143,28 +143,39 @@ class MultipleLineText
             wouldn't have reached this point in the if/else structure.
             */
             Array<text> lines = SplitIntoLines(value)
-            leftChild:Initialize(lines:RemoveFromFront(), leafSize, fibonacci, false)
 
-            text secondLine = lines:RemoveFromFront()
-            if lines:IsEmpty()
-                rightChild:Initialize(secondLine, leafSize, fibonacci, keepEmptyEndLine)
-            else
-                rightChild:Initialize(secondLine, leafSize, fibonacci, false)
+            // A last line that is empty is left out unless asked to keep it,
+            // as before; with only two lines it is always kept.
+            integer count = lines:GetSize()
+            if not keepEmptyEndLine and count > 2 and lines:Get(count - 1):GetSize() = 0
+                count = count - 1
             end
 
-            repeat while not lines:IsEmpty()
-                MultipleLineText newNode
-                newNode:Initialize(lines:RemoveFromFront(), leafSize, fibonacci, false)
-                if (not keepEmptyEndLine) and lines:IsEmpty() and newNode:GetText():GetSize() = 0
-                    // Don't add the last line if it's empty and we're not
-                    // explicitly asked to keep it.
-                else
-                    rightChild = rightChild:Join(newNode)
-                end
-            end
-
+            // Built balanced from the start, by halves, so it never needs
+            // balancing: joining one line at a time rebalanced the tree again
+            // and again.
+            integer middle = count / 2
+            leftChild = BuildFromLines(lines, 0, middle, leafSize, fibonacci)
+            rightChild = BuildFromLines(lines, middle, count, leafSize, fibonacci)
             SetChildren(leftChild, rightChild)
         end
+    end
+
+    /*
+    Builds a balanced tree of the lines from start up to finish, each line a
+    leaf, by building each half and joining the two.
+    */
+    private action BuildFromLines(Array<text> lines, integer start, integer finish, number leafSize, Array<integer> fibonacci) returns MultipleLineText
+        MultipleLineText node
+        if finish - start = 1
+            node:Initialize(lines:Get(start), leafSize, fibonacci, false)
+        else
+            integer middle = start + (finish - start) / 2
+            MultipleLineText leftHalf = BuildFromLines(lines, start, middle, leafSize, fibonacci)
+            MultipleLineText rightHalf = BuildFromLines(lines, middle, finish, leafSize, fibonacci)
+            node:SetChildren(leftHalf, rightHalf)
+        end
+        return node
     end
 
     private action TextFitsInLine(text value) returns boolean
@@ -396,59 +407,21 @@ class MultipleLineText
     will be inserted.
     */
     private action Split(text splitter, text delimiter) returns Array<text>
-        // TODO: Rewrite this. it is horrid. There are much more clever ways to do this.
-
-	Array<text> results
-	integer pos = 0
-	integer length = splitter:GetSize()
-	Text delim
-        delim:SetValue(delimiter)
-	integer delimLength = delim:GetSize()
-	text newString = ""
-
-	repeat while pos < length
-            // If this doesn't start the delimiter, add it to the new string.
-            if splitter:GetCharacter(pos) not= delim:GetCharacter(0)
-                newString = newString + splitter:GetCharacter(pos)
-                pos = pos + 1
+        Array<text> results
+        integer delimiterSize = delimiter:GetSize()
+        integer start = 0
+        integer found = splitter:IndexOf(delimiter, 0)
+        repeat while found >= 0
+            results:Add(splitter:GetSubtext(start, found + delimiterSize))
+            start = found + delimiterSize
+            // IndexOf can't start at the very end of the text.
+            if start < splitter:GetSize()
+                found = splitter:IndexOf(delimiter, start)
             else
-                // Matches start of delimiter. Keep track and bail if we don't match the delimiter
-                text tmpString = ""
-                integer delimPos = 0
-                text currentChar = splitter:GetCharacter(pos)
-                text currentDelimChar = delim:GetCharacter(0)
-
-                // As long as the values read continue to match the delimiter...
-                repeat while delimPos < delimLength and currentChar = currentDelimChar and pos < length
-                    tmpString = tmpString + splitter:GetCharacter(pos)
-                    delimPos = delimPos + 1 // keep going through delimiter
-                    pos = pos + 1 // and keep moving ahead in main string
-                    
-                    if pos < length
-                        currentChar = splitter:GetCharacter(pos)
-                    end
-
-                    if delimPos < delimLength
-                        currentDelimChar = delim:GetCharacter(delimPos)
-                    end
-                end
-
-                // Whether or not it's a delimiter, we add it to the end of the
-                // current string. This results in always preserving delimiters
-                // at the end of strings.
-                newString = newString + tmpString
-
-                if delimPos = delimLength
-                    // Delimiter hit. Store the result.
-                    results:Add(newString)
-                    newString = ""  
-                end
+                found = -1
             end
-	end
-
-        // Add the last string to the results.
-        results:Add(newString)
-
+        end
+        results:Add(splitter:GetSubtext(start))
         return results
     end
 

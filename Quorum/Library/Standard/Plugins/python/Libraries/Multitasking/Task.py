@@ -566,6 +566,10 @@ class plugins_quorum_Libraries_Multitasking_Task_:
     def IsFinished(self):
         return self.state == _MT_DONE
 
+    # Whether the task is done and stopped with an error (Task:HasError).
+    def HasError(self):
+        return self.state == _MT_DONE and self.error is not None
+
     async def Pause__quorum_number(self, milliseconds):
         await _MT.Pause(milliseconds)
 
