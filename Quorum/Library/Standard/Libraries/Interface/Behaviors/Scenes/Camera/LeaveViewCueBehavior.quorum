@@ -1,0 +1,26 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+
+/*
+    This behavior gives the focus back from a scene view cue (the item a
+    screen reader reads what the camera sees from, after the camera moves)
+    to the item that had it before the camera moved. Escape runs it.
+*/
+class LeaveViewCueBehavior is Behavior
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is SceneViewCue)
+            return now
+        end
+        SceneViewCue cue = cast(SceneViewCue, event:GetItem())
+        SceneEditor editor = cue:GetSceneEditor()
+        if editor not= undefined
+            editor:LeaveViewCue(cue)
+        end
+    end
+
+end

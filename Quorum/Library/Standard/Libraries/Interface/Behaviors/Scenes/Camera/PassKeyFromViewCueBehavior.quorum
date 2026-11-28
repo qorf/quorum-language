@@ -1,0 +1,115 @@
+package Libraries.Interface.Behaviors.Scenes.Camera
+
+use Libraries.Interface.Item
+use Libraries.Interface.Item2D
+use Libraries.Interface.Item3D
+use Libraries.Interface.Events.BehaviorEvent
+use Libraries.Interface.Events.KeyboardEvent
+use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Behaviors.Behavior
+use Libraries.Game.GameStateManager
+use Libraries.Game.GameInput
+use Libraries.Game.InputSet
+use Libraries.Game.InputTable
+
+/*
+    This behavior runs a key pressed or let go on a scene view cue (the item
+    a screen reader reads from after a camera or arrow move) on the item the
+    cue came from, as StandardInput would have. The arrow keys keep the focus
+    on the cue, so the screen reader doesn't read that item again on each
+    press, and still move a terrain's cursor or a selection; any other key
+    gives the focus back first. Modifier keys and Tab are left to the cue, so
+    pressing Shift to turn the camera again, or Tab, doesn't run anything here.
+*/
+class PassKeyFromViewCueBehavior is Behavior
+    GameStateManager manager
+
+    action Run(BehaviorEvent event)
+        if not (event:GetItem() is SceneViewCue)
+            return now
+        end
+        KeyboardEvent key = event:GetKeyboardEvent()
+        if key = undefined
+            return now
+        end
+        integer code = key:keyCode
+        if code = key:SHIFT_LEFT or code = key:SHIFT_RIGHT or code = key:CONTROL_LEFT or code = key:CONTROL_RIGHT
+            return now
+        end
+        if code = key:ALT_LEFT or code = key:ALT_RIGHT or code = key:META_LEFT or code = key:META_RIGHT or code = key:TAB
+            return now
+        end
+        SceneViewCue cue = cast(SceneViewCue, event:GetItem())
+        SceneEditor editor = cue:GetSceneEditor()
+        if editor = undefined
+            return now
+        end
+        // The key as it was pressed, with its modifiers, and the "any key" form.
+        InputSet anySet = event:GetInputSet():Copy()
+        InputSet keySet = anySet:Copy()
+        keySet:SetKeyboardInput(code)
+        // A release is also tried without modifiers, as StandardInput does,
+        // since the arrows' release entries have none.
+        InputSet plainReleaseSet = undefined
+        if key:eventType = key:RELEASED_KEY
+            InputSet plain
+            plain:SetKeyboardInput(code)
+            plain:SetInputTrigger(plain:FINISH)
+            plainReleaseSet = plain
+        end
+
+        // The arrow keys keep the focus on the cue and move the item it came
+        // from, so the screen reader doesn't read that item again on every
+        // press; their release moves the focus to the other cue (SceneEditor:
+        // AnnounceSelectionStopped). Any other key press gives the focus back
+        // first, so Enter, Delete or a terrain tool acts on the real item.
+        boolean arrow = code = key:LEFT or code = key:RIGHT or code = key:UP or code = key:DOWN
+        Item target = cue:GetReturnItem()
+        if not arrow and key:eventType = key:PRESSED_KEY
+            editor:LeaveViewCue(cue)
+            target = manager:GetFocus()
+        end
+        if target = undefined
+            target = editor
+        end
+        GameInput gameInput = manager:GetInput()
+        BehaviorEvent passed
+        passed:SetKeyboardEvent(key)
+
+        // As StandardInput does: the focused item's table, then its parents'.
+        boolean processed = false
+        Item seeker = target
+        repeat while not processed and seeker not= undefined
+            passed:SetItem(seeker)
+            InputTable table = gameInput:GetInputTable(seeker:GetInputGroup())
+            if table not= undefined
+                processed = table:ProcessInput(keySet, passed)
+                if not processed and plainReleaseSet not= undefined
+                    processed = table:ProcessInput(plainReleaseSet, passed)
+                end
+                if not processed
+                    processed = table:ProcessInput(anySet, passed)
+                end
+            end
+            if seeker is Item2D
+                Item2D seeker2D = cast(Item2D, seeker)
+                seeker = seeker2D:GetParent()
+            elseif seeker is Item3D
+                Item3D seeker3D = cast(Item3D, seeker)
+                seeker = seeker3D:GetParent()
+            else
+                seeker = undefined
+            end
+        end
+        if not processed and target not= undefined
+            passed:SetItem(target)
+            InputTable defaultTable = gameInput:GetDefaultInputTable()
+            if defaultTable not= undefined
+                if not defaultTable:ProcessInput(keySet, passed)
+                    defaultTable:ProcessInput(anySet, passed)
+                end
+            end
+        end
+    end
+end

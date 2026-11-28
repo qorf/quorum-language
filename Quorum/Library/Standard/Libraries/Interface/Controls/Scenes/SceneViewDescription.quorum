@@ -1,0 +1,388 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Compute.Vector3
+use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Trees.RenderTree3DResult
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+use Libraries.Containers.Iterator
+use Libraries.System.Logging.SharedLogger
+
+/*
+    SceneViewDescription puts what the scene editor's 3D camera sees into
+    words for a screen reader. Describe gives the item nearest the middle of
+    the view and its distance, which way the camera faces, then the next
+    items and how many are in view:
+    "Car, 12 meters. North-east, down 20. Tree, Rock, 5 in view."
+
+    Distances are in meters, to one decimal place. The heading takes +Z as
+    north and +X as east, as EditorCamera3D's yaw does.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.SceneViewDescription
+    use Libraries.Interface.Controls.Scenes.SceneEditor
+    use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+
+    SceneEditor editor
+    SceneViewDescription description
+    if editor:GetSelectedLayer() is EditorLayer3D
+        EditorLayer3D layer = cast(EditorLayer3D, editor:GetSelectedLayer())
+        text words = description:Describe(layer, editor:GetEditorTag())
+    end
+*/
+class SceneViewDescription
+    Math math
+    // How many items are named after the first one, before the count.
+    integer listedItems = 2
+    // The item the last Describe named first, or undefined (GetLastNearest).
+    Item3D lastNearest = undefined
+    // The render tree's search result, kept so its lists are reused, and the
+    // frame it marks items with, counting down (GetItemsInView).
+    RenderTree3DResult found
+    integer searchFrame = -1
+
+    /*
+        Returns the item the last Describe named first, the one nearest the
+        middle of the view, or undefined if nothing was in view.
+
+        Attribute: Returns The item, or undefined
+    */
+    action GetLastNearest returns Item3D
+        return lastNearest
+    end
+
+    /*
+        Describes what the layer's editor camera sees.
+
+        Attribute: Parameter layer The 3D layer whose editor camera is described
+        Attribute: Parameter editorTag The scene editor's tag, which marks its own items
+        Attribute: Returns The sentence to say
+    */
+    action Describe(EditorLayer3D layer, text editorTag) returns text
+        lastNearest = undefined
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined
+            return ""
+        end
+        Array<Item3D> items = GetItemsInView(layer, editorTag)
+        SortByCenter(camera, items)
+        // A terrain fills the view, so it isn't the one named first.
+        MoveLargeItemsLast(items)
+        text direction = GetDirectionText(camera)
+        if items:IsEmpty()
+            return "Nothing in view. " + direction + "."
+        end
+        Item3D nearest = items:Get(0)
+        lastNearest = nearest
+        text result = GetItemName(nearest) + ", " + GetDistanceText(camera, nearest) + ". " + direction + ". "
+        integer i = 1
+        repeat while i < items:GetSize() and i <= listedItems
+            result = result + GetItemName(items:Get(i)) + ", "
+            i = i + 1
+        end
+        return result + items:GetSize() + " in view."
+    end
+
+    /*
+        Returns the camera's heading, then its tilt only when that is more
+        than 5 degrees: "North-east", "North-east, down 20", "South,
+        straight down".
+
+        Attribute: Parameter camera The editor camera
+        Attribute: Returns The heading and tilt
+    */
+    action GetDirectionText(EditorCamera3D camera) returns text
+        text result = GetHeadingName(camera:GetYaw())
+        // EditorCamera3D's pitch is in degrees, positive looking down.
+        number pitch = camera:GetPitch()
+        integer degrees = cast(integer, math:Round(math:AbsoluteValue(pitch)))
+        if degrees < 5
+            return result
+        end
+        text way = "up"
+        if pitch > 0
+            way = "down"
+        end
+        if degrees >= 80
+            return result + ", straight " + way
+        end
+        return result + ", " + way + " " + degrees
+    end
+
+    /*
+        Returns the compass word for a yaw in degrees: 0 is north (+Z) and
+        90 is east (+X).
+
+        Attribute: Parameter yaw The yaw, in degrees
+        Attribute: Returns The compass word, such as "North-east"
+    */
+    action GetHeadingName(number yaw) returns text
+        Array<text> names
+        names:Add("North")
+        names:Add("North-east")
+        names:Add("East")
+        names:Add("South-east")
+        names:Add("South")
+        names:Add("South-west")
+        names:Add("West")
+        names:Add("North-west")
+        number turned = yaw
+        repeat while turned < 0
+            turned = turned + 360
+        end
+        integer index = cast(integer, math:Round(turned / 45.0)) mod 8
+        return names:Get(index)
+    end
+
+    /*
+        Returns a distance in meters, to one decimal place, with no ".0":
+        "0.4 meters", "1 meter", "1.2 meters", "12 meters".
+
+        Attribute: Parameter distance The distance, in world units
+        Attribute: Returns The distance in words
+    */
+    action GetDistanceText(number distance) returns text
+        integer tenths = cast(integer, math:Round(distance * 10))
+        if tenths = 10
+            return "1 meter"
+        end
+        number meters = tenths / 10.0
+        if tenths mod 10 = 0
+            return "" + cast(integer, meters) + " meters"
+        end
+        return "" + meters + " meters"
+    end
+
+    /*
+        Returns the items at least partly in the camera's view: showing, and
+        not the scene editor's own items. They are found the way the
+        renderer finds what to draw: the layer's render tree is searched
+        with the camera's view (RenderTree3D:CollectVisible), which skips
+        whole parts of the scene outside it, so the cost follows what is in
+        view, not the size of the scene, and each item is tested with its
+        real bounds.
+
+        Attribute: Parameter layer The 3D layer
+        Attribute: Parameter editorTag The scene editor's tag, which marks its own items
+        Attribute: Returns The items in view
+    */
+    action GetItemsInView(EditorLayer3D layer, text editorTag) returns Array<Item3D>
+        Array<Item3D> result
+        EditorCamera3D camera = layer:GetEditorCamera()
+        RenderTree3D tree = layer:GetRenderTree()
+        if camera = undefined or tree = undefined
+            return result
+        end
+        // A result marks each item it takes with a frame and a search count,
+        // so an item isn't taken twice. The layer's drawing counts its frames
+        // up from 1 and a new item starts at -1, so counting down from -2
+        // never meets either: this search skips nothing the last frame drew,
+        // and the next frame skips nothing this search took.
+        searchFrame = searchFrame - 1
+        found:SetCamera(camera)
+        found:SetFrame(searchFrame)
+        found:SetSearchCount(0)
+        found:Empty()
+        tree:CollectVisible(camera, found)
+        Array<Item3D> visible = found:GetVisible()
+
+        // TEMPORARY logging for the camera announcement: what the search found.
+        SharedLogger viewLogger
+        integer i = 0
+        repeat while i < visible:GetSize()
+            Item3D item = visible:Get(i)
+            if i < 20
+                viewLogger:Log("  visible '" + item:GetName() + "' tagged " + item:HasProperty(editorTag) + ", showing " + item:IsShowing())
+            end
+            if not item:HasProperty(editorTag) and item:IsShowing()
+                result:Add(item)
+            end
+            i = i + 1
+        end
+        viewLogger:Log("GetItemsInView: the render tree found " + visible:GetSize() + " in view, kept " + result:GetSize())
+        return result
+    end
+
+    /*
+        Sorts the items by their angle from the middle of the view, nearest
+        the middle first.
+    */
+    private action SortByCenter(EditorCamera3D camera, Array<Item3D> items)
+        Array<number> angles
+        integer i = 0
+        repeat while i < items:GetSize()
+            angles:Add(GetAngleFromCenter(camera, items:Get(i)))
+            i = i + 1
+        end
+        SortByValues(items, angles)
+    end
+
+    /*
+        Sorts the items by their values, smallest first, keeping the two
+        lists in step. Insertion sort: the lists are short.
+    */
+    private action SortByValues(Array<Item3D> items, Array<number> values)
+        integer i = 1
+        repeat while i < items:GetSize()
+            Item3D item = items:Get(i)
+            number value = values:Get(i)
+            integer j = i - 1
+            repeat while j >= 0 and values:Get(j) > value
+                items:Set(j + 1, items:Get(j))
+                values:Set(j + 1, values:Get(j))
+                j = j - 1
+            end
+            items:Set(j + 1, item)
+            values:Set(j + 1, value)
+            i = i + 1
+        end
+    end
+
+    /*
+        Returns the items in view from left to right as the camera sees
+        them, with any terrain once at the end, for stepping through them
+        (SceneEditor:BrowseView).
+
+        Attribute: Parameter layer The 3D layer
+        Attribute: Parameter editorTag The scene editor's tag, which marks its own items
+        Attribute: Returns The items, left to right
+    */
+    action GetItemsLeftToRight(EditorLayer3D layer, text editorTag) returns Array<Item3D>
+        Array<Item3D> items = GetItemsInView(layer, editorTag)
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined or items:IsEmpty()
+            return items
+        end
+        // The angle across the view of each item: negative to the left.
+        Array<number> across
+        integer i = 0
+        repeat while i < items:GetSize()
+            across:Add(GetAcrossAngle(camera, items:Get(i)))
+            i = i + 1
+        end
+        SortByValues(items, across)
+        MoveLargeItemsLast(items)
+        return items
+    end
+
+    /*
+        Returns one step's sentence: name, distance, the compass direction
+        from the camera, then its place in the list, such as
+        "Tree, 8 meters, north-west, 2 of 7."
+
+        Attribute: Parameter camera The editor camera
+        Attribute: Parameter item The item
+        Attribute: Parameter place Its place in the list, from 1
+        Attribute: Parameter count How many items the list has
+        Attribute: Returns The sentence
+    */
+    action DescribeItem(EditorCamera3D camera, Item3D item, integer place, integer count) returns text
+        return GetItemName(item) + ", " + GetDistanceText(camera, item) + ", " + GetBearingName(camera, item) + ", " + place + " of " + count + "."
+    end
+
+    /* Returns the compass word for the way from the camera to the item, in lower case, such as "north-west". */
+    private action GetBearingName(EditorCamera3D camera, Item3D item) returns text
+        Vector3 eye = camera:GetPosition()
+        Vector3 spot = item:GetGlobalPosition()
+        // atan2(x, z) in degrees: 0 is +z (north), 90 is +x (east), as the camera's yaw.
+        number degrees = math:RadiansToDegrees(math:InverseTangent(spot:GetZ() - eye:GetZ(), spot:GetX() - eye:GetX()))
+        return GetHeadingName(degrees):ToLowerCase()
+    end
+
+    /*
+        Returns the angle across the view, in radians: how far right of the
+        middle the item is, as the camera sees it, negative for left.
+    */
+    private action GetAcrossAngle(EditorCamera3D camera, Item3D item) returns number
+        Vector3 eye = camera:GetPosition()
+        Vector3 look = camera:GetDirection():Copy()
+        look:Normalize()
+        Vector3 worldUp
+        worldUp:Set(0, 1, 0)
+        // Left-handed: right is up crossed with the look, as SlideBy uses.
+        Vector3 right = worldUp:Copy():CrossProduct(look)
+        if right:Length() < 0.0001
+            return 0
+        end
+        right:Normalize()
+        Vector3 spot = item:GetGlobalPosition()
+        number dx = spot:GetX() - eye:GetX()
+        number dy = spot:GetY() - eye:GetY()
+        number dz = spot:GetZ() - eye:GetZ()
+        number sideways = dx * right:GetX() + dy * right:GetY() + dz * right:GetZ()
+        number ahead = dx * look:GetX() + dy * look:GetY() + dz * look:GetZ()
+        return math:InverseTangent(ahead, sideways)
+    end
+
+    /* Moves terrains, which fill the view, to the end, keeping the rest in order. */
+    private action MoveLargeItemsLast(Array<Item3D> items)
+        Array<Item3D> large
+        integer i = 0
+        repeat while i < items:GetSize()
+            if items:Get(i) is EditorTerrain
+                large:Add(items:RemoveAt(i))
+            else
+                i = i + 1
+            end
+        end
+        i = 0
+        repeat while i < large:GetSize()
+            items:Add(large:Get(i))
+            i = i + 1
+        end
+    end
+
+    /* Returns the angle in radians between the camera's look and the item's center. */
+    private action GetAngleFromCenter(EditorCamera3D camera, Item3D item) returns number
+        Vector3 eye = camera:GetPosition()
+        Vector3 look = camera:GetDirection():Copy()
+        look:Normalize()
+        Vector3 spot = item:GetGlobalPosition()
+        number dx = spot:GetX() - eye:GetX()
+        number dy = spot:GetY() - eye:GetY()
+        number dz = spot:GetZ() - eye:GetZ()
+        number length = math:SquareRoot(dx * dx + dy * dy + dz * dz)
+        if length < 0.0001
+            return 0
+        end
+        number cosine = (dx * look:GetX() + dy * look:GetY() + dz * look:GetZ()) / length
+        if cosine > 1
+            cosine = 1
+        elseif cosine < -1
+            cosine = -1
+        end
+        return math:InverseCosine(cosine)
+    end
+
+    /* Returns how far the item's center is from the camera, in words. */
+    private action GetDistanceText(EditorCamera3D camera, Item3D item) returns text
+        Vector3 eye = camera:GetPosition()
+        Vector3 spot = item:GetGlobalPosition()
+        number dx = spot:GetX() - eye:GetX()
+        number dy = spot:GetY() - eye:GetY()
+        number dz = spot:GetZ() - eye:GetZ()
+        return GetDistanceText(math:SquareRoot(dx * dx + dy * dy + dz * dz))
+    end
+
+    /* Returns half the item's diagonal, so the sphere holds its whole box; at least 0.25. */
+    private action GetRadius(Item3D item) returns number
+        Vector3 size = item:GetDimensions()
+        number radius = math:SquareRoot(size:GetX() * size:GetX() + size:GetY() * size:GetY() + size:GetZ() * size:GetZ()) / 2.0
+        if radius < 0.25
+            radius = 0.25
+        end
+        return radius
+    end
+
+    /* Returns the item's name, or "Unnamed item". */
+    private action GetItemName(Item3D item) returns text
+        if item:GetName() not= ""
+            return item:GetName()
+        end
+        return "Unnamed item"
+    end
+end

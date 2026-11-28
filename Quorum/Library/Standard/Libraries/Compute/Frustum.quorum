@@ -144,7 +144,37 @@ class Frustum
         planes:Get(2):Set(planePoints:Get(0), planePoints:Get(4), planePoints:Get(3))
         planes:Get(3):Set(planePoints:Get(5), planePoints:Get(1), planePoints:Get(6))
         planes:Get(4):Set(planePoints:Get(2), planePoints:Get(3), planePoints:Get(6))
-        planes:Get(5):Set(planePoints:Get(4), planePoints:Get(0), planePoints:Get(1))        
+        planes:Get(5):Set(planePoints:Get(4), planePoints:Get(0), planePoints:Get(1))
+
+        // Which way the planes face depends on the projection's handedness:
+        // the corners above wind for a right-handed one, and Quorum's
+        // cameras are left-handed (DeviceCoordinates), which turns every
+        // plane outward so nothing is ever inside. The middle of the eight
+        // corners is always inside, so a plane that has it behind is turned
+        // around. Subtracting from 0 keeps a zero part 0, not -0.
+        number centerX = 0
+        number centerY = 0
+        number centerZ = 0
+        integer corner = 0
+        repeat 8 times
+            Vector3 point = planePoints:Get(corner)
+            centerX = centerX + point:GetX()
+            centerY = centerY + point:GetY()
+            centerZ = centerZ + point:GetZ()
+            corner = corner + 1
+        end
+        centerX = centerX / 8.0
+        centerY = centerY / 8.0
+        centerZ = centerZ / 8.0
+        integer side = 0
+        repeat 6 times
+            Plane plane = planes:Get(side)
+            Vector3 normal = plane:GetNormal()
+            if normal:GetX() * centerX + normal:GetY() * centerY + normal:GetZ() * centerZ + plane:GetDistance() < 0
+                plane:Set(0 - normal:GetX(), 0 - normal:GetY(), 0 - normal:GetZ(), 0 - plane:GetDistance())
+            end
+            side = side + 1
+        end
     end
 
 

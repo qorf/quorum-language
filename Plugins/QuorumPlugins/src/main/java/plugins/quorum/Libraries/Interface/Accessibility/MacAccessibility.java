@@ -113,6 +113,9 @@ public class MacAccessibility {
     private final ArrayList<Item3DKit> kits3D = new ArrayList<Item3DKit>();
     private long lastCheck3D = 0;
     private static final long CHECK_3D_MILLISECONDS = 100;
+    // TEMPORARY, for logging the camera speech.
+    private String lastFocusNote = null;
+    private String lastCursorNote = null;
     private boolean warned3D = false;
     private boolean warnedDetached = false;
 
@@ -332,6 +335,13 @@ public class MacAccessibility {
         }
         ItemKit focusedKit = items.get(focus);
         Item3DKit focused3D = focusedKit instanceof Item3DKit ? (Item3DKit) focusedKit : null;
+        // TEMPORARY logging for the camera speech: which kit has the focus.
+        String focusNote = focusedKit == null ? "none" : focusedKit.getClass().getSimpleName()
+            + (focusedKit.GetItem() == null ? "" : " '" + focusedKit.GetItem().GetName() + "'");
+        if (!focusNote.equals(lastFocusNote)) {
+            lastFocusNote = focusNote;
+            UpdateCheck.Log("Check3DItems: focused kit " + focusNote);
+        }
         long time = System.currentTimeMillis();
         if (time - lastCheck3D < CHECK_3D_MILLISECONDS) {
             if (focused3D != null) {
@@ -353,7 +363,18 @@ public class MacAccessibility {
                 // VoiceOver, for the focused item and its cursor's row. Both
                 // are needed: with only the row, VoiceOver neither moves its
                 // box nor reads the move (plan 20's tests).
-                if (focused && kit.TakeBoundsMoved()) {
+                boolean moved = kit.TakeBoundsMoved();
+                // TEMPORARY logging: the focused item's row, and whether a notice goes out.
+                boolean swapped = kit.TakeCursorSwapped();
+                if (focused) {
+                    String cursorNote = String.valueOf(kit.GetCursorText());
+                    if (swapped || !cursorNote.equals(lastCursorNote)) {
+                        lastCursorNote = cursorNote;
+                        UpdateCheck.Log("Check3DItem: row '" + cursorNote + "', swapped " + swapped
+                            + ", moved " + moved + ", notice " + moved);
+                    }
+                }
+                if (focused && moved) {
                     MacAccessibilityExtras.queueNotice(kit.GetNodeID(), null, MacAccessibilityExtras.MOVED);
                     NodeId row = kit.GetCursorRowID();
                     if (row != null) {
@@ -588,7 +609,7 @@ public class MacAccessibility {
                         update = BuildFullTree();
                         needsFullTree = false;
                     } else {
-                        update = BuildDirtyNodes(target);
+                        update = BuildDirtyNodes();
                     }
                     updateCheck.Check(update, fullTree, describer);
                     return update;
@@ -619,7 +640,7 @@ public class MacAccessibility {
         child of another node"). After MAX_BUILD_ROUNDS, what is left waits
         for the next update.
     */
-    private TreeUpdate BuildDirtyNodes(NodeId target) {
+    private TreeUpdate BuildDirtyNodes() {
         LinkedHashMap<NodeId, Node> built = new LinkedHashMap<NodeId, Node>();
         try {
             int rounds = 0;
@@ -643,8 +664,14 @@ public class MacAccessibility {
                 }
                 rounds = rounds + 1;
             }
-            TreeUpdate update = TreeUpdate.withFocus(target);
-            sentFocus = target;
+            // Building can move the focus (a control removing the focused
+            // item as it is measured), so it is taken again after the build.
+            // A focus left under a removed item goes to the root, as in
+            // BuildFullTree.
+            ItemKit focusedKit = items.get(focus);
+            NodeId current = focusedKit != null && IsAttached(focusedKit) ? FocusTarget() : root.GetNodeID();
+            TreeUpdate update = TreeUpdate.withFocus(current);
+            sentFocus = current;
             for (Map.Entry<NodeId, Node> entry : built.entrySet()) {
                 NodeId id = entry.getKey();
                 // A node built earlier in this update whose item was removed

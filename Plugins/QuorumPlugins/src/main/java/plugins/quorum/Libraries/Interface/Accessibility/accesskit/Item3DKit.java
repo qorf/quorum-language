@@ -59,6 +59,8 @@ public class Item3DKit extends ItemKit {
     private Rect lastBounds = null;
     // True if the last HasChanged found the box moved (TakeBoundsMoved).
     private boolean boundsMoved = false;
+    // True once a new reading went to the other row while focused (TakeCursorSwapped).
+    private boolean cursorSwapped = false;
     private String lastName = null;
     private String lastDescription = null;
 
@@ -148,6 +150,11 @@ public class Item3DKit extends ItemKit {
     }
 
     // The cursor's selected row, or null with no cursor.
+    // TEMPORARY, for logging: the selected row's reading, or null.
+    public String GetCursorText() {
+        return cursorText;
+    }
+
     public NodeId GetCursorRowID() {
         return cursorText == null ? null : CursorRowID();
     }
@@ -256,7 +263,20 @@ public class Item3DKit extends ItemKit {
         lastCursorMove = time;
         cursorRow = 1 - cursorRow;
         cursorText = text;
+        cursorSwapped = true;
         return true;
+    }
+
+    /*
+        True once after a new reading went to the other row while the item
+        had the focus. VoiceOver reads a newly selected row only with a moved
+        notice, so a new reading needs one even when the box stayed put, as
+        after the camera turns (MacAccessibility.Check3DItem).
+    */
+    public boolean TakeCursorSwapped() {
+        boolean swapped = cursorSwapped;
+        cursorSwapped = false;
+        return swapped;
     }
 
     private static boolean Moved(Rect a, Rect b) {

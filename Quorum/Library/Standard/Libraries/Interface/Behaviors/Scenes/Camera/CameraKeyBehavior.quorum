@@ -4,6 +4,7 @@ use Libraries.Interface.Behaviors.Behavior
 use Libraries.Interface.Events.BehaviorEvent
 use Libraries.Interface.Controls.Scenes.SceneEditor
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
 
 /*
     The CameraKeyBehavior moves the scene editor's 3D camera while a key is
@@ -66,6 +67,9 @@ class CameraKeyBehavior is Behavior
         elseif event:GetItem() is EditorItem
             EditorItem item = cast(EditorItem, event:GetItem())
             editor = item:GetSceneEditor()
+        elseif event:GetItem() is SceneViewCue
+            SceneViewCue cue = cast(SceneViewCue, event:GetItem())
+            editor = cue:GetSceneEditor()
         end
         if editor = undefined
             return now

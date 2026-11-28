@@ -331,7 +331,7 @@ final class UpdateCheck {
         FileLogger, which pushes each entry to disk), or to Java's logger
         when no program set one.
     */
-    private static void Log(String text) {
+    static void Log(String text) {
         Object shared = SharedClass.GetStaticClass("Libraries.System.Logging.SharedLogger");
         if (shared instanceof SharedLogger_) {
             SharedLogger_ logger = (SharedLogger_) shared;

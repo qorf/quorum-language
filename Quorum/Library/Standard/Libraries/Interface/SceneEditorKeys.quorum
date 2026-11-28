@@ -52,6 +52,20 @@ class SceneEditorKeys
         return WithModifiers(keys:NUM_3, false, true, false, true)
     end
 
+    /*
+        On a view cue (what a screen reader reads after the camera or the
+        arrow keys move), steps to the next item in view, left to right.
+        Default: Tab.
+    */
+    action GetViewNextItemKey returns InputSet
+        return Plain(keys:TAB)
+    end
+
+    /* On a view cue, steps to the item in view before, right to left. Default: Shift+Tab. */
+    action GetViewPreviousItemKey returns InputSet
+        return WithModifiers(keys:TAB, false, false, false, true)
+    end
+
     // ------------------------------------------------------ moving, in 3D
 
     /* Moves the 3D cursor or selection left. Default: Left. */

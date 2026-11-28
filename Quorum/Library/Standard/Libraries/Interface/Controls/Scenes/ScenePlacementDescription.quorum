@@ -1,0 +1,534 @@
+package Libraries.Interface.Controls.Scenes
+
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.Items.EditorModel
+use Libraries.Interface.Controls.Scenes.Items.EditorTerrain
+use Libraries.Interface.Controls.Scenes.Layers.EditorLayer3D
+use Libraries.Game.BoundingBox
+use Libraries.Game.Graphics.Trees.RenderTree3D
+use Libraries.Game.Graphics.Trees.RenderTreeNode3D
+use Libraries.Game.Graphics.Worlds.TerrainDescriber
+use Libraries.Compute.Vector3
+use Libraries.Compute.Math
+use Libraries.Containers.Array
+
+/*
+    ScenePlacementDescription says where a 3D item rests, for a screen
+    reader, after it moves: what it is on (the highest surface within half a
+    meter under it, or the ground), how far above that it is, where on it it
+    sits, and what is wrong (sunk into something, floating), in the same
+    compass words as the camera (north is +z, east is +x): "Candle, now on
+    Table, 0.1 meters above it, near the west edge."
+
+    It only searches near the item, with the layer's render tree, so its
+    cost doesn't grow with the scene. The moved item's box is measured from
+    its shape, as SceneEditor:GetGroundChange measures it, so it is current
+    in the middle of a move; other items' boxes are the render tree's.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.ScenePlacementDescription
+
+    ScenePlacementDescription placement
+    // With a scene editor, its 3D layer and a moved item:
+    // text words = placement:Describe(editor, layer, item, undefined)
+*/
+class ScenePlacementDescription
+    // A surface counts as what the item is on within this gap. A first
+    // guess; user testing will tune it.
+    constant number ON_GAP = 0.5
+    // A gap smaller than this is resting on it: no "above it" is said.
+    constant number RESTING_GAP = 0.05
+    // Overlaps and side gaps smaller than this are contact, not "into" or apart.
+    constant number CONTACT_GAP = 0.02
+    // Another item this close (edge to edge) on the same surface is said as a neighbor.
+    constant number NEIGHBOR_DISTANCE = 0.3
+
+    Math math
+    TerrainDescriber words
+    SceneViewDescription headings
+    SceneConstants constants
+
+    // What the last FindSupport found: an item, or undefined for the ground.
+    Item3D support = undefined
+    // The top of what it is on: the item's top, or the ground's height.
+    number supportTop = 0
+    // True if that is within ON_GAP below the item's bottom.
+    boolean onSomething = false
+    // The terrain under the item's center, or undefined.
+    EditorTerrain ground = undefined
+
+    /*
+        Describes where the item rests, saying "now on" or "now off" when
+        what it is on isn't what it was on before.
+
+        Attribute: Parameter editor The scene editor
+        Attribute: Parameter layer The item's 3D layer
+        Attribute: Parameter item The moved item (a selection's item, or a new item's preview)
+        Attribute: Parameter before What it was on when the move started (GetSupport), or undefined for the ground
+        Attribute: Returns The sentence
+    */
+    action Describe(SceneEditor editor, EditorLayer3D layer, EditorModel item, Item3D before) returns text
+        BoundingBox box = GetWorldBox(item)
+        text name = item:GetName()
+
+        // Sunk into something replaces everything else.
+        text sunk = DescribeSunk(editor, layer, item, box)
+        if sunk not= ""
+            return name + ", " + sunk + "."
+        end
+
+        FindSupport(editor, layer, item, box)
+        number gap = box:GetMinimum():GetY() - supportTop
+        boolean changed = not Same(support, before)
+        text result = name + ", "
+        if not onSomething
+            // Floating: more than ON_GAP above anything.
+            if changed and before not= undefined
+                result = result + "now off " + before:GetName() + ", "
+            end
+            result = result + FormatGap(gap) + " meters above " + GetSurfaceName()
+        else
+            if changed
+                result = result + "now on " + GetSurfaceName()
+            else
+                result = result + "on " + GetSurfaceName()
+            end
+            if gap > RESTING_GAP
+                result = result + ", " + FormatGap(gap) + " meters above it"
+            end
+            text place = DescribePlace(layer, box)
+            if place not= ""
+                result = result + ", " + place
+            end
+        end
+        result = result + "."
+        text touching = DescribeTouching(layer, item, box)
+        if touching not= ""
+            result = result + " " + touching + "."
+        end
+        if onSomething
+            text neighbor = DescribeNeighbor(layer, item, box)
+            if neighbor not= ""
+                result = result + " " + neighbor + "."
+            end
+        end
+        return result
+    end
+
+    /*
+        Returns the way an item moved, from where it was to where it is, as
+        a screen reader says it first: the compass word ("North-east"), then
+        "up" or "down" for a change in height, such as "North-east, up", or
+        "" if it didn't move. Moves under 0.01 meters are ignored.
+
+        Attribute: Parameter from Where the item was
+        Attribute: Parameter toward Where it is
+        Attribute: Returns The way it moved, or ""
+    */
+    action DescribeMove(Vector3 from, Vector3 toward) returns text
+        number dx = toward:GetX() - from:GetX()
+        number dy = toward:GetY() - from:GetY()
+        number dz = toward:GetZ() - from:GetZ()
+        text result = ""
+        if math:SquareRoot(dx * dx + dz * dz) > 0.01
+            // atan2(x, z) in degrees: 0 is +z (north), 90 is +x (east).
+            result = headings:GetHeadingName(math:RadiansToDegrees(math:InverseTangent(dz, dx)))
+        end
+        if math:AbsoluteValue(dy) > 0.01
+            text way = "up"
+            if dy < 0
+                way = "down"
+            end
+            if result = ""
+                if dy < 0
+                    result = "Down"
+                else
+                    result = "Up"
+                end
+            else
+                result = result + ", " + way
+            end
+        end
+        return result
+    end
+
+    /*
+        Returns what the last Describe or FindSupport found the item on: an
+        item, or undefined for the ground. The scene editor keeps it when a
+        move starts, for "now on" and "now off".
+
+        Attribute: Returns The item it is on, or undefined for the ground
+    */
+    action GetSupport returns Item3D
+        return support
+    end
+
+    /*
+        Finds what the item is on: the highest item top no more than
+        CONTACT_GAP above the item's bottom, whose footprint overlaps the
+        item's, or the ground under its center (the highest terrain there,
+        or height 0), whichever is higher. Then GetSupport says which, and
+        it counts as on it if that top is within ON_GAP below the item.
+
+        Attribute: Parameter editor The scene editor
+        Attribute: Parameter layer The item's 3D layer
+        Attribute: Parameter item The item
+        Attribute: Parameter box The item's box in the world (GetWorldBox)
+    */
+    action FindSupport(SceneEditor editor, EditorLayer3D layer, EditorModel item, BoundingBox box)
+        number bottom = box:GetMinimum():GetY()
+        number groundHeight = GetGroundHeight(editor, item, bottom)
+        support = undefined
+        supportTop = groundHeight
+
+        // Items under the footprint, from the ground (or ON_GAP down, if
+        // that is lower) up to just above the item's bottom.
+        Vector3 low
+        low:Set(box:GetMinimum():GetX(), math:MinimumOf(groundHeight, bottom - ON_GAP), box:GetMinimum():GetZ())
+        Vector3 high
+        high:Set(box:GetMaximum():GetX(), bottom + CONTACT_GAP, box:GetMaximum():GetZ())
+        BoundingBox below
+        below:Set(low, high)
+        Array<Item3D> found
+        layer:GetRenderTree():CollectInBox(below, found)
+        integer i = 0
+        repeat while i < found:GetSize()
+            Item3D other = found:Get(i)
+            if Counts(item, other)
+                BoundingBox otherBox = GetLeafBox(layer, other)
+                if otherBox not= undefined
+                    number top = otherBox:GetMaximum():GetY()
+                    if top <= bottom + CONTACT_GAP and top > supportTop and FootprintsOverlap(box, otherBox)
+                        support = other
+                        supportTop = top
+                    end
+                end
+            end
+            i = i + 1
+        end
+        onSomething = bottom - supportTop <= ON_GAP
+    end
+
+    /*
+        Returns the item's box in the world: its shape's box after its
+        transform, as SceneEditor:GetGroundChange measures it, or a point at
+        its position if it has no shape.
+
+        Attribute: Parameter item The item
+        Attribute: Returns A new box
+    */
+    action GetWorldBox(EditorModel item) returns BoundingBox
+        BoundingBox result
+        Vector3 position = item:GetGlobalPosition()
+        result:Set(position, position)
+        if item:GetModelBlueprint() not= undefined
+            BoundingBox shape
+            item:CalculateBoundingBox(shape)
+            Vector3 low = shape:GetMinimum()
+            Vector3 high = shape:GetMaximum()
+            if low:GetX() <= high:GetX() and low:GetY() <= high:GetY() and low:GetZ() <= high:GetZ()
+                result:Invalidate()
+                result:Extend(shape, item:GetTransform())
+            end
+        end
+        return result
+    end
+
+    /*
+        Returns "0.3 meters into Table" for what the item is sunk deepest
+        into, by more than CONTACT_GAP: another item whose box overlaps it,
+        measured from the item's bottom to the other's top, or the ground.
+        Otherwise it returns "".
+    */
+    private action DescribeSunk(SceneEditor editor, EditorLayer3D layer, EditorModel item, BoundingBox box) returns text
+        number bottom = box:GetMinimum():GetY()
+        text deepestName = ""
+        number deepest = CONTACT_GAP
+        number groundHeight = GetGroundHeight(editor, item, bottom)
+        if ground not= undefined and groundHeight - bottom > deepest
+            deepest = groundHeight - bottom
+            deepestName = "the ground"
+        end
+        Array<Item3D> found
+        layer:GetRenderTree():CollectInBox(box, found)
+        integer i = 0
+        repeat while i < found:GetSize()
+            Item3D other = found:Get(i)
+            if Counts(item, other)
+                BoundingBox otherBox = GetLeafBox(layer, other)
+                if otherBox not= undefined and FootprintsOverlap(box, otherBox) and otherBox:GetMinimum():GetY() < box:GetMaximum():GetY()
+                    number depth = math:MinimumOf(otherBox:GetMaximum():GetY(), box:GetMaximum():GetY()) - bottom
+                    if depth > deepest
+                        deepest = depth
+                        deepestName = other:GetName()
+                    end
+                end
+            end
+            i = i + 1
+        end
+        if deepestName = ""
+            return ""
+        end
+        return FormatGap(deepest) + " meters into " + deepestName
+    end
+
+    /*
+        Returns where on what it is on the item sits, in compass words:
+        "middle", "near the north edge", "near the north-east corner", or
+        "hanging over the east edge" when part of it is off. On the ground,
+        the terrain's ground there ("grass, flat"), or "" with no terrain.
+    */
+    private action DescribePlace(EditorLayer3D layer, BoundingBox box) returns text
+        if support = undefined
+            if ground not= undefined
+                return words:DescribeSpot(ground, box:GetCenterX(), box:GetCenterZ())
+            end
+            return ""
+        end
+        BoundingBox top = GetLeafBox(layer, support)
+        if top = undefined
+            return ""
+        end
+        // Part of the item's footprint off the surface.
+        text eastWestOff = ""
+        if box:GetMinimum():GetX() < top:GetMinimum():GetX() - CONTACT_GAP
+            eastWestOff = "west"
+        elseif box:GetMaximum():GetX() > top:GetMaximum():GetX() + CONTACT_GAP
+            eastWestOff = "east"
+        end
+        text northSouthOff = ""
+        if box:GetMinimum():GetZ() < top:GetMinimum():GetZ() - CONTACT_GAP
+            northSouthOff = "south"
+        elseif box:GetMaximum():GetZ() > top:GetMaximum():GetZ() + CONTACT_GAP
+            northSouthOff = "north"
+        end
+        if eastWestOff not= "" or northSouthOff not= ""
+            return "hanging over the " + Combine(northSouthOff, eastWestOff) + " edge"
+        end
+        // The center's place across the surface, from 0 (west, south) to 1 (east, north).
+        number across = (box:GetCenterX() - top:GetMinimum():GetX()) / math:MaximumOf(top:GetWidth(), 0.0001)
+        number along = (box:GetCenterZ() - top:GetMinimum():GetZ()) / math:MaximumOf(top:GetDepth(), 0.0001)
+        text eastWest = ""
+        if across < 0.25
+            eastWest = "west"
+        elseif across > 0.75
+            eastWest = "east"
+        end
+        text northSouth = ""
+        if along < 0.25
+            northSouth = "south"
+        elseif along > 0.75
+            northSouth = "north"
+        end
+        if eastWest = "" and northSouth = ""
+            return "middle"
+        end
+        if eastWest = "" or northSouth = ""
+            return "near the " + northSouth + eastWest + " edge"
+        end
+        return "near the " + northSouth + "-" + eastWest + " corner"
+    end
+
+    /*
+        Returns "Touching Lamp to the east" for an item beside the item,
+        with a gap of no more than CONTACT_GAP and higher than the item's
+        bottom, other than what it is on; otherwise "".
+    */
+    private action DescribeTouching(EditorLayer3D layer, EditorModel item, BoundingBox box) returns text
+        BoundingBox grown = Grow(box, CONTACT_GAP)
+        Array<Item3D> found
+        layer:GetRenderTree():CollectInBox(grown, found)
+        integer i = 0
+        repeat while i < found:GetSize()
+            Item3D other = found:Get(i)
+            if Counts(item, other) and not Same(other, support)
+                BoundingBox otherBox = GetLeafBox(layer, other)
+                if otherBox not= undefined and otherBox:GetMaximum():GetY() > box:GetMinimum():GetY() + CONTACT_GAP
+                    return "Touching " + other:GetName() + " to the " + GetDirectionName(box, otherBox)
+                end
+            end
+            i = i + 1
+        end
+        return ""
+    end
+
+    /*
+        Returns "Plate 0.2 meters north" for the nearest other item on the
+        same surface within NEIGHBOR_DISTANCE, edge to edge; otherwise "".
+    */
+    private action DescribeNeighbor(EditorLayer3D layer, EditorModel item, BoundingBox box) returns text
+        BoundingBox around = Grow(box, NEIGHBOR_DISTANCE)
+        Array<Item3D> found
+        layer:GetRenderTree():CollectInBox(around, found)
+        Item3D nearest = undefined
+        BoundingBox nearestBox = undefined
+        number nearestGap = NEIGHBOR_DISTANCE + 1
+        integer i = 0
+        repeat while i < found:GetSize()
+            Item3D other = found:Get(i)
+            if Counts(item, other) and not Same(other, support)
+                BoundingBox otherBox = GetLeafBox(layer, other)
+                // On the same surface: its bottom is at that surface's top.
+                if otherBox not= undefined and math:AbsoluteValue(otherBox:GetMinimum():GetY() - supportTop) <= RESTING_GAP
+                    number between = GetFootprintGap(box, otherBox)
+                    if between <= NEIGHBOR_DISTANCE and between < nearestGap
+                        nearest = other
+                        nearestBox = otherBox
+                        nearestGap = between
+                    end
+                end
+            end
+            i = i + 1
+        end
+        if nearest = undefined
+            return ""
+        end
+        return nearest:GetName() + " " + FormatGap(nearestGap) + " meters " + GetDirectionName(box, nearestBox)
+    end
+
+    /*
+        Returns the ground's height under the item's center: the highest
+        terrain there (SceneEditor:GetGroundChange), or 0 with none. It sets
+        ground to that terrain, or undefined.
+    */
+    private action GetGroundHeight(SceneEditor editor, EditorModel item, number bottom) returns number
+        number change = editor:GetGroundChange(item)
+        ground = editor:GetLastGround()
+        if ground = undefined
+            return 0
+        end
+        return bottom + change
+    end
+
+    /* Returns the render tree's box for an item, or undefined if it has none. */
+    private action GetLeafBox(EditorLayer3D layer, Item3D item) returns BoundingBox
+        RenderTree3D tree = layer:GetRenderTree()
+        if tree = undefined or item = undefined
+            return undefined
+        end
+        RenderTreeNode3D leaf = tree:GetLeaf(item)
+        if leaf = undefined
+            return undefined
+        end
+        return leaf:GetBounds()
+    end
+
+    /*
+        Returns true if another item is one to talk about: not the item
+        itself, its parents or its children, showing, and not one of the
+        scene editor's own items.
+    */
+    private action Counts(Item3D item, Item3D other) returns boolean
+        if other = undefined or other:Equals(item) or not other:IsShowing()
+            return false
+        end
+        if other:HasProperty(constants:EDITOR_TAG)
+            return false
+        end
+        // A terrain's box covers its whole area and height, so everything
+        // over it would be "into" it. It is the ground, measured under the
+        // item instead (GetGroundHeight).
+        if other is EditorTerrain
+            return false
+        end
+        Item3D above = item:GetParent()
+        repeat while above not= undefined
+            if above:Equals(other)
+                return false
+            end
+            above = above:GetParent()
+        end
+        above = other:GetParent()
+        repeat while above not= undefined
+            if above:Equals(item)
+                return false
+            end
+            above = above:GetParent()
+        end
+        return true
+    end
+
+    /* Returns true if both are undefined, or they are the same item. */
+    private action Same(Item3D first, Item3D second) returns boolean
+        if first = undefined
+            return second = undefined
+        end
+        if second = undefined
+            return false
+        end
+        return first:Equals(second)
+    end
+
+    /* Returns true if two boxes' footprints (x and z) overlap. */
+    private action FootprintsOverlap(BoundingBox first, BoundingBox second) returns boolean
+        if first:GetMaximum():GetX() < second:GetMinimum():GetX() or second:GetMaximum():GetX() < first:GetMinimum():GetX()
+            return false
+        end
+        if first:GetMaximum():GetZ() < second:GetMinimum():GetZ() or second:GetMaximum():GetZ() < first:GetMinimum():GetZ()
+            return false
+        end
+        return true
+    end
+
+    /* Returns the gap between two boxes' footprints, edge to edge, or 0 if they overlap. */
+    private action GetFootprintGap(BoundingBox first, BoundingBox second) returns number
+        number gapX = math:MaximumOf(second:GetMinimum():GetX() - first:GetMaximum():GetX(), first:GetMinimum():GetX() - second:GetMaximum():GetX())
+        number gapZ = math:MaximumOf(second:GetMinimum():GetZ() - first:GetMaximum():GetZ(), first:GetMinimum():GetZ() - second:GetMaximum():GetZ())
+        gapX = math:MaximumOf(gapX, 0)
+        gapZ = math:MaximumOf(gapZ, 0)
+        return math:SquareRoot(gapX * gapX + gapZ * gapZ)
+    end
+
+    /* Returns a copy of a box grown by an amount on every side but the bottom and top. */
+    private action Grow(BoundingBox box, number amount) returns BoundingBox
+        Vector3 low
+        low:Set(box:GetMinimum():GetX() - amount, box:GetMinimum():GetY(), box:GetMinimum():GetZ() - amount)
+        Vector3 high
+        high:Set(box:GetMaximum():GetX() + amount, box:GetMaximum():GetY(), box:GetMaximum():GetZ() + amount)
+        BoundingBox result
+        result:Set(low, high)
+        return result
+    end
+
+    /*
+        Returns the compass word for the way from one box's center to the
+        other's, in lower case, such as "north-east".
+    */
+    private action GetDirectionName(BoundingBox from, BoundingBox toward) returns text
+        number dx = toward:GetCenterX() - from:GetCenterX()
+        number dz = toward:GetCenterZ() - from:GetCenterZ()
+        // atan2(x, z) in degrees: 0 is +z (north), 90 is +x (east).
+        number degrees = math:RadiansToDegrees(math:InverseTangent(dz, dx))
+        return headings:GetHeadingName(degrees):ToLowerCase()
+    end
+
+    /* Returns "north-east" from "north" and "east"; with either empty, the other. */
+    private action Combine(text northSouth, text eastWest) returns text
+        if northSouth = ""
+            return eastWest
+        end
+        if eastWest = ""
+            return northSouth
+        end
+        return northSouth + "-" + eastWest
+    end
+
+    /* Returns the name of what the item is on: the item's, or "the ground". */
+    private action GetSurfaceName returns text
+        if support = undefined
+            return "the ground"
+        end
+        return support:GetName()
+    end
+
+    /*
+        Returns a gap in meters as said: two decimal places under 0.1
+        ("0.02"), otherwise one, with no ".0" ("0.3", "2").
+    */
+    private action FormatGap(number meters) returns text
+        if meters < 0.1
+            return "" + math:Round(meters, 2)
+        end
+        return words:FormatAmount(meters)
+    end
+end

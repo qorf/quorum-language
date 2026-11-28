@@ -385,12 +385,15 @@ class EditorCamera3D is PerspectiveCamera
         Vector3 look = GetDirection():Copy()
         Vector3 worldUp
         worldUp:Set(0, 1, 0)
-        Vector3 right = look:Copy():CrossProduct(worldUp)
+        // Quorum's world is left-handed: looking along +z, +x is to the
+        // right, which is up crossed with the look (the look crossed with up
+        // points left), and the view's up is the look crossed with right.
+        Vector3 right = worldUp:Copy():CrossProduct(look)
         if right:Length() < 0.0001
             return now
         end
         right:Normalize()
-        Vector3 viewUp = right:Copy():CrossProduct(look)
+        Vector3 viewUp = look:Copy():CrossProduct(right)
         viewUp:Normalize()
         Vector3 moved = GetPosition():Copy()
         moved:SetX(moved:GetX() + right:GetX() * rightAmount + viewUp:GetX() * upAmount)

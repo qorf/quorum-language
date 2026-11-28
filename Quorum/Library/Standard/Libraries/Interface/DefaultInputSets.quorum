@@ -1512,6 +1512,9 @@ InputSet shiftF10SetTextBox
         itemPreviewTable:SetIdentifier("NewItemPreview3D")
         InputTable itemPreviewTable2D
         itemPreviewTable2D:SetIdentifier("NewItemPreview2D")
+        // The view cues the focus goes to after a camera move (SceneViewCue).
+        InputTable viewCueTable
+        viewCueTable:SetIdentifier("SceneViewCue")
         InputTable propertiesDialogTable
         propertiesDialogTable:SetIdentifier("PropertiesDialog")
         InputTable findTable
@@ -1648,6 +1651,50 @@ InputSet shiftF10SetTextBox
         cameraItemTable3D:Add(reportItemsInView, reportItemsInViewBehavior)
         itemPreviewTable:Add(reportCameraDirection, reportCameraDirectionBehavior)
         itemPreviewTable:Add(reportItemsInView, reportItemsInViewBehavior)
+        // A view cue has the report keys too, and Escape gives the focus back
+        // to where it was before the camera moved.
+        viewCueTable:Add(reportCameraDirection, reportCameraDirectionBehavior)
+        viewCueTable:Add(reportItemsInView, reportItemsInViewBehavior)
+        LeaveViewCueBehavior leaveViewCueBehavior
+        viewCueTable:Add(sceneKeys:GetSelectionCancelKey(), leaveViewCueBehavior)
+        // Tab and Shift+Tab step through the items in view, left to right,
+        // and Enter selects the one the cue is on.
+        BrowseViewCueBehavior viewNextBehavior
+        viewNextBehavior:SetStep(1)
+        viewCueTable:Add(sceneKeys:GetViewNextItemKey(), viewNextBehavior)
+        BrowseViewCueBehavior viewPreviousBehavior
+        viewPreviousBehavior:SetStep(-1)
+        viewCueTable:Add(sceneKeys:GetViewPreviousItemKey(), viewPreviousBehavior)
+        SelectViewCueItemBehavior selectViewItemBehavior
+        viewCueTable:Add(sceneKeys:GetCursorSelectItemsKey(), selectViewItemBehavior)
+        // Any other key gives the focus back and runs there, so the arrows
+        // still move a terrain's cursor or a selection after a camera move.
+        // A press is matched with the modifiers held, so every combination
+        // of Shift, Control, Alt and Meta is added.
+        PassKeyFromViewCueBehavior passKeyFromViewCueBehavior
+        integer combination = 0
+        repeat while combination < 16
+            InputSet anyKey
+            anyKey:SetKeyboardInput(keys:ANY_KEY)
+            if combination mod 2 = 1
+                anyKey:AddModifier(anyKey:SHIFT)
+            end
+            if combination mod 4 >= 2
+                anyKey:AddModifier(anyKey:CONTROL)
+            end
+            if combination mod 8 >= 4
+                anyKey:AddModifier(anyKey:ALT)
+            end
+            if combination >= 8
+                anyKey:AddModifier(anyKey:META)
+            end
+            viewCueTable:Add(anyKey, passKeyFromViewCueBehavior)
+            // Releases too, so an arrow held on a cue stops when it's let go.
+            InputSet anyKeyUp = anyKey:Copy()
+            anyKeyUp:SetInputTrigger(anyKeyUp:FINISH)
+            viewCueTable:Add(anyKeyUp, passKeyFromViewCueBehavior)
+            combination = combination + 1
+        end
 
         InputSet selectionMoveLeft3DStart = sceneKeys:GetSelectionMoveLeft3DKey()
         InputSet selectionMoveLeft3DStop = sceneKeys:GetSelectionMoveLeft3DKey()
@@ -1785,6 +1832,7 @@ InputSet shiftF10SetTextBox
         cameraKeyTables:Add(selectionTable)
         cameraKeyTables:Add(cameraItemTable3D)
         cameraKeyTables:Add(itemPreviewTable)
+        cameraKeyTables:Add(viewCueTable)
         AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookLeftKey(), cameraConstants:CAMERA_LOOK, -1, 0)
         AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookRightKey(), cameraConstants:CAMERA_LOOK, 1, 0)
         AddCameraKey(table, cameraKeyTables, sceneKeys:GetCameraLookUpKey(), cameraConstants:CAMERA_LOOK, 0, 1)
@@ -2260,6 +2308,7 @@ table:Add3D(GetLeftClick(), selectScene3DItemBehavior)
         gameInput:AddInputTable(sceneItem3DTable)
         gameInput:AddInputTable(itemPreviewTable)
         gameInput:AddInputTable(itemPreviewTable2D)
+        gameInput:AddInputTable(viewCueTable)
         gameInput:AddInputTable(propertiesDialogTable)
         gameInput:AddInputTable(findTable)
         gameInput:AddInputTable(paletteItemContentTable)

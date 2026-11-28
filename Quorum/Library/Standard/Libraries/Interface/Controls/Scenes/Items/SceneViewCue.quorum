@@ -1,0 +1,106 @@
+package Libraries.Interface.Controls.Scenes.Items
+
+use Libraries.Interface.Item
+use Libraries.Interface.Item3D
+use Libraries.Interface.Controls.Scenes.SceneEditor
+use Libraries.Interface.Controls.Scenes.SceneConstants
+use Libraries.Game.Shapes.Rectangle
+
+/*
+    A SceneViewCue is one of two invisible items the scene editor gives the
+    focus to after the camera moves, so a screen reader reads what the
+    camera sees: the cue's name is that sentence, and its box on the screen
+    is the item it is about (or a spot straight ahead), so the screen
+    reader's outline shows it. The two take turns, so each move is a new
+    focus change, even when the sentence is the same. Escape, Tab or
+    Shift+Tab gives the focus back to where it was before the camera moved.
+
+    Attribute: Example
+    use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
+
+    SceneViewCue cue
+    cue:SetName("Car, 12 meters. North-east, down 20. Tree, Rock, 5 in view.")
+*/
+class SceneViewCue is Item3D
+    SceneEditor editor = undefined
+    // The item the sentence is about, whose box the cue shows, or undefined.
+    Item3D target = undefined
+    // Where the focus goes back to (Escape, or Tab either way).
+    Item returnItem = undefined
+
+    on create
+        SceneConstants constants
+        SetProperty(constants:EDITOR_TAG, undefined)
+        SetAccessibilityCode(parent:Item:ITEM)
+        SetAccessibilityRoleDescription("view")
+        SetInputGroup("SceneViewCue")
+        SetFocusable(true)
+        SetDimensions(1, 1, 1)
+    end
+
+    /*
+        Sets the scene editor this cue belongs to.
+
+        Attribute: Parameter sceneEditor The scene editor
+    */
+    action SetSceneEditor(SceneEditor sceneEditor)
+        editor = sceneEditor
+    end
+
+    /*
+        Returns the scene editor this cue belongs to.
+
+        Attribute: Returns The scene editor, or undefined
+    */
+    action GetSceneEditor returns SceneEditor
+        return editor
+    end
+
+    /*
+        Sets the item the sentence is about, whose box the screen reader
+        outlines, or undefined for none.
+
+        Attribute: Parameter item The item, or undefined
+    */
+    action SetTarget(Item3D item)
+        target = item
+    end
+
+    /*
+        Sets where the focus goes back to, and makes Tab and Shift+Tab go
+        there too.
+
+        Attribute: Parameter item The item that had the focus before the camera moved
+    */
+    action SetReturnItem(Item item)
+        returnItem = item
+        SetNextFocus(item)
+        SetPreviousFocus(item)
+    end
+
+    /*
+        Returns where the focus goes back to.
+
+        Attribute: Returns The item, or undefined
+    */
+    action GetReturnItem returns Item
+        return returnItem
+    end
+
+    /*
+        Returns the screen reader's outline: the target's box when it shows,
+        else the cue's own small box, which the editor puts straight ahead
+        of the camera.
+
+        Attribute: Returns The rectangle, or undefined if none of it shows.
+    */
+    action GetScreenBounds returns Rectangle
+        if target not= undefined
+            Rectangle bounds = target:GetScreenBounds()
+            if bounds not= undefined
+                return bounds
+            end
+        end
+        return parent:Item3D:GetScreenBounds()
+    end
+end

@@ -6,7 +6,7 @@ class VulkanDescriptorSet
     VulkanDevice device = undefined
     boolean initialized = false
 
-    failureCode = 0
+    integer failureCode = 0
 
     action Create(VulkanDevice device, VulkanDescriptorPool pool, VulkanDescriptorSetLayout layout) returns boolean
         boolean success = CreateNative(device, pool, layout)

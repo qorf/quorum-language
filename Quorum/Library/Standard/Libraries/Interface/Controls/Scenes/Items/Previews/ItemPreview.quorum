@@ -5,6 +5,7 @@ use Libraries.Game.DialogLayer
 use Libraries.Interface.Item2D
 use Libraries.Interface.Controls.Scenes.PropertiesPanel
 use Libraries.Interface.Controls.Scenes.Items.EditorItem
+use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
 use Libraries.Interface.Controls.Scenes.Blueprints.ItemBlueprint
 
 /*
@@ -49,6 +50,11 @@ class ItemPreview is EditorItem
         // While a copy of it is being placed, the placeholder stays, and
         // takes the focus back when the copy is in.
         if GetSceneEditor() not= undefined and GetSceneEditor():IsPlacingCopyNow()
+            return now
+        end
+        // A view cue holds the focus only to say what the camera sees after
+        // it moves, and Escape gives the focus back, so the preview stays.
+        if event:GetNewFocus() is SceneViewCue
             return now
         end
         if event:GetNewFocus() is Item2D

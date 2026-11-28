@@ -78,6 +78,7 @@ use Libraries.Interface.Controls.Scenes.Items.CameraItem3D
 use Libraries.Interface.Controls.Scenes.Items.EditorItem2D
 use Libraries.Interface.Controls.Scenes.Items.CameraItem
 use Libraries.Interface.Controls.Scenes.Items.EditorItem3D
+use Libraries.Interface.Controls.Scenes.Items.SceneViewCue
 use Libraries.Game.Scenes.DefaultSceneManager
 use Libraries.Game.Scenes.SceneProperties
 use Libraries.Game.Scenes.Scene
@@ -119,6 +120,7 @@ use Libraries.Game.Graphics.Worlds.TerrainRampPreview
 use Libraries.Game.Graphics.Worlds.TerrainRegionOutline
 use Libraries.Game.Graphics.Worlds.TerrainRegion
 use Libraries.Game.Graphics.Worlds.TerrainBrush
+use Libraries.Game.Graphics.Worlds.TerrainDescriber
 use Libraries.Interface.Controls.Scenes.Items.EditorCamera3D
 use Libraries.Compute.Ray
 use Libraries.Interface.Controls.Scenes.Dialogs.SceneEditorFindDialog
@@ -236,6 +238,26 @@ class SceneEditor is Control, DefaultSceneManager
     integer cameraOrbitX = 0
     integer cameraOrbitY = 0
     integer cameraZoom = 0
+    // True from the first camera key going down until the last one is up,
+    // so the view is described once, when the whole move ends.
+    boolean cameraKeysMoving = false
+    SceneViewDescription viewDescription
+    // The two items the focus goes to after a camera move, in turn, so a
+    // screen reader reads what the camera sees (AnnounceCameraView).
+    SceneViewCue firstViewCue
+    SceneViewCue secondViewCue
+    // The items in view being stepped through from a view cue (Tab), and
+    // which one the cue is on: -1 while not stepping (BrowseView).
+    Array<Item3D> viewItems
+    integer viewItemIndex = -1
+    // Says numbers as the terrain cursor does, one decimal, no ".0" (FormatPlace).
+    TerrainDescriber placeWords
+    // What a moved item is on, and what it was on when the move started,
+    // for "now on" and "now off" (AnnounceSelectionStopped).
+    ScenePlacementDescription placement
+    Item3D supportAtMoveStart = undefined
+    // Where the moved item was when the move started, for the way it moved.
+    Vector3 positionAtMoveStart
 
     // How fast held camera keys move it: turns and orbits in radians a
     // second (90 degrees), slides as a share of the view distance a second,
@@ -1268,17 +1290,19 @@ action Update(number seconds)
 //                camera:Move(workVector3)
             end
     
-            if IsFocused() or manager:GetFocus() is EditorItem3D
+            // While a view cue has the focus, the keys move the item it came
+            // from (GetKeyFocus), so the focus needn't go back to it.
+            if KeysActOnEditor() or GetKeyFocus() is EditorItem3D
                 moved = false
                 workVector3:Set(0, 0, 0)
 
                 EditorItem3D focus = undefined
 
-                if IsFocused()
+                if KeysActOnEditor()
                     isCursor = true
                     focus = cast(EditorItem3D, cast(Object, layer:GetCursor()))
                 else
-                    focus = cast(EditorItem3D, manager:GetFocus())
+                    focus = cast(EditorItem3D, GetKeyFocus())
                 end
     
                 boolean gridSnapEnabled = IsGridSnapping()
@@ -1683,12 +1707,8 @@ action Update(number seconds)
                 highlight:SetNextFocus(filterHighlights:Get(counter + 1))
             end 
 
-            number x = math:Round(item:GetGlobalX(), 2)
-            number y = math:Round(item:GetGlobalY(), 2)
-            number z = math:Round(item:GetGlobalZ(), 2)
-
             highlight:SetName(item:GetName())
-            highlight:SetDescription((counter + 1) + " of " + filterHighlights:GetSize() + ": " + x + ", " + y + ", " + z)
+            highlight:SetDescription((counter + 1) + " of " + filterHighlights:GetSize() + ": " + FormatPlace(item:GetGlobalX(), item:GetGlobalY(), item:GetGlobalZ()))
             counter = counter + 1
         end
 
@@ -10257,6 +10277,7 @@ The ring is one of the editor's own items: it isn't saved,
         end
         EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
         EditorCamera3D camera = layer:GetEditorCamera()
+        cameraKeysMoving = true
         if move = constants:CAMERA_LOOK
             if x not= 0
                 cameraLookX = x
@@ -10297,6 +10318,9 @@ The ring is one of the editor's own items: it isn't saved,
     Attribute: Parameter y The key's y: -1, 0 or 1
     */
     action StopCameraMove(integer move, integer x, integer y)
+        // TEMPORARY logging for the camera announcement.
+        SharedLogger cameraLogger
+        cameraLogger:Log("StopCameraMove move " + move + " x " + x + " y " + y + ", keysMoving " + cameraKeysMoving + ", look " + cameraLookX + " " + cameraLookY + ", slide " + cameraSlideX + " " + cameraSlideY + ", orbit " + cameraOrbitX + " " + cameraOrbitY + ", zoom " + cameraZoom)
         if move = constants:CAMERA_LOOK
             if x not= 0 and cameraLookX = x
                 cameraLookX = 0
@@ -10327,6 +10351,232 @@ The ring is one of the editor's own items: it isn't saved,
                 cameraZoom = 0
             end
         end
+        cameraLogger:Log("StopCameraMove after: keysMoving " + cameraKeysMoving + ", still moving " + IsCameraKeyMoving())
+        if cameraKeysMoving and not IsCameraKeyMoving()
+            cameraKeysMoving = false
+            AnnounceCameraView()
+        end
+    end
+
+    /*
+    Returns true while any of the 3D camera's key moves is still going.
+    */
+    private action IsCameraKeyMoving returns boolean
+        if cameraLookX not= 0 or cameraLookY not= 0 or cameraSlideX not= 0 or cameraSlideY not= 0
+            return true
+        end
+        return cameraOrbitX not= 0 or cameraOrbitY not= 0 or cameraZoom not= 0
+    end
+
+    /*
+    Says what the 3D camera sees once a move ends: the item nearest the
+    middle of the view and how far it is, which way the camera faces, then
+    the next items and how many are in view.
+    */
+    private action AnnounceCameraView
+        // TEMPORARY logging for the camera announcement.
+        SharedLogger cameraLogger
+        if not (GetSelectedLayer() is EditorLayer3D)
+            cameraLogger:Log("AnnounceCameraView: the selected layer isn't 3D")
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined
+            cameraLogger:Log("AnnounceCameraView: no editor camera")
+            return now
+        end
+        // The view as it is after the last turn, not the last frame drawn.
+        camera:Update()
+        text message = viewDescription:Describe(layer, GetEditorTag())
+        cameraLogger:Log("AnnounceCameraView: accessibility " + (accessibility not= undefined) + ", message '" + message + "'")
+        ShowViewCue(message, viewDescription:GetLastNearest())
+    end
+
+    /*
+    This action returns a place as a screen reader says it: each number to
+    one decimal place, with no ".0", as the terrain cursor says its place:
+    "41.3, 0.8, -7.5".
+
+    Attribute: Parameter x The x coordinate
+    Attribute: Parameter y The y coordinate
+    Attribute: Parameter z The z coordinate
+    Attribute: Returns The place in words
+    */
+    action FormatPlace(number x, number y, number z) returns text
+        return placeWords:FormatAmount(x) + ", " + placeWords:FormatAmount(y) + ", " + placeWords:FormatAmount(z)
+    end
+
+    /*
+    This action returns a 2D place as a screen reader says it: "41.3, 0.8".
+
+    Attribute: Parameter x The x coordinate
+    Attribute: Parameter y The y coordinate
+    Attribute: Returns The place in words
+    */
+    action FormatPlace(number x, number y) returns text
+        return placeWords:FormatAmount(x) + ", " + placeWords:FormatAmount(y)
+    end
+
+    /*
+    This action has a screen reader say a message by moving the focus to a
+    view cue named with it and outlined on an item, as after a camera move,
+    since a focus change is read every time and an announcement often
+    isn't. In a 2D layer, which has no view cues, it is announced instead.
+    Escape, or any key but the arrows, gives the focus back.
+
+    Attribute: Parameter message What the screen reader says
+    Attribute: Parameter target The item to outline, or undefined for the spot straight ahead
+    */
+    action SayThroughViewCue(text message, Item3D target)
+        if GetSelectedLayer() is EditorLayer3D
+            ShowViewCue(message, target)
+        else
+            NotifyAccessibility(me, message)
+        end
+    end
+
+    /*
+    This action gives the focus to the view cue that doesn't have it, named
+    with a sentence and outlined on an item, so a screen reader reads it as
+    a focus change. The cues take turns, so each call is a new focus change,
+    even when the sentence is the same. The camera keys and the arrow keys
+    both call it when their last key comes up. Escape, Tab or any other key
+    gives the focus back.
+
+    Attribute: Parameter message What the screen reader says
+    Attribute: Parameter target The item to outline, or undefined for the spot straight ahead
+    */
+    private action ShowViewCue(text message, Item3D target)
+        // Any new cue ends stepping through the view; BrowseView goes on.
+        viewItemIndex = -1
+        if not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined
+            return now
+        end
+        Item focus = manager:GetFocus()
+        Item returnTo = focus
+        if focus is SceneViewCue
+            SceneViewCue focusedCue = cast(SceneViewCue, focus)
+            returnTo = focusedCue:GetReturnItem()
+        end
+        if returnTo = undefined
+            returnTo = me
+        end
+        SceneViewCue cue = firstViewCue
+        if focus not= undefined and focus:Equals(firstViewCue)
+            cue = secondViewCue
+        end
+        PlaceViewCue(cue, layer, camera)
+        cue:SetName(message)
+        cue:SetTarget(target)
+        cue:SetReturnItem(returnTo)
+        // TEMPORARY logging for the view cues.
+        SharedLogger cueLogger
+        cueLogger:Log("ShowViewCue: '" + message + "', back to '" + returnTo:GetName() + "'")
+        cue:Focus()
+    end
+
+    /*
+    This action steps through the items in view from a view cue: 1 for the
+    next, left to right, -1 for the one before. Each step moves the focus to
+    the other view cue, named with the item's name, distance, compass
+    direction and place, such as "Tree, 8 meters, north-west, 2 of 7.", and
+    outlined on it. The first step after any other cue makes the list
+    fresh; it then stays put while stepping, and wraps at either end.
+    Nothing is selected; Enter selects (SelectBrowsedItem).
+
+    Attribute: Parameter step 1 for the next item, -1 for the one before
+    */
+    action BrowseView(integer step)
+        if not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        EditorCamera3D camera = layer:GetEditorCamera()
+        if camera = undefined
+            return now
+        end
+        if viewItemIndex < 0
+            camera:Update()
+            viewItems = viewDescription:GetItemsLeftToRight(layer, GetEditorTag())
+        end
+        if viewItems:IsEmpty()
+            ShowViewCue("Nothing in view.", undefined)
+            return now
+        end
+        integer count = viewItems:GetSize()
+        if viewItemIndex < 0
+            if step > 0
+                viewItemIndex = 0
+            else
+                viewItemIndex = count - 1
+            end
+        else
+            viewItemIndex = (viewItemIndex + step + count) mod count
+        end
+        integer place = viewItemIndex
+        Item3D item = viewItems:Get(place)
+        ShowViewCue(viewDescription:DescribeItem(camera, item, place + 1, count), item)
+        // ShowViewCue ends stepping; this step goes on.
+        viewItemIndex = place
+    end
+
+    /*
+    This action selects the item a view cue is on while stepping through the
+    view, as Enter at the cursor selects: its highlight takes the focus. It
+    returns false, and does nothing, if no item is being stepped through.
+
+    Attribute: Returns True if an item was selected
+    */
+    action SelectBrowsedItem returns boolean
+        if viewItemIndex < 0 or viewItemIndex >= viewItems:GetSize()
+            return false
+        end
+        Array<Item> chosen
+        chosen:Add(viewItems:Get(viewItemIndex))
+        viewItemIndex = -1
+        SetFilteredItems(chosen, true)
+        return true
+    end
+
+    /*
+    Puts a view cue in the layer, if it isn't there yet, straight ahead of
+    the camera, where its box is outlined when nothing is in view.
+    */
+    private action PlaceViewCue(SceneViewCue cue, EditorLayer3D layer, EditorCamera3D camera)
+        cue:SetSceneEditor(me)
+        Layer3D cueLayer = cue:GetLayer()
+        if cueLayer = undefined or not cueLayer:Equals(layer)
+            if cueLayer not= undefined
+                cueLayer:Remove(cue)
+            end
+            layer:Add(cue)
+        end
+        Vector3 eye = camera:GetPosition()
+        Vector3 look = camera:GetDirection()
+        number ahead = camera:GetViewDistance()
+        cue:SetPosition(eye:GetX() + look:GetX() * ahead, eye:GetY() + look:GetY() * ahead, eye:GetZ() + look:GetZ() * ahead)
+    end
+
+    /*
+    This action gives the focus back from a view cue (the item a screen
+    reader reads what the camera sees from, after the camera moves) to the
+    item that had it before the camera moved, or to the scene editor if that
+    item is gone. Escape on a view cue calls it.
+
+    Attribute: Parameter cue The view cue that has the focus
+    */
+    action LeaveViewCue(SceneViewCue cue)
+        Item back = cue:GetReturnItem()
+        if back = undefined or not back:IsShowing()
+            back = me
+        end
+        back:Focus()
     end
 
     /*
@@ -10836,15 +11086,10 @@ The ring is one of the editor's own items: it isn't saved,
         if IsCameraMoving() = false
             if GetSelectedLayer() is EditorLayer2D
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 1)
-                number y = math:Round(temp:GetY(), 1)
-                NotifyAccessibility(me, "Camera " + x + ", " + y)
+                NotifyAccessibility(me, "Camera " + FormatPlace(temp:GetX(), temp:GetY()))
             else
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 2)
-                number y = math:Round(temp:GetY(), 2)
-                number z = math:Round(temp:GetZ(), 2)
-                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+                SayThroughViewCue("Camera " + FormatPlace(temp:GetX(), temp:GetY(), temp:GetZ()), undefined)
             end
         end
     end
@@ -10858,15 +11103,10 @@ The ring is one of the editor's own items: it isn't saved,
         if IsCameraMoving() = false
             if GetSelectedLayer() is EditorLayer2D
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 1)
-                number y = math:Round(temp:GetY(), 1)
-                NotifyAccessibility(me, "Camera " + x + ", " + y)
+                NotifyAccessibility(me, "Camera " + FormatPlace(temp:GetX(), temp:GetY()))
             else
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 2)
-                number y = math:Round(temp:GetY(), 2)
-                number z = math:Round(temp:GetZ(), 2)
-                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+                SayThroughViewCue("Camera " + FormatPlace(temp:GetX(), temp:GetY(), temp:GetZ()), undefined)
             end
         end
     end
@@ -10881,15 +11121,10 @@ The ring is one of the editor's own items: it isn't saved,
         if IsCameraMoving() = false
             if GetSelectedLayer() is EditorLayer2D
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 1)
-                number y = math:Round(temp:GetY(), 1)
-                NotifyAccessibility(me, "Camera " + x + ", " + y)
+                NotifyAccessibility(me, "Camera " + FormatPlace(temp:GetX(), temp:GetY()))
             else
                 Vector3 temp = GetSelectedLayer():GetCamera():GetPosition()
-                number x = math:Round(temp:GetX(), 2)
-                number y = math:Round(temp:GetY(), 2)
-                number z = math:Round(temp:GetZ(), 2)
-                NotifyAccessibility(me, "Camera " + x + ", " + y + ", " + z)
+                SayThroughViewCue("Camera " + FormatPlace(temp:GetX(), temp:GetY(), temp:GetZ()), undefined)
             end
         end
     end
@@ -10950,7 +11185,7 @@ The ring is one of the editor's own items: it isn't saved,
         EditorCursor cursor = GetCursor()
         if cursor is EditorCursor2D
             EditorCursor2D cursor2D = cast(EditorCursor2D, cursor)
-            text position = cast(integer, item:GetGlobalX()) + " " + cast(integer, item:GetGlobalY())
+            text position = FormatPlace(item:GetGlobalX(), item:GetGlobalY())
             Array<Item> items = cursor2D:GetItemsAtCursor()
             if items:GetSize() = 0
                 return position
@@ -10979,28 +11214,7 @@ The ring is one of the editor's own items: it isn't saved,
             end
         else
             EditorCursor3D cursor3D = cast(EditorCursor3D, cursor)
-            text position = ""
-            if cursor:GetGlobalX() = cast(integer, cursor:GetGlobalX())
-                position = position + cast(integer, cursor:GetGlobalX())
-            else
-                position = position + cursor:GetGlobalX()
-            end
-
-            position = position + " "
-
-            if cursor:GetGlobalY() = cast(integer, cursor:GetGlobalY())
-                position = position + cast(integer, cursor:GetGlobalY())
-            else
-                position = position + cursor:GetGlobalY()
-            end
-
-            position = position + " "
-
-            if cursor:GetGlobalZ() = cast(integer, cursor:GetGlobalZ())
-                position = position + cast(integer, cursor:GetGlobalZ())
-            else
-                position = position + cursor:GetGlobalZ()
-            end
+            text position = FormatPlace(cursor:GetGlobalX(), cursor:GetGlobalY(), cursor:GetGlobalZ())
 
             Array<Item> items = cursor3D:GetItemsAtCursor()
             if items:GetSize() = 0
@@ -11029,19 +11243,16 @@ The ring is one of the editor's own items: it isn't saved,
                 return names + (items:GetSize() - 1) + " items, " + position
             end
         end
-        return item:GetGlobalX() + " " + item:GetGlobalY()
+        return FormatPlace(item:GetGlobalX(), item:GetGlobalY())
     end
 
     action SetSelectionXDirection(integer direction)
+        if direction not= 0 and not IsSelectionMoving()
+            RememberSupport()
+        end
         selectionXDirection = direction
-
-        // The terrain cursor isn't spoken: its description is read as the
-        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
-                EditorItem focus = cast(EditorItem, manager:GetFocus())
-                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
-            end
+            AnnounceSelectionStopped()
         end
     end
 
@@ -11050,15 +11261,12 @@ The ring is one of the editor's own items: it isn't saved,
     end
 
     action SetSelectionYDirection(integer direction)
+        if direction not= 0 and not IsSelectionMoving()
+            RememberSupport()
+        end
         selectionYDirection = direction
-
-        // The terrain cursor isn't spoken: its description is read as the
-        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
-                EditorItem focus = cast(EditorItem, manager:GetFocus())
-                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
-            end
+            AnnounceSelectionStopped()
         end
     end
 
@@ -11067,20 +11275,131 @@ The ring is one of the editor's own items: it isn't saved,
     end
 
     action SetSelectionZDirection(integer direction)
+        if direction not= 0 and not IsSelectionMoving()
+            RememberSupport()
+        end
         selectionZDirection = direction
-
-        // The terrain cursor isn't spoken: its description is read as the
-        // terrain's value when it changes.
         if direction = 0
-            if manager:GetFocus() is EditorItem and not (manager:GetFocus() is TerrainSelectionHighlight)
-                EditorItem focus = cast(EditorItem, manager:GetFocus())
-                NotifyAccessibility(focus, GetDescriptionAtItemPosition(focus))
-            end
+            AnnounceSelectionStopped()
         end
     end
 
     action GetSelectionZDirection returns integer
         return selectionZDirection
+    end
+
+    /*
+    Says where the focused item, or a terrain's cursor, ended up once the
+    last arrow key is up: the focus moves to a view cue named with it, as
+    after a camera move, so the screen reader reads it. A 2D item is
+    announced as before.
+    */
+    private action AnnounceSelectionStopped
+        if IsSelectionMoving()
+            return now
+        end
+        Item focus = GetKeyFocus()
+        if focus is TerrainSelectionHighlight
+            TerrainSelectionHighlight highlight = cast(TerrainSelectionHighlight, focus)
+            // The cursor's reading, such as "13 x, 40 z. 18 high, grass,
+            // hillside", outlined on its ring.
+            text reading = highlight:GetAccessibilityCursor()
+            if reading = ""
+                reading = highlight:GetDescription()
+            end
+            ShowViewCue(reading, highlight)
+        elseif focus is EditorItem3D
+            EditorItem3D item3D = cast(EditorItem3D, focus)
+            EditorModel moved = GetMovedModel(item3D)
+            if moved not= undefined and GetSelectedLayer() is EditorLayer3D
+                // The way it moved, where it is, then where it rests:
+                // "North-east. 41.8, 0.8, -7. Candle, on Table, near the north-east corner."
+                EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+                Vector3 position = moved:GetGlobalPosition()
+                text message = FormatPlace(position:GetX(), position:GetY(), position:GetZ()) + ". " + placement:Describe(me, layer, moved, supportAtMoveStart)
+                text way = placement:DescribeMove(positionAtMoveStart, position)
+                if way not= ""
+                    message = way + ". " + message
+                end
+                ShowViewCue(message, item3D)
+            else
+                ShowViewCue(GetDescriptionAtItemPosition(item3D), item3D)
+            end
+        elseif focus is EditorItem
+            EditorItem item = cast(EditorItem, focus)
+            NotifyAccessibility(item, GetDescriptionAtItemPosition(item))
+        end
+    end
+
+    /*
+    This action returns the item the keys act on: the item with the focus,
+    or, while a view cue has the focus, the item it came from, so the arrow
+    keys keep moving it without the focus going back to it.
+
+    Attribute: Returns The item, or undefined
+    */
+    action GetKeyFocus returns Item
+        Item focus = manager:GetFocus()
+        if focus is SceneViewCue
+            SceneViewCue cue = cast(SceneViewCue, focus)
+            return cue:GetReturnItem()
+        end
+        return focus
+    end
+
+    /*
+    Returns true if the keys act on the scene editor itself (its 3D or 2D
+    cursor): it has the focus, or a view cue that came from it does.
+    */
+    private action KeysActOnEditor returns boolean
+        if IsFocused()
+            return true
+        end
+        Item keyFocus = GetKeyFocus()
+        return keyFocus not= undefined and keyFocus:Equals(me)
+    end
+
+    /*
+    Returns the item a focused highlight or preview moves: a selection's
+    item, or a new item's preview itself, as DropOnGround finds it, or
+    undefined for anything else (the scene cursor, a terrain).
+    */
+    private action GetMovedModel(EditorItem3D focus) returns EditorModel
+        if focus is TerrainSelectionHighlight
+            return undefined
+        end
+        if focus is SelectionHighlight3D
+            SelectionHighlight3D highlight = cast(SelectionHighlight3D, focus)
+            Item selected = highlight:GetItem()
+            if selected is EditorModel
+                return cast(EditorModel, selected)
+            end
+            return undefined
+        end
+        if focus is ItemPreview3D
+            return cast(EditorModel, focus)
+        end
+        return undefined
+    end
+
+    /*
+    Remembers what the item the keys move is on, as a move starts, so the
+    sentence when it stops can say "now on" or "now off".
+    */
+    private action RememberSupport
+        supportAtMoveStart = undefined
+        Item focus = GetKeyFocus()
+        if not (focus is EditorItem3D) or not (GetSelectedLayer() is EditorLayer3D)
+            return now
+        end
+        EditorModel moved = GetMovedModel(cast(EditorItem3D, focus))
+        if moved = undefined
+            return now
+        end
+        EditorLayer3D layer = cast(EditorLayer3D, GetSelectedLayer())
+        placement:FindSupport(me, layer, moved, placement:GetWorldBox(moved))
+        supportAtMoveStart = placement:GetSupport()
+        positionAtMoveStart:Set(moved:GetGlobalPosition())
     end
 
     action IsSelectionMoving returns boolean
@@ -11091,10 +11410,10 @@ The ring is one of the editor's own items: it isn't saved,
         selectionYawDirection = direction
 
         if direction = 0
-            if manager:GetFocus() is EditorItem3D
-                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+            if GetKeyFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, GetKeyFocus())
                 number yaw = math:Round(focus:GetYaw(), 1)
-                NotifyAccessibility(focus, "yaw " + yaw)
+                SayThroughViewCue(focus:GetName() + ", yaw " + yaw, focus)
             end
         end
     end
@@ -11107,10 +11426,10 @@ The ring is one of the editor's own items: it isn't saved,
         selectionPitchDirection = direction
 
         if direction = 0
-            if manager:GetFocus() is EditorItem3D
-                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+            if GetKeyFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, GetKeyFocus())
                 number pitch = math:Round(focus:GetPitch(), 1)
-                NotifyAccessibility(focus, "pitch " + pitch)
+                SayThroughViewCue(focus:GetName() + ", pitch " + pitch, focus)
             end
         end
     end
@@ -11123,12 +11442,12 @@ The ring is one of the editor's own items: it isn't saved,
         selectionRollDirection = direction
 
         if direction = 0
-            if manager:GetFocus() is EditorItem3D
-                EditorItem3D focus = cast(EditorItem3D, manager:GetFocus())
+            if GetKeyFocus() is EditorItem3D
+                EditorItem3D focus = cast(EditorItem3D, GetKeyFocus())
                 number roll = math:Round(focus:GetRoll(), 1)
-                NotifyAccessibility(focus, "roll " + roll)
-            elseif manager:GetFocus() is EditorItem2D
-                EditorItem2D focus = cast(EditorItem2D, manager:GetFocus())
+                SayThroughViewCue(focus:GetName() + ", roll " + roll, focus)
+            elseif GetKeyFocus() is EditorItem2D
+                EditorItem2D focus = cast(EditorItem2D, GetKeyFocus())
                 number rotation = math:Round(focus:GetRotation(), 1)
                 NotifyAccessibility(focus, rotation + " degrees")
             end
